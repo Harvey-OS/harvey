@@ -1,0 +1,14 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libip.a
+OFILES = eipconv.$O\
+	parseip.$O\
+	parseether.$O\
+	myipaddr.$O\
+	myetheraddr.$O\
+	classmask.$O\
+	equivip.$O\
+
+HFILES=/sys/include/ip.h
+
+</sys/src/cmd/mksyslib

@@ -1,0 +1,148 @@
+.TH PROC 3 
+.SH NAME
+proc \- running processes
+.SH SYNOPSIS
+.nf
+.B bind #p /proc
+
+.BI /proc/ n /ctl
+.BI /proc/ n /mem
+.BI /proc/ n /note
+.BI /proc/ n /notepg
+.BI /proc/ n /proc
+.BI /proc/ n /segment
+.BI /proc/ n /status
+.BI /proc/ n /text
+\&...
+.fi
+.SH DESCRIPTION
+The
+.I proc
+device serves a two-level directory structure.
+The first level contains numbered directories
+corresponding to pids of live processes;
+each such directory contains a set of files
+representing the corresponding process.
+.PP
+The
+.B mem
+file contains the current memory image of the process.
+A read or write at offset
+.I o,
+which must be a valid virtual address,
+accesses bytes from address
+.IR o
+up to the end of the memory segment containing
+.I o.
+Kernel virtual memory, including the kernel stack for the process and
+saved user registers (whose addresses are machine-dependent),
+can be accessed through
+.BR mem .
+Writes are permitted only while the process is in the
+.B Stopped
+state and only to user addresses or registers.
+.PP
+The read-only
+.B proc
+file contains the kernel per-process
+structure.
+Its main use is to recover the kernel stack and program counter
+for kernel debugging.
+.PP
+The read-only
+.B status
+file contains a string with eight fields, each followed by a space.
+The fields are: the process name and user name, each 27 characters left justified;
+the process state, 11 characters left justified;
+the six 11-character numbers also held in the process's
+.B #c/cputime
+file,
+and the amount of memory used by the process, except its stack,
+in units of 1024 bytes.
+.PP
+The
+.B text
+file is a pseudonym for the file
+from which the process was executed;
+its main use is to recover the symbol table of the process.
+.PP
+Textual messages written to the
+.B ctl
+file control the execution of the process.
+Some presume that the process is in a particular state
+and return an error if it is not.
+.TP 10n
+.B stop
+Suspend execution of the process, putting it in the
+.B Stopped
+state.
+.TP 10n
+.B start
+Resume execution of a
+.B Stopped
+process.
+.TP 10n
+.B waitstop
+Do not affect the process directly but, like all other messages ending with
+.BR stop ,
+block the process writing the
+.B ctl
+file until the target process is in the
+.B Stopped
+state or exits.
+Also like other
+.B stop
+control messages,
+if the target process would receive a note while the message is pending,
+it is instead stopped and the debugging process is resumed.
+.TP 10n
+.B startstop
+Allow a
+.B Stopped
+process to resume, and then do a
+.B waitstop
+action.
+.TP 10n
+.B hang
+Set a bit in the process so that,
+when it completes an
+.IR exec (2)
+system call, it will enter the
+.B Stopped
+state before returning to user mode.
+This bit is inherited across a
+.IR fork (2).
+.TP 10n
+.B kill
+Kill the process with extreme prejudice.
+.PP
+Strings written to the
+.B note
+file will be posted as a note to the process
+(see
+.IR notify (2)).
+The note should be less than
+.L ERRLEN-1
+characters long;
+the last character is reserved for a terminating NUL character.
+A read of at least
+.L ERRLEN
+characters will retrieve the oldest note posted to the
+process and prevent its delivery to the process.
+The
+.B notepg
+file is similar, but the note will be delivered to all the
+processes in the target process's
+.I note group
+(see
+.IR fork (2)).
+The
+.B notepg
+file is write-only.
+.SH FILES
+.nf
+.B /sys/src/9/*/mem.h
+.B /sys/src/9/*/dat.h
+.fi
+.SH SEE ALSO
+.IR cons (3)

@@ -1,0 +1,34 @@
+APE=/sys/src/ape
+< $APE/config
+L=/$objtype/lib/ape/libv.a
+CFLAGS=$CFLAGS -I.
+BUILTINS=
+
+NAMES=U=ftw getopt getpass tty rand nrand getfields min max error \
+	nap popen telldir lstat
+OBJ=U=${NAMES:%=$L(%.$O)}
+
+install:VQ:	$L
+	echo done $L
+
+compile:V:	$L
+test:VQ:
+	echo libv has no test
+clean:V:
+	rm -f *.[$OS]
+
+nuke:V:		clean
+	rm -f $L
+
+$L:	$OBJ
+	names=`{membername $newprereq}
+	$AR rv $L $names && rm -f $names
+	$RANLIB $L
+
+$L(%.$O):N:	%.$O
+
+%.$O:	%.c
+	$CC $CFLAGS -c $stem.c
+
+%.$O:	$FAMILY/%.c
+	$CC $CFLAGS -c $prereq

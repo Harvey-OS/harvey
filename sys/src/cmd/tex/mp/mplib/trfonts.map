@@ -1,0 +1,48 @@
+AB	AvantGarde-Demi			Avantd
+AI	AvantGarde-BookOblique		Avanti
+AR	AvantGarde-Book			Avant
+AX	AvantGarde-DemiOblique		Avantdi
+B	Times-Bold			Timesb
+BI	Times-BoldItalic		Timesbi
+CB	Courier-Bold			Courb
+CI	Courier-Oblique			Couri
+CO	Courier				Cour
+CW	Courier				Cour
+CX	Courier-BoldOblique		Courbi
+CaslonI	CaslonFiveForty-Italic
+CaslonR	CaslonFiveForty-Roman
+GR	Symbol				Symbol
+H	Helvetica			Helv
+HB	Helvetica-Bold			Helvb
+HI	Helvetica-Oblique		Helvi
+HX	Helvetica-BoldOblique		Helvbi
+Hb	Helvetica-Narrow-Bold		Helvcb
+Hi	Helvetica-Narrow-Oblique	Helbci
+Hr	Helvetica-Narrow		Helvc
+Hx	Helvetica-Narrow-BoldOblique	Helvcbi
+I	Times-Italic			Timesi
+KB	Bookman-Demi			Bookd
+KI	Bookman-LightItalic		Bookli
+KR	Bookman-Light			Bookl
+KX	Bookman-DemiItalic		Bookdi
+MU	Sonata
+NB	NewCenturySchlbk-Bold		Centb
+NI	NewCenturySchlbk-Italic		Centi
+NR	NewCenturySchlbk-Roman		Cent
+NX	NewCenturySchlbk-BoldItalic	Centbi
+PA	Palatino-Roman			Pal
+PB	Palatino-Bold			Palb
+PI	Palatino-Italic			Pali
+PX	Palatino-BoldItalic		Palbi
+R	Times-Roman			Times
+S	Symbol				Symbol
+S1	Times-Roman			Times
+Sonata	Sonata
+UnivMath1	Universal-MathOne	M1
+UnivMath2	Universal-MathTwo	M2
+UnivMath3	Universal-MathThree	M3
+UnivMath4	Universal-MathFour	M4
+UnivMath5	Universal-MathFive	M5
+UnivMath6	Universal-MathSix	M6
+ZD	ZapfDingbats			Dingbats
+ZI	ZapfChancery-MediumItalic	Chanc

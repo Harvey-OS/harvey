@@ -1,0 +1,18 @@
+.TH FLOPPY 3 
+.SH NAME
+floppy \- floppy disk interface
+.SH SYNOPSIS
+.nf
+.B bind #f /dev
+
+.B /dev/fd0disk
+.B /dev/fd1disk
+.B /dev/fd2disk
+.B /dev/fd3disk
+.fi
+.SH DESCRIPTION
+.PP
+The floppy disk interface serves a one-level directory giving access to up
+to four floppy disk drives.
+Each drive is represented as a single file.
+There are no partitions.

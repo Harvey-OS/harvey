@@ -1,0 +1,35 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=rework
+OFILES=main.$O\
+	pintab.$O\
+	wire.$O\
+	net.$O\
+	eqelim.$O\
+	diff.$O\
+	dumbdiff.$O\
+	order.$O\
+	quickdiff.$O\
+	strdup.$O\
+
+HFILES=rework.h\
+
+CC=c++/$CC
+LD=c++/$LD
+</sys/src/cmd/mkone
+CFLAGS=-D_RESEARCH_SOURCE -DPLAN9
+
+pp:
+	smallpr *.h *.c
+
+$O.out:	$OFILES $LIB
+	$LD -o $target $prereq -lv
+
+test:Q:	rework
+	rework -d -q k?
+	echo UN; cat UN.wr; echo RE; cat RE.wr
+
+%.test:Q: rework
+	cd regression
+	mk $stem.test

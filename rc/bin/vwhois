@@ -1,0 +1,4 @@
+#!/bin/rc
+for (i in $*){
+	echo vwhois: vwhois: vwhois: delivered `{cat /dev/user} From $i '(vwho)' >> /sys/log/mail
+}

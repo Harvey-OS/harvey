@@ -1,0 +1,69 @@
+.TH SNOOPY 8
+.SH NAME
+snoopy \- spy on Ethernet packets
+.SH SYNOPSIS
+.B snoopy
+[
+.B \-abeiltup9
+][
+.B \-np
+]
+.SH DESCRIPTION
+.I Snoopy
+displays the header and first 20 data bytes of packets received from
+the local Ethernet.
+The packets displayed depend on the options chosen.
+The following options each select packets from a
+particular protocol.
+If more than one flag is given, packets from all those
+protocols are displayed.
+.TP
+.B a
+ARP
+.TP
+.B b
+BOOTP
+.TP
+.B e
+all Ethernet packets
+.TP
+.B i
+IP
+.TP
+.B l
+IL
+.TP
+.B t
+TCP
+.TP
+.B u
+UDP
+.PP
+By default all addresses are translated into system names.
+The option
+.B n
+suppresses this.
+.PP
+.I Snoopy
+runs in promiscuous mode by default, displaying all packets
+it can capture from the Ethernet.
+The option
+.B p
+causes only packets sent to or from the system
+.I snoopy
+is running on to be displayed.
+.PP
+Option
+.B 9
+causes the data of TCP and IL messages to be interpreted and displayed as
+9P messages.
+.SH FILES
+.TP
+.B /net/ether
+Ethernet device
+.SH BUGS
+.PP
+The CPU servers do not take well to running in promiscuous mode.
+If run on them, 
+.I snoopy
+may kill their Ethernets.

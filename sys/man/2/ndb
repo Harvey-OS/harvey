@@ -1,0 +1,218 @@
+.TH NDB 2X
+.SH NAME
+ndbopen, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetval, ndbfree, ipattr, ipinfo, ndbhash, ndbseek, ndbparse \- network database
+.SH SYNOPSIS
+.B #include <bio.h>
+.br
+.B #include <ndb.h>
+.ta \w'\fLNdbtuplexx 'u
+.PP
+.B
+Ndb*	ndbopen(char *file);
+.PP
+.B
+int	ndbreopen(Ndb *db);
+.PP
+.B
+void	ndbclose(Ndb *db);
+.PP
+.B
+Ndbtuple*	ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val);
+.PP
+.B
+Ndbtuple*	ndbsnext(Ndbs *s, char *attr, char *val);
+.PP
+.B
+Ndbtuple*	ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val,
+.br
+.B
+		char *rattr, char *buf);
+.PP
+.B
+void	ndbfree(Ndbtuple *db);
+.PP
+.B
+char*	ipattr(char *name);
+.PP
+.B
+int	ipinfo(Ndb *db, char *ether, char *ip, char *name,
+.br
+.B		Ipinfo *iip);
+.PP
+.B
+ulong	ndbhash(char *val, int hlen);
+.PP
+.B
+long	ndbseek(Ndb *db, long off, int whence);
+.PP
+.B
+Ndbtuple*	ndbparse(Ndb *db);
+.SH DESCRIPTION
+These routines are used by network administrative programs to search
+the network database.
+They operate on the database files described in
+.IR ndb (6).
+.PP
+.I Ndbopen
+opens the database
+.I file
+and calls
+.IR malloc (2)
+to allocate a buffer for it.
+If
+.I file
+is zero, all network database files are opened.
+.PP
+.I Ndbreopen
+checks if the database files associated with
+.I db
+have changed and if so throws out any cached information and reopens
+the files.
+.PP
+.I Ndbclose
+closes any database files associated with
+.I db
+and frees all storage associated with them.
+.PP
+.I Ndbsearch
+and
+.I ndbsnext
+search a database for an entry containing the
+attribute/value pair,
+.IR attr=val .
+.I Ndbsearch
+is used to find the first match and
+.I ndbsnext
+is used to find each successive match.
+On a successful search both return a linked list of
+.I Ndbtuple
+structures acquired by
+.IR malloc (2)
+that represent the attribute/value pairs in the
+entry.
+On failure they return zero.
+.IP
+.EX
+typedef struct Ndbtuple Ndbtuple;
+struct Ndbtuple {
+        char      attr[Ndbalen];
+        char      val[Ndbvlen];
+        Ndbtuple  *entry;
+        Ndbtuple  *line;
+};
+.EE
+.LP
+The
+.I entry
+pointers chain together all pairs in the entry in a null
+terminated list.
+The
+.I line
+pointers chain together all pairs on the same line
+in a circular list.
+Thus, a program can implement 2 levels of binding for
+pairs in an entry.
+In general, pairs on the same line are bound tighter
+than pairs on different lines.
+.PP
+The structure
+.I Ndbs
+is used to link successive searches.
+.IP
+.EX
+typedef struct Ndbs Ndbs;
+struct Ndbs {
+        Ndb      *db;   /* data base file being searched */
+        ...
+        Ndbtuple *t;    /* last attribute value pair found */
+};
+.EE
+.LP
+The
+.I t
+field points to the pair within the entry matched by the
+.I ndbsearch
+or
+.IR ndbsnext .
+.PP
+.I Ndbgetval
+searches the database for an entry containing not only an
+attribute/value pair,
+.IR attr=val ,
+but also a pair with the attribute
+.IR rattr .
+If successful, it copies the value associated with
+.I rattr
+into
+.I buf.
+.I Buf
+must point to an area at least
+.I Ndbvlen
+long.
+.PP
+.I Ndbfree
+frees a list of tuples returned by one of the other
+routines.
+.PP
+.I Ipattr
+takes the name of an IP system and returns the attribute
+it corresponds to:
+.TP
+.B dom
+domain name
+.TP
+.B ip
+Internet number
+.TP
+.B sys
+system name
+.PP
+.I Ipinfo
+searches the database for Internet Protocol information about a
+system and returns it in the structure addressed by
+.IR iip.
+The arguments
+.I ether
+(textual Ethernet address),
+.I ip
+(textual IP address), and
+.I name
+identify the system.
+At least one must be non-zero.
+.I Ipinfo
+returns 0 if successful, \-1 otherwise.
+Both
+.IR bootp (8)
+and
+.IR ipconfig (8)
+use
+.I ipinfo
+to search the database.
+.PP
+The last three calls are used by programs that create the
+hash tables and database files.
+.I Ndbhash
+computes a hash offset into a table of length
+.I hlen
+for the string
+.IR val .
+.I Ndbseek
+causes a subsequent read, write, or 
+.I ndbparse
+of the database file to start
+at the position specified by the last two arguments.
+These arguments have the same meaning as the last two arguments of
+.IR seek (2).
+.I Ndbseek
+returns a negative number on error.
+.I Ndbparse
+reads and parses the next entry from the database file.
+Multiple
+.IR ndbparse 's
+without intervening 
+.IR ndbseek 's
+parse sequential entries in the database file.
+A zero is returned at end of file.
+.SH SEE ALSO
+.IR ndb (6)
+.IR ndb (8)

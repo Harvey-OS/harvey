@@ -1,0 +1,33 @@
+.TH PWD 1
+.SH NAME
+pwd, pbd \- working directory
+.SH SYNOPSIS
+.B pwd
+.br
+.B pbd
+.SH DESCRIPTION
+.I Pwd
+prints the path name of the working (current) directory. Pwd
+does not guarantee to return the same path that was used to
+enter the directory. The returned path may be another route
+through the name space to the same working directory. This behavior
+will arise when a combination of mounts or binds produces a 
+graph in the file tree.
+.PP
+.I Pbd
+prints the base name of the working (current) directory.
+It prints no final newline and is intended for applications
+such as constructing shell prompts.
+.SH SEE ALSO
+.I cd
+in
+.IR rc (1),
+.IR bind (1),
+.IR getwd (2)
+.SH BUGS
+A kernel bug sometimes prevents
+.B pbd
+from working when the current directory is a device, in which
+case
+.I pbd
+returns `.'.

@@ -1,0 +1,4 @@
+TEXT _ERRSTR(SB), $0
+MOVL $1, AX
+INT $64
+RET

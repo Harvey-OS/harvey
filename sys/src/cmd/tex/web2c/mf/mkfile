@@ -1,0 +1,129 @@
+# This file makes Metafont in its various incarnations.
+#
+
+APE=/sys/src/ape
+< $APE/config
+SITEDIR=..
+OPT=-B
+CFLAGS=$OPT -I$SITEDIR -c
+LDFLAGS=
+SHELL=/bin/rc
+
+wlibs=-lXt -lX11
+#windowlib=MFwindow/window.a
+windowlib=
+#libs=$windowlib $wlibs
+libs=
+
+OFILES=mf0.$O\
+	mf1.$O\
+	mf2.$O\
+	mf3.$O\
+	mf4.$O\
+	mf5.$O\
+	mf6.$O\
+	mf7.$O\
+	mf8.$O\
+	mf9.$O\
+	ini.$O\
+
+CFILES=${OFILES:%.$O=%.c}
+
+IOBJS=iextra.$O\
+	inimf.$O\
+
+VOBJS=extra.$O\
+	imf.$O\
+
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+
+all:V:		$O.inimf $O.virmf
+
+triptrap:V:	$O.trapmf
+
+$O.inimf:	$IOBJS $OFILES $windowlib
+		$LD $LDFLAGS -o $target $IOBJS $OFILES $libs
+
+$O.virmf:	$VOBJS $OFILES $windowlib
+		$LD $LDFLAGS -o $target $VOBJS $OFILES $libs
+
+run-triptrap:VE:
+		objtype=$cputype mk triptrap
+		cp MFtrap/trap.mf .
+		$cpuobjtype.trapmf < MFtrap/trap1.in
+		diff MFtrap/trapin.log trap.log
+		$cpuobjtype.trapmf < MFtrap/trap2.in > trap.fot
+		diff MFtrap/trap.log trap.log
+		diff MFtrap/trap.fot trap.fot
+		../texware/$cpuobjtype.tftopl trap.tfm trap.pl
+		diff MFtrap/trap.pl trap.pl
+		../mfware/$cpuobjtype.gftype -m -i trap.72270gf > trap.typ
+		diff MFtrap/trap.typ trap.typ
+
+# The `ini_to_trap' script changes mfd.h, instead of cmf.ch, so
+# retangling is not necessary.  After changing constants, making a
+# trapmf means making an inimf.  We don't actually have to make the
+# window library when making a trapmf, but it shouldn't hurt.
+# 
+$O.trapmf:	stamp-trap $O.inimf
+		mv $O.inimf $target
+
+stamp-trap:	stamp-convert
+		rm -f *.$O
+		$SHELL ./ini_to_trap mfd.h
+		touch stamp-trap
+
+# tangle produces mf.p and mf.pool.
+# 
+mf.p:		mf.web cmf.ch ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle mf.web cmf.ch > /dev/null
+
+# The convert script produces mf[0-9].c, imf.c, coerce.h, and mfd.h.
+# The (hand-coded) memory.h is included in the mf?.c files; it isn't
+# really necessary to `convert' again if it changes, only to recompile
+# that file, but describing that relationship is ugly to do.
+# (Furthermore, memory.h is stable.)
+# 
+$CFILES imf.c mfd.h:	stamp-convert
+		touch stamp-convert
+ 
+stamp-convert:	mf.p memory.h fixcoerce.h mf.defines
+		$SHELL ./convert
+
+# The (hand-coded) file extra.c and the (generated) file imf.c have
+# #ifdefs on INIMF, so we have to compile them with -DINIMF for inimf and
+# trapmf.
+# 
+iextra.$O:	extra.c mfd.h
+		$CC $CFLAGS -DINIMF extra.c && mv extra.$O $target
+
+inimf.$O:	imf.c
+		$CC $CFLAGS -DINIMF imf.c && mv imf.$O $target
+
+extra.$O:	mfd.h
+
+%.$O:		%.c mf.h
+		$CC $CFLAGS $stem.c
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f stamp-* *.[$OS] [$OS].virmf [$OS].inimf
+		rm -f mfd.h coerce.h *.log
+		rm -f trap.*
+		cd MFwindow; mk clean
+
+nuke:V:
+		mk clean
+		rm -f mf?.c imf.c mf.p mf.pool *.base mfput.*
+		rm -f '#'*'#' *~ *.bak
+		cd MFwindow; mk nuke
+

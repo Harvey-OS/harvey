@@ -1,0 +1,11 @@
+#!/bin/rc
+eval `{help/parse -c}
+
+fn src{
+grep -n '(^[^ 	]+ [^ 	a-zA-Z_0-9]*('$id')\(.*{)|^('$id')\(' $1/*.c /dev/null
+}
+
+for(i in $dir $* /sys/src/libc/* /sys/src/lib*){
+	if(src $i >[2]/dev/null)
+		exit
+}

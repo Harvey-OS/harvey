@@ -1,0 +1,11 @@
+BUILTINS=
+</$objtype/mkfile
+
+$O.out:	huff.$O
+	$LD huff.$O
+
+%.$O:	%.c
+	$CC -w $stem.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out huff

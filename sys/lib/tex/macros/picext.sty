@@ -1,0 +1,105 @@
+% \t@milli\acount\adimen converts \adimen to milli-inches
+% and assigns that value to \acount (destroys \adimen)
+\def\t@milli#1#2{\divide#2 by 4735 #1=#2}
+\def\includepicture#1(#2,#3){%
+	\begin{picture}(#2,#3)%
+		\put(0,#3){\special{include .625i 1i #1.t}}%
+	\end{picture}}
+\let\pline@wd=\@wholewidth
+\newdimen\u@plw
+\def\setplinethickness#1{\@killglue\u@plw=#1\let\pline@wd\u@plw \ignorespaces}
+\newdimen\last@wd
+\def\set@wd{%
+	\t@milli\@xarg\pline@wd
+	\special{pn \the\@xarg}%
+	\global\last@wd\pline@wd}
+\def\check@wd{\ifdim\pline@wd=\last@wd \else \set@wd \fi}
+\def\fix@wd{\set@wd \let\fix@wd\check@wd}
+\def\pline(#1,#2){\@killglue\fix@wd
+	\@xdim#1\unitlength
+	\@ydim-#2\unitlength
+	\t@milli\@xarg\@xdim \t@milli\@yarg\@ydim
+	\special{pa \the\@xarg\space \the\@yarg}%
+	\@ifnextchar(\pline{\special{fp}\let\next\ignorespaces}}
+\def\ray(#1,#2){\@killglue\fix@wd\@xdim#1\unitlength \@ydim-#2\unitlength
+	\t@milli\@xarg\@xdim \t@milli\@yarg\@ydim
+	\special{pa 0 0}%
+	\special{pa \the\@xarg\space \the\@yarg}%
+	\special{fp}\ignorespaces}
+\def\pvector(#1,#2)(#3,#4){\pline(#1,#2)(#3,#4)\arrowhead(#1,#2)(#3,#4)%
+	\ignorespaces}
+% LaTeX's \circle calls \@circle or \@dot (for \circle*)
+\def\@circle#1{\fix@wd\@xdim=#1\unitlength \t@milli\@xarg\@xdim
+	\special{ar 0 0  \the\@xarg\space \the\@xarg\space 0 6.2832}%
+	\ignorespaces}
+\def\ellipse#1#2{\@killglue\fix@wd
+	\@xdim#1\unitlength
+	\@ydim#2\unitlength
+	\t@milli\@xarg\@xdim \t@milli\@yarg\@ydim
+	\special{ar 0 0  \the\@xarg\space \the\@yarg\space 0 6.2832}%
+	\ignorespaces}
+% arc#1#2#3: center at current, radius #1, start angle #2, end angle #3
+% angles in radians, arc is counterclockwise
+\def\arc#1#2#3{\@killglue\fix@wd
+	\@xdim=#1\unitlength \t@milli\@xarg\@xdim
+	\special{ar 0 0 \the\@xarg\space \the\@xarg\space -#3 -#2}\ignorespaces}
+\def\pspline(#1,#2){\@killglue\fix@wd
+	\@xdim#1\unitlength
+	\@ydim-#2\unitlength
+	\t@milli\@xarg\@xdim \t@milli\@yarg\@ydim
+	\special{pa \the\@xarg\space \the\@yarg}%
+	\@ifnextchar(\pspline{\special{sp}\let\next\ignorespaces}}
+\def\next{\newcount\@tempa \@tempa=}
+\newcount\@cbase
+\@cbase\allocationnumber \advance\@cbase1
+\next'55 \next'132 \next'121 \next'112 \next'123 \next'136 \next'62
+\next'77 \next'67 \next'56 \next'65 \next'76 \next'127 \next'62
+\next'33 \next'131 \next'111 \next'71 \next'113 \next'135 \next'51
+\next'77 \next'57 \next'55 \next'53 \next'75 \next'117 \next'51
+\newcount\@sbase
+\@sbase\allocationnumber \advance\@sbase1
+\next0 \next0 \next0
+\next1 \next1 \next1 \next1
+\next2 \next2 \next2
+\next3 \next3 \next3 \next3
+\next4 \next4 \next4
+\next5 \next5 \next5 \next5
+\next6 \next6 \next6 \next6
+\let\vh@inc=\z@
+\chardef\v@inc='11
+\def\v@loc{t}
+\def\h@loc{r}
+\newcount\arr@ch \arr@ch=-\@xxxii
+\def\arrowhead(#1,#2)(#3,#4){{%
+	\@xdim#3\unitlength \advance\@xdim-#1\unitlength
+	\@ydim#4\unitlength \advance\@ydim-#2\unitlength
+	\ifdim\@ydim<\z@
+		\@ydim-\@ydim
+		\arr@ch-\arr@ch
+		\def\v@loc{b}%
+		\let\v@inc\z@
+	\fi
+	\ifdim\@xdim<\z@
+		\@xdim-\@xdim
+		\arr@ch-\arr@ch
+		\advance\@cbase14
+		\def\h@loc{l}%
+	\fi
+	\ifdim\@ydim>\@xdim
+		\dimen@\@ydim \@ydim\@xdim \@xdim\dimen@
+		\advance\@cbase7
+		\let\vh@inc=\v@inc
+		\def\@tempa{\def\h@loc{l}}%
+	\else	\def\@tempa{\def\v@loc{b}}%
+	\fi
+	\multiply\@ydim 24
+	\divide\@ydim \@xdim
+	\advance\@sbase \@ydim
+	\ifnum\count\@sbase=\z@
+		\arr@ch-\vh@inc \@tempa
+	\fi
+	\advance\@cbase \count\@sbase
+	\advance\arr@ch \count\@cbase
+	\edef\@tempa{(0,0)[\v@loc\h@loc]}%
+	\put(#3,#4){\expandafter\@imakepicbox\@tempa
+			{\@linefnt\char\number\arr@ch}}}}

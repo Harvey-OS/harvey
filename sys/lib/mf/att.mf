@@ -1,0 +1,145 @@
+% This file can be loaded after PLAIN.MF.
+% It introduces conventions that are commonly used at AT&T Bell Labs.
+base_version:=base_version&"/ATT";
+
+screen_rows:=400; screen_cols:=480;
+
+% Here are conventions for local output devices:
+
+mode_def canon =  % canon mode: for the Canon engine in a laserwriter
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=300;
+ blacker:=0;      % Canon engine is black enough
+ fillin:=.2;      % and it tends to fill in diagonals
+ o_correction:=.6;    %
+ enddef;
+
+mode_def qms =    % qms mode: for the QMS (Xerox engine)
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=300;
+ blacker:=.75;      % (this value is conjectural)
+ fillin:=0;      % (ditto)
+ o_correction:=.5;    % (ditto)
+ enddef;
+
+mode_def aps =    % aps mode: for the Autologic APS-Micro5
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=1;      % yes, show titles online
+ pixels_per_inch:=722.909;    % that's roughly 10 per pt
+ blacker:=.2;      % make pens a teeny bit blacker
+ fillin:=.2;      % but compensate for diagonal fillin
+ o_correction:=1;      % and keep the full overshoot
+ enddef;
+
+mode_def merg =    % merg
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;      % no, don't show titles online
+ pixels_per_inch:=972;    % that's roughly 10 per pt
+ blacker:=.2;      % make pens a teeny bit blacker
+ fillin:=.2;      % but compensate for diagonal fillin
+ o_correction:=1;      % and keep the full overshoot
+ enddef;
+
+
+mode_def crs =    % crs mode: for the Alphatype CRS
+  proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;      % no, don't show titles online
+ begingroup interim warningcheck:=0;  % (we need to go past 4096)
+  pixels_per_inch:=4000+4000/3 endgroup;  % HIGH res
+ blacker:=4;      % make pens a lot blacker
+ fillin:=0;      % but don't compensate for fillin
+ o_correction:=1;      % and keep the full overshoot
+ enddef;
+
+mode_def cg =    % cg mode: for the Compugraphic 8600
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=1;      % yes, show titles online
+ pixels_per_inch:=1301.5;    % a bit less than 20 per pt
+ blacker:=.2;      % make pens a teeny bit blacker
+ fillin:=.2;      % but compensate for diagonal fillin
+ o_correction:=1;      % and keep the full overshoot
+ aspect_ratio:=1569/1301.5;    % strange, no?
+ enddef;
+
+mode_def gnot =    % gnot mode: for 100dpi gnot fonts
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;    % yes, we are making a font
+ tracingtitles:=0; % no, don't show titles in the log
+ pixels_per_inch:=100; % really lowres
+ blacker:=0;       % don't make pens any blacker
+ fillin:=0;        % and don't compensate for fillin
+ o_correction:=.2; % supress most overshoots
+ enddef;
+
+mode_def varityper =  % imagen mode: for the Varityper VT600
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=600;
+ blacker:=.8;   % these numbers from Jon Forrest (laser-lovers)
+ fillin:=.2;
+ o_correction:=1.0;
+ enddef;
+
+mode_def lino = % mode for high-res postscript printer
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;      % no, don't show titles online
+ pixels_per_inch:=1270;
+ blacker:=.2;      % make pens a teeny bit blacker
+ fillin:=.2;      % but compensate for diagonal fillin
+ o_correction:=1;      % and keep the full overshoot
+ enddef;
+
+mode_def ricoh = % mode for offsite postscript printer
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;
+ pixels_per_inch:=300;
+ blacker:=0.8;
+ fillin:=1.3;
+ o_correction:=.6;
+ enddef;
+
+localfont:=canon;
+
+% Finally, here are macros for Xerox-world font info:
+% (Of course we don't need most of this here, but the
+% coding_scheme is used in figuring out the translation
+% into Troff font descriptions.)
+
+def font_family expr s =  % string s names the font family, e.g., "CMR"
+ headerbyte 49: BCPL_string(s,20);
+ special "identifier "&s enddef;
+def coding_scheme expr s = % string s names the scheme, e.g. "TEX TEXT"
+ headerbyte 9: BCPL_string(s,40);
+ special "codingscheme "&s enddef;
+def font_face_byte expr x = % integer x gives the family member number,
+ headerbyte 72: x;          % which should be between 0 and 255
+ special "fontfacebyte"; numspecial x enddef;
+
+def BCPL_string(expr s,n)= % string s becomes an n-byte BCPL string
+ for l:=if length(s)>=n: n-1 else: length(s) fi: l
+  for k:=1 upto l: , substring (k-1,k) of s endfor
+  for k:=l+2 upto n: , 0 endfor endfor enddef;
+
+Xerox_world:=1;    % users can say `if known Xerox_world:...fi'
+
+inner end;
+def bye=
+ if fontmaking>0: font_family font_identifier_;
+  coding_scheme font_coding_scheme_;
+  font_face_byte max(0,254-round 2designsize); fi
+ tracingstats:=1;  % at least for now we want this
+ end
+ enddef;
+
+outer bye,end;

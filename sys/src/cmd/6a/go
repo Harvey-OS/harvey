@@ -1,0 +1,5 @@
+6a main9.s
+6l -la main9.6 >x1
+v.out main9.s
+6l -la main9.6 >x2
+diff x1 x2

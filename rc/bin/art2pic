@@ -1,0 +1,101 @@
+#!/bin/rc
+awk '
+function fabs(a){ return a<0?-a:a; }
+function pldist(x, y, x0, y0, x1, y1,   xd, yd, xe, ye, dd, de, dsq){
+	xd=x1-x0; yd=y1-y0;
+	xe=x-x0;  ye=y-y0;
+	dd=xd*xd+yd*yd;
+	de=xd*xe+yd*ye;
+	if(dd<1e-10) return sqrt(xe*xe+ye*ye);
+	dsq=xe*xe+ye*ye-de*de/dd;
+	if(dsq<1e-10) return 0;
+	return sqrt(dsq);
+}
+function bezier(x0, y0, x1, y1, x2, y2, x3, y3){
+	if(pldist(x1, y1, x0, y0, x3, y3)<.005){
+		if(pldist(x2, y2, x0, y0, x3, y3)<.005){
+			printf("line from (%g,%g) to (%g,%g)\n", x0, y0, x3, y3);
+			return;
+		}
+	}
+	bezier(x0, y0, .5*(x0+x1), .5*(y0+y1), .25*(x0+2*x1+x2), .25*(y0+2*y1+y2),
+		.125*(x0+3*(x1+x2)+x3), .125*(y0+3*(y1+y2)+y3));
+	bezier(.125*(x0+3*(x1+x2)+x3), .125*(y0+3*(y1+y2)+y3),
+		 .25*(x1+2*x2+x3), .25*(y1+2*y2+y3), .5*(x2+x3), .5*(y2+y3), x3, y3);
+}
+BEGIN {
+	printf(".PS\n");
+}
+/^a/ {
+	p0x=($2+$4)/2.; p0y=($3+$5)/2.;
+	p1x=($2+$6)/2.; p1y=($3+$7)/2.;
+	d0x=$5-$3; d0y=$2-$4;
+	d1x=$7-$3; d1y=$2-$6;
+	den=d1x*d0y-d0x*d1y;
+	if(fabs(den)<1e-5) alpha=0
+	else alpha=((p1y-p0y)*d1x-(p1x-p0x)*d1y)/den;
+	x=p0x+alpha*d0x-$2; y=p0y+alpha*d0y-$3;
+	rad=sqrt(x*x+y*y);
+	printf("arc ");
+	if(($4-$2)*($5+$3)+($6-$4)*($7+$5)+($2-$6)*($3+$7)>=0) printf("cw");
+	else printf("ccw");
+	printf(" from (%g,%g) to (%g,%g) rad %g;\n", $2, $3, $6, $7, rad);
+}
+/^b/ {
+	printf("box wid %g ht %g at (%g,%g);\n", fabs($2-$4), fabs($3-$5), ($2+$4)/2, ($3+$5)/2);
+}
+/^c/ {
+	printf("circle at (%g,%g) rad %g;\n", $2, $3, $4);
+}
+/^G/ {
+	printf("define grp%s {[\n", $2);
+}
+/^;/ {
+	printf("]}\n");
+}
+/^g/{
+	printf("grp%s() with (0,0) at (%g,%g);\n", $2, $3, $4);
+}
+/^l/{
+	printf("line from (%g,%g) to (%g,%g);\n", $2, $3, $4, $5);
+}
+/^t/{
+	x=$2;
+	y=$3;
+	font=$4;
+	sub("t [^ ]* [^ ]* [^ ]* ", "");
+	printf("\"%s\" at (%g,%g);\n", $0, x, y);
+}
+/^s/{
+	ax=1; ay=2;
+	bx=3; by=4;
+	cx=5; cy=6;
+	dx=7; dy=8;
+	do{
+		if(ax<3){
+			x0=$bx; y0=$by;
+			x1=(2*$bx+$cx)/3; y1=(2*$by+$cy)/3;
+		}
+		else{
+			x0=($ax+2*$bx+$cx)/4; y0=($ay+2*$by+$cy)/4;
+			x1=($ax+6*$bx+5*$cx)/12; y1=($ay+6*$by+5*$cy)/12;
+		}
+		if(dx>NF-1){
+			x2=($bx+2*$cx)/3; y2=($by+2*$cy)/3;
+			x3=$cx; y3=$cy;
+		}
+		else{
+			x2=(5*$bx+6*$cx+$dx)/12; y2=(5*$by+6*$cy+$dy)/12;
+			x3=($bx+2*$cx+$dx)/4; y3=($by+2*$cy+$dy)/4;
+		}
+		bezier(x0, y0, x1, y1, x2, y2, x3, y3);
+		ax=bx; ay=by;
+		bx=cx; by=cy;
+		cx=dx; cy=dy;
+		dx+=2; dy+=2;
+	}while(by<NF);
+}
+END{
+	printf(".PE\n");
+}
+' $1

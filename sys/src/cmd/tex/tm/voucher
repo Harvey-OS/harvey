@@ -1,0 +1,17 @@
+# usage:  voucher voucher-filename [dvi|ps|print|printdoc|test|exp-test]
+# the voucher file should have the extension .tex but .tex should not
+# be included on command line.
+export DOC; DOC="$1"
+shift
+#   define VOUCHBIN if latex and dvips are not in PATH; example:
+#   export VOUCHBIN; VOUCHBIN=/usr/local/src/ctex/bin/
+#   (need the trailing "/")
+#
+#   PSPRINT is the command to print a PostScript file.
+#   If prt is not appropriate for your system define PSPRINT in your
+#   own environment and export it. 
+#   For prt you might want a destination "-d <printer>" in $HOME/.prt
+: ${PSPRINT="prt -l postscript -p landscape"} #making a default
+export PSPRINT
+make -f vouch.Makefile ${1+"$@"}
+

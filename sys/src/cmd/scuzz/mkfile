@@ -1,0 +1,9 @@
+</$objtype/mkfile
+
+TARG =	scuzz
+
+HFILES = scsireq.h
+OFILES = scuzz.$O scsireq.$O sense.$O
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

@@ -1,0 +1,1052 @@
+% Bugs (sigh) in Computers \& Typesetting
+
+\input manmac
+\font\sltt=cmsltt10
+\font\niness=cmss9
+\font\ninessi=cmssi9
+\proofmodefalse
+\raggedbottom
+\output{\hsize=29pc \onepageout{\unvbox255\kern-\dimen@ \vfil}}
+
+\def\today{\number\day\
+  \ifcase\month\or
+  Jan\or Feb\or Mar\or Apr\or May\or Jun\or
+  Jul\or Aug\or Sep\or Oct\or Nov\or Dec\fi
+  \ \number\year}
+
+\def\cutpar{{\parfillskip=0pt\par}}
+
+\def\rhead{Bugs in {\tensl Computers \& Typesetting, 1987--1988}}
+\def\bugonpage#1(#2) \par{\bigbreak\tenpoint
+  \hrule width\hsize
+  \line{\lower3.5pt\vbox to13pt{}Page #1\hfil(#2)}\hrule width\hsize
+  \nobreak\medskip}
+\def\buginvol#1(#2) \par{\bigbreak\penalty-1000\tenpoint
+  \hrule width\hsize
+  \line{\lower3.5pt\vbox to13pt{}Volume #1\hfil(#2)}\hrule width\hsize
+  \nobreak\medskip}
+\def\slMF{{\manual 89:;}\-{\manual <=>:}} % slant the logo
+\def\0{\raise.7ex\hbox{$\scriptstyle\#$}}
+\newcount\nn
+\newdimen\nsize \newdimen\msize \newdimen\ninept \ninept=9pt
+\newbox\eqbox \setbox\eqbox=\hbox{\kern2pt\eightrm=\kern2pt}
+
+\noindent This is a list of all corrections made to {\sl Computers \&
+Typesetting}, Volumes A--E\null, between
+16 June 1987 and 20 February 1989. Corrections made to
+the softcover version of {\sl The \TeX book} are the same as corrections to
+Volume~A\null. Corrections to the softcover version of {\sl The
+\slMF\kern1ptbook\/} are the same as corrections to Volume~C\null.
+Some of these corrections have already been made in reprintings
+of the books. Some of these corrections affect the indexes and
+mini-indexes of Volumes B~and~D in ways not shown here. Corrections
+made up to 15 June 1987 appear in other files.
+% volume A
+
+\bugonpage A159, line 22 (2/15/88)
+
+\ninepoint\noindent
+`|\nolimits|' if the normal |\displaylimits|
+convention has been overridden; a Rad\cutpar
+
+\bugonpage A213, lines 34--35 (12/23/87)
+
+\ninepoint\noindent
+text will be a single control sequence token, defined to be like |\relax| if
+its meaning is currently undefined.
+
+\bugonpage A299, line 30 (7/6/88)
+
+\ninepoint\indent\tt
+Fatal format file error; I'm stymied.
+
+\bugonpage A326, line 12 (12/12/87)
+
+\ninepoint\noindent
+its natural width. The |\hbox| version also invokes |\everymath|.
+
+\bugonpage A359, line 2 (11/6/88)
+
+\ninepoint\noindent
+|\mathchardef\ldotp="613A\mathchardef\cdotp="6201\mathchardef\colon="603A|
+
+\bugonpage A359, lines 35--38 (5/24/88)
+
+\ninepoint\noindent
+|\def\updownarrow{\delimiter"326C33F } \def\arrowvert{\delimiter"033C000 }|%
+ \par\noindent
+|\def\Updownarrow{\delimiter"326D377 } \def\Arrowvert{\delimiter"033D000 }  |%
+ \par\noindent
+|\def\vert{\delimiter"026A30C }        \def\Vert{\delimiter"026B30D }     |%
+ \par\noindent
+|\def\backslash{\delimiter"026E30F }   \def\bracevert{\delimiter"033E000 }|
+
+\bugonpage A364, line 35 (11/6/88)
+
+\ninepoint\noindent
+|\def\fmtname{plain}\def\fmtversion{2.94} % identifies the current format|
+
+\bugonpage A379, line 15 (10/12/87)
+
+\ninepoint
+|\def\deleterightmost#1{\edef#1{\expandafter\xyzzy#1\xyzzy}}|
+
+\bugonpage A383, lines 7--15 from the bottom (1/4/89)
+
+\begintt
+ 209 strings out of 1685
+ 1659 string characters out of 17636
+ 27618 words of memory out of 52821
+ 1172 multiletter control sequences out of 2500
+\endtt
+Consequently there was plenty of room for more macros: $52821-27618=
+25203$ unused cells of main memory, $2500-1172=1328$ of name memory,
+$1685-209=1476$ of string memory, and $17636-1659=15977$ of character memory.
+But a fairly large \TeX\ was being used, and only the macros of
+Appendices B and~E were loaded; in other circumstances it might have
+been necessary to conserve space.
+
+\bugonpage A454, lines 23--29 (8/13/87)
+
+\begingroup
+\hyphenpenalty=-1000 \pretolerance=-1 \tolerance=1000
+\doublehyphendemerits=-100000 \finalhyphendemerits=-100000
+\ddanger If a suitable starting letter is found, let it be in font~$f$.
+Hyphenation is abandoned unless the |\hyphenchar| of~$f$ is between
+0 and~255, and unless a character of that number exists in the font.
+If this test is passed, \TeX\ continues to scan forward
+until coming to something that's not one of the following three
+``admissible items'': (1)~a character in font~$f$ whose |\lccode|
+is nonzero; (2)~a ligature formed entirely from characters of type~(1);
+(3)~an implicit kern. The first inadmissible item terminates this part of
+the process; the trial word consists of all the letters found in admissible
+items. Notice that all of these letters are in font~$f$.
+
+\endgroup % end the special hyphenation conventions
+
+\bugonpage A458, left column, line 19 (2/15/88)
+
+\eightpoint\indent
+|\|\| ( $\Vert$ ), {\it146--147}, {\it171}, $\underline{361}$, 435, 438.
+
+\bugonpage A462, left column, line 7 (10/9/87)
+
+\eightpoint\indent\qquad 152, 178, $\underline{360}$.
+
+\bugonpage A463, left column (4/17/88)
+
+\eightpoint\indent
+\hbox to0pt{\hss\lower1pt\hbox{*}}|\day|, 273, 349, {\it406}.
+
+\bugonpage A464, left column, under Displays (12/8/88)
+
+\eightpoint\indent\quad
+non-centered, 186, 326, 375--376, 420--421.
+
+\bugonpage A465, entry for {\tt\char`\\everymath} (12/12/87)
+
+\eightpoint\indent[Include also a reference to page 326.]
+
+\bugonpage A465, right column (7/6/88)
+
+\eightpoint\indent{\tt Fatal format file error}, 299.
+
+\bugonpage A473, entry for `page builder' (8/13/87)
+
+\eightpoint\indent\quad when exercised, 122, 280--283, 286--287.
+
+\bugonpage A474, left column (12/27/88)
+
+\eightpoint\indent
+\hbox to0pt{\hss\lower1pt\hbox{*}}|\parshape|, 101--102, 214, 271, 277, 283,
+
+\bugonpage A480, right column (2/15/88)
+
+\eightpoint\indent|\vdots| ( $\vdots$ ), {\it177}, $\underline{359}$.
+
+\bugonpage A481, right column (7/3/87)
+
+\eightpoint|\z@|, $\underline{347}$, 348.\par
+|\z@skip|, $\underline{347}$, 348.
+% volume B
+\hsize=35pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+\def\to{\mathrel{.\,.}} % double dot, used only in math mode
+
+\bugonpage B2, line 32 (2/20/89)
+
+\ninepoint\noindent\hskip10pt
+{\bf define} $\\{banner}\equiv\hbox{\tt\char'23}$%
+{\tt This\]is\]TeX,\]Version\]2.97\char'23}\quad
+$\{\,$printed when \TeX\ starts$\,\}$
+
+\bugonpage B38, lines 7--9 from the bottom (11/6/88)
+
+\tenpoint\noindent[Delete this paragraph; it is being moved to page B214.]
+
+\bugonpage B38, line 5 from the bottom (12/14/88)
+
+\ninepoint\noindent\kern10pt
+{\bf begin if\/} \\{log\_opened} {\bf then} $\\{selector}\gets\\{term\_and\_log}$
+
+\bugonpage B39, line 5 (12/14/88)
+
+\ninepoint\noindent\kern50pt
+{\bf if\/} \\{log\_opened} {\bf then} \\{error};
+
+\bugonpage B52, line 5 (8/13/87)
+
+\tenpoint\noindent
+cannot be done, i.e., if $\\{hi\_mem\_min}=\\{lo\_mem\_max}+1$,
+we have to quit.
+
+\bugonpage B54, lines 34--35 (7/9/88)
+
+\ninepoint\noindent\kern10pt
+{\bf begin if\/} $\\{hi\_mem\_min}-\\{lo\_mem\_max}\ge1998$
+ {\bf then} $t\gets\\{lo\_mem\_max}+1000$\par\noindent\kern10pt
+{\bf else} $t\gets\\{lo\_mem\_max}+1+(\\{hi\_mem\_min}-\\{lo\_mem\_max})
+\,\mathbin{\bf div}\,2$;\quad\kern-4pt
+$\{\,\\{lo\_mem\_max}+2\le t<\\{hi\_mem\_min}\,\}$
+
+\bugonpage B108, new line after line 8 (5/24/88)
+
+\ninepoint\noindent\kern20pt
+$d$: \\{integer};\quad
+$\{\,$number of characters in incomplete current string$\,\}$
+
+\bugonpage B108, lines 31--33 (5/24/88)
+
+\ninepoint\noindent\kern10pt
+$\\{str\_room}(l)$; $d\gets\\{cur\_length}$;\par\noindent\kern10pt
+{\bf while} $\\{pool\_ptr}>\\{str\_start}[\\{str\_ptr}]$ {\bf do}
+ \par\noindent\kern20pt
+{\bf begin} \\{decr}(\\{pool\_ptr});
+ $\\{str\_pool}[\\{pool\_ptr}+l]\gets\\{str\_pool}[\\{pool\_ptr}]$;
+ \par\noindent\kern20pt
+{\bf end};\quad$\{\,$move current string up to make room for another$\,\}$
+\par\noindent\kern10pt
+{\bf for} $k\gets j$ {\bf to} $j+l-1$ {\bf do} $\\{append\_char}(\\{buffer}[k])$;
+\par\noindent\kern10pt
+$\\{text}(p)\gets\\{make\_string}$; $\\{pool\_ptr}\gets\\{pool\_ptr}+d$;
+
+\bugonpage B115, line 12 (4/28/88)
+
+\ninepoint\noindent\hskip10pt
+$\\{group\_code}=0\to\\{max\_group\_code}$;\quad
+ $\{\,$\\{save\_level} for a level boundary$\,\}$
+
+\bugonpage B141, line 19 (4/28/88)
+
+\ninepoint\noindent
+\\{par\_token}: \\{halfword};\quad
+ $\{\,$token representing `|\par|'$\,\}$
+
+\bugonpage B150, line 24 (4/28/88)
+
+\tenpoint\noindent{\bf 358.\quad}%
+The present point in the program is reached only when the \\{expand}
+routine has inserted\cutpar
+
+\bugonpage B151, mini-index (4/28/88)
+
+\eightpoint\noindent
+Delete the entry for `\\{no\_expand}'; replace it by:
+
+\indent\\{expand}: {\bf procedure}, \S366.
+
+\bugonpage B154, lines 25, 29, 34 respectively (9/20/87)
+
+\ninepoint\noindent\hskip20pt
+$\\{cvl\_backup},\\{radix\_backup},\\{co\_backup}$: \\{small\_number};\quad
+ $\{\,$to save \\{cur\_val\_level}, etc.$\,\}$\par\noindent\hskip10pt
+$\\{co\_backup}\gets\\{cur\_order}$;
+ $\\{backup\_backup}\gets\\{link}(\\{backup\_head})$;\par\noindent\hskip10pt
+$\\{cur\_order}\gets\\{co\_backup}$;
+ $\\{link}(\\{backup\_head})\gets\\{backup\_backup}$;
+
+\bugonpage B155, new entry for mini-index (9/20/87)
+
+\eightpoint\indent
+\\{cur\_order}: \\{glue\_ord}, \S447.
+
+\bugonpage B156, line 28 (12/23/87)
+
+\ninepoint\noindent\hskip20pt
+{\bf begin }$\\{eq\_define}(\\{cur\_cs},\\{relax},256)$;
+
+\bugonpage B157, mini-index (12/23/87)
+
+\eightpoint\noindent
+Delete the entries for `\\{eqtb}' and `\\{frozen\_relax}'; replace them
+by the following:
+
+\indent\\{eq\_define}: {\bf procedure}, \S227.\par
+$\\{relax}=0$, \S207.\par
+
+\bugonpage B162, lines 12--14 (4/30/88)
+
+\ninepoint\noindent\hskip10pt
+{\bf repeat} $\\{link}(\\{temp\_head})\gets\\{null}$;\par\noindent\hskip20pt
+{\bf if\/} $(\\{info}(r)>\\{match\_token}+127)\lor
+ (\\{info}(r)<\\{match\_token})$ {\bf then}
+ $s\gets\\{null}$\par\noindent\hskip20pt
+{\bf else begin} $\\{match\_chr}\gets\\{info}(r)-\\{match\_token}$; \
+ $s\gets\\{link}(r)$; \ $r\gets s$; \ $p\gets\\{temp\_head}$; \
+ $m\gets 0$;
+
+\bugonpage B177, bottom line before mini-index (7/13/88)
+
+\ninepoint\noindent\hskip10pt
+$\\{cur\_val}\gets0$; \ 
+ $\\{cur\_val\_level}\gets\\{int\_val}$; \
+ $\\{radix}\gets0$; \
+ $\\{cur\_order}\gets0$;
+
+\bugonpage B181, line 31 (4/28/88)
+
+\ninepoint\noindent
+[Change `$x$ units per sp' to `$x$ sp per unit'! This change also
+should be made on line~1 of page B183 and line $-8$ of page B590.]
+
+\bugonpage B188, line 8 (5/25/88)
+
+\ninepoint\noindent
+{\bf function} $\\{str\_toks}(b:\\{pool\_pointer})$: \\{pointer};\quad
+ $\{\,$changes the string \\{str\_pool}$[b\to\\{pool\_ptr}]$ to a token list$\,\}$
+
+\bugonpage B188, line 13 (5/25/88)
+
+\ninepoint\noindent\kern10pt
+{\bf begin} \\{str\_room}(1); $p\gets\\{temp\_head}$;
+ $\\{link}(p)\gets\\{null}$; $k\gets b$;
+
+\bugonpage B188, line 20 (5/25/88)
+
+\ninepoint\noindent\kern10pt
+$\\{pool\_ptr}\gets b$; $\\{str\_toks}\gets p$;
+
+\bugonpage B188, new line after line 28 (5/25/88)
+
+\ninepoint\noindent\kern20pt
+$b$: \\{pool\_pointer};\quad$\{\,$base of temporary string$\,\}$
+
+\bugonpage B188, line 31 (5/25/88)
+
+\ninepoint\noindent\kern10pt
+{\bf else begin} $\\{old\_setting}\gets\\{selector}$;
+ $\\{selector}\gets\\{new\_string}$; $b\gets\\{pool\_ptr}$;
+
+\bugonpage B188, line 41 (5/25/88)
+
+\ninepoint\noindent\kern20pt
+$\\{selector}\gets\\{old\_setting}$; $\\{the\_toks}\gets\\{str\_toks}(b)$;
+
+\bugonpage B190, lines 16--18 (5/25/88)
+
+\ninepoint\noindent\kern20pt
+$b$: \\{pool\_pointer};\quad$\{\,$base of temporary string$\,\}$\par
+\noindent\kern10pt
+{\bf begin} $c\gets\\{cur\_chr}$;
+ $\langle\,$Scan the argument for command $c${\eightrm\kern.5em471}$\,\rangle$;
+\par\noindent\kern10pt
+$\\{old\_setting}\gets\\{selector}$;
+$\\{selector}\gets\\{new\_string}$; $b\gets\\{pool\_ptr}$;
+$\langle\,$Print the result of command~$c${\eightrm\kern.5em472}$\,\rangle$;
+\par\noindent\kern10pt
+$\\{selector}\gets\\{old\_setting}$;
+$\\{link}(\\{garbage})\gets\\{str\_toks}(b)$;
+$\\{ins\_list}(\\{link}(\\{temp\_head}))$;
+
+\bugonpage B210, line 36 (5/25/88)
+
+\ninepoint\noindent\kern10pt
+{\bf begin if} $(\\{pool\_ptr}+\\{name\_length}>\\{pool\_size})
+ \lor(\\{str\_ptr}=\\{max\_strings})\lor(\\{cur\_length}>0)$ {\bf then}
+
+\bugonpage B211, new line of code before the mini-index (12/14/88)
+
+\ninepoint\noindent
+\\{log\_opened}: \\{boolean};\quad$\{\,$has the transcript file been opened?$\,\}$
+
+\bugonpage B212, line 5 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+$\\{job\_name}\gets0$; \ $\\{name\_in\_progress}\gets\\{false}$; \
+$\\{log\_opened}\gets\\{false}$;
+
+\bugonpage B213, line 24 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+$\\{log\_name}\gets\\{a\_make\_name\_string}(\\{log\_file})$; \
+$\\{selector}\gets\\{log\_only}$; \
+$\\{log\_opened}\gets\\{true}$;
+
+\bugonpage B214, lines 2 and 3 (12/14/88)
+
+\tenpoint\noindent
+messages or even to \\{show\_context}.
+The \\{prompt\_file\_name} routine can result in a \\{fatal\_error},
+but the \\{error}
+routine will not be invoked because \\{log\_opened} will be false.
+\par\noindent\hskip10pt
+The normal idea of \\{batch\_mode} is that nothing at all should be written
+on the terminal. However, in the unusual case that
+no log file could be opened, we make an exception and allow
+an explanatory message to be seen.
+
+\bugonpage B214, lines 7--11 reduce to a single line (12/14/88)
+
+\ninepoint\noindent\hskip10pt
+{\bf begin} $\\{selector}\gets\\{term\_only}$;
+
+\bugonpage B224, second-last line (4/28/87)
+
+\ninepoint\noindent
+\\{done}: {\bf if} \\{file\_opened} {\bf then} \\{b\_close}(\\{tfm\_file});\par
+\noindent\hskip10pt $\\{read\_font\_info}\gets g$;
+
+\bugonpage B229, lines 6--8 (11/17/87)
+
+\tenpoint\noindent
+than $2^{27}$.
+If $z<2^{23}$, the individual multiplications $b\cdot z$,
+$c\cdot z$, $d\cdot z$ cannot overflow; otherwise we will divide $z$ by 2,
+4, 8, or 16, to obtain a multiplier less than $2^{23}$, and we can
+compensate for this later. If $z$ has thereby been replaced by
+$z^\prime=z/2^e$, let $\beta=2^{4-e}$; we shall compute
+
+\bugonpage B229, lines 11--12 (11/17/87)
+
+\tenpoint\noindent
+if $a=0$, or the same quantity minus $\alpha=2^{4+e}z^\prime$ if $a=255$.
+This calculation must be done exactly, in order to guarantee portability
+of \TeX\ between computers.
+
+\bugonpage B230, lines 2--5 (11/17/87)
+
+\ninepoint
+\noindent\hskip10pt{\bf begin} $\\{alpha}\gets16$;\par
+\noindent\hskip10pt{\bf while} $z\ge\oct{40000000}$ {\bf do}\par
+\noindent\hskip20pt{\bf begin} $z\gets z\ {\bf div}\ 2$; \
+ $\\{alpha}\gets\\{alpha}+\\{alpha}$; \ {\bf end};\par
+\noindent\hskip10pt$\\{beta}\gets256\ {\bf div}\ \\{alpha}$; \
+ $\\{alpha}\gets\\{alpha}\ast z$;\par
+
+\bugonpage B245, new entry for mini-index (8/7/87)
+
+\eightpoint\indent
+\\{cur\_s}: \\{integer}, \S616.
+
+\bugonpage B254, line 29 (8/7/87)
+
+\ninepoint\noindent
+\\{cur\_s}:  \\{integer};\quad
+$\{\,$current depth of output box nesting, initially $-1\,\}$
+
+\bugonpage B254, line 31 (8/7/87)
+
+\ninepoint\noindent
+[Remove the statement `$\\{cur\_s}\gets-1$;' and put it on page B244 at the
+end of line 31.]
+
+\bugonpage B259, line 13 (11/9/87)
+
+\ninepoint\noindent\hskip20pt
+{\bf begin }$\\{rule\_wd}\gets\\{rule\_wd}+10$;\quad
+$\{\,$compensate for floating-point rounding$\,\}$\par\noindent\hskip20pt
+$\\{edge}\gets\\{cur\_h}+\\{rule\_wd}$; $\\{lx}\gets0$;
+$\langle\,$Let \\{cur\_h} be the position of the first box, and set
+
+\bugonpage B259, line 17 (11/9/87)
+
+\ninepoint\noindent\hskip20pt
+$\\{cur\_h}\gets\\{edge}-10$; {\bf goto} \\{next\_p};
+
+\bugonpage B263, line 21 (11/9/87)
+
+\ninepoint\noindent\hskip20pt
+{\bf begin }$\\{rule\_ht}\gets\\{rule\_ht}+10$;\quad
+$\{\,$compensate for floating-point rounding$\,\}$\par\noindent\hskip20pt
+$\\{edge}\gets\\{cur\_v}+\\{rule\_ht}$; $\\{lx}\gets0$;
+$\langle\,$Let \\{cur\_v} be the position of the first box, and set
+
+\bugonpage B263, line 25 (11/9/87)
+
+\ninepoint\noindent\hskip20pt
+$\\{cur\_v}\gets\\{edge}-10$; {\bf goto} \\{next\_p};
+
+\bugonpage B266, line 8 (8/7/87)
+
+\ninepoint\noindent\hskip10pt
+\\{dvi\_out}(\\{eop}); \\{incr}(\\{total\_pages}); $\\{cur\_s}\gets-1$;
+
+\bugonpage B266, new code between lines 31 and 32 (8/7/87)
+
+\ninepoint
+\noindent\hskip10pt{\bf while} $\\{cur\_s}>-1$ {\bf do}\par
+\noindent\hskip20pt{\bf begin if} $\\{cur\_s}>0$ {\bf then}
+  \\{dvi\_out}(\\{pop})\par
+\noindent\hskip20pt{\bf else begin} \\{dvi\_out}(\\{eop});
+  \\{incr}(\\{total\_pages})\par
+\noindent\hskip30pt{\bf end};\par
+\noindent\hskip20pt\\{decr}(\\{cur\_s});\par
+\noindent\hskip20pt{\bf end};\par
+
+\bugonpage B285, line 21 (4/28/88)
+
+\noindent\tenpoint
+is subsidiary to the \\{nucleus} field of some noad; the dot is replaced by
+`|_|' or `|^|' or `|/|' or `|\|' if $p$ is\cutpar
+
+\bugonpage B338, second-last line (8/19/87)
+
+\ninepoint\noindent\kern10pt
+$q\gets\\{link}(\\{head})$; $s\gets\\{head}$;
+
+\bugonpage B339, line 4 (8/19/87)
+
+\ninepoint\noindent\kern20pt
+$s\gets q$; $q\gets\\{link}(q)$;
+
+\bugonpage B339, new code to insert after line 10 (8/19/87)
+
+\ninepoint
+\noindent\kern10pt{\bf if} $o\ne0$ {\bf then}\par
+\noindent\kern20pt{\bf begin} $r\gets\\{link}(q)$; $\\{link}(q)\gets\\{null}$;
+ $q\gets\\{hpack}(q,\\{natural})$;\par
+\noindent\kern20pt$\\{shift\_amount}(q)\gets o$; $\\{link}(q)\gets r$;
+ $\\{link}(s)\gets q$;\par
+\noindent\kern20pt{\bf end};\par
+\noindent[These new lines also imply changes to the index that aren't
+ shown in this errata list.]
+
+\bugonpage B387, line 2 (5/24/88)
+
+\tenpoint\noindent
+is quite short. In the following code we set \\{hc}$[\\{hn}+2]$ to the
+impossible value 128, in order to\cutpar
+
+\bugonpage B387, line 8 (5/24/88)
+
+\ninepoint\noindent\kern10pt
+$\\{hc}[0]\gets127$; $\\{hc}[\\{hn}+1]\gets127$;
+ $\\{hc}[\\{hn}+2]\gets128$;\quad$\{\,$insert delimiters$\,\}$
+
+\bugonpage B390, lines 17--18 (5/24/88)
+
+\ninepoint\noindent\kern10pt
+$\langle\,$Enter as many hyphenation exceptions as are listed, until coming
+ to a right brace; then {\bf return\eightrm\kern.5em961}$\,\rangle$;
+
+\smallskip[The same change applies to lines 20--21, and
+to page~582.]
+
+\bugonpage B396, new line after line 34 (5/24/88)
+
+\ninepoint\noindent\kern10pt
+$\\{trie\_link}(\\{trie\_size})\gets0$;
+$\\{trie\_back}(0)\gets\\{trie\_size}$;\quad
+$\{\,$wrap around$\,\}$
+
+\bugonpage B396, bottom line (12/12/87)
+
+\ninepoint\noindent\hskip10pt
+$\\{trie\_link}(0)\gets0$; $\\{trie\_char}(0)\gets0$;
+ $\\{trie\_op}(0)\gets\\{min\_quarterword}$;
+
+\bugonpage B397, lines 15--17 (5/24/88)
+
+\ninepoint\noindent\kern10pt
+{\bf begin} $c\gets\\{trie\_c}[p]$;\par\noindent\kern10pt
+{\bf if} $c<\\{trie\_min}$ {\bf then} $\\{trie\_min}\gets c$;\par\noindent\kern10pt
+{\bf if} $\\{trie\_min}=0$ {\bf then} $z\gets\\{trie\_link}(\\{trie\_size})$\par
+\noindent\kern10pt
+{\bf else} $z\gets\\{trie\_link}(\\{trie\_min}-1)$;\quad
+$\{\,$get the first conceivably good hole$\,\}$
+
+\bugonpage B400, lines 3--4 (5/24/88)
+
+\ninepoint\noindent
+$\langle\,$Enter all of the patterns into a linked trie, until coming
+ to a right brace{\eightrm\kern.5em961}$\,\rangle\equiv$
+
+\smallskip[The same change applies to page B399, lines 29--30, and
+to page~582.]
+
+\bugonpage B402, line 10 (5/24/88)
+
+\ninepoint\noindent\kern10pt
+$r\gets\\{trie\_size}$;\quad
+$\{\,$finally, we will zero out the holes$\,\}$
+
+\bugonpage B406, line 9 from the bottom (1/23/89)
+
+\ninepoint\noindent\kern30pt
+$\\{shrink\_order}(r)\gets\\{normal}$; \ $\\{delete\_glue\_ref}(q)$; \
+$\\{glue\_ptr}(p)\gets r$; \ $q\gets r$;
+
+\bugonpage B417, line 10 (1/23/89)
+
+\ninepoint\noindent\kern10pt
+$q\gets\\{new\_skip\_param}(\\{top\_skip\_code})$; \quad
+$\{\,$now $\\{temp\_ptr}=\\{glue\_ptr}(q)\,\}$
+
+\bugonpage B418, line 14 (1/23/89)
+
+\ninepoint\noindent\kern30pt
+$\\{shrink\_order}(r)\gets\\{normal}$; \ $\\{delete\_glue\_ref}(q)$; \
+$\\{glue\_ptr}(p)\gets r$; \ $q\gets r$;
+
+\bugonpage B507, line 13 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+{\bf if\/} \\{log\_opened} {\bf then} $\\{selector}\gets\\{selector}+2$;
+
+\bugonpage B527, line 21 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+{\bf if\/} \\{log\_opened} {\bf then}
+
+\bugonpage B528, line 5 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+{\bf if\/} \\{log\_opened} {\bf then}
+
+\bugonpage B547, right column (9/20/87)
+
+\eightpoint
+\leftline{\\{co\_backup}:\quad $\underline{366}$.}
+
+\bugonpage B548, right column (9/20/87)
+
+\eightpoint
+\leftline{\\{cur\_order}:\quad 366, $\underline{447}$, 448, 454, 462.}
+
+\bugonpage B548, right column (8/7/87)
+
+\eightpoint
+\leftline{\\{cur\_s}:\quad 593, $\underline{616}$, 619, 629, 640, 642.}
+
+\bugonpage B551, both columns (12/23/87)
+
+\eightpoint[Remove `372' from \\{eqtb} and put it into \\{eq\_define}.]
+
+\bugonpage B552, left column (4/28/88)
+
+\eightpoint[Insert `358' into \\{expand}.]
+
+\bugonpage B554, left column (12/23/87)
+
+\eightpoint[Remove `372' from \\{frozen\_relax}.]
+
+\bugonpage B559, new entry (12/14/88)
+
+\eightpoint\noindent
+\\{log\_opened}, 92--93, $\underline{527}$, 528, 534--535, 1265, 1333--1334.
+
+\bugonpage B559, right column (8/13/87)
+
+\eightpoint[Delete the entry for \\{low\_mem\_max}.]
+
+\bugonpage B562, left column (4/28/88)
+
+\eightpoint[Remove `358' from \\{no\_expand}.]
+
+\bugonpage B565, left column (8/7/87)
+
+\eightpoint
+\leftline{\\{pop}:\quad 584--585, $\underline{586}$, 590, 601, 608, 642.}
+
+\bugonpage B567, left column (12/23/87)
+
+\eightpoint[Insert `372' into \\{relax}.]
+
+\bugonpage B568, left column (4/28/88)
+
+\eightpoint[Move `269' from \\{save\_index} to \\{save\_level}.]
+% volume C
+\hsize=29pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+
+\bugonpage C26, bottom line (7/18/87)
+
+\tenpoint\noindent
+What angle corresponds to the direction North-Northwest?
+
+\bugonpage C107, line 13 (10/7/87)
+
+{\bf pickup penrazor} xscaled \\{heavyline}
+  rotated (angle$(z_{32}-z_{31})+90$);
+
+\bugonpage C164, line 10 (4/27/88)
+
+\ninepoint\indent
+\quad $y_{\$c}=\\{top}\,y_{\$l}$; \ $y_{\$d}=y_{\$r}$; \
+ $x_{\$c}=x_{\$l}-\\{left\_jut}$; \ $x_{\$d}=x_{\$r}+\\{right\_jut}$;
+
+\bugonpage C175, line 23 (1/11/88)
+
+\ninepoint\noindent
+expand into a sequence of tokens. \
+(The language {\eightrm{SIMULA67}} demonstrated that it is\cutpar
+
+\bugonpage C241, line 11 (5/25/88)
+
+\ninepoint\indent
+{\bf numeric} $\\{ht}\0,\\{dp}\0$; \
+ $\\{ht}\0=\\{body\_height}\0$; \
+ $.5[\\{ht}\0,-\\{dp}\0]=\\{axis}\0$;
+
+\bugonpage C248, line 21 becomes two lines (1/24/89)
+
+\ninepoint\noindent
+which might not
+be numerically stable in the presence of rounding errors.)
+Another case, not really desirable, is $\\{left\_jut}=\\{right\_jut}=0$.
+
+\bugonpage C262, line 15 (12/23/88)
+
+\ninepoint\noindent
+|string base_name, base_version; base_name="plain"; base_version="1.7";|
+
+\bugonpage C271, line 12 (1/4/89)
+
+\ninepoint\noindent
+the user and \MF's primitive picture commands.
+First, some important program\cutpar
+
+\bugonpage C271, line 4 from the bottom (12/23/88)
+
+\ninepoint\noindent
+|def |^|cutdraw|| expr p = % caution: you may need autorounding=0|
+
+\bugonpage C272, lines 5 and 6 (12/23/88)
+
+\ninepoint\noindent
+|  (cut_ scaled (1+max(pen_lft,pen_rt,pen_top,pen_bot))|\par\noindent
+|   rotated theta shifted z)t_;|
+
+\bugonpage C273, lines 20 and 22 (9/26/88)
+
+\ninepoint\noindent
+|  (z_+(0,pen_top))t_=round((z+(0,pen_top))t_); z_ enddef;|\par\noindent
+|  (z_+(0,pen_bot))t_=round((z+(0,pen_bot))t_); z_ enddef;|
+
+\bugonpage C290, line 6 from the bottom (12/23/88)
+
+\ninepoint\noindent
+(2)~A throwaway variable,
+`\\{whatever}', nullifies an unwanted equation at the beginning\cutpar
+
+\bugonpage C331, just below the illustration (7/18/87)
+
+\ninepoint\noindent
+Such a pattern is, of course, rather unlikely to occur in a |gf| file,
+but |GFtoDVI| would\cutpar
+
+\bugonpage C337, line 11 (4/28/88)
+
+\ninepoint
+An online ``menu'' of the available test routines will be typed at your
+terminal\cutpar
+
+\bugonpage C346, entry for {\tt autorounding} (12/23/88)
+
+\eightpoint\indent\hskip20pt
+212, {\it262}, {\it264}, 271--272.
+
+\bugonpage C350, left column (7/6/88)
+
+\eightpoint\indent
+|Fatal| |base| |file| |error|, 226.
+
+\bugonpage C356, left column (1/11/88)
+
+\eightpoint
+SIMULA67 language, 175.
+
+\bugonpage C358, right column (2/15/88)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|yoffset|, 212, $\underline{220}$, 315, 324.
+% Volume D
+\hsize=35pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+\def\to{\mathrel{.\,.}} % double dot, used only in math mode
+
+\bugonpage D2, line 27 (12/14/88)
+
+\ninepoint\noindent\hskip10pt
+{\bf define} $\\{banner}\equiv\hbox{\tt\char'23}$%
+{\tt This\]is\]METAFONT,\]Version\]1.7\char'23}\quad
+$\{\,$printed when \MF\ starts$\,\}$
+
+\bugonpage D36, lines 3--5 (11/6/88)
+
+\tenpoint\noindent[Delete this paragraph; it is being moved to page D349.]
+
+\bugonpage D36, line 7 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+{\bf begin if\/} \\{log\_opened} {\bf then} $\\{selector}\gets\\{term\_and\_log}$
+
+\bugonpage D36, line 16 (12/14/88)
+
+\ninepoint\noindent\kern50pt
+{\bf if\/} \\{log\_opened} {\bf then} \\{error};
+
+\bugonpage D66, lines 34--35 (7/9/88)
+
+\ninepoint\noindent\kern10pt
+{\bf begin if\/} $\\{hi\_mem\_min}-\\{lo\_mem\_max}\ge1998$
+ {\bf then} $t\gets\\{lo\_mem\_max}+1000$\par\noindent\kern10pt
+{\bf else} $t\gets\\{lo\_mem\_max}+1+(\\{hi\_mem\_min}-\\{lo\_mem\_max})
+\,\mathbin{\bf div}\,2$;\quad\kern-4pt
+$\{\,\\{lo\_mem\_max}+2\le t<\\{hi\_mem\_min}\,\}$
+
+\bugonpage D347, new line of code after line 5 (12/14/88)
+
+\ninepoint\noindent
+\\{log\_opened}: \\{boolean};\quad$\{\,$has the transcript file been opened?$\,\}$
+
+\bugonpage D347, line 11 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+$\\{job\_name}\gets0$; \
+$\\{log\_opened}\gets\\{false}$;
+
+\bugonpage D348, line 4 from the bottom (12/14/88)
+
+\ninepoint\noindent\kern10pt
+$\\{log\_name}\gets\\{a\_make\_name\_string}(\\{log\_file})$; \
+$\\{selector}\gets\\{log\_only}$; \
+$\\{log\_opened}\gets\\{true}$;
+
+\bugonpage D349, lines 6 and 7 (12/14/88)
+
+\tenpoint\noindent
+print error messages or even to \\{show\_context}.
+The \\{prompt\_file\_name} routine can result in a \\{fatal\_error},
+but the \\{error}
+routine will not be invoked because \\{log\_opened} will be false.
+\par\noindent\hskip10pt
+The normal idea of \\{batch\_mode} is that nothing at all should be written
+on the terminal. However, in the unusual case that
+no log file could be opened, we make an exception and allow
+an explanatory message to be seen.
+
+\bugonpage D349, lines 11--15 reduce to a single line (12/14/88)
+
+\ninepoint\noindent\hskip10pt
+{\bf begin} $\\{selector}\gets\\{term\_only}$;
+
+\bugonpage D420, bottom line (5/25/88)
+
+\ninepoint\noindent\kern30pt
+{\bf if\/} \\{txx} {\bf mod} $\\{unity}=0$ {\bf then}
+
+\bugonpage D441, delete line 2 and change line 12 as follows (5/25/88)
+
+\ninepoint\noindent
+\\{done}: {\bf if} $\\{eq\_type}(x)\ne\\{tag\_token}$ {\bf then}
+ $\\{clear\_symbol}(x,\\{false})$;\par\noindent\kern10pt
+{\bf if} $\\{equiv}(x)=\\{null}$ {\bf then} $\\{new\_root}(x)$;
+\par\noindent\kern10pt
+$\\{scan\_declared\_variable}\gets h$;
+
+\bugonpage D444, line 8 from the bottom (12/14/88)
+
+\ninepoint\noindent\kern10pt
+{\bf if\/} \\{log\_opened} {\bf then} $\\{selector}\gets\\{selector}+2$;
+
+\bugonpage D510, line 14 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+{\bf if\/} \\{log\_opened} {\bf then}
+
+\bugonpage D511, line 11 (12/14/88)
+
+\ninepoint\noindent\kern10pt
+{\bf if\/} \\{log\_opened} {\bf then}
+
+\bugonpage D530, new entry (12/14/88)
+
+\eightpoint\noindent
+\\{log\_opened}, 87--88, $\underline{782}$, 783, 788--789, 1023, 1205, 1208.
+
+\bugonpage D545, left column (10/31/87)
+
+\eightpoint
+\leftline{{\bf zscaled} primitive:\quad $\underline{893}$.}
+\leftline{Zabala Salelles, Ignacio Andres:\quad 812.}
+
+% volume E
+\hsize=29pc
+\def\dashto{\mathrel{\hbox{-\kern-.05em}\mkern3.9mu\hbox{-\kern-.05em}}}
+
+\bugonpage E32, second-last line (9/20/87)
+
+\tenpoint\noindent
+after which comes `\\{math\_axis}\0; {\bf generate} |mathsy|' (which we
+won't bother to\cutpar
+
+\bugonpage E111, line 29 (10/16/88)
+
+\ninepoint\noindent
+$\\{lft}\,x_{11}={\rm hround}\,u$; \
+ $x_{1l}-x_{11}=x_{2l}-x_{12}=x_{22}-x_{2r}={\rm hround}\,1.6\\{cap\_jut}$;
+
+\bugonpage E285, bottom line (12/1/87)
+
+\rightline{\eightssi Due to Technical Developments\/\enspace\eightss(1968)}
+
+\bugonpage E333, lines 9--11 (1/9/89)
+
+\ninepoint\noindent
+$\\{lft}\,x_{1l}={\rm hround}(2.5u-.5\\{mfudged.stem})$; \
+ $x_{1l}=x_{1'l}=x_{2l}=x_{2'l}$;\par\noindent
+$\\{lft}\,x_{3l}={\rm hround}(.5w-.5\\{mfudged.stem})$; \
+ $x_5-x_3=x_3-x_1$;\par
+\line{{\bf if\/} not \\{monospace}: 
+ $r:={\rm hround}(x_5+x_1)+r-w$; {\bf fi}\hfill
+ \% change width for better fit}
+
+\bugonpage E353, lines 38--39 (8/12/87)
+
+\ninepoint
+\leftline{\kern10pt{\bf else}: {\bf fill} \\{diag\_end}$(6r,5r,1,1,5l,6l)
+ \dashto.9[z_{5l},z_{6l}]$}
+\line{\kern30pt$.\,.\,\{z_5-z_6\}\,.1[z_{5r},z_{6r}]\dashto\rm cycle$;\hfil
+ \% middle stem}
+
+\bugonpage E387, line 13 (8/12/87)
+
+\ninepoint
+\line{\kern10pt{\bf pickup} \\{tiny}.\\{nib}; \ \\{bulb}$(3,4,5)$;\hfil\% bulb}
+
+\bugonpage E413, lines 37--38 (8/12/87)
+
+\ninepoint
+\leftline{\kern10pt{\bf else}: {\bf fill} \\{diag\_end}$(6r,5r,1,1,5l,6l)
+ \dashto.9[z_{5l},z_{6l}]$}
+\line{\kern30pt$.\,.\,\{z_5-z_6\}\,.1[z_{5r},z_{6r}]\dashto\rm cycle$;\hfil
+ \% middle stem}
+
+\bugonpage E459, line 24 (8/7/87)
+
+\ninepoint\noindent[Delete the `$=$' sign between `\\{lft}' and `$x_5$'.]
+
+\bugonpage E471, line 5 (12/11/88)
+
+\ninepoint\noindent
+$x_2=\\{good}.x\,.5w$; \ $\\{center\_on}(x_2)$;
+
+\bugonpage E471, insert two lines below the rule at bottom of page (12/11/88)
+
+\ninepoint
+\line{{\bf def\/}
+\\{center\_on}({\bf expr} $x) =\null$
+{\bf if\/} not \\{monospace}:\hfill \% change width for symmetric fit}
+\leftline{\kern10pt
+ $r:=r+2x-w$; \ $w:=2x$; \ {\bf fi} {\bf enddef};}
+
+\bugonpage E477, line 20 (12/11/87)
+
+\ninepoint\noindent
+$x_4=x_8=\\{good}.x\,.5w$; \ $\\{center\_on}(x_4)$; \
+$x_2=w-x_6=\\{good}.x(x_4+a)$;
+
+\bugonpage E483, third line of elementary division operator (12/11/88)
+
+\ninepoint\noindent
+$x_3-.5\\{dot\_size}={\rm hround}(.5w-.5\\{dot\_size})$; \
+$\\{center\_on}(x_3)$;
+
+\bugonpage E485, line 4 (8/7/87)
+
+\ninepoint\noindent[Delete the `$=$' sign between `\\{lft}' and `$x_5$'.]
+
+\bugonpage E487, line 17 (8/4/88)
+
+\ninepoint\line{%
+{\bf fill} \\{fullcircle} scaled$\,(\\{bold}+3.8\\{dw}+\\{eps})\,$%
+ shifted$\,(.5[z_4,z_8])$;\hfill\% dot}
+\smallskip\noindent[Also remove page 487 from the index entry for
+\\{dot\_size}, and add it to the entries for \\{bold} and \\{dw}.]
+
+\bugonpage E515, lines 5 and 12 (12/11/88)
+
+\ninepoint\noindent
+$.5[x_1,x_2]=x_3=\\{good}.x\,.5w$; \
+$\\{center\_on}(x_3)$; \ $\\{lft}\,x_1={\rm hround}(.5w-u*{\rm sqrt}48)$;
+
+\bugonpage E515, line 21 (1/23/89)
+
+\ninepoint\noindent
+{\bf labels}$(5,6)$; \ \\{zero\_width}; \ {\bf endchar\/};
+\smallskip\noindent[Also put labels `{\tt5}' and `{\tt6}' on the
+upper right figure, page E514.]
+
+\bugonpage E521, lines 4 and 14 (12/12/88)
+
+\ninepoint\noindent
+$x_1=x_2=\\{good}.x\,.5w$; \
+$\\{center\_on}(x_1)$; \ $\\{lft}\,x_3={\rm hround}\,u$; \ $x_4=w-x_3$;
+
+\bugonpage E537, line 6 (12/11/88)
+
+\ninepoint\noindent
+$x_1=x_2=x_3=x_4$; \
+$x_1-.5\\{stem}={\rm hround}(.5w-.5\\{stem})$; \
+$\\{center\_on}(x_1)$;
+
+\bugonpage E537, line 19 (12/11/88)
+
+\ninepoint\noindent
+$x_1=x_2=x_3$; \
+$x_1-.5\\{stem}={\rm hround}(.5w-.5\\{stem})$; \
+$\\{center\_on}(x_1)$;
+
+\bugonpage E539, line 4 (12/11/88)
+
+\ninepoint\noindent
+$x_1=x_4=x_{30}=x_{33}=\\{good}.x\,.5w$; \ $\\{center\_on}(x_1)$;
+
+\bugonpage E539, line 21 (12/11/88)
+
+\ninepoint\noindent
+$x_1=x_4=\\{good}.x\,.5w$; \ $\\{center\_on}(x_1)$;
+
+\bugonpage E541, line 4 (12/11/88)
+
+\ninepoint\noindent
+$x_1=x_5=\\{good}.x\,.5w$; \ $\\{center\_on}(x_1)$;
+
+\bugonpage E541, line 17 (12/11/88)
+
+\ninepoint\noindent
+$x_1=x_{10}=\\{good}.x\,.5w$; \ $\\{center\_on}(x_1)$;
+
+\bugonpage E550, new line after line 23 (8/15/87)
+
+\ninepoint\noindent\kern10pt
+{\bf forsuffixes} $\hbox{\$}=\\{notch\_cut},\\{cap\_notch\_cut}$:
+ {\bf if\/} $\hbox{\$}<3$: $\hbox{\$}:=3$; {\bf fi endfor}
+\smallskip\noindent
+[To make room for this, combine lines 38 and 39 into a single line.]
+
+\bugonpage E550, line 29 (7/9/88)
+
+\ninepoint\noindent\hskip10pt
+{\bf \def\_{\kern.04em\vbox{\hrule width.3em height .6pt}\kern.08em}%
+define\_whole\_vertical\_blacker\_pixels}$(\\{vair},\\{bar},\\{slab},
+ \\{cap\_bar},\\{cap\_band})$;
+
+\bugonpage E572, new entry at bottom (12/11/88)
+
+\eightpoint\noindent
+\\{center\_on}, $\underline{473}$, 477, 483, 515, 521, 537--541.
+\bye
+Now here are some that I will make soon!
+

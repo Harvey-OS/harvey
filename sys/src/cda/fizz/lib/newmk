@@ -1,0 +1,81 @@
+libfizz.av doesn't exist: assuming it will be an archive
+ls -l /env
+	names=`{membername libfizz.av(alloc.v) libfizz.av(board.v) libfizz.av(chip.v) libfizz.av(chkvsig.v) libfizz.av(chtype.v) libfizz.av(coords.v) libfizz.av(csmap.v) libfizz.av(cutout.v) libfizz.av(crack.v) libfizz.av(drill.v) libfizz.av(fizz.v) libfizz.av(fizzprewrap.v) libfizz.av(format.v) libfizz.av(getopt.v) libfizz.av(graphic.v) libfizz.av(hand.v) libfizz.av(keymap.v) libfizz.av(mst.v) libfizz.av(mst3.v) libfizz.av(net.v) libfizz.av(netlen.v) libfizz.av(nn.lin.v) libfizz.av(package.v) libfizz.av(pinholes.v) libfizz.av(pintab.v) libfizz.av(pins.v) libfizz.av(pkgclass.v) libfizz.av(place.v) libfizz.av(plane.v) libfizz.av(positions.v) libfizz.av(prmst.v) libfizz.av(prseq.v) libfizz.av(rect.v) libfizz.av(route.v) libfizz.av(symtab.v) libfizz.av(tsp.v) libfizz.av(tspe.v) libfizz.av(tt.v) libfizz.av(type.v) libfizz.av(vsig.v) libfizz.av(wires.v) libfizz.av(wrap.v)
+	ar vu libfizz.av $names
+	rl libfizz.av
+	rm $names
+--rw-rw-rw- e 0 bootes bootes    0 Aug  2 18:27 /env/*
+--rw-rw-rw- e 0 bootes bootes    5 Aug  2 18:27 /env/0
+--rw-rw-rw- e 0 bootes bootes    3 Aug  2 18:27 /env/ALEF
+--rw-rw-rw- e 0 bootes bootes    2 Aug  2 18:27 /env/AS
+--rw-rw-rw- e 0 bootes bootes    2 Aug  2 18:27 /env/CC
+--rw-rw-rw- e 0 bootes bootes    7 Aug  2 18:27 /env/CFLAGS
+--rw-rw-rw- e 0 bootes bootes   27 Aug  2 18:27 /env/CPUS
+--rw-rw-rw- e 0 bootes bootes    3 Aug  2 18:27 /env/FC
+--rw-rw-rw- e 0 bootes bootes   28 Aug  2 18:27 /env/HFILES
+--rw-rw-rw- e 0 bootes bootes    2 Aug  2 18:27 /env/LD
+--rw-rw-rw- e 0 bootes bootes    3 Aug  2 18:27 /env/LEX
+--rw-rw-rw- e 0 bootes bootes   10 Aug  2 18:27 /env/LIB
+--rw-rw-rw- e 0 bootes bootes    1 Aug  2 18:27 /env/LIBDIR
+--rw-rw-rw- e 0 bootes bootes  852 Aug  2 18:27 /env/LIBOBJ
+--rw-rw-rw- e 0 bootes bootes    1 Aug  2 18:27 /env/NPROC
+--rw-rw-rw- e 0 bootes bootes    1 Aug  2 18:27 /env/NREP
+--rw-rw-rw- e 0 bootes bootes    2 Aug  2 18:27 /env/Nflag
+--rw-rw-rw- e 0 bootes bootes    1 Aug  2 18:27 /env/O
+--rw-rw-rw- e 0 bootes bootes  348 Aug  2 18:27 /env/OFILES
+--rw-rw-rw- e 0 bootes bootes    6 Aug  2 18:27 /env/OS
+--rw-rw-rw- e 0 bootes bootes    2 Aug  2 18:27 /env/RL
+--rw-rw-rw- e 0 bootes bootes    8 Aug  2 18:27 /env/S
+--rw-rw-rw- e 0 bootes bootes    4 Aug  2 18:27 /env/YACC
+--rw-rw-rw- e 0 bootes bootes    2 Aug  2 18:27 /env/YFLAGS
+--rw-rw-rw- e 0 bootes bootes   10 Aug  2 18:27 /env/alltarget
+--rw-rw-rw- e 0 bootes bootes    2 Aug  2 18:27 /env/apid
+--rw-rw-rw- e 0 bootes bootes   29 Aug  2 18:27 /env/boottime
+--rw-rw-rw- e 0 bootes bootes    0 Aug  2 18:27 /env/cflag
+--rw-rw-rw- e 0 bootes bootes    1 Aug  2 18:27 /env/cmd
+--rw-rw-rw- e 0 bootes bootes    2 Aug  2 18:27 /env/copy
+--rw-rw-rw- e 0 bootes bootes    4 Aug  2 18:27 /env/cputype
+--rw-rw-rw- e 0 bootes bootes    1 Aug  2 18:27 /env/d
+--rw-rw-rw- e 0 bootes bootes   21 Aug  2 18:27 /env/dir
+--rw-rw-rw- e 0 bootes bootes   13 Aug  2 18:27 /env/fils
+--rw-rw-rw- e 0 bootes bootes   39 Aug  2 18:27 /env/fn#call
+--rw-rw-rw- e 0 bootes bootes   24 Aug  2 18:27 /env/fn#con
+--rw-rw-rw- e 0 bootes bootes   13 Aug  2 18:27 /env/fn#cpu%
+--rw-rw-rw- e 0 bootes bootes  230 Aug  2 18:27 /env/fn#nummon
+--rw-rw-rw- e 0 bootes bootes  373 Aug  2 18:27 /env/fn#roff
+--rw-rw-rw- e 0 bootes bootes   31 Aug  2 18:27 /env/fn#usage
+--rw-rw-rw- e 0 bootes bootes   11 Aug  2 18:27 /env/foo
+--rw-rw-rw- e 0 bootes bootes    9 Aug  2 18:27 /env/home
+--rw-rw-rw- e 0 bootes bootes    0 Aug  2 18:27 /env/i
+--rw-rw-rw- e 0 bootes bootes    3 Aug  2 18:27 /env/ifs
+--rw-rw-rw- e 0 bootes bootes   12 Aug  2 18:27 /env/ipaddr
+--rw-rw-rw- e 0 bootes bootes  170 Aug  2 18:27 /env/ix
+--rw-rw-rw- e 0 bootes bootes   17 Aug  2 18:27 /env/last
+--rw-rw-rw- e 0 bootes bootes   11 Aug  2 18:27 /env/names
+--rw-rw-rw- e 0 bootes bootes  852 Aug  2 18:27 /env/newprereq
+--rw-rw-rw- e 0 bootes bootes    1 Aug  2 18:27 /env/nproc
+--rw-rw-rw- e 0 bootes bootes    4 Aug  2 18:27 /env/objtype
+--rw-rw-rw- e 0 bootes bootes    4 Aug  2 18:27 /env/pat
+--rw-rw-rw- e 0 bootes bootes    6 Aug  2 18:27 /env/path
+--rw-rw-rw- e 0 bootes bootes    5 Aug  2 18:27 /env/pid
+--rw-rw-rw- e 0 bootes bootes    0 Aug  2 18:27 /env/preproc
+--rw-rw-rw- e 0 bootes bootes  852 Aug  2 18:27 /env/prereq
+--rw-rw-rw- e 0 bootes bootes    7 Aug  2 18:27 /env/prompt
+--rw-rw-rw- e 0 bootes bootes   20 Aug  2 18:27 /env/sec
+--rw-rw-rw- e 0 bootes bootes    3 Aug  2 18:27 /env/service
+--rw-rw-rw- e 0 bootes bootes    5 Aug  2 18:27 /env/site
+--rw-rw-rw- e 0 bootes bootes    1 Aug  2 18:27 /env/status
+--rw-rw-rw- e 0 bootes bootes   32 Aug  2 18:27 /env/swap
+--rw-rw-rw- e 0 bootes bootes    5 Aug  2 18:27 /env/sysname
+--rw-rw-rw- e 0 bootes bootes   10 Aug  2 18:27 /env/target
+--rw-rw-rw- e 0 bootes bootes   12 Aug  2 18:27 /env/terminal
+--rw-rw-rw- e 0 bootes bootes 1518 Aug  2 18:27 /env/timezone
+--rw-rw-rw- e 0 bootes bootes    0 Aug  2 18:27 /env/try
+--rw-rw-rw- e 0 bootes bootes    4 Aug  2 18:27 /env/user
+--rw-rw-rw- e 0 bootes bootes   33 Aug  2 18:27 /env/x
+--rw-rw-rw- e 0 bootes bootes    4 Aug  2 18:27 /env/year
+ar: alloc.v board.v chip.v chkvsig.v chtype.v coords.v csmap.v cutout.v crack.v drill.v fizz.v fizzprewrap.v format.v getopt.v graphic.v hand.v keymap.v mst.v mst3.v net.v netlen.v nn.lin.v package.v pinholes.v pintab.v pins.v pkgclass.v place.v plane.v positions.v prmst.v prseq.v rect.v route.v symtab.v tsp.v tspe.v tt.v type.v vsig.v wires.v wrap.v  cannot open
+ar: creating libfizz.av
+a - alloc.v board.v chip.v chkvsig.v chtype.v coords.v csmap.v cutout.v crack.v drill.v fizz.v fizzprewrap.v format.v getopt.v graphic.v hand.v keymap.v mst.v mst3.v net.v netlen.v nn.lin.v package.v pinholes.v pintab.v pins.v pkgclass.v place.v plane.v positions.v prmst.v prseq.v rect.v route.v symtab.v tsp.v tspe.v tt.v type.v vsig.v wires.v wrap.v 
+rm: alloc.v board.v chip.v chkvsig.v chtype.v coords.v csmap.v cutout.v crack.v drill.v fizz.v fizzprewrap.v format.v getopt.v graphic.v hand.v keymap.v mst.v mst3.v net.v netlen.v nn.lin.v package.v pinholes.v pintab.v pins.v pkgclass.v place.v plane.v positions.v prmst.v prseq.v rect.v route.v symtab.v tsp.v tspe.v tt.v type.v vsig.v wires.v wrap.v : file name syntax
+mk: ls -l /env ...  : exit status=rc 3175:rm 3186:file name syntax

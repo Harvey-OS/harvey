@@ -1,0 +1,10 @@
+NPROC=3
+</$objtype/mkfile
+TARG=swar
+OFILES=swar.$O
+CFILES=swar.c
+HFILES=player0.icon player1.icon accel.h missile.icon deathstar.icon boom.icon
+BIN=/$objtype/bin/games
+</sys/src/cmd/mkone
+listing:V:
+	pr mkfile $HFILES $CFILES|lp -du

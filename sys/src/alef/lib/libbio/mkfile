@@ -1,0 +1,43 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/alef/libbio.a
+
+OFILES=\
+	bbuffered.$O\
+	bfildes.$O\
+	bflush.$O\
+	bgetrune.$O\
+	bgetc.$O\
+	binit.$O\
+	bprint.$O\
+	bputrune.$O\
+	bputc.$O\
+	brdline.$O\
+	bread.$O\
+	bseek.$O\
+	bwrite.$O\
+
+none:Q:
+	echo usage: mk entry
+
+%:	%.$O
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+%.$O:	%.l
+	$ALEF -w $stem.l
+
+install:V:	$OFILES
+	ar vu $LIB $OFILES
+	$RL $LIB
+	rm -f $OFILES
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+%.all:V:
+	for(objtype in $CPUS) mk $stem
+
+clean:V:
+	rm -f *.[$OS] [$OS].out

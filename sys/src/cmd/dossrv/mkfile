@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+TARG=dossrv
+OFILES=\
+	xfssrv.$O\
+	xfile.$O\
+	dosfs.$O\
+	dossubs.$O\
+	iotrack.$O\
+	lock.$O\
+	chat.$O\
+	devio.$O\
+
+HFILES=dat.h\
+	fns.h\
+	iotrack.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+xfssrv.$O:	errstr.h

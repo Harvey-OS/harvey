@@ -1,0 +1,306 @@
+% This is IACCENT.MF in text format, as of April 22, 1989.
+% This file contains accents common to text roman and italic fonts.
+% Character codes \0022--\0030, \0040, \0136--\0137, \0175--\0177 are generated.
+ 
+% (Actually the accents in positions \0040, \0137, and \0175 are not generated
+% unless |ligs>0|, since other symbols are substituted
+% for those accents in non-ligature fonts.)
+ 
+ 
+cmchar "Reversed Apostrophe";
+beginchar(oct"163",5u#,asc_height#,0);
+italcorr asc_height#*slant+.5dot_size#-2u#;
+adjust_fit(0,0);
+x1-.5dot_size=hround(.5w-.5dot_size); y1+.5dot_size=h;
+def mymoc(suffix $,@)(expr dot_size,jut,depth) = % reversed comma
+ pickup fine.nib; pos$(dot_size,90);
+  pos@1(vair,90); pos@2(vair,180); pos@3(vair,-45);
+  z@1r=z$r; rt x@2r=hround(x$-.5dot_size-jut)-2eps; x@3=x$+.5u;
+  y@2=1/3[y@1,y@3]; bot y@3l=vround(y$-.5dot_size-depth);
+  y_:=ypart((z@1{left}...z@2{down}...z@3)
+   intersectiontimes (z$l{left}..{right}z$r)); if y_<0: y_:=1; fi
+  filldraw z$r{right}..subpath (0,y_) of (z$l{left}..{right}z$r)--cycle; % dot
+  filldraw stroke z@1e{left}...z@2e{down}...z@3e;     % tail
+ penlabels(@1,@2,@3); enddef;
+ 
+if monospace: mymoc(1,a,dot_size,.28u,vround 1.5comma_depth);  % large comma
+else: mymoc(1,a,dot_size,.25u,comma_depth); fi  % comma with increased jut
+penlabels(1); endchar;
+ 
+cmchar "Corner accent";
+beginchar(oct"153",7u#,min(asc_height#,2x_height#),0);
+adjust_fit(0,0);
+pickup light_rule.nib;
+x1=1u; x2=x3=w-x1;
+ y1=h+eps=y2; y3=.87x_height;
+ draw z1--z2; draw z2--z3;   % corner
+penlabels(1,2,3); endchar;
+ 
+cmchar "Scandinavian circle accent";
+beginchar(oct"170",13u#+4/3(asc_height#-x_height#)*slant,asc_height#,0);
+adjust_fit(cap_serif_fit#,cap_serif_fit#);
+numeric circ_hair,circ_vair;
+circ_hair=hround min(hair,u+.5); circ_vair=vround min(vair,(h-x_height)/6+.5);
+penpos1(circ_vair,90); penpos3(circ_vair,-90);
+penpos2(circ_hair,180); penpos4(circ_hair,0);
+x2r=hround(.5w-1.5u-.5circ_hair);
+x4r=w-x2r; x1=x3=.5w; y1r=h+apex_o; y2=y4=.5[y1,y3];
+y3r=vround(1/3[x_height,h]+apex_o);
+penstroke pulled_arc.e(1,2) & pulled_arc.e(2,3)
+ & pulled_arc.e(3,4) & pulled_arc.e(4,1) & cycle;  % bowl
+penlabels(1,2,3,4); endchar;
+ 
+cmchar "Mid-Tilde (squiggle) accent";
+beginchar(oct"173",12u#,x_height#+.5dot_size#,0);
+italcorr h#*slant-u#;
+adjust_fit(0,0);
+if serifs: numeric theta; theta=angle(1/6(8u-vair),1/4(h-.62x_height));
+ pickup crisp.nib; numeric mid_width; mid_width=.4[vair,stem];
+ pos1(vair,theta+90); pos2(vair,theta+90);
+ pos3(vair,theta+90); pos4(vair,theta+90);
+ z2-z1=z4-z3=(mid_width-crisp)*dir theta;
+ lft x1r=w-rt x4l=hround 1.5u; top y4r=h;
+ bot y1l=vround(bot y1l+min(.6[.62x_height,h],y3l-.2vair)-top y1r);
+ pair delta; ypart delta=3(y3l-y1l); delta=whatever*dir theta;
+ filldraw z1l..controls(z1l+delta)and(z3l-delta)..z3l..z4l
+  --z4r..controls(z4r-delta)and(z2r+delta)..z2r..z1r--cycle;  % stroke
+else: pickup fine.nib; pos1(vair,180); pos2(vair,90);
+ pos3(.5[vair,slab],90); pos4(vair,90); pos5(vair,180);
+ lft x1r=w-rt x5l=hround 1.5u; x2-x1=x3-x2=x4-x3=x5-x4;
+ bot y1=bot y4l=vround(.75[.62x_height,h]-vair);
+ top y2r=top y5=h; y3=.5[y2,y4];
+ filldraw stroke z1e{up}...z2e{right}..z3e..{right}z4e...{up}z5e; fi % stroke
+penlabels(1,2,3,4,5); endchar;
+ 
+cmchar "Polish hook accent";
+beginchar(oct"176",8u#,0,.875desc_depth#);
+adjust_fit(0,0);
+x1=.5w+.5u;
+if serifs: pickup crisp.nib; pos1(stem,0); pos2(stem,0);
+ pos3(vair,90); pos4(stem,0); pos5(vair,-90);
+ x1=x2; z3l=z2l; x4=x2+1.5u; x5=x3-1.5u;
+ bot y1=-o; bot y2=-vround 2/7d-o; y4=.5[y3,y5]; bot y5=-d-o;
+ filldraw stroke z1e--z2e;  % stem
+ filldraw stroke z3e{right}...z4e{down}...{left}z5e;  % hook
+else: pickup fine.nib; pos1(vair,0); top y1=-o-2;
+ pos2(.5[vair,stem],0); bot y2=-d-o; x2=x1-1.25u;
+ filldraw stroke z1e--z2e; fi  % diagonal
+currentpicture:= currentpicture reflectedabout((.5w,0),(.5w,d));
+penlabels(1,2,3,4,5); endchar;
+ 
+cmchar "Half-length Mark";
+beginchar(oct"160",5.8u#,x_height#,0);
+adjust_fit(0,0); pickup rule.nib;
+lft x1=hround 1.1u; x2=w-x1; x3=.5w;
+y2=good.y h+o=y1; bot y3=.57h;
+filldraw z1---z2---z3---cycle;  % triangle
+labels(1,2,3); endchar;
+ 
+cmchar "Length Mark";
+beginchar(oct"161",5.8u#,x_height#,0);
+adjust_fit(0,0); pickup rule.nib;
+lft x1=hround 1.1u=lft x5; x2=w-x1=x6; x3=.5w=x4;
+top y4=vround .43h; y5=y6=0;
+y2=good.y h+o=y1; bot y3=.57h;
+filldraw z1---z2---z3---cycle;  % triangle
+filldraw z4---z5---z6---cycle;  % triangle
+labels(1,2,3,4,5,6); endchar;
+ 
+cmchar "Subscript Bridge";
+beginchar(oct"147",7u#,0,1.1desc_depth#);
+adjust_fit(0,0); pickup light_rule.nib;
+lft x1=hround 1.1u; x2=x1; x4=x5=w-x1;
+y2=good.y -.3d-o; bot y1=-d; y4=y2; y5=y1;
+draw z2---z1;  % stems and bar
+draw z2---z4;
+draw z5---z4;  % stems and bar
+labels(1,2,4,5); endchar;
+ 
+cmchar "Under-ring";
+beginchar(oct"171",13u#+4/3(asc_height#-x_height#)*slant,0,1.3desc_depth#);
+adjust_fit(cap_serif_fit#,cap_serif_fit#);
+numeric circ_hair,circ_vair;
+circ_hair=hround min(hair,u+.5);
+circ_vair=vround min(vair,(-d-x_height)/6+.5);
+penpos1(vair,90); penpos3(vair,-90);
+penpos2(hair,180); penpos4(hair,0);
+x2r=hround(.5w-1.5u-.5hair);
+x4r=w-x2r; x1=x3=.5w; y1r=-.2d-apex_o; y2=y4=.5[y1,y3];
+y3r=vround(-d-apex_o);
+penstroke pulled_arc.e(1,2) & pulled_arc.e(2,3)
+ & pulled_arc.e(3,4) & pulled_arc.e(4,1) & cycle;  % bowl
+penlabels(1,2,3,4); endchar;
+ 
+cmchar "Subscript Umlaut (double dot) accent";
+numeric dot_diam#,dot_diam;
+dot_diam#=max(dot_size#,cap_curve#);
+beginchar(oct"162",9u#,0,min(desc_depth#,10/7x_height#+.5dot_diam#));
+dot_diam=max(tiny.breadth,hround(max(dot_size,cap_curve)-2stem_corr));
+italcorr h#*slant+.5dot_diam#-2.25u#;
+adjust_fit(0,0);
+pickup tiny.nib; pos1(dot_diam,0); pos2(dot_diam,90);
+x1=x2=2.75u; top y2r=-.3d-1;
+if bot y2l<-desc_depth-o-slab:
+            y2l:=min(y2r-eps,-desc_depth-o-slab+.5tiny); fi
+y1=.5[y2l,y2r]; dot(1,2);  % left dot
+pos3(dot_diam,0); penpos4(y2r-y2l,90); y3=y4=y1; x3=x4=w-x1;
+dot(3,4);  % right dot
+penlabels(1,2,3,4); endchar;
+ 
+cmchar "Subscript Left Half-ring";
+beginchar(oct"172",13u#+4/3(asc_height#-x_height#)*slant,0,1.2desc_depth#);
+adjust_fit(cap_serif_fit#,cap_serif_fit#);
+penpos1(cap_hair+stem_corr,90); penpos3(cap_hair+stem_corr,-90);
+penpos2(cap_hair+stem_corr,180);
+x2r=hround(.5w-1.5u-.5hair);
+x1=x3=.58w; top y1r=-.15d-apex_o; y2=.5[y1,y3];
+y3r=vround(-d-apex_o);
+%penstroke pulled_arc.e(1,2) & pulled_arc.e(2,3);  % bowl
+penstroke z1e{left}...{down}z2e{down}...{right}z3e;
+penlabels(1,2,3); endchar;
+ 
+cmchar "Under tilde (squiggle) accent";
+beginchar(oct"174",12u#,0, 1.1desc_depth#);
+italcorr d#*slant-u#;
+adjust_fit(0,0);
+if serifs: numeric theta;
+theta=angle(1/6(8u-vair),1/3(h+desc_depth));
+ pickup crisp.nib; numeric mid_width; mid_width=.4[vair,stem];
+ pos1(vair,theta+90); pos2(vair,theta+90);
+ pos3(vair,theta+90); pos4(vair,theta+90);
+ z2-z1=z4-z3=(mid_width-crisp)*dir theta;
+ lft x1r=w-rt x4l=hround 1.5u; top y4r=-.3d+vair;
+ bot y1l=vround(bot y1l+min(.4[-d,-.15d],y3l-.35vair)-top y1r);
+ pair delta; ypart delta=3(y3l-y1l); delta=whatever*dir theta;
+ filldraw z1l..controls(z1l+delta)and(z3l-delta)..z3l..z4l
+  --z4r..controls(z4r-delta)and(z2r+delta)..z2r..z1r--cycle;  % stroke
+else: pickup fine.nib; pos1(vair,180); pos2(vair,90);
+ pos3(.5[vair,slab],90); pos4(vair,90); pos5(vair,180);
+ lft x1r=w-rt x5l=hround 1.5u; x2-x1=x3-x2=x4-x3=x5-x4;
+ bot y1=bot y4l=vround(-.76d-vair);
+ top y2r=top y5=-.2d; y3=.5[y2,y4];
+ filldraw stroke z1e{up}...z2e{right}..z3e..{right}z4e...{up}z5e; fi % stroke
+penlabels(1,2,3,4,5); endchar;
+ 
+cmchar "Subscript Hachek (check) accent";
+beginchar(oct"175",9u#,0,desc_depth#);
+h':=vround -d; % height of circumflex being inverted
+if serifs: italcorr h#*slant+.5hair#-1.75u#;
+ adjust_fit(0,0);
+ pickup crisp.nib; pos2'(.4[vair,curve],90); top y2'r=h;
+ pos2(.4[vair,curve],90); x2=.5w;
+ x1=w-x3=good.x 2.25u; top y1=top y3=-.2d; y1-y2=-.5(y2'-d);
+ pos1(hair,angle(z2-z1)+90); pos3(hair,angle(z3-z2)+90);
+ filldraw stroke z1e--z2e--z3e;  % diagonals
+else: italcorr h#*slant-.5stem#+.5vair#-.75u#;
+ adjust_fit(0,0);
+ pickup fine.nib; pos1(vair,0); pos3(vair,0); x1=w-x3;
+ pos2(stem,0); bot y2=vround(1/12[-d,h']+o); x2=.5w;
+ top y1=top y3=-.1d+o; lft x1l=hround(rt x2r-3.25u-.5vair);
+ z0=whatever[z1r,z2r]=whatever[z2l,z3l];
+ y4l=y4r=y2; x4l=good.x .2[x2l,x2]; x4r=w-x4l;
+ filldraw z4l--z1l--z1r--z0--z3l--z3r--z4r--cycle; fi  % diagonals
+penlabels(0,1,2,3,4); endchar;
+ 
+ 
+cmchar "subscript arch (inverted breve)";
+beginchar(oct"177",9u#,0,desc_depth#);
+italcorr h#*slant+.5vair#-1.5u#;
+adjust_fit(0,0);
+pickup crisp.nib; pos1(vair,-180); pos3(vair,0);
+top y1=top y3=-d; lft x1r=w-rt x3r=hround(2u-.5vair);
+numeric mid_thickness; mid_thickness=vround 1/3[vair,stem];
+pos2(mid_thickness,90); x2=.5w;
+top y2r=vround max(-.15d-o-tiny,-.68mid_thickness);
+filldraw stroke z1e{up}...z2e{right}...{down}z3e;  % stroke
+penlabels(1,2,3); endchar;
+ 
+cmchar "Vertical Stroke (superior)";
+beginchar(oct"150",4u#,asc_height#,0); pickup rule.nib;
+x1=x2=good.x .5w; top y1=h+eps; bot y2=x_height-eps;
+draw z1--z2;  % stem
+labels(1,2); endchar;
+ 
+cmchar "Vertical Stroke (inferior)";
+beginchar(oct"151",4u#,.25x_height#,desc_depth#); pickup rule.nib;
+x1=x2=good.x .5w; top y1=h+eps; bot y2=-d-eps;
+draw z1--z2;  % stem
+labels(1,2); endchar;
+ 
+cmchar "Syllabicity Mark";
+beginchar(oct"152",4u#,0,1.4desc_depth#); pickup rule.nib;
+x1=x2=good.x .5w; top y1=0-eps; bot y2=-d;
+draw z1--z2;  % stem
+labels(1,2); endchar;
+ 
+cmchar "left pointer";
+beginchar(oct"166",8.2u#,asc_height#,0);
+italcorr h#*slant-u#;
+adjust_fit(0,0); pickup rule.nib;
+lft x2=hround 1.5u-eps; x1=x3=w-x2;
+y1=h; y3=.7h;
+y2=.5[y1,y3];
+draw z1--z2--z3;  % diagonals
+labels(1,2,3); endchar;
+ 
+cmchar "right pointer";
+beginchar(oct"167",8.2u#,asc_height#,0);
+adjust_fit(0,0); pickup rule.nib;
+rt x2=hround(w-1.5u)+eps; x1=x3=w-x2;
+y1=h; y3=.7h;
+y2=.5[y1,y3];
+draw z1--z2--z3;  % diagonals
+labels(1,2,3); endchar;
+ 
+cmchar "down pointer";
+beginchar(oct"165",8.2u#,asc_height#,0);
+adjust_fit(0,0); pickup rule.nib;
+lft x1=hround 1.5u-eps; x3=w-x1;
+x2=.5[x1,x3];
+y1=asc_height=y3; y2=1.1x_height;
+draw z1--z2--z3;  % diagonals
+labels(1,2,3); endchar;
+ 
+cmchar "up pointer";
+beginchar(oct"164",8.2u#,asc_height#,0);
+adjust_fit(0,0); pickup rule.nib;
+lft x1=hround 1.5u-eps; x3=w-x1;
+x2=.5[x1,x3];
+y1=1.1x_height=y3; y2=asc_height;
+draw z1--z2--z3;  % diagonals
+labels(1,2,3); endchar;
+ 
+cmchar "Bar down sign";
+beginchar(oct"155",8u#,x_height#,0); pickup rule.nib;
+x1=x2=.5w;
+lft x3=hround 0+eps; x4=w-x3; top y1=top y3=top y4=h-stem_corr;
+bot y2=0+u;
+draw z1--z2;  % stem
+draw z3--z4;  % crossbar
+labels(1,2,3,4); endchar;
+ 
+cmchar "Bar up sign";
+beginchar(oct"154",8u#,x_height#,0); pickup rule.nib;
+x1=x2=good.x .5w; top y1=h-stem_corr;
+lft x3=hround 0+eps; x4=w-x3; bot y2=bot y3=bot y4=0+u;
+draw z1--z2;  % stem
+draw z3--z4;  % crossbar
+labels(1,2,3,4); endchar;
+ 
+ 
+cmchar "Bar right sign";
+beginchar(oct"157",8u#,x_height#,0); pickup rule.nib;
+lft x1=lft x2=hround 0+eps=lft x3; top y1=h-stem_corr;
+x4=w-x1; bot y2= u; y3=.5[y1,y2]=y4;
+draw z1--z2;  % stem
+draw z3--z4;  % crossbar
+labels(1,2,3,4); endchar;
+ 
+cmchar "Bar Left sign";
+beginchar(oct"156",8u#,x_height#,0); pickup rule.nib;
+x1=x2=w-x4=x3; top y1=h-stem_corr;
+lft x4=hround 0+eps; bot y2=u;
+y3=.5[y1,y2]=y4;
+draw z1--z2;  % stem
+draw z3--z4;  % crossbar
+labels(1,2,3,4); endchar;

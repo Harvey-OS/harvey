@@ -1,0 +1,62 @@
+.TH IPROUTE 3 
+.SH NAME
+iproute \- Internet route table manager
+.SH SYNOPSIS
+.B bind \-a #P /net
+.PP
+.B /net/iproute
+.SH DESCRIPTION
+The
+.I iproute
+device allows the specification of routes for families of IP addresses.
+It
+maintains a kernel-resident routing table for IP addresses used by TCP, IL and UDP.
+Each route consists of a destination IP address, an IP mask, and an IP gateway address.
+Every packet sent by the system is routed according to the route table.
+An address matches the route table entry when a packet's destination address
+matches the table destination address under the mask. When a match is found,
+the packet is sent to the gateway IP address. If there is no match, the
+packet is sent with the original destination address.
+If there are several matches, the one whose mask has the fewest
+leading zeroes is chosen.
+(Because of the definition of IP
+masks, this mask preserves the largest portion of the address
+and is therefore the most specific.)
+This is
+forced by storing the routes in decreasing number of ones order
+and returning the first match.  The default gateway has no ones
+in the mask and is thus the last matched.
+.PP
+Reading
+.B iproute
+reports the current routes entered in the table.
+Writing control
+messages to
+.B iproute
+edits the table.
+Route entries are made by writing a string of format
+.IP
+.EX
+add \f2ipdest mask ipgateway\fP
+.EE
+.PP
+Entries are deleted by writing a string of format
+.IP
+.EX
+delete \f2ipdest mask\fP
+.EE
+.PP
+The whole table can be cleared by writing the string
+.LR flush .
+.PP
+For example, to install a gateway address to accept all IP packets from a machine:
+.IP
+.EX
+g% echo 'add 0.0.0.0 0.0.0.0 192.20.225.225' > /net/iproute
+g% cat /net/iproute
+0.0.0.0 & 0.0.0.0 -> 192.20.225.225                  
+.EE
+.PP
+.SH SEE ALSO
+.IR ip (3),
+.IR ipconfig (8)

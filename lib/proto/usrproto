@@ -1,0 +1,10 @@
+usr
+	$user
+		tmp
+		lib
+			+
+		bin
+			rc
+				+
+			$cputype
+				+

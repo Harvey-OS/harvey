@@ -1,0 +1,3 @@
+#!/bin/rc
+
+generic '/lib/postscript/bin/$cputype/postio -R2 -B4096 -l$OUTDEV -b$SPEED -L$PRINTLOG $LPDEST/$FILE(1)' '{cat <{echo -d$LPDEST -pnoproc -M$SCHEDLINE(1) -u$SCHEDLINE(2)} $LPDEST/$FILE(1);sleep 5} | lpsend.rc $DEST_HOST' ''

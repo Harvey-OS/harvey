@@ -1,0 +1,16 @@
+.TH HYPOT 2
+.SH NAME
+hypot \- Euclidean distance
+.SH SYNOPSIS
+.nf
+.B
+double hypot(double x, double y)
+.fi
+.SH DESCRIPTION
+.I Hypot
+returns
+.IP
+.EX
+	sqrt(x*x + y*y)
+.PP
+taking precautions against unwarranted overflows.

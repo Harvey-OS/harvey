@@ -1,0 +1,116 @@
+% PROC DOCUMENT STYLE -- released 24 September 1985
+%    for LaTeX version 2.09
+% Copyright (C) 1985 by Leslie Lamport
+%
+% This is a style option for use with the article style to produce
+% camera-ready conference proceedings.
+
+\typeout{Document Style Option 'proc' -- Released 24 September 1985}
+
+
+
+%  ****************************************
+%  *            PAGE LAYOUT               *
+%  ****************************************
+%
+% All margin dimensions measured from a point one inch from top and side
+% of page.  Dimensions shrink by about 2 percent
+
+% SIDE MARGINS:
+   \oddsidemargin  -10pt      %   Note that \oddsidemargin = \evensidemargin
+   \evensidemargin -10pt
+
+% VERTICAL SPACING:        
+                         % Top of page:
+\topmargin -47pt         %    Nominal distance from top of page to top of
+                         %    box containing running head.
+\headheight 12pt         %    Height of box containing running head.
+\headsep 25pt            %    Space between running head and text.
+% \topskip = 10pt        %    '\baselineskip' for first line of page.
+                         % Bottom of page:
+\footheight 12pt         %    Height of box containing running foot.
+\footskip 75pt           %    Distance from baseline of box containing foot 
+                         %    to baseline of last line of text.
+
+
+% DIMENSION OF TEXT:
+
+\textheight 9in          % Height of text (including footnotes and figures, 
+                         % excluding running head and foot).
+\textwidth 6.75in        % Width of text line.
+                         % For two-column mode: 
+\columnsep .375in        %    Space between columns 
+\columnseprule 0pt       %    Width of rule between columns.
+
+
+
+%    ****************************************
+%    *            PAGE STYLES               *
+%    ****************************************
+%
+%  Use \markright (or \markboth) to put an identification in the
+%  lower left.  The page number is printed in the lower right.
+
+
+\def\@oddhead{}\def\@evenhead{}
+\def\@oddfoot{\rm\rightmark \hfil Page \thepage}
+\def\@evenfoot{\@oddfoot}
+
+
+%    ****************************************
+%    *               TITLE                  *
+%    ****************************************
+%
+
+% This definition of \maketitle taken from article.sty, except
+% it does not do a \thispagestyle{plain}.
+
+\def\maketitle{\par
+ \begingroup
+   \def\thefootnote{\fnsymbol{footnote}}
+   \def\@makefnmark{\hbox   
+       to 0pt{$^{\@thefnmark}$\hss}}   
+   \twocolumn[\@maketitle]   
+   \@thanks
+ \endgroup
+ \setcounter{footnote}{0}
+ \let\maketitle\relax
+ \let\@maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+
+\def\@maketitle{\vbox to 2.25in{\hsize\textwidth 
+  \linewidth\hsize \vfil \centering
+  {\LARGE \@title \par}     % Title set in \LARGE size. 
+  \vskip 2em                % Vertical space after title.
+  {\large \begin{tabular}[t]{c}\@author \end{tabular}\par}    
+  \vfil}}
+
+
+% The \copyrightspace command is used to produce a blank space in the first 
+% column where a copyright notice belongs.  It works by producing a
+% blank footnote of the appropriate size.  Note that it should appear
+% after any \footnote commands that produce footnotes for the first
+% column.
+
+\def\copyrightspace{\footnotetext[0]{\mbox{}\vrule height 97pt width 0pt}}
+
+% The abstract Environment
+
+\def\abstract{\section*{Abstract}}
+\def\endabstract{\par}
+
+
+%    ****************************************
+%    *           INITIALIZATION             *
+%    ****************************************
+%
+% Default initializations
+
+\twocolumn                  
+\sloppy
+\parindent 1em
+\leftmargini 2em
+\leftmargin\leftmargini 
+\leftmarginv .5em
+\leftmarginvi .5em
+\flushbottom

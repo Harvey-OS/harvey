@@ -1,0 +1,29 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSART12.STY						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% amsart12.sty: Minimal 12pt option for amsart.sty.  13-JUN-1990 MJD
+
+\input amsart10.sty
+
+\textwidth=1.2\textwidth
+
+% Change a few font commands
+\def\scriptsize{\@setsize\scriptsize{9\p@}\viiipt\@viiipt} % 8pt
+\def\tiny{\@setsize\tiny{8\p@}\viipt\@viipt} % 7pt
+\let\small\@normalsize % 10pt
+\let\footnotesize\@normalsize % 10pt
+\def\@normalsize{\@setsize\normalsize{14\p@}\xiipt\@xiipt % 12pt
+  \abovedisplayskip 6\p@ \@plus 6\p@ 
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus 6\p@
+  \belowdisplayshortskip 3\p@ \@plus 6\p@ 
+  \let\@listi\@listI} 
+
+\def\large{\@setsize\large{17\p@}\xivpt\@xivpt} % 14pt
+\endinput

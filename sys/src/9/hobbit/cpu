@@ -1,0 +1,60 @@
+dev
+	root	/
+	cons	c
+	env	e
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	dup	d
+	eia	t
+	rtc	r
+	incon	i
+	dk	k
+	scsi	S	scsi
+	wren	w
+	kprof	T
+
+stream
+	urp
+	async
+	fcall
+
+misc
+
+port
+	int cpuserver = 1;
+	long cfslen = 0; ulong cfscode[1];
+	long fslen = 0; ulong fscode[1];
+
+	void
+	screenputs(char *s, int n)
+	{
+		USED(s, n);
+	}
+
+	void
+	consdebug(void)
+	{
+	}
+
+	void
+	bitdebug(void)
+	{
+	}
+	/*
+	void kproftimer(ulong pc)
+	{
+	}
+	 */
+	int
+	mouseputc(IOQ *a, int b)
+	{
+		USED(a, b);
+		return 0;
+	}
+
+boot cpu
+	incon	"config 1 64 restart dk"
+	9600	"#t/eia1"
+	19200	"#t/eia1"

@@ -1,0 +1,27 @@
+phones:	central office codes with latitude and longitude
+county.index:	standard USGS county and state numbers with names
+	and bounding lat-lon boxes
+*.x:	index to * for use by map(1)
+101,102,...:	various World Data Bank II feature classes; see /usr/bin/map
+counties:	US county and state boundaries from census DIME files
+states:	US state boundaries only
+world:	World Data Bank I coastlines
+usplaces USGS PPLGAZ list of names of populated places from topo
+	   maps of US and possessions. sorted -df. fields are
+	1. name with state abbrev, occasionally commented, as
+	   in `(Abandoned)'; sometimes prefixed # or suffixed *
+	   for unknown reasons
+	2. one or two state-county codes; first two digits are
+	   state, last 3 are county. county code 000 is unknown.
+	3. latitude in deg, positive north
+	4. longitude in deg, positive west
+	5. year of acceptance of name by board of geographic names
+	6. altitude, feet
+	7. population, 1980
+	8. map reference, up to four 4-digit identifiers of 7.5-min
+	   topo sheets. in pacific territories the identifiers may
+	   have appendages -10, -25, or -DMA to indicate different
+	   map series.  identifiers of other forms are errors.
+	one or more of fields 3-8 may be empty, trailing empties elided
+statecodes: 2-digit codes used in usplaces, abbreviations, and
+	full names of states and possessions

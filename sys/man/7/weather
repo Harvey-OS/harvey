@@ -1,0 +1,274 @@
+.TH WEATHER 7
+.SH NAME
+map, key, plot, photo, movie, report, query, wextract, iupdate  \- weather maps, reports, photos, and utilities
+.SH SYNOPSIS
+.PP
+.B weather/photo
+[
+.B vis | ir
+]
+.PP
+.B weather/movie
+[
+.B vis
+|
+.B ir
+]
+[
+.I nobs
+]
+.PP
+.B weather/map
+[
+.B us
+|
+.B us24
+|
+.B nyc
+|
+.B colo
+|
+.B dc
+|
+.B eur
+|
+.B jap
+|
+.B radar
+]
+.PP
+.B weather/key
+.PP
+.B weather/query
+.PP
+.B weather/plot
+[
+.I wextract-options
+]
+[
+.I map-location
+]
+[
+.B -r dn
+]
+[
+.B radar
+]
+.PP
+.B weather/report
+[
+.I wextract-options
+]
+[
+.B quake summary
+]
+.PP
+.B /bin/aux/wextract
+[
+.I wextract-options
+]
+.PP
+.B /bin/aux/iupdate
+[
+.B -i
+.I yyyymm
+]
+.PP
+.SH DESCRIPTION
+.I Weather/map
+displays the latest available national weather map, including precipitation,
+isobars, fronts, and wind information.  The map is updated three
+times a day.
+.I Weather/key 
+displays a reference chart for the symbols in
+.IR weather/map .
+.PP
+.I Weather/photo
+fetches and displays the latest satellite photographs.  
+Visible and infrared photographs are selected with 
+.B vis
+and
+.B ir
+respectively.  
+.B Ir 
+is the default.
+In infrared photos, hotter objects are blacker.
+The maps and photos are obtained from
+.B vmd.cso.uiuc.edu
+which updates them hourly (except 
+visible maps during the hours of darkness) across the entire
+US.
+The National Weather Service data is made available courtesy of the National
+Science Foundation-funded UNIDATA Project and the University of Michigan.
+.PP
+.I Weather/movie
+displays the last
+.I nobs
+(default 72) weather photos in a loop at five frames per
+second.  Infrared photos are default.
+.PP
+.I Weather/query
+connects to the Weather Underground server at the University of
+Michigan.  This is an interactive menu system providing access
+to a variety of weather information, including forecasts.
+.PP
+.I Weather/plot
+plots a weather map.
+`Radar' displays the precipitation intensities reported in selected time
+period.
+The echoes range from 1 (light) to 6 (severe).
+Snow produces weaker reflections than
+rain.  The
+.B -r
+option selects the radar display symbols:
+.B d
+for various size dots,
+.B n
+for numbers.
+The default is various shaded circles.  For terminals with 1-bit deep
+bitmaps, the 
+.B d
+option is default.
+Radar information is not available outside the US.
+The time period for the reported information is controlled by
+.I wextract-options
+(See below.)
+The default is the previous 60 minutes.
+.PP
+.I Map-location
+selects the area to be displayed:
+.TF summary
+.TP
+.B "e ne se gulf us"
+Parts of the US.  Default is
+.BR e .
+.TP
+.BI -L " lat1 lat2 long1 long2"
+Specific latitude and longitude pairs.
+.PD
+.RE
+.IP
+.PP
+.I Weather/report
+extracts various reports.  Available reports are:
+.TF summary
+.TP
+.B summary
+A chatty summary of the national weather. Default shows all weather
+summaries for the last 24 hours.
+.TP
+.B quake
+Earthquake reports.  Default displays all earthquake reports for the
+last 72 hours.
+.PD
+.RE
+.IP
+.PP
+.I Iupdate
+scans
+.B /lib/weather/raw
+and updates
+.BR /lib/weather/raw.idx .
+This file provides the year and month information (which the 
+.B raw
+data lacks)
+and greatly speeds the processing
+of the huge
+.B raw
+file.
+If the raw file is restarted,
+the
+.BI -i yyyymm
+option recreates the index file.  
+.I Yyyymm
+is the year and month of the first record in the raw file.
+.PP
+.I Wextract
+prints selected parts of the
+.B raw
+file based on time and record type.
+.I Wextract-options
+are:
+.TF " record-type,..."
+.TP
+.BI -a " age"
+Maximum age of records before selected time.  Default is 1 day.
+.TP
+.BI -d " enddate"
+Date and time of the last record accepted.  Default is the present.
+Dates may be relative to the current time, or an absolute time.
+Relative dates begin with a minus and have the form
+.RI [\- days .] hours [: minutes ]
+Absolute times have the form
+[[[\fIyear\fR/]\fImonth\fR/]\fIday\fR.]\fIhour\fR[:\fIminute\fR][\fITZ\fR]
+where
+.I year
+is a four digit number and
+.I TZ
+is
+.B Z
+for GMT or a three-letter time zone identifier.
+.TP
+.BI -t " record-type,..."
+Types of records selected.
+Each record in the raw weather file has a three digit type.  A record type
+may be a string of these numbers, or a record name.
+The records in the FAA-supplied
+.B raw
+file are not documented.  A listing of the record names
+appears in the source listing for 
+.IR wextract .
+Some record types are:
+.TF "   unknown"
+.TP
+.B "   sd"
+Encoded precipitation radar data.
+.TP
+.B "   wa"
+AIRMETS for pilots.
+.TP
+.B "   ws"
+Convective SIGMETS for pilots.
+.TP
+.B "   unknown"
+All records not in one of the named types, plus malformed records.
+.TP
+.B "   all"
+All records.
+.PD
+.RE
+.IP
+.SH FILES
+.TF /lib/weather/raw.idx
+.TP
+.B /lib/weather/raw
+The raw weather data straight off the wire since early June, 1990.
+.TP
+.B /lib/weather/raw.idx
+An hourly index into 
+.BR /lib/weather/raw .
+.SH "SEE ALSO"
+.IR map (7), 
+.IR plot (1).
+.PP
+.SH BUGS
+Network vagaries and problems on the source machines may make
+.IR weather/photo ,
+.IR weather/query ,
+and
+.I weather/map
+unavailable or outdated.
+.PP
+The satellite photographs the east coast at an oblique angle.
+.PP
+.I Iupdate 
+and
+.I wextract
+can be slow when the data is WORM-resident, which is likely.
+Absolute times don't handle time zones correctly.
+Much of the raw file is a mystery.
+.PP
+The rain echo intensities on
+.I weather/map
+do not monotonically darken with increasing precipitation on
+monochrome displays.

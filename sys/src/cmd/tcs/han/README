@@ -1,0 +1,34 @@
+	this directory contains stuff to support the mapping
+of han characters from one encoding into another. right now,
+we are only considering the problem of japanese: kana and kanji.
+the mapping is based on kuten codes; if you need to do characters that don't
+have them, you are stuck.
+
+	the basic mapping sources are desc.han (unicode vol 1 tables)
+and han.raw (encoded form of the unicode volume 2 tables). the overall
+product is kuten.c; the mkfile tells you how. the intermediate goal
+is to generate a jis.font which is a mapping from kuten codes into unicodes.
+it is incomplete, which is why supplementary mappings in jis.weird are added.
+the han.bug mappings come from han.raw which is what the word processing
+pool typed in from a pre-release copy of volume 2 of unicode.
+
+	we have since discovered that unicode completely changed the
+mappings in volume 2 before publication, so the unicode values of
+all the kanji are incorrect.  we don't have the mapping we need to
+fix this.  we hope to have it soon.  the only change to the system
+would be to the fonts themselves.  we may eventually make an
+electronic distribution of the new fonts.
+
+	han.bwk contains minor adjustments to the mapping.
+its format is obvious.
+
+	the files *.bits contain the 16x16 and 24x24 bitmap fonts
+for JIS 208. they also contain the kuten codes for jis 208.
+
+usage:
+	it is always safe to say
+
+		mk -s all clean
+
+	the only product is ../kuten.c and it only updates it if it
+were to change.

@@ -1,0 +1,62 @@
+.TH EXPORTFS 4
+.SH NAME
+exportfs \- network file server plumbing
+.SH SYNOPSIS
+.B exportfs
+[
+.B -a
+]
+[
+.B -c
+.I ctlfile
+]
+.SH DESCRIPTION
+.I Exportfs
+is a user level file server that allows Plan 9 compute servers,
+rather than file servers,
+to export
+portions of name space across networks.
+The service is started either by the
+.IR cpu (1)
+command or by a network listener process.
+An initial
+protocol establishes a root directory for the exported name space.
+The connection
+to
+.I exportfs
+is then mounted.
+.I Exportfs
+then acts as a relay file server: operations
+in the imported file tree are executed on the remote server and the results returned.
+This gives the appearance of exporting a name space from a remote machine
+into a local file tree.
+.PP
+The
+.B -a
+option instructs
+.I exportfs
+to authenticate the user, usually because it is
+being invoked from a remote machine.
+.PP
+The
+.B -c
+options specifies a network control file onto which
+.I exportfs
+will push the
+.I fcall
+line discipline.
+This option is intended for networks that do not preserve
+read/write boundaries.
+.PP
+The
+.B cpu
+command uses
+.I exportfs
+to serve device files in the terminal.
+The
+.IR import (4)
+command calls
+.I exportfs
+on a remote machine, permitting users to
+access
+arbitrary pieces of name space on other systems.

@@ -1,0 +1,38 @@
+#!/bin/rc
+cd $1
+for (i in [a-z0-9:]*) {
+	sed -n '
+	/SH *NAM/,/SH/{
+		/SH/d
+		s/, *$//
+		ty
+		:y
+		s/ *\\*-.*//
+		tx
+		s/ *\\\(mi.*//
+		tx
+		s/, */\
+/g
+		s/\n\\n/\
+/g
+		s/\n/ '$i'&/g
+		s/$/ '$i'/
+		p
+	}
+	/SH *DES/q
+	d
+	:x
+	s/ *\\*-.*//
+	s/ *\\\(mi.*//
+	/^$/d
+	s/, */\
+/g
+	s/\n\n/\
+/g
+	s/\n/ '$i'&/g
+	s/(.|\n)*$/& '$i'/
+	p
+	q
+' $i
+echo $i $i
+} | sort -u

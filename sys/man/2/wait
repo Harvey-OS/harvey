@@ -1,0 +1,62 @@
+.TH WAIT 2
+.SH NAME
+wait \- wait for a process to exit
+.SH SYNOPSIS
+.B  int wait(Waitmsg *w)
+.SH DESCRIPTION
+.I Wait
+causes a process to wait for any child process (see
+.IR fork (2))
+to exit.
+It returns the pid of a child that has exited
+and fills in
+.I w
+with more information about the child.
+.I W
+points to a
+.BR Waitmsg ,
+which has this structure:
+.IP
+.EX
+.ta 6n +\w'long 'u +\w'msg[ERRLEN];     'u
+typedef
+struct Waitmsg
+{
+	char	pid[12];	/* of loved one */
+	char	time[3*12];	/* of loved one & descendants */
+	char	msg[ERRLEN];
+} Waitmsg;
+.EE
+.PP
+.B Pid
+is the child's
+.BR pid .
+The
+.B time
+array contains the time the child and its descendants spent in user code,
+the time spent in system calls, and the child's elapsed real time,
+all in units of milliseconds.
+All integers in a
+.B Waitmsg
+are formatted as right-justified textual numbers in 11-byte fields followed
+by a blank. 
+.B Msg
+contains the message that the child specified in
+.IR exits (2).
+For a normal exit,
+.B msg[0]
+is zero,
+otherwise
+.B msg
+is 
+prefixed by the process name, a blank, the process id, and a colon.
+.PP
+If there are no more children to wait for,
+.I wait
+returns immediately, with return value \(mi1.
+.SH "SEE ALSO"
+.IR fork (2),
+.IR exits (2)
+.SH DIAGNOSTICS
+Sets
+.I errstr.

@@ -1,0 +1,125 @@
+.t	BUF	XIL2
+.tp	O	1
+.tp	1	2
+
+.t	INV	XIL2
+.tp	O	1
+.tp	1	2
+
+.t	ACLK	XIL2
+.tp	O	1
+.tp	I	2
+
+.t	GCLK	XIL2
+.tp	O	1
+.tp	1	2
+
+.t	AND	XILN
+.tp	O	1
+.tp	1	2
+.tp	2	3
+.tp	3	4
+.tp	4	5
+.tp	5	6
+.tp	6	7
+.tp	7	8
+.tp	8	9
+.tp	9	10
+.tp	10	11
+.tp	11	12
+.tp	12	13
+.tp	13	14
+.tp	14	15
+.tp	15	16
+.tp	16	17
+
+.t	OR	XILN
+.tp	O	1
+.tp	1	2
+.tp	2	3
+.tp	3	4
+.tp	4	5
+.tp	5	6
+.tp	6	7
+.tp	7	8
+.tp	8	9
+.tp	9	10
+.tp	10	11
+.tp	11	12
+.tp	12	13
+.tp	13	14
+.tp	14	15
+.tp	15	16
+.tp	16	17
+
+.t	XOR	XILN
+.tp	O	1
+.tp	1	2
+.tp	2	3
+.tp	3	4
+.tp	4	5
+.tp	5	6
+
+.t	IBUF	XIL2
+.tp	O	1
+.tp	I	2
+
+.t	OBUF	XIL2
+.tp	O	1
+.tp	I	2
+
+.t	OBUFZ	XIL3
+.tp	O	1
+.tp	I	2
+.tp	T	3
+
+.t	DFF	XIL4
+.tp	Q	1
+.tp	D	2
+.tp	C	3
+.tp	RD	4
+.tp	CE	5
+
+.t	DFFZ	XIL5
+.tp	Q	1
+.tp	D	2
+.tp	C	3
+.tp	RD	4
+.tp	T	5
+.tp	CE	6
+
+.t	OUTFF	XIL4
+.tp	Q	1
+.tp	D	2
+.tp	C	3
+.tp	RD	4
+
+.t	OUTFFZ	XIL5
+.tp	Q	1
+.tp	D	2
+.tp	C	3
+.tp	RD	4
+.tp	T	5
+
+.t	INFF	XIL3
+.tp	Q	1
+.tp	D	2
+.tp	C	3
+
+.t	INLAT	XIL4
+.tp	D	1
+.tp	L	2
+.tp	Q	3
+.tp	O	4
+
+.t	MUX	XIL4
+.tp	O	1
+.tp	S	2
+.tp	1	3
+.tp	2	4
+
+.t	OSC	XIL1
+.tp	O	1
+
+.t	PULLUP	XIL1
+.tp	O	1

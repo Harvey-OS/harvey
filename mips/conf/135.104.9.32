@@ -1,0 +1,7 @@
+#
+#  spindle == 135.104.9.32
+#
+sysname = spindle
+eve = bootes
+nmach = 2
+nproc = 500

@@ -1,0 +1,106 @@
+.TH DKCONFIG 8
+.SH NAME
+dkconfig, dkstat \- configure Datakit interface
+.SH SYNOPSIS
+.B dkconfig
+[
+.B -d
+.I dev
+]
+[
+.B -n
+.I netname
+]
+[
+.B -c
+.I csc
+.I nlines
+]
+[
+.B -b
+.I baud
+]
+[
+.B -w
+.I window
+]
+[
+.B -ai
+]
+.SH DESCRIPTION
+.I Dkconfig
+configures the device
+.I dev
+(default
+.BR #h )
+as a Datakit link and gives it kernel id
+.I netname
+(default
+.BR dk ).
+Any subsequent reference to the device
+.BI #k name
+and its subdirectories refers to conversations
+multiplexed on this link.
+.P
+As a convenience,
+.I dkconfig
+performs a
+.IP
+.B
+bind("#k\fIname\fP", "/net", MBEFORE)
+.LP
+to make the dk device available to
+.IR dial (2).
+.P
+Option
+.B -c
+allows the common signalling channel,
+.I csc,
+and the number of Datakit lines,
+.IR nlines ,
+to be specified.
+.P
+Option
+.B -w
+sets the window size to
+.I window,
+a decimal number of bytes.
+This is most important on the Safari's
+Incon interface which overflows if
+the window size is greater than 256.
+.P
+Option
+.B -i
+causes an incon device (default
+.BR #i )
+to be configured as the Datakit connection.
+.P
+Option
+.B -a
+causes the a serial line (default
+.BR /dev/eia0 )
+to be configured as the Datakit connection.
+The
+.B async
+line protocol is pushed onto the serial
+line's stream to provide a multiplexed connection.
+.SH FILES
+.TF #k*/dk/*xxx
+.TP
+.B #h
+default device
+.TP
+.B #i
+incon device
+.TP
+.B #k*/dk/*
+Datakit devices
+.TP
+.B /net/dk
+by convention, Datakit device bind point
+.SH "SEE ALSO"
+.IR listen (8),
+.IR datakit (3),
+.IR dk (3),
+.IR dial (2)
+.IR netstat(1)

@@ -1,0 +1,34 @@
+APE=/sys/src/ape
+< $APE/config
+L=/$objtype/lib/ape/libg.a
+BUILTINS=
+CFLAGS=$CFLAGS -D_LIBG_EXTENSION -D_POSIX_SOURCE
+NAMES=U=arc arith balloc binit bitblt bitbltclip border bscreenrect \
+	circle cursorset cursorswitch defont disc ellipse event \
+	falloc getrect menuhit point rdbitmap rdbitmapfile rdcolmap \
+	rgbpix rectclip segment string strwidth texture wrbitmap \
+	wrbitmapfile wrcolmap wrfontfile rdfontfile 
+
+OBJ=U=${NAMES:%=$L(%.$O)}
+
+install:VQ:	$L
+	echo done $L
+
+compile:V:	$L
+test:VQ:
+	echo libg has no test
+clean:V:
+	rm -f *.[$OS]
+
+nuke:V:		clean
+	rm -f $L
+
+$L:	$OBJ
+	names=`{membername $newprereq}
+	$AR rv $L $names && rm -f $names
+	$RANLIB $L
+
+$L(%.$O):N:	%.$O
+
+%.$O:	%.c
+	$CC $CFLAGS -c $stem.c

@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+TARG=aliasmail
+LIB=../common/libcommon.a$O\
+	 ../libString/libString.a$O\
+
+OFILES=aliasmail.$O\
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkone
+CFLAGS=-w -I../common
+
+%.$O:	%.c ../common/common.h ../common/sys.h

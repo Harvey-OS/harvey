@@ -1,0 +1,38 @@
+\begin{thebibliography}{1}
+
+\bibitem{prime-number-theorem}
+Charles Louis Xavier~Joseph de~la Vall{\'e}e~Poussin.
+\newblock A strong form of the prime number theorem, 19th century.
+
+\bibitem{texbook}
+Donald~E. Knuth.
+\newblock {\em The {{\TeX}book}}.
+\newblock Addison-Wesley, 1984.
+
+\bibitem{latex}
+Leslie Lamport.
+\newblock {\em {\LaTeX \rm:} {A} Document Preparation System}.
+\newblock Addison-Wesley, 1986.
+
+\bibitem{btxdoc}
+Oren Patashnik.
+\newblock {{\BibTeX ing}}.
+\newblock Documentation for general {\BibTeX} users, 8~February 1988.
+
+\bibitem{strunk-and-white}
+William Strunk, Jr. and E.~B. White.
+\newblock {\em The Elements of Style}.
+\newblock Macmillan, third edition, 1979.
+
+\bibitem{scribe}
+Unilogic, Ltd., Pittsburgh.
+\newblock {\em Scribe Document Production System User Manual}, April 1984.
+\newblock Chapter twelve and appendices E8 through E10 deal with
+  bibliographies.
+
+\bibitem{van-leunen}
+Mary-Claire van Leunen.
+\newblock {\em A Handbook for Scholars}.
+\newblock Knopf, 1979.
+
+\end{thebibliography}

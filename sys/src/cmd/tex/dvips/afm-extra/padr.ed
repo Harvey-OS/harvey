@@ -1,0 +1,141 @@
+831c
+   )
+(CHARACTER O 0 (comment ornament1)
+   (CHARWD R 1141)
+   (CHARHT R 560)
+   (CHARDP R 0)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 61)
+      )
+   )
+(CHARACTER O 1 (comment ornament2)
+   (CHARWD R 583)
+   (CHARHT R 693)
+   (CHARDP R 92)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 62)
+      )
+   )
+(CHARACTER O 2 (comment aswash)
+   (CHARWD R 714)
+   (CHARHT R 408)
+   (CHARDP R 21)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 141)
+      )
+   )
+(CHARACTER O 3 (comment eswash)
+   (CHARWD R 657)
+   (CHARHT R 408)
+   (CHARDP R 14)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 145)
+      )
+   )
+(CHARACTER O 4 (comment nswash)
+   (CHARWD R 810)
+   (CHARHT R 422)
+   (CHARDP R 3)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 156)
+      )
+   )
+(CHARACTER O 5 (comment rswash)
+   (CHARWD R 558)
+   (CHARHT R 448)
+   (CHARDP R 3)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 162)
+      )
+   )
+(CHARACTER O 6 (comment tswash)
+   (CHARWD R 512)
+   (CHARHT R 523)
+   (CHARDP R 14)
+   (CHARIC R 1)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 164)
+      )
+   )
+(CHARACTER O 7 (comment tswashalt)
+   (CHARWD R 560)
+   (CHARHT R 464)
+   (CHARDP R 14)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 124)
+      )
+   )
+(CHARACTER O 10 (comment zswash)
+   (CHARWD R 582)
+   (CHARHT R 414)
+   (CHARDP R 3)
+   (CHARIC R 1)
+   (MAP
+      (SELECTFONT D 2)
+      (SETCHAR O 172)
+      )
+   )
+(CHARACTER O 12 (comment ff)
+   (CHARWD R 558)
+   (CHARHT R 715)
+   (CHARDP R 3)
+   (CHARIC R 112)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 126)
+      )
+   )
+(CHARACTER O 13 (comment ffi)
+   (CHARWD R 790)
+   (CHARHT R 715)
+   (CHARDP R 3)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 131)
+      )
+   )
+(CHARACTER O 14 (comment ffl)
+   (CHARWD R 789)
+   (CHARHT R 715)
+   (CHARDP R 3)
+   (MAP
+      (SELECTFONT D 1)
+      (SETCHAR O 132)
+      )
+   )
+.
+628a
+   (LIG C f O 12)
+.
+627a
+   (LABEL O 12)
+   (LIG C i O 13)
+   (LIG C l O 14)
+   (STOP)
+.
+21a
+(MAPFONT D 1
+   (FONTNAME rpadrx)
+   (FONTCHECKSUM O 21730157366)
+   )
+(MAPFONT D 2
+   (FONTNAME rpadra)
+   (FONTCHECKSUM O 10376376)
+   )
+.
+4c
+(CODINGSCHEME TeX text + AdobeStandardEncoding +)
+.
+1c
+(VTITLE Created by afm2tfm AGaramond-Regular -v padr_raw and by hand)
+.
+w padr.vpl
+q

@@ -1,0 +1,37 @@
+.TH GNET 10.1
+.SH NAME
+gnet \- graw to net
+.SH SYNOPSIS
+.B cda/gnet
+[
+.B -k
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Gnet
+converts
+.I graw
+files to
+.IR cdl_format (10.6)
+format.
+In order for part names
+to be associated with a symbol, the part name must be
+.I inside
+the bounding box.
+.TP
+.B -k
+Extend the bounding box by two grid points.
+Handy in analog drawings.
+.SH FILES
+.TF /lib/graw/analog.g
+.TP
+.B /lib/graw/gates.g
+the standard gate file
+.TP
+.B /lib/graw/analog.g
+analog parts file
+.SH SEE ALSO
+.IR graw (10.1),
+.IR cdmglob (10.1)

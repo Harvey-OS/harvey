@@ -1,0 +1,14 @@
+#!/bin/rc
+switch($service){
+case terminal
+	switch($#*){
+	case 1
+		9fs $1
+		x=`{echo $1 | awk '{n=split($1,out,"[/!]"); print out[n]}'}
+		exec seemail /n/$x/usr/spool/mail/mail.log
+	case *
+		echo usage: vismon system
+	}
+case *
+	echo run vismon on the terminal, not the CPU!
+}

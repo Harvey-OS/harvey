@@ -1,0 +1,11 @@
+O=$1
+shift
+objtype=$1
+shift
+
+{ ls -p ../$objtype/*.[cs] | sed 's/..$/.'$O/ | tr '
+' '|' ; echo } > /tmp/reduce.$pid
+
+echo $* | sed 's/ /\n/g' | grep -v `{sed 's/\./\\./; s/\|$//' /tmp/reduce.$pid}
+
+rm /tmp/reduce.$pid

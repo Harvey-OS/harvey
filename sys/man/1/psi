@@ -1,0 +1,71 @@
+.TH PSI 1
+.SH NAME
+psi \- postscript interpreter
+.SH SYNOPSIS
+.B psi
+[
+.I option ...
+] [
+.I file
+]
+.SH DESCRIPTION
+.I Psi
+reads postscript input from
+.I file
+or from standard input
+and simulates the resulting pages in an
+.IR 8½ (1)
+window.
+The options are
+.TP \w'-a\ x\ yXX'u
+.BI -p n
+Display page
+.I n.
+.TP
+.B -r
+Display the image at full scale, with the bottom left
+corner positioned at the bottom left corner of the window.
+(By default, the image is scaled to fit the window, maintaining
+the aspect ratio of a printer.)
+.TP
+.BI -a " x y"
+Display the image at full scale with position
+.I x,y
+of the image placed at the bottom left corner of the window.
+.PP
+Fonts are implemented with size-24 bitmap fonts.
+Available fonts are
+Symbol, Times-Roman, Times-Italic, Times-Bold, Helvetica,
+Helvetica-Oblique, Helvetica-Bold.
+.PP
+When the `cherries' icon is displayed, use mouse button 3
+to move forward
+.RB ( more )
+or quit 
+.RB ( done ).
+Button 2 exits the program completely.
+.SH EXAMPLE
+.IP
+.EX
+troff -ms memo | lp -dstdout -H | psi
+.EE
+.PP
+Format a memo, convert it to postscript,
+and display it.
+.SH FILES
+.TF psi.err
+.TP
+.B psi.err
+error messages
+.SH SEE ALSO
+.IR lp (1),
+.IR proof (1)
+.SH DIAGNOSTICS
+Error comments are placed on file
+.BR psi.err .
+.PP
+Symbols that lack bitmaps are replaced by `?'
+and an error is reported.
+.SH BUGS
+Unimplemented postscript features are rotated images or imagemasks,
+half tone screens, multiple path clipping, and charpath.

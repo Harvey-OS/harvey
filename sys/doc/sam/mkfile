@@ -1,0 +1,6 @@
+TYPESETTER=post
+
+sam.out:	sam.ms fig1.ps fig2.ps fig3.ps fig4.ps fig5.pic fig6.pic fig7.pic refs
+	pic sam.ms refs | tbl | troff -ms -mpictures > sam.out
+sam.tut.out:	sam.tut
+	troff -ms sam.tut > sam.tut.out

@@ -1,0 +1,106 @@
+%% 
+%% This is file `newlfont.sty' generated
+%% on <1990/6/30> with the docstrip utility (v1.1k). 
+%% 
+%% The original source files were:
+%% 
+%% basefont.doc  (with modules: `newlf')
+%% 
+%% Copyright (C) 1989,1990 by Frank Mittelbach, Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy this file 
+%% to a file with a different name and then change the copy. 
+%% 
+%% You are allowed to distribute this file under the condition that it is 
+%% distributed together with all files mentioned in readme.mz3. If you 
+%% receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT ALLOWED 
+%% to take money for the distribution or use of either this file or a 
+%% changed version, except for a nominal charge for copying etc. 
+%% 
+%% Error Reports in case of UNCHANGED versions to 
+%% 
+%% F. Mittelbach 
+%% Eichenweg 29 
+%% D-6500 Mainz 1 
+%% Federal Republic of Germany 
+%% Bitnet: <PZF5HZ@DRUEDS2> 
+%% 
+%% or: 
+%% R. Sch\"opf 
+%% Inst. f. Theor. Physik 
+%% der Universit\"at Heidelberg 
+%% Philosophenweg 16 
+%% D-6900 Heidelberg 
+%% Federal Republic of Germany 
+%% Bitnet: <BK4@DHDURZ1> 
+%% 
+%% 
+\def\fileversion{v1.2f}
+\def\filedate{90/06/29}
+\def\docdate {90/09/29}
+ 
+%% \CheckSum{131}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\immediate
+  \write\sixt@@n{Style-Option: `newlfont'
+ \fileversion\space <\filedate> (FMi and RmS)}
+\immediate
+ \write\sixt@@n{English Documentation
+  \@spaces\@spaces\space <\docdate> (FMi and RmS)}
+\def\@setsize#1#2#3#4{\@nomath#1%
+                        \size{#4}{#2}\selectfont}
+\def\prm{\family\rmdefault\selectfont}
+\def\psf{\family\sfdefault\selectfont}
+\def\ptt{\family\ttdefault\selectfont}
+ 
+\def\psl{\shape\sldefault\selectfont}
+\def\psc{\shape\scdefault\selectfont}
+\def\pit{\shape\itdefault\selectfont}
+\def\pbf{\series\bfdefault\selectfont}
+\def\em{\protect\pem}
+\def\pem{\@nomath\em \ifdim \fontdimen\@ne\font >\z@
+                       \normalshape \else \it \fi}
+ \let\math@bgroup\begingroup
+ \def\math@egroup#1{#1\endgroup}
+ \ifx\lyfam\undefined
+ \new@mathgroup\lyfam
+ \define@mathgroup\mv@normal\lyfam
+       {lasy}{m}{n}
+ \define@mathgroup\mv@bold\lyfam
+       {lasy}{b}{n}
+ \edef\@tempa{\hexnumber@\lyfam}
+ \mathchardef\mho"0\@tempa 30
+ \mathchardef\Join"3\@tempa 31
+ \mathchardef\Box"0\@tempa 32
+ \mathchardef\Diamond"0\@tempa 33
+ \mathchardef\leadsto"3\@tempa 3B
+ \mathchardef\sqsubset"3\@tempa 3C
+ \mathchardef\sqsupset"3\@tempa 3D
+ \mathchardef\lhd"3\@tempa 01
+ \mathchardef\unlhd"3\@tempa 02
+ \mathchardef\rhd"3\@tempa 03
+ \mathchardef\unrhd"3\@tempa 04
+ \fi
+\endinput
+%% 
+%% End of file `newlfont.sty'.

@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+TARG=syscall
+OFILES=syscall.$O\
+
+HFILES=tab.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+tab.h:	/sys/src/libc/9syscall/sys.h
+	sed '/#define._X[0-9_]/d;
+		s/#define.([A-Z0-9_][A-Z0-9_]*).*/	"\1",	(int(*)(...))\1,/' /sys/src/libc/9syscall/sys.h |
+		tr -d _ | tr A-Z a-z > tab.h
+
+clean:V:
+	rm -f *.[$OS] [$OS].out $TARG $HFILES

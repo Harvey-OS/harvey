@@ -1,0 +1,17 @@
+Package{
+	name BERG40
+	br -50 -30 1960 120
+	pins 1 40{
+		1 0/0 -2 39 1900/0 C
+		2 0/100 -2 40 1900/100 C
+	}
+}
+Package{
+	name DIN96RX % x coord's reversed from actual connector
+	br -40 -50 250 3140
+	pins 1 96{
+		1 200/0 - 32 200/3100 C
+		33 100/0 - 64 100/3100 C
+		65 0/0 - 96 0/3100 C
+	}
+}

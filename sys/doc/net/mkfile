@@ -1,0 +1,11 @@
+TYPESETTER=post
+
+DEPS	=	cs.ms\
+		library.ms\
+		net.ms\
+		perf.ms\
+		streams.ms\
+		tree.pout
+
+net.out: $DEPS
+	tbl net.ms | troff -ms > net.out

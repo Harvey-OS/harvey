@@ -1,0 +1,35 @@
+# auth doesnt work
+service spindle
+ip 135.104.9.32
+ipgw 135.104.9.1
+ipauth 0.0.0.0
+ipmask 255.255.255.0
+config p(w0)50.1
+filsys main cp(w0)50.25f[p(w0)0.25p(w0)25.25p(w0)75.25]
+filsys dump o
+
+service bootes
+ip 135.104.9.30
+ipgw 135.104.9.1
+ipauth 0.0.0.0
+ipmask 255.255.255.0
+config w0
+filsys main c[w2w4w5w6](r10.<0-24>)
+filsys dump o
+filsys other [w0w3]
+
+service fornax
+ip 135.104.9.33
+ipgw 135.104.9.1
+ipauth 0.0.0.0
+ipmask 255.255.255.0
+config w1
+filsys main [w1w2]
+
+service astro6
+ip 135.104.9.117
+ipgw 135.104.9.1
+ipauth 135.104.9.34
+ipmask 255.255.255.0
+config w0
+filsys main w0

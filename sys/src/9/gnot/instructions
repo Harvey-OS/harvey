@@ -1,0 +1,134 @@
+To set up a home gnot.
+
+1) make a new EPROM
+  - put an EPROM chip in the little prom burner in 2C-501
+  - on coma
+	cd /usr/rfs/boot
+	mk boot.eprom95 (for intel or ti chips)
+	mk boot.NS (for national semiconductor chips)
+2) put the EPROM in the gnot
+3) set the HEX switch on the gnot board to position 3
+  - this is the switch near the ROM
+2) install the disk board and disk
+  - make sure the disk is logical unit 0.  This is the switch near the
+   power cord.
+3) plug in an incon
+4) turn both gnot and disk on.  the gnot should prompt with:
+
+	server[default==scsi!0!boot]:
+
+5) respond with
+
+	server[default==scsi!0!boot]: incon!Nfs!/68020/9gnotdisk
+
+6) it will prompt with
+
+	server[default==scsi!0!boot]: incon!Nfs!/68020/9gnotdisk
+	user:
+
+  type in your login
+
+	server[default==scsi!0!boot]: incon!Nfs!/68020/9gnotdisk
+	user: dsm
+
+7) it will init the incon and prompt for password
+
+	server[default==scsi!0!boot]: incon!Nfs!/68020/9gnotdisk
+	user: dsm
+	incon station 2
+	xpcall(Nfs)...auth...password:
+
+   type in your password.
+
+	server[default==scsi!0!boot]: incon!Nfs!/68020/9gnotdisk
+	user: dsm
+	incon station 2
+	xpcall(Nfs)...auth...password:
+
+   The gnot will now boot the kernel over the incon.
+
+	server[default==scsi!0!boot]: incon!Nfs!/68020/9gnotdisk
+	user: dsm
+	incon station 2
+	xpcall(Nfs)...auth...password:
+	nop...session...attach...clone...walk...walk...open
+	txt 133916 data 131268d bss 239720
+
+8) once the kernel is booted, you must prepare the disk.  To do this, run the
+	program 'homegnot':
+
+	bank 0: 4M  bank 1: 4M
+	792 free pages, 6336k bytes, swao 39104k bytes
+	248 free map registers
+	init: starting /bin/rc
+	% homegnot
+
+   this will create partitions on the disk for the kernel, the cache file system,
+   and the local file system.  it will copy a kernel into the boot partition and
+   dump a bunch of stuff into local file system.
+
+   homegnot will print out a lot of goo:
+
+	% homegnot
+	creating partitions
+	copying kernel
+	826+1 records in
+	826+1 records out
+	making file system
+	copying over files
+	%
+
+9) the gnot is now ready to take home.  to try it out, plug in a
+   ty12 line and reboot.
+
+10) to the prompt
+
+	server[default==scsi!0!boot]:
+
+   just hit return.  the kernel will boot off of disk.
+
+11) it will now ask you how you want to connect to the remote file
+    server, i.e., via incon or the ty12
+
+	root is on (9)600 serial, (1)9200 serial, (i)ncon, (l)ocal[9]:
+
+	just hit return to connect to a 9600 baud line, 1 followed by
+	return for a 19200 baud line.
+
+12)  Your terminal is now connected to the serial line.  If you are hard-wired
+     to plan85, just hit control D.  Otherwise, you'll have to connect via
+     datakit the follwoing way.
+
+	root is on (9)600 serial, (1)9200 serial, (i)ncon, (l)ocal[9]:
+	Connect to file system now, type ctrl-d when done.
+	(Use the view or down arrow key to send a break)
+
+	Origin: Node 1 Device 26 Channel 8
+
+	Number please:
+
+    just type plan85, hit return, then control-d
+
+	root is on (9)600 serial, (1)9200 serial, (i)ncon, (l)ocal[9]:
+	Connect to file system now, type ctrl-d when done.
+	(Use the view or down arrow key to send a break)
+
+	Origin: Node 1 Device 26 Channel 8
+
+	Number please: plan85
+	
+
+13)  You will now be prompted for user id (if it doesn't already know it)
+     and password
+	root is on (9)600 serial, (1)9200 serial, (i)ncon, (l)ocal[9]:
+	user[none]: dsm
+
+    type in your user id followed by return and it will prompt for password.
+
+	user[none]: dsm
+	remote fs on (9)600 serial, (1)9200 serial, (i)ncon, (n)one[9]:
+	password:
+
+    type in your password.
+
+14) You should now be up and running.

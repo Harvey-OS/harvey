@@ -1,0 +1,27 @@
+.TH TOUCH 1
+.SH NAME
+touch \- set modification date of a file
+.SH SYNOPSIS
+.B touch
+[
+.B -c
+]
+.I file ...
+.SH DESCRIPTION
+.I Touch
+attempts to set the modification time of the
+.I files
+to the current time.
+If a
+.I file
+does not exist,
+it will be created unless option
+.B -c
+is present.
+.SH SEE ALSO
+.IR ls (1),
+.IR stat (2),
+.IR chmod (1)
+.SH BUGS
+.I Touch
+will not touch directories.

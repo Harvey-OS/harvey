@@ -1,0 +1,55 @@
+</$objtype/mkfile
+
+TARG=awk
+OFILES=re.$O\
+	main.$O\
+	parse.$O\
+	proctab.$O\
+	tran.$O\
+	lib.$O\
+	run.$O\
+
+HFILES=awk.h\
+	y.tab.h\
+	proto.h\
+
+LFILES=awk.lx.l
+
+YFILES=awk.g.y
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=-c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -DUTF
+YFLAGS=-S -d
+CC=pcc
+LD=pcc
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+$O.out:	awk.g.$O awk.lx.$O
+
+$OFILES awk.lx.$O:	awk.h y.tab.h proto.h
+
+awk.g.$O:	awk.h proto.h $YFILES y.tab.h
+
+awk.g.c:	y.tab.c
+	mv $prereq $target
+
+awk.lx.c:	$LFILES
+	$LEX -t $prereq > $target
+
+proctab.c:	$cpuobjtype.maketab
+	./$cpuobjtype.maketab >proctab.c
+
+$cpuobjtype.maketab:	y.tab.h maketab.c
+	objtype=$cputype
+	mk maketab.$cputype
+
+maketab.$cputype:V:	y.tab.h maketab.$O
+	$LD -o $O.maketab maketab.$O
+
+clean:V:
+	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug y.output $TARG
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug y.output $TARG
+	rm -f awk.g.c awk.lx.c lex.yy.c

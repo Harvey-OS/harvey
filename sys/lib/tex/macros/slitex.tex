@@ -1,0 +1,721 @@
+% SLITEX VERSION 2.09 <4 Dec 1989>
+% Copyright (C) 1986 by Leslie Lamport
+
+\everyjob{\typeout{SliTeX Version 2.09 <8 Jun 1988>}}
+\immediate\write10{SliTeX Version 2.09 <8 Jun 1988>}
+
+% NOTES FOR DEFINING FONTS AND STYLES FOR SLIDES
+%   Every font definition -- \rm, \it, etc. must \def\@currfont to itself.
+%   Every size definition such as \normalsize is defined to be
+%          \@normalsize
+%          \def\@currsize{\@normal}\rm 
+%          commands to set:
+%             \baselineskip 
+%             \lineskip
+%             the ...displayskip and ...displayshortskip parameters
+%             \strutbox
+%             \parskip and \@parskip
+%   where \@normal makes all the font definitions.
+%   \@normal must test the switch @visible and define its 
+%   fonts equal to the visible or the invisible versions accordingly.
+
+ \message{hacks,}
+%      **********************************************
+%      *          HACKS FOR SLIDE MACROS            *
+%      **********************************************
+% 
+% The macro \@getend{FOO} defines \@arg to equal all the text up to
+% but excluding the next \end{FOO}, which it gobbles up.  
+% Note that the characters in this text will all be interpreted with
+% their current category codes, so any embedded environments (such as
+% an example environment) won't work right.  NOTE--GOBBLES
+% THE \fi's -- MUST BE MODIFIED LIKE \@gobbletoend BELOW.
+
+
+%\def\@getend#1{\def\@arg{}\def\@argend{#1}\@addtoarg}
+%
+%\long\def\@addtoarg#1\end#2{\tokens{#1}%
+%\long\edef\@x@add##1\@@{\long\def\@arg{##1\the\tokens}}%
+%\expandafter\@x@add\@arg\@@\def\@x@a{#2}\ifx\@x@a\@argend\else
+%\tokens{\end{#2}}\long\edef\@x@add##1\@@{\long\def\@arg{##1\the\tokens}}%
+%\expandafter\@x@add\@arg\@@\@addtoarg\fi}
+
+% \@gobbletoend{FOO} gobbles all text up to and including the
+% next \end{FOO}.  Must be used inside an \if, right before the \fi.
+
+\def\@gobbletoend#1{\def\@argend{#1}\@ggobtoend}
+
+\long\def\@ggobtoend#1\end#2{\@xfi\def\@x@a{#2}%
+\ifx\@x@a\@argend\else\@ggobtoend\fi}
+\def\@xfi{\fi}
+
+ \message{slides,}
+%      **********************************************
+%      *               SLIDE  MACROS                *
+%      **********************************************
+% 
+% Switches:
+% @bw      : true if making black and white slides
+% @visible : true if visible output to be produced.
+% @makingslides : true if executing \blackandwhite or \colorslides
+
+\newif\if@bw
+\newif\if@visible
+\newif\if@onlyslidesw \@onlyslideswfalse
+\newif\if@onlynotesw  \@onlynoteswfalse
+\newif\if@makingslides
+
+% Counters
+%  slide   = slide number
+%  overlay = overlay number for a slide
+%  note    = note number for a slide
+
+\countdef\c@slide=0 \c@slide=0
+\def\cl@slide{}
+\countdef\c@overlay=1 \c@overlay=0
+\def\cl@overlay{}
+\countdef\c@note=2 \c@note=0
+\def\cl@note{}
+
+
+\@addtoreset{overlay}{slide}
+\@addtoreset{note}{slide}
+
+% Redefine page counter to some other number.
+% The page counter will always be zero except when putting out an
+% extra page for a slide, note or overlay.
+%
+\@definecounter{page} 
+\@addtoreset{page}{slide}
+\@addtoreset{page}{note}
+\@addtoreset{page}{overlay}
+
+
+\def\theslide{\@arabic\c@slide}
+\def\theoverlay{\theslide-\@alph\c@overlay}
+\def\thenote{\theslide-\@arabic\c@note}
+
+% \@setlimits \LIST \LOW \HIGH 
+%
+%    Assumes that \LIST = RANGE1,RANGE2,...,RANGEn  (n>0)
+%    Where RANGEi = j or j-k.
+%    
+%    Then \@setlimits  globally sets
+%        (i) \LIST := RANGE2, ... , RANGEn
+%       (ii) \LOW  := p
+%      (iii) \HIGH := q
+%   where either RANGE1 = p-q   or  RANGE1 = p  and  q=p.
+
+\def\@sl@getargs#1-#2-#3\relax#4#5{\xdef#4{#1}\xdef#5{#2}}
+\def\@sl@ccdr#1,#2\relax#3#4{\xdef#3{#1-#1-}\xdef#4{#2}}
+
+\def\@setlimits #1#2#3{\expandafter\@sl@ccdr#1\relax\@sl@gtmp #1%
+\expandafter\@sl@getargs\@sl@gtmp\relax#2#3}
+
+% \onlyslides{LIST} ::=
+%  BEGIN
+%    @onlyslidesw := true
+%    \@doglslidelist :=G LIST,999999,999999
+%   if @onlynotesw = true
+%     else @onlynotesw := true
+%          \@doglnotelist :=G LIST,999999,999999
+%   fi
+%   message: Only Slides LIST
+%  END
+
+\def\onlyslides#1{\@onlyslideswtrue\gdef\@doglslidelist{#1,999999,999999}%
+\if@onlynotesw \else \@onlynoteswtrue\gdef\@doglnotelist{999999,999999}\fi
+\typeout{Only Slides #1}}
+
+% \onlynotes{LIST} ::=
+%  BEGIN
+%    @onlynotesw := true
+%    \@doglnotelist :=G LIST,999999,999999
+%   if @onlyslidesw = true
+%     else \@onlyslidesw := true
+%          \@doglslidelist{999999,999999}
+%   fi
+%   message: Only Notes LIST
+%  END
+
+\def\onlynotes#1{\@onlynoteswtrue\gdef\@doglnotelist{#1,999999,999999}%
+\if@onlyslidesw \else \@onlyslideswtrue\gdef\@doglslidelist{999999,999999}\fi
+\typeout{Only Notes #1}}
+
+
+% \blackandwhite #1  ::=
+%    \newpage
+%    page counter := 0
+%    @bw := T
+%    @visible := T
+%    if @onlyslidesw = true
+%      then  \@doslidelist := \@doglslidelist
+%            \@setlimits\@doslidelist\@doslidelow\@doslidehigh
+%    fi
+%    if @onlynotesw = true
+%      then  \@donotelist := \@doglnotelist
+%            \@setlimits\@donotelist\@donotelow\@donotehigh
+%    fi
+%    \normalsize    % Note, this sets font to \rm , which sets
+%                     % \@currfont to \rm
+%    counter slidenumber := 0
+%    counter note        := 0
+%    counter overlay     := 0
+%    @makingslides       := T
+%    input #1
+%    @makingslides       := F
+
+\def\blackandwhite#1{\newpage\setcounter{page}{0}\@bwtrue\@visibletrue
+\if@onlyslidesw \xdef\@doslidelist{\@doglslidelist}%
+\@setlimits\@doslidelist\@doslidelow\@doslidehigh\fi
+\if@onlynotesw \xdef\@donotelist{\@doglnotelist}%
+\@setlimits\@donotelist\@donotelow\@donotehigh\fi
+\normalsize\setcounter{slide}{0}\setcounter{overlay}{0}%
+\setcounter{note}{0}\@makingslidestrue\input #1\@makingslidesfalse}
+
+
+% \colors{COLORS} ::=
+%  for \@colortemp := COLORS
+%     do \csname \@colortemp \endcsname == \@color{\@colortemp} od
+%  if \@colorlist = empty
+%     then \@colorlist := COLORS
+%     else \@colorlist := \@colorlist , COLORS
+%  fi
+%
+\def\colors#1{\@for\@colortemp:=#1\do{\expandafter
+  \xdef\csname\@colortemp\endcsname{\noexpand\@color{\@colortemp}}}\ifx
+  \@colorlist\@empty \gdef\@colorlist{#1}
+    \else \xdef\@colorlist{\@colorlist,#1}\fi}
+
+\def\@colorlist{}
+
+% \colorslides{FILE} ::=
+%    \newpage
+%    page counter := 0
+%    @bw := F
+%    for \@currcolor := \@colorlist
+%      do  @visible := T
+%          if @onlyslidesw = true
+%            then  \@doslidelist := \@doglslidelist
+%                  \@setlimits\@doslidelist\@doslidelow\@doslidehigh
+%          fi
+%          if @onlynotesw = true
+%            then  \@donotelist := \@doglnotelist
+%                  \@setlimits\@donotelist\@donotelow\@donotehigh
+%          fi
+%          \normalsize
+%          counter slide := 0
+%          counter overlay := 0
+%          counter note    := 0
+%          type message
+%          generate color layer output page
+%          @makingslides := T
+%          input #1
+%          @makingslides := F
+%      od
+
+\def\colorslides#1{\newpage\setcounter{page}{0}\@bwfalse
+\@for\@currcolor:=\@colorlist\do
+{\@visibletrue
+\if@onlyslidesw \xdef\@doslidelist{\@doglslidelist}%
+\@setlimits\@doslidelist\@doslidelow\@doslidehigh\fi
+\if@onlynotesw \xdef\@donotelist{\@doglnotelist}%
+\@setlimits\@donotelist\@donotelow\@donotehigh\fi
+\normalsize\setcounter{slide}{0}\setcounter{overlay}{0}%
+\setcounter{note}{0}\typeout{color \@currcolor}%
+\newpage
+\begin{huge}
+\begin{center}
+COLOR LAYER\\[.75in]
+\@currcolor
+\end{center}
+\end{huge}
+\newpage
+\@makingslidestrue
+\input #1
+\@makingslidesfalse}}
+
+
+% \slide COLORS ::=
+%  BEGIN
+%   \stepcounter{slide}   
+%   \@slidesw :=G T
+%   if @onlyslidesw = true                     % set \@slidesw = T iff page to
+%     then                                   % be output
+%       while \c@slide > \@doslidehigh
+%          do  \@setlimits\@doslidelist\@doslidelow\@doslidehigh  od
+%       if \c@slide < \@doslidelow
+%         then \@slidesw := F
+%       fi
+%   fi
+%   if \@slidesw = T
+%      then \@slidesw :=G F
+%           \begingroup                           
+%              if @bw = true  
+%                then  \@slidesw :=G T   
+%                else \@color{COLORS}
+%                     \if@visible then \@slidesw :=G T \fi
+%              fi
+%            \endgroup
+%  fi
+%  if \@slidesw = T
+%    then \newpage
+%         \thispagestyle{slide}
+%    else \end{slide}
+%          \@gobbletoend{slide}
+%  fi
+% END
+
+% \endslide ::=
+%  BEGIN
+%    \par\break
+%  END
+
+\def\slide#1{\stepcounter{slide}\gdef\@slidesw{T}\if@onlyslidesw
+\@whilenum \c@slide > \@doslidehigh\relax
+\do{\@setlimits\@doslidelist\@doslidelow\@doslidehigh}\ifnum
+\c@slide < \@doslidelow\relax\gdef\@slidesw{F}\fi\fi
+\if\@slidesw T\gdef\@slidesw{F}\begingroup\if@bw\gdef\@slidesw{T}\else
+\@color{#1}\if@visible \gdef\@slidesw{T}\fi\fi\endgroup\fi
+\if\@slidesw T\newpage\thispagestyle{slide}%
+\else\end{slide}\@gobbletoend{slide}\fi}
+
+\def\endslide{\par\break}
+
+% \overlay COLORS ::=
+%  BEGIN
+%   \stepcounter{overlay}   
+%   \@slidesw :=G T
+%   if @onlyslidesw = T                       % set \@slidesw = T iff page to
+%     then                                  % be output
+%       if \c@slide < \@doslidelow
+%         then \@slidesw :=G F
+%       fi
+%  fi
+%  if \@slidesw = T
+%    \@slidesw :=G F
+%    \begingroup 
+%      if @bw = true 
+%          then  \@slidesw :=G T 
+%          else  \@color{COLORS}
+%                \if@visible then \@slidesw :=G T \fi
+%      fi
+%    \endgroup
+%  fi
+%  if \@slidesw = T
+%     then \newpage
+%          \thispagestyle{overlay}
+%     else \end{overlay}
+%          \@gobbletoend{overlay}
+%  fi
+% END
+
+% \endoverlay ::=
+%  BEGIN
+%    \par\break
+%  END
+
+\def\overlay#1{\stepcounter{overlay}\gdef\@slidesw{T}%
+\if@onlyslidesw\ifnum \c@slide < \@doslidelow\relax
+\gdef\@slidesw{F}\fi\fi
+\if\@slidesw T\gdef\@slidesw{F}\begingroup\if@bw\gdef\@slidesw{T}%
+\else\@color{#1}\if@visible \gdef\@slidesw{T}\fi\fi\endgroup\fi
+\if\@slidesw T\newpage\thispagestyle{overlay}%
+\else\end{overlay}\@gobbletoend{overlay}\fi}
+
+\def\endoverlay{\par\break}
+
+% \note ::=
+%  BEGIN
+%   \stepcounter{note}   
+%   if @bw = T
+%     then 
+%       \@slidesw :=G T
+%       if @onlynotesw = true                  % set \@notesw = T iff page to
+%         then                                 % be output
+%           while \c@slide > \@donotehigh
+%              do  \@setlimits\@donotelist\@donotelow\@donotehigh  od
+%           if \c@slide < \@donotelow
+%             then \@slidesw :=G F
+%           fi
+%       fi
+%     else \@slidesw :=G F
+%  fi
+%  if \@slidesw = T
+%     then \newpage
+%          \thispagestyle{note}
+%     else \end{note}
+%          \@gobbletoend{note}
+%  fi
+% END
+
+% \endnote ::=
+%  BEGIN
+%    \par\break
+%  END
+
+\def\note{\stepcounter{note}%
+\if@bw \gdef\@slidesw{T}\if@onlynotesw\@whilenum \c@slide > \@donotehigh\relax
+\do{\@setlimits\@donotelist\@donotelow\@donotehigh}\ifnum
+\c@slide < \@donotelow\relax \gdef\@slidesw{F}\fi\fi
+\else\gdef\@slidesw{F}\fi
+\if\@slidesw T\newpage\thispagestyle{note}\else
+\end{note}\@gobbletoend{note}\fi}
+
+\def\endnote{\par\break}
+
+
+% \@color{COLORS} ::=
+%  BEGIN
+%   if math mode
+%     then type warning
+%   fi
+%   if @bw
+%     then @visible := T
+%     else @visible := F
+%         for \@x@a := COLORS
+%          do if \@x@a = \@currcolor
+%               then @visible := T
+%             fi
+%          od
+%   fi
+%   \@currsize -- sets the visibility of the current size
+%   \@currfont -- sets the visibility of the current font
+%   \ignorespaces
+% END
+
+\def\@color#1{\@mmodetest
+\if@bw \@visibletrue\else\@visiblefalse
+  \@for \@x@a :=#1\do{\ifx\@x@a\@currcolor\@visibletrue\fi}\fi
+  \@currsize\@currfont\ignorespaces}
+
+\def\@mmodetest{\ifmmode\@warning{Color-changing command in math mode}\fi}
+
+% \invisible ::= BEGIN type warning if math mode
+%                      \@visiblefalse \@currsize\@currfont\ignorespaces END
+
+\def\invisible{\@mmodetest\@visiblefalse\@currsize\@currfont\ignorespaces}
+\let\invisible=\invisible
+\let\endinvisible=\relax
+
+ \message{picture,}
+%      ****************************************
+%      *          MODIFICATIONS TO            *
+%      *       THE PICTURE ENVIRONMENT        *
+%      ****************************************
+%
+%  Below are the new definitions of the picture-drawing macros
+%  required for SLiTeX.  Only those commands that actually
+%  draw something must be changed so that they do not produce
+%  any output when the @visible switch is false.
+
+\def\line(#1,#2)#3{\if@visible\@xarg #1\relax \@yarg #2\relax
+\@linelen=#3\unitlength
+\ifnum\@xarg =0 \@vline 
+  \else \ifnum\@yarg =0 \@hline \else \@sline\fi
+\fi\fi}
+
+\def\vector(#1,#2)#3{\if@visible\@xarg #1\relax \@yarg #2\relax
+\@linelen=#3\unitlength
+\ifnum\@xarg =0 \@vvector 
+  \else \ifnum\@yarg =0 \@hvector \else \@svector\fi
+\fi\fi}
+
+\def\dashbox#1(#2,#3){\leavevmode\if@visible\hbox to \z@{\baselineskip \z@%
+\lineskip \z@%
+\@dashdim=#2\unitlength%
+\@dashcnt=\@dashdim \advance\@dashcnt 200
+\@dashdim=#1\unitlength\divide\@dashcnt \@dashdim
+\ifodd\@dashcnt\@dashdim=\z@%
+\advance\@dashcnt \@ne \divide\@dashcnt \tw@ 
+\else \divide\@dashdim \tw@ \divide\@dashcnt \tw@
+\advance\@dashcnt \m@ne
+\setbox\@dashbox=\hbox{\vrule \@height \@halfwidth \@depth \@halfwidth
+\@width \@dashdim}\put(0,0){\copy\@dashbox}%
+\put(0,#3){\copy\@dashbox}%
+\put(#2,0){\hskip-\@dashdim\copy\@dashbox}%
+\put(#2,#3){\hskip-\@dashdim\box\@dashbox}%
+\multiply\@dashdim 3 
+\fi
+\setbox\@dashbox=\hbox{\vrule \@height \@halfwidth \@depth \@halfwidth
+\@width #1\unitlength\hskip #1\unitlength}\@tempcnta=0
+\put(0,0){\hskip\@dashdim \@whilenum \@tempcnta <\@dashcnt
+\do{\copy\@dashbox\advance\@tempcnta \@ne }}\@tempcnta=0
+\put(0,#3){\hskip\@dashdim \@whilenum \@tempcnta <\@dashcnt
+\do{\copy\@dashbox\advance\@tempcnta \@ne }}%
+\@dashdim=#3\unitlength%
+\@dashcnt=\@dashdim \advance\@dashcnt 200
+\@dashdim=#1\unitlength\divide\@dashcnt \@dashdim
+\ifodd\@dashcnt \@dashdim=\z@%
+\advance\@dashcnt \@ne \divide\@dashcnt \tw@
+\else
+\divide\@dashdim \tw@ \divide\@dashcnt \tw@
+\advance\@dashcnt \m@ne
+\setbox\@dashbox\hbox{\hskip -\@halfwidth
+\vrule \@width \@wholewidth 
+\@height \@dashdim}\put(0,0){\copy\@dashbox}%
+\put(#2,0){\copy\@dashbox}%
+\put(0,#3){\lower\@dashdim\copy\@dashbox}%
+\put(#2,#3){\lower\@dashdim\copy\@dashbox}%
+\multiply\@dashdim 3
+\fi
+\setbox\@dashbox\hbox{\vrule \@width \@wholewidth 
+\@height #1\unitlength}\@tempcnta0
+\put(0,0){\hskip -\@halfwidth \vbox{\@whilenum \@tempcnta < \@dashcnt
+\do{\vskip #1\unitlength\copy\@dashbox\advance\@tempcnta \@ne }%
+\vskip\@dashdim}}\@tempcnta0
+\put(#2,0){\hskip -\@halfwidth \vbox{\@whilenum \@tempcnta< \@dashcnt
+\relax\do{\vskip #1\unitlength\copy\@dashbox\advance\@tempcnta \@ne }%
+\vskip\@dashdim}}}\fi\@makepicbox(#2,#3)}
+
+\def\@oval(#1,#2)[#3]{\if@visible\begingroup \boxmaxdepth \maxdimen
+  \@ovttrue \@ovbtrue \@ovltrue \@ovrtrue
+  \@tfor\@tempa :=#3\do{\csname @ov\@tempa false\endcsname}\@ovxx
+  #1\unitlength \@ovyy #2\unitlength
+  \@tempdimb \ifdim \@ovyy >\@ovxx \@ovxx\else \@ovyy \fi
+  \@getcirc \@tempdimb
+  \@ovro \ht\@tempboxa \@ovri \dp\@tempboxa
+  \@ovdx\@ovxx \advance\@ovdx -\@tempdima \divide\@ovdx \tw@
+  \@ovdy\@ovyy \advance\@ovdy -\@tempdima \divide\@ovdy \tw@
+  \@circlefnt \setbox\@tempboxa
+  \hbox{\if@ovr \@ovvert32\kern -\@tempdima \fi
+  \if@ovl \kern \@ovxx \@ovvert01\kern -\@tempdima \kern -\@ovxx \fi
+  \if@ovt \@ovhorz \kern -\@ovxx \fi
+  \if@ovb \raise \@ovyy \@ovhorz \fi}\advance\@ovdx\@ovro
+  \advance\@ovdy\@ovro \ht\@tempboxa\z@ \dp\@tempboxa\z@
+  \@put{-\@ovdx}{-\@ovdy}{\box\@tempboxa}%
+  \endgroup\fi}
+
+\def\@circle#1{\if@visible \begingroup \boxmaxdepth \maxdimen 
+   \@tempdimb #1\unitlength
+   \ifdim \@tempdimb >15.5pt\relax \@getcirc\@tempdimb
+      \@ovro\ht\@tempboxa 
+     \setbox\@tempboxa\hbox{\@circlefnt
+      \advance\@tempcnta\tw@ \char \@tempcnta
+      \advance\@tempcnta\m@ne \char \@tempcnta \kern -2\@tempdima
+      \advance\@tempcnta\tw@
+      \raise \@tempdima \hbox{\char\@tempcnta}\raise \@tempdima
+        \box\@tempboxa}\ht\@tempboxa\z@ \dp\@tempboxa\z@
+      \@put{-\@ovro}{-\@ovro}{\box\@tempboxa}%
+   \else  \@circ\@tempdimb{96}\fi\endgroup\fi}
+
+\def\@dot#1{\if@visible\@tempdimb #1\unitlength \@circ\@tempdimb{112}\fi}
+
+\long\def\@iframebox[#1][#2]#3{\leavevmode
+  \savebox\@tempboxa[#1][#2]{\kern\fboxsep #3\kern\fboxsep}\@tempdima\fboxrule
+    \advance\@tempdima \fboxsep \advance\@tempdima \dp\@tempboxa
+   \hbox{\lower \@tempdima\hbox
+  {\vbox{ \if@visible \hrule \@height \else \vskip \fi \fboxrule 
+          \hbox{\if@visible \vrule \@width \fboxrule \hskip-\fboxrule \fi
+                \vbox{\vskip\fboxsep \box\@tempboxa\vskip\fboxsep}\if@visible 
+                \vrule \@width \fboxrule \hskip-\fboxrule \fi}\if@visible 
+         \hrule \@height \else \vskip\fi\fboxrule}}}}
+         
+
+\long\def\frame#1{\if@visible\leavevmode
+\vbox{\vskip-\@halfwidth\hrule \@height\@halfwidth \@depth \@halfwidth
+  \vskip-\@halfwidth\hbox{\hskip-\@halfwidth \vrule \@width\@wholewidth
+  \hskip-\@halfwidth #1\hskip-\@halfwidth \vrule \@width \@wholewidth
+  \hskip -\@halfwidth}\vskip -\@halfwidth\hrule \@height \@halfwidth
+  \@depth \@halfwidth\vskip -\@halfwidth}\else #1\fi}
+
+\long\def\fbox#1{\leavevmode\setbox\@tempboxa\hbox{#1}\@tempdima\fboxrule
+    \advance\@tempdima \fboxsep \advance\@tempdima \dp\@tempboxa
+   \hbox{\lower \@tempdima\hbox
+  {\vbox{\if@visible \hrule \@height \else \vskip\fi\fboxrule 
+          \hbox{\if@visible\vrule \@width \else \hskip \fi\fboxrule 
+                 \hskip\fboxsep
+            \vbox{\vskip\fboxsep \box\@tempboxa\vskip\fboxsep}\hskip 
+                   \fboxsep \if@visible\vrule \@width\else\hskip \fi\fboxrule}
+          \if@visible\hrule \@height \else \vskip \fi\fboxrule}}}}
+
+ \message{mods,}
+%      ****************************************
+%      *        OTHER MODIFICATIONS TO        *
+%      *        TeX AND LaTeX COMMANDS        *
+%      ****************************************
+%
+
+% \rule
+
+\def\@rule[#1]#2#3{\@tempdima#3\advance\@tempdima #1\leavevmode
+ \hbox{\if@visible\vrule
+  \@width#2 \@height\@tempdima \@depth-#1\else
+\vrule \@width \z@ \@height\@tempdima \@depth-#1\vrule 
+ \@width#2 \@height\z@\fi}}
+
+% \_  (Added 10 Nov 86)
+
+\def\_{\leavevmode \kern.06em \if@visible\vbox{\hrule width.3em}\else
+   \vbox{\hrule height 0pt width.3em}\vbox{\hrule width 0pt}\fi}
+
+% \overline, \underline, \frac and \sqrt
+%
+% \@mathbox{STYLE}{BOX}{MTEXT} : Called in math mode, typesets MTEXT and
+%   stores result in BOX, using style STYLE.
+%
+% \@bphant{BOX}    : Creates a phantom with dimensions BOX.
+% \@vbphant{BOX}   : Creates a phantom with ht of BOX and zero width.
+% \@hbphant{BOX}   : Creates a phantom with width of BOX and zero ht & dp.
+% \@hvsmash{STYLE}{MTEXT} : Creates a copy of MTEXT with zero height and width
+%                           in style STYLE.
+
+\def\@mathbox#1#2#3{\setbox#2\hbox{$\m@th#1{#3}$}}
+
+\def\@vbphantom#1{\setbox\tw@\null \ht\tw@\ht #1 \dp\tw@\dp #1
+   \box\tw@}
+
+\def\@bphantom#1{\setbox\tw@\null \wd\tw@\wd #1 \ht\tw@\ht #1 \dp\tw@\dp #1
+   \box\tw@}
+
+\def\@hbphantom#1{\setbox\tw@\null \wd\tw@\wd #1 \ht\tw@\z@ \dp\tw@\z@
+   \box\tw@}
+
+\def\@hvsmash#1#2{\@mathbox#1\z@{#2}\ht\z@\z@ \dp\z@\z@ \wd\z@\z@ \box\z@}
+
+\def\underline#1{\relax\ifmmode 
+  \@xunderline{#1}\else $\@xunderline{\hbox{#1}}$\relax\fi}
+
+\def\@xunderline#1{\mathchoice{\@xyunderline\displaystyle{#1}}{\@xyunderline
+    \textstyle{#1}}{\@xyunderline\scriptstyle{#1}}{\@xyunderline
+      \scriptscriptstyle{#1}}}
+
+\def\@xyunderline#1#2{\@mathbox#1\@smashboxa{#2}\@hvsmash#1{\copy\@smashboxa}
+   \if@visible \@hvsmash#1{\@@underline{\@bphantom\@smashboxa}}\fi
+  \@mathbox#1\@smashboxb{\@@underline{\box\@smashboxa}}
+   \@bphantom\@smashboxb}
+
+\let\@@overline=\overline 
+
+\def\overline#1{\mathchoice{\@xoverline\displaystyle{#1}}{\@xoverline
+    \textstyle{#1}}{\@xoverline\scriptstyle{#1}}{\@xoverline
+      \scriptscriptstyle{#1}}}
+
+\def\@xoverline#1#2{\@mathbox#1\@smashboxa{#2}\@hvsmash#1{\copy\@smashboxa}
+   \if@visible \@hvsmash#1{\@@overline{\@bphantom\@smashboxa}}\fi
+   \@mathbox#1\@smashboxb{\@@overline{\box\@smashboxa}}
+   \@bphantom\@smashboxb}
+
+
+% \@frac {STYLE}{DENOMSTYLE}{NUM}{DEN}{FONTSIZE} : Creates \frac{NUM}{DENOM}
+%   in style SYTLE with NUM and DENOM in style DENOMSTYLE
+%   FONTSIZE should be \textfont \scriptfont or \scriptscriptfont
+
+\def\frac#1#2{\mathchoice
+   {\@frac\displaystyle\textstyle{#1}{#2}\textfont}{\@frac
+          \textstyle\scriptstyle{#1}{#2}\textfont}{\@frac
+          \scriptstyle\scriptscriptstyle{#1}{#2}\scriptfont}{\@frac
+          \scriptscriptstyle\scriptscriptstyle{#1}{#2}\scriptscriptfont}}
+
+\def\@frac#1#2#3#4#5{\@mathbox#2\@smashboxa{#3}\@mathbox#2\@smashboxb{#4}
+   \@mathbox#1\@smashboxc{\copy\@smashboxa\over\copy\@smashboxb}   
+   \@vbphantom\@smashboxc
+   \vcenter{\vbox to \z@{\hsize \wd\@smashboxc
+                         \vss\nointerlineskip
+                         \hbox to \wd\@smashboxc{\hss\box\@smashboxa\hss}
+              \hrule height \z@}
+          \vskip 7\fontdimen8#53            
+          \if@visible\hrule height \fontdimen8#53\else \vskip \fontdimen8#53\fi
+          \vskip 7\fontdimen8#53            
+          \nointerlineskip
+          \vbox to \z@{\nointerlineskip
+                         \hbox to \wd\@smashboxc{\hss\box\@smashboxb\hss}
+              \hrule height \z@\vss}
+           }}
+
+\def\r@@t#1#2{\setbox\z@\hbox{$\m@th#1\@xysqrt#1{#2}$}
+  \dimen@\ht\z@ \advance\dimen@-\dp\z@
+  \mskip5mu\raise.6\dimen@\copy\rootbox \mskip-10mu \box\z@}
+
+\def\sqrt{\@ifnextchar[{\@sqrt}{\@xsqrt}}
+\def\@sqrt[#1]{\root #1\of}
+\def\@xsqrt#1{\mathchoice{\@xysqrt\displaystyle{#1}}{\@xysqrt
+     \textstyle{#1}}{\@xysqrt\scriptstyle{#1}}{\@xysqrt
+    \scriptscriptstyle{#1}}}
+\def\@xysqrt#1#2{\@mathbox#1\@smashboxa{#2}\if@visible
+    \@hvsmash#1{\@@sqrt{\@bphantom\@smashboxa}}\fi
+    \phantom{\@@sqrt{\@vbphantom\@smashboxa}}\box\@smashboxa}
+
+\newbox\@smashboxa
+\newbox\@smashboxb
+\newbox\@smashboxc
+
+% array and tabular environments: changes to `|', \hline, \cline, and \vline
+% added 8 Jun 88
+
+\def\@arrayrule{\if@visible\@addtopreamble{\hskip -.5\arrayrulewidth 
+   \vrule \@width \arrayrulewidth\hskip -.5\arrayrulewidth}\fi}
+
+\def\cline#1{\if@visible\@cline[#1]\fi}
+
+
+\def\hline{\noalign{\ifnum0=`}\fi
+    \if@visible \hrule \@height \arrayrulewidth 
+      \else \hrule \@width \z@ 
+    \fi
+    \futurelet \@tempa\@xhline}
+
+
+\def\vline{\if@visible \vrule \@width \arrayrulewidth
+            \else \vrule \@width \arrayrulewidth \@height \z@ 
+           \@depth \z@ \fi}
+
+
+ \message{output,}
+%      ****************************************
+%      *   CHANGES TO LaTeX \output ROUTINE   *
+%      ****************************************
+%
+%  \@makecol ==
+%    BEGIN
+% % Following test added for slides to check if extra page
+%     if @makingslides = T
+%     then if \c@page > 0
+%             then if \c@note > 0
+%                     then type 'Note \thenote too long.'
+%                     else if \c@overlay > 0
+%                            then type 'Overlay \theoverlay too long.'
+%                            else type 'Slide \theslide too long'
+%     fi     fi     fi     fi
+%     ifvoid \insert\footins
+%        then  \@outputbox := \box255
+%        else  \@outputbox := \vbox {\unvbox255
+%                                    \vskip \skip\footins
+%                                    \footnoterule
+%                                    \unvbox\@footinsert
+%                                   }
+%    fi
+%    \@freelist :=G \@freelist * \@midlist
+%    \@midlist  :=G empty
+%    \@combinefloats
+%    \@outputbox := \vbox to \@colht{\boxmaxdepth := \maxdepth
+%                                     \vfil     %%\vfil added for slides
+%                                     \unvbox\@outputbox
+%                                     \vfil }   %%\vfil added for slides
+%    \maxdepth :=G \@maxdepth
+%    END
+
+\def\@makecol{\if@makingslides\ifnum\c@page>\z@ \@extraslide\fi\fi
+\ifvoid\footins \setbox\@outputbox\box\@cclv \let\@botfil\vfil
+   \else\let\@botfil\relax\setbox\@outputbox
+     \vbox{\unvbox\@cclv\vfil
+           \vskip\skip\footins\footnoterule\unvbox\footins\vskip
+            \z@ plus.1fil\relax}\fi
+  \xdef\@freelist{\@freelist\@midlist}\gdef\@midlist{}\@combinefloats
+     \setbox\@outputbox\vbox to\@colht{\boxmaxdepth\maxdepth
+        \vfil\unvbox\@outputbox\@botfil}\global\maxdepth\@maxdepth}
+
+\def\@extraslide{\ifnum\c@note>\z@ 
+    \@warning{Note \thenote\space too long}\else 
+     \ifnum\c@overlay>\z@ 
+        \@warning{Overlay \theoverlay\space too long}\else 
+        \@warning{Slide \theslide\space too long}\fi\fi}
+
+ \message{init}
+%      ****************************************
+%      *    SPECIAL SLiTeX INITIALIZATIONS    *
+%      ****************************************
+%
+\nofiles
+\@visibletrue
+

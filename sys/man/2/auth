@@ -1,0 +1,173 @@
+.TH AUTH 2
+.SH NAME
+auth, srvauth, getchall, challreply, newns, authdial, passtokey, nvcsum \- network authentication
+.SH SYNOPSIS
+.nf
+.PP
+.ft L
+#include <u.h>
+#include <libc.h>
+#include <auth.h>
+.PP
+.ft P
+.B
+char*	auth(int fd, char *dialstring)
+.PP
+.B
+char*	srvauth(char *user)
+.PP
+.B
+int	getchall(char *user, char chall[NETCHLEN]);
+.PP
+.B
+int	challreply(int fd, char *user, char *response);
+.PP
+.B
+char*	newns(char *user, char *nsfile)
+.PP
+.B
+int	authdial(char *service)
+.PP
+.B
+int	passtokey(char key[DESKEYLEN], char *password)
+.PP
+.B
+uchar	nvcsum(void *mem, int len)
+.SH DESCRIPTION
+.I Auth
+and
+.I srvauth
+authenticate connections for Plan 9 remote execution
+using the
+.I rexauth
+protocol described in
+.IR auth (6).
+.I Auth
+authenticates an outgoing network call.
+.I Fd
+is a file descriptor to the data channel of the network connection.
+.I Auth
+extracts from
+.I dialstring
+the name of the server being called.
+.I Dialstring
+should be the address passed to
+.IR dial (2).
+.I Auth
+reads the user's name with
+.IR getuser (2)
+and uses
+.B #c/crypt
+for encrypting and decrypting
+.I rexauth
+messages.
+.PP
+.I Srvauth
+authenticates the corresponding incoming call.
+It copies the name of the user into
+.IR user ,
+which must be at least
+.B NAMELEN
+bytes long.
+.PP
+.I Getchall
+and
+.I challreply
+authenticate an incoming network call for a service that does not
+perform the usual Plan 9 authentication.
+They use the
+.I chal
+protocol described in
+.IR auth (6).
+.I User
+points to the local name of the user.
+.I Getchall
+reads a null-terminated textual challenge from the authentication server and copies it to
+.IR chall .
+It returns the open file descriptor to the authentication server,
+or \-1 if it fails.
+The challenge should be printed for the user to see,
+and the user should use a Digital Pathways Securenet Key or
+.I aux/netkey
+(see
+.IR passwd (1))
+to generate the appropriate response.
+.PP
+.I Challreply
+should be called with the user's response, which is also a null-terminated text string, and
+the file descriptor returned from
+.IR getchall .
+It returns 0 if it succeeds,
+or \-1 if the user was not authenticated.
+.PP
+.I Srvauth
+and
+.I challreply
+set the process's user name and encryption key (see
+.IR cons (3)).
+.PP
+.I Newns
+builds a name space for
+.IR user .
+It opens the file
+.I nsfile
+.RB ( /lib/namespace
+is used if
+.I nsfile
+is null),
+copies the old environment, and erases the current name space,
+sets the environment variables
+.B user
+and
+.BR home ,
+and interprets the commands in
+.IR nsfile .
+The format of
+.I nsfile
+is described in
+.IR namespace (6).
+.PP
+.I Authdial
+calls
+.I service
+on the local authentication server.
+It returns a file descriptor to the open connection
+or \-1 if it fails.
+.PP
+.I Passtokey
+converts
+.I password
+into a DES key and stores the result in
+.IR key .
+It returns 0 if
+.I password
+could not be converted,
+and 1 otherwise.
+.PP
+.I Nvcsum
+computes a checksum for the 
+.I len
+byte array
+.IR mem .
+It is used to checksum keys stored in non-volatile RAM.
+.SH FILES
+.TF /lib/namespacexxx
+.PD
+.TP
+.B #c/crypt
+Encryption file used by
+.IR auth .
+.TP
+.B /lib/namespace
+Default name space specification file.
+.SH DIAGNOSTICS
+.IR Auth ,
+.IR srvauth ,
+and
+.I newns
+return a pointer to an error message upon failure, and 0 upon success.
+.SH SEE ALSO
+.IR passwd (1),
+.IR auth (6),
+.IR cons (3),
+.IR dial (2)

@@ -1,0 +1,19 @@
+This program serves Unix files to Plan 9 machines.  It is to be run on a
+Unix machine with its standard input, output, and error connected to a
+network connection.  It runs as root and multiplexes access to multiple
+clients over the single wire by simulating Unix permissions itself.
+We run this service as '9fs' with tcp service number 17008 over our
+ethernets.  You may find that, due to a bug in some versions of the
+IP software, your system will not accept the name '9fs', thinking it
+is a service number because its first character is a digit.  If so,
+complain to Berkeley (it's their bug) and run the service as u9fs or 17008.
+
+Set LOG to a proper place for a log file, and set up the makefile or mkfile
+to use an ANSI C compiler.
+
+If you want access to devices, attach to "device".  Otherwise, because
+the program is single-threaded and may block unpredictably talking to
+a device, it forbids such access. Device access may produce unpredictable
+results if the block size of the device is greater than 8192, the Plan 9
+RPC block size.
+

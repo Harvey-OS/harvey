@@ -1,0 +1,16 @@
+.TH LUM 9.1
+.SH NAME
+lum \- compute luminance
+.SH SYNOPSIS
+.B fb/lum
+[
+.I input
+]
+.SH DESCRIPTION
+.I Lum
+computes the luminance of the input picture using the NTSC formula
+.I L=.299R+.587G+.114B.
+Pixel values are mapped through the input image's color map, if any.
+The resulting image is written to standard output.
+.SH "SEE ALSO
+.IR picfile (9.6)

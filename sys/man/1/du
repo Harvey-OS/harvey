@@ -1,0 +1,39 @@
+.TH DU 1
+.SH NAME
+du \- disk usage
+.SH SYNOPSIS
+.B du
+[
+.B -a
+]
+[
+.BI -b size
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Du
+gives the number of Kbytes allocated to data blocks
+of named
+.I files
+and, recursively, of files in named directories.
+By default, the disk block size is assumed to be 1024 bytes.
+Other values can be set by the
+.B -b
+option;
+.I size
+is the number of bytes, optionally suffixed
+.B k
+to specify multiplication by 1024.
+If
+.I file
+is missing,
+the current directory is used.
+The count for a directory includes the counts of the 
+contained files and directories.
+The
+.B -a
+option prints the number of blocks
+for every file in a directory.
+Normally counts are printed only for contained directories.

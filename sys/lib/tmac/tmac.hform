@@ -1,0 +1,238 @@
+.ig
+	Instructions:
+
+	Make a file that looks something like this:
+
+.so /sys/lib/tmac/tmac.hform
+.EN "Grace R. Emlin"	\" employee's name
+.ES "314-15-9265"	\" employee's soc. sec. number
+.EA "Apt. 2C501, 600 Mountain Ave., Murray Hill, NJ 07974" \" employee's address
+.PN "Samantha X. Emlin"	\" patient's name
+.PB "7/13/90"		\" patient's birth date
+.NI "See attached"	\" nature of illness
+.OE "Fly-By-Night Corp., 123 Airport Way, Long Island City" \" other employer
+.OT "516" "666-4911"	\" other employer's area code and phone number
+.DN "Samantha X. Emlin"	\" dependent's name
+.DS "271-82-8182"	\" dependent's soc. sec. number
+.DE "Underwearer's Laboratories (Disposables Division)"	\" dependent's employer
+.DI "none"		\" dependent's insurance
+.DT ""			\" today's date
+.TF "a" "m"		\" a=active, r=retired; p=pay physician, m=pay me
+
+	If you leave the \" comments in your file, REMEMBER
+	TO QUOTE THE ARGUMENTS, ESPECIALLY .TF "a" "m".
+	Order is arbitrary, except that .TF must come last.
+	Omit macro to leave corresponding field blank.
+	.DT "anything" will supersede today's date.
+	For best results, print using:
+
+		troff -T202 file | gcan
+
+	Spacing on postscript printers is not guaranteed.
+..
+.ds SQ \s+3\v'0.15n'\(sq\v'-0.15n'\s0
+.de TF
+.bp
+.vs 1u
+.ll 7i
+.po 0
+.in 0
+.sp |0.45i
+.ps 40
+.nr L1 \w'\(L1'
+\(L1
+.sp -1
+.sp -0.6n
+.ft HB
+.ps 18
+\h'\\n(L1u'A\h'-0.4n'T\h'-0.4n'\s13&\s0\h'-0.4n'T
+.sp |0.10i
+.in 1.4i
+.ps 8
+.ft H
+\\*(SQ Active
+.sp -1
+.if '\\$1'a' \{\
+\f(CW\s10x\s0\fP
+.sp -1 \}
+.sp .12i
+\\*(SQ Retired
+.if '\\$1'r' \{\
+.sp -1
+\f(CW\s10x\s0\fP\}
+.sp -1 \}
+.in 0
+.ps 11
+.sp |0.20i
+.ce 1
+TRANSMITTAL FORM
+.ps 9
+.sp |0.20i
+.ta 7iR
+\&	PRINT CLEARLY AND SIGN BELOW
+.sp |0.45i
+.ps 10
+.ta 3.5i 7.0i
+.lc _
+.vs 0.22i
+Employee Name:\\kh\s6\&\s0\& Employee Soc. Sec. No:\\ki\s6\&\s0\&
+.sp -1
+\h'|\\nhu'\\*(En\h'|\\niu'\\*(Es
+.br
+.ta 7.0i
+Employee Address:\\kh\s6\&\s0\&
+.sp -1
+\h'|\\nhu'\\*(Ea
+.br
+.ta 4.7i 7.0i
+Patient Name:\\kh\s6\&\s0\& Date of Birth:\\ki\s6\&\s0\&
+.sp -1
+\h'|\\nhu'\\*(Pn\h'|\\niu'\\*(Pb
+.br
+.ta 7.0i
+Nature of Illness or Injury\\kh\s6\&\s0\&
+.sp -1
+\h'|\\nhu'\\*(Ni
+.sp -1
+.sp 0.07i
+\l'7i\(ul'
+.sp -1
+\h'5.4i'\L'0.31i'
+.sp -1
+.sp 0.10i
+.ps 6
+DO YOU HAVE ANOTHER EMPLOYER? \f(HI(If yes, give name and address of other employer)\fP
+.sp -1
+\h'5.47i'EMPLOYER TELEPHONE NUMBER
+.sp -1
+\h'5.55i'\v'0.10i'AREA CODE\v'-0.10i'
+.sp -1
+\h'6.40i'\v'0.10i'NUMBER\v'-0.10i'
+.sp -1
+.sp 0.22i
+\l'7i\(ul'
+.sp -1
+\h'6.20i'\L'-0.14i'
+.sp -1
+\v'-0.05i'\\*(SQ\ \ Yes\h'|0.6i'\\*(SQ\ \ No\v'0.05i'
+.sp -1
+.ie '\\*(Oe'' \h'|0.6i'\v'-0.05i'\f(CW\s10x\s0\fP\v'0.05i'
+.el \v'-0.05i'\f(CW\s10x\h'|0.85i'\\*(Oe\s0\fP\v'0.05i'
+.sp -1
+.if !'\\*(Oa'' \{\
+\h'|5.7i'\v'-0.02i'\\*(Oa\v'0.02i'
+.sp -1 \}
+.if !'\\*(Ot'' \{\
+\h'|6.3i'\v'-0.02i'\\*(Ot\v'0.02i'
+.sp -1 \}
+.sp 0.1i
+.ce
+Complete below if claim is for your dependent/spouse
+.sp -1
+.sp 0.2i
+.ps 10
+.ta 3.5i 7.0i
+DEP./SPOUSE Name:\\kh\s6\&\s0\& DEP./SPOUSE Soc. Sec. No.:\\ki\s6\&\s0\&
+.sp -1
+\h'|\\nhu'\\*(Dn\h'|\\niu'\\*(Ds
+.br
+.ta 7.0i
+DEP./SPOUSE Employer:\\kh\s6\&\s0\&
+.sp -1
+\h'|\\nhu'\\*(De
+.br
+DEP./SPOUSE Benefit Plan No. and Insurer:\\kh\s6\&\s0\&
+.sp -1
+\h'|\\nhu'\\*(Di
+.br
+.ta 2.65i 4.0i
+I hereby direct payment to be made to:	\\*(SQ My Physician	\\*(SQ Myself
+.sp -1
+.if '\\$2'p' \&	\f(CW\s10\v'-0.15n'x\v'0.15n\s0\fP'
+.if '\\$2'm' \&		\f(CW\s10\v'-0.15n'x\v'0.15n'\s0\fP
+.sp -1
+.sp 0.1i
+.ta 7.0i
+.ps 18
+\l'7i\(ul'
+.sp -1
+\h'0.08i'\v'0.13i'\s6ANY PERSON WHO KNOWINGLY AND WITH INTENT TO INJURE, DEFRAUD, OR DECEIVE ANY INSURANCE COMPANY, FILES A STATEMENT OF CLAIM CONTAINING ANY\s0\v'-0.13i'
+.sp -1
+\h'0.08i'\v'0.23i'\s6FALSE, INCOMPLETE OR MISLEADING INFORMATION MAY BE GUILTY OF A CRIMINAL ACT PUNISHABLE UNDER LAW.\s0\v'-0.23i'
+.sp -1
+\L'0.22i'
+.sp -1
+\h'6.99i'\L'0.22i'
+.sp -1
+.sp 0.255i
+\l'7i\(ul'
+.sp -1
+.sp 0.25i
+.ta 1.9i 7.0i
+.ps 10
+Date:\\kh\s6\&\s0\& Signature:\s6\&\s0\&
+.sp -1
+\h'|\\nhu'\\*(Dt
+.sp -1
+.sp .25i
+.ps 7
+GI-59970\h'0.1i'(BACK)
+.sp -1
+.sp .1i
+\l'7i\(ul'
+.sp -1
+.ps 10
+.sp
+.ta 1i
+.nf
+Mail to:	The Travelers
+.in 1i
+Employee Benefits Department
+Claim Division
+P.O. Box 7579
+Greensboro, NC  27417
+.cL
+..
+.de dE
+.de \\$1
+.ds \\$2 \f(CW\s10 \\\\$1\s0\fP
+\\..
+..
+.dE EN En
+.dE ES Es
+.dE EA Ea
+.dE PN Pn
+.dE PB Pb
+.dE NI Ni
+.dE DN Dn
+.dE DS Ds
+.dE DE De
+.dE DI Di
+.de OE
+.ds Oe \\&\\$1
+..
+.de OT
+.ds Oa \f(CW\s10\\$1\s0\fP
+.ds Ot \f(CW\s10\\$2\s0\fP
+..
+.de DT
+.ie '\\$1'' .ds Dt \f(CW\s10 \\n(mo/\\n(dy/\\n(yr\s0\fP
+.el .ds Dt \f(CW\s10 \\$1\s0\fP
+..
+.de cL
+.ds En
+.ds Es
+.ds Ea
+.ds Pn
+.ds Pb
+.ds Ni
+.ds Dn
+.ds Ds
+.ds De
+.ds Di
+.ds Oe
+.ds Oa
+.ds Ot
+.ds Dt
+..
+.cL

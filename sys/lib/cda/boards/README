@@ -1,0 +1,17 @@
+VME9		Hybricon wire wrap card 9Ux280mm
+VME20		Augat VME card 8136-VME20
+VME30		Augat extended VME card 8136-VME30
+VME30r		Augat extended VME card 8136-VME30 rotated 90 degrees
+VME616		Augat VME 8136-VME616 card
+VME616r		Same but rotated 90 degrees
+VME622		Augat VME 8136-VME622 card
+mupac		Mupac card rows of .3in
+mupac2		Mupac card rows of .3in and .1in
+wing		Wing's pin grid card (Augat X8136-)
+gnot		Chicago wire wrap card
+schroff		Schroff 2U VME board
+augatul1	small board from the stockroom
+6Ux160mm	Hybricon 6U board with PGA area
+6Ux280mm	Hybricon 6U board with PGA area
+616-02		Augat8136VME616-02
+9512		DEC W9512 (ancient!)

@@ -1,0 +1,221 @@
+.TH MKFS 8
+.SH NAME
+mkfs, mkext, flio \- archive or update a file system
+.SH SYNOPSIS
+.B disk/mkfs
+.RB [ -aprv ]
+.RB [ -n
+.IR name ]
+.RB [ -s
+.IR source ]
+.RB [ -u
+.IR users ]
+.RB [ -z
+.IR n ]
+.I proto
+...
+.PP
+.B disk/mkext
+.RB [ -d
+.IR name ]
+.RB [ -u ]
+.RB [ -h ]
+.I file
+...
+.PP
+.B disk/flio
+.RB [ -io ]
+.RB [ -b
+.IR bsize ]
+.I diskfile
+...
+.SH DESCRIPTION
+.I Mkfs
+copies files from the file tree
+.I source
+(default
+.BR / )
+to a
+.B kfs
+file system (see
+.IR kfs (4)).
+The kfs service is mounted on
+.BR /n/kfs ,
+and
+.B /adm/users
+is copied to
+.BR /n/kfs/adm/users .
+The
+.I proto
+files are read,
+and any files specified in them that are out of date are copied to
+.BR /n/kfs .
+.PP
+Each line of the
+.I proto
+file specifies a file to copy.
+Indentation is significant,
+with each level of indentation corresponding to a level in the file tree.
+Fields within a line are separated by white space.
+The first field is the last path element in the destination file tree.
+The second field specifies the permissions.
+The third field is the owner of the file,
+and the fourth is the group owing the file.
+The fifth field is the name of the file from which to copy;
+this file is read from the current name space,
+not the source file tree.
+All fields except the first are optional.
+.PP
+Names beginning with a
+.L $
+are expanded as environment variables.
+If the first file specified in a directory is
+.LR * ,
+all of the files in that directory are copied.
+If the first file is
+.LR + ,
+all of the files are copied, and all subdirectories
+are recursively copied.
+.PP
+.I Mkfs
+copies only those files that are out of date.
+Such a file is first copied into a temporary
+file in the appropriate destination directory
+and then moved to the destination file.
+Files in the
+.I kfs
+file system that are not specified in the
+.I proto
+file
+are not updated and not removed.
+.PP
+The options to
+.I mkfs
+are:
+.TP
+.B a
+Instead of writing to a
+.B kfs
+file system, write an archive file to standard output, suitable for
+.I mkext.
+All files in
+.I proto,
+not just those out of date, are archived.
+.TP
+.BI "n " name
+Use
+.RI kfs. name
+as the name of the kfs service (default
+.BR kfs ).
+.TP
+.B p
+Update the permissions of a file even if it is up to date.
+.TP
+.B r
+Copy all files.
+.TP
+.BI "s " source
+Copy from files rooted at the tree
+.IR source .
+.TP
+.BI "u " users
+Copy file
+.I users
+into
+.BR /adm/users .
+.TP
+.B v
+Print the names of all of the files as they are copied.
+.TP
+.BI "z " n
+Copy files assuming kfs block
+.I n
+(default 1024)
+bytes long.
+If a block contains only 0 bytes, it is not copied.
+.PP
+.I Mkext
+unpacks archive files made by the
+.B -a
+option of
+.I mkfs.
+The
+.B -d
+option specifies a directory to serve as the root of the unpacked file system.
+The
+.B -u
+option, to be used only when initializing a new
+.IR fs (4)
+file system, sets the owners of the files created to correspond to
+those in the archive.
+(This is only permitted at the initial load of the files into a file
+system.)
+Each file on the command line is unpacked in one pass through the archive.
+If the file is a directory,
+all files and subdirectories of that directory are also unpacked.
+When a file is unpacked, the entire path is created if it
+does not exist.
+If no files are specified, the entire archive is unpacked;
+in this case, missing intermediate directories are not created.
+The
+.B -h
+option prints headers for the files on standard output
+instead of unpacking the files.
+.PP
+.I Flio
+allows multiple floppy disks to be treated as a single volume.
+With the
+.B -i
+option
+.I flio
+reads consecutive floppies from the device file,
+.IR diskfile ,
+and writes the contents to standard output.
+With the
+.B -o
+option
+.I flio
+reads from standard input and writes to
+.IR diskfile .
+The user is prompted whenever a new disk needs to be inserted.
+The
+.B -b
+option specifies a blocking factor to be used on the floppy.
+.I Bsize
+is a number of bytes (default 1024) or, with a trailing
+.BR k ,
+a multiple of 1024 bytes.
+.SH EXAMPLES
+.PP
+Make an archive to establish a new file system:
+.IP
+.EX
+disk/mkfs -a -u files/adm.users -s dist proto > arch
+.EE
+.PP
+Unpack that archive onto a new file system:
+.IP
+.EX
+srv il!newfs
+mount -c /srv/il!newfs /n/newfs
+disk/mkext -u -d /n/newfs < arch
+.EE
+.PP
+Unpack an archive from a set of floppy disks:
+.IP
+.EX
+srv il!newfs
+mount -c /srv/il!newfs /n/newfs
+disk/flio -b 32k -i /dev/fd0disk | disk/mkext -u -d /n/newfs
+.EE
+.SH FILES
+.TP
+.B /lib/proto/portproto
+generic prototype file.
+.TP
+.B /lib/proto/cdaproto
+prototype file for cda programs and libraries.
+.SH "SEE ALSO"
+.IR prep (8),
+.IR kfscmd (8),
+.IR hard (3)

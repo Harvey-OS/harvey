@@ -1,0 +1,198 @@
+.TH NDB 8
+.SH NAME
+query, mkhash, mkdb, cs, csquery, dns, dnsquery \- network database
+.SH SYNOPSIS
+.B ndb/query
+.I "attr value"
+.RI [ rattr ]
+.br
+.B ndb/mkhash
+.I "file attr"
+.br
+.B ndb/cs
+.br
+.B ndb/csquery
+.br
+.B ndb/dns
+[
+.B -s
+]
+.br
+.B ndb/dnsquery
+.br
+.B ndb/mkdb
+.SH DESCRIPTION
+The network database holds administrative information used by
+network programs such as
+.IR bootp (8),
+.IR ipconfig (8),
+.IR con (1),
+etc.
+.PP
+.I Ndb/query 
+searches the database for an attribute of type
+.I attr
+and value
+.IR value .
+If
+.I rattr
+is not specified, all entries matched by the search are returned.
+If 
+.I rattr
+is specified, the value of the first pair with attribute
+.I rattr
+of all the matched entries is returned.
+.PP
+.I Ndb/mkhash
+creates a hash file for all entries with attribute
+.I attr
+in database file
+.IR file .
+The hash files are used by 
+.I ndb/query
+and by the ndb library routines.
+.PP
+.I Ndb/cs
+is a server used by
+.IR dial (2)
+to translate network names.
+It is started at boot time.
+It finds out what networks are configured
+by looking for
+.B /net/*/clone
+when it starts.
+It can also be told about networks by writing
+to
+.B /net/cs
+a message of the form:
+.IP
+.BR "add net1 net2 ..." .
+.PP
+.I Ndb/cs
+also sets the system name in
+.B /dev/sysname
+if it can figure it out.
+.I Ndb/csquery
+can be used to query
+.I ndb/cs
+to see how it resolves addresses.
+.I Ndb/csquery
+prompts for addresses and prints out what
+.I ndb/cs
+returns.
+.PP
+.I Ndb/dns
+is a server used by
+.I ndb/cs
+and by remote systems to translate Internet domain names.
+.I Ndb/dns
+is started at boot time.
+By default
+.I dns
+serves only requests written to
+.BR /net/dns .
+Option
+.B \-s
+causes the server to also answer domain requests sent to UDP port 53.
+Name resolution is performed by searching the local database
+and by querying remote servers.
+The server for a domain is indicated by a database entry containing
+both a
+.I dom
+and a
+.I ns
+attribute.
+For example, the entry for the Internet root is:
+.EX
+
+dom=
+	ns=ns.nic.ddn.mil
+	ns=kava.nisc.sri.com
+	ns=aos.brl.mil
+
+.EE
+The root of a domain subtree served by the local database is indicated
+by an entry with an
+.I soa
+attribute.
+For example, the AT&T research domain is:
+.EX
+
+dom=research.att.com soa
+	mb=ches.research.att.com
+	ns=inet.research.att.com
+	ns=research.research.att.com
+
+.EE
+Here, the
+.I mb
+entry is the mail address of the person responsible for the
+domain (default
+.BR postmaster ).
+Wildcarded domain names can also be used.
+For example, to specify a mail forwarder for all AT&T research systems:
+.EX
+
+dom=*.research.att.com
+	mx=research.att.com
+
+.EE
+.I Ndb/dnsquery
+can be used to query
+.I ndb/dns
+to see how it resolves requests.
+.I Ndb/dnsquery
+prompts for commands of the form
+.IP
+.I "domain-name request-type"
+.LP
+where
+.I request-type
+can be
+.I "ip, mx, ns, cname, ..."
+.PP
+.I Ndb/mkdb
+is used in concert with
+.IR awk (1)
+scripts to convert
+uucp systems files, IP hosts files, and Datakit configuration
+files into database files.
+It is very specific to the situation at Murray Hill.
+.SH EXAMPLES
+.EX
+% ndb/query sys helix
+sys=helix dom=helix.research.att.com bootf=/mips/9powerboot
+	ip=135.104.117.31 ether=080069020427
+	dk=nj/astro/helix
+	proto=il 
+% ndb/query sys helix ip
+135.104.117.31
+.EE
+.SH FILES
+.TF /lib/ndb/local.*xxx
+.TP
+.B /lib/ndb/local
+first database file searched
+.TP
+.B /lib/ndb/global
+second database file searched
+.TP
+.B /lib/ndb/local.*
+hash files for
+.B /lib/ndb/local
+.TP
+.B /lib/ndb/global.*
+hash files for
+.B /lib/ndb/global
+.TP
+.B /srv/cs
+service file for
+.I ndb/cs
+.TP
+.B /net/cs
+where
+.B /srv/cs
+gets mounted
+.SH SEE ALSO
+.IR ndb (2)
+.IR ndb (6)

@@ -1,0 +1,30 @@
+</$objtype/mkfile
+
+TARG=smiley
+OFILES=smiley.$O\
+	explode.$O\
+
+HFILES=fns.h
+
+</sys/src/cmd/mkone
+BIN=/$objtype/bin/games
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+
+install:V:	/lib/font/bit/smiley/0
+
+/lib/font/bit/smiley/0:	smileyfont
+	cp $prereq $target
+
+smileyfont:	$cpuobjtype.mkfont
+	./$cpuobjtype.mkfont
+	rm -f $cpuobjtype.mkfont mkfont.$cpuobjtype
+
+$cpuobjtype.mkfont:	mkfont.c
+	objtype=$cputype
+	mk mkfont.$cputype
+
+mkfont.$cputype:V:	mkfont.$O
+	$LD -o $O.mkfont mkfont.$O
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG [$OS].mkfont smileyfont

@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libndb.a
+OFILES=\
+	ndbhash.$O\
+	ndbparse.$O\
+	ndbgetval.$O\
+	ipattr.$O\
+	ipinfo.$O\
+
+HFILES=/sys/include/ndb.h
+
+</sys/src/cmd/mksyslib

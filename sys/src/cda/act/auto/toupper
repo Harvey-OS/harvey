@@ -1,0 +1,2 @@
+#!/bin/rc
+awk '/\./ {print $0 ; next} {print toupper($0)}' $*

@@ -1,0 +1,4 @@
+TEXT _EXITS(SB), $0
+MOVL $8, AX
+INT $64
+RET

@@ -1,0 +1,153 @@
+.TH LISTEN 8
+.SH NAME
+listen, dkcpu, dkcpunote, dkdiscard, dkecho, dkexportfs, dkexportfs0, dkrexexec, dkwhoami, dksmtp, dkdcon, dklogin, dkfsauth, dkrexauth, dkchal, dkchangekey, dkcheck, dkguard, il7, il9, il565, il17005, il17006, il17007, il17009, il17020, il17021, il17022, il17023, il17024, tcp7, tcp9, tcp21, tcp23, tcp25, tcp513, tcp565, tcp17007, tcp17008, tcp6000 \- listen for calls on a network device
+.SH SYNOPSIS
+.B aux/listen
+.RB [ -q ]
+.RB [ -d
+.IR srvdir ]
+.RB [ -t
+.IR trustsrvdir ]
+.RI[ net
+.RI [ name ]]
+.SH DESCRIPTION
+.I listen
+announces itself to a network as
+.I name
+(by default the contents of
+.BR /env/sysname )
+and listens for inbound calls to local services.
+.I Net
+is the network device on which to listen, by default
+.BR /net/dk .
+The services available are executable files in
+.I srvdir
+or
+.IR trustsrvdir .
+If neither
+.I srvdir
+nor
+.I trustsrvdir
+is given,
+.I listen
+looks for executable files in
+.BR /bin/service .
+Services found in
+.I srvdir
+are executed as user
+.BR none ;
+services found in
+.I trustsrvdir
+as executed as the user who started
+.I listen.
+Option
+.B -q
+suppresses affirmative log information.
+.PP
+Service names are made by concatenating the name of
+the network with the name of the service or port.
+For example,
+an inbound call on the TCP network for port 565 executes service
+.BR tcp565 ,
+while a call on the Datakit network for service whoami executes service dkwhoami.
+Services are executed with the name of the service,
+the network name, and the stream directory
+of the incoming call as arguments.
+.PP
+The following services are available in
+.BR /bin/service .
+.TF dkwhoami\ il565\ tcp565
+.TP
+.B "dkcpu il17005"
+server for
+.IR cpu (1)
+command.
+.TP
+.B "dkcpunote il17006"
+.BI  /proc/ pid /notify
+forwarding for
+.IR cpu (1).
+.TP
+.B dkexportfs il17007 tcp17007
+serve a piece of the name space using the Plan 9 file system protocol,
+with authentication (typically used by
+.IR cpu (1)).
+.TP
+.B dkexportfs0 il17008 tcp17008
+like 17007, without authentication (used by Unix
+systems to see Plan 9 files).
+.TP
+.B dkrexexec il17009
+remote execution.
+.TP
+.B dkwhoami il565 tcp565
+report the address of the incoming call.
+.TP
+.B tcp21
+FTP daemon
+.TP
+.B tcp6000
+X-window callback
+.TP
+.B dksmtp tcp25
+mail delivery.
+.TP
+.B dkdcon
+research Unix terminal connection.
+.TP
+.B dklogin
+generic terminal connection.
+.TP
+.B tcp23
+telnet terminal connection.
+.TP
+.B tcp513
+rlogin terminal connection.
+.TP
+.B dkecho il7 tcp7
+echo any bytes received (bit mirror)
+.TP
+.B dkdiscard il9 tcp9
+consume any bytes received (bit bucket)
+
+.PP
+The following services are available in
+.BR /bin/service.auth .
+.TF dkwhoami\ il565\ tcp565
+.TP
+.B dkfsauth il17020
+file system authentication.
+.TP
+.B dkrexauth il17021
+remote execution authentication.
+.TP
+.B dkchangekey il17022
+change a user's password.
+.TP
+.B dkchal il17023
+SecureNet CPU authentication.
+.TP
+.B "dkcheck il17024"
+check a user's password.
+.TP
+.B dkguard
+check a SecureNet box.
+.SH FILES
+.TF /env/sysname
+.TP
+.B /net/dk
+by convention, Datakit device bind point
+.TP
+.B /net/il
+by convention, IL device bind point
+.TP
+.B /net/tcp
+by convention, TCP device bind point
+.TP
+.B /env/sysname
+default announced name
+.SH "SEE ALSO"
+.IR dkconfig (8),
+.IR auth (6),
+.IR dk (3),
+.IR dial (2)

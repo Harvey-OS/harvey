@@ -1,0 +1,65 @@
+
+>From: xanthian@saturn.ADS.COM (Metafont Consultant Account)
+Newsgroups: comp.graphics
+Subject: Re: Help w/bitmaps, Computer Graphics Metafile (CGM) etc.
+Message-ID: <10540@saturn.ADS.COM>
+Date: 22 Jan 90 09:51:50 GMT
+Organization: Advanced Decision Systems, Mt. View, CA (415) 960-7300
+Lines: 58
+
+In article <26147@cup.portal.com> Chris_F_Chiesa@cup.portal.com writes:
+>
+>   2) What is CGM or Computer Graphics Metafile?  Is it the same thing?  The
+>      fellow with the job mentioned "CGM extensions."  Is that something
+>      above and beyond a "standard" CGM?  Or what?  I know this "from nothing.
+>
+
+CGM is:
+
+	A functional specification (semantic standard) for encoding
+	computer graphics images for redisplay on one or several supported
+	device types, with three encoding (syntactic) standards, one a
+	character encoding for minimal size and ease of transmission, one a
+	binary encoding for speed of access, and one a clear text encoding
+	for human readability and easy editing.  It is primarily oriented
+	toward stroke drawn graphics, but includes raster bitmap encodings.
+	It comprises about 300 pages, softbound.  CGM is both an American
+	National Standard and an ISO international standard.
+
+CGM is not:
+
+	A 3D standard, a CAD/CAM data transfer standard (IGES is), nor is it
+	a graphic object model data storage standard.
+
+CGM is called:
+
+	ANSI X3.122-1986
+	American National Standard for Information Systems -
+	Computer Graphics - Metafile for the Storage and Transfer of
+	Picture Description Information
+
+CGM is available from:
+
+	American National Standards Institute, Inc.
+	1430 Broadway, New York, New York 10018
+
+CGM supports, and is used by, GKS (the Graphical Kernal Standard), but is
+independent from it.  CGM is also used as a "least common denominator"
+picture transfer mechanism among many commercial, off the shelf business
+packages, e.g. Harvard Graphics.
+
+There may well be extensions since the 1986 document, but I am not aware of
+them.  In particular, support for GKS-3D is sorely needed.
+
+Jef, perhaps this should go in your weekly listing; it seems to be asked
+very often.  Also, can anyone supply the order number for ANSI, New York?
+
+--
+Again, my opinions, not the account furnishers'.
+
+xanthian@well.sf.ca.us  xanthian@ads.com (Kent Paul Dolan)
+Kent, the (bionic) man from xanth, now available as a build-a-xanthian
+kit at better toy stores near you.  Warning - some parts proven fragile.
+-> METAFONT, TeX, graphics programming done on spec -- (415) 964-4486 <-
+
+

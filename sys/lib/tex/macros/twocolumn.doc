@@ -1,0 +1,24 @@
+% TWOCOLUMN DOCUMENT-STYLE OPTION - released 27 January 1985
+%    for LaTeX version 2.09
+% Copyright (C) 1985 by Leslie Lamport
+
+\twocolumn
+\sloppy
+\flushbottom
+\parindent 1em
+\leftmargini 2em
+\leftmarginv .5em
+\leftmarginvi .5em
+%
+% SIDE MARGINS:
+%
+% twocolumn style has wide lines.  Uses same margins for all pages, even
+% with two-sided printing, to allow reasonable \marginparwidth
+
+\oddsidemargin  30pt      
+\evensidemargin 30pt
+\marginparwidth 48pt 
+\marginparsep   10pt        % Horizontal space between outer margin and 
+                            % marginal note
+
+\textwidth 410pt         % Width of text line.

@@ -1,0 +1,48 @@
+\magnification=\magstephalf\hoffset=0.5truein
+\newdimen\pagewidth\pagewidth=6truein\hsize=\pagewidth
+\raggedbottom\nopagenumbers\parskip=15pt plus 7pt
+\headline={\rightheadline}
+\def\makeheadline{\vbox to 0pt{\vskip-22.5pt\hbox to\pagewidth{\vbox to8.5pt{}%
+   \the\headline}\vss}\nointerlineskip}
+\newtoks\header\newtoks\pagetoks
+\def\rightheadline{\tensl\hfil\the\header\ \ \the\pagetoks}
+\def\head#1#2{{\global\header={#1}\global\pagetoks={#2}}}
+\def\delayhead#1{\global\header={\head{{\tensl #1}}{{\bf\folio}}}
+\global\pagetoks={}}\def\emptyheader{\head{\hfil}{\hfil}}\emptyheader
+\newcount\secno\newcount\subsecno
+\def\chapter#1{\global\secno=0\delayhead{#1}%
+\centerline{\BIGF #1}\vskip0.5truein}
+\def\sec#1{\global\advance\secno by1\global\subsecno=0
+\par\bigbreak\noindent{\Bigf\number\secno.\ #1}\par\nobreak}
+\def\sub#1{\global\advance\subsecno by1
+\par\medbreak\noindent{\bigf\number\secno.\number\subsecno\ #1}\par\nobreak}
+\font\BIGF=cmbx10 scaled 2272
+\font\Bigf=cmbx10 scaled 1577
+\font\bigf=cmbx10 scaled 1315
+\font\logo=logo10
+\generictrue
+\def\MF{\strut\hbox{\logo METAFONT}}\def\.#1{\strut\hbox{\tt #1}}
+\def\\{\strut\hskip 0pt plus 1fill minus 1in\break}
+\def\cmd#1{\vskip\baselineskip\vbox{\leftskip=\parindent\parindent=0pt\tt#1}%
+\vskip0pt}
+\def\ttbackslash{\char92}\def\oddpage{}\def\nr{\noalign{\hrule}}
+\def\tilde{\char126\relax}
+\def\descenv#1,#2 {\noindent\hangindent=\parindent
+{\tt #1} ({\tt #2})\hskip 6pt plus 1.5em }
+\def\options{\vskip0pt\leftskip=30pt\parindent=-30pt}\def\^#1 {}
+{\obeyspaces\gdef {\ }}
+\def\begverb#1{\begingroup\def\par{\leavevmode\endgraf}
+\catcode`\\=12\catcode`\{=12
+\catcode`\}=12\catcode`\$=12\catcode`\&=12
+\catcode`\#=12\catcode`\%=12\catcode`\~=12
+\catcode`\_=12\catcode`\^=12\obeyspaces\obeylines\tt
+\parindent=0pt\catcode#1=0}
+\def\endverb{\par\endgroup}
+%
+\chapter{DVIPS: A \TeX\ Driver}
+\bigskip
+\centerline{Tomas Rokicki, {\tt rokicki@cs.stanford.edu}}
+\centerline{FAX: (415) 327--3329}
+\smallskip
+\centerline{[This manual describes version 5.490.]}
+\bigskip

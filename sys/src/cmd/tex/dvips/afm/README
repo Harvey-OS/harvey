@@ -1,0 +1,6 @@
+The fonts should be made on a machine that allows
+at least 32-character filenames.
+
+Extract the afms from the tar file, run makeall,
+and cp the tfm and vf files into the appropriate
+directories.

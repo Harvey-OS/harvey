@@ -1,0 +1,236 @@
+% slides.sty 17-Jan-86
+
+\typeout{Document Style 'slide' -- released 17 January 1986}
+\def\@notinslitex{\errmessage{This command not allowed in SLiTeX.}}
+\@twosidefalse
+\topmargin -10pt
+\oddsidemargin 17pt
+\evensidemargin 17pt
+\def\pl@twoside{\@latexerr{No 'twoside' layout for slides}\@eha}
+\headheight 14pt
+\headsep 15pt
+\footheight 14pt
+\footskip 25pt
+\textheight 600pt
+\textwidth 460pt
+\columnwidth \textwidth 
+\columnsep 10pt
+\columnseprule \z@
+
+\skip\footins 10pt plus 2pt minus 4pt 
+\skip\@mpfootins = \skip\footins
+\footnotesep 20pt 
+
+\marginparwidth 20pt 
+\marginparsep 5pt
+\marginparpush 5pt
+
+
+\def\@mainsize{\@visibletrue\tiny} 
+\parindent 0pt
+\def\baselinestretch{1}
+\def\sc{\@noslifont\sc}
+\def\@noslifont#1{\@warning{No \string#1\space type style in SLiTeX}}
+\def\Huge{\huge}
+\def\huge{\@nomath\huge\@LARGE\@huge\def\@currsize{\@huge}\rm
+\baselineskip 60pt plus 10pt minus 6pt\lineskip 2pt\def\@parskip{60pt plus
+30pt minus 6pt}\parskip\@parskip
+\abovedisplayskip 24pt plus 10pt minus 6pt\belowdisplayskip 24pt plus 10pt
+minus 6pt\abovedisplayshortskip 12pt plus 8pt\belowdisplayshortskip 12pt plus
+8pt\setbox\strutbox=\hbox{\vrule height27pt depth11pt
+width0pt}\baselineskip\baselinestretch\baselineskip
+\normalbaselineskip\baselineskip}
+\def\@huge{\if@visible\fortyonept\else\ifortyonept\fi}
+\def\LARGE{\@nomath\LARGE\@LARGE\def\@currsize{\@LARGE}\rm
+\baselineskip 52pt plus 10pt minus 6pt\lineskip 2pt\def\@parskip{52pt plus
+30pt minus 6pt}\parskip\@parskip
+\abovedisplayskip 24pt plus 10pt minus 6pt\belowdisplayskip 24pt plus 10pt
+minus 6pt\abovedisplayshortskip 12pt plus 8pt\belowdisplayshortskip 12pt plus
+8pt\setbox\strutbox=\hbox{\vrule height27pt depth11pt
+width0pt}\baselineskip\baselinestretch\baselineskip
+\normalbaselineskip\baselineskip}
+\def\@LARGE{\if@visible\thirtyfourpt\else\ithirtyfourpt\fi}
+\def\Large{\@nomath\Large\@Large\def\@currsize{\@Large}\rm
+\baselineskip 48pt plus 10pt minus 6pt\lineskip 2pt\def\@parskip{48pt plus
+30pt minus 6pt}\parskip\@parskip
+\abovedisplayskip 24pt plus 10pt minus 6pt\belowdisplayskip 24pt plus 10pt
+minus 6pt\abovedisplayshortskip 12pt plus 8pt\belowdisplayshortskip 12pt plus
+8pt\setbox\strutbox=\hbox{\vrule height27pt depth11pt
+width0pt}\baselineskip\baselinestretch\baselineskip
+\normalbaselineskip\baselineskip}
+\def\@Large{\if@visible\twentyninept\else\itwentyninept\fi}
+\def\large{\@nomath\large\@large\def\@currsize{\@large}\rm
+\baselineskip 42pt plus 8pt minus 5pt\lineskip 2pt\def\@parskip{40pt plus 20pt
+minus 4pt}\parskip\@parskip
+\abovedisplayskip 20pt plus 8pt minus 3pt\belowdisplayskip 20pt plus 8pt minus
+3pt\abovedisplayshortskip 10pt plus 5pt\belowdisplayshortskip 10pt plus
+5pt\setbox\strutbox=\hbox{\vrule height20pt depth8.5pt
+width0pt}\baselineskip\baselinestretch\baselineskip
+\normalbaselineskip\baselineskip}
+\def\@large{\if@visible\twentyfourpt\else\itwentyfourpt\fi}
+
+\def\normalsize{\@nomath\normalsize\@normalsize\def\@currsize{\@normalsize}\rm
+\baselineskip 30pt plus 3pt minus 3pt\lineskip 2pt\def\@parskip{30pt plus 18pt
+minus 9pt}\parskip\@parskip
+\abovedisplayskip 15pt plus 3pt minus 3pt\belowdisplayskip 10pt plus 3pt minus
+3pt\abovedisplayshortskip 10pt plus 3pt\belowdisplayshortskip 10pt plus
+3pt\setbox\strutbox=\hbox{\vrule height17pt depth7pt
+width0pt}\baselineskip\baselinestretch\baselineskip
+\normalbaselineskip\baselineskip}
+\def\@normalsize{\if@visible\twentypt\else\itwentypt\fi}
+\def\small{\@nomath\small\@small\def\@currsize{\@small}\rm
+\baselineskip 19pt plus 3pt minus 1pt\lineskip 2pt\def\@parskip{15pt plus 15pt
+minus 7pt}\parskip\@parskip
+\abovedisplayskip 12pt plus 3pt minus 3pt\belowdisplayskip 9pt plus 3pt minus
+3pt\abovedisplayshortskip 6pt plus 3pt\belowdisplayshortskip 6pt plus
+3pt\setbox\strutbox=\hbox{\vrule height13.5pt depth5.6pt
+width0pt}\baselineskip\baselinestretch\baselineskip
+\normalbaselineskip\baselineskip}
+\def\@small{\if@visible\seventeenpt\else\iseventeenpt\fi}
+\let\footnotesize=\small
+\let\scriptsize=\small
+\def\tiny{\@nomath\tiny\@tiny\def\@currsize{\@tiny}\rm
+\baselineskip 16pt plus 2pt minus 1pt\lineskip 2pt\def\@parskip{11pt plus 11pt
+minus 5pt}\parskip\@parskip
+\abovedisplayskip 14pt plus 3pt minus 10pt\belowdisplayskip 14pt plus 3pt
+minus 10pt\abovedisplayshortskip 0pt plus 3pt\belowdisplayshortskip 8pt plus
+3pt minus 5pt\setbox\strutbox=\hbox{\vrule height10pt depth4pt
+width0pt}\baselineskip\baselinestretch\baselineskip
+\normalbaselineskip\baselineskip}
+\def\@tiny{\if@visible\fourteenpt\else\ifourteenpt\fi}
+
+\def\ps@headings{\def\ps@slide{\def\@oddfoot{\@mainsize +\hfil\hbox to
+3em{\theslide\hss}}\def\@oddhead{\@mainsize +\hfil +}\def\@evenfoot{\@mainsize
++\hfil\hbox to 3em{\theslide\hss}}\def\@evenhead{\@mainsize +\hfil +}}
+\def\ps@overlay{\def\@oddfoot{\@mainsize +\hfil\hbox to
+3em{\theoverlay\hss}}\def\@oddhead{\@mainsize +\hfil
++}\def\@evenfoot{\@mainsize +\hfil\hbox to
+3em{\theoverlay\hss}}\def\@evenhead{\@mainsize +\hfil +}}
+\def\ps@note{\def\@oddfoot{\@mainsize
+\hbox{}\hfil\thenote}\def\@oddhead{}\def\@evenfoot{\@mainsize
+\hbox{}\hfil\thenote}\def\@evenhead{}}}
+\def\ps@plain{\def\ps@slide{\def\@oddfoot{\@mainsize \mbox{}\hfil\hbox to
+3em{\theslide\hss}}\def\@oddhead{}\def\@evenfoot{\@mainsize \mbox{}\hfil\hbox
+to 3em{\theslide\hss}}\def\@evenhead{}}
+\def\ps@overlay{\def\@oddfoot{\@mainsize 
+ \mbox{}\hfil\hbox to
+3em{\theoverlay\hss}}\def\@oddhead{}\def\@evenfoot{\@mainsize
+\mbox{}\hfil\hbox to 3em{\theoverlay\hss}}\def\@evenhead{}}
+\def\ps@note{\def\@oddfoot{\@mainsize
+\hbox{}\hfil\thenote}\def\@oddhead{}\def\@evenfoot{\@mainsize
+\hbox{}\hfil\thenote}\def\@evenhead{}}}
+\def\ps@empty{\def\ps@slide{\def\@oddhead{}\def\@oddfoot{}\def\@evenhead{}%
+\def\@evenfoot{}}\def\ps@overlay{\def\@oddhead{}\def\@oddfoot{}%
+\def\@evenhead{}\def\@evenfoot{}}\def\ps@note{\def\@oddhead{}\def\@oddfoot{}%
+\def\@evenhead{}\def\@evenfoot{}}}
+\ps@headings
+\def\@oddhead{}\def\@oddfoot{}\def\@evenhead{}\def\@evenfoot{}
+
+
+\@options
+
+
+\def\titlepage{\newpage\thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\newpage}
+
+\leftmargini 38pt
+\leftmarginii 30pt
+\leftmarginiii 20pt
+\leftmarginiv 15pt
+\leftmarginv 15pt
+\leftmarginvi 10pt
+\def\@listi{\parsep .5\parskip
+\topsep \parsep
+\itemsep\parskip
+\partopsep 0pt}
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+ \parsep .5\parskip
+ \topsep \parsep
+ \itemsep\parskip}
+\def\@listiii{\leftmargin\leftmarginiii
+ \labelwidth\leftmarginiii\advance\labelwidth-\labelsep}
+\def\@listiv{\leftmargin\leftmarginiv
+ \labelwidth\leftmarginiv\advance\labelwidth-\labelsep}
+\def\@listv{\leftmargin\leftmarginv
+ \labelwidth\leftmarginv\advance\labelwidth-\labelsep}
+\def\@listvi{\leftmargin\leftmarginvi
+ \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
+
+\labelsep 10pt
+\tabbingsep \labelsep
+\leftmargin\leftmargini
+\labelwidth\leftmargini\advance\labelwidth-\labelsep
+
+\def\verse{\let\\=\@centercr \list{}{\itemsep\z@ 
+ \itemindent -15pt\listparindent \itemindent 
+ \rightmargin\leftmargin\advance\leftmargin 15pt}\item[]}
+\let\endverse\endlist
+\def\quotation{\list{}{\listparindent 20pt\relax\itemindent\listparindent
+ \rightmargin\leftmargin}\item[]}
+\let\endquotation=\endlist
+\def\quote{\list{}{\rightmargin\leftmargin}\item[]}
+\let\endquote=\endlist
+
+\def\descriptionlabel#1{\hspace\labelsep \bf #1}
+\def\description{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+ \let\makelabel\descriptionlabel}}
+\let\enddescription\endlist
+
+
+\def\labelenumi{\arabic{enumi}.} 
+\def\theenumi{\arabic{enumi}} 
+\def\labelenumii{(\alph{enumii})}
+\def\theenumii{\alph{enumii}}
+\def\p@enumii{\theenumi}
+\def\labelenumiii{\roman{enumiii}.}
+\def\theenumiii{\roman{enumiii}}
+\def\p@enumiii{\theenumi(\theenumii)}
+\def\labelenumiv{\Alph{enumiv}.}
+\def\theenumiv{\Alph{enumiv}} 
+\def\p@enumiv{\p@enumiii\theenumiii}
+
+\def\labelitemi{$\bullet$}
+\def\labelitemii{\bf --}
+\def\labelitemiii{$\ast$}
+\def\labelitemiv{$\cdot$}
+
+\arraycolsep 8pt
+\tabcolsep 10pt
+\arrayrulewidth .6pt
+\doublerulesep 3pt
+\fboxsep = 5pt
+\fboxrule = .6pt
+\def\today{\ifcase\month\or
+ January\or February\or March\or April\or May\or June\or
+ July\or August\or September\or October\or November\or December\fi
+ \space\number\day, \number\year}
+
+
+
+\def\thefootnote{\fnsymbol{footnote}}
+\@addtoreset{footnote}{slide}
+\@addtoreset{footnote}{overlay}
+\@addtoreset{footnote}{note}
+
+\let\footnoterule=\relax
+
+\long\def\@makefntext#1{\noindent \hangindent 10pt\hbox 
+ to 10pt{\hss $^{\@thefnmark}$}#1}
+
+
+\def\theequation{\@arabic{\c@equation}}
+\def\@figsep{7pt}
+\def\@textfigsep{5pt}
+\def\@captionskip{6pt}
+\def\topfraction{.7}
+\def\bottomfraction{.3}
+\def\textfraction{.2}
+\def\floatpagefraction{.5}
+\def\dbltopfraction{.7}
+\def\dblfloatpagefraction{.5}
+
+
+\pagenumbering{arabic}
+\onecolumn
+\normalsize

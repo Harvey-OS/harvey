@@ -1,0 +1,39 @@
+.TH FMT 1
+.SH NAME
+fmt \(mi ultra-simple text formatter
+.SH SYNOPSIS
+.B fmt
+[
+.I option ...
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Fmt
+copies the given
+.I files
+(standard input by default)
+to its standard output, filling and indenting lines.
+The options are
+.TP
+.BI -l " n
+Output line length is
+.I n,
+including indent, (default 70).
+.TP
+.BI -i " n
+Indent
+.I n
+spaces (default 0).
+.TP
+.BI -j
+Don't join input lines, simply split them where necessary.
+.PP
+Empty lines and initial white space in input lines are preserved.
+Empty lines are inserted between input files.
+.PP
+.I Fmt
+is idempotent: it leaves already formatted text unchanged.
+.SH BUGS
+Words longer than 256 characters are split.

@@ -1,0 +1,43 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=act
+OFILES=tree.$O\
+	mach.$O\
+	par.$O\
+	util.$O\
+	act.$O\
+
+HFILES=dat.h\
+	symbols.h\
+	y.tab.h\
+
+YFILES=par.y
+
+</sys/src/cmd/mkone
+YFLAGS=-S -d -v
+
+install:V:	sim.install
+
+clean:V:	sim.clean
+
+par.c:	y.tab.c
+	mv $prereq $target
+
+act.c symbols.h:	act.mt
+	twig -d $prereq
+	mv walker.c act.c
+
+act.mt:	pro.mt def.awk gates comb
+	awk -f def.awk gates comb | cat pro.mt /fd/0 > act.mt
+
+nuke:V:
+	mk clean
+	rm -f act.mt act.c par.c symbols.h
+
+sim.%:V:
+	cd sim
+	mk $stem
+
+wc:
+	wc dat.h par.y pro.mt util.c tree.c mach.c def.awk gates

@@ -1,0 +1,28 @@
+.TH CPUTIME 2
+.SH NAME
+cputime, times \- cpu time in this process and children
+.SH SYNOPSIS
+.ta \w'\fLdouble 'u
+.B
+int	times(long t[4])
+.PP
+.B
+double	cputime(void)
+.SH DESCRIPTION
+.I Times
+fills in the array
+.I t
+with the number of milliseconds spent in user code, system calls,
+child processes in user code, and child processes in system calls.
+.I Cputime
+returns the sum of those same times, converted to seconds.
+.I Times
+returns the real time, in milliseconds used by the process so far.
+.PP
+These functions read
+.BR /dev/cputime ,
+opening that file when
+.I time
+is first called.
+.SH SEE ALSO
+.IR cons (3)

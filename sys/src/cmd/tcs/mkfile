@@ -1,0 +1,39 @@
+</$objtype/mkfile
+
+TARG=tcs
+OFILES=tcs.$O\
+	utf.$O\
+	kuten.$O\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+tcs.$O utf.$O:		hdr.h
+tcs.$O:			jis.h
+tcs.$O kuten.$O:	kuten.h
+
+kuten.c:
+	cd han
+	mk ../kuten.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
+	cd han; mk clean
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG kuten.c ex[1-4].utf
+	cd han; mk nuke
+
+#example tcs output files
+
+examples:V:	ex1.utf ex2.utf ex3.utf ex4.utf
+
+ex1.utf:D:	/bin/tcs han/ex1
+	/bin/tcs -sf jis < han/ex1 > $target
+ex2.utf:D:	/bin/tcs han/ex2
+	/bin/tcs -sf jis < han/ex2 > $target
+ex3.utf:D:	/bin/tcs cyr/ex1.kio8
+	/bin/tcs -sf kio8 < cyr/ex1.kio8 > $target
+ex4.utf:D:	/bin/tcs cyr/ex2.kio8x
+	/bin/tcs -sf kio8x < cyr/ex2.kio8x > $target
+# ex5.utf is standalone; needs no generating

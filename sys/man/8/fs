@@ -1,0 +1,621 @@
+.TH FS 8
+.SH NAME
+fs, exsort \- file server maintenance
+.SH SYNOPSIS
+.PD 0
+.B help
+[
+.I command ...
+]
+.PP
+.B arp
+.I subcommand
+.PP
+.B auth
+.RB [ on ]
+.RI [ system | file ]
+.PP
+.B cfs
+.I filesystem
+.PP
+.B check
+.RI [ options ]
+.PP
+.B clri
+.RI [ file ...]
+.PP
+.B cpu
+.RI [ proc ]
+.PP
+.B create
+.I path uid gid perm
+.RB [ lad ]
+.PP
+.B cwcmd
+.I subcommand
+.PP
+.B cycl
+.I subcommand
+.PP
+.B date
+.RB [[ +- ]
+.IR seconds ]
+.PP
+.B dump
+.PP
+.B flag
+.I flag
+[
+.I channel
+]
+.PP
+.B halt
+.PP
+.B netdb
+.RI [ file ]
+.PP
+.B newuser
+.I name
+.RI [ options ]
+.PP
+.B passwd
+.PP
+.B profile
+.RB [ 01 ]
+.PP
+.B remove
+.RI [ files ...]
+.PP
+.B search
+.RI [ blockno
+.RI [ nblock
+.RB [ bw ]]]
+.PP
+.BR stat [ acejklw ]
+.PP
+.B statp
+.RI [ proc ]
+.PP
+.B stats
+.RB [[ - ]
+.IR flags ...]
+.PP
+.B sync
+.PP
+.B time
+.I command
+.PP
+.B trace
+.RI [ number ]
+.PP
+.B users
+.RI [ file ]
+.PP
+.B version
+.PP
+.B who
+.RI [ user ...]
+.PP
+.B wormcp
+[
+.I funit
+.I tunit
+.RI [ nblock ]]
+.PD
+.PP
+.B disk/exsort
+.RB [ -w ]
+.RI [ file ]
+.SH DESCRIPTION
+Except for
+.I exsort,
+these commands are available only on the console of an
+.IR fs (4)
+file server.
+.PP
+.I Help
+prints a `usage string' for the named
+.I commands,
+by default all commands.
+Also, many commands print menus of their options if given
+incorrect or incomplete parameters.
+.PP
+The console requires the machine's password to be supplied before
+accepting commands.  Typing a control-D will cause
+the server to request
+the password again.
+.PP
+.I Arp
+has two
+.I subcommands:
+.B print
+prints the contents of the ARP cache and
+.B flush
+flushes it.
+.PP
+.I Auth
+starts authentication.  It reads authentication keys from
+.I file
+(default
+.BR /adm/keys ).
+If
+.I file
+is of the form
+.BI il! IP.address
+it is taken to be a
+.I system
+from which to authenticate using IL, rather than reading its own keys file.
+The address must be a numeric IP address and only IL is supported.
+If the optional string
+.B on
+is provided,
+.I auth
+records in non-volatile RAM the
+.I file
+or
+.I system
+from which to authenticate.
+Once on, authentication can never be turned off, even by rebooting.
+.PP
+.I Cfs
+changes the current file system, that is, the file tree to which
+commands
+.RB ( check ,
+.BR clri ,
+.BR create ,
+.BR netdb ,
+.BR newuser ,
+.BR profile ,
+.BR remove ,
+and
+.BR users )
+apply.
+The initial
+.I filesystem
+is
+.BR main .
+.PP
+.I Check
+verifies the consistency of the current file system.
+With no options it checks and reports the status.
+It suspends service while running.
+Options are:
+.TF setqidxx
+.PD
+.TP
+.B rdall
+Read every block in the file system (can take a
+.I long
+time).
+.TP
+.B tag
+Fix bad
+.IR tags ;
+each block has a tag that acts as a backwards pointer for
+consistency checking.
+.TP
+.B pfile
+Print every file name (can take a
+.I long
+time).
+.TP
+.B free
+Rebuild the list of free blocks.
+.TP
+.B setqid
+Resequence the qids
+in the file system, starting at one; all outstanding fids become invalid.
+.TP
+.B bad
+For each block with a bad tag,
+create a new block, copy the data from the bad block,
+and write the correct tag in the new block.
+.TP
+.B touch
+Cause every directory and indirect block not on the current WORM disk
+to be advanced to the current WORM on the next dump.
+.PP
+.I Clri
+clears the internal directory entry and abandons storage
+associated with
+.I files.
+It ignores the usual rules for sanity, such as checking against
+removing a non-empty directory.
+A subsequent
+.B check
+.B free
+will place the abandoned storage in the free list.
+.PP
+.I Cpu
+prints the CPU utilization and state of the processes in the file server.
+.PP
+.I Create
+creates a file on the current file system.
+.I Uid
+and
+.I gid
+are names or numbers from
+.BR /adm/users .
+.I Perm
+is the low 9 bits of the permission mode of the file, in octal.
+An optional final
+.BR l ,
+.BR a ,
+or
+.BR d
+creates a locked file, append-only file, or directory.
+.PP
+.I Cwcmd
+controls the cached WORM file systems.
+.TP
+.BI mvstate " state1 state2
+States are
+.BR none ,
+.BR dump ,
+.BR dump1 ,
+.BR read ,
+and
+.BR write .
+A
+.B mvstate dump1 write
+will cause I/O errors in the last dump to be retried in the next dump.
+A
+.B mvstate read none
+will flush the cache associated with the WORM.
+A
+.B mvstate dump write
+aborts the background process dumping to WORM; as a consequence it
+leaves holes in the dump file system.
+Other uses are possible but arcane.
+.TP
+.BR prchain " [\fIstart\fP] [\fLback\fP]
+Print the chain of superblocks for the directory containing the
+roots of the dumped file systems, starting at block number
+.I start
+(default 0) going forward (backwards if
+.B back
+is supplied).
+.TP
+.B savecache
+Copy the block numbers, in native endian longwords, of all blocks in the
+.B read
+state to the file
+.BR /adm/cache
+for use by
+.BR disk/exsort .
+.TP
+.BR loadcache " [\fIdskno\fP]
+Read
+.B /adm/cache
+and for every block there on WORM disk
+.IR dskno ,
+read the block from WORM to the cache.
+If
+.I dskno
+is not supplied, all blocks in
+.B /adm/cache
+are read.
+.TP
+.B wormcmp [\fIdskno\fP]
+Read WORM disk
+.I dskno
+and compare it to the contents of the cache, block by block.
+.I Dskno
+is zero by default.
+.TP
+.BR startdump \ [ 01 ]
+Suspend
+.RB ( 0 )
+or restart
+.RB ( 1 )
+the background dump process.
+.PP
+.I Cycl
+controls the Cyclone fiber link to the main CPU server.
+The subcommands are
+.TF verbosexxx
+.PD
+.TP
+.B reboot
+Reinitialize the Cyclone board and connection.
+.TP
+.B verbose
+Put the Cyclone driver in verbose debugging mode.
+.TP
+.B ping
+Bounce a packet off the remote Cyclone board; used internally to
+resynchronize after an error on the fiber.
+.PP
+.I Date
+prints the current date.  It may be adjusted
+using
+.BI +- seconds.
+With no sign, it sets the date to the absolute number of seconds
+since 00:00 Jan 1, 1970 GMT; with a sign it trims the current
+time.
+.PP
+.I Dump
+starts a dump to WORM immediately for all file systems that have
+a WORM associated.
+File service is suspended while the cache is scanned;
+service resumes when the copy to WORM starts.
+.PP
+.I Flag
+toggles flags, initially all off:
+.TF attachxx
+.PD
+.TP
+.B arp
+Report ARP activity.
+.TP
+.B attach
+Report as connections are made to the file server.
+.TP
+.B chat
+(Very noisy.)  Print all 9P messages to and from the server.
+.TP
+.B dkit
+Report datakit activity.
+.PP
+If given a second numeric
+.I channel,
+as reported by
+.I who,
+the flag is altered only on that connection.
+.PP
+.I Halt
+does a
+.B sync
+and halts the machine, returning to the boot ROM.
+.PP
+.I Netdb
+reads
+.B /lib/ndb/local
+to establish network information.
+.PP
+.I Newuser
+requires a
+.I name
+argument.
+With no options it adds user
+.I name,
+with group leader
+.I name,
+to
+.B /adm/users
+and makes the directory
+.BI /usr/ name
+owned by user and group
+.I name.
+The options are
+.TF =leaderxx
+.PD
+.TP
+.B ?
+Print the entry for
+.I name.
+.TP
+.B :
+Add a group: add the name to
+.B /adm/users
+but don't create the directory.
+By convention, groups are numbered starting from 10000, users from 0.
+.TP
+.I newname
+Rename existing user
+.I name
+to
+.I newname.
+.TP
+.BI = leader
+Change the leader of
+.I name
+to
+.I leader.
+If
+.I leader
+is missing, remove the existing leader.
+.TP
+.BI + member
+Add
+.I member
+to the member list of
+.I name.
+.TP
+.BI - member
+Remove existing
+.I member
+from the member list of
+.I name.
+.PP
+After a successful
+.I newuser
+command the file server overwrites
+.B /adm/users
+to reflect the internal state of the user table.
+.PP
+.I Passwd
+sets the machine's password and writes it in non-volatile RAM.
+.PP
+.I Profile
+.B 0
+clears the profiling buffer and enables profiling;
+.I profile
+.B 1
+stops profiling and writes the data to
+.B /adm/kprofdata
+for use by
+.B kprof
+(see
+.IR prof (1)).
+If a number is not specified, the profiling state toggles.
+.PP
+.I Remove
+removes
+.I files.
+.PP
+.I Search
+looks on the WORM for written
+.RB ( w ;
+default) or blank
+.RB ( b )
+blocks starting at block
+.I blockno
+(default 0)
+through
+.I nblock
+(default 100)
+following blocks.
+Block numbers are as reported by
+.I statw.
+.PP
+The
+.I stat
+commands are connected with a service or device identified by the
+last character of the name:
+.BR c ,
+Cyclone fiber link;
+.BR e ,
+Eagle Ethernet controller;
+.BR j ,
+Jaguar SCSI/VME disk controller;
+.BR k ,
+Datakit;
+.BR l ,
+LANCE Ethernet controller;
+.BR w ,
+cached WORM.
+The
+.I Statp
+command prints statistics about processes; an optional argument identifies the
+process to be displayed;
+.I stata
+prints overall statistics about the file system.
+The
+.I stats
+command takes an optional argument identifying the characters
+of
+.I stat
+commands to run.  The option is remembered and becomes the
+default for subsequent
+.I stats
+commands if it begins with a minus sign.
+.PP
+.I Sync
+writes dirty blocks in memory to the magnetic disk cache.
+.PP
+.I Time
+reports the time required to execute the
+.I command.
+.PP
+.I Trace
+with no options prints the set of queue-locks held by each process in
+the file server.  If things are quiescent, there should be no output.
+With an argument
+.I number
+it prints a stack traceback of that process.
+.PP
+.I Users
+uses the contents of
+.I file
+(default
+.BR /adm/users )
+to initializes the file server's internal representation of the users
+structure.
+Incorrectly formatted entries in
+.I file
+will be ignored.
+If file is explicitly
+.BR default ,
+the system builds a minimal functional users table internally;
+this can help recover from disasters.
+If the
+.I file
+cannot be read, you
+.I must
+run
+.IP
+.EX
+users default
+.EE
+.PP
+for the system to function.  The
+.B default
+table looks like this:
+.IP
+.EX
+-1:adm:adm:
+0:none:adm:
+1:rob:rob:
+10000:sys::
+10001:map:map:
+10002:doc::
+10003:upas:upas:
+10004:cda::
+10005:bootes:bootes:
+.EE
+.PP
+.I Version
+reports when the file server was last compiled and last rebooted.
+.PP
+.I Who
+reports, one per line, the names of users connected to the file server and the
+status of their connections.
+The first number printed on each line is the channel number of the connection.
+If
+.I users
+are given the output selects connections owned by those users.
+.PP
+.I Wormcp
+copies from WORM disk
+.I funit
+to WORM disk
+.I tunit
+.I nblock
+native blocks (default the whole disk).
+If
+.I tunit
+is written,
+.I wormcp
+guarantees the written data is equal to the data on
+.I funit
+and stops if not.
+.I Wormcp
+does a binary search to find the lowest unwritten block on
+.I tunit
+at which to start the copy.
+With no arguments,
+.I wormcp
+stops a running copy.
+.PP
+When the file server boots, it prints the message
+.IP
+.EX
+for config mode hit a key within 5 seconds
+.EE
+.PP
+If a character are typed within 5 seconds of the message appearing,
+the server will enter config mode.
+See
+.IR fsconfig (8)
+for the commands available in config mode.
+The system also enters config mode if, at boot time,
+the non-volatile RAM does not appear to contain a valid configuration.
+.PP
+.I Exsort
+is a regular command to be run on a CPU server, not on the file server
+console.
+It reads the named
+.I file
+(default
+.BR /adm/cache )
+and sorts the cache disk block numbers contained therein.
+It assumes the numbers are 4-byte integers and guesses the
+endianness by looking at the data.
+It then prints statistics about the cache.
+With option
+.B -w
+it writes the sorted data back to
+.I file.
+.SH SEE ALSO
+.IR fs (4)

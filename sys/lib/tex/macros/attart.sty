@@ -1,0 +1,415 @@
+% attart.sty 11 Aug 89, based on article.sty 5-Feb-88
+\typeout{Document Style 'attart'. Released 11 August 1989}
+
+\def\@ptsize{0} \@namedef{ds@11pt}{\def\@ptsize{1}}
+\@namedef{ds@12pt}{\def\@ptsize{2}} 
+\def\ds@twoside{\@twosidetrue \@mparswitchtrue} \def\ds@draft{\overfullrule
+5pt} 
+\def\ds@tm{\def\@artstyle{0}}
+\def\ds@rp{\def\@artstyle{1}}
+\@namedef{ds@vol2}{\def\@artstyle{2}}
+\def\@artstyle{0} 
+\@options
+\input att1\@ptsize.sty\relax
+
+
+\def\labelenumi{\arabic{enumi}.} 
+\def\theenumi{\arabic{enumi}} 
+\def\labelenumii{(\alph{enumii})}
+\def\theenumii{\alph{enumii}}
+\def\p@enumii{\theenumi}
+\def\labelenumiii{\roman{enumiii}.}
+\def\theenumiii{\roman{enumiii}}
+\def\p@enumiii{\theenumi(\theenumii)}
+\def\labelenumiv{\Alph{enumiv}.}
+\def\theenumiv{\Alph{enumiv}} 
+\def\p@enumiv{\p@enumiii\theenumiii}
+
+\def\labelitemi{$\bullet$}
+\def\labelitemii{\bf --}
+\def\labelitemiii{$\ast$}
+\def\labelitemiv{$\cdot$}
+
+\def\verse{\let\\=\@centercr 
+ \list{}{\itemsep\z@ \itemindent -1.5em\listparindent \itemindent 
+ \rightmargin\leftmargin\advance\leftmargin 1.5em}\item[]}
+\let\endverse\endlist
+\def\quotation{\list{}{\listparindent 1.5em
+ \itemindent\listparindent
+ \rightmargin\leftmargin \parsep 0pt plus 1pt}\item[]}
+\let\endquotation=\endlist
+\def\quote{\list{}{\rightmargin\leftmargin}\item[]}
+\let\endquote=\endlist
+
+\def\descriptionlabel#1{\hspace\labelsep \bf #1}
+\def\description{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+ \let\makelabel\descriptionlabel}}
+\let\enddescription\endlist
+
+
+\def\theequation{\arabic{equation}}
+
+
+\def\titlepage{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
+ \else \newpage \fi \thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\if@restonecol\twocolumn \else \newpage \fi}
+
+\arraycolsep 5pt \tabcolsep 6pt \arrayrulewidth .4pt \doublerulesep 2pt 
+\tabbingsep \labelsep 
+
+\skip\@mpfootins = \skip\footins
+\fboxsep = 3pt \fboxrule = .4pt 
+
+\newcounter{part}
+\newcounter {section}
+\newcounter {subsection}[section]
+\newcounter {subsubsection}[subsection]
+\newcounter {paragraph}[subsubsection]
+\newcounter {subparagraph}[paragraph]
+
+\def\thepart{\Roman{part}} \def\thesection {\arabic{section}}
+\def\thesubsection {\thesection.\arabic{subsection}}
+\def\thesubsubsection {\thesubsection .\arabic{subsubsection}}
+\def\theparagraph {\thesubsubsection.\arabic{paragraph}}
+\def\thesubparagraph {\theparagraph.\arabic{subparagraph}}
+
+\def\@pnumwidth{1.55em}
+\def\@tocrmarg {2.55em}
+\def\@dotsep{4.5}
+\setcounter{tocdepth}{3}
+
+\def\tableofcontents{\section*{Contents\@mkboth{CONTENTS}{CONTENTS}}
+ \@starttoc{toc}}
+\def\l@part#1#2{\addpenalty{\@secpenalty}
+ \addvspace{2.25em plus 1pt} \begingroup
+ \@tempdima 3em \parindent \z@ \rightskip \@pnumwidth \parfillskip
+-\@pnumwidth 
+ {\large \bf \leavevmode #1\hfil \hbox to\@pnumwidth{\hss #2}}\par
+ \nobreak \endgroup}
+\def\l@section#1#2{\addpenalty{\@secpenalty} \addvspace{1.0em plus 1pt}
+\@tempdima 1.5em \begingroup
+ \parindent \z@ \rightskip \@pnumwidth 
+ \parfillskip -\@pnumwidth 
+ \bf \leavevmode \advance\leftskip\@tempdima \hskip -\leftskip #1\nobreak\hfil
+\nobreak\hbox to\@pnumwidth{\hss #2}\par
+ \endgroup}
+\def\l@subsection{\@dottedtocline{2}{1.5em}{2.3em}}
+\def\l@subsubsection{\@dottedtocline{3}{3.8em}{3.2em}}
+\def\l@paragraph{\@dottedtocline{4}{7.0em}{4.1em}}
+\def\l@subparagraph{\@dottedtocline{5}{10em}{5em}}
+\def\listoffigures{\section*{List of Figures\@mkboth
+ {LIST OF FIGURES}{LIST OF FIGURES}}\@starttoc{lof}}
+\def\l@figure{\@dottedtocline{1}{1.5em}{2.3em}}
+\def\listoftables{\section*{List of Tables\@mkboth
+ {LIST OF TABLES}{LIST OF TABLES}}\@starttoc{lot}}
+\let\l@table\l@figure
+
+
+\def\thebibliography#1{\section*{References\@mkboth
+ {REFERENCES}{REFERENCES}}\list
+ {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+ \advance\leftmargin\labelsep
+ \usecounter{enumi}}
+ \def\newblock{\hskip .11em plus .33em minus .07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\let\endthebibliography=\endlist
+ 
+\def\@biblabel#1{\hfill#1.\ }
+
+\newif\if@restonecol
+\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+\columnseprule \z@
+\columnsep 35pt\twocolumn[\section*{Index}]
+ \@mkboth{INDEX}{INDEX}\thispagestyle{plain}\parindent\z@
+ \parskip\z@ plus .3pt\relax\let\item\@idxitem}
+\def\@idxitem{\par\hangindent 40pt}
+\def\subitem{\par\hangindent 40pt \hspace*{20pt}}
+\def\subsubitem{\par\hangindent 40pt \hspace*{30pt}}
+\def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
+\def\indexspace{\par \vskip 10pt plus 5pt minus 3pt\relax}
+
+\def\footnoterule{\kern-3\p@ 
+ \hrule height 0pt width .4\columnwidth 
+ \kern 3\p@} 
+
+\long\def\@makefntext#1{\parindent 1em\noindent 
+ \hbox{\hss$^{\@thefnmark}$}#1}
+
+\setcounter{topnumber}{2}
+\def\topfraction{.7}
+\setcounter{bottomnumber}{1}
+\def\bottomfraction{.3}
+\setcounter{totalnumber}{3}
+\def\textfraction{.2}
+\def\floatpagefraction{.5}
+\setcounter{dbltopnumber}{2}
+\def\dbltopfraction{.7}
+\def\dblfloatpagefraction{.5}
+
+\long\def\@makecaption#1#2{%
+ \addvspace{10pt}%
+ \setbox\@tempboxa\hbox{#1: #2}%
+ \ifdim \wd\@tempboxa >\hsize #1: #2\par
+ \else \hbox to\hsize{\hfil\box\@tempboxa\hfil}%
+ \fi}
+
+
+\newcounter{figure}
+\def\thefigure{\@arabic\c@figure}
+\def\fps@figure{tbp}
+\def\ftype@figure{1}
+\def\ext@figure{lof}
+\def\fnum@figure{Figure \thefigure}
+\def\figure{\@float{figure}}
+\let\endfigure\end@float
+\@namedef{figure*}{\@dblfloat{figure}}
+\@namedef{endfigure*}{\end@dblfloat}
+\newcounter{table}
+\def\thetable{\@arabic\c@table}
+\def\fps@table{tbp}
+\def\ftype@table{2}
+\def\ext@table{lot}
+\def\fnum@table{Table \thetable}
+\def\table{\@float{table}}
+\let\endtable\end@float
+\@namedef{table*}{\@dblfloat{table}}
+\@namedef{endtable*}{\end@dblfloat}
+
+
+\def\maketitle{\par
+\begingroup
+ \def\thefootnote{\fnsymbol{footnote}}
+ \def\@makefnmark{\hbox 
+ to 0pt{$^{\@thefnmark}$\hss}} 
+ \if@twocolumn 
+ \twocolumn[\@maketitle] 
+ \else \newpage\thispagestyle{empty}
+ \global\@topnum\z@ \@maketitle \fi
+ \ifcase\@artstyle\thispagestyle{firstpage} \or\thispagestyle{empty}\or
+	\thispagestyle{empty}\fi
+ \@thanks
+ \endgroup
+ \setcounter{footnote}{0}
+ \let\maketitle\relax
+ \let\@maketitle\relax
+ \gdef\@thanks{}\let\thanks\relax}
+% String setting-up commands; use `\and' to separate things when there are
+% more than one. E.g., \wpnumber{27000\and 27001}.
+\def\tmnumber#1{\gdef\@tmnum{#1}}
+\def\wpnumber#1{\gdef\@wpnum{#1}}		% Work project number(s)
+\gdef\@wpnumber{}
+\def\filenumber#1{\gdef\@filenum{#1}}	% File number(s)
+\gdef\@filenumber{}
+\long\def\abstracttext#1{\long\gdef\@abstract{#1}}
+\gdef\@abstract{}
+\def\murrayhill{AT\&T Bell Laboratories\\Murray Hill, New Jersey 07974}
+\ifcase\@artstyle % technical memo
+\font\attlogofont=att36
+\font\sxtnHB=phvb at 16pt
+\font\frtnHB=phvb at 14pt
+\font\tenH=phvr at 10pt
+\font\egtH=phvr at 8pt
+\def\@maketitle{\null
+ \if!\@abstract!\else % if abstract defined: put it on a separate page
+ \vskip 2em \begin{center}
+ {\large \bf \@title \par} \vskip 1.5em {\lineskip .5em
+ \begin{tabular}[t]{c}\@author
+ \end{tabular}\par} 
+ \end{center}
+ \par
+ \vskip 1.5em
+ \begin{center}
+ {\sl Abstract\vspace{-.5em}\vspace{0pt}} 
+ \end{center}
+ \quotation\ignorespaces\@abstract\endquotation
+ \newpage\null \thispagestyle{firstpage}\setcounter{page}{1}
+ \fi
+ \vskip 3em
+ \noindent\hbox to \textwidth{\kern-25pt
+ \begin{tabular}[t]{@{}l}
+ {\egtH Subject:} {\bf \begin{tabular}[t]{@{}l}\ignorespaces\@title\end{tabular}}\\
+ \egtH Work Program- \begin{tabular}[t]{@{}l@{}}\let\and=\\\ignorespaces
+ \@wpnum\end{tabular} -{}- %
+ File- \begin{tabular}[t]{@{}l}\let\and=\\\ignorespaces
+ \@filenum\end{tabular}
+ \end{tabular}
+ \hfil
+ \begin{tabular}[t]{ll@{}}
+ \egtH date:&\bf\@date\\[12pt]
+ \egtH from:&\bf\begin{tabular}[t]{@{}l}\let\and=\\\ignorespaces
+ \@author\\[12pt]\end{tabular}\\
+ \egtH TM:&\bf\begin{tabular}[t]{@{}l}\let\and=\\\ignorespaces\@tmnum\end{tabular}
+ \end{tabular}%
+ \kern-35pt}
+ \vspace{\baselineskip}
+ \begin{center}
+ \sl TECHNICAL MEMORANDUM\\
+ \end{center}}
+\or % released paper
+\def\@maketitle{%
+ \null
+ \vskip 2em \begin{center}
+ {\large \bf \@title \par} \vskip 1.5em {\lineskip .5em
+ \begin{tabular}[t]{c}\let\and=\\\ignorespaces\@author
+ \end{tabular}\par} 
+ \end{center}
+ \par
+ \vskip 1.5em
+ \if!\@abstract!\else % if abstract defined: put it here, and do title over
+ \begin{center}
+ {\sl Abstract\vspace{-.5em}\vspace{0pt}} 
+ \end{center}
+ \quotation\ignorespaces\@abstract\endquotation
+ \newpage \thispagestyle{empty}\setcounter{page}{1}
+ \null
+ \vskip 2em \begin{center}
+ {\large \bf \@title \par} \vskip 1.5em {\lineskip .5em
+ \begin{tabular}[t]{c}\let\and=\\\ignorespaces \@author
+ \end{tabular}\par} 
+ \end{center}
+ \par
+ \vskip 1.5em
+ \fi}
+\or % volume 2 format
+\def\@maketitle{%
+ \null
+ \vskip 5em \begin{center}%
+ {\large \bf \@title \par}%
+ \expandafter\@doauth\@author\and\and\relax
+ \end{center}
+ \if!\@abstract!\else \vskip 1.6em
+  \begin{center} ABSTRACT \end{center}
+  \vskip 1em {\leftskip .5in \rightskip .5in \parindent 25pt\par\@abstract\par}%
+  \vskip 2.3em
+ \fi
+}
+% hack for now: all authors have murray hill address
+\def\@doauth#1\and{\if!#1!\let\@nextdoa=\relax\else
+ \vskip 1.1em\begin{tabular}[t]{c}#1\\[.8em]
+  {\em AT\&T Bell Laboratories}\\{\em Murray Hill, New Jersey 07974}\end{tabular}
+ \let\@nextdoa=\@doauth\fi
+ \@nextdoa}
+\fi
+\ifcase\@artstyle
+% signature block: #1= "typed by" part (e.g. MH-11273-HWT), #2=#refs, #3=#figs
+\def\sigblock#1#2#3{\par\nopagebreak[3]\vspace{3em minus1.5em}%
+ \noindent\hbox to 3in{#1\hfil}%
+	\hbox{\lineskip=3em\begin{tabular}{l}\let\and=\\\ignorespaces
+	\@author\end{tabular}}
+ \par\nopagebreak\vspace{3em minus1.5em}%
+ \hbox{Atts.}\nopagebreak
+ \ifnum #2>0 \hbox{References (1--#2)}\nopagebreak\fi
+ \ifnum #3>0 \hbox{Figures (1--#3)}\fi
+ \newpage
+ }
+\or
+\def\sigblock#1#2#3{}% does nothing for released paper
+\or
+\def\sigblock#1#2#3{}% or vol2 style
+\fi
+
+\mark{{}{}} 
+
+\if\@artstyle2 % vol2 style: headings are title, page number
+ \def\ps@headings{\let\@mkboth\@gobbletwo
+  \def\@oddfoot{}\def\@evenfoot{}%
+  \def\@evenhead{\rm \thepage\hfil\@title}%
+  \def\@oddhead{\rm\@title\hfil\thepage}}%
+\else
+ \if@twoside \def\ps@headings{\let\@mkboth\markboth
+ \def\@oddfoot{}\def\@evenfoot{}\def\@evenhead{\rm \thepage\hfil \sl
+ \leftmark}\def\@oddhead{\hbox{}\sl \rightmark \hfil
+ \rm\thepage}\def\sectionmark##1{\markboth {\uppercase{\ifnum \c@secnumdepth
+ >\z@
+  \thesection\hskip 1em\relax \fi ##1}}{}}\def\subsectionmark##1{\markright
+ {\ifnum \c@secnumdepth >\@ne
+  \thesubsection\hskip 1em\relax \fi ##1}}}
+ \else \def\ps@headings{\let\@mkboth\markboth
+ \def\@oddfoot{}\def\@evenfoot{}\def\@oddhead{\hbox {}\sl \rightmark \hfil
+ \rm\thepage}\def\sectionmark##1{\markright {\uppercase{\ifnum \c@secnumdepth
+ >\z@
+  \thesection\hskip 1em\relax \fi ##1}}}}
+ \fi
+\fi
+\def\ps@myheadings{\let\@mkboth\@gobbletwo
+\def\@oddhead{\hbox{}\sl\rightmark \hfil
+\rm\thepage}\def\@oddfoot{}\def\@evenhead{\rm \thepage\hfil\sl\leftmark\hbox
+{}}\def\@evenfoot{}\def\sectionmark##1{}\def\subsectionmark##1{}}
+\ifcase\@artstyle % tm: firstpage style puts AT&T logo in header
+ \def\ps@firstpage{\def\@oddhead{\hbox to \textwidth{\hfil
+ \vbox to \headheight{\kern5pt\halign{\hfil ####\kern 3pt&####\hfil\cr
+	\vbox to 0pt{\vss\hbox{\attlogofont L}\vss}&
+	{\sxtnHB A\kern-.1em T\kern-.1em{\frtnHB\&}\kern-.1emT}\cr
+	\noalign{\vskip 2pt}
+	&{\tenH Bell Laboratories}\cr}\vss}}}%
+ \def\@oddfoot{}%
+ \def\@evenhead{}\def\@evenfoot{}}%
+\fi
+% Plain page style: numbers on top
+\def\ps@plain{\let\@mkboth\@gobbletwo\def\@oddhead{\rm\hfil-\ \thepage\ -\hfil}
+   \let\@evenhead\@oddhead
+   \def\@oddfoot{}
+   \def\@evenfoot{}}
+
+% \UNIX, \regmark, and \tm
+\def\markedfootnote#1#2{{\def\thefootnote{#1}\footnote[1]{#2}}}
+\def\@@@no{no}
+\def\unixfootnoteprinted{no}
+\def\UNIX{UNIX%
+  \ifx\unixfootnoteprinted\@@@no%
+    \newbox\regbox\setbox\regbox=\hbox{\@regmark}%
+    \markedfootnote{\copy\regbox}{UNIX is a registered trademark of AT\&T.}%
+    \def\unixfootnoteprinted{yes}%
+  \fi}%
+\def\@regmark{{\ooalign
+    {\hfil\raise.07ex\hbox{\tiny R}\hfil\crcr{$\scriptstyle\bigcirc$}}}}
+\def\regmark{\raise1ex\hbox{\@regmark}}
+\def\tm{\raise5pt\hbox{{\rm\tiny TM}}}
+
+\def\today{\ifcase\month\or
+ January\or February\or March\or April\or May\or June\or
+ July\or August\or September\or October\or November\or December\fi
+ \space\number\day, \number\year}
+
+% An example environment
+
+\begingroup \catcode `|=0 \catcode `[= 1
+\catcode`]=2 \catcode `\{=12 \catcode `\}=12
+\catcode`\\=12 |gdef|@xeg#1\end{eg}[#1|end[eg]]
+|endgroup
+
+\def\eg{\list{}{\small\leftmargin 3em}%
+ \item[]\if@minipage\else\vskip\parskip\fi
+ \leftskip\@totalleftmargin\rightskip\z@
+ \parindent\z@\parfillskip\@flushglue\parskip\z@
+ \@tempswafalse \def\par{\if@tempswa\hbox{}\fi\@tempswatrue\@@par}
+ \obeylines \tt \catcode``=13 \@noligs \let\do\@makeother \dospecials\frenchspacing \@vobeyspaces \@xeg}
+\let\endeg\endlist
+
+% redefine @sect so that @svsec has a period after the number
+\def\@sect#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+     \def\@svsec{}\else 
+     \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname.\hskip 1em }\fi
+     \@tempskipa #5\relax
+      \ifdim \@tempskipa>\z@ 
+        \begingroup #6\relax
+          \@hangfrom{\hskip #3\relax\@svsec}{\interlinepenalty \@M #8\par}
+        \endgroup
+       \csname #1mark\endcsname{#7}\addcontentsline
+         {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                      \protect\numberline{\csname the#1\endcsname}\fi
+                    #7}\else
+        \def\@svsechd{#6\hskip #3\@svsec #8\csname #1mark\endcsname
+                      {#7}\addcontentsline
+                           {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+                             \protect\numberline{\csname the#1\endcsname}\fi
+                       #7}}\fi
+     \@xsect{#5}}
+
+\ps@plain \pagenumbering{arabic}
+\if\@artstyle2 \twocolumn\sloppy\flushbottom
+ \oddsidemargin \z@ \evensidemargin \z@
+ \def\XX#1#2{\setcounter{page}{#1}\def\@title{#2}}
+\else\onecolumn \if@twoside\else\raggedbottom\fi
+\fi

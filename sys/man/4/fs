@@ -1,0 +1,137 @@
+.TH FS 4
+.SH NAME
+fs \- file server, bootes
+.SH SYNOPSIS
+.I none
+.SH DESCRIPTION
+The file server is the main file system for
+Plan 9.
+It is a stand-alone system that runs on
+a separate computer.
+It serves the Plan 9 protocol on a variety
+of networks including
+Datakit/URP,
+Ethernet IL/IP and
+Cyclone fiber direct connections.
+The name of this machine is
+.BR bootes .
+.PP
+.B Bootes
+can use an external authentication server to validate clients.
+Because the authentication server itself uses
+.B bootes
+as a file server, though, to avoid chicken-and-egg problems
+.B bootes
+usually authenticates its own connections.  Thus when changes
+are made to the authentication server's database it is necessary to run
+.B auth
+(see
+.IR fs (8))
+to update
+.BR bootes 's
+internal state.
+.PP
+The user
+.B none
+is always allowed to attach to
+.B bootes
+without authentication but has minimal permissions.
+.PP
+Bootes maintains three file systems
+on a combination of disks and
+write-once-read-many (WORM) magneto-optical disks.
+.TP
+.B other
+is a simple disk-based file system similar to
+.IR kfs (4) .
+.TP
+.B main
+is a worm-based file system with a disk-based
+look-aside cache.
+The disk cache holds
+modified worm blocks
+to overcome the write-once property of the worm.
+The cache also holds recently accessed
+non-modified blocks to
+speed up the effective access time of the worm.
+Occasionally
+(usually daily at 5AM) the modified blocks in the
+disk cache are
+.IR dumped .
+At this time,
+traffic to the file system is halted and the
+modified blocks are relabeled to the un-written
+portion of the worm.
+After the dump,
+the file system traffic is continued and
+the relabeled blocks are copied to the worm by
+a background process.
+.TP
+.B dump
+Each time the main file system is dumped,
+its root is appended to a subdirectory of the dump file system.
+Since the dump file system is not mirrored with a disk
+cache,
+it is read-only.
+The name of the newly added root is created from the date
+of the dump:
+.BI / yyyy / mmdds.
+Here
+.I yyyy
+is the full year,
+.I mm
+is the month number,
+.I dd
+is the day number and
+.I s
+is a sequence number if more than
+one dump is done in a day.
+For the first dump,
+.I s
+is null.
+For the subsequent dumps
+.I s
+is 1, 2, 3 etc.
+.sp
+The root of the main file system
+that is frozen on the first dump
+of March 1, 1992
+will be named
+.B /1992/0301/
+in the dump file system.
+.SH EXAMPLES
+Place the root of the
+.B dump
+file system on
+.B /n/dump
+and show the modified times of the mips C compiler
+over all dumps in February, 1992:
+.IP
+.EX
+9fs dump
+ls -l /n/dump/1992/02??/mips/bin/vc
+.EE
+.PP
+To get only one line of output for each version of the compiler:
+.IP
+.EX
+ls -lp /n/dump/1992/02??/mips/bin/vc | uniq
+.EE
+.PP
+Make the
+.B other
+file system available in directory
+.BR /n/bootesother :
+.IP
+.EX
+mount -ct /srv/boot /n/bootesother other
+.EE
+.SH SEE ALSO
+.IR yesterday (1),
+.IR srv (4),
+.IR fs (8)
+.br
+Sean Quinlan,
+.I
+A Cached WORM File System,
+Software \- Practice and Experience, December, 1991

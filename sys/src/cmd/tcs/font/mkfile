@@ -1,0 +1,42 @@
+</$objtype/mkfile
+NPROC=3
+
+OBJ=main.$O map.$O bits.$O font.$O kuten.$O
+
+$O.out:	$OBJ
+	$LD $prereq -lbio -lg
+
+%.$O:	%.c
+	$CC -w $stem.c
+
+$O:	hdr.h
+
+kuten.$O:	../kuten.c
+	$CC -I.. -w ../kuten.c
+
+kuten.$O map.$O:	../kuten.h
+
+clean:V:
+	rm -f [$OS].out *.[$OS] y.tab.?
+
+fonts:V:	v.out jis.rc
+	jis.rc
+
+jis.rc:VQ:
+	awk 'BEGIN {
+		fontsize = 512		# set this to chars/subfont
+		dest = "/lib/font/bit/jis"
+		print "#!/bin/rc"
+		printf "v.out -s 0x3000 0x303f > %s/jis3000.16\n", dest
+		printf "v.out -s 0x30a1 0x30fe > %s/katakana.16\n", dest
+		printf "v.out -s 0x3041 0x309e > %s/hiragana.16\n", dest
+		printf "v.out 0x3000 0x303f > %s/jis3000.24\n", dest
+		printf "v.out 0x30a1 0x30fe > %s/katakana.24\n", dest
+		printf "v.out 0x3041 0x309e > %s/hiragana.24\n", dest
+		for(i = 19968; i < 40865; i += fontsize)
+			printf "v.out -s 0x%x 0x%x > %s/jis%x.16\n", i, i+fontsize-1, dest, i
+		for(i = 19968; i < 40865; i += fontsize)
+			printf "v.out 0x%x 0x%x > %s/jis%x.24\n", i, i+fontsize-1, dest, i
+		exit
+	}' > jis.rc
+	chmod 775 jis.rc

@@ -1,0 +1,48 @@
+</$objtype/mkfile
+
+TARG=kfs
+OFILES=\
+	fs.$O\
+	sub.$O\
+	porttime.$O\
+	fcall.$O\
+	iobuf.$O\
+	dat.$O\
+	main.$O\
+	print.$O\
+	dentry.$O\
+	devwren.$O\
+	ialloc.$O\
+	misc.$O\
+	utime.$O\
+	con.$O\
+	console.$O\
+	chk.$O\
+	uid.$O\
+
+HFILES=\
+	all.h\
+	dat.h\
+	errno.h\
+	fns.h\
+	lib.h\
+	portfns.h\
+	portdat.h\
+
+LIB=libp/$objtype/libp.a
+
+BIN=/$objtype/bin/disk
+</sys/src/cmd/mkone
+CFLAGS=-w -Ilibp/$objtype
+
+$LIB:V:
+	cd libp
+	mk install
+
+clean:V:
+	@{cd libp; mk clean}
+	rm -f *.[$OS] [$OS].out kfs core
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out kfs core
+	@{cd libp; mk nuke}

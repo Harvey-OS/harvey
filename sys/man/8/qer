@@ -1,0 +1,49 @@
+.TH QER 8 
+.SH NAME
+qer \- queue a request and associated data
+.SH SYNOPSIS
+.B qer
+.I root tag reply args
+.SH DESCRIPTION
+.I Qer
+creates a control and a data file in a queue directory.
+The control file contains one line with the
+.IR tag ,
+.IR reply ,
+and
+.IR args .
+The data file contains the standard input to
+.I qer.
+The files are created in the directory
+.IR root / user ,
+where
+.I user
+is the contents of
+.BR /dev/user .
+.IR Mktemp (2)
+is used to create the actual names of the control and
+data file.
+.P
+The
+.I tag
+is used by
+.IR runq (8)
+to identify the type of request.
+.I Reply
+is a mail address to be sent error notifications
+when processing the request.
+.I
+.SH FILES
+.TF \fIroot\fP/\fIuser\fP/D.XXXXXX
+.TP
+.B \fIroot\fP/\fIuser\fP
+queue directory for
+.I user
+.TP
+.B \fIroot\fP/\fIuser\fP/D.XXXXXX
+data file
+.TP
+.B \fIroot\fP/\fIuser\fP/C.XXXXXX
+control file
+.SH "SEE ALSO"
+.IR runq (8)

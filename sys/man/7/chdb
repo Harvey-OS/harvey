@@ -1,0 +1,240 @@
+.TH CHDB 7
+.SH NAME
+chdb \- chess database browser
+.SH SYNOPSIS
+.B chdb
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Chdb
+reads the given
+.I files
+of chess games
+.RB ( hist
+by default)
+and accepts commands to search,
+play through, and display the games in these files.
+If
+.I x
+is the name of the file, it is looked for under the names
+.IR x ,
+.IB x .m.out ,
+and
+.BI /lib/chess/ x .m.out .
+.PP
+After reading the files,
+.I chdb
+displays a chess board,
+a text window with
+a command line, and
+vertical and
+horizontal scroll bars
+along the edges of the board.
+The text window holds 6 lines of information about the game and position
+and, at the bottom, a command line in which to type.
+The displayed text contains chess symbols\(emuse a suitable font.
+.PP
+The vertical scroll bar scans through the games to select a game;
+the horizontal bar then scans through the moves of the selected game.
+Both scroll bars use button 1 to
+scan backwards,
+button 3 to scan forwards, and
+button 2 to jump to an absolute position.
+With buttons 1 and 3, the scroll bars are calibrated in units
+of 1 through 8 corresponding to the ranks and
+files of the board.  The units measure games on the vertical
+scroll bar; ply (half-moves) on the horizontal scroll bar.
+For example, clicking button 3 on the horizontal scroll bar
+under the
+.B d
+file steps through the game two full moves.
+.PP
+Moves may be made on the chess board by
+pointing with button 1.
+There are two methods to point at moves.
+For the first method,
+point at the piece to be moved,
+press button 1,
+point to the place to move that piece,
+and then release button 1.
+In the second method,
+point at the place where a piece is to
+move and press button 1.
+The smallest/least-central piece that can move there
+is highlighted.
+Releasing button 1 without moving the
+mouse will make the highlighted move.
+Moving the mouse to the desired piece
+and releasing the button will move the
+selected piece.
+.PP
+Typed lines of text are
+echoed in the command line and executed.
+The available commands are:
+.TP
+.BI f " n n
+Set the format for display of moves in the text window.  The first number
+is the verbosity, with 0 minimal.  The second number is 0 for algebraic,
+1 for English, and 2 for figurine (default).
+.TP
+.BI g " n
+Go to the game with ordinal number
+.I n
+in the input files.
+If
+.I n
+is prefixed with a
+.B +
+or
+.B - ,
+it is interpreted as a relative position in the current set of games (see below).
+.I N
+defaults to
+.B +1 .
+.TP
+.BI p " n
+Go to whole move
+.I n
+in the current game.
+If
+.I n
+is prefixed with a
+.B +
+or
+.B - ,
+it is interpreted as an offset in
+.I ply
+from the current position.
+.I N
+defaults to
+.B +1 .
+.TP
+.BI k " n
+Mark the current set of games with tag
+.I n
+(see patterns, below).
+.TP
+.BI w " type file
+Write the current set of games to
+.I file.
+.I Type
+is either
+.B a
+(write the games as text) or
+.B m
+(write the games in binary format suitable for
+.IR chdb ).
+.PP
+Patterns select subsets of the games.
+A pattern is one of the following, in decreasing precedence order.
+Parentheses can be used for grouping.
+.TP
+.B .
+The current game.
+.TP
+.B *
+All games originally read.
+.TP
+.BI ' n
+The games previously
+marked with a
+.B k
+command with the same
+.I n.
+.TP
+.B []
+.TP
+.BI [ number ]
+All games in
+.B *
+that contain the positions that can
+be reached in
+the specified number of
+plies from the current position.
+A missing number is the same as zero,
+meaning just the current position.
+Positions are matched with black/white
+transpositions.
+.TP
+.BI / regular\ expression / fields
+This pattern matches the regular expression
+against the various text windows.
+.I Fields
+is a list of characters from
+the set
+.BR abdefoprw .
+.B A
+is for all,
+.B b
+for black,
+.B d
+for date,
+.B e
+for event,
+.B f
+for file,
+.B o
+for opening,
+.B p
+for person (white and black),
+.B r
+for result,
+and
+.B w
+for white.
+If multiple fields are given,
+the expression is matched on the
+union of the specified fields.
+If no field is given,
+.B p
+is assumed.
+.TP
+.BI ! pattern
+The set subtraction of
+.B *
+and the given pattern.
+.TP
+.IB pattern - pattern
+The set subtraction of
+the given patterns.
+.TP
+.IB pattern + pattern
+.TP
+.IB pattern | pattern
+The set union of
+the given patterns.
+.TP
+.I pattern pattern
+.TP
+.IB pattern & pattern
+The set intersection of
+the given patterns.
+.TP
+.BI + pattern
+.TP
+.BI - pattern
+.TP
+.BI & pattern
+.TP
+.BI | pattern
+These patterns have
+the current set of games
+as an implied first operand.
+.SH EXAMPLE
+Select games that Botvinnik lost:
+.IP
+.EX
+(/Botv/w/0-1/r)|(/Botv/b/1-0/r)
+.SH FILES
+.TF /lib/chess
+.TP
+.B /lib/chess
+directory of databases.
+.SH SEE ALSO
+.IR regexp (6).
+.SH BUGS
+The browser is only a prototype.
+.PP
+Most of the databases are protected
+by copyright and not distributed.

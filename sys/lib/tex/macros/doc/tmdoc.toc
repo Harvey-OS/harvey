@@ -1,0 +1,45 @@
+\contentsline {section}{\numberline {1}Introduction}{1}
+\contentsline {part}{\uppercase {i}\phspace {1em}Memo Styles, TM and RP}{1}
+\contentsline {section}{\numberline {2}Differences from {\pit article} Style Defaults}{2}
+\contentsline {section}{\numberline {3}Memorandum Data}{3}
+\contentsline {subsection}{\numberline {3.1}Location of the Data Macros}{7}
+\contentsline {section}{\numberline {4}Generating the Heading, Abstract, Cover Sheets, \pldots }{7}
+\contentsline {subsection}{\numberline {4.1}Example Using {\pit tm} to Generate a Complete Document}{8}
+\contentsline {section}{\numberline {5}Released Paper Style {\pit rp.sty}}{9}
+\contentsline {section}{\numberline {6}Extensions to {\prm L\kern -.36em\raise .3ex\hbox {\psc a}\kern -.15em T\kern -.1667em\lower .7ex\hbox {E}\kern -.125emX}}{9}
+\contentsline {subsection}{\numberline {6.1}New Page Styles}{9}
+\contentsline {subsection}{\numberline {6.2}Enumerated Lists}{9}
+\contentsline {subsection}{\numberline {6.3}Labeled Lists}{10}
+\contentsline {subsection}{\numberline {6.4}Inline Lists}{10}
+\contentsline {subsection}{\numberline {6.5}Draft Marking}{10}
+\contentsline {subsection}{\numberline {6.6}Proprietary Markings}{11}
+\contentsline {subsection}{\numberline {6.7}Trade Marks}{11}
+\contentsline {subsection}{\numberline {6.8}Footnotes with Symbols}{11}
+\contentsline {subsection}{\numberline {6.9}Time of Day}{11}
+\contentsline {subsection}{\numberline {6.10}Cent Sign}{12}
+\contentsline {subsection}{\numberline {6.11}Appendices}{12}
+\contentsline {subsection}{\numberline {6.12}Variable Width hlines in Tabular Environment}{12}
+\contentsline {section}{\numberline {7}Known Limitations of {\pit tm} style}{12}
+\contentsline {section}{\numberline {8}Other T\kern -.1667em\lower .5ex\hbox {E}\kern -.125emX\ related Items}{12}
+\contentsline {subsection}{\numberline {8.1}AT\&T Logo}{12}
+\contentsline {subsection}{\numberline {8.2}Extended Picture Environment}{13}
+\contentsline {subsection}{\numberline {8.3}Difference Marking}{13}
+\contentsline {subsection}{\numberline {8.4}Bitmaps}{14}
+\contentsline {subsection}{\numberline {8.5}Author Database}{14}
+\contentsline {section}{\numberline {9}Local Modifications to tm.sty}{14}
+\contentsline {part}{\uppercase {ii}\phspace {1em}MM to {\prm L\kern -.36em\raise .3ex\hbox {\psc a}\kern -.15em T\kern -.1667em\lower .7ex\hbox {E}\kern -.125emX}\ translator,{\pit mm2tex}}{14}
+\contentsline {part}{\uppercase {iii}\phspace {1em}Letter Style {\pit attletter.sty}}{15}
+\contentsline {part}{\uppercase {iv}\phspace {1em}A Voucher Style, {\pit voucher.sty}}{16}
+\contentsline {section}{\numberline {10}Creating Vouchers}{16}
+\contentsline {section}{\numberline {11}Voucher Script}{17}
+\contentsline {section}{\numberline {12}Using Vouchers Prepared with voucher.sty [updated June 1991]}{17}
+\contentsline {part}{\uppercase {v}\phspace {1em}SLiT\kern -.1667em\lower .5ex\hbox {E}\kern -.125emX\ Style for AT\&T Viewgraphs}{18}
+\contentsline {part}{\uppercase {vi}\phspace {1em}Document Style for Multiweight Design, {\pit mw.sty}}{18}
+\contentsline {section}{\numberline {13}The Multiweight Design Style}{19}
+\contentsline {part}{\uppercase {vii}\phspace {1em}Availability}{19}
+\contentsline {section}{REFERENCES}{21}
+\contentsline {section}{APPENDICES}{22}
+\contentsline {section}{\numberline {A}An Example Source File}{22}
+\contentsline {section}{\numberline {B}The Resulting Example Document}{25}
+\contentsline {section}{\numberline {C}An Example Letter Source File}{34}
+\contentsline {section}{\numberline {D}The Resulting Letter}{36}

@@ -1,0 +1,8 @@
+% LEQNO DOCUMENT-STYLE OPTION - released 14 June 1985
+%    for LaTeX version 2.09
+% Copyright (C) 1985 by Leslie Lamport
+
+% The following command puts equation numbers on the left.
+% Works with either the regular styles or the fleqn option.
+
+\def\@eqnnum{\hbox to .01pt{}\rlap{\rm \hskip -\displaywidth(\theequation)}}

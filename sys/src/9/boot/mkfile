@@ -1,0 +1,46 @@
+</$objtype/mkfile
+CFLAGS=-w
+LIBRARY=libboot.a$O
+
+OFILES=\
+	async.$O\
+	aux.$O\
+	boot.$O\
+	bboot.$O\
+	dosboot.$O\
+	bri.$O\
+	cache.$O\
+	cyc.$O\
+	datakit.$O\
+	dk.$O\
+	getpasswd.$O\
+	hybrid.$O\
+	ip.$O\
+	key.$O\
+	local.$O\
+	newkernel.$O\
+	nopsession.$O\
+	rom.$O\
+	settime.$O\
+	userpasswd.$O\
+
+LIBO=${OFILES:%=$LIBRARY(%)}
+
+install:V:	$LIBRARY
+
+$LIBRARY:	$LIBO
+	names=`{membername $newprereq}
+	ar vu $LIBRARY $names
+	$RL $LIBRARY
+	rm -f $names
+
+%.$O:	%.c boot.h
+	$CC $CFLAGS $stem.c
+
+$LIBRARY(%.$O):N:%.$O
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+clean:V:
+	rm -f *.[$OS] *.a[$OS]

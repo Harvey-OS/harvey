@@ -1,0 +1,29 @@
+#
+#  helix == 135.104.9.31
+#
+sysname = helix
+eve = bootes
+nmach = 2 + 2
+nalarm = 5000
+nchan = 8000
+npgenv = 800
+nmtab = 100
+nmount = 5000
+nmntdev = 500
+nmntbuf = 250
+nmnthdr = 500
+nstream = 512
+nsrv = 32
+nproc = 600
+nseg = 4 * nproc
+nimage = 800
+npgrp = 200
+nenv = 30 * nproc
+nenvchar = 20 * nenv
+npte = 4 * npage
+nqueue = 5 * nstream
+nblock = 10 * nstream
+nurp = 256
+ip = 256
+arp = 64
+frag = 128

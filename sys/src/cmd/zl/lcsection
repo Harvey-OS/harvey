@@ -1,0 +1,7 @@
+MIN=2	minimum increment of pc
+
+	byte		means
+	0		lc += val in next 2 bytes - msb,lsb - 2s comp
+	1-64		lc += b; pc += MIN
+	65-128		lc -= (b-64); pc += MIN
+	129-255		pc += (b-128)*MIN;

@@ -1,0 +1,1 @@
+pageview -w 8.5 -h 11 -dpi 150 -aa -right $*&

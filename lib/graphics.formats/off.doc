@@ -1,0 +1,1518 @@
+
+
+
+
+
+
+
+
+
+
+                           OFF - A 3D Object File Format
+
+
+                                   Randi J. Rost
+                                  6-November-1986
+                              Updated 12-October-1989
+
+                           Digital Equipment Corporation
+                          Workstation Systems Engineering
+                                 100 Hamilton Ave.
+                                Palo Alto, Ca. 94301
+
+
+                      This  document  describes  the  data   format
+                 developed by WSE for the interchange and archiving
+                 of three-dimensional objects.  This format, called
+                 OFF  (for  Object File Format), is general, flexi-
+                 ble, and extensible.  It supports ASCII text  ver-
+                 sions  of  objects for the purpose of interchange,
+                 and binary versions for efficiency of reading  and
+                 writing.   It  is  assumed  that applications will
+                 develop  their  own,  more  efficient  format  for
+                 internal   storage   and   operation   on   three-
+                 dimensional objects.
+
+
+
+
+            _1.  _I_n_t_r_o_d_u_c_t_i_o_n
+
+                 One of the most time-consuming tasks in computer anima-
+            tion  projects is designing the 3D models that will be used.
+            Many computer animation houses  have  found  that  owning  a
+            large  number  of databases makes it easier for them to take
+            on new projects at a lower cost (time and $$$).  The cost of
+            initially  creating  an  object  can  be  amortized over the
+            number of times it can be re-used.  It is our  intention  to
+            promote  the  use of OFF files within (and perhaps even out-
+            side of) Digital in an effort to build up our collection  of
+            useful 3D models.
+
+                 The file format itself is not limiting:  OFF files  can
+            be  used  for  a  wide variety of object types.  None of the
+            "policy decisions" are hard-wired in the design of the  file
+            format,  or in the support library routines that allow read-
+            ing and writing of OFF files.  Rather, the policy  decisions
+            have been left up to the designers since the format supports
+            "generic" object definitions.  We  have  developed  specific
+            conventions for objects that are defined by polygons for use
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 2 -
+
+
+            within WSE, and we'd encourage others to adopt these conven-
+            tions  as well in order to promote the interchange of useful
+            object data bases.  The _d_x_m_o_d_e_l application (also  developed
+            by WSE) is an example of an application that permits reading
+            and writing of OFF files.
+
+                 This paper describes the Object File Format itself, the
+            conventions we've adopted at WSE, and the library of support
+            routines that can be used to read and write OFF files.
+
+
+            _2.  _D_e_s_i_g_n _G_o_a_l_s _a_n_d _N_o_n-_G_o_a_l_s
+
+            Design goals for the Object File Format include:
+
+            1)   Simple.  Simple cases should be simple.  It  should  be
+                 possible  to type in all the data required for a simple
+                 object (such as a cube) by hand.
+
+            2)   Powerful.  The Object File Format should be capable  of
+                 accomodating   complicated   objects   (many  vertices,
+                 polygons, and a wide range of attributes).
+
+            3)   Portable.  ASCII text file representation required  for
+                 portability  across  operating  systems  and  hardware.
+                 This also allows operations on OFF  files  by  familiar
+                 system utilities (text editors and the like).
+
+            4)   Efficient.  Binary text file representation required to
+                 allow  efficient  reading and writing of OFF files.  It
+                 is assumed that reading/writing an object is  a  costly
+                 operation,  but  reading and writing ASCII data is just
+                 _t_o_o slow.
+
+            5)   General.  The format should address the general case of
+                 the  three-dimensional  object, not a single particular
+                 case.
+
+            6)   Extensibile.   Make  sure  the  format  can  be  easily
+                 extended to eventually support other primitives such as
+                 bezier patches.
+
+            7)   No  Favors.   Avoid   hard-wiring   policy   decisions.
+                 Rather, provide generic building blocks capable of sup-
+                 porting several styles and document a set  of  strongly
+                 encouraged conventions that we have adopted.
+
+            There are also things that were  specifically  non-goals  in
+            the design of the Object File Format.
+
+            1)   Internal  Format.   The  Object  File  Format  is   not
+                 intended  to be forced upon applications as an internal
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 3 -
+
+
+                 format that must be used.  Rather, it  should  be  con-
+                 sidered  a  means  for  inputting and outputting object
+                 descriptions in a  device-,  language-,  and  operating
+                 system-independent  format.   Applications  should feel
+                 free to develop and maintain the most  useful/efficient
+                 data format they can, and only convert to/from OFF when
+                 input or output of a standardized object is desired.
+
+            2)   Object Conventions.   OFF  conventions  are  documented
+                 only  for  objects in polygonal form at this point.  It
+                 is anticipated that  the  Object  File  Format  can  be
+                 easily  extended  to  handle bezier surface patches and
+                 other primitives in the future.
+
+            _3.  _O_b_j_e_c_t_s
+
+                 For the purposes of the Object File Format, we'll adopt
+            a very general definition of an _o_b_j_e_c_t.  An _o_b_j_e_c_t is simply
+            a list of properties (name, description,  author,  copyright
+            information, geometry data, colors, etc.)
+
+                 The most important information about the object can  be
+            found in the _h_e_a_d_e_r _f_i_l_e for the object.  The header file is
+            always an ASCII text file  that,  by  convention,  is  named
+            _n_a_m_e.aoff where _n_a_m_e is the object name.  See Appendix B for
+            an example of an OFF object header file.
+
+                 A few of these properties (name,  description,  author,
+            copyright,  type)  are common to every type of 3D object and
+            are considered standard properties.  The standard properties
+            are built into the routines that manipulate 3D objects.  The
+            rest of the properties may vary with the type of object, and
+            so are defined by convention only.
+
+                 The _n_a_m_e of an object is used to concisely describe the
+            object  itself.   For  example, we have objects named "x29",
+            "banana" and "vw".  By convention, this  name  also  becomes
+            the  prefix for OFF data filenames when an object is read or
+            written, so it is best to keep it fairly short.
+
+                 The _d_e_s_c_r_i_p_t_i_o_n is used  to  more  fully  describe  the
+            object itself.  It may contain the time and date of creation
+            or more prose describing the object.
+
+                 The _a_u_t_h_o_r should be the name of the  person  (or  com-
+            pany, or utility) that created the object.  We should always
+            try to give credit where credit is due.   This  field  tells
+            you  who to thank for spiffy objects or whose cage to rattle
+            when a problem with an OFF file is discovered.
+
+                 The _c_o_p_y_r_i_g_h_t field contains information  dealing  with
+            the  distribution of the object data.  Some object databases
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 4 -
+
+
+            will be regarded by a company as proprietary.  These objects
+            should  not be copied or distributed without consent.  Other
+            objects (vw, x29) were developed by companies or individuals
+            and  can  be  copied or used as long as the copyright notice
+            appears and proper credit is  given.   Still  other  objects
+            (cube,  sphere, etc.) have been placed in the public domain.
+            We have tried to be as careful  as  possible  in  preserving
+            copyright  and  author  information  for the objects we have
+            collected, but sometimes the information was  lost  or  una-
+            vailable.   Be  sure  and  honor  copyright notices.  If you
+            don't, you (or your company) could end up in big trouble.
+
+                 The _t_y_p_e field contains the type of  the  object.   For
+            now,  only one type of object is supported: polygon objects.
+            It is  anticipated  that  polyline  and  surface  patch-type
+            objects will be supported in the future as well.
+
+                 Also contained in the object header file are lines that
+            describe the various properties of the object.  Each line in
+            the object header file that describes an  attribute  of  the
+            object other than a standard attribute must contain the pro-
+            perty name, the property type, the data format and either  a
+            file  name or a string containing default data, depending on
+            the property type.  Each of these four  items  is  an  ASCII
+            string, separated by white space.
+
+                 The _p_r_o_p_e_r_t_y  _n_a_m_e  uniquely  describes  the  property.
+            Property  names  for  which we have defined conventions (see
+            Appendix A) include geometry, polygon_colors, vertex_colors,
+            back_faces,  vertex_order,  polygon_normals, vertex_normals,
+            diffuse_coef, specular_coef, and specular_power.
+
+                 OFF currently supports four  _p_r_o_p_e_r_t_y  _t_y_p_e_s:  _d_e_f_a_u_l_t,
+            _g_e_n_e_r_i_c,  _i_n_d_e_x_e_d, and _i_n_d_e_x_e_d__p_o_l_y.  If a property is indi-
+            cated to be of type _d_e_f_a_u_l_t, the part of the line after  the
+            data  format  is  assumed  to contain some default data that
+            will be applied to the entire object.  For instance, it  may
+            make  sense  to  give  the entire object a default color and
+            default diffuse and specular coefficients.
+
+                 If the property type is  either  generic,  indexed,  or
+            indexed_poly  (described more fully below), the remainder of
+            the line is taken to be a file name that can be  opened  and
+            read to obtain the information for the property.
+
+                 The data format indicates what type  of  data  will  be
+            found  on  the remainder of the line if the property type is
+            default, otherwise what kind of data will be  found  in  the
+            specified  file.   The data format is a string of characters
+            (no spaces) that indicate the order and type  of  the  data.
+            Supported primitive data types are:
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 5 -
+
+
+            f -  A number stored internally as a 32-bit  floating  point
+                 number
+
+            d -  A number stored internally as a 64-bit double-precision
+                 floating point number
+
+            i -  A number stored internally as a 32-bit integer value
+
+            h -  A number stored internally as a 16-bit integer value
+
+            b -  A number stored internally as an 8-bit integer value
+
+            s -  A 32-bit pointer to a null-terminated string of charac-
+                 ters
+
+                 If, for instance, you were interested in  using  32-bit
+            floating  values  for  r, g, and b default color values, you
+            might have a line in the object header file that reads
+
+                    polygon_colors   default   fff   1.0   0.8   0.0
+
+
+                 It is important to understand that in  all  cases,  the
+            "string"  (s)  data  primitive  will indicate a pointer to a
+            string that is stored internally in the data  block  for  an
+            object and not the string itself.
+
+            _4.  _A_S_C_I_I _P_r_o_p_e_r_t_y _F_i_l_e_s
+
+                 OFF supports ASCII text files as a way of providing for
+            language-,   hardware-,   and  operating  system-independent
+            object data files.  The three types of data files  currently
+            supported by OFF are generic, indexed, and indexed_poly.
+
+            _4._1.  _G_e_n_e_r_i_c _F_i_l_e_s
+
+                 Generic files contain only a _c_o_u_n_t  value  followed  by
+            _c_o_u_n_t  data  items of the type specified by the data format.
+            Each data item can be comprised of some combination  of  the
+            primitive  data  types described in Section 3.  Generic data
+            files are useful for storing attributes which are unique  at
+            every vertex or polygon (such as color or normals).
+
+                 String data items in ASCII generic files may  not  con-
+            tain  spaces  or  other white space.  8-bit integers must be
+            listed in the range 0-255.
+
+                 See Appendix D for an example of an ASCII generic  data
+            file.
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 6 -
+
+
+            _4._2.  _I_n_d_e_x_e_d _F_i_l_e_s
+
+                 Indexed files make use of a list of indices in order to
+            reduce  the amount of data required to store a property, and
+            to provide a useful level  of  indirection.   For  instance,
+            indexed  files  are  commonly  used  to maintain per-polygon
+            color information.  If an object has just five  colors,  the
+            indexed  data file would contain the list of the five colors
+            followed by an index from  one  to  five  for  each  of  the
+            polygons  in  the  object.   If an application maintains the
+            indirection, it is possible for the user  to  easily  select
+            five different colors to be used on the model.
+
+                 An indexed file begins with two integers  separated  by
+            white  space:  the  number  of  data items and the number of
+            indices that will be provided.  Following these  two  values
+            is  the  list  of  data items that is to be used.  Each data
+            item in this list can be some combination of  the  primitive
+            types described in Section 3.  Following the data items is a
+            list of indices each of which is a pointer  to  one  of  the
+            items  in the list of data items.  The list of data items is
+            assumed to begin starting at one, not zero.
+
+
+            _4._3.  _I_n_d_e_x_e_d__P_o_l_y _F_i_l_e_s
+
+                 Indexed_poly files take  advantage  of  a  connectivity
+            list  to  reduce the amount of information needed to store a
+            list  of  polylines,  polygons,  or  normals.   The   unique
+            geometry items (e.g., vertices) are listed in the first part
+            of the file.  Following this list is  a  connectivity  list.
+            Each  line  in  the connectivity list contains a _c_o_u_n_t value
+            followed by _c_o_u_n_t indices (pointers) to information  in  the
+            geometry  list.   (Items  in  the  geometry list are indexed
+            starting from one, not zero.)
+
+                 The first line of an indexed_poly  data  file  contains
+            three  integers, separated by white space.  The first number
+            on  this  line  indicates   the   number   of   data   items
+            (vertices/normals)  that follow, the second number indicates
+            the number of polylines/polygons that follow the data  list,
+            and  the  third indicates the total number of edges that are
+            contained in the polyline/polygon connectivity list.
+
+                 String data items in ASCII indexed_poly files  may  not
+            contain spaces or other white space.  8-bit integers must be
+            listed in the range 0-255.
+
+                 See Appendix C for an example of an ASCII  indexed_poly
+            file.
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 7 -
+
+
+            _5.  _B_i_n_a_r_y _O_F_F _F_i_l_e_s
+
+                 The same three types of data files described above  are
+            also  supported  in  binary  format.   There are a few minor
+            differences.
+
+
+            _5._1.  _G_e_n_e_r_i_c _F_i_l_e_s
+
+                 Binary generic files begin with the first  32-bit  word
+            equal  to  OFF_GENERIC_MAGIC  as defined in the include file
+            _o_f_f._h.  The second word in the file is the _c_o_u_n_t (number  of
+            data  items  in  the file).  Following the _c_o_u_n_t is the data
+            itself.
+
+                 The data format in the header file describes the primi-
+            tives  that make up each data item in the list.  Within each
+            data item, floats,  doubles,  32-bit  integers,  and  string
+            pointers will all begin on a word boundary.  16-bit integers
+            will all begin on a half-word boundary.  Thus, if your  data
+            format  for  the  data items in a generic data file is "bbb"
+            (three byte values), each data item will be stored as  three
+            bytes  followed  by  a null byte so that each data item will
+            begin on a word boundary.  Strings begin with a 32-bit _c_o_u_n_t
+            followed  by  _c_o_u_n_t characters followed by a null character.
+            The string is null-padded so it will end on a word boundary.
+
+                 (It is assumed that for strings,  the  length  will  be
+            read and then the necessary memory will be allocated and the
+            string read in.   This  eliminates  a  problem  with  having
+            variable-length  data in the data files.  Anyway, strings in
+            files are  really  only  there  for  symmetry  with  default
+            values,  where  strings  are really useful.  The performance
+            implications for files containing strings will  probably  be
+            enough to prevent people from using them.)
+
+
+
+            _5._2.  _I_n_d_e_x_e_d _F_i_l_e_s
+
+                 Binary indexed files begin with the first  32-bit  word
+            equal  to  OFF_INDEXED_MAGIC  as defined in the include file
+            _o_f_f._h.  The second word in the file is the _c_o_u_n_t (number  of
+            data  items  in  the  file).   The third word in the file is
+            _n_u_m__i_n_d_i_c_e_s (number of indices in the index list).
+
+                 Following these two integers is the data for  the  data
+            item  list.  Each item in the data item list will begin on a
+            word boundary.  The data format in the header file describes
+            the  primitives  that  make  up  each data item in the list.
+            Within each data item, floats, doubles, 32-bit integers, and
+            string  pointers  will all begin on a word boundary.  16-bit
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 8 -
+
+
+            integers will all begin on a half-word boundary.   Thus,  if
+            your  data format for the data items in an indexed data file
+            is "bbb" (three byte values), each data item will be  stored
+            as  three  bytes  followed  by a null byte so that each data
+            item will begin on a word boundary.  Strings  begin  with  a
+            32-bit _c_o_u_n_t followed by _c_o_u_n_t characters followed by a null
+            character.  The string is null-padded so it will  end  on  a
+            word boundary.
+
+                 Following the data item list is a list of index values.
+            This  list  will also begin on a word boundary, however, the
+            index values within this list are short integers and will be
+            packed two to each 32-bit word.
+
+
+            _5._3.  _I_n_d_e_x_e_d__P_o_l_y _F_i_l_e_s
+
+                 Binary indexed_poly files begin with the  first  32-bit
+            word  equal  to  OFF_INDEXED_POLY_MAGIC  as  defined  in the
+            include file off.h.  The second word is the number  of  data
+            items  in  the  vertex  list  (_n_p_t_s),  the third word is the
+            number of polylines/polygons in the list (_n_p_o_l_y_s),  and  the
+            fourth  word is the number of edges contained in the connec-
+            tivity list (_n_c_o_n_n_e_c_t_s).
+
+                 Starting at the fifth word in the file  is  a  list  of
+            _n_p_t_s  data items, followed by _n_p_o_l_y_s short integers contain-
+            ing polyline/polygon vertex counts,  followed  by  _n_c_o_n_n_e_c_t_s
+            short  integers  which  are  indices  into the array of data
+            items.  (This arrangement is slightly  different  than  that
+            used  for  indexed_poly files in ASCII format for efficiency
+            reasons.)
+
+                 The same restrictions that apply to the data types  for
+            generic  binary  files apply to indexed_poly binary files as
+            well.  In addition, the vertex count array which follows the
+            geometry data in an indexed_poly file will always begin on a
+            word boundary.  The connectivity array that follows the ver-
+            tex  count  array will not necessarily start on a word boun-
+            dary, but will always begin  _n_p_o_l_y_s  *  _s_i_z_e_o_f(_s_h_o_r_t)  bytes
+            after the start of the vertex count array.
+
+
+            _6.  _O_f_f._a _a_n_d _O_b_j_e_c_t_s._h
+
+                 An include file and a library of routines has been pro-
+            vided  for  UNIX/C programmers to more easily manipulate OFF
+            files.  The basic concepts of "reading"  and  "writing"  OFF
+            files  are  supported  in  this  library  of  routines.  The
+            library is a software layer on top of the  operating  system
+            file  I/O  interface,  with  special knowledge of OFF files.
+            This subroutine library provides a mechanism  for  accessing
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 9 -
+
+
+            the  syntactical  elements  of  an object file, but makes no
+            attempt to understand the semantics.   Higher  level  inter-
+            faces can be layered on top.
+
+                 The subroutine library refers to an object as a pointer
+            to  an _O_F_F_O_b_j_D_e_s_c.  This structure contains a pointer to the
+            first property in the property list.  It is defined as  fol-
+            lows:
+
+                    typedef struct
+                        {
+                        OFFProperty *FirstProp;     /* Pointer to first property in list */
+                        } OFFObjDesc;
+
+
+                 The information that describes the object is  contained
+            in  a  linked  list  of property structures.  The first such
+            structure in the list is pointed at by an _O_F_F_O_b_j_D_e_s_c  struc-
+            ture.  The property structures have the form:
+
+                    typedef struct _OFFProp
+                        {
+                        char        PropName[40];
+                        int         PropType;
+                        char        PropFileName[256];
+                        int         PropCount;
+                        char        DataFormat[40];
+                        char        *PropData;
+                        struct _OFFProp *NextProp;
+                        } OFFProperty;
+
+
+                 _P_r_o_p_N_a_m_e contains a string defining one of the property
+            types  for  which  a  convention  has  been  defined.   This
+            includes the property names "name", "author", "description",
+            "copyright",    "comment",   "geometry",   "polygon_colors",
+            "polygon_normal", etc.  For  a  complete  list  of  property
+            names,  see  Appendix  A.  (The special attribute type "com-
+            ment" is supported so that blank lines and comment lines can
+            be preserved if an object file is read and then written.)
+
+                 The  _P_r_o_p_T_y_p_e  field  contains   a   value   equal   to
+            _O_F_F__D_E_F_A_U_L_T__D_A_T_A,   _O_F_F__G_E_N_E_R_I_C__D_A_T_A,  _O_F_F__I_N_D_E_X_E_D__D_A_T_A,  or
+            _O_F_F__I_N_D_E_X_E_D__P_O_L_Y__D_A_T_A which defines the basic type  for  the
+            property.
+
+                 The _P_r_o_p_F_i_l_e_N_a_m_e is required if _P_r_o_p_T_y_p_e  is  something
+            other   than   _O_F_F__D_E_F_A_U_L_T__D_A_T_A.    It   contains  a  string
+            representing the name of the file  to  be  read/written  for
+            this  attribute.   This  file name should _n_o_t contain a path
+            leading up to the file itself, only the  actual  file  name.
+            The  object  search path mechanism (see Section 7) should be
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 10 -
+
+
+            used instead.
+
+                 The _P_r_o_p_C_o_u_n_t indicates the actual number of data items
+            associated with this particular attribute.  After reading in
+            an object, properties of type _O_F_F__D_E_F_A_U_L_T__D_A_T_A will  have  a
+            _P_r_o_p_C_o_u_n_t  of  one, properties of type _O_F_F__G_E_N_E_R_I_C__D_A_T_A will
+            have a _P_r_o_p_C_o_u_n_t equal to the number of generic  data  items
+            in the list, properties of type _O_F_F__I_N_D_E_X_E_D__D_A_T_A will have a
+            _P_r_o_p_C_o_u_n_t equal to the number of  items  in  the  data  item
+            list, and properties of type _O_F_F__I_N_D_E_X_E_D__P_O_L_Y__D_A_T_A will have
+            a _P_r_o_p_C_o_u_n_t equal  to  the  number  of  data  items  in  the
+            geometry list.
+
+                 The _D_a_t_a_F_o_r_m_a_t field contains a  string  of  characters
+            corresponding  to  primitive data items.  The composite type
+            of the data for this property can then be deduced by looking
+            at this field and applying the rules for padding to word and
+            half-word boundaries.
+
+                 The _P_r_o_p_D_a_t_a field contains a pointer  to  a  block  of
+            memory  containing  the actual data for this property.  This
+            data will have the same data  alignment  restrictions  as  a
+            binary  file has, with the exception of strings.  As strings
+            are read in, memory is malloc'ed to hold them and a  pointer
+            to the string is stored in the appropriate field in the data
+            list.  This means that all primitive data types will have  a
+            fixed  size  and lengths and alignments can be computed more
+            easily.
+
+                 The _N_e_x_t_P_r_o_p field contains a pointer to the next  pro-
+            perty structure in the property list.
+
+                 The routines contained in the  subroutine  library  are
+            defined below.
+
+
+            #include "off.h"
+
+            int OFFReadObj(Obj, FileName)
+                    OFFObjDesc *Obj;
+                    char *FileName;
+
+            int OFFWriteObj(Obj, FileName, Directory, FileType);
+                    OFFObjDesc *Obj;
+                    char *FileName;
+                    char *Directory;
+                    int FileType;
+
+            void OFFPackObj(Obj)
+                    OFFObjDesc *Obj;
+
+            void OFFPackProperty(Property)
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 11 -
+
+
+                    OFFProperty *Property;
+
+            int OFFReadGeneric(Property, FileName)
+                    OFFProperty *Property;
+                    char *FileName;
+
+            int OFFWriteGeneric(Property, FileName, FileType)
+                    OFFProperty *Property;
+                    char *FileName;
+                    int FileType;
+
+            int OFFReadIndexed(Property, FileName)
+                    OFFProperty *Property;
+                    char *FileName;
+
+            int OFFWriteIndexed(Property, FileName, FileType)
+                    OFFProperty *Property;
+                    char *FileName;
+                    int FileType;
+
+            int OFFReadIndexedPoly(Property, FileName)
+                    OFFProperty *Property;
+                    char *FileName;
+
+            int OFFWriteIndexedPoly(Property, FileName, FileType)
+                    OFFProperty *Property;
+                    char *FileName;
+                    int FileType;
+
+            OFFObjDesc *OFFCreateObj()
+
+            int OFFDestroyObj(Obj)
+                    OFFObjDesc *Obj;
+
+            OFFProperty *OFFAddProperty(Obj)
+                    OFFObjDesc *Obj;
+
+            int OFFRemoveProperty(Obj, PropertyName)
+                    OFFObjDesc *Obj;
+                    char *PropertyName;
+
+            int OFFFreeProperty(Property)
+                    OFFProperty *Property;
+
+
+                 _O_F_F_R_e_a_d_O_b_j will attempt to open the object header  file
+            named  _F_i_l_e_N_a_m_e  and  read  the  object data it contains.  A
+            pointer to the constructed object structure will be returned
+            in  _O_b_j  when  the object has been read.  An attempt will be
+            made to open the specified file first as  given,  then  con-
+            catenated  in turn with each of the directories specified by
+            the environment search path variable _O_B_J__P_A_T_H.  The property
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 12 -
+
+
+            list  for  the  object  is  built as the file is read.  Upon
+            return, the client need only traverse the property list  and
+            select the data it needs.  This routine calls _O_F_F_R_e_a_d_G_e_n_e_r_i_c
+            and _O_F_F_R_e_a_d_I_n_d_e_x_e_d_P_o_l_y in  order  to  read  associated  data
+            files.   _O_F_F_R_e_a_d_O_b_j  will return 0 if the read operation was
+            successful, -1 otherwise.
+
+                 _O_F_F_W_r_i_t_e_O_b_j will attempt to write the object pointed at
+            by  _O_b_j  using the filename specified by _F_i_l_e_N_a_m_e.  The file
+            will be written in the directory indicated by _D_i_r_e_c_t_o_r_y.  If
+            _F_i_l_e_T_y_p_e  is _O_F_F__A_S_C_I_I, the file will be written as an ASCII
+            text OFF file.  If _F_i_l_e_T_y_p_e is _O_F_F__B_I_N_A_R_Y, the file will  be
+            written  as  a  binary  OFF file.  The property list for the
+            object is traversed and each property of the object is writ-
+            ten  out  in  turn.   This routine calls _O_F_F_W_r_i_t_e_G_e_n_e_r_i_c and
+            _O_F_F_W_r_i_t_e_I_n_d_e_x_e_d_P_o_l_y in order to write associated data files.
+            _O_F_F_W_r_i_t_e_O_b_j  will  return  0 if the write operation was suc-
+            cessful, -1 otherwise.
+
+                 _O_F_F_P_a_c_k_O_b_j attempts to _p_a_c_k the object  pointed  at  by
+            _O_b_j.  Packing only applies to geometry and normals stored in
+            indexed_polygon format.  See _O_F_F_P_a_c_k_P_r_o_p_e_r_t_y below.
+
+                 _O_F_F_P_a_c_k_P_r_o_p_e_r_t_y packs the property pointed at  by  _P_r_o_-
+            _p_e_r_t_y.   Packing can only be applied to indexed_polygon pro-
+            perties with format ``fff''.  (This is normally the case for
+            geometry  and  normals properties.) Packing works by sharing
+            common data (vertex or normal) values.   Since  each  vertex
+            and vertex normal of an object is usually shared by three or
+            more polygons, this can save  a  great  deal  of  space  and
+            rendering  time.  If _P_r_o_p_e_r_t_y could not be packed, it is not
+            modified; otherwise the property data is changed in-place.
+
+                 _O_F_F_R_e_a_d_G_e_n_e_r_i_c will read the generic  data  file  named
+            _F_i_l_e_N_a_m_e  (here  _F_i_l_e_N_a_m_e  contains the full path name) into
+            the property structure pointed at by _P_r_o_p_e_r_t_y.  This routine
+            will  allocate  the  space  it needs in order to read in the
+            data.  A pointer to this allocated data space will be stored
+            in the _P_r_o_p_D_a_t_a field of the specified _p_r_o_p_e_r_t_y as described
+            earlier.  The entire object, including all allocated  memory
+            resources can later be deallocated by calling _O_F_F_D_e_s_t_r_o_y_O_b_j.
+            This routine will not typically be called directly by appli-
+            cations.  _O_F_F_R_e_a_d_G_e_n_e_r_i_c will return 0 if the read operation
+            was successful, -1 otherwise.
+
+                 _O_F_F_W_r_i_t_e_G_e_n_e_r_i_c will write the generic data  associated
+            with _P_r_o_p_e_r_t_y into the file _F_i_l_e_N_a_m_e (here _F_i_l_e_N_a_m_e contains
+            the full path name of the file to be written).  If  _F_i_l_e_T_y_p_e
+            is _O_F_F__A_S_C_I_I, the file will be written as an ASCII text gen-
+            eric data file.  If _F_i_l_e_T_y_p_e is _O_F_F__B_I_N_A_R_Y, the file will be
+            written  as  a  binary generic data file.  This routine will
+            not  typically   be   called   directly   by   applications.
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 13 -
+
+
+            _O_F_F_W_r_i_t_e_G_e_n_e_r_i_c  will  return  0  if the write operation was
+            successful, -1 otherwise.
+
+                 _O_F_F_R_e_a_d_I_n_d_e_x_e_d will read the indexed  data  file  named
+            _F_i_l_e_N_a_m_e  (here  _F_i_l_e_N_a_m_e  contains the full path name) into
+            the property structure pointed at by _P_r_o_p_e_r_t_y.  This routine
+            will  allocate  the  space  it needs in order to read in the
+            data.  A pointer to this allocated data space will be stored
+            in the _P_r_o_p_D_a_t_a field of the specified _p_r_o_p_e_r_t_y as described
+            earlier.  The entire object, including all allocated  memory
+            resources can later be deallocated by calling _O_F_F_D_e_s_t_r_o_y_O_b_j.
+            This routine will not typically be called directly by appli-
+            cations.  _O_F_F_R_e_a_d_I_n_d_e_x_e_d will return 0 if the read operation
+            was successful, -1 otherwise.
+
+                 _O_F_F_W_r_i_t_e_I_n_d_e_x_e_d will write the indexed data  associated
+            with _P_r_o_p_e_r_t_y into the file _F_i_l_e_N_a_m_e (here _F_i_l_e_N_a_m_e contains
+            the full path name of the file to be written).  If  _F_i_l_e_T_y_p_e
+            is  _O_F_F__A_S_C_I_I,  the  file  will  be written as an ASCII text
+            indexed data file.  If _F_i_l_e_T_y_p_e is _O_F_F__B_I_N_A_R_Y, the file will
+            be written as a binary indexed data file.  This routine will
+            not typically be called directly by  applications.   _O_F_F_W_r_i_-
+            _t_e_I_n_d_e_x_e_d  will return 0 if the write operation was success-
+            ful, -1 otherwise.
+
+                 _O_F_F_R_e_a_d_I_n_d_e_x_e_d_P_o_l_y will read the indexed_poly data file
+            named  _F_i_l_e_N_a_m_e  (here _F_i_l_e_N_a_m_e contains the full path name)
+            into the property structure pointed at  by  _P_r_o_p_e_r_t_y.   This
+            routine will allocate the space it needs in order to read in
+            the data.  A pointer to this allocated data  space  will  be
+            stored  in  the  _P_r_o_p_D_a_t_a field of the specified _p_r_o_p_e_r_t_y as
+            described earlier.  The entire object, including  all  allo-
+            cated  memory  resources can later be deallocated by calling
+            _O_F_F_D_e_s_t_r_o_y_O_b_j.  This routine will not  typically  be  called
+            directly  by applications.  _O_F_F_R_e_a_d_I_n_d_e_x_e_d_P_o_l_y will return 0
+            if the read operation was successful, -1 otherwise.
+
+                 _O_F_F_W_r_i_t_e_I_n_d_e_x_e_d_P_o_l_y will write  the  indexed_poly  data
+            associated  with  _P_r_o_p_e_r_t_y  into  the  file  _F_i_l_e_N_a_m_e  (here
+            _F_i_l_e_N_a_m_e contains the full path name of the file to be writ-
+            ten).  If _F_i_l_e_T_y_p_e is _O_F_F__A_S_C_I_I, the file will be written as
+            an ASCII  text  indexed_poly  data  file.   If  _F_i_l_e_T_y_p_e  is
+            _O_F_F__B_I_N_A_R_Y,   the   file   will   be  written  as  a  binary
+            indexed_poly data file.  This routine will not typically  be
+            called  directly  by applications.  _O_F_F_W_r_i_t_e_I_n_d_e_x_e_d_P_o_l_y will
+            return 0 if the write operation was  successful,  -1  other-
+            wise.
+
+                 _O_F_F_C_r_e_a_t_e_O_b_j allocates and  initializes  an  _O_F_F_O_b_j_D_e_s_c
+            structure  A  pointer  to  the  newly-created  structure  is
+            returned.  The null pointer is returned if the operation was
+            unsuccessful.
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 14 -
+
+
+                 _O_F_F_D_e_s_t_r_o_y_O_b_j deallocates all memory resources  associ-
+            ated with the object pointed at by _O_b_j.  It works by calling
+            _O_F_F_F_r_e_e_P_r_o_p_e_r_t_y for each property in the property  list  for
+            the specified object.
+
+                 _O_F_F_A_d_d_P_r_o_p_e_r_t_y adds a property structure  to  the  pro-
+            perty  list  associated  with  the object pointed at by _O_b_j,
+            initializes it, and returns  a  pointer  to  it.   The  null
+            pointer is returned if the operation was unsuccessful.
+
+                 _O_F_F_R_e_m_o_v_e_P_r_o_p_e_r_t_y deletes the named property  from  the
+            object  pointed  at  by _O_b_j.  This routine returns -1 if the
+            named property is not found in the  property  list  for  the
+            specified object.
+
+                 _O_F_F_F_r_e_e_P_r_o_p_e_r_t_y frees all the  memory  resources  allo-
+            cated  to  the  property  structure specified by _P_r_o_p_e_r_t_y as
+            well as the property structure itself.   This  routine  will
+            not typically be called directly by applications.
+
+            _7.  _O_b_j_e_c_t _S_e_a_r_c_h _P_a_t_h
+
+                 It is important to avoid embedding path names in object
+            files.   When  an  object  is transported to another system,
+            chances are slim that  the  same  directory  structure  will
+            exist.   The  _O_F_F_R_e_a_d_O_b_j  routine in libobj.a knows about an
+            environment variable named _O_B_J__P_A_T_H that is used to overcome
+            this problem.
+
+                 When an object is read, an attempt  is  first  made  to
+            open  it  in the current working directory.  If that attempt
+            fails, the directories specified in the _O_B_J__P_A_T_H environment
+            variable  are  tried  in turn until the file is successfully
+            opened or the directory list is  exhausted.   _O_B_J__P_A_T_H  con-
+            tains  a  list of directories, separated by spaces, that are
+            to be searched for the named objects.
+
+                 The name of  the  directory  where  a  successful  open
+            operation occurred is used for opening associated data files
+            as well.  This means that all of the data files for  a  par-
+            ticular object must reside in the same directory.
+
+                 It is hoped that in this way, users  will  be  able  to
+            draw  on  one  or  more collections of "standard" objects in
+            addition to their own private collections of objects.
+
+
+
+
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 15 -
+
+
+            _8.  _A_p_p_e_n_d_i_x _A: _C_o_n_v_e_n_t_i_o_n_s _f_o_r _P_o_l_y_g_o_n_a_l _O_b_j_e_c_t_s
+
+                 This list contains the conventions we have adopted  for
+            describing  3D  polygonal  objects which are defined in some
+            three-dimensional model coordinate system.  Items in regular
+            type  are string literal, printed as they would appear in an
+            OFF file, and item in italics indicate data values that will
+            vary  from  object to object.  By convention, the header for
+            an ASCII OFF file is suffixed with ".aoff"  and  the  header
+            for  a  binary  OFF file is suffixed with ".off".  There are
+            two choices for how colors  may  be  stored.   If  they  are
+            stored as generic data, the suffixes used are ".{b}pcol" for
+            polygon colors and ".{b}vcol" for vertex  colors.   If  they
+            are   stored   as   indexed  data,  the  suffixes  used  are
+            ".{b}ipcol" and ".{b}ivcol".
+
+
+            box;                c|c|c|c|c|c                 l|l|l|l|l|l.
+            Property        Type    Format  Defaults        ASCII
+            filename  Binary                 Filename                  =
+            name    *****   *****   _o_b_j_n_a_m_e *****   *****
+            author  *****   *****   _a_u_t_h_o_r  *****   *****
+            description     *****   *****   _d_e_s_c_r_i_p_t_i_o_n     *****   *****
+            copyright       *****   *****   _c_o_p_y_r_i_g_h_t       *****   *****
+            type    *****   *****   polyline        *****   *****
+                    *****   *****   polygon *****   *****
+            geometry        indexed_poly    fff     *****   _n_a_m_e.geom       _n_a_m_e.bgeom
+            polygon_colors  generic fff     *****   _n_a_m_e.pcol       _n_a_m_e.bpcol
+            vertex_colors   generic fff     *****   _n_a_m_e.vcol       _n_a_m_e.bvcol
+            polygon_colors  indexed fff     *****   _n_a_m_e.ipcol      _n_a_m_e.bipcol
+            vertex_colors   indexed fff     *****   _n_a_m_e.ivcol      _n_a_m_e.bivcol
+            back_faces      default s       cull    *****   *****
+                                    display *****   *****
+                                    reverse *****   *****
+            vertex_order    default s       clockwise       *****   *****
+                                    counter-
+            clockwise       *****   *****
+                                    counterclock-
+            wise        *****   *****
+            polygon_normals generic fff     *****   _n_a_m_e.pnorm      _n_a_m_e.bpnorm
+            vertex_normals  generic fff     *****   _n_a_m_e.vnorm      _n_a_m_e.bvnorm
+            diffuse_coef    default f       _v_a_l_u_e   *****   *****
+            specular_coef   default f       _v_a_l_u_e   *****   *****
+            specular_power  default f       _v_a_l_u_e   *****   *****
+            bounding_box    default ffffff  _v_a_l_u_e   *****   *****
+
+
+
+
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 16 -
+
+
+            _9.  _A_p_p_e_n_d_i_x _B: _O_F_F _H_e_a_d_e_r _F_i_l_e _F_o_r _a _C_u_b_e (_c_u_b_e._a_o_f_f)
+
+
+
+
+
+
+
+
+            ;    l    l.     name    cube    author  Randi    J.    Rost
+            description     cube  with  sides of red, green, blue, cyan,
+            yellow,      magenta      copyright       public      domain
+            type    polygon
+
+
+            ;  l  c  c  c  l  c  c  c   l   l   l   l.    #   Prop. data
+            type       format  filename       or       default      data
+            #_______        _________       ______  ________________________
+
+            geometry        indexed_poly    fff     cube.geom
+            vertex_order    default s       clockwise
+            polygon_colors  generic fff     cube.pcol
+            back_faces      default s       cull
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 17 -
+
+
+            _1_0.  _A_p_p_e_n_d_i_x _C: _L_i_s_t_i_n_g _o_f _c_u_b_e._g_e_o_m
+
+
+
+
+
+
+
+
+            ;   nw(0.5i)   nw(0.5i)    nw(0.5i)    nw(0.5i)    nw(0.5i).
+            8       6       24  -1.0    -1.0    1.0  -1.0    1.0     1.0
+            1.0     1.0     1.0 1.0     -1.0    1.0 -1.0    -1.0    -1.0
+            -1.0    1.0     -1.0  1.0     1.0     -1.0 1.0     -1.0    -
+            1.0                        4       1       2       3       4
+            4       5       6       2       1
+            4       3       2       6       7
+            4       3       7       8       4
+            4       1       4       8       5
+            4       8       7       6       5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 18 -
+
+
+            _1_1.  _A_p_p_e_n_d_i_x _D: _L_i_s_t_i_n_g _o_f _c_u_b_e._p_c_o_l
+
+
+
+
+
+
+
+
+            ; l s s nw(0.5i) nw(0.5i)  nw(0.5i).   6                 1.0
+            0.0         0.0  0.0         1.0         0.0  0.0        0.0
+            1.0 0.0        1.0        1.0 1.0        1.0        0.0  1.0
+            0.0        1.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 19 -
+
+
+            _1_2.  _A_p_p_e_n_d_i_x _E: _L_i_s_t_i_n_g _o_f _o_f_f._h
+
+
+
+            #define OFF_INDEXED_POLY_MAGIC  0xFEEDFEEDL
+            #define OFF_GENERIC_MAGIC       0xBEEFBEEFL
+            #define OFF_INDEXED_MAGIC       0xBADBADBAL
+
+            #define OFF_BIGSTR              256
+            #define OFF_SMSTR               40
+
+            #define OFF_ASCII               0
+            #define OFF_BINARY              1
+
+
+            /* Types of data for object properties  */
+
+            #define OFF_UNKNOWN_TYPE_DATA   0
+            #define OFF_STANDARD_DATA       1
+            #define OFF_COMMENT_DATA        2
+            #define OFF_DEFAULT_DATA        3
+            #define OFF_GENERIC_DATA        4
+            #define OFF_INDEXED_POLY_DATA   5
+            #define OFF_INDEXED_DATA        6
+
+
+            typedef struct _OFFProp
+                {
+                char        PropName[OFF_SMSTR];     /* Name of property (or attribute)  */
+                int         PropType;                /* Type of data for property        */
+                char        PropFileName[OFF_BIGSTR];/* Name of file that has prop data  */
+                char        DataFormat[OFF_SMSTR];   /* Pointer to property data format  */
+                int         PropCount;               /* Number of data items for property*/
+                char        *PropData;               /* Pointer to property data         */
+                struct _OFFProp *NextProp;           /* Pointer to next property in list */
+                } OFFProperty;
+
+            typedef struct
+                {
+                OFFProperty *FirstProp;              /* Pointer to first property in list*/
+                } OFFObjDesc;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 20 -
+
+
+            _1_3.  _A_p_p_e_n_d_i_x _F: _D_a_t_a _S_t_r_u_c_t_u_r_e _F_o_r_m_a_t
+
+                 The following diagram depicts some of the  data  struc-
+            tures   for   the  object  _c_u_b_e._a_o_f_f  after  being  read  by
+            _O_F_F_R_e_a_d_O_b_j() (or just prior  to  being  written  by  _O_F_F_W_r_i_-
+            _t_e_O_b_j()).  move to 0.0, 14.5 Object:         [         boxht
+            = 0.3i; boxwid = 2.0i         moveht = 0.3i; movewid =  0.0i
+                        down          A: box "FirstProp"            move
+            up 0.3i; move right  2.0i              down          B:  box
+                    ]
+
+            move to 1.0, 13.0 Prop1:          [          boxht  =  0.3i;
+            boxwid = 1.5i         moveht = 0.3i; movewid = 0.0i
+            down         A: box "PropName"              down          B:
+            box "PropType"            down         C: box "PropFileName"
+                       down         D: box "DataFormat"             down
+                    E:  box  "PropCount"             down         F: box
+            "PropData"              down           H:   box   "NextProp"
+                        move  up  2.1i;              move  right  2.25i;
+                       boxht = 0.3i; boxwid = 3.0i             moveht  =
+            0.3i;  movewid  = 0.0i            down         I: box "name"
+                       down         J: box "OFF_STANDARD_DATA"
+            down         K: box "_n_u_l_l _s_t_r_i_n_g"            down         L:
+            box  "_n_u_l_l  _s_t_r_i_n_g"              down          M:  box   "0"
+                        down          N:  box            down         O:
+            box         ]
+
+            move to 1.0, 10.0 Prop2:          [          boxht  =  0.3i;
+            boxwid = 1.5i         moveht = 0.3i; movewid = 0.0i
+            down         A: box "PropName"              down          B:
+            box "PropType"            down         C: box "PropFileName"
+                       down         D: box "DataFormat"             down
+                    E:  box  "PropCount"             down         F: box
+            "PropData"              down           H:   box   "NextProp"
+                        move  up  2.1i;              move  right  2.25i;
+                       boxht = 0.3i; boxwid = 3.0i             moveht  =
+            0.3i; movewid = 0.0i            down         I: box "author"
+                       down         J: box "OFF_STANDARD_DATA"
+            down         K: box "_n_u_l_l _s_t_r_i_n_g"            down         L:
+            box  "_n_u_l_l  _s_t_r_i_n_g"              down          M:  box   "0"
+                        down          N:  box            down         O:
+            box         ]
+
+            move to 1.0, 7.0  Prop3:          [          boxht  =  0.3i;
+            boxwid = 1.5i         moveht = 0.3i; movewid = 0.0i
+            down         A: box "PropName"              down          B:
+            box "PropType"            down         C: box "PropFileName"
+                       down         D: box "DataFormat"             down
+                    E:  box  "PropCount"             down         F: box
+            "PropData"              down           H:   box   "NextProp"
+                        move  up  2.1i;              move  right  2.25i;
+                       boxht = 0.3i; boxwid = 3.0i             moveht  =
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 21 -
+
+
+            0.3i;   movewid   =  0.0i              down          I:  box
+            "geometry"                     down              J:      box
+            "OFF_INDEXED_POLY_DATA"                down          K:  box
+            "cube.geom"            down         L:  box  "fff"
+            down          M:  box  "6"              down          N: box
+                       down         O: box         ]
+
+            move to 1.0, 4.0  Prop4:          [          boxht  =  0.3i;
+            boxwid = 1.5i         moveht = 0.3i; movewid = 0.0i
+            down         A: box "PropName"              down          B:
+            box "PropType"            down         C: box "PropFileName"
+                       down         D: box "DataFormat"             down
+                    E:  box  "PropCount"             down         F: box
+            "PropData"              down           H:   box   "NextProp"
+                        move  up  2.1i;              move  right  2.25i;
+                       boxht = 0.3i; boxwid = 3.0i             moveht  =
+            0.3i;   movewid   =  0.0i              down          I:  box
+            "polygon_colors"                  down            J:     box
+            "OFF_GENERIC_DATA"                  down            K:   box
+            "cube.pcol"            down         L:  box  "fff"
+            down          M:  box  "6"              down          N: box
+                       down         O: box         ]
+
+            move to 1.0, 1.0  Prop5:          [          boxht  =  0.3i;
+            boxwid = 1.5i         moveht = 0.3i; movewid = 0.0i
+            down         A: box "PropName"              down          B:
+            box "PropType"            down         C: box "PropFileName"
+                       down         D: box "DataFormat"             down
+                    E:  box  "PropCount"             down         F: box
+            "PropData"              down           H:   box   "NextProp"
+                        move  up  2.1i;              move  right  2.25i;
+                       boxht = 0.3i; boxwid = 3.0i             moveht  =
+            0.3i;   movewid   =  0.0i              down          I:  box
+            "back_faces"                    down             J:      box
+            "OFF_DEFAULT_DATA"              down          K:  box  "_n_u_l_l
+            _s_t_r_i_n_g"            down         L: box "s"              down
+                    M:  box  "0"            down         N: box
+            down         O: box "_n_u_l_l _p_o_i_n_t_e_r"         ]
+
+            line from Prop1.O.c to Prop1.O.c.x, (Prop1.s.y +  Prop2.n.y)
+            /  2.0  line  to  0.5, (Prop1.s.y + Prop2.n.y) / 2.0 line to
+            0.5, Prop2.A.c.y arrow to Prop2.A.w
+
+            line from Prop2.O.c to Prop2.O.c.x, (Prop2.s.y +  Prop3.n.y)
+            / 2.0 line to 0.5, (Prop2.s.y + Prop3.n.y) / 2.0 line dashed
+            to 0.5, Prop3.A.c.y arrow to Prop3.A.w
+
+            line from Prop3.O.c to Prop3.O.c.x, (Prop3.s.y +  Prop4.n.y)
+            / 2.0 line to 0.5, (Prop3.s.y + Prop4.n.y) / 2.0 line dashed
+            to 0.5, Prop4.A.c.y arrow to Prop4.A.w
+
+            line from Prop4.O.c to Prop4.O.c.x, (Prop4.s.y +  Prop5.n.y)
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 22 -
+
+
+            /  2.0  line  to  0.5, (Prop4.s.y + Prop5.n.y) / 2.0 line to
+            0.5, Prop5.A.c.y arrow to Prop5.A.w
+
+            line  from  Object.B.c  to   Object.B.c.x,   (Object.s.y   +
+            Prop1.n.y) / 2.0 line to 0.5, (Object.s.y + Prop1.n.y) / 2.0
+            line to 0.5, Prop1.A.c.y arrow to Prop1.A.w
+
+            boxht = 0.3i; boxwid = 2.0i P1: box "cube" at Prop1.N.e.x  +
+            1.5i, Prop1.N.e.y arrow from Prop1.N.c to P1.w
+
+            P2: box "Randi J. Rost" at Prop2.N.e.x +  1.5i,  Prop2.N.e.y
+            arrow from Prop2.N.c to P2.w
+
+            P3: box "  8    6    24 -1.0 -1.0" at  Prop3.N.e.x  +  1.5i,
+            Prop3.N.e.y  P4:  box " 1.0 -1.0  1.0  1.0  1.0" with .nw at
+            P3.sw P5: box " 1.0  1.0  1.0 -1.0  1.0" with .nw  at  P4.sw
+            P6: box "-1.0 -1.0 -1.0 -1.0  1.0" with .nw at P5.sw P7: box
+            "-1.0  1.0  1.0 -1.0  1.0" with .nw at P6.sw P8:  box  "-1.0
+            -1.0  4  4  4 4  4  4" with .nw at P7.sw P9: box "1  2  3  4
+            5  6  2  1" with .nw at P8.sw Pa: box "3  2  6  7  3   7   8
+            4"  with  .nw at P9.sw Pb: box "1  4  8  5  8  7  6  5" with
+            .nw at Pa.sw arrow from Prop3.N.c to P3.w
+
+            Pc: box "6    1.0  0.0  0.0  0.0"  at  Prop4.N.e.x  +  1.5i,
+            Prop4.N.e.y  Pd:  box  "1.0  0.0  0.0  0.0  1.0" with .nw at
+            Pc.sw Pe: box "0.0  1.0  1.0  1.0  1.0" with  .nw  at  Pd.sw
+            Pf:  box  "0.0   1.0  0.0  1.0     " with .nw at Pe.sw arrow
+            from Prop4.N.c to Pc.w
+
+            boxht = 0.3i; boxwid = 0.5i Pg: box at Prop5.N.e.x  +  1.0i,
+            Prop5.N.e.y  Ph:  box  "cull"  at Pg.e.x + 1.0i, Prop5.N.e.y
+            arrow from Pg.c to Ph.w arrow from Prop5.N.c to Pg.w
+
+            "Object" at Object.A.n above
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+
+
+
+
+
+                                       - 23 -
+
+
+            _1_4.  _A_c_k_n_o_w_l_e_d_g_e_m_e_n_t_s
+
+                 OFF is a derivative of an object file  format  used  at
+            Ohio  State University.  Special thanks to Allen Akin of WSE
+            for helpful ideas  and  suggestions.  Thanks  also  to  Jeff
+            Friedberg  of  Digital's High-Performance Workstation (HPWS)
+            group and Shaun Ho  of  WSE  who  also  contributed  to  the
+            design.  Danny Shapiro of WSE provided suggestions for addi-
+            tional enhancements and conventions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   April 26, 1990
+
+

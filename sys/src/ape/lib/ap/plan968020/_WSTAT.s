@@ -1,0 +1,4 @@
+TEXT _WSTAT(SB), 1, $0
+MOVL $26, R0
+TRAP $0
+RTS

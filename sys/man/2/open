@@ -1,0 +1,116 @@
+.TH OPEN 2
+.SH NAME
+open, create, close \- open a file for reading or writing, create file
+.SH SYNOPSIS
+.B
+int open(char *file, int omode)
+.PP
+.B
+int create(char *file, int omode, ulong perm)
+.PP
+.B
+int close(int fd)
+.SH DESCRIPTION
+.I Open
+opens the
+.I file
+and returns an associated file descriptor.
+.I Omode
+is one of
+.BR OREAD ,
+.BR OWRITE ,
+.BR ORDWR ,
+or
+.BR OEXEC ,
+asking for permission to read, write, read and write, or execute, respectively.
+In addition, there are three values that can be ORed with the omode:
+.B OTRUNC
+says to truncate the file
+to zero length before opening it;
+.B OCEXEC
+says to close the file when an
+.IR exec (2)
+or
+.I execl
+system call is made;
+and
+.B ORCLOSE
+says to remove the file when it is closed (by everyone who has it open).
+The
+.I omode
+values are defined in
+.BR <libc.h> .
+.I Open
+fails if the file does not exist or the user does not have
+permission to open it for the requested purpose
+(see
+.IR stat (2)
+for a description of permissions).
+The user must have write permission on the
+.I file
+if the
+.B OTRUNC
+bit is set.
+For the
+.I open
+system call
+(unlike the implicit
+.I open
+in
+.IR exec (2)),
+.B OEXEC
+is actually identical to
+.BR OREAD .
+.PP
+.I Create
+creates a new
+.I file
+or prepares to rewrite an existing
+.IR file ,
+opens it according to
+.I omode
+(as described for
+.IR open ),
+and returns an associated file descriptor.
+If the file is new,
+the owner is set to the userid of the creating process group;
+the group to that of the containing directory;
+the permissions to
+.I perm
+ANDed with the permissions of the containing directory.
+If the file already exists,
+it is truncated to 0 length,
+and the permissions, owner, and group remain unchanged.
+The created file is a directory if the
+.B CHDIR
+bit is set in
+.IR omode .
+.I Create
+fails if the path up to the last element of
+.I file
+cannot be evaluated, if the user doesn't have write permission
+in the final directory, or if the file already exists and
+does not permit the access defined by
+.I omode.
+If the file is new and the directory in which it is created is
+a union directory (see
+.IR intro (2))
+then the constituent directory where the file is created
+depends on the structure of the union: see
+.IR bind (2).
+.PP
+.I Close
+closes the file associated with a file descriptor.
+Provided the file descriptor is a valid open descriptor,
+.I close
+is guaranteed to close it; there will be no error.
+Files are closed upon termination of a process;
+.I close
+allows the file descriptor to be reused.
+.SH SEE ALSO
+.IR intro (2),
+.IR bind (2),
+.IR stat (2)
+.SH DIAGNOSTICS
+These functions set
+.I errstr.

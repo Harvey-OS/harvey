@@ -1,0 +1,90 @@
+#!/bin/rc
+
+cmd=n
+sec=()
+S=/sys/man
+d=0
+
+fn roff {
+	preproc=()
+	if (~ $2 $S/1/eqn) preproc=eqn
+	if (~ $2 $S/1/tbl) preproc=tbl
+	if (~ $2 $S/10/fizz_format) preproc=(tbl)
+	if (~ $1 t) {
+		if (~ $2 $S/1/pic) preproc=pic
+		if (~ $2 $S/1/grap) preproc=(grap pic)
+		if (~ $2 $S/10/paddle) preproc=(pic)
+		Nflag=-Tutf
+	}
+	if not {
+		Nflag=-N
+	}
+	switch($#preproc) {
+		case 0
+			troff $Nflag -man $2 < /dev/null
+		case 1
+			$preproc $2 | troff $Nflag -man
+		case *
+			$preproc(1) $2 | $preproc(2) | troff $Nflag -man
+	}
+}
+
+while(~ $d 0) {
+	if(~ $#* 0) {
+		echo 'Usage: man [-ntp] [-s sec] [0-9] [0-9] ... name1 name2 ...' >[1=2]
+		exit
+	}
+	switch($1) {
+		case [0-9] ; sec=($sec $1) ; shift
+		case 1[0-9] ; sec=($sec $1) ; shift
+		case -t ; cmd=t ; shift
+		case -n ; cmd=n ; shift
+		case -p ; cmd=p ; shift
+		case * ; d=1
+	}
+}
+if(~ $#sec 0) {
+	sec=`{ls -pd $S/[0-9] $S/1[0-9]}
+}
+ix=$S/$sec/INDEX
+if(~ $#* 1) pat='^'^$1^' '
+if not pat='^('^`{echo $* | sed 's/ /|/g'}^') '
+fils=()
+for(i in $S/$sec){
+	if(/bin/test -f $i/INDEX){
+		try=`{grep $pat $i/INDEX | sed 's/^[^ ]* //'}
+		if(! ~ $#try 0)
+			fils=($fils $i/$try)
+	}
+}
+# bug: should also do following loop if not all pages found
+if(~ $#fils 0) {
+	# nothing in INDEX. try for file of given name.something
+	for(i) {
+		for(n in $sec) {
+			try=$S/$n/$i
+			if (/bin/test -f $try)
+				fils=($fils $try)
+		}
+	}
+	if(~ $#fils 0) {
+		echo 'man: no manual page' >[1=2]
+		exit
+	}
+}
+for(i in $fils) {
+	if(! /bin/test -f $i)
+		echo need $i >[1=2]
+	if not {
+		switch($cmd) {
+		case t
+			roff t $i
+
+		case p
+			roff t $i | proof
+
+		case n
+			roff n $i | uniq
+		}
+	}
+}

@@ -1,0 +1,52 @@
+.TH SHOWIMAGE 7
+.SH NAME
+showimage \- bitmap displayer, colormap changer
+.SH SYNOPSIS
+.B showimage
+[
+.I option
+]
+.I file ...
+.SH DESCRIPTION
+.I Showimage
+displays the bitmap contained in
+.I file
+in the top left corner of the current window.
+It goes to the next file when any character is typed,
+exiting when there are no more files.
+The options are:
+.TP
+.B -c
+Load the standard Plan 9 colormap, if this is an 8-bit display.
+The standard colormap takes the value of a pixel byte and
+uses the top 3 bits for red darkness, the next 3 bits for green
+darkness, and the final 2 for blue darkness.  So 0 is white
+and 255 is black.  Exceptions: pixels 85 and 170 are intermediate
+grey values, so that 2-bit-per-pixel grey scale images look right.
+.TP
+.B -g
+Load the colormap with a linear grey scale, from 0 (white) to
+max (black).
+.TP
+.B -r
+Load the colormap with a reverse linear grey scale, from 0 (black) to
+max (white).
+.TP
+.BI -m mapfile
+Load the colormap from the file
+.I mapfile.
+See
+.IR rgbpix (2)
+for the format.
+.TP
+.B -d
+Dump the current colormap to standard output in the format of
+.IR rgbpix (2).
+.SH FILES
+.TF /lib/image
+.TP
+.B /lib/image
+Some sample pictures.
+.SH SEE ALSO
+.IR graphics (2),
+.IR rgbpix (2)

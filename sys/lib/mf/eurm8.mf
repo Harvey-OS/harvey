@@ -1,0 +1,19 @@
+% EURM8.MF                     June 1990
+% This Metafont file is part of AMSFonts 2.0.
+% Copyright (C) 1990, American Mathematical Society.
+% All rights reserved.  Copying of this file is authorized only if either:
+%   (1) you make absolutely no changes to your copy including filename; OR
+%   (2) if you do make changes, you first rename it to some other filename.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% -----     Euler Roman Medium 8pt (math italic)---------------------
+
+     font_identifier := "EURM";
+
+     ptsize = 8;
+
+      leftside# = 100h#;
+     rightside# = 100h#;
+
+      input eurmch;
+     
+     bye

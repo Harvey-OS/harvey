@@ -1,0 +1,6 @@
+font_identifier "CIRCLEW"; font_size 10pt#;
+font_coding_scheme:="LATEX CIRCLE";
+mode_setup;
+
+thickness#:=.8pt#;
+input lcircle

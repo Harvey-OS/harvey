@@ -1,0 +1,63 @@
+# This file makes DVItype, PLtoTF, TFtoPL, and POOLtype from their
+# respective sources.
+# 
+# Unfortunately, `texware.defines' is 15 characters long, so I omit the `s'.
+# 
+
+APE=/sys/src/ape
+< $APE/config
+SITEDIR=..
+OPT=-B
+SHELL=/bin/rc
+
+TARG=patgen pooltype dvitype pltotf tftopl
+
+OFILES=texwarext.$O\
+
+HFILES=texware.h\
+	$SITEDIR/site.h\
+
+</sys/src/cmd/mkmany
+
+CFLAGS=$OPT -I$SITEDIR -c
+LDFLAGS=
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+
+triptrap:V:	$O.dvitype $O.pltotf $O.tftopl
+
+texwarext.c dvitypext.c:Q:		#dummy - needed to keep out of %.c rule
+		echo -n
+
+$O.dvitype:	dvitypext.$O
+
+pltotf.$O:	pltotf.c $HFILES
+		$CC $CFLAGS '-Dindex=index_array' '-Dlink=link_array' pltotf.c
+
+tftopl.$O:	tftopl.c $HFILES
+		$CC $CFLAGS '-Dindex=index_type' tftopl.c
+
+%.c:		%.p texware.define
+		$SHELL ./convert $stem.p $stem.c
+
+%.p:		%.ch %.web ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle $stem.web $stem.ch > /dev/null
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installalll:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG *.pool
+
+nuke:V:
+		rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG *.pool
+		rm -f *.p
+		rm -f dvitype.c patgen.c pltotf.c pooltype.c tftopl.c
+		rm -f dvitype.h patgen.h pltotf.h pooltype.h tftopl.h
+		rm -f '#'*'#' *~ *.bak

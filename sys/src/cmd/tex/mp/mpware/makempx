@@ -1,0 +1,51 @@
+#!/bin/sh
+PATH=/v/bin:/bin:/usr/bin
+MPLIB=/usr/lib/mp
+ERRLOG=mpxerr.log		# file for an error log if necessary
+TEXERR=mpxerr.tex		# file for erroneous TeX file if any
+DVIERR=mpxerr.dvi		# troublesome dvi file if any
+MPFILE=$1			# input file
+MPXFILE=$2			# output file
+DOTEX=${TEX:-tex}
+NL='
+'
+
+trap "rm -f mpx$$.* $ERRLOG; exit 4" 1 2 15
+
+
+if newer $MPFILE $MPXFILE
+then
+    $MPLIB/mptotex $MPFILE >mpx$$.tex 2>$ERRLOG
+    case $? in
+    0)	;;
+    *)	echo $NL'Command failed: ' $MPLIB/mptotex $MPFILE
+	cat $ERRLOG
+	rm -f mpx$$.tex
+	exit 1
+	;;
+    esac
+
+    $DOTEX '\batchmode\input 'mpx$$ >/dev/null
+    case $? in
+    0)	;;
+    *)	mv -f mpx$$.tex $TEXERR
+	mv -f mpx$$.log $ERRLOG
+	echo $NL'Command failed:' $DOTEX $TEXERR $NL'See' $ERRLOG
+	rm -f mpx$$.*
+	exit 2
+	;;
+    esac
+
+    $MPLIB/dvitomp mpx$$.dvi $MPXFILE 2>$ERRlOG
+    case $? in
+    0)	;;
+    *)  mv -f mpx$$.dvi $DVIERR
+	echo $NL'Command failed:' $MPLIB/dvitomp $DVIERR
+	cat $ERRLOG
+	rm -f mpx$$.*
+	exit 3
+	;;
+    esac
+
+    rm -f $ERRLOG mpx$$.*
+fi

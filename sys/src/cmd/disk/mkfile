@@ -1,0 +1,30 @@
+</$objtype/mkfile
+
+TARG=exsort\
+	flio\
+	kfscmd\
+	mkext\
+	mkfs\
+	mk9660\
+	newkernel\
+	prep\
+	pump\
+
+OFILES=
+YFILES=
+
+BIN=/$objtype/bin/disk
+</sys/src/cmd/mkmany
+
+all:V:	all.kfs
+
+install:V:	install.kfs
+
+clean:V:	clean.kfs
+
+nuke:V:		nuke.kfs
+
+%.kfs:V:
+	cd kfs
+	mk $MKFLAGS $stem
+

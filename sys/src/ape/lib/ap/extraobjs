@@ -1,0 +1,18 @@
+#!/bin/rc
+switch($objtype){
+case mips
+	echo G_strcat 9v_strchr 9v_strcmp 9v_strcpy G_strlen G_strncmp G_strrchr \
+		9v_memchr 9v_memcmp 9v_memmove 9v_memset
+case 68020
+	echo 92_strcat 92_strchr 92_strcmp 92_strcpy 92_strlen G_strncmp G_strrchr \
+		92_memchr 92_memcmp 92_memcpy 92_memmove 92_memset
+case 386
+	echo 98_strcat 98_strchr G_strcmp 98_strcpy 98_strlen G_strncmp G_strrchr \
+		98_memchr 98_memcmp 98_memcpy 98_memmove 98_memset
+case sparc
+	echo G_strcat 9k_strchr 9k_strcmp 9k_strcpy G_strlen G_strncmp G_strrchr \
+		9k_memchr 9k_memcmp 9k_memmove 9k_memset 9k_muldiv
+case hobbit
+	echo G_strcat 9z_strchr 9z_strcmp 9z_strcpy 9z_strlen 9z_strncmp 9z_strrchr \
+		G_memchr G_memcmp 9z_memmove 9z_memset
+}

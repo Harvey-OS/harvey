@@ -1,0 +1,39 @@
+
+
+>From: rjn@hpfcso.HP.COM (Bob Niland)
+Newsgroups: comp.graphics
+Subject: HPGL Specification
+Message-ID: <8990001@hpfcso.HP.COM>
+Date: 10 Jan 90 20:07:31 GMT
+
+Organization: Hewlett-Packard, Fort Collins, CO, USA
+
+
+re: In article <13326@silica.BBN.COM> hlison@bbn.com (Herb Lison) writes:
+> 
+> Does any documentation exist for the HPGL specification?  If so,
+> where can I get a copy?
+> 
+
+For HP-GL (-I):
+
+Start with the programming manual for the plotter(s) you have.  Add one
+copy of the "Plotter Comparison Guide", HP pub number 5954-7124.  There
+are differences between HP-GL(-I) plotters.
+
+
+For HP-GL/2 (pubs available Feb '90):
+
+HP-GL/2 Reference Guide               5959-9733
+HP-GL/2 Comparision Guide (hardware)  5959-9734
+
+If you are an Independent Software Vendor, you can also get information
+about HP's plotter ISV program from Cheryl Carrasco, at HP San Diego
+Division, (619) 592-4697.
+
+Regards,                                              Hewlett-Packard
+Bob Niland                                            3404 East Harmony Road
+rjn%hpfcrjn@hplabs.HP.COM                             Fort Collins
+UUCP: [hplabs|hpu*!hpfcse]!hpfcla!rjn                 CO          80525-9599
+
+

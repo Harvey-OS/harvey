@@ -1,0 +1,68 @@
+.TH IMPORT 4
+.SH NAME
+import \- import a name space from a remote system
+.SH SYNOPSIS
+.B import
+[
+.I option ...
+]
+.I system
+.I file
+[
+.I mountpoint
+] 
+.SH DESCRIPTION
+.I Import
+allows an arbitrary
+.I file
+on a remote
+.I system
+to be imported into the local name space.
+Usually
+.I file
+is a directory, so the complete
+file tree under the directory is made available.
+.PP
+A process is started on the
+remote machine, with authority of the user of
+.I import,
+to perform work for the local machine using the
+.IR exportfs (4)
+service.
+If
+.I mountpoint
+is omitted
+.I import
+uses the name of the remote
+.I file
+as the local mount point.
+.PP
+If
+.I file
+is a directory,
+.I import
+allows options exactly as in
+.I mount
+and
+.IR bind (1))
+to control the construction of union directories.
+.SH EXAMPLE
+To allow a Datakit-only machine to access an Ethernet using TCP:
+.IP
+.EX
+import -a kremvax /net
+con tcp!ucbvax
+.EE
+.PP
+or
+.IP
+.EX
+import -a kremvax /net
+echo 'add tcp' > /net/cs
+con ucbvax
+.EE
+.SH SEE ALSO
+.IR bind (1),
+.B cs
+in
+.IR ndb (8)

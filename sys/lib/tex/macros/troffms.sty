@@ -1,0 +1,113 @@
+% You need these macros since they are refered to by the translator.
+% You can modify them if you want.
+% I would very much want better macros for the headers and footers.
+% Please pass your suggestions to me.		-Kamal
+
+\def\ps@sepone{%
+\def\@oddhead{}
+\def\@evenhead{}
+\def\@oddfoot{\hfil\it\sepfoot\hfil}
+\def\@evenfoot{\hfil\it\sepfoot\hfil}}
+\def\ps@sep{%
+\def\@oddhead{\hbox{}\it\seprhead\hfil\it\seplhead}
+\def\@evenhead{\it\seprhead\hfil\it\seplhead\hbox{}}
+\def\@oddfoot{\hfil\it\sepfoot\hfil}
+\def\@evenfoot{\hfil\it\sepfoot\hfil}}
+\pagestyle{sep}
+\def\righthead#1{\def\seplhead{#1}}
+\def\lefthead#1{\def\seprhead{#1}}
+\def\footer#1{\def\sepfoot{#1}}
+\footer{}
+\lefthead{}
+\righthead{}
+\thispagestyle{sepone}
+\def\makefootline{\baselineskip24\p@\line{\the\footline}}
+\def\makeheadline{\vbox to 0pt{\vskip-22.5pt \line{vbox to 8.5pt{}\the\headline}\vss}\nointerlineskip}
+
+\newfont{\bigbf}{cmbx10 scaled\magstep 3}
+\newfont{\bigit}{cmti10 scaled\magstep 2}
+\newfont{\bigrm}{cmr10 scaled\magstep 2}
+
+\textheight=9in
+\textwidth=6.4in
+\textfloatsep 30pt plus 3pt minus 6pt
+\parskip=5pt
+\oddsidemargin=-.2in
+\voffset=-.1in
+\newdimen\singlespacing
+\singlespacing=11pt     % single line spacing
+\normalbaselineskip=15pt     % 1.5 line spacing
+\baselineskip=\normalbaselineskip
+
+% multi-line title
+\newenvironment{SEPtitle}{\begin{center}\bigbf}{\end{center}}
+\def\title#1{
+	\begin{SEPtitle}
+	\vbox{\baselineskip=1.5\normalbaselineskip
+	\vskip1in #1\vskip.3in}
+	\end{SEPtitle}}
+% multi-line author
+\newenvironment{SEPauthor}{\begin{center}\bigit}{\end{center}}
+\def\author#1{
+	\begin{SEPauthor}
+	\vbox{#1 \vskip.3cm}
+	\end{SEPauthor}}
+\newenvironment{SEPauthoraff}{\begin{center}\bigrm}{\end{center}}
+\def\authoraff#1{
+	\begin{SEPauthoraff}
+	\vbox{#1 \vskip.2in}
+	\end{SEPauthoraff}}
+% multi-line centered section heading
+\newenvironment{SEPmhead}{\begin{center}\bf}{\end{center}}
+\def\mhead#1{\pagebreak[3]
+	\begin{SEPmhead}\pagebreak[3]
+	\vbox{\vskip.3in #1}\nopagebreak
+	\end{SEPmhead}\nopagebreak}
+% multi-line left-justified subheading
+\newenvironment{SEPshead}{\begin{flushleft}\bf}{\end{flushleft}}
+\def\shead#1{\pagebreak[3]
+	\begin{SEPshead}\pagebreak[3]
+	\vbox{\vskip.2in #1}\nopagebreak
+	\end{SEPshead}\nopagebreak}
+
+% define ABSTRACT, INTRODUCTION, DISCUSSION, CONCLUSIONS, REFERENCES,
+% and APPENDIX as the first three letters
+\def\ABS{\mhead{ABSTRACT}}
+\def\INT{\mhead{INTRODUCTION}}
+\def\DIS{\mhead{DISCUSSION}}
+\def\CON{\mhead{CONCLUSIONS}}
+\def\ACK{\mhead{ACKNOWLEDGMENT}}
+\def\REF{\mhead{REFERENCES}}
+\def\APP{\mhead{APPENDIX}}
+
+% reference macro, second ... lines are indented
+\newdimen\dtmp     % temporary dimension variable
+\def\reference#1{ \baselineskip=\singlespacing \dtmp=\hsize
+		\advance\dtmp by-\parindent \parshape 2 0in \hsize \parindent
+		\dtmp \noindent #1 \endgraf \baselineskip=\normalbaselineskip
+		\vskip4pt
+		}
+
+\newcommand{\bs}{$\backslash$}
+\def\under{\underline}
+\def\dotdot{\ddot}
+\def\nwl{\hfill\break}		% similar to latex's \newline but does not
+				% complain if there is no line to break
+\def\ind#1{\par\everypar{\hangindent=#1\hangafter=0\hskip-\parindent}}
+\def\tmpind#1{\par\hskip#1}
+\newenvironment{SEPcntr}{\begin{center}}{\end{center}}
+\def\cntr#1{\begin{SEPcntr} #1 \end{SEPcntr}}
+% displayed text, indented, justification off
+\def\displaybegin{\par\begingroup\medskip\narrower\narrower\noindent
+		  \obeylines\obeyspaces}
+\def\displayend{\endgroup\smallskip\noindent}
+% fill and nofill
+\def\nofill{\par\begingroup\noindent\obeylines
+    \frenchspacing\@vobeyspaces\linepenalty10000}
+{\catcode`\ =\active\gdef\@vobeyspaces{\catcode`\ \active \let \@xobeysp}}
+\def\@xobeysp{\leavevmode{} }
+\def\fill{\endgroup\noindent}
+
+% define a boxing macro
+\def\boxit#1{\vbox{\hrule\hbox{\vrule\kern10pt\vbox{\medskip\kern5pt#1\bigskip
+\kern5pt}\kern10pt\vrule}\hrule}}

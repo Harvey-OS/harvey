@@ -1,0 +1,58 @@
+#!/bin/rc
+# convert Tex dvi to PostScript
+switch ($IBIN) {
+case man manual manualfeed;
+	IBIN='statusdict begin /manualfeed true def end'
+case [0-9];
+	IBIN='statusdict begin '$IBIN' setpapertray end'
+case 11x17 ledger;
+	IBIN='statusdict begin '$IBIN'tray end'
+case *;
+	IBIN=''
+}
+if (! ~ $#DUPLEX 0 && ~ $DUPLEX 1)
+	IBIN=$IBIN' statusdict begin true setduplexmode end';
+if (! ~ $IBIN '')
+	IBIN=-P''''$IBIN'''';
+if (! ~ $#LAND 0 && ~ $LAND 1)
+	LAND='-L'
+if (~ $LPCLASS *reverse*) {
+	switch ($REVERSE) {
+	case '';
+		REVFLAG=1
+	case 1;
+		REVFLAG=''
+	}
+}
+if (! ~ $COPIES '') COPIES=-c^$COPIES
+if (! ~ $COPIES '') OLIST=`{echo $OLIST | sed 's/-o//'}
+if (! ~ $NPAG '') NPAG="-S$NPAG"
+switch ($REVFLAG) {
+case 1;
+	echo %!
+	echo $IBIN
+	switch ($OLIST) {
+	case '';
+		eval dvips -r $LAND $COPIES $NPAG $1
+	case *;
+		DVIFILE=/tmp/dv$pid.dvi
+		dviselect -s $OLIST $1 > $DVIFILE
+		eval dvips -r $LAND $COPIES $NPAG $DVIFILE
+		rm -f $DVIFILE
+	}
+	$LPLIB/process/hpost </dev/null
+case '';
+	$LPLIB/process/hpost </dev/null
+	echo %!
+	echo $IBIN
+	switch ($OLIST) {
+	case '';
+		eval dvips -r0 $LAND $COPIES $NPAG $*
+	case *;
+		DVIFILE=/tmp/dv$pid.dvi
+		dviselect -s $OLIST $1 > $DVIFILE
+		eval dvips -r0 $LAND $COPIES $NPAG $1
+		rm -f $DVIFILE
+	}
+}
+exit

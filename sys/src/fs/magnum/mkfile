@@ -1,0 +1,82 @@
+objtype=mips
+</$objtype/mkfile
+
+BUILTINS=
+I=-I. -I../port
+CFLAGS=-w $I
+
+OBJ=\
+	l.$O\
+	arp.$O\
+	auth.$O\
+	chk.$O\
+	clock.$O\
+	con.$O\
+	config.$O\
+	console.$O\
+	cw.$O\
+	data.$O\
+	dentry.$O\
+	devcons.$O\
+	fcall.$O\
+	fcmd.$O\
+	fs.$O\
+	fworm.$O\
+	il.$O\
+	iobuf.$O\
+	ip.$O\
+	kbd.$O\
+	lock.$O\
+	lance.$O\
+	magnum.$O\
+	main.$O\
+	malloc.$O\
+	mworm.$O\
+	print.$O\
+	proc.$O\
+	scc.$O\
+	scsi.$O\
+	sub.$O\
+	time.$O\
+	toy.$O\
+	trap.$O\
+	worm.$O\
+	wren.$O\
+	uidgid.$O\
+
+HFILES=\
+	../port/all.h\
+	../port/portdat.h\
+	./dat.h\
+	../port/portfns.h\
+	./fns.h\
+	./io.h\
+	../port/lib.h\
+	./mem.h\
+	/$objtype/include/u.h\
+	/$objtype/include/ureg.h\
+
+9magnumfs:	$OBJ 9magnumfs.$O
+	$LD -o $target -l -R4 -H1 -T0x80020000 $prereq -lauth -lc
+
+<../port/mkfile
+
+install:	9magnumfs
+	cp 9magnumfs /mips/9magnumfs
+
+push:	9magnumfs
+	push tempel 9magnumfs  /usr/local/boot
+
+9magnumfs.$O:	9magnumfs.c
+	$CC $CFLAGS -DDATE'='`{date -n} 9magnumfs.c
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	$HFILES
+
+clean:
+	rm -f *.[2kovz] [2akvz].out 9magnumfs

@@ -1,0 +1,109 @@
+%% 
+%% This is file `euscript.sty' generated
+%% on <1990/6/30> with the docstrip utility (v1.1k). 
+%% 
+%% The original source file was `euscript.doc'.
+%% 
+%% 
+%% Copyright (C) 1989,1990 by Frank Mittelbach, Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy this file 
+%% to a file with a different name and then change the copy. 
+%% 
+%% You are allowed to distribute this file under the condition that it is 
+%% distributed together with all files mentioned in readme.mz3. If you 
+%% receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT ALLOWED 
+%% to take money for the distribution or use of either this file or a 
+%% changed version, except for a nominal charge for copying etc. 
+%% 
+%% Error Reports in case of UNCHANGED versions to 
+%% 
+%% F. Mittelbach 
+%% Eichenweg 29 
+%% D-6500 Mainz 1 
+%% Federal Republic of Germany 
+%% Bitnet: <PZF5HZ@DRUEDS2> 
+%% 
+%% or: 
+%% R. Sch\"opf 
+%% Inst. f. Theor. Physik 
+%% der Universit\"at Heidelberg 
+%% Philosophenweg 16 
+%% D-6900 Heidelberg 
+%% Federal Republic of Germany 
+%% Bitnet: <BK4@DHDURZ1> 
+%% 
+%% 
+ 
+\def\fileversion{v1.0d}
+\def\filedate{90/04/05}
+\def\docdate {90/01/28}
+ 
+%% \CheckSum{38}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\typeout{Style Option: `euscript'
+  \fileversion\space <\filedate> (FMi and RmS)}
+\typeout{English Documentation
+  \@spaces\@spaces\space <\docdate> (FMi and RmS)}
+\@ifundefined{selectfont}
+     {\@latexerr{`euscript' style option could only be used
+                  with the new font selection scheme}\@eha
+      \endinput}{}
+\new@fontshape{eus}{m}{n}{%
+   <5>eusm5%
+   <6>eusm6%
+   <7>eusm7%
+   <8>eusm8%
+   <9>eusm9%
+   <10>eusm10%
+   <11>eusm10 at10.95pt%
+   <12>eusm10 at12pt%
+   <14>eusm10 at14.4pt%
+   <17>eusm10 at17.28pt%
+   <20>eusm10 at20.74pt%
+   <25>eusm10 at24.88pt}{}
+ 
+\new@fontshape{eus}{b}{n}{%
+   <5>eusb5%
+   <6>eusb6%
+   <7>eusb7%
+   <8>eusb8%
+   <9>eusb9%
+   <10>eusb10%
+   <11>eusb10 at10.95pt%
+   <12>eusb10 at12pt%
+   <14>eusb10 at14.4pt%
+   <17>eusb10 at17.28pt%
+   <20>eusb10 at20.74pt%
+   <25>eusb10 at24.88pt}{}
+\extra@def{eus}{}{\noaccents@}
+\def\EuScript{\protect\pEuScript}
+\def\pEuScript{\RIfM@\expandafter\EuScript@\else
+                 \expandafter\nonmatherr@\expandafter\EuScript\fi}
+\newmathalphabet\EuScript@
+\addtoversion{normal}\EuScript@{eus}{m}{n}
+\addtoversion{bold}\EuScript@{eus}{b}{n}
+ 
+\endinput
+%% 
+%% End of file `euscript.sty'.

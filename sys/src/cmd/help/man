@@ -1,0 +1,37 @@
+From coma!cwf Wed Oct 24 17:57 EDT 1990
+To: rob
+
+the crud below is my transcription of my hurried notes.  i send it in
+case you plan to inflict this on someone else.  holler if i goofed.
+
+---CUT HERE---
+The program interface to Rob Pike's "help" user interface.
+All "files" below are in /mnt/help:
+
+new:		open this to create a new page.
+cons:		write diagnostics here.
+rcons:		raw cons.
+index:		read this for index of pages; each line is "<nnn>\t<tag line>".
+mouse:		don't touch.
+
+nnn/body:	read this for the text in page nnn.
+nnn/bodysel:	read this for the selected text in page nnn.
+nnn/bodypos:	read this for two ASCII integers that delimit nnn/bodysel.
+nnn/bodyapp:	write this directly to append text to body.
+
+nnn/tag:	like nnn/body but for the tag line.
+nnn/tagsel:
+nnn/tagpos:
+
+nnn/ctl:	write the commands below here to change page nnn.
+		<x> is a sam numeric address, possibly including commas.
+
+		"A\n<text>"	append text.
+		"I<x>\n<text>"	insert text at x.
+		"D<x>\n"	delete text at x.
+		"u\n"		mark page unmodified.
+		"c\n"		close page.
+		A,I,D		like a,i,d but for tag line.
+
+10/24/90
+

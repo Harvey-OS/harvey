@@ -1,0 +1,133 @@
+.TH UROM 10.1
+.SH NAME
+urom \- read and write programmable devices through DATA I/O Unisite
+.SH SYNOPSIS
+.PP
+.B urom
+[
+.I option
+] ...
+.SH DESCRIPTION
+.I Urom
+serves as an interface to the DATA I/O
+Unisite\(tm programmer.
+Options are used to specify the device type, and whether the device
+is to be read or written.
+.TP
+.B -w
+Specifies that the device is to be written; default is read.
+.TP
+.BI -s n
+Specifies a starting address (default 0) in the device in decimal.
+.TP
+.BI -t string
+.br
+.ns
+.TP
+.I string
+Specifies the device type of the device.  If it is an ambiguous name, all the
+possible conflicts are listed.
+.TP
+.BI -m string
+.br
+.ns
+.TP
+.I string
+Specifies the manufacturer of the device; this must be specified
+.I before
+the type (-t) of the device.  Only needed if the name is ambiguous.
+.TP
+.BI -n
+Causes the program to echo the code that it is sending to
+the DATA I/O, and causes the DATA I/O the echo the size and initial state
+specified by the code.
+No reading or writing is done.
+.TP
+.BI -b
+Causes a blank check to be run, the illegal bit
+test is run unless it is an electrically alterable rom.
+No blank check is done if the rom is being read.
+.TP
+.BI -X
+.br
+.ns
+.TP
+.BI -x
+Specifies hexadecimal data with upper case or lower case respectively.
+.TP
+.BI -C
+Specifies character data, for logic devices with JEDEC format.
+.TP
+.BI -D
+.br
+.ns
+.TP
+.BI -d
+Specifies decimal data, octal is default.
+.TP
+.BI -O
+.br
+.ns
+.TP
+.BI -o
+Specifies octal data, which is the default.
+.TP
+.BI -fn
+Use format \fIn 50\fP, the default, is for hex, octal, or decimal format files.
+91 is for JEDEC files.
+.TP
+.BI -I string
+inhibits checking of following character string, e.g. `-I C' inhibits continuity
+checking.
+.TP
+.BI -J
+JEDEC format (same as -f91 -C option)
+.TP
+.BI -i 
+Causes the data to be (ones) complemented on input and output.
+.TP
+.BI -v
+Normally
+.I urom
+does it work silently, this is the verbose flag.
+.PP
+To read an Intel 2716 device one could say
+.IP
+.B
+urom -m Intel -t 2716 < filename
+.PP
+or to write a National PAL16L8
+one could say
+.IP
+.B
+urom -w -m National -t 16L8/A/A2 < filename
+.PP
+The input for logic devices on the Unisite must be in JEDEC
+format. In this case use
+.IP
+.B
+urom -w -m National -t 16L8/A/A2 -f 91 -C < filename
+.PP
+or
+.IP
+.B
+urom -w -m National -t 16L8/A/A2 -J < filename
+.PP
+When a device is read, the addressed locations are copied,
+one per line, onto the standard output.
+When a device is written, the standard input is assumed to be
+of the same form, and is copied onto the device.
+Various Unisite errors, such as the device having a pattern
+that conflicts with the data (illegal bit test)
+when being written, are reflected back to the user.
+Transmissions over the RS-232 line are checksummed,
+and when writing the device is verified.
+.PP
+The speed of the Unisite should be set to 9600,
+position 14.
+.SH FILES
+.B /sys/lib/cda/urom.codes
+.SH SEE ALSO
+.IR xpal (10.1)
+.SH BUGS
+Case shouldn't be important for type or manufacturers.

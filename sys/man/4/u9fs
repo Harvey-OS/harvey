@@ -1,0 +1,133 @@
+.TH U9FS 4
+.SH NAME
+u9fs \- serve 9P from Unix
+.SH SYNOPSIS
+.B u9fs
+[
+.I directory
+]
+.SH DESCRIPTION
+.I U9fs
+is
+.I not
+a Plan 9 program.  Instead it is a program that 
+serves Unix files to Plan 9 machines using the 9P protocol
+(see
+.IR intro (5)).
+It is to be invoked on a
+Unix machine by
+.B inetd
+with its standard input, output, and error connected to a
+network connection, typically TCP on an Ethernet.  It runs as user
+.B root
+and multiplexes access to multiple Plan 9
+clients over the single wire by simulating Unix permissions itself.
+.PP
+If a
+.I directory
+is specified
+.I u9fs
+first does a Unix
+.B chroot
+system call to that directory.
+.PP
+Plan 9 calls this service
+.B 9fs
+with TCP service number 17008 on the Ethernet.
+Set up this way on a machine called, say,
+.BR kremvax ,
+.I u9fs
+may be connected to the name space of a Plan 9 process by
+.IP
+.EX
+9fs kremvax
+.EE
+.PP
+Due to a bug in some versions of the
+IP software, some systems will not accept the service name
+.BR 9fs ,
+thinking it
+a service number because of the initial digit.
+If so, run the service as
+.B u9fs
+or
+.B 564
+and do the
+.B srv
+and
+.B mount
+by hand:
+.IP
+.EX
+srv tcp!kremvax!u9fs
+mount -c /srv/tcp!kremvax!u9fs /n/kremvax
+.EE
+.PP
+For more information on this procedure, see
+.IR srv (4)
+and
+.IR bind (1).
+.PP
+.I U9fs
+serves the entire file system of the Unix machine.
+It forbids access to devices
+because the program is single-threaded and may block unpredictably.
+Using the
+.B attach
+specifier
+.B device
+connects to a file system identical to the usual system except
+it permits device access (and may block unpredictably):
+.IP
+.EX
+srv tcp!kremvax!9fs
+mount -c /srv/tcp!kremvax!9fs /n/kremvax device
+.EE
+.PP
+(The
+.B 9fs
+command
+does not accept an attach specifier.)
+Even so,
+device access may produce unpredictable
+results if the block size of the device is greater than 8192,
+the maximum data size of a 9P message.
+.PP
+The source to
+.I u9fs
+is in the Plan 9 directory
+.BR /sys/src/cmd/unix/u9fs .
+To install
+.I u9fs
+on a Unix system, copy the source to a directory on that system.
+Edit the
+.B makefile
+to set
+.B LOG
+to a proper place for a log file and to set compile-time
+configuration correctly.
+Then compile with an ANSI C compiler and install in
+.BR /usr/etc/u9fs .
+Install this line in
+.BR inetd.conf :
+.IP
+.EX
+9fs     stream  tcp     nowait  root   /usr/etc/u9fs   u9fs
+.EE
+.PP
+and this in
+.BR services :
+.IP
+.EX
+9fs     564/tcp       9fs  # Plan 9 fs
+.EE
+.SH DIAGNOSTICS
+Problems are reported to
+.BR /tmp/u9fs.log .
+A compile-time flag enables chatty debugging.
+.SH SEE ALSO
+.IR bind (1),
+.IR srv (4),
+.IR ip (3)
+.SH BUGS
+The implementation of devices is unsatisfactory.

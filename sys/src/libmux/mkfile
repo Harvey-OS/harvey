@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libmux.a
+OFILES=convM2S.$O\
+	convS2M.$O\
+	fid.$O\
+	tag.$O\
+	getS.$O\
+
+HFILES=mux.h
+
+</sys/src/cmd/mksyslib
+

@@ -1,0 +1,24 @@
+#!/bin/rc
+awk '
+BEGIN	{ include = 0; }
+/^\tname/	{ if (needed[$2] != 0)
+	    {
+		print "Package{";
+		include++;
+		lastpkg = $2;
+		needed[$2] = 0;
+	    }
+	    else
+		include = 0;
+	}
+/^}/	{ if (include) print $0; include = 0; }
+/^\tpkg /{ needed[$2]++; }
+	{ if (include) print $0; }
+END	{ for (p in needed) if (needed[p] != 0)
+	    {
+		print("% undefined", p) > "/fd/2";
+		undefined++;
+	    }
+	  if (undefined) exit(1);
+	}
+' $*

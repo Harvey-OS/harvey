@@ -1,0 +1,410 @@
+% Bugs (sigh) in Computers \& Typesetting --- the most recent errata
+
+\input manmac
+\font\sltt=cmsltt10
+\font\niness=cmss9
+\font\ninessi=cmssi9
+\proofmodefalse
+\raggedbottom
+\output{\hsize=29pc \onepageout{\unvbox255\kern-\dimen@ \vfil}}
+
+\def\today{\number\day\
+  \ifcase\month\or
+  Jan\or Feb\or Mar\or Apr\or May\or Jun\or
+  Jul\or Aug\or Sep\or Oct\or Nov\or Dec\fi
+  \ \number\year}
+
+\def\cutpar{{\parfillskip=0pt\par}}
+
+\def\rhead{Bugs in {\tensl Computers \& Typesetting as of \today}}
+\def\bugonpage#1(#2) \par{\bigbreak\tenpoint
+  \hrule width\hsize
+  \line{\lower3.5pt\vbox to13pt{}Page #1\hfil(#2)}\hrule width\hsize
+  \nobreak\medskip}
+\def\buginvol#1(#2) \par{\bigbreak\penalty-1000\tenpoint
+  \hrule width\hsize
+  \line{\lower3.5pt\vbox to13pt{}Volume #1\hfil(#2)}\hrule width\hsize
+  \nobreak\medskip}
+\def\slMF{{\manual 89:;}\-{\manual <=>:}} % slant the logo
+\def\0{\raise.7ex\hbox{$\scriptstyle\#$}}
+\newcount\nn
+\newdimen\nsize \newdimen\msize \newdimen\ninept \ninept=9pt
+\newbox\eqbox \setbox\eqbox=\hbox{\kern2pt\eightrm=\kern2pt}
+
+\tenpoint
+\noindent This is a list of all corrections made to {\sl Computers \&
+Typesetting}, Volumes A,~C, and E\null, since 30 September 1989 (when
+the revisions for \TeX\ Version 3.0 and \MF\ Version 2.0 were made).
+Corrections made to the softcover version of {\sl The \TeX book\/} are
+the same as corrections to Volume~A\null. Corrections to the softcover
+version of {\sl The \slMF\kern1ptbook\/} are the same as corrections
+to Volume~C\null.  Some of the corrections below have already been made in
+reprintings of the books. Hundreds of changes, too many to list here,
+have been made to Volumes B~and~D because of the upgrades to \TeX\ and
+\MF\null.  Readers who need up-to-date information on the \TeX\ and
+\MF\ programs should refer to the |WEB| source files until new
+printings of Volumes B~and~D are issued. \looseness=-1
+
+% volume A
+
+\bugonpage A99, line 4 from the bottom (2/22/90)
+
+\ninepoint\indent
+to be chosen because there was no feasible
+way to keep total demerits small.
+
+\bugonpage A156, line 2 (11/18/89)
+
+\ninepoint
+Commands like |\mathchardef\alpha="010B| are used in
+Appendix~B to define\cutpar
+
+\bugonpage A171, lines 24--26 (3/13/90)
+
+\ninepoint\noindent
+formula produces a result exactly equivalent to
+`|\left(|\<subformula>|\right)|', when the \<subformula> doesn't end
+with Punct, except that the {delimiters} are forced to
+be of the |\big| size regardless of the height and depth of the subformula.
+
+\bugonpage A193, lines 16--18 (12/2/89)
+
+\ninepoint\noindent
+line if you insert
+`^|\noalign||{|^|\break||}|'
+after the |\cr| for that line. You can prohibit {\sl all\/} breaks
+in an |\eqalignno| if you set ^|\interdisplaylinepenalty||=10000|; or you
+can enclose the whole works in a ^|\vbox|:
+
+\bugonpage A233, bottom 9 lines, and top three on next page (12/2/89)
+
+\danger The |\+| macro in Appendix~B works
+by putting the \<text> for each column that's followed by~|&|
+into an hbox as follows:
+\begindisplay
+|\hbox to |\<column width>|{|\<text>|\hss}|
+\enddisplay
+The ^|\hss| means that the text is normally flush left, and that it can
+extend to the right of its box. Since |\hfill| is ``more infinite'' than
+|\hss| in its ability to stretch, it has the effect of right-justifying or
+centering as stated above. Note that |\hfill| doesn't shrink, but |\hss|
+does; if the text doesn't fit in its column, it will stick out at the right.
+You could cancel the shrinkability of |\hss| by adding ^|\hfilneg|; then
+an oversize text would produce an overfull box.
+You could also center some text by putting `|\hss|' before it and just
+`|&|' after it; in that case the text would be allowed to extend to the
+left and right of its column.
+ The last column of a |\+|~line (i.e., the column entry that is
+followed by |\cr|) is treated differently: The
+\<text> is simply put into an hbox with its natural~width.\looseness=-1
+
+\bugonpage A254, line 5 from the bottom (10/5/89)
+
+\ninepoint\noindent
+|\vsize| hasn't changed, and if all insertions have been
+held in place, the same page break\cutpar
+
+\bugonpage A286, lines 30--32 (3/13/90)
+
+\ninepoint\noindent
+reading and expanding this \cstok{par}
+token, \TeX\ will see the \<vertical command> token again. \ (The current
+meaning of the control sequence ^|\par| will be used; \cstok{par} might no
+longer stand for \TeX's |\par| primitive.)
+
+\bugonpage A290, lines 12--13 (3/24/90)
+
+\ninepoint\noindent
+simply a single Ord atom without subscripts or superscripts,
+or an Acc whose nucleus is an Ord, the
+enclosing braces are effectively removed.
+
+\bugonpage A340, nonblank line 11 (3/13/90)
+
+\tenpoint\noindent
+|\topglue 1in % This makes an inch of blank space (1in=2.54cm).|
+
+\bugonpage A342, line 6 ( 3/13/90)
+
+\tenpoint\noindent
+|\topglue| but not |\hglue|. It does not
+illustrate |\raggedright| setting of para-\cutpar
+
+\bugonpage A346, lines 20--21 (12/3/89)
+
+\ninepoint\noindent
+streams used by ^|\read| and ^|\write|, to math
+^{families} used by ^|\fam|, to sets of hyphenation rules used by
+^|\language|, and to insertions (which require
+^|\box|, ^|\count|, ^|\dimen|, and ^|\skip| registers all having the
+same number).
+
+\bugonpage A346, line 20 from the bottom (12/3/89)
+
+\ninepoint\noindent
+manent value. These macros use registers
+|\count10| through |\count20| to hold the\cutpar
+
+\bugonpage A346, lines 8--13 from the bottom (12/3/89)
+
+\ninepoint\noindent
+number was allocated. The inside story of how allocation is actually performed
+should be irrelevant when the allocation macros are used at a higher level;
+you mustn't assume that |plain.tex| really does allocation in any
+particular way.
+\beginlines
+|\count10=22 % this counter allocates \count registers 23, 24, 25, ...|
+\endgroup
+
+\bugonpage A347, lines 2--5 (12/3/89)
+
+\ninepoint{\parindent=0pt
+|\count19=0  % this counter allocates language codes 1, 2, 3, ...|\parbreak
+|\count20=255 % this counter allocates insertions 254, 253, 252, ...|\parbreak
+|\countdef\insc@unt=20 % nickname for the insertion counter|\parbreak
+|\countdef\allocationnumber=21 % the most recent allocation|\parbreak
+|\countdef|^|\m@ne||=22 \m@ne=-1 % a handy constant|\par}
+
+\bugonpage A347, new line after former line 17 (12/3/89)
+
+\ninepoint\noindent
+|\outer\def|^|\newlanguage||{\alloc@9\language\chardef\@cclvi}|
+
+\bugonpage A352, new line before line 6 from the bottom (3/13/90)
+
+\ninepoint\noindent
+|\def\topglue{\nointerlineskip \vglue-\topskip \vglue} % for top of page|
+
+\bugonpage A355, line 8 from the bottom (12/3/89)
+
+\ninepoint\noindent
+|  \noindent{\bf#1.\enspace}{\sl#2\par}%|
+
+\bugonpage A363, lines 8--9 from the bottom (12/8/89)
+
+{\ninepoint\parindent=0pt
+|  \if@mid \dimen@=\ht0 \advance\dimen@ by\dp\z@ |%
+ |\advance\dimen@ by12\p@|\parbreak%
+|    \advance\dimen@ by\pagetotal \advance\dimen@ by-\pageshrink|
+\par}
+
+\bugonpage A375, line 27 (10/30/89)
+
+\ninepoint\noindent
+depending on whether or not |\t|~contains
+an asterisk. \ (Do you see why?) \ And here's\cutpar
+
+\bugonpage A393, lines 3--5 from the bottom (12/3/89)
+
+\ninepoint
+|\hskip-.17em plus-3em minus.11em|\par
+|\vadjust{}\penalty10000|\par
+|\leaders\copy\dbox\hskip3.3\wd\dbox plus1fil minus.3\wd\dbox|
+
+\bugonpage A444, line 4 (3/13/90)
+
+\ninepoint\noindent
+Shift box~$x$ down by ${1\over2}\bigl(h(x)-d(x)\bigr)
+-a$, where $a=\sigma_{22}$, so that the operator character\cutpar
+
+\bugonpage A450, line 8 (12/3/89)
+
+\def\\#1{$_{\kern\scriptspace#1}$}
+\ninepoint\indent
+{\qquad\tt\\0h\\0e\\0n\\5a\\0t\\0 \\1n\\0a\\0 \\0n\\2a\\0t\\0
+  \\1t\\0i\\0o\\0 \\2i\\0o\\0 \\0o\\2n\\0}
+
+\bugonpage A450, line 14 (12/3/89)
+
+\ninepoint
+{\tt.\\0h\\0y$_3$p\\0h\\0e\\2n\\5a\\4t\\2i\\0o\\2n\\0.}
+
+\bugonpage A450, lines 19 and 20 (12/3/89)
+
+\ninepoint\vskip-10pt
+\begindisplay
+\tt\\0o\\2n\\0
+\\0o\\0n\\1c\\0
+\\1c\\0a\\0
+\\1n\\0a\\0
+\\0n\\2a\\0t\\0
+\\1t\\0i\\0o\\0
+\\2i\\0o\\0
+\\0o\\2n\\0
+\enddisplay
+and this yields `{\tt\\0c\\0o\\2n\\1c\\0a\\0t\\0e\\1n\\2a\\1t\\2i\\0o\\2n\\0}',
+i.e., `|con-cate-na-tion|'.
+
+\bugonpage A455, last lines before the quotes (11/30/89)
+
+\ninepoint\noindent
+sit yourself (even in restricted horizontal mode) by saying
+^|\setlanguage|\<number>;\break
+ this changes the current language but it
+does not change |\language|. Each what-\break
+sit records the current
+|\lefthyphenmin| and |\righthyphenmin|.
+
+\bugonpage A467, right column (12/3/89)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\hfilneg|, 72, 100, 233, 283, 285, 290, 397.
+
+\bugonpage A468, right column (12/2/89)
+
+\eightpoint
+|\interdisplaylinepenalty|, {\it193}, 349, 362.
+
+\bugonpage A469, left column (12/3/89)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\language| (hyphenation method), 273, 346, $\underline{455}$.
+
+\bugonpage A469, right column (10/30/89)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\lefthyphenmin|, 273, {\it364}, $\underline{454}$, 455.
+
+\bugonpage A472, left column (12/3/89)
+
+\eightpoint
+|\newlanguage|, 346, $\underline{347}$.
+
+\bugonpage A476, left column (10/30/89)
+
+\eightpoint\indent\hbox to0pt{\hss\lower1pt\hbox{*}}%
+|\righthyphenmin|, 273, {\it364}, $\underline{454}$, 455.
+
+\bugonpage A479, new entry (3/13/90)
+
+\eightpoint
+|\topglue|, {\it340}, $\underline{352}$.
+
+\bugonpage A480, right column (3/13/90)
+
+\eightpoint
+|\vglue|, $\underline{352}$, {\it408}.
+
+\bugonpage A483, the Providence lines (10/8/89)
+
+\noindent[Change the first one to
+\begintt
+Providence RI 02940\kern.05em-9506, USA.
+\endtt
+Then the second one will be
+\begindisplay
+Providence RI 02940\kern.05em-9506, USA.
+\enddisplay
+The second line will also appear on page C361.]
+
+% volume B
+\hsize=35pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+\def\to{\mathrel{.\,.}} % double dot, used only in math mode
+
+
+% volume C
+\hsize=29pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+
+\bugonpage C220, top line (3/13/90)
+
+\ninepoint\noindent
+modes you get into by hitting
+`|S|', `|R|', or `|Q|', respectively, in response to error messages\cutpar
+
+\bugonpage C252, line 16 (3/13/90)
+
+\ninepoint\indent
+| for i:=1 upto n_windows: display blankpicture inwindow i; endfor|
+
+\bugonpage C264, lines 4--6 from the bottom (3/24/90)
+
+\ninepoint\noindent
+|vardef |^|counterclockwise|| primary c =|\par\noindent
+| if turningcheck>0:|\par\noindent
+|  interim |^|autorounding||:=0;|\par\noindent
+|  if |^|turningnumber|| c <= 0: reverse fi fi c enddef;|
+
+\bugonpage C306, line 6 (3/13/90)
+
+\ninepoint\noindent
+| ligtable "'": "'" =: oct"042",                         % close quotes|
+
+\bugonpage C309, second line from bottom (11/18/89)
+
+\ninepoint\noindent
+| define_whole_vertical_blacker_pixels(vair,slab,| $\cdots$ |);|
+
+\bugonpage C315, line 9 from the bottom (1/2/90)
+
+\ninepoint\noindent
+units of printer's points):
+
+\bugonpage C337, line 4 from the bottom (1/7/90)
+
+\ninepoint\noindent
+|\def\startfont{\font\testfont=\fontname \spaceskip=0pt|
+
+% Volume D
+\hsize=35pc
+\def\\#1{\hbox{\it#1\/\kern.05em}} % italic type for identifiers
+\def\to{\mathrel{.\,.}} % double dot, used only in math mode
+
+% volume E
+\hsize=29pc
+\def\dashto{\mathrel{\hbox{-\kern-.05em}\mkern3.9mu\hbox{-\kern-.05em}}}
+
+\bugonpage E325, line 13 (3/13/90)
+
+\ninepoint\noindent
+{\bf if} \\{serifs}: $x_{3r}=\max(x_{1r},{\rm hround}(x_1+.5\\{dot\_diam}
+ -.2\\{jut})-.5\\{tiny})$\par\noindent
+{\bf else}: $x_3=x_1-.5$ {\bf fi};
+
+\bugonpage E483, line 4 (3/13/90)
+
+\ninepoint
+\rightline{\% Character codes \oct{000}--\oct{100} and \oct{133}--\oct{177}
+ are generated.}
+
+\bugonpage E544, line 5 (3/13/90)
+
+\ninepoint\noindent
+\hskip 3em\vdots\hskip2em\raise2pt\hbox{(the rest of the
+ program for `$\gamma$' in |greekl| comes here)}
+
+\bugonpage E557, line 9 (3/13/90)
+
+\ninepoint
+\rightline{\sl`Nevermore---Ah nevermore.'\thinspace''}
+
+\bugonpage E558, line 21 (3/13/90)
+
+\eightpoint\noindent
+|Clasp a rare and radiant maiden whom the angels name Lenore."|
+
+\bugonpage E570, lines 27--28 look better with proper skewchars (3/13/90)
+
+\begingroup
+\tenpoint\bf
+\textfont0=\tenbf \scriptfont0=\sevenbf
+\font\boldi=cmmib10 \font\boldsy=cmbsy10
+\skewchar\boldi='177 \skewchar\boldsy='60
+\textfont1=\boldi
+\textfont2=\boldsy
+\noindent Here's some bold 10-point math:
+${\hat A}^\Gamma_0
++{\check B}^\Delta_1
+-{\tilde C}^\Theta_2
+\times{\acute D}^\Lambda_3
+/{\grave E}^\Xi_4
+\oplus{\dot F}^\Pi_5
+\ominus{\ddot G}^\Sigma_6
+\otimes{\breve H}^\Phi_7
+\oslash{\bar I}^\Psi_8
+\odot{\vec J}^{\,\Omega}_9$.
+\endgroup
+
+\bye
+

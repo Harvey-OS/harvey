@@ -1,0 +1,84 @@
+CONF=pc
+CONFLIST=pc pcdisk dos
+
+objtype=386
+</$objtype/mkfile
+CFLAGS=-w
+
+DEV=`{rc ../port/mkdevlist $CONF}`
+STREAM=`{rc ../port/mkstreamlist $CONF}`
+MISC=`{rc ../port/mkmisclist $CONF}`
+
+OBJ=\
+	l.$O\
+	alarm.$O\
+	alloc.$O\
+	bbmalloc.$O\
+	chan.$O\
+	clock.$O\
+	dev.$O\
+	dma.$O\
+	kbd.$O\
+	fault.$O\
+	fault386.$O\
+	headland.$O\
+	latin1.$O\
+	taslock.$O\
+	main.$O\
+	mmu.$O\
+	net.$O\
+	page.$O\
+	segment.$O\
+	swap.$O\
+	pgrp.$O\
+	pmu.$O\
+	print.$O\
+	proc.$O\
+	qlock.$O\
+	queue.$O\
+	vga.$O\
+	sysfile.$O\
+	sysproc.$O\
+	trap.$O\
+	$DEV\
+	stream.$O\
+	boot$CONF.root.$O\
+	$MISC $STREAM\
+	fcall.$O\
+
+
+9$CONF:	$OBJ $CONF.c /386/lib/libgnot.a
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -T0x80001020 -l $OBJ $CONF.$O -lgnot -lg -lc
+
+install:V: 9$CONF
+	cp 9$CONF /386/9$CONF
+
+<../port/portmkfile
+
+vga.$O:		screen.h vga.h
+devvga.$O:	vga.h
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	$AS initcode
+	$LD -l -s -R4 -o init.out -s initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O fault386.$O main.$O:	/$objtype/include/ureg.h
+
+bug: bug.$O memcpy.$O
+	$LD -o bug $prereq
+
+bug.$O: bug.c
+	$CC -N bug.c
+
+push: 9$CONF
+	push coma 9$CONF .
+
+dossrv.root.c:	/$objtype/bin/dossrv
+	cp $prereq dossrv.out
+	../port/mkroot dossrv fs
+

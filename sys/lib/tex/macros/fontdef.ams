@@ -1,0 +1,461 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FONTDEF.AMS						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% This is file `fontdef.ams'
+%%
+
+\def\fileversion{v1.0}
+\def\filedate{6-FEB-1990}
+\def\docdate {6-FEB-1990}
+
+%% \CheckSum{36}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%% This file contains the external font information needed to load
+%% the computer modern family designed by Donald E. Knuth, together
+%% with all fonts which are supplied with the AMS font package.
+%% It is a copy of `fontdef.max' with some fonts commented out
+%% (to save a little in pool size) and cmex added.  See fontdef.max
+%% for further information.
+%%
+\immediate\write\sixt@@n{File: `fontdef.ams'
+ \fileversion\space <\filedate> MJD}
+\immediate\write\sixt@@n{English Documentation
+            \@spaces <\docdate> MJD}
+%%
+%% Please don't change the next lines unless you know exactly what you
+%% are doing.
+%%
+\def\default@shape{n}
+\def\default@series{m}
+\def\default@family{cmr}
+\def\default@errfont{cmsy10}
+%%
+%% Again, this is a double dangerous bend.
+%%
+\family\default@family
+\series\default@series
+\shape\default@shape
+%%
+%% And here is your playground:
+%%
+\new@fontshape{cmr}{m}{n}{%
+      <5>cmr5%
+      <6>cmr6%
+      <7>cmr7%
+      <8>cmr8%
+      <9>cmr9%
+      <10>cmr10%
+      <11>cmr10 at10.95pt%
+      <12>cmr12%
+      <14>cmr12 at14.4pt%
+      <17>cmr17%
+      <20>cmr17 at20.736pt%
+      <25>cmr17 at24.8832pt}{}
+\extra@def{cmr}{}{}
+
+\new@fontshape{cmr}{m}{sl}{%
+      <5>cmsl8 at5pt%
+      <6>cmsl8 at6pt%
+      <7>cmsl8 at7pt%
+      <8>cmsl8%
+      <9>cmsl9%
+      <10>cmsl10%
+      <11>cmsl10 at10.95pt%
+      <12>cmsl12%
+      <14>cmsl12 at14.4pt%
+      <17>cmsl12 at17.28pt%
+      <20>cmsl12 at20.74pt%
+      <25>cmsl12 at24.88pt%
+      }{}
+
+\new@fontshape{cmr}{m}{it}{%
+      <5>cmti7 at5pt%
+      <6>cmti7 at6pt%
+      <7>cmti7%
+      <8>cmti8%
+      <9>cmti9%
+      <10>cmti10%
+      <11>cmti10 at10.95pt%
+      <12>cmti12%
+      <14>cmti12 at14.4pt%
+      <17>cmti12 at17.28pt%
+      <20>cmti12 at20.74pt%
+      <25>cmti12 at24.88pt%
+      }{}
+
+\new@fontshape{cmr}{m}{sc}{%
+      <5>cmcsc8 at5pt%
+      <6>cmcsc8 at6pt%
+      <7>cmcsc8 at7pt%
+      <8>cmcsc8%
+      <9>cmcsc9%
+      <10>cmcsc10%
+      <11>cmcsc10 at10.95pt%
+      <12>cmcsc10 at12pt%
+      <14>cmcsc10 at14.4pt%
+      <17>cmcsc10 at17.28pt%
+      <20>cmcsc10 at20.74pt%
+      <25>cmcsc10 at24.88pt%
+      }{}
+
+%%%%%%%%% bold extended series
+
+\new@fontshape{cmr}{bx}{n}{%
+      <5>cmbx5%
+      <6>cmbx6%
+      <7>cmbx7%
+      <8>cmbx8%
+      <9>cmbx9%
+      <10>cmbx10%
+      <11>cmbx10 at10.95pt%
+      <12>cmbx12%
+      <14>cmbx12 at14.4pt%
+      <17>cmbx12 at17.28pt%
+      <20>cmbx12 at20.74pt%
+      <25>cmbx12 at24.88pt%
+      }{}
+
+%       substitute medium slanted for bold slanted
+\subst@fontshape{cmr}{bx}{sl}{cmr}{m}{sl}
+\new@fontshape{cmr}{bx}{it}{%
+      <5>cmbxti10 at5pt%
+      <6>cmbxti10 at6pt%
+      <7>cmbxti10 at7pt%
+      <8>cmbxti10 at8pt%
+      <9>cmbxti10 at9pt%
+      <10>cmbxti10%
+      <11>cmbxti10 at10.95pt%
+      <12>cmbxti10 at12pt%
+      <14>cmbxti10 at14.4pt%
+      <17>cmbxti10 at17.28pt%
+      <20>cmbxti10 at20.74pt%
+      <25>cmbxti10 at24.88pt%
+      }{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Sans serif font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\new@fontshape{cmss}{m}{n}{%
+      <5>cmss8 at5pt%
+      <6>cmss8 at6pt%
+      <7>cmss8 at7pt%
+      <8>cmss8%
+      <9>cmss9%
+      <10>cmss10%
+      <11>cmss10 at10.95pt%
+      <12>cmss12%
+      <14>cmss12 at14.4pt%
+      <17>cmss17%
+      <20>cmss17 at20.74pt%
+      <25>cmss17 at24.88pt%
+      }{}
+
+\subst@fontshape{cmss}{m}{sl}{cmr}{m}{sl}
+
+%%%%%%% Font/shape undefined, therefore substituted
+
+\subst@fontshape{cmss}{m}{sc}{cmr}{m}{sc}
+
+%%%%%%%%% bold extended series
+
+\new@fontshape{cmss}{bx}{n}{%
+      <5>cmssbx10 at5pt%
+      <6>cmssbx10 at6pt%
+      <7>cmssbx10 at7pt%
+      <8>cmssbx10 at8pt%
+      <9>cmssbx10 at9pt%
+      <10>cmssbx10%
+      <11>cmssbx10 at10.95pt%
+      <12>cmssbx10 at12pt%
+      <14>cmssbx10 at14.4pt%
+      <17>cmssbx10 at17.28pt%
+      <20>cmssbx10 at20.74pt%
+      <25>cmssbx10 at24.88pt%
+      }{}
+
+\extra@def{cmss}{}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Typewriter font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\new@fontshape{cmtt}{m}{n}{%
+      <5>cmtt8 at5pt%
+      <6>cmtt8 at6pt%
+      <7>cmtt8 at7pt%
+      <8>cmtt8%
+      <9>cmtt9%
+      <10>cmtt10%
+      <11>cmtt10 at10.95pt%
+      <12>cmtt12%
+      <14>cmtt12 at14.4pt%
+      <17>cmtt12 at17.28pt%
+      <20>cmtt12 at20.74pt%
+      <25>cmtt12 at24.88pt%
+      }{}
+
+\extra@def{cmtt}{\hyphenchar #1\m@ne}{}
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Math italic font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\new@fontshape{cmm}{m}{it}{%
+      <5>cmmi5%
+      <6>cmmi6%
+      <7>cmmi7%
+      <8>cmmi8%
+      <9>cmmi9%
+      <10>cmmi10%
+      <11>cmmi10 at10.95pt%
+      <12>cmmi12%
+      <14>cmmi12 at14.4pt%
+      <17>cmmi12 at17.28pt%
+      <20>cmmi12 at20.74pt%
+      <25>cmmi12 at24.88pt%
+      }{}
+
+\new@fontshape{cmm}{b}{it}{%
+      <5>cmmib5%
+      <6>cmmib6%
+      <7>cmmib7%
+      <8>cmmib8%
+      <9>cmmib9%
+      <10>cmmib10%
+      <11>cmmib10 at10.95pt%
+      <12>cmmib10 at12pt%
+      <14>cmmib10 at14.4pt%
+      <17>cmmib10 at17.28pt%
+      <20>cmmib10 at20.74pt%
+      <25>cmmib10 at24.88pt%
+      }{}
+
+\extra@def{cmm}{\skewchar#1'177}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Math symbol font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\new@fontshape{cmsy}{m}{n}{%
+      <5>cmsy5%
+      <6>cmsy6%
+      <7>cmsy7%
+      <8>cmsy8%
+      <9>cmsy9%
+      <10>cmsy10%
+      <11>cmsy10 at10.95pt%
+      <12>cmsy10 at12pt%
+      <14>cmsy10 at14.4pt%
+      <17>cmsy10 at17.28pt%
+      <20>cmsy10 at20.74pt%
+      <25>cmsy10 at24.88pt%
+      }{}
+
+\new@fontshape{cmsy}{b}{n}{%
+      <5>cmbsy5%
+      <6>cmbsy6%
+      <7>cmbsy7%
+      <8>cmbsy8%
+      <9>cmbsy9%
+      <10>cmbsy10%
+      <11>cmbsy10 at10.95pt%
+      <12>cmbsy10 at12pt%
+      <14>cmbsy10 at14.4pt%
+      <17>cmbsy10 at17.28pt%
+      <20>cmbsy10 at20.74pt%
+      <25>cmbsy10 at24.88pt%
+      }{}
+
+\extra@def{cmsy}{\skewchar#1'60}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%  Math extension font
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\new@fontshape{cmex}{m}{n}{%
+      <5>cmex7 at5pt%
+      <6>cmex7 at6pt%
+      <7>cmex7%
+      <8>cmex8%
+      <9>cmex9%
+      <10>cmex10%
+      <11>cmex10 at10.95pt%
+      <12>cmex10 at12pt%
+      <14>cmex10 at14.4pt%
+      <17>cmex10 at17.28pt%
+      <20>cmex10 at20.74pt%
+      <25>cmex10 at24.88pt%
+      }{}
+
+\extra@def{cmex}{}{}
+
+%       When AMS symbol fonts are available, LaTeX symbol fonts are
+%       not needed.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%   symbol font shapes
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+
+\new@fontshape{msa}{m}{n}{%
+   <5>msam5%
+   <6>msam6%
+   <7>msam7%
+   <8>msam8%
+   <9>msam9%
+   <10>msam10%
+   <11>msam10 at10.95pt%
+   <12>msam10 at12pt%
+   <14>msam10 at14.4pt%
+   <17>msam10 at17.28pt%
+   <20>msam10 at20.74pt%
+   <25>msam10 at24.88pt}{}
+
+\extra@def{msa}{}{}
+
+\new@fontshape{msb}{m}{n}{%
+   <5>msbm5%
+   <6>msbm6%
+   <7>msbm7%
+   <8>msbm8%
+   <9>msbm9%
+   <10>msbm10%
+   <11>msbm10 at10.95pt%
+   <12>msbm10 at12pt%
+   <14>msbm10 at14.4pt%
+   <17>msbm10 at17.28pt%
+   <20>msbm10 at20.74pt%
+   <25>msbm10 at24.88pt}{}
+
+\extra@def{msb}{}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Euler (German) Fraktur family
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\new@fontshape{euf}{m}{n}{%
+   <5>eufm5%
+   <6>eufm6%
+   <7>eufm7%
+   <8>eufm8%
+   <9>eufm9%
+   <10>eufm10%
+   <11>eufm10 at10.95pt%
+   <12>eufm10 at12pt%
+   <14>eufm10 at14.4pt%
+   <17>eufm10 at17.28pt%
+   <20>eufm10 at20.74pt%
+   <25>eufm10 at24.88pt}{}
+
+%%%%%% bold series
+
+\new@fontshape{euf}{b}{n}{%
+   <5>eufb5%
+   <6>eufb6%
+   <7>eufb7%
+   <8>eufb8%
+   <9>eufb9%
+   <10>eufb10%
+   <11>eufb10 at10.95pt%
+   <12>eufb10 at12pt%
+   <14>eufb14%
+   <17>eufb14 at17.28pt%
+   <20>eufb14 at20.74pt%
+   <25>eufb14 at24.88pt}{}
+
+\extra@def{euf}{\hyphenchar#1\m@ne
+       \@tempdima\fontdimen2#1%
+       \fontdimen3#1.4\@tempdima
+       \fontdimen4#1.3\@tempdima}
+      {}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% University of Washington cyrillic family
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\new@fontshape{UWCyr}{m}{n}{%
+   <5>wncyr5%
+   <6>wncyr6%
+   <7>wncyr7%
+   <8>wncyr8%
+   <9>wncyr9%
+   <10>wncyr10%
+   <11>wncyr10 at10.95pt%
+   <12>wncyr10 at12pt%
+   <14>wncyr10 at14.4pt%
+   <17>wncyr10 at17.28pt%
+   <20>wncyr10 at20.74pt%
+   <25>wncyr10 at24.88pt}{}
+
+\new@fontshape{UWCyr}{m}{it}{%
+   <5>wncyi5%
+   <6>wncyi6%
+   <7>wncyi7%
+   <8>wncyi8%
+   <9>wncyi9%
+   <10>wncyi10%
+   <11>wncyi10 at10.95pt%
+   <12>wncyi10 at12pt%
+   <14>wncyi10 at14.4pt%
+   <17>wncyi10 at17.28pt%
+   <20>wncyi10 at20.74pt%
+   <25>wncyi10 at24.88pt}{}
+
+%%%%%%%%%%%%% bold series
+
+\new@fontshape{UWCyr}{b}{n}{%
+   <5>wncyb5%
+   <6>wncyb6%
+   <7>wncyb7%
+   <8>wncyb8%
+   <9>wncyb9%
+   <10>wncyb10%
+   <11>wncyb10 at10.95pt%
+   <12>wncyb10 at12pt%
+   <14>wncyb10 at14.4pt%
+   <17>wncyb10 at17.28pt%
+   <20>wncyb10 at20.74pt%
+   <25>wncyb10 at24.88pt}{}
+
+\extra@def{UWCyr}{}{}
+
+\endinput
+

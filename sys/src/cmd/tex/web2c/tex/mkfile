@@ -1,0 +1,115 @@
+# This file makes TeX in its various incarnations.
+#
+
+APE=/sys/src/ape
+< $APE/config
+SITEDIR=..
+OPT=-B
+CFLAGS=$OPT -I$SITEDIR -c
+LDFLAGS=
+SHELL=/bin/rc
+
+OFILES=tex0.$O\
+	tex1.$O\
+	tex2.$O\
+	tex3.$O\
+	tex4.$O\
+	tex5.$O\
+	tex6.$O\
+	tex7.$O\
+	tex8.$O\
+
+CFILES=${OFILES:%.$O=%.c}
+
+IOBJS=iextra.$O\
+	initex.$O\
+
+VOBJS=extra.$O\
+	itex.$O\
+
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+
+all:V:		$O.initex $O.virtex
+
+triptrap:V:	$O.triptex
+
+$O.initex:	$IOBJS $OFILES
+		$LD $LDFLAGS -o $target $prereq
+
+$O.virtex:	$VOBJS $OFILES
+		$LD $LDFLAGS -o $target $prereq
+
+run-triptrap:VE:
+		cp TeXtrip/trip.tex .
+		../texware/$cpuobjtype.pltotf TeXtrip/trip.pl trip.tfm
+		triptex < TeXtrip/trip1.in
+		diff TeXtrip/tripin.log trip.log
+		triptex < TeXtrip/trip2.in > trip.fot
+		diff TeXtrip/trip.log trip.log
+		diff TeXtrip/trip.fot trip.fot
+		../texware/$cpuobjtype.dvitype trip.dvi < TeXtrip/dvitype.in
+		diff TeXtrip/trip.typ dvitype.out
+
+# The `ini_to_trip' script changes texd.h, instead of the change file, so
+# retangling is not necessary.  After changing constants, making a
+# triptex means making an initex.
+# 
+$O.triptex:V:	stamp-trip $O.initex
+		mv $O.initex $target
+
+stamp-trip:	stamp-convert
+		rm -f *.$O
+		$SHELL ./ini_to_trip texd.h
+		touch stamp-trip
+
+# tangle produces tex.p and tex.pool.
+# 
+tex.p:		tex.web ctex.ch ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle tex.web ctex.ch > /dev/null
+
+# The convert script produces tex[0-8].c, itex.c, coerce.h, and texd.h.
+# The (hand-coded) memory.h is included in one of tex?.c files; it isn't
+# really necessary to `convert' again if it changes, only to recompile
+# that file, but describing that relationship is ugly to do.
+# (Furthermore, memory.h is stable.)
+#
+$CFILES itex.c texd.h:	stamp-convert
+		touch stamp-convert
+ 
+stamp-convert:	tex.p memory.h fixcoerce.h tex.defines
+		$SHELL ./convert
+
+# The (hand-coded) file extra.c and the (generated) file itex.c have
+# #ifdefs on INITEX, so we have to compile them with -DINITEX for initex
+# and triptex.
+# 
+iextra.$O:	extra.c texd.h
+		$CC $CFLAGS -DINITEX extra.c && mv extra.$O $target
+
+initex.$O:      itex.c
+		$CC $CFLAGS -DINITEX itex.c && mv itex.$O $target
+
+extra.$O:	texd.h
+
+%.$O:		%.c tex.h		# included by texd.h
+		$CC $CFLAGS $stem.c
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f stamp-* *.[$OS] [$OS].virtex [$OS].initex
+		rm -f texd.h coerce.h *.log
+		rm -f 8terminal.tex trip.* tripos.tex dvitype.out
+
+nuke:V:
+		mk clean
+		rm -f tex?.c itex.c tex.p tex.pool *.fmt texput.*
+		rm -f '#'*'#' *~ *.bak

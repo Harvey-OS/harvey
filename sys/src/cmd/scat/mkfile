@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+TARG=scat
+OFILES=scat.$O\
+	desc.$O\
+	patch.$O\
+	prose.$O\
+	util.$O\
+
+HFILES=sky.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

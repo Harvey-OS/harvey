@@ -1,0 +1,3 @@
+#!/bin/rc
+echo do
+xms 6.out

@@ -1,0 +1,21 @@
+.TH STRINGS 1
+.SH NAME
+strings \- extract printable strings
+.SH SYNOPSIS
+.B strings
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Strings
+finds and prints strings containing 6 consecutive printable runes in a (typically) binary file.
+If the
+.I file
+argument is omitted input is taken from standard input.
+Strings reports
+the decimal offset within the file at which the string starts and the text
+of the string. If the string is longer than 70 runes the line is
+terminated by three dots and the printing is resumed on the next
+line with the offset of the continuation line.
+.SH SEE ALSO
+.IR nm (1)

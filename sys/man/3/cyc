@@ -1,0 +1,73 @@
+.TH CYC 3
+.SH NAME
+cyc \- Cyclone fiber interface
+.SH SYNOPSIS
+.B bind #C /dev
+.PP
+.B /dev/cyc
+.SH DESCRIPTION
+The
+.I cyc
+device drives the Cyclone CVME961
+.RI ( not
+960)
+card with an attached
+SQFBR Squall module
+to provide a high-speed point-to-point 9P link between a CPU
+server and a file server.
+Both machines must of course have VME buses.
+For debugging,
+the Cyclone may be loaded with on-board
+software using
+.B xms
+(see
+.IR con (1))
+and the NINDY ROM supplied with the device.
+In production, though, it is easiest to
+replace the ROM with the program in the directory
+.BR /sys/src/fs/cyc .
+In either case, the on-board software expects an identical
+Cyclone to be at the other end of the fiber.
+One of the boards must be in a CPU server, the other in a
+file server; the systems configure their respective
+boards dynamically as appropriate.
+.PP
+The driver serves a single file,
+.BR /dev/cyc .
+When opened, the file initializes the connection to the file
+server.  The resulting file descriptor should be used only
+to send and receive 9P messages.
+Typically
+.IR boot (8)
+will open
+.BR /dev/cyc ,
+prime the connection by sending
+.B nop
+and
+.B session
+messages (see
+.IR attach (5)),
+and then
+.B mount
+(see
+.IR bind (2))
+the file descriptor in the CPU server's name space.
+Thenceforth all activity on
+.B /dev/cyc
+will be mediated by the mount driver
+.IR mnt (3)).
+.SH FILES
+.TF \w'/sys/src/fs/cycXXXX'u
+.TP
+.B /sys/src/fs/cyc
+Directory of on-board software for the Cyclone.
+.SH SEE ALSO
+.I
+CVME960, CVM961 Single Board Computer User's Manual
+and
+.I
+SQFBR User's Manual,
+Cyclone Microsystems, Inc., New Haven, CT, 1-203-7865536
+.SH BUGS
+The driver is specific to the SGI Power Series, although the device
+should operate on any VME bus.

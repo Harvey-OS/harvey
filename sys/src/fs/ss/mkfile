@@ -1,0 +1,84 @@
+objtype=sparc
+</$objtype/mkfile
+
+BUILTINS=
+I=-I. -I../port
+CFLAGS=-w $I
+
+OBJ=\
+	l.$O\
+	arp.$O\
+	auth.$O\
+	chk.$O\
+	clock.$O\
+	compile.$O\
+	con.$O\
+	config.$O\
+	console.$O\
+	cw.$O\
+	data.$O\
+	dentry.$O\
+	devcons.$O\
+	fcall.$O\
+	fcmd.$O\
+	fs.$O\
+	fworm.$O\
+	il.$O\
+	iobuf.$O\
+	ip.$O\
+	lance.$O\
+	lock.$O\
+	main.$O\
+	malloc.$O\
+	mmu.$O\
+	mworm.$O\
+	print.$O\
+	proc.$O\
+	scc.$O\
+	sparc.$O\
+	scsi.$O\
+	sub.$O\
+	time.$O\
+	trap.$O\
+	toy.$O\
+	worm.$O\
+	wren.$O\
+	uidgid.$O
+
+HFILES=\
+	../port/all.h\
+	../port/portdat.h\
+	./dat.h\
+	../port/portfns.h\
+	./fns.h\
+	./io.h\
+	../port/lib.h\
+	./mem.h\
+	/$objtype/include/u.h\
+	/$objtype/include/ureg.h\
+
+9ssfs: $OBJ 9ssfs.$O
+	$LD -o $target -H0 -l -T0xE0004000 -R0x4 $prereq -lauth -lc
+
+<../port/mkfile
+
+install:	9ssfs
+	cp 9ssfs /sparc/9ssfs
+	# cp 9ssfs /lib/tftpd/8768097A.SUN4C
+
+push:	9ssfs
+	push tempel 9ssfs /usr/local/boot
+
+9ssfs.$O:	/dev/cons
+	$CC $CFLAGS -DDATE'='`{date -n} 9ssfs.c
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	$HFILES
+
+clean:
+	rm -f *.[28kovz] [28akvz].out 9ssfs

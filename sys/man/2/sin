@@ -1,0 +1,63 @@
+.TH SIN 2
+.SH NAME
+sin, cos, tan, asin, acos, atan, atan2 \- trigonometric functions
+.SH SYNOPSIS
+.B
+double sin(double x)
+.PP
+.B
+double cos(double x)
+.PP
+.B
+double tan(double x)
+.PP
+.B
+double asin(double x)
+.PP
+.B
+double acos(double x)
+.PP
+.B
+double atan(double x)
+.PP
+.B
+double atan2(double y, double x)
+.SH DESCRIPTION
+.I Sin, cos
+and
+.I tan
+return trigonometric functions of radian arguments.
+The magnitude of the argument should be checked
+by the caller to make sure the result is meaningful.
+.PP
+.I Asin
+returns the arc sine in the range
+.if t \-\(*p/2 to \(*p/2.
+.if n -PI/2 to PI/2.
+.PP
+.I Acos
+returns the arc cosine in the range
+0 to
+.if t \(*p.
+.if n PI.
+.PP
+.I Atan
+returns the arc tangent in the range
+.if t \-\(*p/2 to \(*p/2.
+.if n -PI/2 to PI/2.
+.PP
+.I Atan2
+returns the arc tangent of
+.I y/x
+in the range
+.if t \-\(*p to \(*p.
+.if n -PI to PI.
+.SH SEE ALSO
+.IR intro (2)
+.SH BUGS
+The value of
+.I tan
+for arguments greater than about
+.if t 2\u\s-231\s+2\d
+.if n 2^-31
+is garbage.

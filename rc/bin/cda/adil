@@ -1,0 +1,2 @@
+#!/bin/rc
+awk -f /sys/lib/cda/adl.awk $*

@@ -1,0 +1,16 @@
+TEXT	sqrt(SB), $0
+	FMOVD	a+0(FP), F0
+
+	FTST
+	WAIT
+	FSTSW	AX
+	SAHF
+	JLO	bad
+
+	FSQRT
+	RET
+
+bad:
+	FMOVDP	F0, F0
+	CALL	NaN(SB)
+	RET

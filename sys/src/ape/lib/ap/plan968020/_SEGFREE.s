@@ -1,0 +1,4 @@
+TEXT _SEGFREE(SB), 1, $0
+MOVL $32, R0
+TRAP $0
+RTS

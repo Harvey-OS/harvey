@@ -1,0 +1,121 @@
+!<arch>
+ack             437774800   9     1     100666  161       `
+func ack() {
+	n = n+1
+	if($1 == 0) return ($2+1)
+	if($2 == 0) 	 return (ack($1 - 1, 1))
+	return (ack($1 - 1, ack($1, $2 - 1)))
+}
+n=0
+ack(3,3)
+print n, "calls\n"
+
+ack1            437774800   9     1     100666  197       `
+func ack() {
+	n = n+1
+	if($1 == 0) return ($2+1)
+	if($2 == 0) 	 return (ack($1 - 1, 1))
+	return (ack($1 - 1, ack($1, $2 - 1)))
+}
+n=0
+while (read(x)) {
+	read(y)
+	print ack(x,y), "\n"
+}
+print n,"\n"
+
+double          437774801   9     1     100666  89        `
+proc double(){
+}
+proc double(){
+	if($1 > 1){
+		double($1/2)
+	}
+	print($1)
+}
+double(1024)
+
+fac             437774801   9     1     100666  65        `
+func fac() {
+	if ($1 <= 0) return 1 else return $1 * fac($1-1)
+}
+
+fac1            437774801   9     1     100666  82        `
+func fac() if ($1 <= 0) return 1 else return $1 * fac($1-1)
+fac(0)
+fac(7)
+fac(10)
+fac2            437774802   9     1     100666  142       `
+func fac() {
+	if ($1 <= 0) {
+		return 1
+	}
+	return $1 * fac($1-1)
+}
+i=0
+while(i<=20){
+	print "factorial of ", i, "is ", fac(i), "\n"
+	i=i+1
+}
+fib             437774802   9     1     100666  98        `
+proc fib() {
+	a = 0
+	b = 1
+	while (b < $1) {
+		print b
+		c = b
+		b = a+b
+		a = c
+	}
+	print "\n"
+}
+fib2            437774802   9     1     100666  80        `
+{
+n=0
+a=0
+b=1
+while(b<10000000){
+	n=n+1
+	c=b
+	b=a+b
+	a=c
+	print(b)
+}
+print(n)
+}
+fibsum          437774802   9     1     100666  144       `
+proc fib(){
+	a=1
+	b=1
+	c=2
+	d=3
+	sum = a+b+c+d
+	while(d<$1){
+		e=d+c
+		print(e)
+		a=b
+		b=c
+		c=d
+		d=e
+		sum=sum+e
+	}
+	print(sum)
+}
+
+fib(1000)
+fibtest         437774802   9     1     100666  126       `
+proc fib() {
+	a = 0
+	b = 1
+	while (b < $1) {
+		c = b
+		b = a+b
+		a = c
+	}
+}
+
+i = 1
+while (i < 1000) {
+	fib(1000)
+	i = i + 1
+}

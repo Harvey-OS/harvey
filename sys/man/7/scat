@@ -1,0 +1,165 @@
+.TH SCAT 7
+.SH NAME
+scat \- sky catalogue
+.SH SYNOPSIS
+.B scat
+.SH DESCRIPTION
+.I Scat
+looks up items in catalogues of objects
+outside the solar system
+and implements database-like manipulations
+on sets of such objects.
+.PP
+Items are read, one per line, from the standard input
+and looked up in the catalogs.
+The result of the lookup becomes the set of objects available
+to the database commands.
+After each lookup or command, if more than two objects are
+in the set,
+.I scat
+prints how many objects are in the set; otherwise it
+prints the objects'
+descriptions or cross-index listings (suitable for input to
+.IR scat ).
+An item is in one of the following formats:
+.TP
+.B ngc1234
+Number 1234 in the Revised New General Catalogue of
+Nonstellar Objects.
+The output identifies the type 
+.RB( eg =galaxy,
+.BR pn =planetary
+nebula, 
+.BR gc =globular
+cluster, 
+.BR oc =open
+cluster, 
+.BR dn =diffuse
+nebula or 
+.BR nc =nebular
+cluster),
+possibly contained within the Large Magellanic Cloud 
+.RB ( in\ lmc )
+or Small
+Magellanic Cloud 
+.RB ( in\ smc ),
+its position in 2000.0 coordinates
+and galactic coordinates, and a brief description.
+.TP
+.B sao12345
+Number 12345 in the Smithsonian Astrophysical Star Catalogue.
+Output identifies the visual and photographic magnitudes,
+2000.0 coordinates, proper motion, spectral type, multiplicity and variability
+class, and HD number.
+.TP
+.B m4
+Catalog number 4 in Messier's catalog.
+The output is the NGC number.
+.TP
+.B planetarynebula
+The set of NGC objects of the specified type.
+The type may be a two-letter NGC code or a full name, as above, with no blank.
+.TP 
+\fL"α umi"\fP
+Star names are provided in double quotes.
+Known names are the Greek
+letter designations, proper names such as Betelgeuse, and bright variable stars.
+Greek letters may be spelled out, e.g.
+.BR alpha .
+Constellation names must be the three-letter abbreviations.
+The output
+is the SAO number.
+For non-Greek names, SAO numbers and names are listed for all stars with
+names for which the given name is a prefix.
+.TP
+.B 12h34m -16
+Coordinates in the sky are translated to the nearest `patch',
+approximately one square degree of sky.
+The output is the coordinates identifying the patch,
+the constellations touching the patch, and the NGC and SAO
+objects in the patch.
+The program prints sky positions in several formats corresponding
+to different precisions; any output format is understood as input.
+.TP
+.B umi
+All the patches in the named constellation.
+.PP
+The commands are:
+.TP
+.BI add " item"
+Add the named item to the set.
+.TP
+.BI keep " class ..."
+Flatten the set and cull it, keeping only the specified classes.
+The classes may be specific NGC types,
+all stars
+.RB ( sao ),
+all NGC objects
+.RB ( ngc ),
+all M objects
+.RB ( m ),
+or a specified brightness range.
+Brightness ranges are specified by a leading
+.B >
+or
+.B <
+followed by a magnitude.
+Remember that brighter objects have lesser magnitudes.
+.TP
+.BI drop " class ..."
+Like
+.I keep,
+but keeps only the objects not in the specified classes.
+.TP
+.BI flat
+Some items such as patches represents sets of items.
+.I Flat
+flattens the set so
+.I scat
+holds all the information available for the objects in the set.
+.TP
+.BI print
+Print the contents of the set.  If the information seems meagre, try
+flattening the set.
+.TP
+.BI expand " n"
+Flatten the set,
+expand the area of the sky covered by the set to be
+.I n
+degrees wider, and collect all the objects in that area.
+If
+.I n
+is zero,
+.I expand
+collects all objects in the patches that cover the current set.
+.TP
+.BI plot " option"
+Expand and plot the set on the screen.
+The only option is
+.B nogrid
+to suppress the lines of declination and right ascension.
+Symbols for NGC objects are as in Sky Atlas 2000.0.
+.SH EXAMPLES
+Plot the NGC objects and naked-eye stars in Orion.
+.EX
+	ori
+	keep ngc <6
+	plot nogrid
+.EE
+.PP
+Draw a map of the Pleiades.
+.EX
+	"alcyone"
+	expand 1
+	plot
+.EE
+.SH FILES
+.B /lib/sky/*.scat
+.SH SEE ALSO
+.IR astro (7)
+.br
+.B /lib/sky/constelnames
+for the three-letter abbreviations of the constellation names.
+.PP
+The data was provided by the Astronomical Data Center at the NASA Goddard
+Space Flight Center.

@@ -1,0 +1,176 @@
+.TH GAMES 1
+.SH NAME
+4s, 5s, ana, gnuchess, juggle, mandel, plumb, smiley, life, fsim, clock, catclock, fireworks, swar \- time wasters
+.SH SYNOPSIS
+.B games/4s
+.br
+.B games/5s
+.br
+.B games/ana
+[
+.I fixwords
+]
+.br
+.B games/fireworks
+.br
+.B games/gnuchess
+.br
+.B games/juggle
+[
+.B -h
+.I nhand
+]
+[
+.I start
+]
+.I pattern
+.br
+.B games/mandel
+.br
+.B games/plumb
+[
+.I level
+]
+.br
+.B games/smiley
+.br
+.B games/life
+.I startfile
+.br
+.B games/fsim
+.br
+.B games/clock
+.br
+.B games/catclock
+[
+.B -c
+]
+.br
+.B games/swar
+.SH DESCRIPTION
+There are a few games in
+.BR /bin/games :
+.TP \w'\fLfireworksXX'u
+.BR 4s , " 5s"
+Try to fill complete rows using 4-square or 5-square tiles.
+Move tiles left or right by moving the mouse.
+Rotate tiles with buttons 1 and 3.
+Drop tiles for more points with button 2 or the space bar.
+.TP
+.B ana
+Find anagrams for words typed on standard input.
+Anagrams can contain several dictionary words.
+The
+.I fixwords
+argument or numbers typed on standard input fix the number of
+words in the output anagrams.
+.TP
+.B gnuchess
+Play chess. Type
+.L help
+to list commands.
+.TP
+.B juggle
+Simulate a juggler.  The
+.I pattern
+lists the heights of a repeating sequence of throws.
+At time t, hand (t mod nhand) throws.
+At that time, it must
+hold exactly one ball, unless it executes a 0 throw,
+in which case it must hold no ball.
+A throw of height h
+at time t lands at time t+h in hand ((t+h) mod nhand).
+Some
+.IR pattern s
+require a
+.I start
+sequence of throws to get the balls into position.
+.TP
+.B mandel
+Compute and display Mandelbrot sets.
+Menus on the mouse buttons control various things.
+.TP
+.B plumb
+Build a plumbing system. Keep ahead of the advancing oil
+and don't waste pipe. The
+.I level
+argument lets you start at a harder level.
+.TP
+.B smiley
+A game of historical importance.
+Type space to shoot, comma to move left, and period to go right.
+.TP
+.B life
+Play the game of life, given an initial position.
+There is a library of interesting initial positions;
+the library is consulted if
+.I startfile
+cannot be found.
+.TP
+.B fsim
+Pretend you're flying a Cessna.
+.TP
+.B clock
+.TP
+.B catclock
+Display analog clocks.  Option
+.B -c
+makes
+.I catclock
+crosseyed.
+.TP
+.B fireworks
+Hoist the fiery blue peter.
+.TP
+.B swar
+Space war for two players called MCI and SPRINT.
+One player types
+.B a
+or
+.B d
+to turn left or right,
+.B s
+to shoot,
+.B x
+to disappear briefly (``enter hyperspace'')
+and
+.B w
+to accelerate.
+The other player uses
+.BR k ,
+.BR ; ,
+.BR l ,
+.BR .
+(the period)
+and
+.BR o .
+AT&T scores whenever either ship shoots itself or otherwise
+causes mayhem.  Hyperspace is occasionally fatal.
+.SH FILES
+.TF /sys/games/lib/plumb/scores
+.TP
+.B /sys/games/lib/4scores
+scores of
+.I 4s
+games
+.TP
+.B /sys/games/lib/5scores
+scores of
+.I 5s
+games
+.TP
+.B /sys/games/lib/plumb/scores
+scores of
+.I plumb
+games
+.TP
+.B /sys/games/lib/anawords
+used by
+.I ana
+.TP
+.B /sys/games/lib/plumb/*
+miscellaneous files used by
+.I plumb
+.TP
+.B /sys/games/lib/life/*
+interesting starting positions

@@ -1,0 +1,11 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=part
+OFILES=part.$O\
+	alloc.$O\
+
+HFILES=part.h
+
+</sys/src/cmd/mkone
+CFLAGS=-DPLAN9 -w

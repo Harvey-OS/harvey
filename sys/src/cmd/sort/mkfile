@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+TARG=sort
+OFILES=\
+	field.$O\
+	merge.$O\
+	fsort.$O\
+	number.$O\
+	rsort.$O\
+	files.$O\
+	tables.$O\
+
+HFILES=\
+	fsort.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

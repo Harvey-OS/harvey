@@ -1,0 +1,462 @@
+.PS
+.nr VS \n(.v
+.nr PQ \n(.f
+.nr PS \n(.s
+.vs 6
+.ft CW
+.ps 6
+scale = 16/0.125
+# r "/lib/graw/gates.g"
+define Gtriangle {[
+line from (0,0) to (0,-32)
+line from (32,-16) to (0,-32)
+line from (32,-16) to (0,0)
+]}
+define Ghhump {[
+line from (0,-4) to (0,-2)
+line from (0,-2) to (2,0)
+line from (2,0) to (6,0)
+line from (6,0) to (8,-2)
+line from (8,-2) to (8,-4)
+]}
+define Ghinduct {[
+line from (0,0) to (0,0)
+line from (0,-8) to (8,-8)
+Ghhump with .nw at (8,-4)
+Ghhump with .nw at (16,-4)
+Ghhump with .nw at (24,-4)
+line from (32,-8) to (40,-8)
+line from (40,-16) to (40,-16)
+]}
+define Gvhump {[
+line from (0,0) to (4,0)
+line from (8,-4) to (4,0)
+line from (8,-4) to (8,-8)
+line from (8,-8) to (4,-12)
+]}
+define Gvinduct {[
+line from (0,0) to (0,-8)
+Gvhump with .nw at (0,-8)
+Gvhump with .nw at (0,-20)
+Gvhump with .nw at (0,-32)
+Gvhump with .nw at (0,-44)
+line from (4,-56) to (0,-56)
+line from (0,-56) to (0,-64)
+]}
+define Gxor {[
+line from (0,-8) to (13,-8)
+line from (0,-24) to (13,-24)
+line from (50,-16) to (56,-16)
+line from (13,-11) to (10,0)
+line from (13,-21) to (13,-11)
+line from (10,-32) to (13,-21)
+Gor with .nw at (18,0)
+]}
+define Gvres {[
+line from (8,-32) to (8,-28)
+line from (8,-28) to (4,-26)
+line from (4,-26) to (12,-22)
+line from (12,-22) to (4,-18)
+line from (4,-18) to (12,-14)
+line from (12,-14) to (4,-10)
+line from (4,-10) to (12,-6)
+line from (12,-6) to (8,-4)
+line from (8,-4) to (8,0)
+line from (0,-32) to (0,-32)
+]}
+define Gvcap {[
+line from (0,-8) to (32,-8)
+line from (0,-16) to (32,-16)
+line from (16,-16) to (16,-24)
+line from (16,0) to (16,-8)
+]}
+define Gtbuf {[
+line from (32,0) to (32,-32)
+line from (0,-16) to (32,-32)
+line from (0,-16) to (32,0)
+line from (0,0) to (0,-32)
+line from (32,-16) to (0,-32)
+line from (32,-16) to (0,0)
+]}
+define Gpup {[
+line from (8,-40) to (8,-36)
+line from (8,-36) to (4,-34)
+line from (4,-34) to (12,-30)
+line from (12,-30) to (4,-26)
+line from (4,-26) to (12,-22)
+line from (12,-22) to (4,-18)
+line from (4,-18) to (12,-14)
+line from (12,-14) to (8,-12)
+line from (8,-12) to (8,0)
+line from (0,-40) to (0,-40)
+line from (12,-4) to (8,0)
+line from (4,-4) to (8,0)
+]}
+define Gor3 {[
+Glor with .nw at (8,0)
+line from (0,-24) to (13,-24)
+line from (0,-8) to (11,-8)
+line from (0,-40) to (11,-40)
+line from (56,-24) to (64,-24)
+]}
+define Gor2 {[
+Gor with .nw at (8,0)
+line from (0,-8) to (10,-8)
+line from (0,-24) to (10,-24)
+line from (40,-16) to (48,-16)
+]}
+define Gor {[
+line from (3,-11) to (0,0)
+line from (3,-21) to (3,-11)
+line from (0,-32) to (3,-21)
+line from (16,-32) to (0,-32)
+line from (21,-29) to (16,-32)
+line from (25,-25) to (21,-29)
+line from (29,-21) to (25,-25)
+line from (32,-16) to (29,-21)
+line from (28,-9) to (32,-16)
+line from (23,-4) to (28,-9)
+line from (16,0) to (23,-4)
+line from (0,0) to (16,0)
+line from (0,0) to (0,0)
+]}
+define Gocnand {[
+Gbubble with .nw at (32,-12)
+Gand with .nw at (0,0)
+line from (24,-2) to (24,-31)
+]}
+define Gnor5 {[
+Gbubble with .nw at (32,-28)
+Gor with .nw at (0,-16)
+line from (0,0) to (0,-16)
+line from (0,-64) to (0,-48)
+]}
+define Gnor3 {[
+Glnor with .nw at (8,0)
+line from (0,-24) to (13,-24)
+line from (0,-40) to (11,-40)
+line from (0,-8) to (11,-8)
+]}
+define Gnor2 {[
+line from (0,-24) to (10,-24)
+line from (0,-8) to (10,-8)
+Gnor with .nw at (8,0)
+]}
+define Gnor {[
+Gbubble with .nw at (32,-12)
+Gor with .nw at (0,0)
+]}
+define Gnand4 {[
+Gbubble with .nw at (32,-28)
+Gand with .nw at (0,-16)
+line from (0,0) to (0,-16)
+line from (0,-64) to (0,-48)
+]}
+define Gnand3 {[
+Glnand with .nw at (8,0)
+line from (0,-24) to (8,-24)
+line from (0,-40) to (8,-40)
+line from (0,-8) to (8,-8)
+]}
+define Gnand2 {[
+line from (0,-24) to (8,-24)
+line from (0,-8) to (8,-8)
+Gnand with .nw at (8,0)
+]}
+define Gnand {[
+Gbubble with .nw at (32,-12)
+Gand with .nw at (0,0)
+]}
+define Glor {[
+line from (5,-16) to (0,0)
+line from (5,-32) to (5,-16)
+line from (0,-48) to (5,-32)
+line from (24,-48) to (0,-48)
+line from (32,-43) to (24,-48)
+line from (38,-38) to (32,-43)
+line from (43,-32) to (38,-38)
+line from (48,-24) to (43,-32)
+line from (42,-14) to (48,-24)
+line from (34,-6) to (42,-14)
+line from (24,0) to (34,-6)
+line from (0,0) to (24,0)
+line from (0,0) to (0,0)
+]}
+define Glnor {[
+Gbubble with .nw at (48,-20)
+Glor with .nw at (0,0)
+]}
+define Glnand {[
+Gbubble with .nw at (48,-20)
+Gland with .nw at (0,0)
+]}
+define Gland {[
+line from (0,-48) to (0,0)
+line from (24,-48) to (0,-48)
+line from (32,-47) to (24,-48)
+line from (39,-42) to (32,-47)
+line from (45,-36) to (39,-42)
+line from (48,-28) to (45,-36)
+line from (48,-20) to (48,-28)
+line from (45,-12) to (48,-20)
+line from (39,-6) to (45,-12)
+line from (32,-1) to (39,-6)
+line from (24,0) to (32,-1)
+line from (0,0) to (24,0)
+]}
+define Ginv2 {[
+line from (40,0) to (40,-32)
+line from (8,-16) to (40,-32)
+line from (8,-16) to (40,0)
+Gbubble with .nw at (0,-12)
+]}
+define Ginv {[
+line from (8,-32) to (8,0)
+line from (8,0) to (32,-16)
+line from (32,-16) to (8,-32)
+Gbubble with .nw at (32,-12)
+line from (0,-16) to (8,-16)
+]}
+define Ghres {[
+line from (0,-8) to (4,-8)
+line from (4,-8) to (6,-4)
+line from (6,-4) to (10,-12)
+line from (10,-12) to (14,-4)
+line from (14,-4) to (18,-12)
+line from (18,-12) to (22,-4)
+line from (22,-4) to (26,-12)
+line from (26,-12) to (28,-8)
+line from (28,-8) to (32,-8)
+line from (0,0) to (0,0)
+]}
+define Ghcap {[
+line from (12,0) to (12,-16)
+line from (4,0) to (4,-16)
+line from (12,-8) to (16,-8)
+line from (0,-8) to (4,-8)
+]}
+define Ghxtal {[
+line from (4,0) to (4,-16)
+line from (20,0) to (20,-16)
+line from (0,-8) to (4,-8)
+line from (20,-8) to (24,-8)
+line from (8,-4) to (16,-4)
+line from (16,-4) to (16,-12)
+line from (16,-12) to (8,-12)
+line from (8,-12) to (8,-4)
+]}
+define Gvxtal {[
+line from (0,-4) to (16,-4)
+line from (0,-20) to (16,-20)
+line from (8,0) to (8,-4)
+line from (8,-20) to (8,-24)
+line from (4,-8) to (4,-16)
+line from (4,-16) to (12,-16)
+line from (12,-16) to (12,-8)
+line from (12,-8) to (4,-8)
+]}
+define Gff {[
+box ht 72 wid 48 with .nw at (0,-8)
+line from (21,-76) to (27,-76)
+line from (24,-9) to (24,-15)
+line from (21,-12) to (27,-12)
+line from (8,-64) to (0,-68)
+line from (0,-60) to (8,-64)
+"D" ljust   at (0,-48)
+"Q" rjust   at (48,-48)
+"/Q" rjust   at (48,-64)
+Gbubble with .nw at (20,-80)
+Gbubble with .nw at (20,0)
+]}
+define Gbuf {[
+line from (8,-32) to (8,0)
+line from (8,0) to (32,-16)
+line from (32,-16) to (8,-32)
+line from (32,-16) to (40,-16)
+line from (0,-16) to (8,-16)
+]}
+define Gpnp {[
+line from (0,-16) to (8,-16)
+line from (8,0) to (8,-32)
+line from (16,0) to (8,-8)
+line from (10,-4) to (8,-8)
+line from (12,-6) to (8,-8)
+line from (8,-24) to (16,-32)
+]}
+define Gnpn {[
+line from (0,-16) to (8,-16)
+line from (8,0) to (8,-32)
+line from (16,0) to (8,-8)
+line from (14,-28) to (16,-32)
+line from (12,-30) to (16,-32)
+line from (8,-24) to (16,-32)
+]}
+define Gvpot {[
+Gvres with .nw at (0,0)
+line from (17,-13) to (12,-16)
+line from (17,-19) to (12,-16)
+line from (12,-16) to (24,-16)
+]}
+define Gopamp {[
+line from (8,-32) to (8,0)
+line from (8,0) to (32,-16)
+line from (32,-16) to (8,-32)
+line from (10,-8) to (15,-8)
+line from (10,-24) to (15,-24)
+line from (12,-22) to (12,-27)
+line from (32,-16) to (40,-16)
+line from (0,-8) to (8,-8)
+line from (0,-24) to (8,-24)
+]}
+define Gbubble {[
+line from (0,-2) to (2,0)
+line from (0,-6) to (0,-2)
+line from (2,-8) to (0,-6)
+line from (6,-8) to (2,-8)
+line from (8,-6) to (6,-8)
+line from (8,-2) to (8,-6)
+line from (6,0) to (8,-2)
+line from (2,0) to (6,0)
+]}
+define Gand4 {[
+Gand with .nw at (0,-16)
+line from (0,0) to (0,-16)
+line from (0,-64) to (0,-48)
+]}
+define Gand3 {[
+Gland with .nw at (8,0)
+line from (0,-24) to (8,-24)
+line from (0,-8) to (8,-8)
+line from (0,-40) to (8,-40)
+line from (56,-24) to (64,-24)
+]}
+define Gand2 {[
+Gand with .nw at (8,0)
+line from (0,-8) to (8,-8)
+line from (0,-24) to (8,-24)
+line from (40,-16) to (48,-16)
+]}
+define Gand {[
+line from (0,-32) to (0,0)
+line from (16,-32) to (0,-32)
+line from (22,-31) to (16,-32)
+line from (26,-28) to (21,-31)
+line from (30,-24) to (26,-28)
+line from (32,-19) to (30,-24)
+line from (32,-13) to (32,-19)
+line from (30,-8) to (32,-13)
+line from (26,-4) to (30,-8)
+line from (21,-1) to (26,-4)
+line from (16,0) to (21,-1)
+line from (0,0) to (16,0)
+]}
+define G3sinvbar {[
+Gbubble with .nw at (32,-12)
+Gtriangle with .nw at (0,0)
+Gbubble with .nw at (12,-24)
+]}
+define G3sinv2bar {[
+Gbubble with .nw at (32,-12)
+Gtriangle with .nw at (0,0)
+Gbubble with .nw at (12,0)
+]}
+define G3sinv2 {[
+line from (16,-24) to (16,-32)
+Gbubble with .nw at (32,-12)
+Gtriangle with .nw at (0,0)
+]}
+define G3sinv {[
+Gbubble with .nw at (32,-12)
+Gtriangle with .nw at (0,0)
+line from (16,0) to (16,-8)
+]}
+define G3sbuf {[
+line from (16,-24) to (16,-32)
+Gtriangle with .nw at (0,0)
+]}
+define G_slash_or3 {[
+line from (8,-40) to (8,-48)
+line from (8,0) to (8,-8)
+Gbubble with .nw at (40,-20)
+Gbubble with .nw at (0,-4)
+Gbubble with .nw at (0,-20)
+Gbubble with .nw at (0,-36)
+Gand with .nw at (8,-8)
+]}
+define G_slash_or {[
+Gbubble with .nw at (0,-20)
+Gbubble with .nw at (0,-4)
+Gbubble with .nw at (40,-12)
+Gand with .nw at (8,0)
+]}
+define G_slash_nor5 {[
+line from (8,-56) to (8,-80)
+line from (8,0) to (8,-24)
+Gand with .nw at (8,-24)
+Gbubble with .nw at (0,-4)
+Gbubble with .nw at (0,-20)
+Gbubble with .nw at (0,-36)
+Gbubble with .nw at (0,-52)
+Gbubble with .nw at (0,-68)
+]}
+define G_slash_nor3 {[
+line from (8,-40) to (8,-48)
+line from (8,0) to (8,-8)
+Gbubble with .nw at (0,-4)
+Gbubble with .nw at (0,-20)
+Gbubble with .nw at (0,-36)
+Gand with .nw at (8,-8)
+]}
+define G_slash_nor {[
+Gbubble with .nw at (0,-4)
+Gbubble with .nw at (0,-20)
+Gand with .nw at (8,0)
+]}
+define G_slash_nand3 {[
+Gor3 with .nw at (8,0)
+Gbubble with .nw at (0,-4)
+Gbubble with .nw at (0,-20)
+Gbubble with .nw at (0,-36)
+]}
+define G_slash_nand {[
+Gbubble with .nw at (0,-20)
+Gbubble with .nw at (0,-4)
+Gor with .nw at (8,0)
+]}
+define G_slash_invert {[
+Gtriangle with .nw at (8,0)
+Gbubble with .nw at (0,-12)
+]}
+define G_slash_and3 {[
+line from (8,-40) to (8,-48)
+line from (8,0) to (8,-8)
+Gbubble with .nw at (40,-20)
+Gbubble with .nw at (0,-36)
+Gbubble with .nw at (0,-20)
+Gbubble with .nw at (0,-4)
+Gor with .nw at (8,-8)
+]}
+define G_slash_and {[
+Gbubble with .nw at (40,-12)
+Gbubble with .nw at (0,-20)
+Gbubble with .nw at (0,-4)
+Gor with .nw at (8,0)
+]}
+Gbuf with .nw at (64,-96)
+line from (64,-112) to (0,-112)
+"x<0:7>" ljust above at (0,-112)
+line from (80,-112) to (120,-72)
+"buffer.<0:7>" ljust above at (120,-72)
+"74F244" ljust above at (120,-80)
+line from (104,-112) to (160,-112)
+"z[0-7]" rjust above at (160,-112)
+box ht 48 wid 56 with .nw at (72,-152)
+"buffer" center above at (96,-168)
+"74F244" center above at (96,-176)
+line from (72,-184) to (0,-184)
+"OE?-" ljust   at (72,-184)
+"drive-" ljust above at (0,-184)
+.vs \n(VSu
+.ft \n(PQ
+.ps \n(PS
+.PE

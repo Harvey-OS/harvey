@@ -1,0 +1,4 @@
+TEXT _WAIT(SB), 1, $0
+MOVL $36, R0
+TRAP $0
+RTS

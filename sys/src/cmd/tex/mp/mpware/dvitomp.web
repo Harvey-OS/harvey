@@ -1,0 +1,1602 @@
+% A copyright message will go here.  There should be some indication that
+% system-dependent changes should go only in the change file.
+
+% Version 0 is in preparation (March 1990).
+
+% Although considerable effort has been expended to make the DVItoMP program
+% correct and reliable, no warranty is implied; the author disclaims any
+% obligation or liability for damages, including but not limited to
+% special, indirect, or consequential damages arising out of or in
+% connection with the use or performance of this software.
+
+% This program is loosely based on DVItype Version 3.0
+% It converts a DVI file into a sequence of MetaPost picture expressions.
+
+% TeX is a trademark of the American Mathematical Society.
+
+% Here is TeX material that gets inserted after \input webmac
+\def\hang{\hangindent 3em\indent\ignorespaces}
+\font\ninerm=cmr9
+\font\sc=cmcsc10
+\let\mc=\ninerm % medium caps for names like SAIL
+\def\MP{MetaPost}
+\def\LaTeX{{\rm L\kern-.36em\raise.3ex\hbox{\sc a}\kern-.15em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\def\PASCAL{Pascal}
+
+\def\(#1){} % this is used to make section names sort themselves better
+\def\9#1{} % this is used for sort keys in the index
+
+\def\title{DVI$\,$\lowercase{to}MP}
+\def\contentspagenumber{1}
+\def\topofcontents{\null
+  \def\titlepage{F} % include headline on the contents page
+  \def\rheader{\mainfont\hfil \contentspagenumber}
+  \vfill
+  \centerline{\titlefont The {\ttitlefont DVItoMP} processor}
+  \vskip 15pt
+  \centerline{(Version 0, March 1990)}
+  \vfill}
+\pageno=\contentspagenumber \advance\pageno by 1
+
+@* Introduction.
+The \.{DVItoMP} program reads binary device-independent (``\.{DVI}'')
+files that are produced by document compilers such as \TeX, and converts them
+into a symbolic form understood by \MP.  It is loosely based on the \.{DVItype}
+utility program that produces a more faithful symbolic form of a \.{DVI} file.
+
+The output file is a sequence of \MP\ picture expressions, one for every page
+in the \.{DVI} file.  It makes no difference to \.{DVItoMP} where the \.{DVI}
+file comes from, but it is intended to process the result of running \TeX\
+or \LaTeX\ on the output of \.{MPtoTEX}.  Such a \.{DVI} file will contain
+one page for every \.{btex}$\ldots$\.{etex} block in the original input.
+Processing in with \.{DVItoMP} creates a corresponding sequence of \MP\ picture
+expressions for use as an auxiliary input file.  Since \MP\ expects such files
+to have the extension \.{.MPX}, the output of \.{DVItoMP} is sometimes called
+an ``\.{MPX}'' file.
+
+The |banner| string defined here should be changed whenever \.{DVItoMP}
+gets modified.
+
+@d banner=='% Written by DVItoMP, Version 0.1'
+  {the first line of the output file}
+
+@ This program is written in standard \PASCAL, except where it is necessary
+to use extensions; for example, \.{DVItoMP} must read files whose names
+are dynamically specified, and that would be impossible in pure \PASCAL.
+All places where nonstandard constructions are used have been listed in
+the index under ``system dependencies.''
+@!@^system dependencies@>
+
+Many \.{DVI}-reading programs need the ability to move to a random place
+in a binary file.  \.{DVItoMP} does not need to do this, but it does use
+a default |case| as in \.{TANGLE}, \.{WEAVE}, etc.
+
+@ The binary input comes from |dvi_file|, and the symbolic output goes to
+|mpx_file|.  \PASCAL's standard |output| file is used only to print an error
+message if the \.{DVI} file is bad. The term |print| is used instead of
+|write| when this program writes on |mpx_file| just in case this helps
+some installations deal with system dependencies.
+@^system dependencies@>
+
+@d print(#)==write(mpx_file,#)
+@d print_ln(#)==write_ln(mpx_file,#)
+@d err_print(#)==write(#)
+@d err_print_ln(#)==write_ln(#)
+
+@p program DVI_to_MP(@!dvi_file,@!mpx_file,@!output);
+label @<Labels in the outer block@>@/
+const @<Constants in the outer block@>@/
+type @<Types in the outer block@>@/
+var @<Globals in the outer block@>@/
+procedure initialize; {this procedure gets things started properly}
+  var i:integer; {loop index for initializations}
+  begin @<Set initial values@>@/
+  end;
+
+@ If the program has to stop prematurely, it goes to the
+`|final_end|'. Another label, |done|, is used when stopping normally.
+
+@d final_end=9999 {label for the end of it all}
+@d done=30 {go here when finished with a subtask}
+
+@<Labels...@>=final_end,done;
+
+@ The following parameters can be changed at compile time to extend or
+reduce \.{DVItoMP}'s capacity.
+
+@<Constants...@>=
+@!max_fonts=100; {maximum number of distinct fonts per \.{DVI} file}
+@!max_fnums=300; {maximum number of fonts plus fonts local to virtual fonts}
+@!max_widths=10000; {maximum number of different characters among all fonts}
+@!virtual_space=10000;
+  {maximum total bytes of typesetting commands for virtual fonts}
+@!line_length=79; {maximum output line length (must be at least 60)}
+@!stack_size=100; {\.{DVI} files shouldn't |push| beyond this depth}
+@!name_size=1000; {total length of all font file names}
+@!name_length=50; {a file name shouldn't be longer than this}
+
+@ There is one more parameter that is a little harder to change because
+it is of type |real|.
+
+@d font_tolerance==0.00001
+  {font sizes should match to within this multiple of $2^{20}$ \.{DVI} units}
+
+@ Here are some macros for common programming idioms.
+
+@d incr(#) == #:=#+1 {increase a variable by unity}
+@d decr(#) == #:=#-1 {decrease a variable by unity}
+@d do_nothing == {empty statement}
+
+@ A global variable |history| keeps track of what type of errors have
+occurred with the hope that that \MP\ can be warned of any problems.
+
+@d spotless=0 {|history| value when no problems have been found}
+@d cksum_trouble=1 {|history| value there have been font checksum mismatches}
+@d warning_given=2 {|history| value after a recoverable error}
+@d fatal_error=3 {|history| value if processing had to be aborted}
+
+@<Glob...@>=
+history:spotless..fatal_error;
+
+@ @<Set init...@>=
+history:=spotless;
+
+@ If the \.{DVI} file is badly malformed, the whole process must be aborted;
+\.{DVItoMP} will give up, after issuing an error message about the symptoms
+that were noticed.
+
+Such errors might be discovered inside of subroutines inside of subroutines,
+so a procedure called |jump_out| has been introduced. This procedure, which
+simply transfers control to the label |final_end| at the end of the program,
+contains the only non-local |goto| statement in \.{DVItoMP}.
+@^system dependencies@>
+
+@d abort(#)==begin err_print_ln('DVItoMP abort: ',#); 
+    history:=fatal_error; jump_out;
+    end
+@d bad_dvi(#)==abort('Bad DVI file: ',#,'!')
+@.Bad DVI file@>
+@d warn(#)==begin err_print_ln('DVItoMP warning: ',#);
+    history:=warning_given;
+    end
+
+@p procedure jump_out;
+begin goto final_end;
+end;
+
+@* The character set.
+Like all programs written with the  \.{WEB} system, \.{DVItoMP} can be
+used with any character set. But it uses ASCII code internally, because
+the programming for portable input-output is easier when a fixed internal
+code is used, and because \.{DVI} files use ASCII code for file names.
+
+The next few sections of \.{DVItoMP} have therefore been copied from the
+analogous ones in the \.{WEB} system routines. They have been considerably
+simplified, since \.{DVItoMP} need not deal with the controversial
+ASCII codes less than @'40 or greater than @'176.
+If such codes appear in the font names,
+they will be printed as question marks.
+
+@<Types...@>=
+@!ASCII_code=" ".."~"; {a subrange of the integers}
+
+@ The original \PASCAL\ compiler was designed in the late 60s, when six-bit
+character sets were common, so it did not make provision for lower case
+letters. Nowadays, of course, we need to deal with both upper and lower case
+alphabets in a convenient way, especially in a program like \.{DVItoMP}.
+So we shall assume that the \PASCAL\ system being used for \.{DVItoMP}
+has a character set containing at least the standard visible characters
+of ASCII code (|"!"| through |"~"|).
+
+Some \PASCAL\ compilers use the original name |char| for the data type
+associated with the characters in text files, while other \PASCAL s
+consider |char| to be a 64-element subrange of a larger data type that has
+some other name.  In order to accommodate this difference, we shall use
+the name |text_char| to stand for the data type of the characters in the
+output file.  We shall also assume that |text_char| consists of
+the elements |chr(first_text_char)| through |chr(last_text_char)|,
+inclusive. The following definitions should be adjusted if necessary.
+@^system dependencies@>
+
+@d text_char == char {the data type of characters in text files}
+@d first_text_char=0 {ordinal number of the smallest element of |text_char|}
+@d last_text_char=127 {ordinal number of the largest element of |text_char|}
+
+@<Types...@>=
+@!text_file=packed file of text_char;
+
+@ The \.{DVItoMP} processor converts from ASCII code to
+the user's external character set by means of an array |xchr|
+that is analogous to \PASCAL's |chr| function.
+
+@<Globals...@>=
+@!mpx_file:text_file; {destination for printed output}
+@!xchr: array [0..255] of text_char;
+  {specifies conversion of output characters}
+
+@ To prepare the |mpx_file| for output, we |rewrite| it.
+@^system dependencies@>
+
+@p procedure open_mpx_file; {prepares to write text on |mpx_file|}
+begin rewrite(mpx_file);
+end;
+
+@ Under our assumption that the visible characters of standard ASCII are
+all present, the following assignment statements initialize the
+|xchr| array properly, without needing any system-dependent changes.
+
+@<Set init...@>=
+for i:=0 to @'37 do xchr[i]:='?';
+xchr[@'40]:=' ';
+xchr[@'41]:='!';
+xchr[@'42]:='"';
+xchr[@'43]:='#';
+xchr[@'44]:='$';
+xchr[@'45]:='%';
+xchr[@'46]:='&';
+xchr[@'47]:='''';@/
+xchr[@'50]:='(';
+xchr[@'51]:=')';
+xchr[@'52]:='*';
+xchr[@'53]:='+';
+xchr[@'54]:=',';
+xchr[@'55]:='-';
+xchr[@'56]:='.';
+xchr[@'57]:='/';@/
+xchr[@'60]:='0';
+xchr[@'61]:='1';
+xchr[@'62]:='2';
+xchr[@'63]:='3';
+xchr[@'64]:='4';
+xchr[@'65]:='5';
+xchr[@'66]:='6';
+xchr[@'67]:='7';@/
+xchr[@'70]:='8';
+xchr[@'71]:='9';
+xchr[@'72]:=':';
+xchr[@'73]:=';';
+xchr[@'74]:='<';
+xchr[@'75]:='=';
+xchr[@'76]:='>';
+xchr[@'77]:='?';@/
+xchr[@'100]:='@@';
+xchr[@'101]:='A';
+xchr[@'102]:='B';
+xchr[@'103]:='C';
+xchr[@'104]:='D';
+xchr[@'105]:='E';
+xchr[@'106]:='F';
+xchr[@'107]:='G';@/
+xchr[@'110]:='H';
+xchr[@'111]:='I';
+xchr[@'112]:='J';
+xchr[@'113]:='K';
+xchr[@'114]:='L';
+xchr[@'115]:='M';
+xchr[@'116]:='N';
+xchr[@'117]:='O';@/
+xchr[@'120]:='P';
+xchr[@'121]:='Q';
+xchr[@'122]:='R';
+xchr[@'123]:='S';
+xchr[@'124]:='T';
+xchr[@'125]:='U';
+xchr[@'126]:='V';
+xchr[@'127]:='W';@/
+xchr[@'130]:='X';
+xchr[@'131]:='Y';
+xchr[@'132]:='Z';
+xchr[@'133]:='[';
+xchr[@'134]:='\';
+xchr[@'135]:=']';
+xchr[@'136]:='^';
+xchr[@'137]:='_';@/
+xchr[@'140]:='`';
+xchr[@'141]:='a';
+xchr[@'142]:='b';
+xchr[@'143]:='c';
+xchr[@'144]:='d';
+xchr[@'145]:='e';
+xchr[@'146]:='f';
+xchr[@'147]:='g';@/
+xchr[@'150]:='h';
+xchr[@'151]:='i';
+xchr[@'152]:='j';
+xchr[@'153]:='k';
+xchr[@'154]:='l';
+xchr[@'155]:='m';
+xchr[@'156]:='n';
+xchr[@'157]:='o';@/
+xchr[@'160]:='p';
+xchr[@'161]:='q';
+xchr[@'162]:='r';
+xchr[@'163]:='s';
+xchr[@'164]:='t';
+xchr[@'165]:='u';
+xchr[@'166]:='v';
+xchr[@'167]:='w';@/
+xchr[@'170]:='x';
+xchr[@'171]:='y';
+xchr[@'172]:='z';
+xchr[@'173]:='{';
+xchr[@'174]:='|';
+xchr[@'175]:='}';
+xchr[@'176]:='~';
+for i:=@'177 to 255 do xchr[i]:='?';
+
+@* Device-independent file format.
+The format of \.{DVI} files is described in many places including
+\.{dvitype.web} and Volume~B of D.~E. Knuth's {\sl Computers and Typesetting}.
+This program refers to the following command codes.
+
+@d id_byte=2 {identifies the kind of \.{DVI} files described here}
+@#
+@d set_char_0=0 {typeset character 0 and move right}
+@d set1=128 {typeset a character and move right}
+@d set_rule=132 {typeset a rule and move right}
+@d put1=133 {typeset a character}
+@d put_rule=137 {typeset a rule}
+@d nop=138 {no operation}
+@d bop=139 {beginning of page}
+@d eop=140 {ending of page}
+@d push=141 {save the current positions}
+@d pop=142 {restore previous positions}
+@d right1=143 {move right}
+@d w0=147 {move right by |w|}
+@d w1=148 {move right and set |w|}
+@d x0=152 {move right by |x|}
+@d x1=153 {move right and set |x|}
+@d down1=157 {move down}
+@d y0=161 {move down by |y|}
+@d y1=162 {move down and set |y|}
+@d z0=166 {move down by |z|}
+@d z1=167 {move down and set |z|}
+@d fnt_num_0=171 {set current font to 0}
+@d fnt1=235 {set current font}
+@d xxx1=239 {extension to \.{DVI} primitives}
+@d xxx4=242 {potentially long extension to \.{DVI} primitives}
+@d fnt_def1=243 {define the meaning of a font number}
+@d pre=247 {preamble}
+@d post=248 {postamble beginning}
+@d post_post=249 {postamble ending}
+@d undefined_commands==250,251,252,253,254,255
+
+@* Input from binary files.
+We have seen that a \.{DVI} file is a sequence of 8-bit bytes. The bytes
+appear physically in what is called a `|packed file of 0..255|'
+in \PASCAL\ lingo.
+
+Packing is system dependent, and many \PASCAL\ systems fail to implement
+such files in a sensible way (at least, from the viewpoint of producing
+good production software).  For example, some systems treat all
+byte-oriented files as text, looking for end-of-line marks and such
+things. Therefore some system-dependent code is often needed to deal with
+binary files, even though most of the program in this section of
+\.{DVItoMP} is written in standard \PASCAL.
+@^system dependencies@>
+
+One common way to solve the problem is to consider files of |integer|
+numbers, and to convert an integer in the range $-2^{31}\L x<2^{31}$ to
+a sequence of four bytes $(a,b,c,d)$ using the following code, which
+avoids the controversial integer division of negative numbers:
+$$\vbox{\halign{#\hfil\cr
+|if x>=0 then a:=x div @'100000000|\cr
+|else begin x:=(x+@'10000000000)+@'10000000000; a:=x div @'100000000+128;|\cr
+\quad|end|\cr
+|x:=x mod @'100000000;|\cr
+|b:=x div @'200000; x:=x mod @'200000;|\cr
+|c:=x div @'400; d:=x mod @'400;|\cr}}$$
+The four bytes are then kept in a buffer and output one by one. (On 36-bit
+computers, an additional division by 16 is necessary at the beginning.
+Another way to separate an integer into four bytes is to use/abuse
+\PASCAL's variant records, storing an integer and retrieving bytes that are
+packed in the same place; {\sl caveat implementor!\/}) It is also desirable
+in some cases to read a hundred or so integers at a time, maintaining a
+larger buffer.
+
+We shall stick to simple \PASCAL\ in this program, for reasons of clarity,
+even if such simplicity is sometimes unrealistic.
+
+@<Types...@>=
+@!eight_bits=0..255; {unsigned one-byte quantity}
+@!byte_file=packed file of eight_bits; {files that contain binary data}
+
+@ The program deals with two binary file variables: |dvi_file| is the main
+input file that we are translating into symbolic form, and |tfm_file| is
+the current font metric file from which character-width information is
+being read.  It is convenient to have a throw-away variable for function
+results when reading parts of the files that are being skipped.
+
+@<Glob...@>=
+@!dvi_file:byte_file; {the input file}
+@!tfm_file:byte_file; {a font metric file}
+@!vf_file:byte_file; {a virtual font file}
+@!down_the_drain:integer; {a ``write-only'' variable}
+
+@ To prepare these files for input, we |reset| them. An extension of
+\PASCAL\ is needed in the case of |tfm_file|, since we want to associate
+it with external files whose names are specified dynamically (i.e., not
+known at compile time). The following code assumes that `|reset(f,s)|'
+does this, when |f| is a file variable and |s| is a string variable that
+specifies the file name. If |eof(f)| is true immediately after |reset(f,s)|
+has acted, these routines assume that no file named |s| is accessible.
+@^system dependencies@>
+
+@p procedure open_dvi_file; {prepares to read packed bytes in |dvi_file|}
+begin reset(dvi_file);
+if eof(dvi_file) then abort('DVI file not found');
+end;
+@#
+function open_tfm_file:boolean; {prepares to read packed bytes in |tfm_file|}
+begin reset(tfm_file,cur_name);
+return not eof(tfm_file);
+end;
+@#
+function open_vf_file:boolean; {prepares to read packed bytes in |vf_file|}
+begin reset(vf_file,cur_name);
+return not eof(vf_file);
+end;
+
+@ If you looked carefully at the preceding code, you probably asked,
+``What is |cur_name|?'' Good question. It's a global
+variable: |cur_name| is a string variable that will be set to the
+current font metric file name before |open_tfm_file| is called.
+
+@<Glob...@>=
+@!cur_name:packed array[1..name_length] of char; {external name,
+  with no lower case letters}
+
+@ It turns out to be convenient to read four bytes at a time, when we are
+inputting from \.{TFM} files. The input goes into global variables
+|b0|, |b1|, |b2|, and |b3|, with |b0| getting the first byte and |b3|
+the fourth.
+
+@<Glob...@>=
+@!b0,@!b1,@!b2,@!b3: eight_bits; {four bytes input at once}
+
+@ The |read_tfm_word| procedure sets |b0| through |b3| to the next
+four bytes in the current \.{TFM} file.
+@^system dependencies@>
+
+@p procedure read_tfm_word;
+begin read(tfm_file,b0); read(tfm_file,b1);
+read(tfm_file,b2); read(tfm_file,b3);
+end;
+
+@ Input can come from from three different sources depending on the settings
+of global variables.  When |vf_reading| is true, we read from the \.{VF} file.
+Otherwise, input can either come directly from |dvi_file| or from a buffer
+|cmd_buf|.  The latter case applies whenever |buf_ptr<virtual_space|.
+
+@<Glob...@>=
+@!vf_reading:boolean; {should input come from |vf_file|?}
+@!cmd_buf:packed array [0..virtual_space] of quarter_word;
+  {commands for virtual characters}
+@!buf_ptr:0..virtual_space; {|cmd_buf| index for the next byte}
+
+@ @<Set init...@>=
+buf_ptr:=virtual_space;
+
+@ It is probably not critical that |cmd_buf| be packed as efficiently as possible,
+but we define a new type just in case it is necessary to for |cmd_buf| entries
+to be in the range |-128..127|.
+@^system dependencies@>
+
+@d qi(#)==# {convert from |eight_bits| to |quarter_word|}
+@d qo(#)==# {convert from |quarter_word| to |eight_bits|}
+
+@<Types...@>=
+quarter_word=0..255; {a one byte quantity as stored in |cmd_buf|}
+
+@ We shall use a set of simple functions to read the next byte or bytes from the
+current input source. There are seven possibilities, each of which is treated
+as a separate function in order to minimize the overhead for subroutine calls.
+
+@p function get_byte:integer; {returns the next byte, unsigned}
+var b:eight_bits;
+begin @<Read one byte into |b|@>;
+get_byte:=b;
+end;
+@#
+function signed_byte:integer; {returns the next byte, signed}
+var b:eight_bits;
+begin @<Read one byte into |b|@>;
+if b<128 then signed_byte:=b @+ else signed_byte:=b-256;
+end;
+@#
+function get_two_bytes:integer; {returns the next two bytes, unsigned}
+var a,@!b:eight_bits;
+begin @<Read two bytes into |a| and |b|@>;
+get_two_bytes:=a*256+b;
+end;
+@#
+function signed_pair:integer; {returns the next two bytes, signed}
+var a,@!b:eight_bits;
+begin @<Read two bytes into |a| and |b|@>;
+if a<128 then signed_pair:=a*256+b
+else signed_pair:=(a-256)*256+b;
+end;
+@#
+function get_three_bytes:integer; {returns the next three bytes, unsigned}
+var a,@!b,@!c:eight_bits;
+begin @<Read three bytes into |a|, |b|, and~|c|@>;
+get_three_bytes:=(a*256+b)*256+c;
+end;
+@#
+function signed_trio:integer; {returns the next three bytes, signed}
+var a,@!b,@!c:eight_bits;
+begin @<Read three bytes into |a|, |b|, and~|c|@>;
+if a<128 then signed_trio:=(a*256+b)*256+c
+else signed_trio:=((a-256)*256+b)*256+c;
+end;
+@#
+function signed_quad:integer; {returns the next four bytes, signed}
+var a,@!b,@!c,@!d:eight_bits;
+begin @<Read four bytes into |a|, |b|, |c|, and~|d|@>;
+if a<128 then signed_quad:=((a*256+b)*256+c)*256+d
+else signed_quad:=(((a-256)*256+b)*256+c)*256+d;
+end;
+
+@ @<Read one byte into |b|@>=
+if vf_reading then read(vf_file,b)
+else if buf_ptr=virtual_space then read(dvi_file,b)
+else begin b:=qo(cmd_buf[buf_ptr]);
+  incr(buf_ptr);
+  end
+
+@ @<Read two bytes into |a| and |b|@>=
+if vf_reading then
+  begin read(vf_file,a); read(vf_file,b);
+  end
+else if buf_ptr=virtual_space then
+  begin read(dvi_file,a); read(dvi_file,b);
+  end
+else if buf_ptr+2>n_cmds then
+  abort('Error detected while interpretting a virtual font')
+else begin a:=qo(cmd_buf[buf_ptr]);
+  b:=qo(cmd_buf[buf_ptr+1]);
+  buf_ptr:=buf_ptr+2;
+  end
+
+@ @<Read three bytes into |a|, |b|, and~|c|@>=
+if vf_reading then
+  begin read(vf_file,a); read(vf_file,b); read(vf_file,c);
+  end
+else if buf_ptr=virtual_space then
+  begin read(dvi_file,a); read(dvi_file,b); read(dvi_file,c);
+  end
+else if buf_ptr+3>n_cmds then
+  abort('Error detected while interpretting a virtual font')
+else begin a:=qo(cmd_buf[buf_ptr]);
+  b:=qo(cmd_buf[buf_ptr+1]);
+  c:=qo(cmd_buf[buf_ptr+2]);
+  buf_ptr:=buf_ptr+3;
+  end
+
+@ @<Read four bytes into |a|, |b|, |c|, and~|d|@>=
+if vf_reading then
+  begin read(vf_file,a); read(vf_file,b); read(vf_file,c); read(vf_file,d);
+  end
+else if buf_ptr=virtual_space then
+  begin read(dvi_file,a); read(dvi_file,b); read(dvi_file,c); read(dvi_file,d);
+  end
+else if buf_ptr+4>n_cmds then
+  abort('Error detected while interpretting a virtual font')
+else begin a:=qo(cmd_buf[buf_ptr]);
+  b:=qo(cmd_buf[buf_ptr+1]);
+  c:=qo(cmd_buf[buf_ptr+2]);
+  d:=qo(cmd_buf[buf_ptr+3]);
+  buf_ptr:=buf_ptr+4;
+  end
+
+@* Data structures for fonts.
+\.{DVI} file format does not include information about character widths, since
+that would tend to make the files a lot longer. But a program that reads
+a \.{DVI} file is supposed to know the widths of the characters that appear
+in \\{set\_char} commands. Therefore \.{DVItoMP} looks at the font metric
+(\.{TFM}) files for the fonts that are involved.
+@.TFM {\rm files}@>
+
+@ For purposes of this program, the only thing we need to know about a
+given character |c| in a non-virtual font |f| is the width.  For the font as
+a whole, all we need is the symbolic name to use in the \.{MPX} file.
+
+This information appears implicitly in the following data
+structures. The current number of fonts defined is |nf|. Each such font has
+an internal number |f|, where |0<=f<nf|.  There is also an external number
+that identifies the font in the \.{DVI} file.  The correspondence is
+maintained in arrays |font_num| and |internal_num| so that |font_num[i]|
+is the external number for |f=internal_num[i]|.
+The external name of this font is the string that
+occupies positions |font_name[f]| through |font_name[f+1]-1| of the array
+|names|. The latter array consists of |ASCII_code| characters, and
+|font_name[nf]| is its first unoccupied position. The
+legal characters run from |font_bc[f]| to |font_ec[f]|, inclusive.
+The \.{TFM} file can specify that some of these are invalid, but this doesn't
+concern \.{DVItoMP} because it does not do extensive error checking.
+The width of character~|c| in font~|f| is given by
+|char_width(f)(c)=width[info_base[f]+c]|, and |info_ptr| is the
+first unused position of the |width| array.
+
+If font~|f| is a virtual font, there is a list of \.{DVI} commands for each
+character.  These occupy consecutive positions in the |cmd_buf| array with
+the commands for character~|c| starting at
+|start_cmd(f)(c)=cmd_ptr[info_base[f]+c]| and ending just before
+|start_cmd(f)(c+1)|.  Font numbers used when interpretting these \.{DVI}
+commands occupy positions |fbase[f]| through |ftop[f]-1| in the |font_num|
+table and the |internal_num| array gives the corresponding internal font
+numbers.
+
+If font~|f| is not virtual, then |fbase[f]=0| and |ftop[f]=0|.  The |start_cmd|
+values are ignored in this case.
+
+@d char_width_end(#)==#]
+@d char_width(#)==width[info_base[#]+char_width_end
+@d start_cmd(#)==cmd_ptr[info_base[#]+start_cmd_end
+@d start_cmd_end(#)==#]
+
+@<Glob...@>=
+@!font_num:array [0..max_fnums] of integer; {external font numbers}
+@!internal_num:array [0..max_fnums] of integer; {internal font numbers}
+@!font_name:array [0..max_fonts] of 0..name_size; {starting positions
+  of external font names}
+@!names:array [0..name_size] of ASCII_code; {characters of names}
+@!area_length:array [0..max_fonts] of integer;
+  {length of area part of font name}
+@!font_scaled_size:array [0..max_fonts] of real; {scale factors over $2^{20}$}
+@!font_design_size:array [0..max_fonts] of real; {design sizes over $2^{20}$}
+@!font_check_sum:array [0..max_fonts] of integer;
+  {check sum from the |font_def|}
+@!font_bc:array [0..max_fonts] of integer; {beginning characters in fonts}
+@!font_ec:array [0..max_fonts] of integer; {ending characters in fonts}
+@!info_base:array [0..max_fonts] of integer;
+  {index into |width| and |cmd_ptr| tables}
+@!width:array [0..max_widths] of integer;
+  {character widths, in units $2^{-20}$ of design size}
+@!fbase:array [0..max_fonts] of integer; {index into |font_num| for local fonts}
+@!ftop:array [0..max_fonts] of integer;
+  {|font_num| index where local fonts stop}
+@!cmd_ptr:array [0..max_widths] of integer; {starting positions in |cmd_buf|}
+@!nf:0..max_fonts; {the number of known fonts}
+@!vf_ptr:max_fonts..max_fnums;
+  {next |font_num| entry for virtual font font tables}
+@!info_ptr:0..max_widths; {allocation pointer for |width| and |cmd_ptr| tables}
+@!n_cmds:0..virtual_space; {number of occupied cells in |cmd_buf|}
+@!cur_fbase,@!cur_ftop:0..max_fnums;
+  {currently applicable part of the |font_num| table}
+
+@ @<Set init...@>=
+nf:=0; info_ptr:=0; font_name[0]:=0;
+vf_ptr:=max_fnums;
+cur_fbase:=0; cur_ftop:=0;
+
+@ Printing the name of a given font is easy except that a procedure |print_char|
+is needed to actually send an |ASCII_code| to the \.{MPX} file.
+
+@p @<Declare subroutines for printing strings@>@;
+procedure print_font(@!f:integer); {|f| is an internal font number}
+var k:0..name_size; {index into |names|}
+begin if (f<0)or(f>=nf) then bad_dvi('Undefined font')
+else  begin for k:=font_name[f] to font_name[f+1]-1 do
+    print_char(names[k]);
+  end;
+end;
+
+@ Sometimes a font name is needed as part of an error message.
+
+@d font_warn(#)==begin err_print('DVItoMP warning: ',#); font_warn_end
+@d font_warn_end(#)==err_print_font(#);
+    history:=warning_given;
+    end
+@d font_abort(#)==begin err_print('DVItoMP abort: ',#); font_abort_end
+@d font_abort_end(#)==err_print_font(#);
+    history:=fatal_error; jump_out;
+    end
+
+@p procedure err_print_font(@!f:integer); {|f| is an internal font number}
+var k:0..name_size; {index into |names|}
+begin for k:=font_name[f] to font_name[f+1]-1 do
+  err_print(xchr[names[k]]);
+  err_print_ln(' ');
+end;
+
+@ When we encounter a font definition, we save the name, checksum, and size
+information, but we don't actaully read the \.{TFM} or \.{VF} file until we
+are about to use the font.  If a matching font is not already defined, we then
+allocate a new internal font number.
+
+The following subroutine does the necessary things when a \\{fnt\_def} command
+is encountered in the \.{DVI} file or in a \.{VF} file.  It assumes that the
+first argument has already been parsed and is given by the parameter~|e|.
+
+@p @<Declare a function called |match_font|@>@;
+procedure define_font(@!e:integer); {|e| is an external font number}
+var @!i:integer; {index into |font_num| and |internal_num|}
+@!n:integer; {length of the font name and area}
+@!k:integer; {general purpose loop counter}
+@!x:integer; {a temporary value for scaled size computation}
+begin if nf=max_fonts then abort('DVItoMP capacity exceeded (max fonts=',
+    max_fonts:1,')!');
+@.DVItoMP capacity exceeded...@>
+@<allocate an index |i| into the |font_num| and |internal_num| tables@>;
+@<Read the font parameters into position for font |nf|@>;
+internal_num[i]:=match_font(nf,true);
+if internal_num[i]=nf then
+  begin info_base[nf]:=max_widths; {indicate that the info isn't loaded yet}
+  incr(nf);
+  end;
+end;
+
+@ @<allocate an index |i| into the |font_num| and |internal_num| tables@>=
+if vf_ptr=nf then abort('DVItoMP capacity exceeded (max font numbers=',
+    max_fnums:1,')');
+@.DVItoMP capacity exceeded...@>
+if vf_reading then
+  begin i:=vf_ptr; decr(vf_ptr);
+  end
+else i:=nf;
+font_num[i]:=e
+
+@ @<Read the font parameters into position for font |nf|@>=
+font_check_sum[nf]:=signed_quad;
+@<Read |font_scaled_size[nf]| and |font_design_size[nf]|@>;
+n:=get_byte; area_length[nf]:=n;
+n:=n+get_byte;
+if font_name[nf]+n>name_size then
+  abort('DVItoMP capacity exceeded (name size=',name_size:1,')!');
+@.DVItoMP capacity exceeded...@>
+font_name[nf+1]:=font_name[nf]+n;
+for k:=font_name[nf] to font_name[nf+1]-1 do names[k]:=get_byte
+
+@ The scaled size and design size are stored in \.{DVI} units divided by $2^20$.
+The units for scaled size are a little different if we are reading a virtual
+font, but this will be corrected when the scaled size is used.  The scaled size
+also needs to be truncated to at most 23 significant bits in order to make
+the character width calculation match what \TeX\ does.
+
+@<Read |font_scaled_size[nf]| and |font_design_size[nf]|@>=
+x:=signed_quad;
+k:=1;
+while x>@'40000000 do
+  begin x:=x div 2; k:=k+k;
+  end;
+font_scaled_size[nf]:=x*k/1048576.0;
+if vf_reading then
+  font_design_size[nf]:=signed_quad*dvi_per_fix/1048576.0
+else font_design_size[nf]:=signed_quad/1048576.0;
+
+@ @<Glob...@>=
+@!dvi_per_fix:real; {converts points scaled $2^{20}$ to \.{DVI} units}
+
+@ The |match_font| function tries to find a match for the font with internal
+number~|ff|, returning |nf| or the number of the matching font.  If
+|exact=true|, the name and scaled size should match.  Otherwise the scaled
+size need not match but the font found must be already loaded, not just
+defined.
+
+@<Declare a function called |match_font|@>=
+function match_font(ff:integer; exact:boolean):integer;
+label done, 99;
+var @!f:0..max_fonts; {font number being tested}
+@!ss,@!ll:0..name_size; {starting point and length of name of font |ff|}
+@!k,@!s:0..name_size; {registers for comparing font names}
+begin ss:=font_name[ff]; ll:=font_name[ff+1]-ss;
+f:=0;
+while f<nf do
+  begin if f<>ff then
+    begin @<Compare the names of fonts |f| and |ff|; |goto 99| if they differ@>;
+    if exact then
+      begin if abs(font_scaled_size[f]-font_scaled_size[ff])
+          <= font_tolerance then goto done;
+      end
+    else if info_base[f]<>max_widths then goto done;
+    end;
+  99:incr(f);
+  end;
+done:if f<nf then
+  @<Make sure fonts |f| and |ff| have matching design sizes and checksums@>;
+match_font:=f;
+end;
+
+@ @<Compare the names of fonts |f| and |ff|; |goto 99| if they differ@>=
+if (area_length[f]<area_length[ff]) or (ll<>font_name[f+1]-font_name[f]) then
+  goto 99;
+s:=font_name[f];
+k:=ll;
+while k>0 do
+  begin decr(k);
+  if names[s+k]<>names[ss+k] then goto 99;
+  end
+
+@ @<Make sure fonts |f| and |ff| have matching design sizes and checksums@>=
+if abs(font_design_size[f]-font_design_size[ff]) > font_tolerance then
+  font_warn('Inconsistent design sizes given for ')(ff)
+@.Inconsistent design sizes@>
+else if font_check_sum[f]<>font_check_sum[ff] then
+  font_warn('Checksum mismatch for ')(ff)
+@.Checksum mismatch@>
+
+@* Reading ordinary fonts.
+An auxiliary array |in_width| is used to hold the widths as they are
+input. The global variable |tfm_check_sum| is set to the check sum that
+appears in the current \.{TFM} file.
+
+@<Glob...@>=
+@!in_width:array[0..255] of integer; {\.{TFM} width data in \.{DVI} units}
+@!tfm_check_sum:integer; {check sum found in |tfm_file|}
+
+@ Here is a procedure that absorbs the necessary information from a
+\.{TFM} file, assuming that the file has just been successfully reset
+so that we are ready to read its first byte. (A complete description of
+\.{TFM} file format appears in the documentation of \.{TFtoPL} and will
+not be repeated here.) The procedure does not check the \.{TFM} file
+for validity, nor does it give explicit information about what is
+wrong with a \.{TFM} file that proves to be invalid. The procedure simply
+returns |false| if it detects anything amiss in the \.{TFM} data.
+
+@p function in_TFM(@!f:integer):boolean;
+  {input \.{TFM} data for font |f| or return |false|}
+label 9997, {go here when the format is bad}
+  9999;  {go here to exit}
+var k:integer; {index for loops}
+@!lh:integer; {length of the header data, in four-byte words}
+@!nw:integer; {number of words in the width table}
+@!wp:0..max_widths; {new value of |info_ptr| after successful input}
+begin @<Read past the header data; |goto 9997| if there is a problem@>;
+@<Store character-width indices at the end of the |width| table@>;
+@<Read the width values into the |in_width| table@>;
+@<Move the widths from |in_width| to |width|@>;
+fbase[f]:=0; ftop[f]:=0;
+info_ptr:=wp; in_TFM:=true; goto 9999;
+9997: font_warn('Bad TFM file for ')(f);
+@.Bad TFM file@>
+in_TFM:=false;
+9999: end;
+
+@ @<Read past the header...@>=
+read_tfm_word; lh:=b2*256+b3;
+read_tfm_word; font_bc[f]:=b0*256+b1; font_ec[f]:=b2*256+b3;
+if font_ec[f]<font_bc[f] then font_bc[f]:=font_ec[f]+1;
+if info_ptr+font_ec[f]-font_bc[f]+1>max_widths then
+  abort('DVItoMP capacity exceeded (width table size=',max_widths:1,')!');
+@.DVItoMP capacity exceeded...@>
+wp:=info_ptr+font_ec[f]-font_bc[f]+1;
+read_tfm_word; nw:=b0*256+b1;
+if (nw=0)or(nw>256) then goto 9997;
+for k:=1 to 3+lh do
+  begin if eof(tfm_file) then goto 9997;
+  read_tfm_word;
+  if k=4 then
+    if b0<128 then tfm_check_sum:=((b0*256+b1)*256+b2)*256+b3
+    else tfm_check_sum:=(((b0-256)*256+b1)*256+b2)*256+b3;
+  end;
+
+@ @<Store character-width indices...@>=
+if wp>0 then for k:=info_ptr to wp-1 do
+  begin read_tfm_word;
+  if b0>nw then goto 9997;
+  width[k]:=b0;
+  end;
+
+@ No fancy width calculation is needed here because \.{DVItoMP} stores
+widths in their raw form as multiples of the design size scaled by $2^{20}$.
+The |font_scaled_size| entries have been computed so that the final width
+compution can be done in floating point if enough precision is available.
+
+@<Read the width values into the |in_width| table@>=
+for k:=0 to nw-1 do
+  begin read_tfm_word;
+  if b0>127 then b0:=b0-256;
+  in_width[k]:=((b0*@'400+b1)*@'400+b2)*@'400+b3;
+  end
+
+@ The width compution uses a scale factor |dvi_scale| that will be introduced
+later.  It is equal to one when not typesetting a character from a virtual
+font.  In that case, the following expressions do the width computation that is
+so important in \.{DVItype}.  It is less important here because it is impractical
+to guarantee precise character positioning in MetaPost output.  Nevertheless, the
+width compution will be precise if reals have at least 46-bit mantissas and
+|round(x-.5)| is equivalent to $\lfloor x\rfloor$.  It may be a good idea to
+modify this computation if these conditions are not met.
+@^system dependencies@>
+
+@<Width of character |c| in font |f|@>=
+round(dvi_scale*font_scaled_size[f]*char_width(f)(c)-0.5)
+
+@ @<Width of character |p| in font |cur_font|@>=
+round(dvi_scale*font_scaled_size[cur_font]*char_width(cur_font)(p)-0.5)
+
+@ @<Move the widths from |in_width| to |width|@>=
+if in_width[0]<>0 then goto 9997; {the first width should be zero}
+info_base[f]:=info_ptr-font_bc[f];
+if wp>0 then for k:=info_ptr to wp-1 do
+  width[k]:=in_width[width[k]]
+
+
+@* Reading virtual fonts.
+The |in_VF| procedure absorbs the necessary information from a \.{VF} file that
+has just been reset so that we are ready to read the first byte.  (A complete
+description of \.{VF} file format appears in the documention of \.{VFtoVP}).
+Like |in_TFM|, this procedure simply returns |false| if it detects anything
+wrong with the \.{VF} file.
+
+@p @<Declare a function called |first_par|@>@;
+function in_VF(f:integer):boolean;
+  {read \.{VF} data for font |f| or return |false|}
+label 9997, {go here to return |false|}
+  9999; {go here to exit}
+var @!p:integer; {a byte from the \.{VF} file}
+@!was_vf_reading:boolean; {old value of |vf_reading|}
+@!c:integer; {the current character code}
+@!limit:integer; {space limitations force character codes to be less than this}
+@!w:integer; {a \.{TFM} width being read}
+begin was_vf_reading:=vf_reading; vf_reading:=true;
+@<Start reading the preamble from a \.{VF} file@>;@/
+@<Initialize the data structures for the virtual font@>;@/
+p:=get_byte;
+while p>=fnt_def1 do
+  begin if p>fnt_def1+3 then goto 9997;
+  define_font(first_par(p));
+  p:=get_byte;
+  end;
+while p<=242 do
+  begin if eof(vf_file) then goto 9997;
+  @<Read the packet length, character code, and \.{TFM} width@>;
+  @<Store the character packet in |cmd_buf|@>;
+  p:=get_byte;
+  end;
+if p=post then
+  begin @<Finish setting up the data structures for the new virtual font@>;
+  in_VF:=true; goto 9999;
+  end;
+9997:font_warn('Bad VF file for ')(f);
+in_VF:=false;
+9999: vf_reading:=was_vf_reading;
+end;
+
+@ @<Start reading the preamble from a \.{VF} file@>=
+p:=get_byte;
+if p<>pre then goto 9997;
+p:=get_byte; {fetch the identification byte}
+if p<>202 then goto 9997;
+p:=get_byte; {fetch the length of the introductory comment}
+while p>0 do
+  begin decr(p); down_the_drain:=get_byte;
+  end;
+tfm_check_sum:=signed_quad;
+down_the_drain:=signed_quad; {skip over the design size}
+
+@ @<Initialize the data structures for the virtual font@>=
+ftop[f]:=vf_ptr;
+if vf_ptr=nf then abort('DVItoMP capacity exceeded (max font numbers=',
+    max_fnums:1,')');
+@.DVItoMP capacity exceeded...@>
+decr(vf_ptr);
+info_base[f]:=info_ptr;
+limit:=max_widths-info_base[f];@/
+font_bc[f]:=limit; font_ec[f]:=0
+
+@ @<Read the packet length, character code, and \.{TFM} width@>=
+if p=242 then
+  begin p:=signed_quad; c:=signed_quad; w:=signed_quad;
+  if c<0 then goto 9997;
+  end
+else begin c:=get_byte; w:=get_three_bytes;
+  end;
+if c>=limit then
+  abort('DVItoMP capacity exceeded (max widths=', max_widths:1,')!');
+@.DVItoMP capacity exceeded...@>
+if c<font_bc[f] then font_bc[f]:=c;
+if c>font_ec[f] then font_ec[f]:=c;
+char_width(f)(c):=w
+
+@ @<Store the character packet in |cmd_buf|@>=
+if n_cmds+p>=virtual_space then
+  abort('DVItoMP capacity exceeded (virtual font space=',virtual_space:1,')!');
+@.DVItoMP capacity exceeded...@>
+start_cmd(f)(c):=n_cmds;
+while p>0 do
+  begin cmd_buf[n_cmds]:=qi(get_byte);
+  incr(n_cmds); decr(p);
+  end;
+cmd_buf[n_cmds]:=qi(eop); {add the end-of-packet marker}
+incr(n_cmds)
+
+@ There are unused |width| and |cmd_ptr| entries if |font_bc[f]>0| but it isn't
+worthwhile to slide everything down just to save a little space.
+
+@<Finish setting up the data structures for the new virtual font@>=
+fbase[f]:=vf_ptr+1;
+info_ptr:=info_base[f]+font_ec[f]
+
+
+@* Loading fonts.
+The character width information for a font is loaded when the font is selected
+for the first time.  This information might already be loaded if the font has
+already been used at a different scale factor.  Otherwise, we look for a \.{VF}
+file, or failing that, a \.{TFM} file.  All this is done by the |select_font|
+function that takes an external font number~|e| and returns the corresponding
+internal font number with the width information loaded.
+
+@p function select_font(@!e:integer):integer;
+var @!f:0..max_fonts; {the internal font number}
+@!ff:0..max_fonts; {internal font number for an existing version}
+@!k,@!l:integer; {general purpose loop counters}
+@!did_it:boolean; {has the required information been loaded?}
+begin @<Set |f| to the internal font number that corresponds to |e|,
+  or |abort| if there is none@>;
+if info_base[f]=max_widths then
+  begin did_it:=false;
+  ff:=match_font(f,false);
+  if ff<nf then @<Make font |f| refer to the width information from font |ff|@>
+  else begin @<Move the \.{VF} file name into the |cur_name| string@>;
+    if open_vf_file then did_it:=in_VF(f);
+    if not did_it then
+      begin @<Change \.{.VF} to \.{.TFM} in the |cur_name| string@>;
+      if not open_tfm_file then font_abort('No TFM file found for ')(f);
+  @.no TFM file found@>
+      did_it:=in_TFM(f);
+      end;
+    @<Make sure the checksum in the font file matches the one given in the
+      |font_def| for font |f|@>;
+    end;
+  @<Do any other initialization required for the new font |f|@>;
+  end;
+select_font:=f;
+end;
+
+@ @<Set |f| to the internal font number that corresponds to |e|,...@>=
+if cur_ftop<=nf then cur_ftop:=nf;
+font_num[cur_ftop]:=e;
+k:=cur_fbase;
+while font_num[k]<>e do incr(k);
+if k=cur_ftop then abort('Undefined font selected');
+f:=internal_num[k]
+
+@ @<Make font |f| refer to the width information from font |ff|@>=
+begin font_bc[f]:=font_bc[ff];
+font_ec[f]:=font_ec[ff];
+info_base[f]:=info_base[ff];
+fbase[f]:=fbase[ff];
+ftop[f]:=ftop[ff];
+end
+
+@ If |area_length[f]=0|, i.e., if no font directory has been specified,
+\.{DVItoMP} is supposed to use the default font directory, which is a
+system-dependent place where the standard fonts are kept.
+The string variable |default_directory| contains the name of this area.
+@^system dependencies@>
+
+@d default_directory_name=='TeXfonts:' {change this to the correct name}
+@d default_directory_name_length=9 {change this to the correct length}
+
+@<Glob...@>=
+@!default_directory:packed array[1..default_directory_name_length] of char;
+
+@ @<Set init...@>=
+default_directory:=default_directory_name;
+
+@ The string |cur_name| is supposed to be set to the external name of the
+\.{VF} file for the current font. This usually means that we need to
+prepend the name of the default directory, and
+to append the suffix `\.{.VF}'. Furthermore, we change lower case letters
+to upper case, since |cur_name| is a \PASCAL\ string.
+@^system dependencies@>
+
+@<Move the \.{VF} file name into the |cur_name| string@>=
+for k:=1 to name_length do cur_name[k]:=' ';
+if area_length[f]=0 then
+  begin for k:=1 to default_directory_name_length do
+    cur_name[k]:=default_directory[k];
+  l:=default_directory_name_length;
+  end
+else l:=0;
+for k:=font_name[f] to font_name[f+1]-1 do
+  begin incr(l);
+  if l+3>name_length then
+    abort('DVItoMP capacity exceeded (max font name length=',
+      name_length:1,')!');
+@.DVItoMP capacity exceeded...@>
+  if (names[k]>="a")and(names[k]<="z") then
+      cur_name[l]:=xchr[names[k]-@'40]
+  else cur_name[l]:=xchr[names[k]];
+  end;
+cur_name[l+1]:='.'; cur_name[l+2]:='V'; cur_name[l+3]:='F'
+
+@ It is fairly simple to change a \.{VF} file name to a \.{TFM} file name.
+@^system dependencies@>
+
+@<Change \.{.VF} to \.{.TFM} in the |cur_name| string@>=
+l:=area_length[f];
+if l=0 then l:=default_directory_name_length;
+l:=l+font_name[f+1]-font_name[f];
+if l+4>name_length then
+  abort('DVItoMP capacity exceeded (max font name length=',
+    name_length:1,')!');
+@.DVItoMP capacity exceeded...@>
+cur_name[l+2]:='T'; cur_name[l+3]:='F'; cur_name[l+4]:='M'
+
+@ @<Make sure the checksum in the font file matches the one given in the...@>=
+begin if (font_check_sum[f]<>0)and(tfm_check_sum<>0)and@|
+    (font_check_sum[f]<>tfm_check_sum) then
+  begin err_print('DVItoMP warning: Checksum mismatch for ');
+@.Checksum mismatch@>
+  err_print_font(nf);
+  if history=spotless then history:=cksum_trouble;
+  end;
+end
+
+@* Low level output routines.
+One of the basic output operations is to write a \MP\ string expression for
+a sequence of characters to be typeset.  The main difficulties are that such
+strings can contain arbitrary eight-bit bytes and there is no fixed limit on
+the length of the string that needs to be produced.  In extreme cases this
+can lead to expressions such as
+$$\vcenter{
+    \hbox{\.{char7\&char15\&char31\&"?FWayzz"}}
+    \hbox{\.{\&"zzaF"\&char15\&char3\&char31}}
+    \hbox{\.{\&"Nxzzzzzzzwvtsqo"}}}
+$$
+
+@ A global variable |state| keeps track of the output process.
+When |state=normal| we have begun a quoted string and the next character
+should be a printable character or a closing quote.  When |state=special|
+the last thing printed was a ``\.{char}'' construction or a closing quote
+and an ampersand should come next.  The starting condition |state=initial|
+is a lot like |state=special|, except no ampersand is required.
+
+@d special=0 {the |state| after printing a ``\.{char}'' expression}
+@d normal=1 {the |state| value in a quoted string}
+@d initial=2 {initial |state|}
+
+@<Glob...@>=
+state:special..initial; {controls the process of printing a string}
+print_col:0..line_length;
+  {there are at most this many characters on the current line}
+
+@ To print a string on the \.{MPX} file, initialize |print_col|, ensure that
+|state=initial|, and pass the characters one-at-a-time to |print_char|.
+
+@<Declare subroutines for printing strings@>=
+procedure print_char(@!c:eight_bits);
+var @!printable:boolean; {is it safe to print |xchr[c]|?}
+@!l:integer; {number of characters to print |c| or the \.{char} expression}
+begin printable:=(c>=" ")and(c<="~")and(c<>"""");
+if printable then l:=1
+else if c<10 then l:=5
+else if c<100 then l:=6
+else l:=7;
+if print_col+l>line_length-2 then
+  begin if state=normal then
+    begin print('"'); state:=special;
+    end;
+  print_ln(' ');
+  print_col:=0;
+  end;
+@<Print |c| and update |state| and |print_col|@>;
+end;
+
+@ @<Print |c| and update |state| and |print_col|@>=
+if state=normal then
+  if printable then print(xchr[c])
+  else begin print('"&char',c:1);
+    print_col:=print_col+2;
+    end
+else begin if state=special then
+    begin print('&'); incr(print_col);
+    end;
+  if printable then
+    begin print('"',xchr[c]); incr(print_col);
+    end
+  else print('char',c:1);
+  end;
+print_col:=print_col+l;
+if printable then state:=normal @+else state:=special
+
+@ The |end_char_string| procedure gets the string ended properly and ensures
+that there is room for |l| more characters on the output line.
+
+@<Declare subroutines for printing strings@>=
+procedure end_char_string(@!l:integer);
+begin while state>special do
+  begin print('"');
+  incr(print_col);
+  decr(state);
+  end;
+if print_col+l>line_length then
+  begin print_ln(' '); print_col:=0;
+  end;
+state:=initial; {get ready to print the next string}
+end;
+
+@ Since |end_char_string| resets |state:=initial|, all we have to do is set
+|state:=initial| once at the beginning.
+
+@<Set init...@>=
+state:=initial;
+
+@ Characters and rules are positioned according to global variables |h| and~|v|
+as will be explained later.  We also need scale factors that convert quantities
+to the right units when they are printed in the \.{MPX} file. 
+
+@<Glob...@>=
+@!h,@!v:integer; {the current position in \.{DVI} units}
+@!conv:real; {converts \.{DVI} units to \MP\ points}
+@!mag:real; {magnification factor times 1000}
+
+@ @p @<Declare a procedure called |finish_last_char|@>@;
+procedure do_set_char(@!f,@!c:integer);
+begin if (c<font_bc[f])or(c>font_ec[f]) then
+  abort('attempt to typeset invalid character ',c:1);
+@.attempt to typeset...@>
+if (h<>str_h2)or(v<>str_v)or(f<>str_f)or(dvi_scale<>str_scale) then
+  begin if str_f>=0 then finish_last_char
+  else if not fonts_used then
+    @<Prepare to output the first character on a page@>;
+  if not font_used[f] then
+    @<Prepare to use font |f| for the first time on a page@>;
+  print('s('); print_col:=2;@/
+  str_scale:=dvi_scale; str_f:=f; str_v:=v; str_h1:=h;
+  end;
+print_char(c);
+str_h2:=h+@<Width of character |c| in font |f|@>;
+end;
+
+@ @<Glob...@>=
+@!font_used:array[0..max_fonts] of boolean;
+  {has this font been used on this page?}
+@!fonts_used:boolean; {has any font been used on this page?}
+@!rules_used:boolean; {has any rules been set on this page?}
+@!str_h1,str_v:integer; {starting position for current output string}
+@!str_h2:integer; {where the current output string ends}
+@!str_f:integer; {internal font number for the current output string}
+@!str_scale:real; {value of |dvi_scale| for the current output string}
+
+@ The |font_used| array is not initialized until it is actually time to output
+a character.
+
+@<Prepare to output the first character on a page@>=
+begin k:=0;
+while (k<nf) do
+  begin font_used[k]:=false; incr(k);
+  end;
+fonts_used:=true;
+print_ln('string n[];');
+print_ln('vardef s(expr t,f,m,x,y)=');
+print_ln('  addto p also t infont f scaled m shifted (x,y); enddef;');
+end
+
+@ @<Do any other initialization required for the new font |f|@>=
+font_used[f]:=false;
+
+@ @<Prepare to use font |f| for the first time on a page@>=
+begin font_used[f]:=true;
+print('n',f:1,'=');
+print_col:=5;
+print_font(f);
+end_char_string(1);
+print_ln(';');
+end
+
+@ We maintain the invariant that |str_f=-1| when there is no output string
+under construction.
+
+@<Declare a procedure called |finish_last_char|@>=
+procedure finish_last_char;
+var @!m,@!x,@!y:real;
+  {font scale factor and \MP\ coordinates of reference point}
+begin if str_f>=0 then
+  begin m:=str_scale*font_scaled_size[str_f]*mag/font_design_size[str_f];@/
+  x:=conv*str_h1; y:=conv*(-str_v);
+  if (abs(x)>=4096.0)or(abs(y)>=4096.0)or(m>=4096.0)or(m<0) then
+    begin warn('text scaled ',m:1:1,@|
+        ' at (',x:1:1,',',y:1:1,') is out of range');
+    end_char_string(60);
+    end
+  else end_char_string(40);
+  print_ln(',n',str_f:1,',',m:1:5,',',x:1:4,',',y:1:4,');');
+  str_f:=-1;
+  end;
+end;
+
+@ Setting rules is fairly simple.
+
+@p procedure do_set_rule(@!ht,@!wd:integer);
+var @!xx1,@!yy1,@!xx2,@!yy2:real;
+  {\MP\ coordinates of lower-left and upper-right corners}
+begin if (ht>0)or(wd>0) then
+  begin if str_f>=0 then finish_last_char;
+  if not rules_used then
+    begin rules_used:=true;@/
+    print_ln('vardef r(expr a,b,c,d)=');@/
+    print_ln('  addto p contour (a,b)--(c,b)--(c,d)--(a,d)--cycle; enddef;');@/
+    end;
+  xx1:=conv*h; yy1:=conv*(-v);@/
+  xx2:=conv*(h+wd); yy2:=conv*(ht-v);@/
+  if (abs(xx1)>=4096.0)or(abs(yy1)>=4096.0)or@|
+      (abs(xx2)>=4096.0)or(abs(yy2)>=4096.0) then
+    warn('hrule or vrule at (',xx1:1:1,',',yy1:1:1,') is out of range');
+  print_ln('r(',xx1:1:4,',',yy1:1:4,',',xx2:1:4,',',yy2:1:4,');');
+  end;
+end;
+
+@ The following  initialization and clean-up is required.  We do a little more
+initialization than is absolutely necessary since some compilers might complain
+if the variables are uninitialized when |do_set_char| tests them.
+
+@p procedure start_picture;
+begin fonts_used:=false;
+rules_used:=false;
+str_f:=-1;@/
+str_v:=0; str_h2:=0; str_scale:=1.0; {values don't matter}
+print_ln('begingroup save p,r,s,n; picture p; p=nullpicture;');
+end;
+@#
+procedure stop_picture;
+begin if str_f>=0 then finish_last_char;
+print_ln('p endgroup');
+end;
+
+@* Translation to symbolic form.
+The main work of \.{DVItoMP} is accomplished by the |do_dvi_commands|
+procedure, which produces the output for an entire page, assuming that the
+|bop| command for that page has already been processed. This procedure is
+essentially an interpretive routine that reads and acts on the \.{DVI}
+commands.  It is also capable of executing the typesetting commands for
+a character in a virtual font.
+
+@ The definition of \.{DVI} files refers to six registers,
+$(h,v,w,x,y,z)$, which hold integer values in \.{DVI} units.
+These units come directly from the input file except they need to be
+rescaled when typesetting characters from a virtual font.
+The stack of $(h,v,w,x,y,z)$ values is represented by six arrays
+called |hstack|, \dots, |zstack|.
+
+@<Glob...@>=
+@!w,@!x,@!y,@!z:integer;
+  {current state values (|h| and |v| have already been declared)}
+@!hstack,@!vstack,@!wstack,@!xstack,@!ystack,@!zstack:
+  array [0..stack_size] of integer; {pushed down values in \.{DVI} units}
+@!stk_siz:integer; {the current stack size}
+@!dvi_scale:real; {converts units of current input source to \.{DVI} units}
+
+@ @<Do initialization required before starting a new page@>=
+dvi_scale:=1.0;
+stk_siz:=0;
+h:=0; v:=0
+
+@ Next, we need procedures to handle |push| and |pop| commands.
+
+@p procedure do_push;
+begin if stk_siz=stack_size then
+      abort('DVItoMP capacity exceeded (stack size=',stack_size:1,')');
+@.DVItoMP capacity exceeded...@>
+hstack[stk_siz]:=h; vstack[stk_siz]:=v; wstack[stk_siz]:=w;
+xstack[stk_siz]:=x; ystack[stk_siz]:=y; zstack[stk_siz]:=z;
+incr(stk_siz);
+end;
+@#
+procedure do_pop;
+begin if stk_siz=0 then bad_dvi('attempt to pop empty stack')
+else  begin decr(stk_siz);
+  h:=hstack[stk_siz]; v:=vstack[stk_siz]; w:=wstack[stk_siz];
+  x:=xstack[stk_siz]; y:=ystack[stk_siz]; z:=zstack[stk_siz];
+  end;
+end;
+
+@ We need to define the |set_virtual_char| procedure now because it is
+mutually recursive with |do_dvi_commands|.  This is really a supervisory
+procedure that calls |do_set_char| or adjusts the input source to read
+typesetting commands for a character in a virtual font.
+
+@p procedure do_dvi_commands;forward;@t\2@>
+procedure set_virtual_char(@!f,@!c:integer);
+var @!old_scale:real; {original value of |dvi_scale|}
+@!old_buf_ptr:0..virtual_space; {original value of the input pointer |buf_ptr|}
+@!old_fbase,@!old_ftop:0..max_fnums;
+  {originally applicable part of the |font_num| table}
+begin if fbase[f]=0 then do_set_char(f,c)
+else begin old_fbase:=cur_fbase; old_ftop:=cur_ftop;
+  cur_fbase:=fbase[f]; cur_ftop:=ftop[f];@/
+  old_scale:=dvi_scale;
+  dvi_scale:=dvi_scale*font_scaled_size[f];
+  old_buf_ptr:=buf_ptr;
+  buf_ptr:=start_cmd(f)(c);@/
+  do_push;
+  do_dvi_commands;
+  do_pop;@/
+  buf_ptr:=old_buf_ptr;
+  dvi_scale:=old_scale;
+  cur_fbase:=old_fbase; cur_ftop:=old_ftop;
+  end;
+end;
+
+@ Before we get into the details of |do_dvi_commands|, it is convenient to
+consider a simpler routine that computes the first parameter of each
+opcode.
+
+@d four_cases(#)==#,#+1,#+2,#+3
+@d eight_cases(#)==four_cases(#),four_cases(#+4)
+@d sixteen_cases(#)==eight_cases(#),eight_cases(#+8)
+@d thirty_two_cases(#)==sixteen_cases(#),sixteen_cases(#+16)
+@d sixty_four_cases(#)==thirty_two_cases(#),thirty_two_cases(#+32)
+
+@<Declare a function called |first_par|@>=
+function first_par(o:eight_bits):integer;
+begin case o of
+sixty_four_cases(set_char_0),sixty_four_cases(set_char_0+64):
+  first_par:=o-set_char_0;
+set1,put1,fnt1,xxx1,fnt_def1: first_par:=get_byte;
+set1+1,put1+1,fnt1+1,xxx1+1,fnt_def1+1: first_par:=get_two_bytes;
+set1+2,put1+2,fnt1+2,xxx1+2,fnt_def1+2: first_par:=get_three_bytes;
+right1,w1,x1,down1,y1,z1: first_par:=signed_byte;
+right1+1,w1+1,x1+1,down1+1,y1+1,z1+1: first_par:=signed_pair;
+right1+2,w1+2,x1+2,down1+2,y1+2,z1+2: first_par:=signed_trio;
+set1+3,set_rule,put1+3,put_rule,right1+3,w1+3,x1+3,down1+3,y1+3,z1+3,
+  fnt1+3,xxx1+3,fnt_def1+3: first_par:=signed_quad;
+nop,bop,eop,push,pop,pre,post,post_post,undefined_commands: first_par:=0;
+w0: first_par:=w;
+x0: first_par:=x;
+y0: first_par:=y;
+z0: first_par:=z;
+sixty_four_cases(fnt_num_0): first_par:=o-fnt_num_0;
+end;
+end;
+
+@ Here is the |do_dvi_commands| procedure.
+
+@p procedure do_dvi_commands;
+label 9999;
+var o:eight_bits; {operation code of the current command}
+@!p,@!q:integer; {parameters of the current command}
+@!cur_font:integer; {current internal font number}
+begin cur_font:=nf; {current font is undefined}
+if cur_fbase<cur_ftop then
+  cur_font:=select_font(font_num[cur_ftop-1]); {select first local font}
+w:=0; x:=0; y:=0; z:=0; {initialize the state variables}
+while true do @<Translate the next command in the \.{DVI} file;
+    |goto 9999| if it was |eop|@>;
+9999: do_nothing;
+end;
+
+@ The multiway switch in |first_par|, above, was organized by the length
+of each command; the one in |do_dvi_commands| is organized by the semantics.
+
+@ @<Translate the next command...@>=
+begin o:=get_byte; p:=first_par(o);
+if eof(dvi_file) then bad_dvi('the DVI file ended prematurely');
+@.the DVI file ended prematurely@>
+if o<set1+4 then  {|set_char_0| through |set_char_127|, |set1| through |set4|}
+  begin set_virtual_char(cur_font,p);
+  h:=h+@<Width of character |p| in font |cur_font|@>;
+  end
+else case o of
+  four_cases(put1): set_virtual_char(cur_font,p);
+  set_rule: begin q:=trunc(signed_quad*dvi_scale);
+    do_set_rule(trunc(p*dvi_scale),q);
+    h:=h+q;
+    end;
+  put_rule: do_set_rule(trunc(p*dvi_scale),trunc(signed_quad*dvi_scale));
+  @t\4@>@<Additional cases for translating \.{DVI} command |o| with
+      first paramter |p|@>@;
+  undefined_commands:bad_dvi('undefined command ',o:1,'!');
+@.undefined command@>
+  end; {all cases have been enumerated}
+end
+
+@ @<Additional cases for translating \.{DVI} command |o|...@>=
+four_cases(xxx1): for k:=1 to p do
+    down_the_drain:=get_byte;
+pre,post,post_post: bad_dvi('preamble or postamble within a page!');
+@.preamble or postamble within a page@>
+
+@ @<Additional cases for translating \.{DVI} command |o|...@>=
+nop: do_nothing;
+bop: bad_dvi('bop occurred before eop');
+@.bop occurred before eop@>
+eop: goto 9999;
+push: do_push;
+pop: do_pop;
+
+@ @<Additional cases for translating \.{DVI} command |o|...@>=
+four_cases(right1):h:=h+trunc(p*dvi_scale);
+w0,four_cases(w1):begin w:=trunc(p*dvi_scale); h:=h+w;
+  end;
+x0,four_cases(x1):begin x:=trunc(p*dvi_scale); h:=h+x;
+  end;
+four_cases(down1):v:=v+trunc(p*dvi_scale);
+y0,four_cases(y1):begin y:=trunc(p*dvi_scale); v:=v+y;
+  end;
+z0,four_cases(z1):begin z:=trunc(p*dvi_scale); v:=v+z;
+  end;
+
+@ @<Additional cases for translating \.{DVI} command |o|...@>=
+sixty_four_cases(fnt_num_0),four_cases(fnt1):
+  cur_font:=select_font(p);
+four_cases(fnt_def1): define_font(p);
+
+@* The main program.
+Now we are ready to put it all together. This is where \.{DVItoMP} starts,
+and where it ends.
+
+@p begin initialize; {get all variables initialized}
+@<Process the preamble@>;
+open_mpx_file;
+print_ln(banner);
+begin while true do
+  begin @<Advance to the next |bop| command@>;
+  for k:=0 to 10 do down_the_drain:=signed_quad;
+  @<Do initialization required before starting a new page@>;
+  start_picture;
+  do_dvi_commands;
+  if stk_siz<>0 then bad_dvi('stack not empty at end of page');
+@.stack not empty...@>
+  stop_picture;
+  print_ln('mpxbreak');
+  end;
+done:end;
+final_end:end.
+
+@ The main program needs a few global variables in order to do its work.
+
+@<Glob...@>=
+@!k,@!p:integer; {general purpose registers}
+@!numerator,@!denominator:integer; {stated conversion ratio}
+
+@ @<Process the preamble@>=
+open_dvi_file;
+p:=get_byte; {fetch the first byte}
+if p<>pre then bad_dvi('First byte isn''t start of preamble!');
+@.First byte isn't...@>
+p:=get_byte; {fetch the identification byte}
+if p<>id_byte then
+  warn('identification in byte 1 should be ',id_byte:1,'!');
+@.identification...should be n@>
+@<Compute the conversion factor@>;
+p:=get_byte; {fetch the length of the introductory comment}
+while p>0 do
+  begin decr(p); down_the_drain:=get_byte;
+  end
+
+@ The conversion factor |conv| is figured as follows: There are exactly
+|n/d| decimicrons per \.{DVI} unit, and 254000 decimicrons per inch,
+and |resolution| pixels per inch. Then we have to adjust this
+by the stated amount of magnification.  No such adjustment is needed for
+|dvi_per_fix| since it is used to convert design sizes.
+
+@<Compute the conversion factor@>=
+numerator:=signed_quad; denominator:=signed_quad;
+if (numerator<=0)or(denominator<=0) then
+  bad_dvi('bad scale ratio in preamble');
+@.bad scale ratio@>
+mag:=signed_quad/1000.0;
+if mag<=0.0 then bad_dvi('magnification isn''t positive');
+@.magnification isn't positive@>
+conv:=(numerator/254000.0)*(72.0/denominator)*mag;
+dvi_per_fix:=(254000.0/numerator)*(denominator/72.27)/1048576.0;
+
+@ @<Advance to the next |bop| command@>=
+repeat k:=get_byte;
+if (k>=fnt_def1)and(k<fnt_def1+4) then
+  begin p:=first_par(k); define_font(p); k:=nop;
+  end;
+until k<>nop;
+if k=post then goto done;
+if k<>bop then bad_dvi('missing bop');
+@.missing bop@>
+
+
+@* System-dependent changes.
+This section should be replaced, if necessary, by changes to the program
+that are necessary to make \.{DVItoMP} work at a particular installation.
+It is usually best to design your change file so that all changes to
+previous sections preserve the section numbering; then everybody's version
+will be consistent with the printed program. More extensive changes,
+which introduce new sections, can be inserted here; then only the index
+itself will get a new section number.
+@^system dependencies@>
+
+@* Index.
+Pointers to error messages appear here together with the section numbers
+where each ident\-i\-fier is used.

@@ -1,0 +1,48 @@
+</$objtype/mkfile
+
+LIBS=libString common
+PROGS=alias ed misc q send smtp
+#libs must be made first
+DIRS=$LIBS $PROGS
+
+none:V:
+	echo mk all, install, installall, clean, or nuke
+
+all:V:
+	for (i in $DIRS) @{
+		cd $i
+		mk all
+	}
+
+clean:V:
+	for (i in $PROGS) @{
+		cd $i
+		mk clean
+	}
+
+nuke:V:
+	for (i in $LIBS) @{
+		cd $i
+		mk nuke
+	}
+	for (i in $PROGS) @{
+		cd $i
+		mk clean
+	}
+
+install:V:
+	for (i in $DIRS) @{
+		cd $i
+		mk install
+	}
+
+installall:V:
+	for (i in $DIRS) @{
+		cd $i
+		mk installall
+	}
+	for (i in $DIRS) @{
+		cd $i
+		mk clean
+	}
+

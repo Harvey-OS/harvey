@@ -1,0 +1,9 @@
+vardef C.sq(expr n) =
+ save p,q;
+ picture p; p=nullpicture;
+ path q; q=(0,0)--(1,0)--(1,1)--(0,1)--cycle;
+ addto p
+  if n="Times-Bold": contour q
+  else: doublepath q withpen pencircle scaled.0667 fi;
+ p scaled (fontsize n/2)
+enddef;

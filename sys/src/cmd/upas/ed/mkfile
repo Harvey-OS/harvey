@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+TARG=edmail
+OFILES=message.$O\
+	edmail.$O\
+	cmds.$O\
+
+LIB=../common/libcommon.a$O\
+	../libString/libString.a$O\
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkone
+CFLAGS=-w -I../common
+
+%.$O:	../common/common.h ../common/sys.h

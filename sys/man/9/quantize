@@ -1,0 +1,75 @@
+.TH QUANTIZE 9.1
+.SH NAME
+3to1, mcut, improve, quantize, dither \- picture color compression
+.SH SYNOPSIS
+.B fb/3to1
+[
+.B -e
+]
+.I colormap
+[
+.I input
+]
+.PP
+.B fb/mcut
+[
+.I input
+]
+.PP
+.B fb/improve
+.I colormap
+[
+.I input
+]
+.PP
+.B fb/quantize
+[
+.I input
+]
+.PP
+.B fb/dither
+[
+.I input
+]
+.SH DESCRIPTION
+.I 3to1
+approximates the full color (3 bytes per pixel) input picture file in
+one byte per pixel using the given
+.I colormap.
+If no
+.I input
+file is named, the
+picture is read from standard input.  The
+.B -e
+option suppresses the default error-diffusion dither.
+.PP
+.I Mcut
+writes a color map, suitable for use by
+.I 3to1
+on its standard output.  The color map
+is computed using the median-cut algorithm
+and represents reasonably well, but not
+necessarily optimally, the colors
+of the input picture.
+.PP
+.I Improve
+reads a color map and a picture and writes
+on standard output a new color map that better
+represents the colors of the picture.
+Multiple passes of
+.I improve
+may produce better and better color maps.
+.PP
+.I Quantize
+is an
+.I rc
+script that packages all of the above to compress the full-color
+input image to one byte per pixel.
+.PP
+.I Dither
+likewise compresses full-color images to one byte per pixel.
+It uses a fixed color map that allows a speedy algorithm;
+.I quantize
+instead runs slower but gives better results.
+.SH "SEE ALSO
+.IR picfile (9.6)

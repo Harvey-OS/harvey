@@ -1,0 +1,40 @@
+.TH REMAP 9.1
+.SH NAME
+cmap, remap \- map colors
+.SH SYNOPSIS
+.B fb/cmap
+.I colormap
+[
+.I input
+]
+.PP
+.B fb/remap
+.I colormap
+[
+.I input
+]
+.SH DESCRIPTION
+.I Cmap
+looks up the
+.B rgb
+channels of the input picture file (default standard input), in the
+.IR colormap ,
+writing the resulting image to standard output.
+.PP
+.I Remap
+is approximately the inverse of
+.I cmap.
+Pixel values in the input image are replaced by those that, when mapped through
+the input
+.I colormap ,
+come closest to reproducing the
+.I input
+image.
+The output picture includes a copy of the
+.I colormap.
+.SH "SEE ALSO
+.IR picfile (9.6)
+.SH BUGS
+Both commands work only if the input image contains
+.B rgb
+channels.

@@ -1,0 +1,39 @@
+CFLAGS=-w
+AFLAGS=
+
+none:Q:
+	echo usage: mk entry, all, clean, install, entry.all, installall, nuke
+
+all:V:	$LIB
+
+$LIB:V:	$OFILES			# force archive even when not needed
+	ar vu $LIB $newprereq
+	$RL $LIB
+	rm -f $OFILES
+	
+&:n:	&.$O
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+%.$O:	$HFILES			# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+
+install:V: $LIB
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+%.all:V:
+	for(objtype in $CPUS) mk $stem
+
+clean:V:
+	rm -f *.[$OS] [$OS].out
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out

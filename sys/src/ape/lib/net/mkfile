@@ -1,0 +1,37 @@
+APE=/sys/src/ape
+< $APE/config
+L=/$objtype/lib/ape/libnet.a
+CFLAGS=$CFLAGS -I. -D_POSIX_SOURCE -D_RESEARCH_SOURCE -D_NET_EXTENSION
+BUILTINS=
+
+NAMES=U=dial announce
+OBJ=U=${NAMES:%=$L(%.$O)}
+
+install:VQ:	$L
+	echo done $L
+
+compile:V:	$L
+test:VQ:
+	echo libnet has no test
+clean:V:
+	rm -f *.[$OS]
+
+nuke:V:		clean
+	rm -f $L
+
+installall:V:
+	for (objtype in $CPUS)
+		mk install
+
+$L:	$OBJ
+	names=`{membername $newprereq}
+	$AR rv $L $names && rm -f $names
+	$RANLIB $L
+
+$L(%.$O):N:	%.$O
+
+%.$O:	%.c
+	$CC $CFLAGS -c $stem.c
+
+%.$O:	$FAMILY/%.c
+	$CC $CFLAGS -c $prereq

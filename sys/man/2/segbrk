@@ -1,0 +1,36 @@
+.TH SEGBRK 2
+.SH NAME
+segbrk \- change memory allocation
+.SH SYNOPSIS
+.ta \w'\fLvoid* 'u
+.B
+int	segbrk(void *saddr, void *addr)
+.PP
+.SH DESCRIPTION
+.I Segbrk
+sets the system's idea of the lowest unused location of a segment
+to
+.I addr
+rounded up to the next multiple of 4 bytes.
+The segment is identified by
+.I saddr
+which may be any valid address within the segment.
+.PP
+A call to
+.I segbrk
+with a zero
+.I addr
+argument returns the address
+of the top of bss.
+.PP
+The system will prevent segments from overlapping and will not allow the
+text and data segment lengths to be altered.
+.PP
+.SH SEE ALSO
+.IR segattach (2),
+.IR segflush (2)
+.br
+.BR /proc/*/segment
+.SH DIAGNOSTICS
+Sets
+.I errstr.

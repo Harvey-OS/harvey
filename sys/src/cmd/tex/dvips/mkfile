@@ -1,0 +1,39 @@
+SRCDIRS=dvips
+ALL=dvips
+
+compile:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS compile
+	}
+
+all:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS compile
+	}
+
+dvips:V:
+	cd dvips
+	mk $MKFLAGS dvips
+
+install:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS install
+	}
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+test:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS test
+	}
+
+clean:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS clean
+	}
+
+nuke:V:
+	for (i in $SRCDIRS) @{
+		cd $i; mk $MKFLAGS nuke
+	}

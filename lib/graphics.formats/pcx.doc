@@ -1,0 +1,550 @@
+From: tici@uni-paderborn.de (Thomas Thissen)
+Newsgroups: comp.graphics
+Subject: PCX-FORMAT: Here it is !!
+Keywords: pcx,paintbrush
+
+Date: 13 Jun 90 13:51:17 GMT
+Organization: Uni-GH Paderborn, West Germany
+Lines: 540
+
+
+Technical Reference Manual
+
+Including Information For:
+Publisher's Paintbrush~
+PC Paintbrush~ Plus
+PC Paintbrush
+FRIEZE Graphics~
+
+
+
+
+
+
+
+
+
+ZSoft Corporation
+450 Franklin Rd. Suite 100
+Marietta, GA  30067
+(404) 428-0008
+
+
+
+
+Copyright 1988 ZSoft Corporation
+Table of Contents
+Introduction      			3
+Image File (.PCX) Format		4
+Decoding the .PCX File Format		6
+Palette Information Description		7
+PC Paintbrush Bitmap Font Format	9
+Sample "C" Routines	        	10
+FRIEZE Technical Information		13
+Pre-7.00 FRIEZE Specifications		14
+Pre-7.00 FRIEZE Function Calls		15
+Pre-7.00 FRIEZE Error Codes		16
+7.00 and later FRIEZE Specifications	17
+7.00 and later FRIEZE Function Calls	18
+7.00 and later FRIEZE Error Codes	19
+The .PCX Programmer's Toolkit		21
+
+
+
+
+Introduction
+This booklet was designed to aid developers and users in understanding the technical aspects of the .PCX file format and the use of FRIEZE.
+Any comments, questions or suggestions about this booklet should be sent to:
+ZSoft Corporation
+Technical Support Department
+ATTN: Technical Reference Manual
+450 Franklin Rd. Suite 100
+Marietta, GA  30067
+
+
+
+
+IMAGE FILE (.PCX) FORMAT
+The information in this section will be useful if you want to write a program to read or write PCX files (images).  If you want to write a special case program for one particular image format you should be able to produce something that runs twice as fast
+ as "Load from..." in PC Paintbrush.
+Image files used by PC Paintbrush product family and FRIEZE (those with a .PCX extension) begin with a 128 byte header.  Usually you can ignore this header, since your images will all have the same resolution.  If you want to process different resolutions
+ or colors, you will need to interpret the header correctly.  The remainder of the image file consists of encoded graphic data.  The encoding method is a simple byte oriented run-length technique.  We reserve the right to change this method to improv
+
+
+
+
+
+
+
+
+
+e efficiency.  When more than one color plane is stored in the file, each line of the image is stored by color plane (generally ordered red, green, blue, intensity), As shown below.
+Scan line 0: 	RRR...
+		GGG...
+		BBB...
+		III...
+Scan line 1: 	RRR...
+		GGG...
+		BBB...
+		III...
+(etc.)
+The encoding method is:
+FOR  each  byte,  X,  read from the file
+	IF the top two bits of X are  1's then
+		count = 6 lowest bits of X
+		data = next byte following X
+	ELSE
+		count = 1
+		data = X
+Since the overhead this technique requires is, on average,  25% of the non-repeating data and is at least offset whenever  bytes are repeated, the file storage savings are usually considerable.
+The format of the file header is shown below.
+
+ZSoft .PCX FILE HEADER FORMAT
+
+Byte	Item	        Size	Description/Comments
+
+0	Manufacturer	1	Constant Flag  10 = ZSoft .PCX
+1	Version 	1	Version information:
+				0 = Version 2.5
+				2 = Version 2.8 w/palette information
+				3 = Version 2.8 w/o palette information
+				5 = Version 3.0
+2	Encoding	1	1 = .PCX run length encoding
+3	Bits per pixel	1	Number of bits/pixel per plane
+4	Window  	8	Picture Dimensions 
+				(Xmin, Ymin) - (Xmax - Ymax)
+				in pixels, inclusive
+12	HRes    	2	Horizontal Resolution of creating device
+14	VRes    	2	Vertical Resolution of creating device
+16	Colormap	48	Color palette setting, see text
+64	Reserved	1
+65	NPlanes	        1	Number of color planes
+66	Bytes per Line	2	Number of bytes per scan line per 
+				color plane (always even for .PCX files)
+68	Palette Info	2	How to interpret palette - 1 = color/BW,
+				2 = grayscale
+70	Filler  	58	blank to fill out 128 byte header
+
+All variables of size 2 are integers.
+
+
+
+Decoding .PCX Files
+First, find the pixel dimensions of the image by calculating [XSIZE = Xmax - Xmin + 1] and [YSIZE = Ymax - Ymin + 1].  Then calculate how many bytes are required to hold one complete uncompressed scan line:
+TotalBytes = NPlanes * BytesPerLine
+Note that since there are always an integral number of bytes, there will probably be unused data at the end of each scan line.  TotalBytes shows how much storage must be available to decode each scan line, including any blank area on the right side of the
+ image.  You can now begin decoding the first scan line - read the first byte of data from the file.  If the top two bits are set, the remaining six bits in the byte show how many times to duplicate the .MDUL/next.MDNM/ byte in the file.  If the top 
+
+
+
+
+
+
+
+
+
+ts are not set, the first byte is the data itself, with a count of one.
+Continue decoding the rest of the line.  Keep a running subtotal of how many bytes are moved and duplicated into the output buffer.  When the subtotal equals TotalBytes, the scan line is complete.  There will always be a decoding break at the end of each 
+scan line.  But there will not be a decoding break at the end of each plane within each scan line.  When the scan line is completed, there may be extra blank data at the end of each plane within the scan line.  Use the .MDBO/XSIZE.MDNM/ and .MDBO/YSI
+
+
+
+
+
+
+
+
+
+M/ values to find where the valid image data is.  If the data is multi-plane BytesPerLine shows where each plane ends within the scan line.
+Continue decoding the remainder of the scan lines.  There may be extra scan lines at the bottom of the image, to round to 8 or 16 scan lines.
+Palette Information Description
+EGA/VGA 16 Color Palette Information
+The palette information is stored in one of two different formats.  In standard RGB format (IBM EGA, IBM VGA) the data is stored as 16 triples.  Each triple is a 3 byte quantity of Red, Green, Blue values.  The values can range from 0-255 so some interpre
+tation into the base card format is necessary.  On an IBM EGA, for example, there are 4 possible levels of RGB for each color.  Since 256/4 = 64, the following is a list of the settings and levels:
+Setting		Level
+0-63		0
+64-127		1
+128-192		2
+193-254		3
+
+VGA 256 Color Palette Information
+ZSoft has recently added the capability to store palettes containing more than 16 colors in the .PCX image file.  The 256 color palette is formatted and treated the same as the 16 color palette, except that it is substantially longer.  The palette (number
+ of colors x 3 bytes in length) is appended to the end of the .PCX file, and is preceded by a 12 decimal.  To determine the VGA BIOS palette you need only divide the values read in the palette by 4.
+To access a 256 color palette:
+First, check the version number in the header, if it contains a 5 there is a palette.
+Second, read to the end of the file and count back 769 bytes.  The value you find should be a 12 decimal, showing the presence of a 256 color palette.
+CGA Color Palette Information
+For a standard IBM CGA board, the palette settings are a bit more complex.  Only the first byte of the triple is used.  The first triple has a valid first byte which represents the background color.  To find the background, take the (unsigned) byte value 
+and divide by 16.  This will give a result between 0-15, hence the background color.  The second triple has a valid first byte, which represents the foreground palette.  PC Paintbrush supports 8 possible CGA palettes, so when the foreground setting i
+
+
+
+
+
+
+
+
+
+ded between 0 and 255, there are 8 ranges of numbers and the divisor is 32.
+.MDUL/
+CGA Color Map.MDNM/
+Header Byte #16 
+Background color is determined in the upper four bits.
+Header Byte #19
+Only upper 3 bits are used, lower 5 bits are ignored.  The first three bits that are used are ordered C, P, I.  These bits are interpreted as follows:
+c: color burst enable - 0 = color; 1 = monochrome
+p: palette - 0 = yellow; 1 = white
+i: intensity - 0 = dim; 1 = bright
+
+PC Paintbrush Bitmap Character Format
+The bitmap character fonts are stored in a particularly simple format.  The format of these characters is as follows:
+Header (2 bytes)
+font width	db	0a0h + character width (in dots)
+font height	db	character height (in dots)
+Character Widths (256 bytes)
+char widths	db	256 dup(each char's width +1)
+Character Images
+(remainder of the file)
+The characters are stored in ASCII order and as many as 256 may be provided.  Each character is left justified in the character block, all characters take up the same number of bytes.
+Bytes are organized as N strings, where each string is one scan line of the character.  See figure 2.
+For example, each character in a 5x7 font requires 7 bytes.  A 9x14 font uses 28 bytes per character (stored two bytes per scan line in 14 sets of 2 byte packets).  Custom fonts may be any size up to the current maximum of 10K bytes allowed for a font fil
+e.
+
+Sample "C" Routines
+The following is a simple set of C subroutines to read data from a .PCX file.
+/* This procedure reads one encoded block from the image file and stores a count and data byte. Result:
+0 = valid data stored
+EOF = out of data in file */
+encget(pbyt, pcnt, fid)
+int *pbyt;     /* where to place data */
+int *pcnt;     /* where to place count */
+FILE *fid;     /* image file handle */
+{
+int i;
+	*pcnt = 1;     /* safety play */
+	if(EOF    ==    (i    =    getc(fid))) return(EOF);
+	if(0xc0 == (0xc0 & i))   {
+ 	*pcnt = 0x3f&i;
+	if(EOF == (i=getc(fid)))
+			return(EOF);
+}
+*pbyt = i;
+return(0);
+}
+/* Here's a program fragment using encget.   This reads an entire file and stores it in a (large) buffer, pointed to by the variable "bufr". "fp" is the file pointer for the image */
+while (EOF != encget(&chr, &cnt, fp))
+		for (i = 0; i ~			*bufr++ = chr;
+The following is a set of C subroutines to write data to a .PCX file.
+ /* This subroutine encodes one scanline and writes it to a file */
+encLine(inBuff, inLen, fp)
+unsigned char *inBuff;  /* pointer to scanline data */
+int inLen;			/* length of raw scanline in bytes */
+FILE *fp;			/* file to be written to */
+{  /* returns number of bytes written into outBuff, 0 if failed */
+	unsigned char this, last;
+int srcIndex, i;
+register int total;
+register unsigned char runCount; /* max single runlength is 63 */
+total = 0;
+last = *(inBuff);		runCount = 1;
+
+for (srcIndex = 1; srcIndex  inLen; srcIndex++) {
+	this = *(++inBuff);
+	if (this == last)	{
+		 runCount++;	/* it encodes */
+		if (runCount == 63)	{
+			if (!(i=encput(last, runCount, fp)))
+				return(0);
+			total += i;
+			runCount = 0;
+			}
+		}
+	else	{   /* this != last */
+		if (runCount)	{
+			if (!(i=encput(last, runCount, fp)))
+				return(0);
+			total += i;
+			}
+		last = this;
+		runCount = 1;
+		}
+	}	/* endloop */
+if (runCount)	{		/* finish up */
+	if (!(i=encput(last, runCount, fp)))
+		return(0);
+	return(total + i);
+	}
+return(total);
+}
+
+/* subroutine for writing an encoded byte pair 
+(or single byte  if it doesn't encode) to a file */
+encput(byt, cnt, fid) /* returns count of bytes written, 0 if err */
+unsigned char byt, cnt;
+FILE *fid;
+{
+if(cnt) {
+	if( (cnt==1) && (0xc0 != (0xc0&byt)) )	{
+		if(EOF == putc((int)byt, fid))
+			return(0); /* disk write error (probably full) */
+		return(1);
+		}
+	else		{
+		if(EOF == putc((int)0xC0 | cnt, fid))
+			return(0); 	/* disk write error */
+		if(EOF == putc((int)byt, fid))
+			return(0); 	/* disk write error */
+		return(2);
+		}
+	}
+return(0);
+}
+
+
+
+
+FRIEZE Technical Information
+
+
+FRIEZE Information
+
+FRIEZE is a memory resident utility that allows you to capture and save graphic images from other programs.  You can then bring these images into PC Paintbrush for editing and enhancement.
+FRIEZE was rewritten for use in PC Paintbrush Plus, and so the technical information about FRIEZE has changed dramatically.   To easily provide technical information for all versions of FRIEZE, we have split this section of the manual into two parts, one 
+about PRE-7.00 versions of FRIEZE, and one about the current versions (7.00 or higher).
+FRIEZE 7.10 and later can be removed from memory (this can return you almost 85K of DOS RAM, depending on your configuration).  To do this, you can choose to release FRIEZE from memory in the PCINSTAL menu, or at any time by changing directories to your P
+C PAINTBRUSH product directory and typing the word "FRIEZE."
+
+
+Pre-7.00 FRIEZE Specifications
+
+
+FRIEZE Print Option Settings
+
+FRIEZE can easily adapt to incomplete printer cables (missing IBM specified status lines) and will drive either serial or parallel devices.  Note that FRIEZE always uses the standard BIOS calls, so a non-handshaking device will time out, but can be told t
+o ignore such things as paper out.
+The FRIEZE command syntax is:
+FRIEZE Xnaarr
+Where:
+X = either Parallel or Serial
+n = port number 
+aa = a two digit hexadecimal code for which return bits cause an abort
+rr = a two digit hexadecimal code for which return bits cause a retry
+Examples:
+FRIEZE P1 - use the default settings of Parallel output, port number 1, abort mask of 28h, and retry mask of 01h
+FRIEZE P2 - use printer port #2
+FRIEZE S1 - use serial port #1, and Xon/Xoff handshaking
+FRIEZE P10028 - use printer port #1, abort mask of 00 (nothing is read as an error) and retry mask of 28h
+Interpreting the codes:
+On return from the parallel printer call, the bit interpretations are:
+80h - busy signal (0=busy)
+40h - acknowledge
+20h - out of paper
+10h - selected
+08h - I/O error
+04h - unused
+02h - unused
+01h - time out
+
+
+FRIEZE Function Calls
+
+FRIEZE is operated using software interrupt number  10h (the video interrupt call).
+To make a FRIEZE function call, load 75 (decimal) into the  AH register, the function call number into the CL register and then, either load AL with the function argument or load ES and BX with a segment and offset which point to the function argument the
+n do an int 10h.
+FRIEZE will return a result code number in AX--zero means  success, other values show error conditions.  All other registers are unchanged.
+No.	Definition 	Arguments
+0	Print Window	AL = mode: 0 - character,
+         		1 - normal, 2 - sideways
+1	Read Window	ES:BX - string
+	        	(filename to read from)
+2	Write Window 	ES:BX - string
+	        	(filename to write to)
+3	Print Width	AL = width in 1/4 inches
+4	Print Height	AL = height in 1/4 inches
+5	Reserved
+6	Set Left Margin	AL = printout margin in 
+	        	1/4 inches
+7	Set Window Size	ES:BX - 4 element word
+	        	vector of window settings:
+	        	Xmin, Ymin, Xmax, Ymax
+8	Reserved
+9	Set Patterns	ES:BX - 16 element vector
+	        	of byte values containing the
+	         	screen-to-printer color
+	        	correspondence
+10	Get Patterns	ES:BX - room for 16 bytes as
+	        	above
+11	Set Mode	AL = mode number
+		        (See SETMODE command)
+12	Reserved
+13	Reserved
+14	Reserved
+15	Get Window	ES:BX - room for 4 words of
+	         	the current window settings
+16 	Set Print Options	ES:BX - character string of
+	        	printer options.  Same format
+	        	as for the FRIEZE command.
+17	Initialize	ES:BX - 3 word array
+	        	containing data from 
+	        	PC Paintbrush Disk 1 file
+	        	CARDS.DAT (Hres, Vres,
+	        	optional code number)
+All character strings are ended by a zero byte (ASCIIZ format).
+
+
+FRIEZE Error Codes
+
+When FRIEZE is called using interrupt 10 hex, it will return an error code in the AX register.  A value of zero shows that there was no error.  A nonzero result means there was an error.  These error codes are explained below.
+0	No Error
+1	Printout was stopped by user with the ESC key
+2	Reserved
+3	File read error
+4	File write error or printer error
+5	File not found
+6	Invalid Header or can't create file
+	(not a picture or wrong screen mode)
+7	File close error
+8	Disk error - usually drive door open
+9	Not used
+10	Invalid command - CL was set to call a nonexistent 
+	FRIEZE function
+11	Not used
+12	Not used
+
+
+7.00 and Later FRIEZE
+
+The newer versions of FRIEZE have a different number of parameters on its command line.  The new FRIEZE command line format is:
+FRIEZE {PD} {Xnaarr} {flags} {video} {hres} {vres} {vnum}
+Where:
+{PD}	Printer driver filename (without the .PDV extension)
+{Xnaarr}
+		X=S for Serial Printer X=P for Parallel Printer
+		n = port number
+		aa = Two digit hex code for which return bits cause
+			 an abort
+		rr = Two digit hex code for which return bits cause
+			a retry
+{flags}	Four digit hex code
+			First Digit controls Length Flag
+			Second Digit controls Width Flag
+			Third Digit controls Mode Flag
+			Fourth Digit controls BIOS Flag
+NOTE:	The length, width and mode flags are printer driver specific.
+		See PRINTERS.DAT on disk 1 for correct use.  In 
+		general width flag of 1 means wide carriage, and 
+		0 means standard width.  Length flag of 0 and 
+		mode flag of 0 means use standard printer driver 
+		settings.
+{video} Video driver combination, where the leading digit
+		signifies the high level video driver and the rest
+		signifies the low level video driver
+		Example = 1EGA - uses DRIVE1 and EGA.DEV
+{hres}	Horizontal resolution of the desired graphics mode
+{vres}	Vertical resolution of the desired graphics mode
+{vnum}	Hardware specific parameter (usually number of color planes)
+Note: The last four parameters can be obtained from the CARDS.DAT file, on Disk 1 of your PC Paintbrush diskettes.
+Parallel printer return codes:
+	80h - Busy Signal (0=busy)
+	40h - Acknowledge
+	20h - Out of paper
+	10h - Selected
+	08h - I/O error
+	04h - Unused
+	02h - Unused
+	01h - Time out
+
+
+FRIEZE Function Calls
+
+FRIEZE is operated using software interrupt number  10h (the video interrupt call).
+To make a FRIEZE function call, load 75 (decimal) into the  AH register, the function number into the CL register and then, either load AL with the function argument or load ES and BX with a segment and offset which point to the function argument then do 
+an int 10h.
+FRIEZE will return a result code number in AX--zero means  success, other values show error conditions.  All other registers are unchanged.
+No.	Definition 	Arguments
+0	Reserved
+1	Load Window	ES:BX - string
+        		(filename to read from)
+2	Save Window 	ES:BX - string
+	        	(filename to write to)
+3	Reserved
+4	Reserved	
+6	Reserved	
+7	Set Window Size	ES:BX - 4 element word
+         		vector of window settings:
+	        	Xmin, Ymin, Xmax, Ymax
+8	Reserved
+9	Set Patterns	ES:BX - 16 element vector
+	        	of byte values containing the
+	        	screen-to-printer color
+	        	correspondence
+10	Get Patterns	ES:BX - room for 16 bytes as
+	        	above
+11	Set Mode	AL = mode number
+	        	(See SETMODE command)
+12	Reserved
+13	Reserved
+14	Reserved
+15	Get Window	ES:BX - room for 4 words of
+		        the current window settings
+16 	Set Print Options	ES:BX - character string of
+         		printer options.  Same format
+	        	as for the FRIEZE command.
+17	Reserved
+18	Reserved
+19	Reserved
+20	Get FRIEZE Version.	AH gets the whole number portion 
+           		and AL gets the decimal portion of
+	                the version number.  If AH=0, it
+	         	can be assumed that it is a 
+          		pre-7.00 version of FRIEZE.
+21	Set Parameters	ES:BX points to an 8 word table 
+	        	(16 bytes) of parameter settings: 
+         		TopMargin, LeftMargin, HSize,VSize,
+         		Quality/Draft Mode, PrintHres, 
+        		PrintVres, Reserved.	
+         		Margins and sizes are specified in 
+	        	hundredths of inches.
+         		Q/D mode parameter values:
+	        	0 - draft print mode
+	        	1 - quality print mode
+	         	2 - use Hres, Vres for output 
+	         	resolution.  Print resolutions are 
+		        specified in DPI.  Any parameter
+          		which should be left unchanged may	
+	        	be filled with a (-1) (0FFFF hex).  
+          		The reserved setting should be filled
+	        	with a (-1).
+22	Get Parameters	ES:BX points to an 8 word table 
+	        	(16 bytes) where parameter settings
+	        	are held.
+23	Get Printer Res	ES:BX points to a 12 word table
+	         	(24 bytes) where printer resolution
+	         	pairs (6 pairs) are held.
+NOTE: All character strings are ended by a zero byte 
+	(ASCIIZ format).
+
+
+FRIEZE Error Codes
+
+When FRIEZE is called using interrupt 10 hex, it will return an error code in the AX register.  A value of zero shows that there was no error.  A nonzero result means there was an error.  These error codes are explained below.
+0	No Error
+1	Printout was stopped by user with the ESC key
+2	Reserved
+3	File read error
+4	File write error
+5	File not found
+6	Invalid Header - not an image, wrong screen mode
+7	File close error
+8	Disk error - usually drive door open
+9	Printer error - printer is off or out of paper
+10	Invalid command - CL was set to call a nonexistent 
+	FRIEZE function
+11	Can't create file - write protect tab or disk is full
+12	Wrong video mode - FRIEZE cannot capture text screens.
+
+
+-- 
+tici@uni-paderborn.de
+
+

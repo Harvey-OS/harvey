@@ -1,0 +1,43 @@
+% showidx.sty 11-Oct-89
+
+\newinsert\@margin
+\newinsert\indexbox
+\dimen\indexbox=\maxdimen
+\def\@showidx#1{\insert\indexbox{\small 
+ \hsize\marginparwidth 
+ \hangindent\marginparsep \parindent\z@ 
+ \everypar{}\let\par\@@par \parfillskip\@flushglue 
+ \lineskip\normallineskip 
+ \baselineskip .8\normalbaselineskip\sloppy
+ \raggedright \leavevmode 
+ \vrule height .7\normalbaselineskip width \z@\relax
+ #1\relax\vrule
+ height \z@ depth .3\normalbaselineskip width \z@}}
+\def\@leftidx{\hskip-\marginparsep \hskip-\marginparwidth}
+\def\@rightidx{\hskip\columnwidth \hskip\marginparsep}
+\def\@mkidx{\vbox to 0pt{\hbox{\if@twocolumn
+ \if@firstcolumn \@leftidx \else \@rightidx \fi
+ \else \if@twoside \ifodd\c@page \@rightidx 
+ \else \@leftidx \fi 
+ \else \@rightidx \fi
+ \fi
+ \box\indexbox}\vss}}
+\def\raggedbottom{\def\@textbottom{\vskip 
+ \z@ plus.0001fil}\let\@texttop\@mkidx}
+\def\flushbottom{\let\@textbottom\relax \let\@texttop\@mkidx}
+
+\def\@wrindex#1#2{\let\thepage\relax
+ \xdef\@gtempa{\write#1{\string
+ \indexentry{#2}{\thepage}}}\endgroup\@gtempa
+ \@showidx{#2}\if@nobreak \ifvmode\nobreak\fi\fi\@esphack}
+\def\@index#1{\@showidx{#1}\endgroup\@esphack}
+
+\def\index{\@bsphack\begingroup\@sanitize\catcode"20=10\relax\@index}
+\def\makeindex{\if@filesw \newwrite\@indexfile
+ \immediate\openout\@indexfile=\jobname.idx
+ \def\index{\@bsphack\begingroup
+ \def\protect####1{\string####1\space}\@sanitize
+ \catcode"20=10 \@wrindex\@indexfile}\typeout
+ {Writing index file \jobname.idx }\fi}
+\flushbottom
+

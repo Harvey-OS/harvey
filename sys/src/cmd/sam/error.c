@@ -1,0 +1,126 @@
+#include "sam.h"
+
+static char *emsg[]={
+	/* error_s */
+	"can't open",
+	"can't create",
+	"not in menu:",
+	"changes to",
+	"I/O error:",
+	/* error_c */
+	"unknown command",
+	"no operand for",
+	"bad delimiter",
+	/* error */
+	"can't fork",
+	"interrupt",
+	"address",
+	"search",
+	"pattern",
+	"newline expected",
+	"blank expected",
+	"pattern expected",
+	"can't nest X or Y",
+	"unmatched `}'",
+	"command takes no address",
+	"addresses overlap",
+	"substitution",
+	"& match too long",
+	"bad \\ in rhs",
+	"address range",
+	"changes not in sequence",
+	"addresses out of order",
+	"no file name",
+	"unmatched `('",
+	"unmatched `)'",
+	"malformed `[]'",
+	"malformed regexp",
+	"reg. exp. list overflow",
+	"plan 9 command",
+	"can't pipe",
+	"no current file",
+	"string too long",
+	"changed files",
+	"empty string",
+	"file search",
+	"non-unique match for \"\"",
+	"tag match too long",
+	"too many subexpressions",
+	"temporary file too large",
+};
+static char *wmsg[]={
+	/* warn_s */
+	"duplicate file name",
+	"no such file",
+	"write might change good version of",
+	/* warn */
+	"null characters elided",
+	"can't run pwd",
+	"last char not newline",
+	"exit status not 0",
+};
+
+void
+error(Err s)
+{
+	char buf[512];
+
+	sprint(buf, "?%s", emsg[s]);
+	hiccough(buf);
+}
+
+void
+error_s(Err s, char *a)
+{
+	char buf[512];
+
+	sprint(buf, "?%s \"%s\"", emsg[s], a);
+	hiccough(buf);
+}
+
+void
+error_c(Err s, int c)
+{
+	char buf[512];
+
+	sprint(buf, "?%s `%C'", emsg[s], c);
+	hiccough(buf);
+}
+
+void
+warn(Warn s)
+{
+	dprint("?warning: %s\n", wmsg[s]);
+}
+
+void
+warn_S(Warn s, String *a)
+{
+	char *c;
+
+	c = Strtoc(a);
+	dprint("?warning: %s `%s'\n", wmsg[s], c);
+	free(c);
+}
+
+void
+warn_s(Warn s, char *a)
+{
+	dprint("?warning: %s `%s'\n", wmsg[s], a);
+}
+
+void
+termwrite(char *s)
+{
+	String *p;
+
+	if(downloaded){
+		p = tmpcstr(s);
+		if(cmd)
+			Finsert(cmd, p, cmdpt);
+		else
+			Strinsert(&cmdstr, p, cmdstr.n);
+		cmdptadv += p->n;
+	}else
+		Write(2, s, strlen(s));
+}

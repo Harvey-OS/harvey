@@ -1,0 +1,1320 @@
+%!PS
+%%Version: 3.3
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	/Symbol /S Sdefs cf
+	/Times-Roman /S1 S1defs cf
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put} {pop pop} ifelse} forall
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+/linewidth 0.5 def
+/xoffset 0 def
+/yoffset 0 def
+/#copies 1 store
+/magnification 1 def
+%%FormsPerPage: 1
+/formsperpage 1 def
+
+/landscape false def
+/resolution 720 def
+setup
+2 setdecoding
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+12 B f
+(Plan 9, A Distributed System)4 1485 1 2137 1230 t
+10 I f
+(Dave Presotto)1 574 1 2593 1470 t
+(Rob Pike)1 363 1 2698 1590 t
+(Ken Thompson)1 603 1 2578 1710 t
+(Howard Trickey)1 652 1 2554 1830 t
+10 R f
+(AT&T Bell Laboratories)2 993 1 2383 2010 t
+(Murray Hill, New Jersey 07974)4 1267 1 2246 2130 t
+10 I f
+(ABSTRACT)2643 2510 w
+10 R f
+( environment physically distributed across many machines.)6 2439(Plan 9 is a computing)4 911 2 1330 2770 t
+( itself is transparent to most programs giving both users and administra-)11 2950(The distribution)1 650 2 1080 2890 t
+( properties make)2 679( Two)1 240( environment.)1 562(tors wide latitude in configuring the topology of the)8 2119 4 1080 3010 t
+( name space and uniform access to all resources by rep-)10 2251(this possible: a per process group)5 1349 2 1080 3130 t
+(resenting them as files.)3 921 1 1080 3250 t
+10 B f
+(1. Introduction)1 670 1 720 3610 t
+10 R f
+(Plan 9 is a general-purpose, multi-user, portable distributed system implemented on a variety of com-)14 4070 1 970 3766 t
+( commands, libraries, and system calls are similar to those of the Unix oper-)13 3095( Because)1 386(puters and networks.)2 839 3 720 3886 t
+( casual user)2 477( A)1 128( it is possible to port many Unix programs to Plan 9 with little or no changes.)16 3182(ating system,)1 533 4 720 4006 t
+(would find little difference between the two systems.)7 2119 1 720 4126 t
+( goals of this organization were to reduce adminis-)8 2048( The)1 207(What distinguishes Plan 9 is its organization.)6 1815 3 970 4282 t
+( believe that a small)4 807( We)1 190( minimalism.)1 531( programming style was)3 972( Our)1 208(tration and to promote resource sharing.)5 1612 6 720 4402 t
+( with much less code, provide most of the function of a larger sys-)13 2698(number of well-chosen abstractions can,)4 1622 2 720 4522 t
+( its contemporaries)2 778( is the approach that made the Unix operating system so much smaller than)13 3129(tem. This)1 413 3 720 4642 t
+( proven ideas from the Unix operating system rather)8 2173( building Plan 9, we generalized)5 1337( In)1 143(such as Multics.)2 667 4 720 4762 t
+(than add new untried concepts.)4 1239 1 720 4882 t
+( CPU servers concentrate computing power)5 1743( Diskless)1 390(Plan 9 is divided along lines of service function.)8 1937 3 970 5038 t
+( give each user of the)5 870(into large multiprocessors; file servers provide repositories for storage; and terminals)10 3450 2 720 5158 t
+( sharing)1 320( The)1 205(system a dedicated computer with bitmap screen and mouse on which to run a window system.)15 3795 3 720 5278 t
+( of programmers, amor-)3 971(of computing and file storage services provides a sense of community for a group)13 3349 2 720 5398 t
+(tizes costs, and centralizes and hence simplifies management and administration.)9 3231 1 720 5518 t
+( CPU servers and terminals use the same kernel, users may choose whether to run pro-)15 3634(Since both)1 436 2 970 5674 t
+( 9 provides this flexibility without con-)6 1597( Plan)1 233(grams locally on their terminals or remotely on CPU servers.)9 2490 3 720 5794 t
+( to be as dis-)4 517( both users and administrators can configure their environment)8 2523( Therefore,)1 469(straining the choice.)2 811 4 720 5914 t
+( like workstations run-)3 911( work, users tend to use their terminals more)8 1810( At)1 154(tributed or centralized as they wish.)5 1445 4 720 6034 t
+( data or compute intensive jobs such)6 1472(ning all interactive programs locally and reserving the CPU servers for)10 2848 2 720 6154 t
+( home, connected via a dedicated 9600 baud line to work,)10 2311( At)1 151( and computing chess end games.)5 1342(as compiling)1 516 4 720 6274 t
+( applications, such as)3 852( Some)1 279(users choose what they run locally and remotely to reduce communication cost.)11 3189 3 720 6394 t
+(the editor [Pik87], are split into multiple programs to make this choice even more flexible.)14 3613 1 720 6514 t
+( CPU)1 225( Multiprocessor)1 660( we have configured our environment.)5 1549(Figure 1 in any Plan 9 paper shows how)8 1636 4 970 6670 t
+( rooms and connected via 7 megabyte/sec point-to-point)7 2328(and file servers are clustered in a few computer)8 1992 2 720 6790 t
+( servers to be used as high performance compute engines without)10 2776( permits the CPU)3 740( This)1 244(links [Pre88].)1 560 4 720 6910 t
+( servers via lower speed, lower cost distribution)7 1936( are connected to the)4 845( Terminals)1 460(becoming starved for data.)3 1079 4 720 7030 t
+( emphasizing the)2 697( By)1 177( 10 megabit Ethernet [Met80] and 2 megabit Incon [Kal, Res].)10 2590(networks such as the)3 856 4 720 7150 t
+( the same)2 379( At)1 151( quickly and cheaply incorporate new technologies as they arise.)9 2581(shared service clusters we can)4 1209 4 720 7270 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Page: 2 2
+/saveobj save def
+mark
+2 pagesetup
+10 R f
+(- 2 -)2 166 1 2797 480 t
+( incorporate as much computing power as they wish in their own)11 2687(time, users wishing more autonomy can)5 1633 2 720 840 t
+(offices without losing the advantage of transparently sharing other resources.)9 3077 1 720 960 t
+cleartomark
+saveobj restore
+%%BeginGlobal
+%
+% Version 3.3 drawing procedures for dpost. Automatically pulled in, but only
+% when needed.
+%
+
+/inpath false def
+/savematrix matrix def
+
+/Dl {
+	inpath
+		{pop pop neg lineto}
+		{newpath neg moveto neg lineto stroke}
+	ifelse
+} bind def
+
+/De {
+	/y1 exch 2 div def
+	/x1 exch 2 div def
+	/savematrix savematrix currentmatrix def
+	neg exch x1 add exch translate
+	x1 y1 scale
+	0 0 1 0 360
+	inpath
+		{1 0 moveto arc savematrix setmatrix}
+		{newpath arc savematrix setmatrix stroke}
+	ifelse
+} bind def
+
+/Da {
+	/dy2 exch def
+	/dx2 exch def
+	/dy1 exch def
+	/dx1 exch def
+	dy1 add neg exch dx1 add exch
+	dx1 dx1 mul dy1 dy1 mul add sqrt
+	dy1 dx1 neg atan
+	dy2 neg dx2 atan
+	inpath
+		{arc}
+		{newpath arc stroke}
+	ifelse
+} bind def
+
+/DA {
+	/dy2 exch def
+	/dx2 exch def
+	/dy1 exch def
+	/dx1 exch def
+	dy1 add neg exch dx1 add exch
+	dx1 dx1 mul dy1 dy1 mul add sqrt
+	dy1 dx1 neg atan
+	dy2 neg dx2 atan
+	inpath
+		{arcn}
+		{newpath arcn stroke}
+	ifelse
+} bind def
+
+/Ds {
+	/y2 exch def
+	/x2 exch def
+	/y1 exch def
+	/x1 exch def
+	/y0 exch def
+	/x0 exch def
+	x0 5 x1 mul add 6 div
+	y0 5 y1 mul add -6 div
+	x2 5 x1 mul add 6 div
+	y2 5 y1 mul add -6 div
+	x1 x2 add 2 div
+	y1 y2 add -2 div
+	inpath
+		{curveto}
+		{newpath x0 x1 add 2 div y0 y1 add -2 div moveto curveto stroke}
+	ifelse
+} bind def
+%%EndGlobal
+/saveobj save def
+mark
+10 R f
+1821 3915 72 43 De
+1821 3836 72 43 De
+1893 3915 1893 3843 Dl
+1821 3915 1821 3843 Dl
+2311 3548 2311 3476 Dl
+1958 3548 1958 3476 Dl
+2383 3332 2419 3260 Dl
+1893 3332 1857 3260 Dl
+(CPU)2322 3208 w
+2304 3116 2304 3260 Dl
+2520 3116 2304 3116 Dl
+2520 3260 2520 3116 Dl
+2304 3260 2520 3260 Dl
+2138 3332 2138 3260 Dl
+(CPU)2041 3208 w
+2023 3116 2023 3260 Dl
+2239 3116 2023 3116 Dl
+2239 3260 2239 3116 Dl
+2023 3260 2239 3260 Dl
+(CPU)1760 3208 w
+1742 3116 1742 3260 Dl
+1958 3116 1742 3116 Dl
+1958 3260 1958 3116 Dl
+1742 3260 1958 3260 Dl
+2174 3548 2174 3692 Dl
+2490 3548 2174 3548 Dl
+2491 3692 2491 3548 Dl
+2175 3692 2491 3692 Dl
+(file)2281 3640 w
+1785 3548 1785 3692 Dl
+2101 3548 1785 3548 Dl
+2102 3692 2102 3548 Dl
+1786 3692 2102 3692 Dl
+(file)1892 3640 w
+1684 3318 1684 3476 Dl
+2555 3318 1684 3318 Dl
+2556 3476 2556 3318 Dl
+1685 3476 2556 3476 Dl
+(high speed DMA)2 688 1 1794 3424 t
+2455 3260 1 1 De
+2455 3915 72 43 De
+2455 3836 72 43 De
+2527 3915 2527 3843 Dl
+2455 3915 2455 3843 Dl
+2311 3915 72 43 De
+2311 3836 72 43 De
+2383 3915 2383 3843 Dl
+2311 3915 2311 3843 Dl
+2174 3915 72 43 De
+2174 3836 72 43 De
+2246 3915 2246 3843 Dl
+2174 3915 2174 3843 Dl
+2491 3792 2419 3692 Dl
+2347 3792 2347 3692 Dl
+2210 3792 2246 3692 Dl
+2030 3792 1994 3692 Dl
+1994 3915 72 43 De
+1994 3836 72 43 De
+2066 3915 2066 3843 Dl
+1994 3915 1994 3843 Dl
+1893 3693 1857 3793 Dl
+2944 2799 2944 2799 2944 3331 Ds
+2944 2799 2944 3331 3001 3395 Ds
+2944 3331 3001 3395 3101 3395 Ds
+3001 3395 3101 3395 3101 3395 Ds
+2736 2799 2736 2799 2736 3295 Ds
+2736 2799 2736 3295 2657 3395 Ds
+2736 3295 2657 3395 2542 3395 Ds
+2657 3395 2542 3395 2542 3395 Ds
+3247 3915 72 43 De
+3247 3836 72 43 De
+3319 3915 3319 3843 Dl
+3247 3915 3247 3843 Dl
+3736 3548 3736 3476 Dl
+3384 3548 3384 3476 Dl
+3808 3332 3844 3260 Dl
+3319 3332 3283 3260 Dl
+(CPU)3747 3208 w
+3729 3116 3729 3260 Dl
+3945 3116 3729 3116 Dl
+3945 3260 3945 3116 Dl
+3729 3260 3945 3260 Dl
+3564 3332 3564 3260 Dl
+(CPU)3467 3208 w
+3448 3116 3448 3260 Dl
+3664 3116 3448 3116 Dl
+3664 3260 3664 3116 Dl
+3448 3260 3664 3260 Dl
+(CPU)3186 3208 w
+3168 3116 3168 3260 Dl
+3384 3116 3168 3116 Dl
+3384 3260 3384 3116 Dl
+3168 3260 3384 3260 Dl
+3600 3548 3600 3692 Dl
+3916 3548 3600 3548 Dl
+3916 3692 3916 3548 Dl
+3600 3692 3916 3692 Dl
+(file)3706 3640 w
+3211 3548 3211 3692 Dl
+3527 3548 3211 3548 Dl
+3528 3692 3528 3548 Dl
+3212 3692 3528 3692 Dl
+(file)3318 3640 w
+3110 3318 3110 3476 Dl
+3981 3318 3110 3318 Dl
+3981 3476 3981 3318 Dl
+3110 3476 3981 3476 Dl
+(high speed DMA)2 688 1 3220 3424 t
+3880 3260 1 1 De
+3880 3915 72 43 De
+3880 3836 72 43 De
+3952 3915 3952 3843 Dl
+3880 3915 3880 3843 Dl
+3736 3915 72 43 De
+3736 3836 72 43 De
+3808 3915 3808 3843 Dl
+3736 3915 3736 3843 Dl
+3600 3915 72 43 De
+3600 3836 72 43 De
+3672 3915 3672 3843 Dl
+3600 3915 3600 3843 Dl
+3916 3792 3844 3692 Dl
+3772 3792 3772 3692 Dl
+3636 3792 3672 3692 Dl
+3456 3792 3420 3692 Dl
+3420 3915 72 43 De
+3420 3836 72 43 De
+3492 3915 3492 3843 Dl
+3420 3915 3420 3843 Dl
+3319 3693 3283 3793 Dl
+2008 2475 2008 2799 Dl
+3995 2475 2008 2475 Dl
+3996 2799 3996 2475 Dl
+2009 2799 3996 2799 Dl
+3240 1734 14 14 De
+3196 1734 14 14 De
+3153 1734 14 14 De
+3110 1734 14 14 De
+3074 1734 14 14 De
+3276 1734 14 14 De
+3319 1734 14 14 De
+3319 1777 14 14 De
+3276 1777 14 14 De
+3240 1777 14 14 De
+3196 1777 14 14 De
+3153 1777 14 14 De
+3110 1777 14 14 De
+3074 1777 14 14 De
+3074 1820 14 14 De
+3110 1820 14 14 De
+3153 1820 14 14 De
+3196 1820 14 14 De
+3240 1820 14 14 De
+3276 1820 14 14 De
+3319 1820 14 14 De
+3132 1489 3132 1669 Dl
+3247 1489 3132 1489 Dl
+3247 1669 3247 1489 Dl
+3132 1669 3247 1669 Dl
+3096 1453 3096 1705 Dl
+3276 1453 3096 1453 Dl
+3276 1705 3276 1453 Dl
+3096 1705 3276 1705 Dl
+3038 1720 3038 1849 Dl
+3369 1719 3038 1719 Dl
+3369 1848 3369 1719 Dl
+3038 1849 3369 1849 Dl
+3542 1748 14 14 De
+3506 1770 14 14 De
+3470 1748 14 14 De
+3470 1719 86 86 De
+3038 1777 3038 1777 2995 1777 Ds
+3038 1777 2995 1777 2995 1662 Ds
+2995 1777 2995 1662 3095 1662 Ds
+2995 1662 3095 1662 3095 1662 Ds
+3513 1676 3513 1676 3513 1626 Ds
+3513 1676 3513 1626 3427 1640 Ds
+3513 1626 3427 1640 3370 1612 Ds
+3427 1640 3370 1612 3298 1655 Ds
+3370 1612 3298 1655 3298 1655 Ds
+3650 1482 14 14 De
+3607 1482 14 14 De
+3564 1482 14 14 De
+3520 1482 14 14 De
+3484 1482 14 14 De
+3686 1482 14 14 De
+3729 1482 14 14 De
+3729 1525 14 14 De
+3686 1525 14 14 De
+3650 1525 14 14 De
+3607 1525 14 14 De
+3564 1525 14 14 De
+3520 1525 14 14 De
+3484 1525 14 14 De
+3484 1568 14 14 De
+3520 1568 14 14 De
+3564 1568 14 14 De
+3607 1568 14 14 De
+3650 1568 14 14 De
+3686 1568 14 14 De
+3729 1568 14 14 De
+3542 1237 3542 1417 Dl
+3657 1237 3542 1237 Dl
+3657 1417 3657 1237 Dl
+3542 1417 3657 1417 Dl
+3506 1201 3506 1453 Dl
+3686 1201 3506 1201 Dl
+3686 1453 3686 1201 Dl
+3506 1453 3686 1453 Dl
+3448 1468 3448 1597 Dl
+3779 1467 3448 1467 Dl
+3780 1596 3780 1467 Dl
+3449 1597 3780 1597 Dl
+3952 1496 14 14 De
+3916 1518 14 14 De
+3880 1496 14 14 De
+3880 1467 86 86 De
+3448 1525 3448 1525 3405 1525 Ds
+3448 1525 3405 1525 3405 1410 Ds
+3405 1525 3405 1410 3505 1410 Ds
+3405 1410 3505 1410 3505 1410 Ds
+3924 1424 3924 1424 3924 1374 Ds
+3924 1424 3924 1374 3838 1388 Ds
+3924 1374 3838 1388 3781 1360 Ds
+3838 1388 3781 1360 3709 1403 Ds
+3781 1360 3709 1403 3709 1403 Ds
+4183 1770 14 14 De
+4140 1770 14 14 De
+4096 1770 14 14 De
+4053 1770 14 14 De
+4017 1770 14 14 De
+4219 1770 14 14 De
+4262 1770 14 14 De
+4262 1813 14 14 De
+4219 1813 14 14 De
+4183 1813 14 14 De
+4140 1813 14 14 De
+4096 1813 14 14 De
+4053 1813 14 14 De
+4017 1813 14 14 De
+4017 1856 14 14 De
+4053 1856 14 14 De
+4096 1856 14 14 De
+4140 1856 14 14 De
+4183 1856 14 14 De
+4219 1856 14 14 De
+4262 1856 14 14 De
+4075 1525 4075 1705 Dl
+4190 1525 4075 1525 Dl
+4190 1705 4190 1525 Dl
+4075 1705 4190 1705 Dl
+4039 1489 4039 1741 Dl
+4219 1489 4039 1489 Dl
+4219 1741 4219 1489 Dl
+4039 1741 4219 1741 Dl
+3981 1756 3981 1885 Dl
+4312 1755 3981 1755 Dl
+4312 1884 4312 1755 Dl
+3981 1885 4312 1885 Dl
+4485 1784 14 14 De
+4449 1806 14 14 De
+4413 1784 14 14 De
+4413 1755 86 86 De
+3981 1813 3981 1813 3938 1813 Ds
+3981 1813 3938 1813 3938 1698 Ds
+3938 1813 3938 1698 4038 1698 Ds
+3938 1698 4038 1698 4038 1698 Ds
+4456 1712 4456 1712 4456 1662 Ds
+4456 1712 4456 1662 4370 1676 Ds
+4456 1662 4370 1676 4313 1648 Ds
+4370 1676 4313 1648 4241 1691 Ds
+4313 1648 4241 1691 4241 1691 Ds
+3484 2057 3196 1856 Dl
+3729 1935 3607 1604 Dl
+4061 2057 4140 1892 Dl
+(distribution)3541 2042 w
+3484 1936 3484 2180 Dl
+4060 1935 3484 1935 Dl
+4060 2179 4060 1935 Dl
+3484 2180 4060 2180 Dl
+(network)3609 2121 w
+1504 1654 14 14 De
+1461 1654 14 14 De
+1418 1654 14 14 De
+1375 1654 14 14 De
+1339 1654 14 14 De
+1540 1654 14 14 De
+1584 1654 14 14 De
+1584 1698 14 14 De
+1540 1698 14 14 De
+1504 1698 14 14 De
+1461 1698 14 14 De
+1418 1698 14 14 De
+1375 1698 14 14 De
+1339 1698 14 14 De
+1339 1741 14 14 De
+1375 1741 14 14 De
+1418 1741 14 14 De
+1461 1741 14 14 De
+1504 1741 14 14 De
+1540 1741 14 14 De
+1584 1741 14 14 De
+1396 1410 1396 1590 Dl
+1511 1410 1396 1410 Dl
+1512 1590 1512 1410 Dl
+1397 1590 1512 1590 Dl
+1360 1374 1360 1626 Dl
+1540 1374 1360 1374 Dl
+1540 1626 1540 1374 Dl
+1360 1626 1540 1626 Dl
+1303 1641 1303 1770 Dl
+1634 1640 1303 1640 Dl
+1634 1769 1634 1640 Dl
+1303 1770 1634 1770 Dl
+1807 1669 14 14 De
+1771 1690 14 14 De
+1735 1669 14 14 De
+1735 1640 86 86 De
+1303 1698 1303 1698 1260 1698 Ds
+1303 1698 1260 1698 1260 1583 Ds
+1260 1698 1260 1583 1360 1583 Ds
+1260 1583 1360 1583 1360 1583 Ds
+1778 1597 1778 1597 1778 1547 Ds
+1778 1597 1778 1547 1692 1561 Ds
+1778 1547 1692 1561 1635 1533 Ds
+1692 1561 1635 1533 1563 1576 Ds
+1635 1533 1563 1576 1563 1576 Ds
+1915 1402 14 14 De
+1872 1402 14 14 De
+1828 1402 14 14 De
+1785 1402 14 14 De
+1749 1402 14 14 De
+1951 1402 14 14 De
+1994 1402 14 14 De
+1994 1446 14 14 De
+1951 1446 14 14 De
+1915 1446 14 14 De
+1872 1446 14 14 De
+1828 1446 14 14 De
+1785 1446 14 14 De
+1749 1446 14 14 De
+1749 1489 14 14 De
+1785 1489 14 14 De
+1828 1489 14 14 De
+1872 1489 14 14 De
+1915 1489 14 14 De
+1951 1489 14 14 De
+1994 1489 14 14 De
+1807 1158 1807 1338 Dl
+1922 1158 1807 1158 Dl
+1922 1338 1922 1158 Dl
+1807 1338 1922 1338 Dl
+1771 1122 1771 1374 Dl
+1951 1122 1771 1122 Dl
+1951 1374 1951 1122 Dl
+1771 1374 1951 1374 Dl
+1713 1389 1713 1518 Dl
+2044 1388 1713 1388 Dl
+2044 1517 2044 1388 Dl
+1713 1518 2044 1518 Dl
+2217 1417 14 14 De
+2181 1438 14 14 De
+2145 1417 14 14 De
+2145 1388 86 86 De
+1713 1446 1713 1446 1670 1446 Ds
+1713 1446 1670 1446 1670 1331 Ds
+1670 1446 1670 1331 1770 1331 Ds
+1670 1331 1770 1331 1770 1331 Ds
+2188 1345 2188 1345 2188 1295 Ds
+2188 1345 2188 1295 2102 1309 Ds
+2188 1295 2102 1309 2045 1281 Ds
+2102 1309 2045 1281 1973 1324 Ds
+2045 1281 1973 1324 1973 1324 Ds
+2448 1690 14 14 De
+2404 1690 14 14 De
+2361 1690 14 14 De
+2318 1690 14 14 De
+2282 1690 14 14 De
+2484 1690 14 14 De
+2527 1690 14 14 De
+2527 1734 14 14 De
+2484 1734 14 14 De
+2448 1734 14 14 De
+2404 1734 14 14 De
+2361 1734 14 14 De
+2318 1734 14 14 De
+2282 1734 14 14 De
+2282 1777 14 14 De
+2318 1777 14 14 De
+2361 1777 14 14 De
+2404 1777 14 14 De
+2448 1777 14 14 De
+2484 1777 14 14 De
+2527 1777 14 14 De
+2340 1446 2340 1626 Dl
+2455 1446 2340 1446 Dl
+2455 1626 2455 1446 Dl
+2340 1626 2455 1626 Dl
+2304 1410 2304 1662 Dl
+2484 1410 2304 1410 Dl
+2484 1662 2484 1410 Dl
+2304 1662 2484 1662 Dl
+2246 1677 2246 1806 Dl
+2577 1676 2246 1676 Dl
+2577 1805 2577 1676 Dl
+2246 1806 2577 1806 Dl
+2750 1705 14 14 De
+2714 1726 14 14 De
+2678 1705 14 14 De
+2678 1676 86 86 De
+2246 1734 2246 1734 2203 1734 Ds
+2246 1734 2203 1734 2203 1619 Ds
+2203 1734 2203 1619 2303 1619 Ds
+2203 1619 2303 1619 2303 1619 Ds
+2721 1633 2721 1633 2721 1583 Ds
+2721 1633 2721 1583 2635 1597 Ds
+2721 1583 2635 1597 2578 1569 Ds
+2635 1597 2578 1569 2506 1612 Ds
+2578 1569 2506 1612 2506 1612 Ds
+1749 1978 1461 1777 Dl
+1994 1856 1872 1525 Dl
+2325 1978 2404 1813 Dl
+(distribution)1806 1962 w
+1749 1857 1749 2101 Dl
+2325 1856 1749 1856 Dl
+2325 2100 2325 1856 Dl
+1749 2101 2325 2101 Dl
+(network)1874 2042 w
+2016 2122 2016 2122 2016 2194 Ds
+2016 2122 2016 2194 2052 2266 Ds
+2016 2194 2052 2266 2088 2266 Ds
+2052 2266 2088 2266 2124 2338 Ds
+2088 2266 2124 2338 2124 2474 Ds
+2124 2338 2124 2474 2124 2474 Ds
+3794 2194 3794 2194 3794 2302 Ds
+3794 2194 3794 2302 3866 2338 Ds
+3794 2302 3866 2338 3866 2474 Ds
+3866 2338 3866 2474 3866 2474 Ds
+(Nationwide Long Haul)2 921 1 2448 2675 t
+10 B f
+(Figure 1 - Plan 9 Topology)5 1137 1 2311 4384 t
+10 R f
+( topology.)1 417(The rest of this paper describes the features of Plan 9 that make possible such a flexible)16 3653 2 970 4660 t
+( details of)2 408( For)1 196(For more information on hardware and use of the system, see our previous paper [Pik90] .)15 3716 3 720 4780 t
+(the file server, see [Qui] .)5 1016 1 720 4900 t
+10 B f
+(2. Minimalism)1 642 1 720 5140 t
+10 R f
+( program memory, reside in one name space and)8 2001(All resources that a process can access, aside from)8 2069 2 970 5296 t
+( look like file systems and, hence-)6 1386( stated, all resources are implemented to)6 1635( Simply)1 345(are accessed uniformly.)2 954 4 720 5416 t
+( systems can be the)4 799( File)1 213( with no links.)3 594( file system is a strict tree)6 1057( A)1 128(forth, we shall call them file systems.)6 1529 6 720 5536 t
+( They)1 263( the shared file servers.)4 954(traditional type representing persistent storage on a disk as implemented by)10 3103 3 720 5656 t
+( file)1 167( The)1 213(can also represent physical devices such as terminals or complex abstractions such as processes.)13 3940 3 720 5776 t
+(systems can be implemented by kernel resident drivers, by user level processes, or by remote servers.)15 4047 1 720 5896 t
+( example, an)2 533( For)1 202( representing a physical device normally contains one or two files.)10 2778(A file system)2 557 4 970 6052 t
+( is represented as a directory containing a)7 1675(RS232 line)1 452 2 720 6172 t
+10 CW f
+(data)2875 6172 w
+10 R f
+(and a)1 216 1 3143 6172 t
+10 CW f
+(ctl)3387 6172 w
+10 R f
+(file. The)1 366 1 3595 6172 t
+10 CW f
+(data)3989 6172 w
+10 R f
+(file is the stream of)4 783 1 4257 6172 t
+( The)1 209(bytes transmitted/received on the line.)4 1535 2 720 6292 t
+10 CW f
+(ctl)2493 6292 w
+10 R f
+(file is a control channel used to change device parameters)9 2338 1 2702 6292 t
+(such as baud rate.\262)3 759 1 720 6412 t
+( variables \(as in Unix\) are implemented)6 1598( Environment)1 575( software concepts.)2 773(Some file systems represent)3 1124 4 970 6568 t
+( with sepa-)2 438( processes themselves are represented as directories)6 2066( Even)1 256(as files in a kernel resident file system.)7 1560 4 720 6688 t
+( things)1 276( Many)1 289( and control.)2 514(rate files representing different aspects of the process such as memory, text file,)12 3241 4 720 6808 t
+( Plan 9;)2 322(that require a system call in other operating systems are represented by I/O operations on files in)16 3998 2 720 6928 t
+8 S1 f
+(__________________)720 7028 w
+8 R f
+(\262 We neither need nor have an)6 971 1 720 7128 t
+8 CW f
+(ioctl)1711 7128 w
+8 R f
+(system call.)1 375 1 1971 7128 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 2 2
+%%Page: 3 3
+/saveobj save def
+mark
+3 pagesetup
+10 R f
+(- 3 -)2 166 1 2797 480 t
+(reading the id of a process, the user id associated with a process, the time, etc.)15 3113 1 720 840 t
+(A kernel data structure, called a)5 1288 1 970 996 t
+10 I f
+(channel,)2287 996 w
+10 R f
+( user level file descriptor is)5 1109( A)1 127( pointer to a file.)4 683(is used as a)3 464 4 2657 996 t
+( nine primitive operations)3 1048( I/O system calls eventually translate into)6 1696( All)1 185(just a handle for a kernel channel.)6 1391 4 720 1116 t
+( are:)1 174( They)1 255(on channels.)1 499 3 720 1236 t
+( file system is told which user is attaching.)8 1702( The)1 205( point a channel to the root of a file system.)10 1734(attach \261)1 300 4 720 1392 t
+( new channel points to the same file as the old one.)11 2036( The)1 205( make a copy of a channel.)6 1066(clone \261)1 300 4 720 1548 t
+( do a one level directory lookup on the channel and point it to the new file \(or directory\).)18 3541(walk \261)1 300 2 720 1704 t
+( get the attributes of the file pointed to.)8 1557(stat \261)1 300 2 720 1860 t
+( change the attributes of the file pointed to.)8 1717(wstat \261)1 300 2 720 2016 t
+( check permissions prior to I/O on the channel.)8 1872(open \261)1 300 2 720 2172 t
+( read from the opened file.)5 1058(read \261)1 300 2 720 2328 t
+( write to the opened file.)5 976(write \261)1 300 2 720 2484 t
+( close the opened file.)4 873(close \261)1 300 2 720 2640 t
+(Each kernel resident file system is implemented by a)8 2172 1 970 2796 t
+10 I f
+(device driver)1 532 1 3176 2796 t
+10 R f
+(containing a procedure for each)4 1298 1 3742 2796 t
+( via a kernel array,)4 784( device drivers are accessed indirectly)5 1569( The)1 216(primitive operation.)1 805 4 720 2916 t
+10 CW f
+(devtab,)4129 2916 w
+10 R f
+(which con-)1 456 1 4584 2916 t
+( channel contains an offset into)5 1270( Each)1 254(tains 9 pointers per driver, one to each primitive procedure.)9 2406 3 720 3036 t
+10 CW f
+(devtab)4680 3036 w
+10 R f
+(indicating the driver to be used in accessing the file it points to.)12 2534 1 720 3156 t
+( resident in the kernel is via a special device driver, the)11 2239(Accessing file systems not)3 1072 2 970 3312 t
+10 I f
+(mount driver.)1 548 1 4310 3312 t
+10 R f
+(All)4912 3312 w
+( mount driver turns)3 814( The)1 220( this driver contain a pointer to a communication channel.)9 2443(channels pointing to)2 843 4 720 3432 t
+( mount)1 301( The)1 225( channel.)1 380(operations on such channels into request messages written to the communication)10 3414 4 720 3552 t
+( the messages on the)4 865( Because)1 393( a multiplexor allowing multiple outstanding messages.)6 2280(driver is written as)3 782 4 720 3672 t
+(communication channel are transmitted using)4 1832 1 720 3792 t
+10 CW f
+(read's)2580 3792 w
+10 R f
+(and)2968 3792 w
+10 CW f
+(write's,)3140 3792 w
+10 R f
+(any type of channel can be used: a)7 1392 1 3648 3792 t
+( The)1 209(pipe to a process, a network connection, even an RS232 line.)10 2472 2 720 3912 t
+10 CW f
+(mount)3430 3912 w
+10 R f
+(system call, described below, is)4 1281 1 3759 3912 t
+(used to create a new mount device channel and supply a communication channel for it.)14 3468 1 720 4032 t
+( encapsulate)1 498( code used to)3 545( The)1 212(All Plan 9 components are connected using this file system protocol.)10 2815 4 970 4188 t
+( Com-)1 279( mount driver is 899 lines long.)6 1259( The)1 206( long.)1 229(the primitives into request and reply messages is 580 lines)9 2347 5 720 4308 t
+(pared to the equivalent NFS code implementing vnodes and XDR this is tiny.)12 3096 1 720 4428 t
+( 5000 lines perform memory management, pro-)6 1906(Of the 18000 lines of code that make up Plan 9, about)11 2164 2 970 4584 t
+( for the 17 different file systems imple-)7 1567( rest are)2 317( The)1 206(cess management, hardware interface, and system calls.)6 2230 4 720 4704 t
+( file systems are completely self con-)6 1558( most of the)3 508( Since)1 283(menting devices, networks, process control, etc.)5 1971 4 720 4824 t
+( working, albeit)2 630( A)1 122( would imply.)2 559(tained, the complexity of the kernel code is even lower than its 18000 lines)13 3009 4 720 4944 t
+( can be configured containing only the file systems implementing pipes, a local root,)13 3416(not very useful, kernel)3 904 2 720 5064 t
+( of commented C code \(counted using)6 1538( totals 5899 lines)3 693( This)1 232(and a console.)2 576 4 720 5184 t
+10 CW f
+(wc *.[ch])1 543 1 3787 5184 t
+10 R f
+( a compari-)2 460(\). As)1 222 2 4358 5184 t
+( code \(calculated, we're told, by)5 1367(son, Mach's micro-kernel without device drivers has 25530 lines of C)10 2953 2 720 5304 t
+( the same metric our minimal kernel is only 4622 lines long, less than 1/5 the)15 3217( By)1 177(counting semi-colons\).)1 926 3 720 5424 t
+( fact, our kernel with every file system included is still less than half the size of their micro-kernel.)18 3938(size. In)1 313 2 720 5544 t
+(One might note the similarities between)5 1626 1 970 5700 t
+10 CW f
+(devtab)2627 5700 w
+10 R f
+( operating system; the block)4 1155(and parts of the Unix)4 867 2 3018 5700 t
+( advantage of Plan 9 is that we)7 1251( One)1 220( vnodes.)1 337(device switch, character device switch, file system switch and)8 2512 4 720 5820 t
+(have recognized that these are all essentially the same mechanism and have implemented them as such.)15 4125 1 720 5940 t
+10 B f
+( Name Space)2 549(3. Virtual)1 436 2 720 6180 t
+10 R f
+( a terminal or connects to a cpu server, a new process group is created for her pro-)17 3324(When a user boots)3 746 2 970 6336 t
+( name space that provides at minimum a root \()9 1928( process group starts with an initial)6 1453(cesses. This)1 511 3 720 6456 t
+10 CW f
+(/)4645 6456 w
+10 R f
+(\), some)1 302 1 4738 6456 t
+( processor the process is running on \()7 1510(binaries for the)2 608 2 720 6576 t
+10 CW f
+(/bin/*)2866 6576 w
+10 R f
+( some local devices \()4 849(\), and)1 255 2 3254 6576 t
+10 CW f
+(/dev/*)4386 6576 w
+10 R f
+(\). The)1 266 1 4774 6576 t
+( or rearrange their name space using two systems calls,)9 2204(processes in the group can then either add to)8 1790 2 720 6696 t
+10 CW f
+(mount)4740 6696 w
+10 R f
+(and)720 6816 w
+10 CW f
+(bind.)892 6816 w
+10 R f
+( call is used to attach a new \(not kernel resident\) file system to a point in the name)18 3356(The mount)1 439 2 1245 6816 t
+( syntax is)2 378(space. Its)1 396 2 720 6936 t
+10 CW f
+(mount\(int fd, char *old, int flags, ...\))6 2400 1 970 7092 t
+10 R f
+(where)720 7248 w
+10 I f
+(fd)992 7248 w
+10 R f
+( for a communication stream such as a pipe or a network connection and)13 2956(is a file descriptor)3 730 2 1099 7248 t
+10 I f
+(old)4815 7248 w
+10 R f
+(is)4973 7248 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 3 3
+%%Page: 4 4
+/saveobj save def
+mark
+4 pagesetup
+10 R f
+(- 4 -)2 166 1 2797 480 t
+( attach-)1 302( The)1 211( system will be attached.)4 1009(the name of an existing file in the current name space where the file)13 2798 4 720 840 t
+(ment creates a new mount device channel whose communication channel is that referred to by)14 3856 1 720 960 t
+10 I f
+(fd.)4608 960 w
+10 R f
+(Subse-)4768 960 w
+(quent accesses to)2 699 1 720 1080 t
+10 I f
+(old)1450 1080 w
+10 R f
+( the com-)2 387(and any files below it in the hierarchy become request messages written to)12 3044 2 1609 1080 t
+(munication stream.)1 766 1 720 1200 t
+( and also to rearrange)4 890(The bind call is used to attach a kernel resident file system to the name space)15 3180 2 970 1356 t
+( syntax is)2 378( Its)1 150(pieces of the name space.)4 1016 3 720 1476 t
+10 CW f
+(bind\(char *new, char *old, int flags\))5 2220 1 970 1632 t
+10 R f
+(where)720 1788 w
+10 I f
+(new)988 1788 w
+10 R f
+(is a name in the current name space\262 and)8 1640 1 1174 1788 t
+10 I f
+(old)2839 1788 w
+10 R f
+(is the same as in mount.)5 961 1 2992 1788 t
+( on the)2 284(How the attachment works depends)4 1445 2 970 1944 t
+10 I f
+(flags)2730 1944 w
+10 R f
+( possibility is that the old)5 1040( One)1 222(specified in the call.)3 822 3 2956 1944 t
+( when both files are directories, Plan 9 allows another possibility.)10 2624( However,)1 441( one.)1 195(file is replaced by the new)5 1060 4 720 2064 t
+( that of putting one directory behind the)7 1667( effect is)2 363( The)1 215(The result can be the union of the two directories.)9 2075 4 720 2184 t
+( for files contained in the directories, the one in front wins.)11 2349( the case of name conflicts)5 1066(other. In)1 364 3 720 2304 t
+10 I f
+(Flags)4549 2304 w
+10 R f
+(speci-)4802 2304 w
+( concept is essen-)3 707( This)1 230( in front of, or goes behind the old one.)9 1580(fies whether the new directory replaces, goes)6 1803 4 720 2424 t
+( fact, Plan 9 has no)5 790( In)1 139(tially the same as the search paths used in the Unix libraries and the various shells.)15 3391 3 720 2544 t
+(search paths and uses these)4 1098 1 720 2664 t
+10 I f
+(union directories)1 689 1 1846 2664 t
+10 R f
+( Plan 9 uses the)4 638( a command is executed,)4 996( When)1 291(in their place.)2 552 4 2563 2664 t
+(directory)720 2784 w
+10 CW f
+(/bin)1105 2784 w
+10 R f
+(the same way Unix uses an execution path.)7 1719 1 1370 2784 t
+( process)1 333(The ability to specify the complete name space for a process that contains all resources the)15 3737 2 970 2940 t
+( aspect of a process' world can be rearranged.)8 1895( Any)1 231( the basis for a true virtual machine.)7 1499(can access forms)2 695 4 720 3060 t
+( can implement part or all of the name space of)10 1909( Processes)1 441( for local ones.)3 602(Remote objects can be substituted)4 1368 4 720 3180 t
+( present)1 317( capability is the basis for a number of important services, three of which we)14 3128( This)1 233(other processes.)1 642 4 720 3300 t
+(here.)720 3420 w
+10 B f
+( Cpu Command)2 684(3.1. The)1 367 2 720 3660 t
+10 R f
+( our terminals, someplace where commands)5 1797(We consider the shared CPU servers as accelerators for)8 2273 2 970 3816 t
+( run-)1 192( is important that as little as possible change when)9 2025( It)1 113(can run while maintaining the same environment.)6 1990 4 720 3936 t
+( means to make the CPU servers actu-)7 1564( virtual name space provides us with a)7 1563( The)1 210(ning on the CPU server.)4 983 4 720 4056 t
+( command,)1 445( A)1 123(ally feel this way to our users.)6 1207 3 720 4176 t
+10 CW f
+(cpu,)2521 4176 w
+10 R f
+( daemon process)2 665( A)1 122(calls a CPU server across a network.)6 1466 3 2787 4176 t
+( answers the call, creates a new process group for the caller, sets up a name space, and starts a)19 3801(on the server)2 519 2 720 4296 t
+( is an analogue of the name space of the call-)10 1795( name space set up)4 752( The)1 206(shell process in the new process group.)6 1567 4 720 4416 t
+( screen and the mouse,)4 910( particular, local resources on the terminal, such as the)9 2170( In)1 133(ing process on the terminal.)4 1107 4 720 4536 t
+( standard)1 363( The)1 205( terminal.)1 383(become visible to the server processes at the same place in the name space as on the)16 3369 4 720 4656 t
+( output, standard error, and current directory of the cpu command become those of the)14 3708(input, standard)1 612 2 720 4776 t
+( directories mounted on)3 976( The)1 215(remote shell.)1 526 3 720 4896 t
+10 CW f
+(/bin)2472 4896 w
+10 R f
+( that contain executables for the)5 1317(are changed to be those)4 976 2 2747 4896 t
+( gen-)1 207( In)1 138( \(the terminal may be a 68020 while a CPU server could be a MIPS\).)14 2824(CPU server's processor type)3 1151 4 720 5016 t
+(eral, a user typing the cpu command just notices that things such as compilations speed up while graphics)17 4320 1 720 5136 t
+(operations slow down.)2 902 1 720 5256 t
+( cpu command)2 592(After the initial handshake to pass information describing the caller's environment, the)11 3478 2 970 5412 t
+( server daemon)2 637( The)1 220(becomes a file server answering file system requests from the network connection.)11 3463 3 720 5532 t
+( terminal in a standard place,)5 1248(mounts the network connection to the)5 1597 2 720 5652 t
+10 CW f
+(/mnt/term,)3609 5652 w
+10 R f
+(and then binds the)3 787 1 4253 5652 t
+( example, it binds)3 804( For)1 220( name space.)2 574(resources it decides to keep into the same places in the new)11 2722 4 720 5772 t
+10 CW f
+(/mnt/term/dev/mouse)720 5892 w
+10 R f
+(onto)1908 5892 w
+10 CW f
+(/dev/mouse, /mnt/term/dev/bitblt)1 1909 1 2135 5892 t
+10 R f
+(onto)4093 5892 w
+10 CW f
+(/dev/bitblt,)4320 5892 w
+10 R f
+( driver in the CPU server into file system)8 1643( accesses to those files are converted by the mount)9 2024(etc. Subsequent)1 653 3 720 6012 t
+(messages sent to the terminal.)4 1196 1 720 6132 t
+8 S1 f
+(__________________)720 6680 w
+8 R f
+( name starting with a ``#'')5 876( Any)1 187(\262 Local kernel resources are referred to by a syntactic escape \(hack\) in the name space.)15 2897 3 720 6780 t
+( resource and the remaining characters)5 1232( first character following the ``#'' specifies the type of)9 1751( The)1 167(refers to a local resource.)4 810 4 720 6880 t
+( in the name)3 421( to bind the local console to a standard place)9 1492( Thus,)1 229(are a parameter specifying the instance of the resource.)8 1818 4 720 6980 t
+(space, one would use)3 677 1 720 7080 t
+8 CW f
+(bind\("#c", "/dev", FRONT\).)2 1248 1 1445 7080 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 4 4
+%%Page: 5 5
+/saveobj save def
+mark
+5 pagesetup
+10 R f
+(- 5 -)2 166 1 2797 480 t
+10 B f
+( Window System)2 717(3.2. The)1 367 2 720 840 t
+10 R f
+(The user interface is made up of three files:)8 1734 1 970 996 t
+10 CW f
+(/dev/bitblt)720 1152 w
+10 R f
+(\261 writes represent bitblt operations to the screen)7 1916 1 1405 1152 t
+10 CW f
+(/dev/mouse)720 1308 w
+10 R f
+( return mouse events, i.e., button clicks and movement)8 2181(\261 reads)1 310 2 1345 1308 t
+10 CW f
+(/dev/cons)720 1464 w
+10 R f
+(\261 reads return keyboard input, writes put characters to the screen.)10 2604 1 1285 1464 t
+( window system, 8.5 [Pik91], offers pro-)6 1701( The)1 218( user.)1 229(Between them, these devices represent all I/O to the)8 2172 4 720 1620 t
+( a window is opened, the window system starts a new)10 2239( When)1 298( multiplexed view to these devices.)5 1454(cesses a)1 329 4 720 1740 t
+( that process group's name)4 1094( In)1 139( \(usually a shell\) that will run in that window.)9 1881(process group for a command)4 1206 4 720 1860 t
+( of)1 108(space, the window system mounts a pipe to itself in front)10 2289 2 720 1980 t
+10 CW f
+(/dev.)3142 1980 w
+10 R f
+(Subsequent references by the new pro-)5 1548 1 3492 1980 t
+( interprets)1 413( 8.5)1 186( are sent as file system messages to the window server.)10 2303(cess group to any of these devices)6 1418 4 720 2100 t
+( 8.5 multiplexes the mouse)4 1079( Similarly,)1 449( screen.)1 305(those requests as accesses of the window instead of the whole)10 2487 4 720 2220 t
+( that mouse and keyboard input is available to processes only when their window is)14 3489(and the keyboard so)3 831 2 720 2340 t
+(selected.)720 2460 w
+( resident user interface will also work inside a)8 1859(The result is that any program written to use the kernel)10 2211 2 970 2616 t
+( this is also true of the window system itself, new versions of the window system can be)17 3587(window. Because)1 733 2 720 2736 t
+(run and debugged in windows of the current window system.)9 2441 1 720 2856 t
+10 B f
+( Gateways)1 441(3.3. Network)1 571 2 720 3096 t
+10 R f
+( a network to which a system is not physically)9 1882(One, sometimes insurmountable, problem is accessing)5 2188 2 970 3252 t
+( example, a system may be connected to our Datakit [Fra80] network but not to the DoD)16 3760(attached. For)1 560 2 720 3372 t
+( solve this problem by performing protocol to protocol translation.)9 2672( gateways exist that try to)5 1029(Internet. Many)1 619 3 720 3492 t
+( order to perform the best)5 1057( In)1 142(Unfortunately, few transport protocols have completely equivalent concepts.)7 3121 3 720 3612 t
+( example, TP4 has mes-)4 969( For)1 192( program.)1 391(translation, it is be necessary to know the semantics requested by the)11 2768 4 720 3732 t
+( know which)2 534( protocol translator going from TCP to TP4 would not)9 2254( A)1 132(sage delimiters but TCP does not.)5 1400 4 720 3852 t
+(bytes correspond to a single write by the sender.)8 1927 1 720 3972 t
+( gateway is a file server that serves its own net-)10 1920( A)1 125( a file system.)3 564(In Plan 9, every network interface is)6 1461 4 970 4128 t
+( network connects to the gateway)5 1333( process that wants to get at a remote)8 1483( A)1 123(work interfaces to other machines.)4 1381 4 720 4248 t
+( the process)2 507( Whenever)1 477( name space.)2 548(and mounts the gateway's interface to the remote network into its)10 2788 4 720 4368 t
+( the gateway sees)3 749( Thus,)1 293( request to the gateway.)4 1017(accesses the interface, the mount driver will send the)8 2261 4 720 4488 t
+(exactly what the process does.)4 1211 1 720 4608 t
+10 B f
+( Caching)1 381(4. File)1 286 2 720 4848 t
+10 R f
+( our termi-)2 437(In building our environment, we've been reluctant to add local disk file systems to any of)15 3633 2 970 5004 t
+( Anyone)1 367( first is administration.)3 909( The)1 206( are essentially two reasons for this choice.)7 1727( There)1 284(nals or CPU servers.)3 827 6 720 5124 t
+( has unique long term state requires both knowledge and)9 2282( disk that)2 371( Any)1 224(with a local disk must administer it.)6 1443 4 720 5244 t
+( lucrative business)2 766( fact, the Bell Labs computer center at Murray Hill is doing a)12 2623( In)1 148(time to administer.)2 783 4 720 5364 t
+(maintaining other peoples' disked Sun workstations because the owners have neither the time nor the expe-)15 4320 1 720 5484 t
+(rience necessary to do it themselves.)5 1458 1 720 5604 t
+( export access to their local file sys-)7 1489( most workstations can)3 940( Although)1 435(The second reason is sharing.)4 1206 4 970 5760 t
+( become personified and users)4 1300( Terminals)1 478( individual users, this rarely happens.)5 1605(tems, when left up to)4 937 4 720 5880 t
+(become tied to a particular room to do their work.)9 1991 1 720 6000 t
+( file systems thanks partially to hardware and partially to caching.)10 2692(Plan 9 survives without local disk)5 1378 2 970 6156 t
+( servers transfer at a substantial percentage of memory)8 2193(The CPU servers do so because their links to the file)10 2127 2 720 6276 t
+( servers are)2 469( These)1 296( their disk file systems.)4 957( file servers maintain large main memory caches for)8 2134(speed. The)1 464 5 720 6396 t
+( main memory to ensure that there is plenty of room for cache.)12 2570(configured with 128 megabytes or more of)6 1750 2 720 6516 t
+(Getting a file from a file server is generally faster than it would be to get it from a local disk.)20 3702 1 720 6636 t
+( termi-)1 276( Home)1 301( 10 megabit/sec links.)3 893(Office terminals are connected to the file servers by shared 1 or)11 2600 4 970 6792 t
+( would)1 276( both cases, the link is much slower than access to a local disk)13 2506( In)1 135(nals use 9600 or 19200 baud links.)6 1403 4 720 6912 t
+( keep the caches coherent, we use file identi-)8 1794( To)1 162( performance hit, we use caching.)5 1348( avoid the obvious)3 736(be. To)1 280 5 720 7032 t
+( bits identify the file, the)5 1023( 32)1 158( identifiers are unique 64 bit quantities.)6 1616( The)1 214(fiers supplied by the file server.)5 1309 5 720 7152 t
+( the file is)3 451( version number is incremented each time)6 1771( The)1 222(other 32 bits identify the version of the file.)8 1876 4 720 7272 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 5 5
+%%Page: 6 6
+/saveobj save def
+mark
+6 pagesetup
+10 R f
+(- 6 -)2 166 1 2797 480 t
+( it is)2 193( Therefore,)1 477( with the reply.)3 635( time a file is opened the file server returns the identifier)11 2369(modified. Each)1 646 5 720 840 t
+(possible to guarantee coherency at each opening of a file.)9 2288 1 720 960 t
+( a program terminates, its unmodi-)5 1417( Whenever)1 466(Office terminals only cache pages of executable files.)7 2187 3 970 1116 t
+( they are retained until the space is required by)9 1910( Instead)1 343( freed.)1 259(fied text and data pages are not immediately)7 1808 4 720 1236 t
+( a program is rerun its executable file is reopened and the current version number)14 3382( When)1 297(other programs.)1 641 3 720 1356 t
+( the)1 148( If)1 117( last run, they are reused.)5 1005( the version number has not changed and pages remain from the)11 2575(returned. If)1 475 5 720 1476 t
+( most data inten-)3 672( Since)1 273(version number has changed, any remaining pages of the stale version are discarded.)12 3375 3 720 1596 t
+( traffic between office terminals)4 1295(sive work is done on the CPU servers, this simple cache saves most of the)14 3025 2 720 1716 t
+( caching could be helpful but would require much more complexity.)10 2721( Other)1 277(and the file servers.)3 781 3 720 1836 t
+( Therefore,)1 471( for home terminals if it were persistent, but it is not.)11 2151(This cache might also have sufficed)5 1448 3 970 1992 t
+( a)1 72( As)1 164( disks to our home terminals to be used as write through caches of the file server files.)17 3484(we have added)2 600 4 720 2112 t
+( it needs little)3 569( Therefore,)1 476( servers.)1 341(write through cache, it contains no state that isn't duplicated on the file)12 2934 4 720 2232 t
+( the code discovers a disk problem, it reformats the disk)10 2333( If)1 126( a local file system.)4 814(maintenance compared to)2 1047 4 720 2352 t
+( she can request)3 658( the user should suspect that the cache is contaminated,)9 2265( If)1 123(discarding the current contents.)3 1274 4 720 2472 t
+( refills the cache but no)5 939( system slows down until subsequent use)6 1651( The)1 207(that it be reformatted at the next boot.)7 1523 4 720 2592 t
+( not consciously update the disk because the cache uses file identifiers to)12 2942( user need)2 408( The)1 207(information is lost.)2 763 4 720 2712 t
+( file is opened, the cache discards any stale data it)10 2087( time a)2 294( Each)1 260(maintain coherency with the file servers.)5 1679 4 720 2832 t
+( what she needs to the disk because it is done as a)12 2064( user doesn't have to copy)5 1075( The)1 211(might have for that file.)4 970 4 720 2952 t
+(consequence of her using the data.)5 1374 1 720 3072 t
+( cache is implemented by a process that resides between the kernel and the file server)15 3465(The disk based)2 605 2 970 3228 t
+( It)1 114( can with data cached on the disk.)7 1368( every read request, the process satisfies as much as it)10 2182(connection. For)1 656 4 720 3348 t
+( the cache)2 402( When)1 290( through it is saved on the disk.)7 1264( new data that passes)4 841( Any)1 223(gets the rest from the file server.)6 1300 6 720 3468 t
+( is limited to)3 528( amount of data cached for any one file)8 1634( The)1 214(fills up the least recently used file is discarded.)8 1944 4 720 3588 t
+(1.75 megabytes to prevent one file from displacing all others.)9 2455 1 720 3708 t
+( opened, it provides slightly)4 1154(Because the disk based cache only checks for coherency when a file is)12 2916 2 970 3864 t
+( coherency)1 437( looser)1 273( This)1 232(different semantics than that seen on office terminals which do not cache data files.)13 3378 4 720 3984 t
+( far)1 136( Thus)1 251( via files to ensure an open between each transaction.)9 2131(constraint forces programs that communicate)4 1802 4 720 4104 t
+(we have not had to change any programs because of it.)10 2186 1 720 4224 t
+10 B f
+(5. Conclusion)1 604 1 720 4464 t
+10 R f
+( the)1 157( Both)1 254(We have presented a distributed system that is simple in structure and flexible in its use.)15 3659 3 970 4620 t
+( group name space and a single)6 1337(flexibility and simplicity are the result of two properties, a per process)11 2983 2 720 4740 t
+( with some minimal caching we provide a simple system that is as usable at)14 3174( Coupled)1 400(resource interface.)1 746 3 720 4860 t
+(home as at work.)3 682 1 720 4980 t
+10 B f
+(6. Acknowledgements)1 952 1 720 5220 t
+10 R f
+( would like especially to thank Bart Locanthi, who built)9 2313( We)1 196(Many people helped build the system.)5 1561 3 970 5376 t
+( command interpreter)2 877(our terminal, the Gnot, and encouraged us to program it; Tom Duff, who wrote the)14 3443 2 720 5496 t
+10 CW f
+(rc)720 5616 w
+10 R f
+( Kowalski, who cheerfully)3 1104(; Tom Killian, who built and programmed the Gnot's SCSI interface; Ted)11 3096 2 840 5616 t
+( the software; and Dennis Ritchie, who frequently provided us with much-needed)11 3294(endured early versions of)3 1026 2 720 5736 t
+(wisdom.)720 5856 w
+10 B f
+(References)720 6096 w
+10 R f
+( ``Datakit\261A Modular Network for Synchronous and Asynchronous Traffic,'' in)9 3240( G. Fraser,)2 427(Fra80. A.)1 405 3 720 6324 t
+10 I f
+(Proc.)4821 6324 w
+(Int. Conf. on Commun.)3 917 1 970 6444 t
+10 R f
+(, Boston, MA \(June 1980\).)4 1069 1 1887 6444 t
+( ``INCON: Network Maintenance and Privacy,'' Internal Memorandum 220106-)8 3367( R. Kalmanek,)2 611(Kal. C.)1 342 3 720 6600 t
+( Bell Laboratories.)2 746(0450, AT&T)1 547 2 970 6720 t
+( Local Network:)2 674( Metcalfe, D. Boggs, C. Crane, E. Taft, J. Shoch, and J. Hupp, ``The Ethernet)14 3218(Met80. R.)1 428 3 720 6876 t
+( Palo Alto Research Centers \(February, 1980\).)6 1852( XEROX)1 394(Three Reports,'' CSL-80-2,)2 1109 3 970 6996 t
+( R., ``8.5, The Plan 9 Window System,'')7 1754(Pik91. Pike,)1 512 2 720 7152 t
+10 I f
+(1991 USENIX Summer Conference Proceedings)4 2010 1 3030 7152 t
+10 R f
+(\(1991\).)970 7272 w
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 6 6
+%%Page: 7 7
+/saveobj save def
+mark
+7 pagesetup
+10 R f
+(- 7 -)2 166 1 2797 480 t
+( Pike, ``The Text Editor sam,'')5 1374(Pik87. Rob)1 476 2 720 840 t
+10 I f
+(Software - Practice and Experience)4 1537 1 2623 840 t
+10 B f
+(17)4213 840 w
+10 R f
+( 813-845)1 358(\(11\), pp.)1 369 2 4313 840 t
+(\(November 1987\).)1 737 1 970 960 t
+( Pike, D. Presotto, K. Thompson, and H. Trickey, ``Plan 9 from Bell Labs,'' in)14 3147(Pik90. R.)1 401 2 720 1116 t
+10 I f
+(UKUUG Proceed-)1 746 1 4294 1116 t
+(ings of the Summer 1990 Conference)5 1479 1 970 1236 t
+10 R f
+(, London, England \(July, 1990\).)4 1277 1 2449 1236 t
+( Presotto, ``Plan 9 from Bell Labs - The Network,'' in)10 2258(Pre88. D.)1 405 2 720 1392 t
+10 I f
+( of the Spring 1988)4 811(EUUG Proceedings)1 811 2 3418 1392 t
+(Conference)970 1512 w
+10 R f
+(, London, England \(April, 1988\).)4 1321 1 1430 1512 t
+( Quinlan, ``A Cached WORM File System,'')6 1798(Qui. S.)1 331 2 720 1668 t
+10 I f
+(Software \261 Practice and Experience)4 1442 1 2874 1668 t
+10 R f
+(, p. To appear.)3 576 1 4316 1668 t
+( Circuit Design,'' Internal Memorandum 52413-)5 1986( C. Restrick, ``INCON Wire Interface Integrated)6 1992(Res. R.)1 342 3 720 1824 t
+( Bell Laboratories.)2 746(860314-01TM, AT&T)1 930 2 970 1944 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 7 7
+%%Trailer
+done
+%%Pages: 7
+%%DocumentFonts: Courier Times-Bold Times-Italic Times-Roman Times-Roman

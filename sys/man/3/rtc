@@ -1,0 +1,39 @@
+.TH RTC 3
+.SH NAME
+rtc \- real-time clock and non-volatile RAM
+.SH SYNOPSIS
+.B bind #r /dev
+.PP
+.B /dev/rtc
+.br
+.B /dev/nvram
+.SH DESCRIPTION
+The
+.I rtc
+device supports the
+Mostek MK48T12-15 Zeropower/Timekeeper and similar devices
+with real-time clocks and non-volatile RAM.
+.PP
+The
+.B rtc
+file behaves just like
+.BR /dev/time
+(see
+.IR cons (3)).
+The real-time clock is maintained on-board;
+.B /dev/time
+is set from the file server.  Neither is necessarily more accurate.
+.PP
+The
+.B nvram
+file provides (if permission allows)
+access to the local non-volatile RAM.
+For example,
+.IR boot (8)
+reads the machine's key
+(see
+.IR auth (8))
+from there.
+.SH SEE ALSO
+.IR auth (8),
+.IR boot (8)

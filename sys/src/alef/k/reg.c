@@ -1,0 +1,351 @@
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include <ctype.h>
+#define Extern extern
+#include "parl.h"
+#include "globl.h"
+
+int regmap[65];
+
+void
+reginit(void)
+{
+	regmap[Retfreg]++;
+	regmap[Retireg]++;
+	regmap[Reglink]++;
+	regmap[Regtmp]++;
+
+	privreg = Pregs;
+}
+
+void
+regcheck(void)
+{
+	int r, e;
+
+	e = 0;
+	for(r = Ireg; r < Maxireg; r++)
+		if(regmap[r]) {
+			switch(r) {
+			default:
+				print("R%d still used\n", r);
+				e++;
+				break;
+			case Retfreg:
+			case Retireg:
+			case Reglink:
+			case Regtmp:
+				break;
+			}
+		}
+
+	for(r = Freg; r < Maxfreg; r++)
+		if(regmap[r] && (r != Retfreg || regmap[Retfreg] != 1)) {
+			print("F%d still used\n", r);
+			e++;
+		}
+	if(e)
+		fatal("regcheck %P", curfunc);
+}
+
+void
+reg(Node *n, Type *t, Node *use)
+{
+	int r, j;
+	static int ireg;
+
+	switch(t->type) {
+	default:
+		fatal("reg: bad type %T", t);
+
+	case TINT:
+	case TUINT:
+	case TSINT:
+	case TSUINT:
+	case TCHAR:
+	case TIND:
+	case TCHANNEL:
+		if(use && use->type == OREGISTER && use->reg < Freg) {
+			r = use->reg;
+			break;
+		}
+		j = ireg+Ireg;
+		for(r = Ireg; r < Maxireg; r++) {
+			if(j >= Maxireg)
+				j = Ireg;
+			if(regmap[j] == 0) {
+				r = j;
+				break;
+			}
+			j++;
+		}
+		if(r >= Maxireg)
+			fatal("No int registers");
+		break;
+
+	case TFLOAT:
+		if(use && use->type == OREGISTER && use->reg >= Freg) {
+			r = use->reg;
+			break;
+		}
+
+		j = ireg*2+Freg;
+		for(r = Freg; r < Maxfreg; r += 2) {
+			if(j >= Maxfreg)
+				j = Ireg;
+			if(regmap[j] == 0) {
+				r = j;
+				break;
+			}
+			j += 2;
+		}
+		if(r >= Maxfreg)
+			fatal("No float registers");
+		break;
+	}
+	ireg++;
+	if(ireg > 5)
+		ireg = 0;
+	regmap[r]++;
+	n->reg = r;
+	n->type = OREGISTER;
+	n->islval = 11;
+	n->sun = 0;
+	n->t = t;
+}
+
+Node*
+regtmp(void)
+{
+	Node *n;
+	int r;
+
+	n = an(OREGISTER, ZeroN, ZeroN);
+	n->t = builtype[TINT];
+	n->islval = 11;
+	n->sun = 0;
+
+	for(r = Ireg; r < Maxireg; r++)
+		if(regmap[r] == 0) {
+			n->reg = r;
+			regmap[r]++;
+			return n;
+		}
+	fatal("No int registers");
+	return ZeroN;	
+}
+
+Node*
+regn(int nr)
+{
+	Node *n;
+
+	n = an(OREGISTER, ZeroN, ZeroN);
+	if(nr >= Freg)
+		n->t = builtype[TFLOAT];
+	else
+		n->t = builtype[TINT];
+	n->islval = 11;
+	n->sun = 0;
+	n->reg = nr;
+	return n;
+}
+
+void
+regret(Node *n, Type*t)
+{
+	int r;
+
+	switch(t->type) {
+	default:
+		fatal("regret: bad type %T", t);
+
+	case TINT:
+	case TUINT:
+	case TSINT:
+	case TSUINT:
+	case TCHAR:
+	case TIND:
+	case TCHANNEL:
+		r = Retireg;
+		break;
+
+	case TFLOAT:
+		r = Retfreg;
+		break;
+	}
+	regmap[r]++;
+	n->reg = r;
+	n->type = OREGISTER;
+	n->t = t;
+}
+
+void
+regfree(Node *n)
+{
+	if(regmap[n->reg] <= 0)
+		fatal("regfree");
+
+	regmap[n->reg]--;
+}
+
+/*
+ * look for a constant which fits in a sparc immediate
+ */
+int
+immed(Node *n)
+{
+	long ival;
+
+	if(n->type != OCONST || n->t->type == TFLOAT)
+		return 0;
+
+	ival = n->ival;
+	if(ival >= -(1<<12) && ival < (1<<12))
+		return 1;
+
+	return 0;
+}
+
+/*
+ * Return the name of an activation argument
+ */
+Node*
+atvnode(Type *t)
+{
+	Node *n;
+	int o;
+
+	n = an(OINDREG, ZeroN, ZeroN);
+	n->t = t;
+	n->reg = ratv.reg;
+
+	ratv.ival = align(ratv.ival, builtype[TINT]);
+	o = ratv.ival;
+
+	/* Adjust offset within int for smaller types */
+	switch(t->type) {
+	case TSINT:
+	case TSUINT:
+		o += Shortfoff;
+		break;
+
+	case TCHAR:
+		o += Charfoff;
+		break;
+	}
+
+	n->ival = o;
+	ratv.ival += t->size;
+
+	sucalc(n);
+	return n;
+}
+
+/*
+ * Make a node to alias an argument
+ */
+Node*
+argnode(Type *t)
+{
+	Node *n;
+	int o;
+
+	if(atv)
+		return atvnode(t);
+
+	n = an(ONAME, ZeroN, ZeroN);
+	n->ti = malloc(sizeof(Tinfo));
+	n->ti->class = Argument;
+	n->t = t;
+	args = align(args, builtype[TINT]);
+	o = args;
+
+	/* Adjust offset within int for smaller types */
+	switch(t->type) {
+	case TSINT:
+	case TSUINT:
+		o += Shortfoff;
+		break;
+
+	case TCHAR:
+		o += Charfoff;
+		break;
+	}
+
+	n->ti->offset = o;
+	args += t->size;
+
+	sucalc(n);
+	return n;
+}
+
+/*
+ * Make a stack temporary node and allocate space in the frame
+ */
+Node*
+stknode(Type *o)
+{
+	char buf[10];
+	Node *n;
+	Tinfo *t;
+
+	n = an(ONAME, ZeroN, ZeroN);
+	t = malloc(sizeof(Tinfo));
+	n->sym = malloc(sizeof(Sym));
+
+	n->ti = t;
+	n->t = o;
+
+	sprint(buf, ".t%d", stmp++);
+	n->sym->name = strdup(buf);
+
+	/* Allocate the space */
+	frame = align(frame, o);
+	frame += o->size;
+
+	t->class = Automatic;
+	t->offset = frame;
+	sucalc(n);
+	return n;
+}
+
+Node*
+internnode(Type *o)
+{
+	char buf[10];
+	Node *n;
+	Tinfo *t;
+
+	n = an(ONAME, ZeroN, ZeroN);
+	t = malloc(sizeof(Tinfo));
+	n->sym = malloc(sizeof(Sym));
+	n->ti = t;
+	n->t = at(o->type, 0);
+	n->t->class = Internal;
+
+	sprint(buf, ".i%d", stmp++);
+	n->sym->name = strdup(buf);
+
+	t->class = Internal;
+	t->offset = 0;
+	sucalc(n);
+
+	n->init = ZeroN;
+	gendata(n);
+
+	return n;
+}
+
+Node*
+con(int i)
+{
+	Node *c;
+
+	c = an(OCONST, ZeroN, ZeroN);
+	c->t = builtype[TINT];
+	c->ival = i;
+
+	return c;
+}

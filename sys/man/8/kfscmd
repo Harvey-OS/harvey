@@ -1,0 +1,130 @@
+.TH KFSCMD 8
+.SH NAME
+kfscmd, ksync \- kfs administration
+.SH SYNOPSIS
+.B disk/kfscmd
+.RB [ -n
+.IR name ]
+cmd ...
+.PP
+.B disk/ksync
+.SH DESCRIPTION
+.I Kfs
+is a local user-level file server for a Plan 9 terminal with a disk.
+.I Kfscmd
+transmits commands to the
+.I kfs
+server (see
+.IR kfs (4)).
+The
+.B -n
+option changes the name of the kfs service to
+.BI kfs. name
+(by default, full name is just
+.BR kfs ).
+.PP
+.I Ksync
+executes the
+.B sync
+command for all active
+.I kfs
+servers.
+.PP
+The known commands are described below.
+Note that some commands are multiple words and
+should be quoted to appear as a single argument to
+.IR rc (1).
+.TP \w'\fLallowoff\ \fIn'u
+.B allow
+Turn permission checking off (to simplify administration).
+.TP
+.B disallow
+Turn permission checking on.
+.TP
+.B halt
+write all changed blocks and stop the file system.
+.TP
+.B help
+print the list of commands.
+.TP
+.BI "rename " "file name"
+Change the name of
+.I file
+to
+.IR name .
+.TP
+.BI "newuser " user
+Add
+.I user
+to
+.B /adm/users
+and make the standard directories needed for booting.
+.TP
+.BI "remove " file
+Remove
+.I file
+and place its blocks on the free list.
+.TP
+.BI "clri " file
+Remove 
+.I file
+but do not place the blocks on the free list.
+This command can be used to remove files that have duplicated blocks.
+The non-duplicate blocks can be retrieved by checking the file system
+with option
+.B f
+(see below).
+.TP
+.B create file owner group mode [adl]
+Create the file.  Owner and group are users in
+.B /adm/users
+and mode is an octal number.
+If present,
+.L a
+creates an append only file,
+.L d
+creates a directory, and
+.L l
+creates a file that is exclusive-use.
+.TP
+.B sync
+write to disk all of the dirty blocks in the memory cache.
+.TP
+.B check [PRdfprtw]
+Check the file system.
+The options are
+.PD 0
+.RS
+.TP
+.B p
+print the names of directories as they are checked.
+.TP
+.B P
+print the names of all files as they are checked.
+.TP
+.B r
+read all of the data blocks and check the tags.
+.TP
+.B f
+rebuild the list of free blocks.
+.TP
+.B d
+delete redundant references to a block.
+.TP
+.B t
+fix bad tags.
+.TP
+.B c
+fix bad tags and clear the contents of the block.
+.TP
+.B w
+write all of the blocks that are touched.
+.RE
+.PD
+.SH "SEE ALSO"
+.IR kfs (4),
+.IR mkfs (8),
+.IR prep (8),
+.IR hard (3)
+.SH BUGS
+Unreliable and unsafe.

@@ -1,0 +1,40 @@
+</$objtype/mkfile
+
+OBJ=	cinit.$O\
+	code.$O\
+	inst.$O\
+	output.$O\
+	reg.$O\
+	sugen.$O\
+	regopt.$O\
+	peep.$O\
+	../port/main.$O\
+	../port/lex.$O\
+	../port/y.tab.$O\
+	../port/misc.$O\
+	../port/type.$O\
+	../port/type2.$O\
+	../port/tree.$O\
+	../port/decl.$O\
+	../port/func.$O\
+	../port/init.$O\
+
+INC=	machdep.h ../port/tcom.h ../port/globl.h ../port/parl.h
+
+$O.out:	$OBJ
+	$LD $prereq
+
+%.$O:	%.c $INC ../port/y.tab.h
+	$CC -w -I../port -o $stem.$O $stem.c
+
+../port/y.tab.c ../port/y.tab.h: ../port/parl.y $INC
+	cd ../port; yacc -d parl.y
+
+clean:V:
+	rm -f *.[$OS] ../port/y.tab.? ../port/*.[$OS] *.out
+
+install:	$O.out
+		cp $O.out /$objtype/bin/val
+
+installall:V:
+	for(objtype in $CPUS) mk install

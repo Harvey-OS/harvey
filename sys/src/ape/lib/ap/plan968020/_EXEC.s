@@ -1,0 +1,4 @@
+TEXT _EXEC(SB), 1, $0
+MOVL $7, R0
+TRAP $0
+RTS

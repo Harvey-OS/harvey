@@ -1,0 +1,60 @@
+BUILTINS=
+NPROC=1
+</960/mkfile
+
+CFLAGS=-wN
+
+OFILES=\
+	l.$O\
+	main.$O\
+	block.$O\
+	print.$O\
+	putc.$O\
+	memmove.$O\
+	memset.$O\
+	strlen.$O\
+	strchr.$O\
+
+HFILES=\
+	all.h\
+	fns.h\
+	comm.h\
+
+$O.out:	$OFILES
+	$LD -H4 -l $OFILES
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+main.$O: main.c
+	$CC $CFLAGS '-DDATE='`{date -n} main.c 
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	$HFILES
+
+ibr:	ibr.c
+	$CC ibr.c
+	$LD -l -T0xF0C3ff00 -o ibr ibr.6
+
+rom:	rom.c init.s memmove.c ibr 6.out
+	$CC -N rom.c
+	$AS init.s
+	$LD -l -T0x8000 $OFILES
+	$LD -l -T0xF0C00048 -o romcode init.6 rom.6 memmove.6
+	/usr/philw/bin/$objtype/ms2 -s -a 0x48 romcode > rom
+	/usr/philw/bin/$objtype/ms2 -s -a 0x2000 6.out >> rom
+	/usr/philw/bin/$objtype/ms2 -a 0xff00 -d ibr   >> rom
+
+test:	test.$O
+	$LD -H4 -l l.$O test.$O putc.$O print.$O memmove.$O memset.$O strlen.$O strchr.$O
+
+%.db$O:
+	$CC -o/dev/null -s$stem draw.c | dbfmt > $stem.db$O
+
+clean:V:
+	rm -f *.[$OS] *.db[$OS] [$OS].out
+
+installall:V:
+	for(objtype in $CPUS) mk install

@@ -1,0 +1,61 @@
+.PS
+.nr VS \n(.v
+.nr PQ \n(.f
+.nr PS \n(.s
+.vs 6
+.ft CW
+.ps 6
+scale = 16/0.125
+line from (192,-144) to (280,-144)
+"rclk<00:15>" ljust above at (24,-104)
+"HOLD1" rjust   at (192,-88)
+"RCLK" ljust   at (112,-104)
+line from (0,-104) to (112,-104)
+line from (0,-32) to (0,-104)
+line from (384,-96) to (384,-32)
+line from (192,-88) to (288,-88)
+line from (368,-96) to (384,-96)
+line from (192,-104) to (288,-104)
+"HOLD2" rjust   at (192,-104)
+"int<00:15>-" rjust above at (280,-176)
+line from (192,-176) to (280,-176)
+"INT-" rjust   at (192,-176)
+"bd<0:7>" ljust above at (0,-136)
+"A0" ljust   at (112,-152)
+line from (112,-152) to (0,-152)
+"RD-" ljust   at (112,-184)
+line from (112,-184) to (0,-184)
+"WR-" ljust   at (112,-168)
+line from (112,-168) to (0,-168)
+"CLK" ljust   at (112,-216)
+line from (112,-216) to (0,-216)
+"D?" ljust   at (112,-136)
+line from (112,-136) to (0,-136)
+"opm<00:15>" center above at (152,-64)
+"opm" center above at (152,-72)
+box ht 176 wid 80 with .nw at (112,-48)
+line from (112,-200) to (0,-200)
+"CS-" ljust   at (112,-200)
+"ba0" ljust above at (0,-152)
+"bwe-" ljust above at (0,-168)
+"bre-" ljust above at (0,-184)
+line from (112,-120) to (0,-120)
+"OE-" ljust   at (112,-120)
+"opmdecode<00:15>-" ljust above at (0,-120)
+"ops<00:15>-" ljust above at (0,-200)
+"OUT??" rjust   at (192,-144)
+"opmout<00:15>" rjust above at (280,-144)
+"hold1<00:15>" ljust above at (200,-88)
+"hold2<00:15>" ljust above at (200,-104)
+"colorburst" ljust above at (0,-216)
+line from (0,-32) to (384,-32)
+box ht 48 wid 80 with .nw at (288,-64)
+"A?" ljust   at (288,-88)
+"B?" ljust   at (288,-104)
+"Y?" rjust   at (368,-96)
+"nor<0:3>" center above at (328,-80)
+"74F02" center above at (328,-88)
+.vs \n(VSu
+.ft \n(PQ
+.ps \n(PS
+.PE

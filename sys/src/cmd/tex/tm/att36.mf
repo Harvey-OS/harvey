@@ -1,0 +1,135 @@
+% AT&T logo font -- Copyright AT&T
+% designed by Terry L Anderson - AT&T BL 59114
+% Version 90-Jan-15
+%
+% change history
+%	90-Jan-15	added fontdimen to define em and ex
+%
+mode_setup;
+font_size 36pt#;		% the "design size"; used for "at" scaling
+	% This is for AT&T Ball; the letters are really about 20pt
+letter_hi#=13pt#;
+a_width#=12.3pt#;
+vert_pen#=3.5pt#;
+horiz_pen#=2.8pt#;
+and_pen#=2.6pt#;
+t_width#=10.25pt#;
+and_hi#=10.8pt#;
+diam#=36pt#;
+x_height#=160/36*letter_hi#/7;
+quad#=20pt#;
+fontdimen 5: x_height#, quad#;
+define_pixels(diam,letter_hi,a_width,t_width,and_hi);
+define_blacker_pixels(vert_pen,horiz_pen,and_pen);
+screenstrokes;
+beginchar("A",a_width#,letter_hi#,0); "The letter A";
+pickup pencircle scaled vert_pen;
+penpos21(vert_pen,0);penpos22(vert_pen,0);
+penpos23(vert_pen,180);penpos24(vert_pen,180);
+lft z21=(0,0);rt z24=(w,0); z22=z23=(.5w,h);
+penstroke z21e--z22e;
+penstroke z23e--z24e;
+pickup pencircle scaled horiz_pen;
+bot z25=(3/13w,2.27/13h);bot z26=(10/13w,2.27/13h);
+draw z25--z26;
+labels(range 21 thru 26);penlabels(range 21 thru 24);
+endchar;
+beginchar("T",t_width#,letter_hi#,0); "The letter T";
+pickup pencircle scaled horiz_pen;
+penpos31(horiz_pen,90);penpos33(horiz_pen,90);
+penpos32(vert_pen,0);penpos34(vert_pen,0);
+x31=0; x32=.5w; x33=w; x34=.5w;
+y31=y32=y33;top y33=h; y34=0;
+penstroke z31e..z33e;
+penstroke z34e..z32e;
+labels(range 31 thru 34);penlabels(range 31 thru 34);
+endchar;
+beginchar("&",t_width#,and_hi#,0); "The symbol &";
+pickup pencircle scaled and_pen;
+bot z1=(w,0);penpos1(and_pen,90);
+bot z2=(30/36w,2/38h);penpos2(and_pen,40);
+z3=(8/36w,22/38h);penpos3(and_pen,40);
+top z4=(15/36w,h);
+z5=(20/36w,28/38h);penpos5(and_pen,0);
+z11=(20/36w,23/38h);penpos11(and_pen,0);
+z6=z3;lft z7=(0,12.5/38h);
+bot z8=(15/36w,0h);
+z9=(29/36w,13/38h);penpos9(and_pen,0);
+z10=(29/36w,23/38h);penpos10(and_pen,0);
+penstroke z1e{left}..z2e--z3e;
+draw z3{(-1,.84)}..z4..z5{down};
+penstroke z5e--z11e;
+draw z6{(-1,-.84)}..{down}z7..{right}z8..z9{up};
+penstroke z9e--z10e;
+endchar;
+beginchar("L",diam#,diam#,0); "The AT&T Ball";
+big_radius=.5h;
+r_fudge=.5;
+little_radius=13.7/36h;
+little_center_x=13.5/36h;
+little_center_y=21.6/36h;
+little_bottom=little_center_y-little_radius;
+taper_width=10/36h;
+gap_width=0.74/36h;
+thick_bar=2.33/36h;
+thin_bar=0.94/36h;
+curr_bar_center:=.5*thick_bar;
+for bar=1 upto 12:
+numeric y[],y[]r,y[]l,x[],x[]l,x[]r;
+y1l=y1+.5*thick_bar;
+y2l=y2+.5*thick_bar;
+y5l=y5+.5*thick_bar;
+y6l=y6+.5*thick_bar;
+y1r=y1-.5*thick_bar;
+y2r=y2-.5*thick_bar;
+y5r=y5-.5*thick_bar;
+y6r=y6-.5*thick_bar;
+x1l=x1r=x1;
+x6l=x6r=x6;
+y1=y2=y3=y4=y5=y6=curr_bar_center;
+x1=-taper_width;x6=2*big_radius;
+temp:=curr_bar_center-little_bottom;
+templ:=temp+.25*thick_bar;
+if (templ>0) and (templ<(2*little_radius)):
+rl:=sqrt(templ*(2*little_radius-templ))/(1-r_fudge*taper_width/w);
+if rl<taper_width:
+y3l=y4l=y3+.5*thick_bar-.5*(thick_bar-thin_bar)*rl/taper_width;
+x3l=little_center_x-.2*rl;x4l=little_center_x+.2*rl;
+else:
+x3l=x2l+taper_width;x4l=x5l-taper_width;
+y3l=y3+.5*thin_bar;
+y4l=y4+.5*thin_bar;
+fi;
+x2l=little_center_x-rl;x5l=little_center_x+rl;
+else: x2l=x1l+.1;x5l=x6l-.1;
+x3l=x2l+taper_width;x4l=x5l-taper_width;
+y3l=y3+.5*thick_bar;y4l=y4+.5*thick_bar; fi;
+tempr:=temp-.25*thick_bar;
+if (tempr>0) and (tempr<(2*little_radius)):
+rr:=sqrt(tempr*(2*little_radius-tempr))/(1-r_fudge*taper_width/w);
+if rr<taper_width:
+y3r=y4r=y3-.5*thick_bar+.5*(thick_bar-thin_bar)*rr/taper_width;
+x3r=little_center_x-.2*rr;x4r=little_center_x+.2*rr;
+else:
+x3r=x2r+taper_width;x4r=x5r-taper_width;
+y3r=y3-.5*thin_bar;
+y4r=y4-.5*thin_bar;
+fi;
+x2r=little_center_x-rr;x5r=little_center_x+rr;
+else: x2r=x1r+.1;x5r=x6r-.1;
+x3r=x2r+taper_width;x4r=x5r-taper_width;
+y3r=y3-.5*thick_bar;y4r=y4-.5*thick_bar; fi;
+penstroke z1e..{right}z2e..z3e{right}..{right}z4e..z5e{right}..{right}z6e;
+curr_bar_center:= curr_bar_center+thick_bar+gap_width;
+endfor;
+pickup pencircle scaled (.5*big_radius+taper_width);
+rt z7=(0,big_radius);
+top z8=(big_radius,0);
+lft z9=(2*big_radius,big_radius);
+bot z10=(big_radius,2*big_radius);
+erase draw z7..z8..z9..z10..cycle;
+endchar;
+ligtable "A": "T" kern -2.5pt#;
+ligtable "T": "&" kern -1.2pt#;
+ligtable "&": "T" kern -2.5pt#;
+ligtable "L": "A" kern 2pt#;

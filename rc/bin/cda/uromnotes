@@ -1,0 +1,14 @@
+#!/bin/rc
+
+switch($#*){
+case 0
+	echo usage: $0 n... >[1=2]
+	exit usage
+}
+
+for(i){
+	sed -n '/^'$i'	/,/^$/{
+		p
+		/^$/q
+	}' /sys/lib/cda/urom.notes
+} | sed '/^[1-9][0-9]*	[2-9]/s:	.:	'$0':'

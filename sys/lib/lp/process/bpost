@@ -1,0 +1,26 @@
+#!/bin/rc
+# converts a regular ascii file to PostScript
+switch ($IBIN) {
+case man manual manualfeed;
+	IBIN='statusdict begin /manualfeed true def end'
+case [0-9];
+	IBIN='statusdict begin '^$IBIN^' setpapertray end'
+case 11x17 ledger;
+	IBIN='statusdict begin '^$IBIN^'tray end'
+case *;
+	IBIN=''
+}
+if (! ~ $#DUPLEX 0 && ~ $DUPLEX 1)
+	IBIN=$IBIN' statusdict begin true setduplexmode end';
+if (! ~ $IBIN '')
+	IBIN=-P''''$IBIN'''';
+switch ($LAND) {
+case ''; LAND=-pp
+case 1;	LAND=-pl
+}
+if (! ~ $MAG '') MAG=-m^$MAG;
+if (! ~ $NPAG '') NPAG=-n^$NPAG;
+if (! ~ $XOFF '') XOFF=-x^$XOFF;
+if (! ~ $YOFF '') YOFF=-y^$YOFF;
+eval /sys/lib/postscript/bin/$cputype/postdmd $XOFF $YOFF $COPIES $MAG $NPAG $LAND $OLIST $IBIN | $LPLIB/process/hpost
+exit

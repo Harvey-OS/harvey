@@ -1,0 +1,556 @@
+
+From: her@compel.UUCP (Helge Egelund Rasmussen)
+Newsgroups: comp.sys.amiga.tech
+Subject: Description of Turbo Silver Object format
+
+
+Here is the description of the Turbo Silver TDDD chunk.
+If you order the 'File formats diskette' (value $5) from Impulse Inc.
+you also get the source for a program to read/write an object file. 
+As I'm not sure that the program is Public Domain, I'll not post the program.
+
+======================================================================
+
+                          FORM TDDD
+                          ---------
+
+    FORM TDDD is used by Impulse's Turbo Silver 3.0 for 3D rendering
+    data.  TDDD stands for "3D data description".  The files contain
+    object and (optionally) observer data.
+
+    Currently, in "standard IFF" terms, a FORM TDDD has only two chunk
+    types:  an INFO chunk describing observer data;  and an OBJ chunk
+    describing an object heirarchy.  The INFO chunk appears in "cell"
+    files, and the OBJ chunk appears in "cell" files and "object" files.
+    The FORM has an (optional) INFO chunk followed by some number of
+    OBJ chunks.  (Note:  OBJ is followed by a space -- ckID = "OBJ ")
+
+    The INFO and OBJ chunks, in turn, are made up of smaller chunks with
+    the standard IFF structure:  <ID> <data-size> <data>.
+
+    The INFO "sub-chunks" are relatively straightforward to interpret.
+
+    The OBJ "sub-chunks" support object heirarchies, and are slightly
+    more difficult to interpret.  Currently, there are 3 types of OBJ
+    sub-chunks:  an EXTR chunk, describing an "external" object in a
+    seperate file; a DESC chunk, describing one node of a heirarchy;
+    and a TOBJ chunk marking the end of a heirarchy chain.  For each
+    DESC chunk, there must be a corresponding TOBJ chunk.  And an
+    EXTR chunk is equivalent to a DESC/TOBJ pair.
+
+    In Turbo Silver, the structure of the object heirarchy is as
+    follows.  There is a head object, and its (sexist) brothers.
+    Each brother may have child objects.  The children may have
+    grandchildren, and so on. The brother nodes are kept in a
+    doubly linked list, and each node has a (possibly NULL)
+    pointer to a doubly linked "child" list. The children point
+    to the "grandchildren" lists, and so on.  (In addition, each
+    node has a "back" pointer to its parent).
+
+    Each of the "head" brothers is written in a seperate OBJ chunk,
+    along with all its descendants.  The descendant heirarchy is
+    supported as follows:
+
+        for each node of a doubly linked list,
+
+        1)  A DESC chunk is written, describing its object.
+        2)  If it has children, steps 1) to 3) are performed
+            for each child.
+        3)  A TOBJ chunk is written, marking the end of the children.
+
+    For "external" objects, steps 1) to 3) are not performed, but
+    an EXTR chunk is written instead.  (This means that an external
+    object cannot have children unless they are stored in the same
+    "external" file).
+
+    The TOBJ sub-chunks have zero size -- and no data.  The DESC
+    and EXTR sub-chunks are made up of "sub-sub-chunks", again,
+    with the standard IFF structure:  <ID> <data-size> <data>.
+
+    Reader software WILL FOLLOW the standard IFF procedure of
+    skipping over any un-recognized chunks -- and "sub-chunks"
+    or "sub-sub-chunks". The <data-size> field indicates how many
+    bytes to skip.  In addition it WILL OBSERVE the IFF rule that
+    an odd <data-size> may appear, in which case the corredponding
+    <data> field will be padded at the end with one extra byte to
+    give it an even size.
+
+
+    Now, on with the details.
+
+    First, there are several numerical fields appearing in the data,
+    describing object positions, rotation angles, scaling factors, etc.
+    They are stored as "32-bit fractional" numbers, such that the true
+    number is the 32-bit number divided by 65536.  So as an example,
+    the number 3.14159 is stored as (hexadecimal) $0003243F.  This
+    allows the data to be independant of any particular floating point
+    format. And it (actually) is the internal format used in the
+    "integer" version of Turbo Silver.  Numbers stored in this format
+    are called as "FRACT"s below.
+
+    Second, there are several color (or RGB) fields in the data.
+    They are always stored as three UBYTEs representing the red,
+    green and blue components of the color.  Red is always first,
+    followed by green, and then blue.  For some of the data chunks,
+    Turbo Silver reads the color field into the 24 LSB's of a
+    LONGword.  In such cases, the 3 RGB bytes are preceded by a
+    zero byte in the file.
+
+
+    The following "typedef"s are used below:
+
+    typedef LONG    FRACT;          /* 4 bytes */
+    typedef UBYTE   COLOR[3];       /* 3 bytes */
+
+    typedef struct  vectors {
+        FRACT   X;                  /* 4 bytes */
+        FRACT   Y;                  /* 4 bytes */
+        FRACT   Z;                  /* 4 bytes */
+    } VECTOR;                   /* 12 bytes total */
+
+    typedef struct  matrices {
+        VECTOR  I;                  /* 12 bytes */
+        VECTOR  J;                  /* 12 bytes */
+        VECTOR  K;                  /* 12 bytes */
+    } MATRIX;                   /* 36 bytes total */
+
+
+    The following structure is used in generating animated cells
+    from a single cell.  It can be attached to an object or to the
+    camera.  It is also used for Turbo Silver's "extrude along a
+    path" feature.
+
+    typedef struct  story   {
+        UBYTE   Path[18];           /*  18 bytes        */
+        VECTOR  Translate;          /*  12 bytes        */
+        VECTOR  Rotate;             /*  12 bytes        */
+        VECTOR  Scale;              /*  12 bytes        */
+        UWORD   info;               /*   2 bytes        */
+    } STORY;                    /*  56 bytes total  */
+
+    The Path[] name refers to a named object in the cell data.
+    The path object should be a sequence of points connected
+    with edges.  The object moves from the first point of the
+    first edge, to the last point of the last edge.  The edge
+    ordering is important.  The path is interpolated so that
+    the object always moves an equal distance in each frame of
+    the animation.  If there is no path the Path[] field should
+    be set to zeros.
+    The Translate vector is not currently used.
+    The Rotate "vector" specifies rotation angles about the
+    X, Y, and Z axes.
+    The Scale vector specfies X,Y, and Z scale factors.
+    The "info" word is a bunch of bit flags:
+
+        ABS_TRA     0x0001      - translate in world coorinates (not used)
+        ABS_ROT     0x0002      - rotation in world coorinates
+        ABS_SCL     0x0004      - scaling in world coorinates
+        LOC_TRA     0x0010      - translate in local coorinates (not used)
+        LOC_ROT     0x0020      - rotation in local coorinates
+        LOC_SCL     0x0040      - scaling in local coorinates
+        X_ALIGN     0x0100      - (not used)
+        Y_ALIGN     0x0200      - align Y axis to path's direction
+        Z_ALIGN     0x0400      - (not used)
+        FOLLOW_ME   0x1000      - children follow parent on path
+
+
+    INFO sub-chunks
+    ---------------
+
+    BRSH - size 82
+
+        WORD    Number;                 ; Brush number (between 0 and 7)
+        CHAR    Filename[80];           ; IFF ILBM filename
+
+        There may be more than one of these.
+
+    STNC - size 82
+
+        Same format as BRSH chunk.
+
+    TXTR - size 82
+
+        Same format as BRSH chunk.  The Filename field is the name of
+        a code module that can be loaded with LoadSeg().
+
+    OBSV - size 28
+
+        VECTOR  Camera;                 ; Camera position
+        VECTOR  Rotate;                 ; Camera rotation angles
+        FRACT   Focal;                  ; Camera focal length
+
+        This tells where the camera is, how it is aimed, and its
+        focal length.  The rotation angles are in degrees, and specify
+        rotations around the X, Y, and Z axes.  The camera looks down
+        its own Y axis, with the top of the picture in the direction of
+        the Z axis.  If the rotation angles are all zero, its axes
+        are aligned with the world coordinate axes.  The rotations are
+        performed in the order ZXY about the camera axes.  A positive
+        angle rotates Y toward Z, Z toward X, and X toward Y for
+        rotations about the X, Y, and Z axes respectively.  To
+        understand the focal length, imagine a 320 x 200 pixel
+        rectangle perpendicular to, and centered on the camera's
+        Y axis.  Any objects in the infinite rectangular cone defined
+        by the camera position and the 4 corners of the rectangle will
+        appear in the picture.
+
+    OTRK - size 18
+
+        BYTE    Trackname[18];
+
+        This chunk specifies the name of an object that the camera
+        is "tracked" to.  If the name is NULL, the camera doesn't
+        track.  Otherwise, if the object is moved inside Turbo Silver,
+        the camera will follow it.
+
+    OSTR - size 56
+
+        STORY   CStory;         ; a STORY structure for the camera
+
+        The story structure is defined above.
+
+    FADE - size 12
+
+        FRACT   FadeAt;         ; distance to start fade
+        FRACT   FadeBy;         ; distance of total fade
+        BYTE    pad;            ; pad byte - must be zero
+        COLOR   FadeTo;         ; RGB color to fade to
+
+    SKYC - size 8
+
+        BYTE    pad;            ; pad byte - must be zero
+        COLOR   Horizon;        ; horizon color
+        BYTE    pad;            ; pad byte - must be zero
+        COLOR   Zenith;         ; zenith color
+
+    AMBI - size 4
+
+        BYTE    pad;            ; pad byte - must be zero
+        COLOR   Ambient;        ; abmient light color
+
+    GLB0 - size 8
+
+        BYTE    Props[8];       ; an array of 8 "global properties" used
+                                ; by Turbo Silver.
+
+        Props[0] - GLB_EDGING       ; edge level (globals requester)
+        Props[1] - GLB_PERTURB      ; perturbance (globals requester)
+        Props[2] - GLB_SKY_BLEND    ; sky blending factor (0-255)
+        Props[3] - GLB_LENS         ; lens type (see below)
+        Props[4] - GLB_FADE         ; flag - Sharp/Fuzzy focus (globals)
+        Props[5] - GLB_SIZE         ; "apparant size" (see below)
+        Props[6] - GLB_RESOLVE      ; resolve depth (globals requester)
+        Props[7] - GLB_EXTRA        ; flag - genlock sky on/off
+
+        The edging and perturbance values control the heuristics in
+        ray tracing.  The sky blending factor is zero for no blending,
+        and 255 for full blending.  The lens type is a number from 0
+        4, corresponding to the boxes in the "camera" requester, and
+        correspond to 0) Manual, 1) Wide angle, 2) Normal, 3) Telephoto,
+        and 4) Custom.  It is used in setting the camera's focal length
+        if the camera is tracked to an object.  The Sharp/Fuzzy flag
+        turns the "fade" feature on and off - non-zero means on.
+        The "apparant size" parameter is 100 times the "custom size"
+        parameter in the camera requester.  And is used to set the
+        focal length for a custom lens.  The "resolve depth" controls
+        the number of rays the ray tracer will shoot for a single pixel.
+        Each reflective/refractive ray increments the depth counter, and
+        the count is never allowed to reach the "resolve depth".  If both
+        a reflective and a refractive ray are traced, each ray gets its
+        own version of the count - so theoretically, a resolve depth of
+        4 could allow much more than 4 rays to be traced.  The "genlock
+        sky" flag controls whether the sky will be colored, or set to
+        the genlock color (color 0 - black) in the final picture.
+
+
+    All of the INFO sub-chunks are optional, as is the INFO chunk.
+    Default values are supplied if the chunks are not present.  The
+    defaults are:  no brushes, stencils, or textures defined; no story
+    for the camera; horizon and zenith and ambient light colors set
+    to black; fade color set to (80,80,80);  un-rotated, un-tracked
+    camera at (-100, -100, 100); and global properties array set to
+    [30, 0, 0, 0, 0, 100, 8, 0].
+
+
+    DESC sub-sub-chunks
+    -------------------
+
+    NAME - size 18
+
+        BYTE    Name[18];       ; a name for the object.
+
+        Used for camera tracking, specifying story paths, etc.
+
+    SHAP - size 4
+
+        WORD    Shape;          ; number indicating object type
+        WORD    Lamp;           ; number indicating lamp type
+
+        Lamp numbers are:
+
+            0 - not a lamp
+            1 - like sunlight
+            2 - like a lamp - intensity falls off with distance.
+
+        Shape numbers are:
+
+            0 - Sphere
+            1 - Stencil
+            2 - Axis            ; custom objects with points/triangles
+            3 - Facets          ; illegal - for internal use only
+            4 - Surface
+            5 - Ground
+
+        Spheres have thier radius set by the X size parameter.
+        Stencils and surfaces are plane-parallelograms, with one
+        point at the object's position vector; one side lying along
+        the object's X axis with a length set by the X size; and
+        another side starting from the position vector and going
+        "Y size" units in the Y direction and "Z size" units in
+        the X direction.  A ground object is an infinte plane
+        perpendicular to the world Z axis.  Its Z coordinate sets
+        its height, and the X and Y coordinates are only relevant
+        to the position of the "hot point" used in selecting the
+        object in the editor.  Custom objects have points, edges
+        and triangles associated with them.  The size fields are
+        relevant only for drawing the object axes in the editor.
+        Shape number 3 is used internally for triangles of custom
+        objects, and should never appear in a data file.
+
+    POSI - size 12
+
+        VECTOR  Position;       ; the object's position.
+
+        Legal coordinates are in the range -32768 to 32767 and 65535/65536.
+        Currently, the ray-tracer only sees objects in the -1024 to 1024
+        range.  Light sources, and the camera may be placed outside that
+        range, however.
+
+    AXIS - size 36
+
+        VECTOR  XAxis;
+        VECTOR  YAxis;
+        VECTOR  ZAxis;
+
+        These are direction vectors for the object coordinate system.
+        They must be "orthogonal unit vectors" - i.e. the sum of the
+        squares of the vevtor components must equal one (or close to it),
+        and the vectors must be perpendicular.
+
+    SIZE - size 12
+
+        VECTOR  Size;
+
+        See SHAP chunk above.  The sizes are used in a variety of ways
+        depending on the object shape.  For custom objects, they are
+        the lengths of the coordinate axes drawn in the editor.  If the
+        object has its "Quickdraw" flag set, the axes lengths are also
+        used to set the size of a rectangular solid that is drawn rather
+        than drawing all the points and edges.
+
+    PNTS - size 2 + 12 * point count
+
+        UWORD   PCount;         ; point count
+        VECTOR  Points[];       ; points
+
+        This chunk has all the points for custom objects.  The are
+        refered to by thier position in the array.
+
+    EDGE - size 4 + 4 * edge cout
+
+        UWORD   ECount;         ; edge count
+        UWORD   Edges[][2];     ; edges
+
+        This chunk contins the edge list for custom objects.
+        The Edges[][2] array is pairs of point numbers that
+        are connected by the edges.  Edges are refered to by thier
+        position in the Edges[] array.
+
+    FACE - size 2 + 6 * face count
+
+        UWORD   TCount;         ; face count
+        UWORD   Connects[][3];  ; faces
+
+        This chunk contains the triangle (face) list for custom objects.
+        The Connects[][3] array is triples of edge numbers that are
+        connected by triangles.
+
+    COLR - size 4
+    REFL - size 4
+    TRAN - size 4
+
+        BYTE    pad;        ; pad byte - must be zero
+        COLOR   col;        ; RGB color
+
+        These are the main object RGB color, and reflection and
+        transmission coefficients.
+
+    CLST - size 2 + 3 * count
+    RLST - size 2 + 3 * count
+    TLST - size 2 + 3 * count
+
+        UWORD   count;      ; count of colors
+        COLOR   colors[];   ; colors
+
+        These are the main object color, and reflection and
+        transmission coefficients for each face in custom objects.
+        The count should match the face count in the FACE chunk.
+        The ordering corresponds to the face order.
+
+    TPAR - size 64
+
+        FRACT   Params[16];     ; texture parameters
+
+        This is the list of parameters for texture modules when
+        texture mapping is used.
+
+    SURF - size 5
+
+        BYTE    SProps[5];      ; object properties
+
+        This chunk contains object (surface) properties used
+        by Turbo Silver.
+
+        SProps[0] - PRP_SURFACE     ; surface type
+                                    ;   0 - normal
+                                    ;   4 - genlock
+                                    ;   5 - IFF brush
+        SProps[1] - PRP_BRUSH       ; brush number (if IFF mapped)
+        SProps[2] - PRP_WRAP            ; IFF brush wrapping type
+                                    ;   0 - no wrapping
+                                    ;   1 - wrap X
+                                    ;   2 - wrap Z
+                                    ;   3 - wrap X and Z
+        SProps[3] - PRP_STENCIL     ; stencil number for stencil objects
+        SProps[4] - PRP_TEXTURE     ; texture number if texture mapped
+
+    MTTR - size 2
+
+        UBYTE   Type;               ; refraction type (0-4)
+        UBYTE   Index;              ; custom index of refraction
+
+        This chunk contains refraction data for transparent or
+        glossy objects.  If the refraction type is 4, the object
+        has a "custom" refractive index stored in the Index field.
+        The Index field is 100 * (true index of refraction - 1.00)
+        -- so it must be in the range of 1.00 to 3.55.  The
+        refraction types is 0-3 specify 0) Air - 1.00, 1) Water - 1.33,
+        2) Glass - 1.67 or 3) Crystal 2.00.
+
+    SPEC - size 2
+
+        UBYTE   Specularity;            ; range of 0-255
+        UBYTE   Hardness;               ; specular exponent (0-31)
+
+        This chunk contains specular information.  The Specularity
+        field is the amount of specular reflection -- 0 is none,
+        255 is fully specular.  The "specular exponent" controls
+        the "tightness" of the specular spots.  A value of zero
+        gives broad specular spots and a value of 31 gives smaller
+        spots.
+
+    PRP0 - size 6
+
+        UBYTE   Props[6];           ; more object properties
+
+        This chunk contains object properties that programs other
+        than Turbo Silver might support.
+
+        Props[0] - PRP_BLEND        ; blending factor (0-255)
+        Props[1] - PRP_SMOOTH       ; roughness factor
+        Props[2] - PRP_SHADE        ; shading on/off flag
+        Props[3] - PRP_PHONG        ; phong shading on/off flag
+        Props[4] - PRP_GLOSSY       ; glossy on/off flag
+        Props[5] - PRP_QUICK        ; Quickdraw on/off flag
+
+        The blending factor controls the amount of dithering used
+        on the object - 255 is fully dithered.  
+        The roughness factor controls how rough the object should
+        appear - 0 is smooth, 255 is max roughness.
+        The shading flag is interpreted differently depending on
+        whether the object is a light source or not.  For light
+        sources, it sets the light to cast shadows or not.  For
+        normal objects, if the flag is set, the object is always
+        considered as fully lit - i.e. it's color is read directly
+        from the object (or IFF brush), and is not affected by light
+        sources.
+        The phong shading is on by default - a non-zero value turns
+        it off.
+        The glossy flag sets the object to be glossy or not.  If
+        the object is glossy, the "transmit" colors and the index
+        of refraction control the amount of "sheen".  The glossy
+        feature is meant to simulate something like a wax coating
+        on the object with the specified index of refraction. The
+        trasmission coefficients control how much light from the
+        object makes it through the wax coating.
+        The Quickdraw flag, if set, tells the editor not to draw
+        all the points and edges for the object, but to draw a
+        rectanglular solid centered at the object position, and
+        with sizes detemined by the axis lengths.
+
+    INTS - size 4
+
+        FRACT   Intensity;          ; light intensity
+
+        This is the intensity field for light source objects.
+        an intensity of 255 for a sun-like light fully lights
+        object surfaces which are perpendicular to the direction
+        to the light source.  For lamp-like light sources, the
+        necessary intensity will depend on the distance to the light.
+
+    STRY - size 56
+
+        STORY   story;          ; a story structure for the object.
+
+        The story structure is described above.
+
+
+    Again, most of these fields are optional, and defaults are supplied.
+    However, if there is a FACE chunk, there must also be a CLST chunk,
+    an RLST chunk and a TLST chunk -- all with matching "count" fields.
+    The SHAP chunk is not optional. 
+
+    Defaults are:  Colors set to (240,240,240); reflection and
+    transmission coefficients set to zero; illegal shape; no story or
+    special surface types; position at (0,0,0); axes aligned to the
+    world axes; size fields all 32.0; intensity at 300; no name;
+    no points/edges or faces; texture parameters set to zero; refraction
+    type 0 with index 1.00; specular, hardness and roughness set to zero;
+    blending at 255; glossy off; phong shading on; not a light source;
+    not brightly lit;
+
+
+
+    EXTR sub-sub-chunks
+    -------------------
+
+    MTRX - size 60
+
+        VECTOR  Translate;          ; translation vector
+        VECTOR  Scale;              ; X,Y and Z scaling factors
+        MATRIX  Rotate;             ; rotation matrix
+
+        The translation vector is i world coordinates.
+        The scaling factors are with respect to local axes.
+        The rotation matrix is with respect to the world axes,
+        and it should be a "unit matrix".
+        The rotation is such that a rotated axis's X,Y, and Z
+        components are the dot products of the MATRIX's I,J,
+        and K vectors with the un-rotated axis vector.
+
+    LOAD - size 80
+
+        BYTE    Filename[80];       ; the name of the external file
+
+        This chunk contains the name of an external object file.
+        The external file should be a FORM TDDD file.  It may contain
+        an any number of objects possibly grouped into heirarchy(ies).
+
+    Both of these chunks are required.
+
+-----
+Helge E. Rasmussen  .  PHONE + 45 31 37 11 00  .  E-mail:  her@compel.dk
+Compel A/S          .  FAX   + 45 31 37 06 44  .  
+Copenhagen, Denmark
+
+

@@ -1,0 +1,36 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	abort.$O\
+	access.$O\
+	convD2M.$O\
+	convM2D.$O\
+	convM2S.$O\
+	convS2M.$O\
+	cputime.$O\
+	ctime.$O\
+	dirfstat.$O\
+	dirfwstat.$O\
+	dirmodeconv.$O\
+	dirread.$O\
+	dirstat.$O\
+	dirwstat.$O\
+	fcallconv.$O\
+	fork.$O\
+	getS.$O\
+	getenv.$O\
+	getpid.$O\
+	getppid.$O\
+	getwd.$O\
+	postnote.$O\
+	putenv.$O\
+	sbrk.$O\
+	syslog.$O\
+	time.$O\
+	times.$O\
+
+HFILES=/sys/include/libc.h
+
+</sys/src/cmd/mksyslib
+

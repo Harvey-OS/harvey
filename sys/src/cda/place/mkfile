@@ -1,0 +1,33 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=place
+OFILES=attr.$O\
+	but1.$O\
+	clip.$O\
+	draw.$O\
+	gnotfix.$O\
+	grid.$O\
+	insert.$O\
+	keepout.$O\
+	map.$O\
+	menu.$O\
+	move.$O\
+	overlay.$O\
+	plane.$O\
+	rcv.$O\
+	rot.$O\
+	signal.$O\
+	timprove.$O\
+	tmain.$O\
+	transform.$O\
+	mhit.$O\
+	icons.$O\
+
+HFILES=term.h\
+	proto.h\
+	menu.h\
+
+</sys/src/cmd/mkone
+CFLAGS=$CFLAGS -DPLAN9
+

@@ -1,0 +1,34 @@
+\def\rpversiondate{1990-Feb-11}
+\typeout{Document Style `RP' (Released Paper).  
+Release \rpversiondate .}
+%
+\input tm.sty\relax
+\def\makehead{
+   % write out bibliography style
+   %\if@filesw\immediate\write\@auxout{\string\bibstyle{unsrt}}\fi%
+   % remove call to bibstyle since bibtex .99 no longer tolerates
+   % now make the header
+   \newpage{
+   \begin{center}
+	{\Large\bf\tm@titlepagetitle\\}
+	\vskip20pt
+	\forallauthors{{\it \his{tm@author}\\}}
+	\medskip
+	\tm@companyname\\
+	\tm@cityaddr\\
+	\bigskip\end{center}
+
+
+   \thispagestyle{onlyfoot}}}
+\def\makeabstract{%
+    \tm@abstr\par
+  }
+\def\coversheet{\makehead\begin{center}{\it ABSTRACT}\\\end{center}%
+	\makeabstract\newpage}
+\def\copyto#1{}
+\def\coverto#1{}
+\def\makesignature{}
+%
+\pagestyle{headandfoot}
+\parskip\medskipamount
+%%%%%%%%%%%%%%%%%%%%%%%%%%% THE END %%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,157 @@
+NAME
+     event, einit, estart, eread, emouse, ekbd, ecanread, ecan-
+     mouse, ecankbd, ereshaped, getrect, menuhit, Event, Mouse,
+     Menu - graphics events
+
+SYNOPSIS
+     #include  <u.h>
+     #include  <libc.h>
+     #include  <libg.h>
+
+     void      einit(ulong keys)
+
+     ulong     event(Event *e)
+
+     Mouse     emouse(void)
+
+     int       ekbd(void)
+
+     int       ecanmouse(void)
+
+     int       ecankbd(void)
+
+     ulong     estart(ulong key, int fd, int n)
+
+     ulong     etimer(ulong key, int n)
+
+     ulong     eread(ulong keys, Event *e)
+
+     int       ecanread(ulong keys)
+
+     void      ereshaped(Rectangle r)
+
+     Rectangle getrect(int but, Mouse *m)
+
+     int       menuhit(int but, Mouse *m, Menu *menu)
+
+     enum{
+               Emouse = 1,
+               Ekeyboard = 2,
+     }
+
+DESCRIPTION
+     These routines provide an interface to multiple sources of
+     input.  To use them, einit must be called.  If the argument
+     to enit has the Emouse and Ekeybard bits set, the mouse and
+     keyboard events will be enabled; in this case, binit (see
+     graphics(2)) must have already been called.  The user must
+     provide a function called ereshaped, which will be called
+     whenever the window in which the process is running has been
+     reshaped; the argument will be the Rectangle for the new
+     window shape, including the border.
+
+     As characters are typed on the keyboard, they are read by
+     the event mechanism and put in a queue.  Ekbd returns the
+     next character from the queue, blocking until the queue is
+     non-empty.  The characters are read by the event mechanism
+     from /dev/rcons (see cons(5)), so they are available as soon
+     as they are typed.
+
+     When the mouse moves or a mouse button is depressed or
+     released, a new mouse event is queued by the event mechan-
+     ism.  Emouse returns the next mouse event from the queue,
+     blocking until the queue is non-empty.  Emouse returns a
+     Mouse structure:
+
+          struct Mouse
+          {
+                int   buttons;
+                Point xy;
+          };
+
+     Buttons is a bit field; buttons&1 is set when the left mouse
+     button is depressed, buttons&2 when the middle button is
+     depressed, and buttons&4 when the right button is depressed.
+     The current mouse position is always returned in xy.
+
+     Ecankbd and ecanmouse return non-zero when there are key-
+     board or mouse events to available to be read.
+
+     Estart can be used to register additional file descriptors.
+     It takes as arguments the file descriptor to register, the
+     maximum length of an event message on that descriptor, and a
+     key to be used in accessing the event.  The key must be a
+     power of 2 and must not confilict with any previous keys.
+     If a zero key is given, one which is not used will be chosen
+     and returned.  Ekeyboard and Emouse are the mouse and key-
+     board event keys.
+
+     Etimer starts a timer with a period of n milliseconds
+     (default 1 second).  Only one timer can be started.  Extra
+     timer events are not queued and the timer channel has no
+     associated data.
+
+     Eread waits for the next event specified by the mask keys of
+     event keys submitted to estart.  It fills in the appropriate
+     field of the argument Event structure, which looks like:
+
+          struct Event
+          {
+                int   kbdc;
+                Mouse mouse;
+                int   n;
+                uchar data[EMAXMSG];
+          }
+
+     Data is an array which is large enough to hold a plan 9 pro-
+     tocol message.  Eread returns the key for the event which
+     was chosen.
+
+     Event waits for the next event of any kind.  The return is
+     the same as for eread.
+
+     As described in graphics(2), the graphics functions are buf-
+     fered.  Event, eread, emouse, and ekbd all cause a buffer
+     flush unless there is an event of the appropriate type ready
+     to return.
+
+     Getrect is used to prompt the user to sweep a rectangle.  It
+     should be called with m holding the mouse event that trig-
+     gered the getrect (or, if none, a Mouse with buttons set to
+     7).  It changes to the sweep cursor, waits for the buttons
+     to all go up, and then waits for button number but to be
+     depressed, marking the initial corner.  If another button is
+     depressed instead, getrect returns a rectangle with zero for
+     both corners, after waiting for all the buttons to be
+     released.  Otherwise, getrect continually draws the swept
+     rectangle until the button is released again, and returns
+     the swept rectangle.  The mouse structure pointed to by m
+     will contain the final mouse event.
+
+     Menuhit displays a menu and returns a seleced menu item
+     number.  It should be called with m holding the mouse event
+     that triggered the menuhit . A Menu is a structure:
+
+          struct Menu
+          {
+                char  **item;
+                char  *(*gen)(int);
+                int   lasthit;
+          }
+
+     If item is nonzero, it should be a null-terminated array of
+     the character strings to be displayed as menu items.  Other-
+     wise, gen should be a function that, given an item number,
+     returns the character string for that item, or zero if the
+     number is past the end of the list.  Items are numbered
+     starting at zero.  Menuhit waits until but is released, and
+     then returns the number of the selection, or -1 for no
+     selection.  The m argument is filled in with the final mouse
+     event.
+
+SEE ALSO
+     8.5(1), graphics(2), cons(5), bit(5)
+
+BUGS
+     The first character typed after a program using the event
+     mechanism crashes will be lost.

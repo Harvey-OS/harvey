@@ -1,0 +1,29 @@
+.TH ERRSTR 2
+.SH NAME
+errstr \- description of last system call error
+.SH SYNOPSIS
+.B
+int errstr(char *ans)
+.SH DESCRIPTION
+When a system call fails it returns \-1 and
+records a string describing the error in a per-process buffer.
+.I Errstr
+copies the contents of that buffer into the array
+.I ans
+and clears the buffer.
+.I Ans
+should contain at least
+.B ERRLEN
+characters (defined in
+.BR <libc.h> ).
+.PP
+The verb
+.B r
+in
+.IR print (2)
+calls
+.I errstr
+and outputs the error string.
+.SH SEE ALSO
+.IR intro (2),
+.IR perror (2)

@@ -1,0 +1,384 @@
+This is TeX, C Version 3.0 (INITEX)  8 OCT 1990 11:09
+**lplain
+(lplain.tex Preloading the plain format: codes, registers,
+\maxdimen=\dimen10
+\hideskip=\skip10
+\@centering=\skip11
+\p@=\dimen11
+\z@=\dimen12
+\z@skip=\skip12
+\voidb@x=\box10
+ parameters,
+\smallskipamount=\skip13
+\medskipamount=\skip14
+\bigskipamount=\skip15
+\normalbaselineskip=\skip16
+\normallineskip=\skip17
+\normallineskiplimit=\dimen13
+\jot=\dimen14
+\interdisplaylinepenalty=\count22
+\interfootnotelinepenalty=\count23
+ macros,
+\strutbox=\box11
+\mscount=\count24
+
+math definitions,
+\rootbox=\box12
+\p@renwd=\dimen15
+\footins=\insert254
+ hyphenation (hyphen.tex)
+! I can't find file `lfonts.tex'.
+l.1299 \input lfonts
+                    
+Please type another input file name: lfonts.new
+(lfonts.new
+File: `fam'          v1.2l <90/06/30> (FMi and RmS)
+English Documentation      <90/01/28> (FMi and RmS)
+\no@alphabet@help=\toks10
+\nofont@help=\toks11
+File: `tracefnt'     v1.0p <90/06/30> (FMi and RmS)
+English Documentation      <90/04/05> (FMi and RmS)
+\every@size=\toks12
+File: `setsize'      v1.1c <90/06/06> (FMi and RmS)
+English Documentation      <90/06/06> (FMi and RmS)
+File: `latint'       v1.1h <90/06/26> (FMi and RmS)
+English Documentation      <90/06/26> (FMi and RmS)
+File: `lfonts'       v1.1k <90/06/23> (FMi and RmS)
+English Documentation      <90/02/17> (FMi and RmS)
+! I can't find file `fontdef.tex'.
+l.597 \input fontdef.tex
+                        
+Please type another input file name: fontdef.ori
+(fontdef.ori
+File: `fontdef.ori'  v1.1i <90/06/08> (FMi and RmS)
+English Documentation      <90/06/08> (FMi and RmS)
+
+Includes Font/Shape Definitions for:
+ 
+    Computer Modern Standard Fonts.
+
+********************************************************************
+* Probably customized by YOU who forgot to change the lines above! *
+********************************************************************
+)
+! I can't find file `preload.tex'.
+l.598 \input preload.tex
+                        
+Please type another input file name: preload.ori
+(preload.ori
+File: `preload.ori'  v1.0g <90/04/22> (FMi and RmS)
+English Documentation      <90/01/29> (FMi and RmS)
+********************************************************************
+* Probably customized by YOU who forgot to change the lines above! *
+********************************************************************
+)
+! I can't find file `xxxlfont.sty'.
+l.713 \input xxxlfont.sty
+                         
+Please type another input file name: newlfont.sty
+(newlfont.sty
+Style-Option: `newlfont' v1.2f <90/06/29> (FMi and RmS)
+English Documentation          <90/09/29> (FMi and RmS)
+\lyfam=\mathgroup4
+)) (latex.tex
+LaTeX Version 2.09 <7 Dec 1989>
+counters,
+\@unused=\write0
+\@tempcnta=\count25
+\@tempcntb=\count26
+\@tempdima=\dimen16
+\@tempdimb=\dimen17
+\@tempboxa=\box13
+\@flushglue=\skip18
+\@tempskipa=\skip19
+\@tempskipb=\skip20
+\@temptokena=\toks13
+ hacks, errors, par, spacing,
+\@savsk=\dimen18
+\@savsf=\count27
+\fill=\skip21
+ control, files,
+\@mainaux=\write1
+\@partaux=\write2
+\@clubpenalty=\count28
+ env. counters,
+page nos., x-ref, environments, math,
+\c@equation=\count29
+\@eqcnt=\count30
+\@eqpen=\count31
+ center,
+\@rightskip=\skip22
+ verbatim, list,
+\topsep=\skip23
+\partopsep=\skip24
+\itemsep=\skip25
+\parsep=\skip26
+\@topsep=\skip27
+\@topsepadd=\skip28
+\@outerparskip=\skip29
+\leftmargin=\dimen19
+\rightmargin=\dimen20
+\listparindent=\dimen21
+\itemindent=\dimen22
+\labelwidth=\dimen23
+\labelsep=\dimen24
+\linewidth=\dimen25
+\@totalleftmargin=\dimen26
+\leftmargini=\dimen27
+\leftmarginii=\dimen28
+\leftmarginiii=\dimen29
+\leftmarginiv=\dimen30
+\leftmarginv=\dimen31
+\leftmarginvi=\dimen32
+\@listdepth=\count32
+\@itempenalty=\count33
+\@beginparpenalty=\count34
+\@endparpenalty=\count35
+\@labels=\box14
+ itemize,
+\@enumdepth=\count36
+\c@enumi=\count37
+\c@enumii=\count38
+\c@enumiii=\count39
+\c@enumiv=\count40
+\@itemdepth=\count41
+ boxes,
+\fboxrule=\dimen33
+\fboxsep=\dimen34
+\@mplistdepth=\count42
+\@mpfootins=\insert253
+
+tabbing,
+\@firsttab=\count43
+\@maxtab=\count44
+\@gtempa=\dimen35
+\@gtempa=\dimen36
+\@gtempa=\dimen37
+\@gtempa=\dimen38
+\@gtempa=\dimen39
+\@gtempa=\dimen40
+\@gtempa=\dimen41
+\@gtempa=\dimen42
+\@gtempa=\dimen43
+\@gtempa=\dimen44
+\@gtempa=\dimen45
+\@gtempa=\dimen46
+\@gtempa=\dimen47
+\@getempa=\dimen48
+\@nxttabmar=\count45
+\@curtabmar=\count46
+\@curtab=\count47
+\@hightab=\count48
+\@tabpush=\count49
+\@curline=\box15
+\@curfield=\box16
+\@tabfbox=\box17
+\tabbingsep=\dimen49
+ array,
+\@chclass=\count50
+\@lastchclass=\count51
+\@chnum=\count52
+\arraycolsep=\dimen50
+\tabcolsep=\dimen51
+\arrayrulewidth=\dimen52
+\doublerulesep=\dimen53
+\@arstrutbox=\box18
+\@cla=\count53
+\@clb=\count54
+ picture,
+\@wholewidth=\dimen54
+\@halfwidth=\dimen55
+\unitlength=\dimen56
+\@picbox=\box19
+\@picht=\dimen57
+\@ovxx=\dimen58
+\@ovyy=\dimen59
+\@ovdx=\dimen60
+\@ovdy=\dimen61
+\@ovro=\dimen62
+\@ovri=\dimen63
+\@xarg=\count55
+\@yarg=\count56
+\@yyarg=\count57
+\@multicnt=\count58
+\@xdim=\dimen64
+\@ydim=\dimen65
+\@linechar=\box20
+\@linelen=\dimen66
+\@clnwd=\dimen67
+\@clnht=\dimen68
+\@dashdim=\dimen69
+\@dashbox=\box21
+\@dashcnt=\count59
+ theorem, lengths, title, sectioning,
+\@secpenalty=\count60
+\c@secnumdepth=\count61
+\c@tocdepth=\count62
+ contents, index,
+bibliography, floats,
+\@floatpenalty=\count63
+\c@topnumber=\count64
+\c@dbltopnumber=\count65
+\c@bottomnumber=\count66
+\c@totalnumber=\count67
+ footnotes,
+\c@footnote=\count68
+\c@mpfootnote=\count69
+\footnotesep=\dimen70
+ initial, output,
+\bx@A=\insert252
+\bx@B=\insert251
+\bx@C=\insert250
+\bx@D=\insert249
+\bx@E=\insert248
+\bx@F=\insert247
+\bx@G=\insert246
+\bx@H=\insert245
+\bx@I=\insert244
+\bx@J=\insert243
+\bx@K=\insert242
+\bx@L=\insert241
+\bx@M=\insert240
+\bx@N=\insert239
+\bx@O=\insert238
+\bx@P=\insert237
+\bx@Q=\insert236
+\bx@R=\insert235
+\topmargin=\dimen71
+\oddsidemargin=\dimen72
+\evensidemargin=\dimen73
+\headheight=\dimen74
+\headsep=\dimen75
+\footskip=\dimen76
+\footheight=\dimen77
+\textheight=\dimen78
+\textwidth=\dimen79
+\columnwidth=\dimen80
+\columnsep=\dimen81
+\columnseprule=\dimen82
+\@maxdepth=\dimen83
+\marginparwidth=\dimen84
+\marginparsep=\dimen85
+\marginparpush=\dimen86
+\floatsep=\skip30
+\textfloatsep=\skip31
+\intextsep=\skip32
+\@maxsep=\dimen87
+\dblfloatsep=\skip33
+\dbltextfloatsep=\skip34
+\@dblmaxsep=\dimen88
+\@fptop=\skip35
+\@fpsep=\skip36
+\@fpbot=\skip37
+\@dblfptop=\skip38
+\@dblfpsep=\skip39
+\@dblfpbot=\skip40
+\@topnum=\count70
+\@toproom=\dimen89
+\@dbltopnum=\count71
+\@dbltoproom=\dimen90
+\@botnum=\count72
+\@botroom=\dimen91
+\@colnum=\count73
+\@textmin=\dimen92
+\@fpmin=\dimen93
+\@colht=\dimen94
+\@colroom=\dimen95
+\@pageht=\dimen96
+\@pagedp=\dimen97
+\@mparbottom=\dimen98
+\@currtype=\count74
+\@outputbox=\box22
+\@leftcolumn=\box23
+\@holdpg=\box24
+ debugging
+\@lowpenalty=\count75
+\@medpenalty=\count76
+\@highpenalty=\count77
+)
+Input any local modifications here.
+)
+*\dump
+Beginning to dump on file lplain.fmt
+ (format=lplain 90.10.8)
+3187 strings of total length 42745
+22643 memory locations dumped; current usage is 118&21970
+2105 multiletter control sequences
+\font\nullfont=nullfont
+\font\cmex/m/n/10=cmex10
+\font\tenln=line10
+\font\tenlnw=linew10
+\font\tencirc=lcircle10
+\font\tencircw=lcirclew10
+\font\cmr/m/n/5=cmr5
+\font\cmr/m/n/6=cmr6
+\font\cmr/m/n/7=cmr7
+\font\cmr/m/n/8=cmr8
+\font\cmr/m/n/9=cmr9
+\font\cmr/m/n/10=cmr10
+\font\cmr/m/n/11=cmr10 at 10.95pt
+\font\cmr/m/n/12=cmr12
+\font\cmr/m/n/14=cmr12 at 14.4pt
+\font\cmr/m/n/17=cmr17
+\font\cmr/m/n/20=cmr17 at 20.736pt
+\font\cmr/m/n/25=cmr17 at 24.8832pt
+\font\cmr/bx/n/9=cmbx9
+\font\cmr/bx/n/10=cmbx10
+\font\cmr/bx/n/11=cmbx10 at 10.95pt
+\font\cmr/bx/n/12=cmbx12
+\font\cmr/bx/n/14=cmbx12 at 14.4pt
+\font\cmr/bx/n/17=cmbx12 at 17.28pt
+\font\cmr/m/sl/10=cmsl10
+\font\cmr/m/sl/11=cmsl10 at 10.95pt
+\font\cmr/m/sl/12=cmsl12
+\font\cmr/m/it/7=cmti7
+\font\cmr/m/it/8=cmti8
+\font\cmr/m/it/9=cmti9
+\font\cmr/m/it/10=cmti10
+\font\cmr/m/it/11=cmti10 at 10.95pt
+\font\cmr/m/it/12=cmti12
+\font\cmss/m/n/10=cmss10
+\font\cmss/m/n/11=cmss10 at 10.95pt
+\font\cmss/m/n/12=cmss12
+\font\cmtt/m/n/9=cmtt9
+\font\cmtt/m/n/10=cmtt10
+\font\cmtt/m/n/11=cmtt10 at 10.95pt
+\font\cmtt/m/n/12=cmtt12
+\font\cmm/m/it/5=cmmi5
+\font\cmm/m/it/6=cmmi6
+\font\cmm/m/it/7=cmmi7
+\font\cmm/m/it/8=cmmi8
+\font\cmm/m/it/9=cmmi9
+\font\cmm/m/it/10=cmmi10
+\font\cmm/m/it/11=cmmi10 at 10.95pt
+\font\cmm/m/it/12=cmmi12
+\font\cmm/m/it/14=cmmi12 at 14.4pt
+\font\cmm/m/it/17=cmmi12 at 17.28pt
+\font\cmm/m/it/20=cmmi12 at 20.74pt
+\font\cmsy/m/n/5=cmsy5
+\font\cmsy/m/n/6=cmsy6
+\font\cmsy/m/n/7=cmsy7
+\font\cmsy/m/n/8=cmsy8
+\font\cmsy/m/n/9=cmsy9
+\font\cmsy/m/n/10=cmsy10
+\font\cmsy/m/n/11=cmsy10 at 10.95pt
+\font\cmsy/m/n/12=cmsy10 at 12.0pt
+\font\cmsy/m/n/14=cmsy10 at 14.4pt
+\font\cmsy/m/n/17=cmsy10 at 17.28pt
+\font\cmsy/m/n/20=cmsy10 at 20.74pt
+\font\lasy/m/n/5=lasy5
+\font\lasy/m/n/6=lasy6
+\font\lasy/m/n/7=lasy7
+\font\lasy/m/n/8=lasy8
+\font\lasy/m/n/9=lasy9
+\font\lasy/m/n/10=lasy10
+\font\lasy/m/n/11=lasy10 at 10.95pt
+\font\lasy/m/n/12=lasy10 at 12.0pt
+\font\lasy/m/n/14=lasy10 at 14.4pt
+\font\lasy/m/n/17=lasy10 at 17.28pt
+\font\lasy/m/n/20=lasy10 at 20.74pt
+18980 words of font info for 72 preloaded fonts
+14 hyphenation exceptions
+Hyphenation trie of length 6075 has 181 ops out of 500
+  181 for language 0
+No pages of output.

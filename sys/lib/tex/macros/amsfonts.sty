@@ -1,0 +1,250 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%% This file is part of the AMS-LaTeX Version 1.0 distribution       %% 
+%%    American Mathematical Society, Technical Support Group,        %% 
+%%    P. O. Box 6248, Providence, RI 02940                           %% 
+%%    800-321-4AMS (321-4267) or 401-455-4080                        %% 
+%%    Internet: Tech-Support@Math.AMS.com                            %% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%% This is file `AMSFONTS.STY',
+%% generated on August 29, 1990 from `amsfonts.doc'
+%% using the stripb utility (v0.9---derived from docstrip.tex).
+%% 
+\def\fileversion{v1.0a}
+\def\filedate{29-AUG-1990}
+\def\docdate {7-JUN-1990}
+
+%% \CheckSum{507}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\@ifundefined{msa@group}{}{\endinput}
+\immediate\write\sixt@@n{Style Option: `amsfonts'
+ \fileversion\space <\filedate>  (FMi, RmS; MJD)}
+\immediate\write\sixt@@n{English Documentation
+ \space\@spaces\@spaces  <\docdate>  (FMi, RmS; MJD)}
+\@ifundefined{RIfM@}{
+  \def\RIfM@{\relax\protect\ifmmode}
+    \let\boxz@\fi % \if \fi matching hack
+  \def\boxz@{\box\z@}
+  \def\setboxz@h{\setbox\z@\hbox}
+  \def\wdz@{\wd\z@}
+  \def\noaccents@{\def\accentclass@{0}}
+  \def\Invalid@@{Invalid use of \string}
+  \def\nonmatherr@#1{\err@
+    {\string#1\space allowed only in math mode}\@ehd}
+  \def\err@{\@latexerr}
+}{}
+ \new@mathgroup\msa@group
+ \new@mathgroup\msb@group
+\define@mathgroup\mv@normal\msa@group{msa}{m}{n}
+\define@mathgroup\mv@normal\msb@group{msb}{m}{n}
+\define@mathgroup\mv@bold\msa@group{msa}{m}{n}
+\define@mathgroup\mv@bold\msb@group{msb}{m}{n}
+{\catcode`\"=12
+\edef\@tempa{\hexnumber@\msa@group}%
+\edef\@tempb{\hexnumber@\msb@group}%
+\xdef\ulcorner{\delimiter"4\@tempa 70\@tempa 70 }
+\xdef\urcorner{\delimiter"5\@tempa 71\@tempa 71 }
+\xdef\llcorner{\delimiter"4\@tempa 78\@tempa 78 }
+\xdef\lrcorner{\delimiter"5\@tempa 79\@tempa 79 }
+\xdef\yen      {\noexpand\mathhexbox\@tempa 55 }
+\xdef\checkmark{\noexpand\mathhexbox\@tempa 58 }
+\xdef\circledR {\noexpand\mathhexbox\@tempa 72 }
+\xdef\maltese  {\noexpand\mathhexbox\@tempa 7A }
+\xdef\widehat#1{\noexpand\setboxz@h{$\noexpand\m@th#1$}%
+ \noexpand\ifdim\noexpand\wdz@>\tw@ em\mathaccent"0\@tempb5B{#1}%
+ \noexpand\else\mathaccent"0362{#1}\noexpand\fi}
+
+\xdef\widetilde#1{\noexpand\setboxz@h{$\noexpand\m@th#1$}%
+ \noexpand\ifdim\noexpand\wdz@>\tw@ em\mathaccent"0\@tempb5D{#1}%
+ \noexpand\else\mathaccent"0365{#1}\noexpand\fi}
+\mathchardef\dabar@="0\@tempa39
+\xdef\dashrightarrow{\mathrel{\dabar@\dabar@\mathchar"0\@tempa4B}}%
+\xdef\dashleftarrow{\mathrel{\mathchar"0\@tempa4C\dabar@\dabar@}}%
+
+\global\let\dasharrow\dashrightarrow
+\gdef\newsymbol#1#2#3#4#5{%
+    \@ifdefinable#1{%
+       \edef\next@
+         {\ifcase #2 \or
+            \hexnumber@{\msa@group}\or
+            \hexnumber@{\msb@group}\fi}%
+       \ifx\next@\@empty
+         \err@{\Invalid@@\newsymbol}\@ehd%
+       \else
+        \global\mathchardef#1"#3\next@#4#5
+       \fi}}
+}
+\let\rightleftharpoons\undefined \newsymbol\rightleftharpoons 130A
+\let\angle\undefined             \newsymbol\angle             105C
+\let\hbar\undefined              \newsymbol\hbar              207E
+\let\sqsubset\undefined          \newsymbol\sqsubset          1340
+\let\sqsupset\undefined          \newsymbol\sqsupset          1341
+\let\mho\undefined               \newsymbol\mho               2066
+\def\frak{\protect\pfrak}
+\def\pfrak{\RIfM@\expandafter\frak@\else
+                 \expandafter\nonmatherr@\expandafter\frak\fi}
+\newmathalphabet\frak@
+\addtoversion{normal}\frak@{euf}{m}{n}
+\addtoversion{bold}\frak@{euf}{b}{n}
+\def\bold{\protect\pbold}
+\def\pbold{\RIfM@\expandafter\bold@\else
+                 \expandafter\nonmatherr@\expandafter\bold\fi}
+\newmathalphabet*\bold@{cmr}{bx}{n}
+\def\Bbb{\protect\pBbb}
+\def\pBbb{\RIfM@\expandafter\Bbb@\else
+                 \expandafter\nonmatherr@\expandafter\Bbb\fi}
+
+\edef\Bbb@{\noexpand\use@mathgroup
+          \expandafter\noexpand\csname =msb\endcsname
+          \msb@group}
+\def\goth{\family{euf}\selectfont\frak@}
+\newbox\Mathstrutbox@
+\setbox\Mathstrutbox@\null
+\def\Mathstrut@{\copy\Mathstrutbox@}
+\newbox\@tempbox@every@size
+\addto@hook\every@size{%
+        \setbox\@tempbox@every@size\hbox{$\m@th($}%
+        \ht\Mathstrutbox@\ht\@tempbox@every@size
+        \dp\Mathstrutbox@\dp\@tempbox@every@size}
+\newbox\strutbox@
+\def\strut@{\copy\strutbox@}
+\addto@hook\every@size{%
+    \setbox\strutbox@\hbox{\lower.5\normallineskiplimit
+         \vbox{\kern-\normallineskiplimit\copy\strutbox}}}
+\def\big{\bBigg@\@ne}
+\def\Big{\bBigg@{1.5}}
+\def\bigg{\bBigg@\tw@}
+\def\Bigg{\bBigg@{2.5}}
+\def\bBigg@#1#2{%
+   {%
+    \hbox{$\left#2\vcenter to#1\big@size{}\right.%
+                         \nulldelimiterspace\z@ \m@th$}}}
+\addto@hook\every@size{\setbox\@tempbox@every@size
+       \vbox{\hbox{$($}\kern\z@}\big@size 1.2\ht\@tempbox@every@size}
+\newdimen\big@size
+\newdimen\ex@
+\addto@hook\every@size{\ex@.2326\fontdimen5\textfont\@ne}
+\newdimen\minaw@
+\addto@hook\every@size{\minaw@11.11128\ex@}
+\addto@hook\every@size{\jot\thr@@\ex@}
+\newmuskip\dotsspace@
+\dotsspace@1.5mu
+\def\smash{\@ifnextchar[\@xsmash{\@xsmash[tb]}}
+\def\@xsmash[#1]{\def\smash@{#1}%
+  \ifmmode\expandafter\mathpalette\expandafter\mathsm@sh\else
+        \expandafter\makesm@sh\fi}
+\def\finsm@sh{\def\mb@t{\ht\z@\z@}\def\mb@b{\dp\z@\z@}%
+   \expandafter\@tfor\expandafter\@tempa
+         \expandafter:\expandafter=\smash@\do
+      {\csname mb@\@tempa\endcsname}%
+   \leavevmode\boxz@}
+\def\default@mextra{\def\accentclass@{7}}
+\extra@def{cmm}{\skewchar#1'177}{\noaccents@}
+\extra@def{cmsy}{\skewchar#1'60}{\noaccents@}
+\new@fontshape{msa}{m}{n}{%
+   <5>msam5%
+   <6>msam6%
+   <7>msam7%
+   <8>msam8%
+   <9>msam9%
+   <10>msam10%
+   <11>msam10 at10.95pt%
+   <12>msam10 at12pt%
+   <14>msam10 at14.4pt%
+   <17>msam10 at17.28pt%
+   <20>msam10 at20.74pt%
+   <25>msam10 at24.88pt}{}
+\extra@def{msa}{}{}
+\new@fontshape{msb}{m}{n}{%
+   <5>msbm5%
+   <6>msbm6%
+   <7>msbm7%
+   <8>msbm8%
+   <9>msbm9%
+   <10>msbm10%
+   <11>msbm10 at10.95pt%
+   <12>msbm10 at12pt%
+   <14>msbm10 at14.4pt%
+   <17>msbm10 at17.28pt%
+   <20>msbm10 at20.74pt%
+   <25>msbm10 at24.88pt}{}
+\extra@def{msb}{}{\noaccents@}
+\new@fontshape{euf}{m}{n}{%
+   <5>eufm5%
+   <6>eufm6%
+   <7>eufm7%
+   <8>eufm8%
+   <9>eufm9%
+   <10>eufm10%
+   <11>eufm10 at10.95pt%
+   <12>eufm10 at12pt%
+   <14>eufm10 at14.4pt%
+   <17>eufm10 at17.28pt%
+   <20>eufm10 at20.74pt%
+   <25>eufm10 at24.88pt}{}
+
+\new@fontshape{euf}{b}{n}{%
+   <5>eufb5%
+   <6>eufb6%
+   <7>eufb7%
+   <8>eufb8%
+   <9>eufb9%
+   <10>eufb10%
+   <11>eufb10 at10.95pt%
+   <12>eufb10 at12pt%
+   <14>eufb14%
+   <17>eufb14 at17.28pt%
+   <20>eufb14 at20.74pt%
+   <25>eufb14 at24.88pt}{}
+\extra@def{euf}{\hyphenchar#1\m@ne
+       \@tempdima\fontdimen2#1%
+       \fontdimen3#1.4\@tempdima
+       \fontdimen4#1.3\@tempdima}
+      {\noaccents@}
+\new@fontshape{cmm}{b}{it}{%
+      <5>cmmib5%
+      <6>cmmib6%
+      <7>cmmib7%
+      <8>cmmib8%
+      <9>cmmib9%
+      <10>cmmib10%
+      <11>cmmib10 at10.95pt%
+      <12>cmmib10 at12pt%
+      <14>cmmib10 at14.4pt%
+      <17>cmmib10 at17.28pt%
+      <20>cmmib10 at20.74pt%
+      <25>cmmib10 at24.88pt%
+      }{}
+\new@fontshape{cmsy}{b}{n}{%
+      <5>cmbsy5%
+      <6>cmbsy6%
+      <7>cmbsy7%
+      <8>cmbsy8%
+      <9>cmbsy9%
+      <10>cmbsy10%
+      <11>cmbsy10 at10.95pt%
+      <12>cmbsy10 at12pt%
+      <14>cmbsy10 at14.4pt%
+      <17>cmbsy10 at17.28pt%
+      <20>cmbsy10 at20.74pt%
+      <25>cmbsy10 at24.88pt%
+      }{}
+\def\unbracefonts@{\let\math@bgroup\@empty\let\math@egroup\@empty}
+\def\operator@font{\mathgroup\z@}
+\endinput
+%% 
+%% End of file `amsfonts.sty'.

@@ -1,0 +1,2392 @@
+% Appendix to the Errors of TeX paper (updated) 
+%\magnification=\magstephalf
+%\pageno=35
+\input logmac
+* 10 Mar 1978
+L1. Rename a few external variables to make their first six letters unique.
+D2. Initialize \\{escape_char} to $-1$, not 0 [it will be set to the
+	first character input]. @240
+L3. Fix bug: The test `$\\{id}<\O{200}$' was supposed to distinguish one-letter
+	identifiers from longer (packed) ones, but negative values of
+	\\{id} also pass this test. @356
+B4. Fix bug: I wrote `{\bf while} $\alpha\land(\beta\lor\gamma)$' when I meant
+	`{\bf while} $(\alpha\land\beta)\lor\gamma$'. @259
+R5. Initialize the input routines in |INITEX| [at this time a short,
+	separate program not under user control], in case errors occur. @1337
+E6. Don't initialize \\{mem} in |INITEX|, it wastes time. @164
+B7. Change `\\{new_line}' [which denotes a lexical scanning state] to
+	`\\{next_line}' [which denotes
+	\\{carriage_return} and \\{line_feed}] in print commands.
+F8. Include additional test `$\\{mem}[p] \ne 0\; \land$' in \\{check_mem}. @168
+M9. Fix inconsistency between the \\{eq_level} conventions of \\{macro_def} and
+	\\{eq_define}. @277
+# About six hours of debugging time today.
+# |INITEX| appears to work,
+	and the test routine got through \\{start_input},
+	\\{chcode} [the \TeX78 command for assigning a \\{cat_code}],
+	\\{get_next}, and \\{back_input} the first time.
+* 11 Mar 1978
+I10. Insert space before `|(|' on terminal when opening a new file. @537
+F11. Put `$p\gets \\{link}(p)$' into the loop of \\{show_token_list},
+	so that it doesn't loop forever. @292
+L12. Shift the last item found by \\{scan_toks} into the \\{info} field.
+	[With |SAIL| all packing of fields was done by arithmetic operations,
+	not by the compiler.] @474
+B13\>12. Fix the previous bugfix: I shifted by the wrong amount. @474
+I14. Add a feature that prints a warning when the end of a file page occurs within
+	a macro definition or call. [System dependent.] @336
+# Unintended bugs in my test routine [a format intended eventually to typeset
+	{\it The Art of Computer Programming\/}] helped check out the
+	error recovery mechanisms.
+	For example, I had `|\lft{#}|' instead of `|\lft{##}|' inside a macro,
+	and three cases of improper |{|~and~|}| nesting.
+F15. Add the forgotten case `\\{set_font}:' to \\{eq_destroy}. @275
+C16. Change |\require| to |\input|. @376
+F17. Add code for the case $\\{cur_cmd}=0$ [later known as the case
+	`$\,t\ge\\{cs_token_flag}$'] when scanning a tokenlist. @357
+# That's the first ``big'' error I've spotted so far.
+I18. Introduce a `|d|' option in the error routine, to facilitate debugging. @84
+L19. Assign a floating-point constant \\{ignore_depth} to \\{prev_depth},
+	instead of assigning the integer constant \\{flag}
+	[since \\{prev_depth} is type \\{real} in \TeX78]. @215
+I20. Improve the readability and spacing of \\{show_node_list} output. @182,187
+F21. Set the variable $v$ before using the {\bf case} construction in
+	\\{show_node_list}, because there's one case where $v$ 
+	didn't receive a value [as part of the field unpacking]. @182
+# About seven hours today.
+* 12 Mar 1978
+# One hour to enter yesterday's corrections and recompile.
+# At this point \TeX\ correctly located further unintended syntax errors
+	in |acphdr| [the test file].
+I22. Insert \\{debug_help} into \\{succumb}, giving a chance to look at memory
+	before the system dies. @93
+D23. Use \\{eq_destroy} wherever necessary in \\{unsave}. @283
+L24. Change `$t \gets  (t-1)$ mod 8' to `$t \gets  (t-1)$ land~7' in \\{id_name},
+	since |SAIL| has $-1$~mod~$8 = -1$. [At this time, \\{id_name} is a
+	routine that unpacks control sequence names, according to a scheme
+	that will become obsolete after change \#422.]
+S25. Remove the space that appears at end of paragraph.
+	(I hadn't anticipated that.) @816
+L26. Throw away unwanted \\{line_feed} after getting a \\{carriage_return}
+	in response to \\{in_chr_w} [a system routine for
+	input from the terminal]. @83
+B27. Delete spurious call to \\{flush_list} in \\{end_token_list}. @324
+# Why did I make such a silly mistake?
+F28. Fix bug in \\{get_x_token}: I forgot to say `\\{macro_call}' (which is the
+	main point of that routine)! @380
+# While tracking that bug down, I found out incidentally that kerning is okay.
+# Also \TeX\ correctly caught an error |0p| for |0pt|.
+L29. Fix bug in \\{scan_spec} ({\bf while} instead of {\bf repeat}). @404
+M30. Make the table entries for |\hfill| and |\hskip| consistent with the
+	program conventions. @1058
+L31. Disable unforeseen coercion: When \\{scan_spec} put \\{hsize} on
+	\\{save_stack}, the value changed from \\{real} to \\{integer}. @645
+I32. Use `|*|' instead of `|-1.0|' for running dimensions
+	of rules in \\{show_node_list}. @176
+D33. Clear \\{mem}[\\{head}] to null in \\{push_nest} [in \TeX82, this
+	will be done by \\{get_avail}]. @216
+# A vrule link got clobbered because I forgot to do this.
+I34. Translate ASCII control codes to special form when displaying them. @48,68
+# Ligatures work, but \\{show_node_list} showed them funny.
+F35. Remember to clear parameters off \\{save_stack} in \\{package} routine. @1086
+# About eight hours today.
+* 13 Mar 1978
+D36. Introduce a new variable \\{hang_first} [later the sign of \\{hang_after}]. @849
+E37\>36. Simplify the new code, realizing that if $\\{hang_indent}=0$ then
+	\\{hang_first} is irrelevant. @848
+# Time sharing is very slow today, so I'm mostly reading technical reports while
+	waiting\/ {\bf three hours} for compiler, editor, and loading routine.
+# I'm not counting this as debugging time!
+# (Came back in the evening.)
+P38. Spruce up the comments in the \\{line_break} routine, which appears to be
+	almost working. @813
+D39. Rethink the setting of \\{best_line}; it's 1 too high in many cases.
+	[The final line of a paragraph was handled in a treacherous way.] @874
+D40. Compute proper initialization for
+	\\{prev_depth} when beginning an |\hbox|
+	with a paragraph inside. [This refers to a special `paragraph box'
+	construction, used when an hbox of specified size becomes overfull;
+	\TeX78 doesn't have the concept of internal vertical mode.] @1083
+D41. Also initialize \\{tail} in that case. @1083
+M42. Also put the result of line-breaking into the correct list.
+T43. Fix a typo in the \\{free_node} routine (`\\{link}' not `\\{llink}');
+	by strange chance it had been harmless until today. @130
+F44. Fix bug: \\{post_line_break} forgot to set \\{adjust_tail}. @889
+D45. Update \\{act_width} properly when looking for end of word while
+	line breaking. @866
+B46. Repair the ``tricky'' part of \\{get_node}: I used the \\{info} field
+	when I meant to say \\{llink}. @127
+# Now the |\corners| macro of |acphdr| works! [See |\setcornerrules|
+	in {\it The \TeX book}, page 417.]
+D47. Reset \\{contrib_tail} properly in \\{build_page}. @995
+T48. Fix typo (|-| for |+|) in computation of \\{page_total}. @1004
+S49. Change the page-breaking logic: \TeX\ reached \\{fire_up} with
+	$\\{best_page_break}=\\{null}$ in one case,
+	since the badness was too bad. @1005
+M50. Perform the operation \\{delete_token_ref}(\\{top_mark}) only when
+	$\\{top_mark}\ne0$. @1012
+F51. Make \\{scan_toks} omit the initial |{| of an |\output| routine. @473
+I52. Insert a comma to make memory usage statistics look better. @639
+# About seven good hours of debugging today.
+# Tomorrow will be first-output day (I hope).
+* 14 Mar 1978
+# (Came in evening after sleeping most of day, to get computer at better time.)
+# (Some day we will have personal computers and will live more normally.)
+# 8:30pm, began to enter corrections to yesterday's problems.
+I53. Issue an error message for non-character in filename or in font name. @771
+I54. Display `|...|' for omitted stuff in \\{show_context} routine. @643
+L55. Watch out for the |SAIL| syntax `$\alpha+\beta\mathbin{\rm lsh}\gamma$';
+	it doesn't shift $\alpha+\beta$ left (only $\beta$). @464
+# That error was very hard to track down; it created a spurious link field
+	and sent $\\{hash}[0]=\null$|\beta| to the scanner!
+# I could have found this bug an hour sooner if I had looked at the correct
+	stack entries for \\{name} and \\{token_type}.
+D56. Show the correct page number when tracing pages before output is shipped. @638
+F57. Remember to nullify a box after using it. @1079
+I58. Issue an error message if\/ |\box255| isn't consumed by the output routine. @1015
+# I'm having trouble with the |BAIL| debugger;
+	it makes an illegal memory reference and dies,
+	when single-stepping past the entry to recursive procedures
+	\\{hlist_out} and \\{vlist_out}.  So I have to reload and be careful
+	to go thru these procedures at high speed.
+P59. Fix bug in comment (memory parameter description said $\ge$ not $\le$). @11
+B60. Fix typo in definition of rule output (said $x,y$ not $\\{x0},\\{y0}$).
+	[This part of the code went away when |DVI| files were introduced.]
+B61. Correct the embarrassing bug in shellsort, where I said `$\le\\{str}[k]$'
+	not `$\le t$'.
+	[The first \TeX\ had to sort all output by vertical position on page.]
+M62. Make \\{start_input} set up \\{job_name} in the form needed by \\{shipout};
+	it uses obsolete conventions. @532,537
+L63. Insert |(| and |)| into the |SAIL| macro definition of \\{new_string}.
+	[This macro was for pre-|DVI| output.]
+M64. Unscramble the parameters of \\{out_rule}:
+	The declaration was $(\\{x0},\\{y0},\\{x1},\\{y1})$
+	while the call was $(\\{x0},\\{x1},\\{y0},\\{y1})$.
+# 4:30am, \TeX's first page is successfully output!
+# (It was `|\titlepage\setcpage1\corners\eject\end|'.)
+* 15 Mar 1978
+# 10:30pm. Today I'm instrumenting the line-breaking routine and putting it
+	through a bunch of tests.
+# (The inserted instrumentation had bugs that won't be mentioned here.)
+C65. Don't abort the job when \\{eq_destroy} redefines a
+	\TeX\ control sequence. @275
+# The first word of a paragraph won't be hyphenated \dots\ so be it!
+T66. Fix the typo in \\{line_break} that spoils the test for
+	`letters in the same font'. @896
+# The effect of that typo was to suppress all hyphenation attempts.
+B67\>25. Replace the space at paragraph end by fillglue, not by zero. @816
+L68. Pack the hyphen character properly into its node. @582
+T69. Fix a typo (`{\tentex\char'30}' for `|+|')
+	in the computation of \\{break_width}. @838
+M70. Change the |\end| maneuver; the present code doesn't end the job,
+	since I forgot that \\{back_input} uses \\{cur_tok}. @1054
+A71. Add a parameter to \\{try_break}, since the width is different at
+	a discretionary hyphen. [This problem will be solved differently in \TeX82,
+	when discretionaries become much more general.] @840
+F72. Bypass kern nodes in pre-hyphenation. @896
+F73. Supply code for the forgotten case `$<$ |"a"|' in pre-hyphenation.
+	[This case was later generalized to a test of \\{lc_code}.] @897
+B74. Change $\\{mem}[q]$ to $\\{prev_break}(q)$ in the
+	reverse-linking loop. @878
+# (Such blunders. Am I getting feeble-minded?)
+A75. Introduce special logic for \\{eject_penalty}; I was wrong
+	to think that forced ejection was exactly like an
+	infinitely negative penalty. @851
+A76. Use $(1+b)^2-p^2$ when computing demerits with $p<0$. @859
+# 6:30am. The line-breaking algorithm appears to be working fine
+	and efficiently.
+	On small measures (about 20 characters per line), it gives overfull boxes
+	instead of spaced out ones. Surprising but satisfactory.
+* 16 Mar 1978
+# 9pm. The plan for tonight is to test page breaking and more paragraphing.
+G77. Insert `|\topskip|' glue at beginning of page. @1001
+I78. Add `|\pausing|' feature. @363
+M79. Fix discrepancy: In \\{make_accent} I called \\{vpackage}
+	with a pointer to the first list item, but \\{vpackage} itself assumes
+	that the parameter is a pointer to that pointer. [The
+	\\{vpackage} of \TeX82 will be different.] @668
+# I checked for other lapses like that. Result: 14 calls OK, 12 NG.
+M80. Create a new temporary list head location, \\{hold_head}, since there's
+	a case where \\{vpackage} is improperly called with
+	parameter \\{temp_head}. [At this time \\{vpackage} uses \\{temp_head}
+	to make a list of all insertions found.] @1014
+# 11:30pm. The machine is tied up again.
+F81. Write code to handle charnodes in vlists; I forgot that I'd decided
+	to allow them. [Later I prohibited them again!] @669
+F82. Combine the page lists before pruning off glue
+	in \\{fire_up}; otherwise the pruning doesn't go far enough. @1017
+B83\>25. Fix typo where line-breaking starts: `\\{fill_glue}' should be
+	`\\{new_glue}(\\{fill_glue})'. @816
+I84. Add |/q| to |xspool| command (cosmetic change). [This changes a system
+	command that causes \TeX\ output to be printed on the Xerox Graphics
+	Printer (XGP), the progenitor of future laser printers;
+	the |/q| option says that the queue of printing requests should be
+	displayed on the user's terminal.] @642
+E85. Don't write a form feed after the last page of output. @642
+# To fix this, I reorganized \\{ship_out}, and it became simpler.
+T86. Correct a typo (`{\tentex\char'30}' for `|+|') in the \\{vlist_node} case
+	within \\{hlist_out}. [The output routines were quite different
+	at this time, because output went directly to the XGP.] @622
+I87. Change the message `|completed page|' to `|Completed for page|'. @638
+B88\>48. Fix yet another typo in the computation of \\{page_total}: My original
+	code said $\\{stretch}(p)$ instead of $\\{stretch}(q)$ (terrible). @1004
+P89. Document the dirty trick about \\{bot_mark}'s reference count.
+	[That trick is, fortunately, no longer useful.] @1016
+A90. Rethink the algorithm for contributing an insertion: The original code
+	tests for a page break after incrementing the totals but
+	before the \\{contrib_list} is updated. [\TeX78 handles insertions
+	in a hardwired manner that will be greatly generalized in \TeX82.]
+F91. Fix \\{get_node} again:
+	After the variable memory overflows, control falls through to \\{found}
+	instead of going to the \\{overflow} call. @125
+# I spent several hours tracking down that data structure bug!
+B92. Change \\{new_line} to \\{next_line} in yet another print command (see \#7).
+A93\>75. Amend the line-breaking algorithm:
+	|\break| in paragraph doesn't work with really bad breaks. @851
+# A problem to be diagnosed tomorrow: Each time I run the test program,
+	the amount of memory in use grows by 13 cells not returned.
+# Seven hours tonight.
+* 17 Mar 1978
+G94. Introduce \\{dead_cycles} to keep |\end| active until \\{ship_out}
+	occurs. @1054
+E95. Don't call \\{line_break} with an empty list. @1096
+S96. Take proper account of the (infinite) fillglue when computing
+	the width of a paragraph line preceding a display. @1146
+M97. Add a new parameter to \\{hpack} so that \\{line_break} won't be called
+	at the wrong time.
+	[This is for the soon-to-be-obsolete feature described in \#40.]
+L98. Give a warning message if there's an |\hfill| in the middle of a paragraph;
+	fillglue upsets the line breaker,
+	because floating-point calculations don't have sufficient accuracy. @869
+# I spent an hour looking for another bug in \TeX, but the following one was in \MF:
+	The \\{xgp_height} data in fonts had been supplied wrong.
+# It took two hours to recompile 32 fonts with proto-\MF.
+R99. Make \\{show_node_list} and \\{show_token_list}
+	more robust in the presence of software bugs. @182
+D100\>97. Do not remove nodes with \\{eject_penalty},
+	when the new parameter to \\{hpack} is \\{true}.
+E101\>97. Put a fast exit into \\{hpack}; e.g., at glue nodes, test `{\bf if}
+	\\{paragraphing} $\land$ $\langle$current width is large$\rangle$'.
+# 2am. I have to go to bed ``early'' tonight.
+* 18 Mar 1978
+# 3:30pm. (Saturday)
+I102. Add a parameter to \\{check_mem} (to suppress display unless needed). @167
+G103. Introduce a user-settable parameter |\maxdepth|, and
+	pass it as a parameter to \\{vpackage}. @668
+# I realized the need for |\maxdepth| while fixing insertions (see \#90).
+G104. Introduce a user-settable parameter for \\{line_break}: The constant
+	2.0 in my original algorithm becomes |\jpar|
+	[later |\tolerance|], to be set like |\tracing|. @828
+D105. Reclaim the \\{eject_penalty} nodes removed during line-breaking. @879
+# (Those were the 13 extra nodes reported on Thursday.)
+# The \\{init_align} procedure worked right the first time!
+# Also \\{init_row}, \\{init_col}. But then\thinspace\dots
+S106. Rethink the command codes: \\{endv} in a token list has too high a
+	code for the assumptions of \\{get_next}. @207
+A107. Add a \\{prev_cmd} variable for processing delimited macro parameters;
+	the original algorithm loses track of braces.
+	[The rules will change slightly in \TeX82, and
+	\\{rbrace_ptr} will take on a similar function.] @400
+S108. Make the \\{get_next} routine intercept |&| and |\cr| tokens. @342
+# I'd thought I could just put |&| and |\cr| into
+	\\{big_switch} [i.e., in the stomach of \TeX, not the eyes];
+	that was a great big mistake.
+R109. Make more error checks on \\{endv}; e.g., it must not occur in
+	a macro definition or call. @780
+S110\>108. No, rethink alignments again; the new program still fails! @768
+# For the first time I can glimpse the
+	hairiness of alignment in general (e.g., `|\halign{\u#\v&...|'
+	when |\u| and |\v| are defined to include |&|'s and possible
+	alignments themselves).
+# I think there's a ``simple'' solution, by considering only whether
+	an alignment is currently active [in \S342].
+# 11:30pm. Went to bed.
+* 19 Mar 1978
+# Woke up with ``better'' idea on how to handle |&| and |\cr|.
+# (Namely, to consider a special kind of\/ |\def| whose parameters don't interrupt
+	on |&|'s and |\cr|'s.)
+# But replaced this by a much better idea (to introduce \\{align_state}).
+# 11pm. Began to use computer. Performed major surgery
+	(inserting \\{align_state} and updating the associated routines
+	and documentation).
+D111. Pop the alignment stacks in \\{fin_align}. @800
+T112\>110. Fix a (newly inserted) typo in \\{show_context}. @314
+D113\>110. Set \\{align_state} false when a live |&| or |\cr| is found.
+	[Originally \\{align_state} was of type \\{boolean}.] @789
+I114. Insert |\cr| when `|}|' occurs prematurely in an alignment. @1132
+M115. Remember to record \\{glue_stretch} when packaging an unset node. @796
+# I had a mistake in |acphdr| definition of\/ |\quoteformat|; also extra spaces.
+# My first test programs, used before today, were contrived to test macro
+	expansion, line-breaking, and page layout.
+# Next I'm using a test program based on Volume 2.
+C116. Make carriage-return, space, and tab equivalent for macro matching. @348
+F117. Omit the reference count node when displaying a mark. @176
+B118. Correct a silly slip: I wrote `\\{type_displacement}' instead of
+	`\\{value_displacement}' when packing data in a penalty node. @158
+M119. Don't go to \\{build_page} after seeing |\noindent|; \TeX\ isn't
+	ready for that.
+	[In the original program, this was an instance of a bad {\bf goto}.] @1091
+# I had undesired spaces coming thru the scanner in my macro definitions
+	of\/ |\tenpoint| [see {\it The \TeX book}, page 414].
+# 4am. \TeX\ now knows enough to typeset page 1 of Volume 2!
+# Also it did its first ``math formula'' (namely `|$X$|') without crucial error.
+# (Except that the italic correction was missing for some reason.)
+D120. Remember to decrement \\{cur_level} in \\{fin_align}. [The routines will
+	eventually become more general and use \\{unsave} here.] @800
+D121. Remember to increment \\{cur_level} in error corrections by
+	\\{handle_right_brace}. [A better procedure will be adopted later.] @1069
+T122. Fix a typo: (`|{|' instead of `|}|') in error message for $\\{mmode}+
+	\\{math_shift}$. @1065
+R123\>99. Make \\{show_noad_list} more robust and more like the new
+	\\{show_node_list}. [The routines will be combined in \TeX82.] @690
+L124. Fix a typo in \\{char_box}: should say \\{font_info_real}.
+	[In \TeX78 a single array
+	is used for both \\{real} and \\{integer}; in \TeX82 things will be
+	\\{scaled}.] @554
+B125. Fix typos in the definitions of \\{default_rule_thickness} and
+	\\{big_op_spacing}; they shouldn't start at \\{mathex}(7). @701
+B126. Reverse the \\{before} and \\{after} conventions in math nodes. @1196
+# I had them backwards; this turned
+	hyphenation on just before math, and off just after it!
+# Seven and a half hours debugging today.
+	Got through the test program a little more.
+	But \TeX\ blew up on `|$Y+1$|'; tomorrow I hope to find out why.
+* 20 Mar 1978
+# 8pm. I decided to work next on a super-hairy formula.
+C127. Change `|\ascii|' to `|\cc|' (character code). [This name will change again
+	later, to `|\char|'.] @265
+E128. Don't bother to store a penalty node at the beginning of |$$| when
+	the paragraph-so-far fits on a single line, since such a penalty
+	has already been stored. [These conventions will change later, and
+	the |\predisplaypenalty| will always be stored.] @1203
+S129. Avoid reference to \\{tail} in \\{build_page},
+	if $\\{nest_ptr}>0$. @995
+B130. Correct a silly
+	slip in \\{math_comp} (the exact opposite of what I did in \#118). @1158
+B131. Rectify my mental lapse in \\{make_fraction}; I said \\{nucleus} instead of
+	\\{thickness}. @743
+F132. Mask off the math class when scanning delimiters. @1160
+C133. Allow an optional space after |\def{...}|. [This decision
+	will be retracted later.] @473
+# My test example is so complicated it causes the semantic stacks to overflow!
+L134. Don't test for no pages output by looking at the channel status. @642
+T135. Fix typo in definition of\/ |\mathop| (\\{open_noad} not \\{op_noad}). @1156
+A136. Rewrite \\{fin_mlist}, because `|\left(...\above...\right)|' doesn't
+	parse correctly; the |\left| goes into the numerator,
+	the |\right| into the denominator. @1184
+B137. Correct the use of \\{depth_threshold} in \\{print_subsidiary_data}:
+	Simple fields get shown while others look empty. @692
+I138\>78. Return the carriage before showing the first line of a new file
+	when pausing. @538
+M139. Fix bug: The call \\{show_noad_list}(\\{mem}[|..|]) should be
+	\\{show_noad_list}(|..|), in the \\{incompleat_noad} case
+	of \\{show_activities}. @219
+# 3am. The whole messy formula has been parsed correctly into a tree.
+# The easy part is done, now comes the harder part.
+F140. Don't shift single characters down in \\{make_op}. @749
+D141. Make \\{clean_box} return a box (as its name implies), not an hlist. @720
+# Font info still isn't quite right, it has the wrong value of \\{quad}.
+A142. Retain the italic correction when doing \\{rebox};
+	can make $\\{glue_set}\ne0$ a flag for this. [A better
+	solution will be adopted later.] @715
+B143. Fix the bug that makes \\{rebox} bomb out: $\\{value}(p)$ should be
+	$\\{value}(\\{mem}[p])$. @715
+# 6am; ten hours today. \TeX\ didn't do |$\pi\over2$| correctly, but was close.
+# I found that the \\{rebox} problem (\#142) went away when I fixed the
+	\\{clean_box} problem (\#141); but I
+	will leave the extra stuff about $\\{glue_set} \ne 0$
+	in the program anyway, just for weird cases.
+E144. Omit extra levels of boxing when possible in \\{clean_box}. @721
+# (To do this, I need to face the \\{rebox} problem anyway.)
+* 21 Mar 1978
+# 10pm. The computer is rather heavily loaded tonight.
+F145. Don't forget \\{thickness} when making a square-root sign (see \#131).
+	[The rule thickness will later be derived from the character height.] @737
+L146. Define $p$ local to the \\{make_fraction} routine. @743
+# Unwittingly using the global $p$ was a disaster.
+I147. Don't show the amount of \\{glue_set} when it's zero. @186
+D148\>142. Make \\{glue_set} nonzero in the result of \\{var_delimiter}. @706
+F149. Fix bug: The \\{math_glue} function didn't return any result. @716
+T150. Fix typo in \\{char_box} ($c$ not $w$); this caused a subscripted~$P$ to come
+	out the same width as an unsubscripted~$P$. [Later changes in the rules
+	will move this computation to \S755.] @709
+P151\>144. Revise \\{clean_box} to do operations that are needed
+	often because of the \\{rebox} change. @720
+D152. Use the new \\{clean_box} to avoid a bug in |\sqrt{\raise...}|. @737
+Q153. Change the definition of\/ |\not| so that it's a relation
+	(which will butt against the following relation). [All math
+	symbols and Greek letters are defined in |INITEX| at this
+	time, not in a changeable format definition.]
+I154. Give error message `{\tt Large delimiter must be
+	in mathex font}', instead of calling \\{confusion},
+	since the error can occur.
+	[This particular error is impossible in \TeX82.] @706
+F155. Change the use of $p$ in \\{var_delimiter}; it isn't always set when I say
+	{\bf goto} \\{found}. @706
+# Another font problem now surfaced: The mathex meta-font didn't compute \TeX\ info
+	in a machine-independent way.
+	(It took two hours to correct this.)
+D156. Don't forget to set $\\{type}(b)$ in all relevant cases of
+	\\{var_delimiter}. @708
+B157. Use the correct sign convention for \\{shift_amount} in \\{hpackage}. @653
+F158. Always kern by \\{delta} when there's no superscript. @755
+M159. Declare \\{space_table} to be $[0\,.\,.\,6,0\,.\,.\,6]$
+	not $[0\,.\,.\,7,0\,.\,.\,7]$; otherwise its entries are
+	pre\-loaded into the wrong positions. [The \\{space_table} in \TeX78 is
+	$7\times7$; it will become $8\times8$ in \TeX82,
+	represented as a string called \\{math_spacing}.] @764
+C160. Use a negative value, not zero, to represent a null delimiter.
+	[Actually zero will come back again later.] @685
+C161\>127. Change |\cc| to |\char|. @265
+L162. Don't use tricky subtraction on packed data when changing $q$ to
+	an \\{ord_noad} in \\{mlist_to_hlist}; subtraction isn't always safe. @729
+B163. Fix two typos in the \\{space_table} (|*| for |0|). @764
+F164. Initialize \\{cur_size} everywhere (I forgot it in two places). @703
+A165. Reset \\{op_noad} before resetting \\{bin_noad}. @728
+F166. Treat $\\{display_style}+\\{cramped}$ the same as \\{display_style}
+	inside \\{make_op}. @749
+B167. Shift the character correctly in the non-|\displaystyle| case of
+	\\{make_op}. @749
+# Still another font problem: The italic corrections are wrong because
+	the corresponding array was declared \\{real} in proto-\MF\ (and
+	italic corrections were used in nonstandard way in |mathex|).
+B168. Use \\{depth} instead of \\{height} in \\{var_delimiter}.
+	[Later, both were used.] @714
+Q169. Skew the accents according to the font \\{slant}. [Soon retracted.] @741
+# At this point I think nearly all the math routines have been exercised.
+# Tomorrow they should work!
+# Eight hours debugging today.
+* 22 Mar 1978
+# (Wednesday, but actually Thursday:
+	I began at midnight because I was proofreading a paper.)
+# I checked out the font access tables, slowly (i.e., all the |\mathcode|
+	and special-character name entries were catalogued).
+Q170\>169. Do {\bf not\/} consider slants after all in the math accent
+	routine, since slanted math letters are put differently into fonts. @741
+B171. Don't use $q$ for two different things simultaneously
+	in \\{make_math_accent}. @738
+F172. Fix bug in \\{compact_list} (I forgot to advance the loop variable).
+	[This procedure became unnecessary in \TeX82.]
+M173. Avoid conflict between \\{var_delimiter} and \\{mlist_to_hlist}, which
+	want to use \\{temp_head} simultaneously. @713
+T174. Fix bad typo in \\{overbar} routine ($b$ for $p$). @705
+# Finally \TeX\ got to \\{after_math} after dealing with that
+	hairy formula\thinspace\dots
+T175. Fix another bad typo: $p$ for $b$ this time. @1199
+L176. Insert more parentheses (twice) because of `|lsh|' precedence
+	in |SAIL|. @1199
+M177\>36. Use the new hanging-indentation conventions when formatting displayed
+	equations. @1199
+Q178. Recompute penalties so that break is allowed after \\{punct_noad}s. @761
+F179. Center the large delimiters vertically. @749
+Q180. Round all rule sizes (up) before drawing them. @589
+Q181. Provide more space over $x$ in $\sqrt x$, and more space atop vincula.
+	@705,737
+Q182. Make large delimiters large enough to cover formula height
+	(important for subscripts, superscripts). @762
+I183. Insert |/ntn=33| on XGP prompt message so that complex math
+	won't blow the device driver. [See \#84.]
+P184\>161. Update the comment about the meaning of\/ |\char|, since it
+	can be used in math mode. @208
+# Six hours today.
+* 23 Mar 1978
+# 11pm, Maundy Thursday.
+C185\>104. Make |\tracing| and |\jpar| follow block structure. @283
+# It took me two hours to enter yesterday's corrections,
+	because the changes were so numerous.
+M186. Fix bad call on \\{begin_token_list} when marks are to be scanned. @396
+# Now the formula looks like it should, modulo problems in fonts.
+Q187. Prevent an exponent from going below baseline + xheight/4. @758
+B188. Change \\{quad} to \\{math_quad} when finishing a display
+	(several places). @1199
+A189. Don't use \\{append_to_vlist} when putting an |\eqno| box on a separate
+	line, because the page shouldn't break at glue there.
+	[Later, the \\{append} will be used but preceded by an
+	infinite penalty.] @1205
+S190. Increase the input \\{stack_size}; \TeX\ may need to back up a lot. @11
+A191. Don't assume that $p$ always points to a glue node when
+	a page is broken. @1017
+A192. Use \\{epsilon} in \\{scan_spec} (I had used a different
+	small constant). [This was a kludge to avoid the extra
+	parameter later called \\{exactly} or \\{additional}.] @645
+R193. Introduce a new procedure \\{scan_positive_length}, to prevent
+	negative or zero lengths in \\{scan_rule_spec}.
+	[This restrictive rule will be ``overruled'' later.] @463
+B194. Fix ridiculous bug in the leaders routine of \\{vlist_out}:
+	I had the initialization {\bf inside\/} the loop! @635
+L195. Eliminate confusion between the two temp variables named $h$;
+	one is \\{real} and the other is \\{integer}. @629
+F196. Include forgotten case (\\{leader_node}) in \\{hlist_out}.
+	[Type \\{leader_node} will be absorbed
+	into \\{glue_node} in \TeX82.] @622
+F197. Don't forget to compute \\{x0} in variable horizontal rules. @624
+# Seven and a half hours today.
+# \TeX\ seems to be ready to tackle my test file based on Volume 2.
+S198. Calculate \\{y00} in horizontal rules as an integer number of pixels
+	from the baseline, so that the baseline doesn't jump. @589
+* 25 Mar 1978
+# 2am Saturday. (Might as well drop Friday.)
+D199\>185. Make \\{def_code} consistent with the new |\tracing| conventions.
+	[Many tracing options are packed into a single
+	parameter called |\tracing|.] @1233
+R200\>185. Don't allow users to change nonexistent things like |\catcode1000|. @1232
+F201\>110. Reset \\{align_state} at beginning of \\{init_align}. @774
+F202. Don't forget \\{scan_left_brace} after |\noalign|. @785
+F203\>110. Set $\\{cur_cs}\gets 0$ in \\{get_next}, after |\cr|
+	causes a switch to the $\langle v_j\rangle$ template. @342
+# Ouch, that was a big bad bug, which took me three hours to find
+	(since I thought \TeX's low-level scanning mechanism was working).
+# Note to myself: I\/ {\bf knew\/} it would be cleaner to define \\{get_next}
+	so that it sets \\{cur_cs} to zero every time it begins [i.e.,
+	in \S341, where this change will in fact be made in \TeX82].
+	But I had avoided this on grounds of efficiency in the inner loop.
+	Well, now I have earned this tiny bit of efficiency.
+D204. Prohibit the first word of an unavailable node from becoming negative.
+	[The storage allocator of \TeX78 uses
+	a negative value to signify a node that is available, just as
+	`$\\{link}=\\{max_halfword}$' will signal availability in \TeX82.] @124
+# That was another bad one, it's not my night.
+# At least I'm developing more subtle diagnostic techniques.
+M205. Remember to un-negate the top \\{save_stack} entry
+	when \\{handle_right_brace} finishes an \\{insert_group}.
+	[This routine was completely revised in \TeX82.] @1100
+F206\>185. Initialize |\jpar| [i.e., |\tolerance|]. @240
+B207. Correct the display of insertion nodes by \\{show_node_list}. @188
+R208. Prevent \\{show_token_list} from generating really long strings
+	when in a loop. @292
+D209. Increase the reference count of \\{bot_mark} when
+	\\{vpackage} finds it. [This was later the job of \\{fire_up}.] @1016
+M210. Remember that the tokenlist for a mark ends with a |}|. @1101
+D211. Don't let \\{vpackage} lose the top insert. (It fails when
+	the very first item is a |\topinsert|.) @1014
+A212. And when that stupid code is corrected, make it handle
+	insertions first-in-first-out. @1018
+# Seven hours today.
+* 26 Mar 1978
+# Easter Sunday, will work till sunrise.
+I213. Add an `|i|' feature to the \\{error} recovery routine. @87
+I214. Include a prompt. @87
+C215. Ignore space after |\noalign{...}|. @1133
+# Otherwise, things are going well tonight;
+	I'm finding more bugs in my test program than in \TeX.
+# The `|i|' feature is proving to be very helpful.
+# I increased the size of \\{mem}
+	(now $\\{lo_mem_max}=3500$, $\\{mem_max}=10000$).
+# In fact I just needed to increase it again
+	(now $\\{lo_mem_max}=4500$, $\\{mem_max}=11000$).
+R216. Make |INITEX| output \\{mem_top} for consistency checking. @1307
+A217. Calculate the size of delimiters by considering the enclosed formula's
+	distance from the axis, not from the baseline. @762
+# I'm having trouble with a |SAIL| compiler bug; I must rearrange the program,
+	more or less at random, until it
+	compiles correctly. I hope the bug isn't more severe than it appears.
+D218\>210. Don't put a new group on \\{save_stack} if a null mark is expanded.
+	[\TeX82 will remove the `|}|' from the mark text.] @386
+# I had to redo the typewriter-style font since its width tables were wrong.
+# And I increased low-memory size again to 5500, then 6500.
+# Finally the entire test program was \TeX ed. Happy Easter! Six hours today.
+* 27 Mar 1978
+# Beginning at 2:30am.
+A219. Move |\vcenter| processing to the first pass of \\{mlist_to_hlist};
+	otherwise the height, depth, subscripts, etc., are way off. @733
+C220. Omit space after closing |$$|. @1200
+# Spacing is wrong in the formula $Y_1+\cdots+Y_k$; I have to rethink the use
+	of three dots.
+G221. Make conditional thin space available to user as |\|{\tentex\char'34}.
+	[Later will retract this.] @226
+Q222. Introduce |\dispaskip| and |\dispbskip| [later called
+	|\abovedisplayshortskip| and |\belowdisplayshortskip|]. @226
+# Reminder: I need to test line-breaking with embedded math formulas.
+I223. Make sure that $\\{interaction}\ne\\{error_stop_mode}$
+	in the `|Whoa|' error [\\{fatal_error}]. @93
+B224. Fix a big mistake in the \\{style_node} routine (which points to a glue spec,
+	not to glue itself); somehow this didn't cause trouble yesterday.
+	[In \TeX78, style nodes double as placeholders for math glue
+	like thin spaces.] @732
+C225. Make |\fntfam| obey group structure. [\TeX78's |\fntfam| operation
+	is a combination of \TeX82's
+	|\textfont|, |\scriptfont|, and |\scriptscriptfont|.] @1234
+# At this point the test routine for Volume 2 works perfectly.
+# But I will change the page width in order to check harder cases.
+Q226\>178. Disable automatic line breaks after punctuation in math
+	(e.g., consider $f(x,y)$). @761
+S227. Represent italic corrections as boxes, not glue, so that they won't be broken.
+	[The |\kern| command doesn't exist yet.] @1113
+# Eight hours today.
+B228. Fix a bug that just clobbered the memory: Call \\{free_avail}, not
+	\\{free_node}, in the \\{ins_node} case of \\{vpackage}.
+	[This logic will change completely in \TeX82.] @1019
+* 29 Mar 1978
+# (Wednesday) Again beginning at 2:30am.
+Q229. Put still more space above and below fraction lines in displayed
+	formulas. @746
+G230\>189. Install an infinite penalty feature, which positively suppresses breaks;
+	use it in displayed formulas whose |\eqno| doesn't fit. @1205
+F231. Call \\{build_page} after finishing a display; and don't
+	go to the |\noindent| routine because of the next remark. @1200
+S232. Put |\parskip| glue just before a paragraph, not just after
+	(since it interferes with a penalty after). @1091
+# Although the test program gives correct output, it generates 46 locations
+	of variable-size memory and 280 of one-word memory that are not freed.
+F233. Recycle the ulists and vlists in \\{fin_align}. @801
+M234\>25. Fix bug when deleting space at end of paragraph:
+	\\{delete_glue_ref}(\\{cur_node}) not
+	\\{delete_glue_ref}(\\{value}(\\{cur_node})). @816
+# There's also a more mysterious type of uncollected garbage,
+	a \\{fraction_noad} corresponding to
+	|$p\choose$|, an \\{incompleat_noad} not completed.
+# Couldn't find that one, so I recompiled with \#233 and \#234 corrected.
+# Now it gains just 10 locations of variable-size memory and 7 of the other kind.
+I235. Extend \\{search_mem} to search \\{eqtb} also. @255
+D236\>143. Fix bug in \\{rebox} when $\\{list_ptr}(b)=0$. @715
+# The seven one-word nodes were generated by this bug;
+	\\{rebox}\kern-1pt\ put them onto a linked list starting with
+	$\\{mem}[0]$, growing at the far end!
+D237. Remember to complete each \\{incompleat_noad}. @1184
+# This solved the other mystery. I had never noticed that my test output
+	was actually wrong: |$p\choose k$| came out as `$k$'.
+# After these corrections, the test routine worked\thinspace\dots\ I feel
+	that \TeX\ is now pretty well debugged
+	(except perhaps for error recovery)---it's time to celebrate!
+* 1 Apr 1978
+I238. Don't quit after file lookup fails. @530
+* 2 Apr 1978
+P239. Add \\{\TeX_font_area}, so that it's easier to change the
+	default library area associated with a device. @514
+* 3 Apr 1978
+L240. Insert parentheses again, to cope with the precedence of\/ |lsh|
+	when packing data. (See \#55 and \#176.) @1114
+# I had never tried $\\{hmode}+\\{discretionary}$ before!
+M241. Remember that \\{back_error} requires \\{cur_tok} to be set.
+	(Problem can arise during error recovery on parameter |#|$n$
+	with $n$ out of range.) @476
+* 4 Apr 1978
+I242. Add a deletion feature to the \\{error} routine. @88
+* 5 Apr 1978
+Q243. Reset \\{space_factor} after |\/| [this was later rescinded]
+	and after math in text. @1196
+* 10 Apr 1978
+G244\>104. Replace |\jpar| and |\tracing| by a new primitive |\chpar| for parameters.
+	It allows a user to change those quantities as well as the penalties for
+	hyphens, relations, binary ops, widows. @209
+* 14 May 1978
+# Beginning to typeset a real book (Volume 2, second edition), not just a test.
+Q245. Make math in text end with spacing as if it were
+	followed by punctuation. [This rule will soon be rescinded.] @760
+F246. Insert |\times| into the hash table; I left it out by mistake.
+	[It will eventually move into |plain.tex|.]
+C247. Change the names of Scandinavian accents from |\o|, |\oslash|,
+	|\Oslash| to |\a|, |\o|, |\O|. [This will also move to |plain|.]
+* 17 May 1978
+B248. Fix a silly bug that hasn't been tweaked until today:
+	`|\halign to size|' [obsolete in \TeX82] used \\{vsize}
+	instead of \\{hsize}. @645
+* 19 May 1978
+G249. Add a |\topbaseline| feature [later called |\topskip|]. @1001
+Q250\>245. Subtract the math spacing change of May 14. @760
+A251. Skip past blanks in the \\{scan_math} procedure. [This blank-skipping
+	will eventually go into \\{scan_left_brace}.] @403
+I252. Introduce a \\{missing_brace} routine [later generalized] to improve
+	error recovery in $\\{mmode}+\\{math_shift}$, when the top
+	of \\{save_stack} isn't a \\{math_shift_group}. @1065
+Q253. Adjust the math spacing between closing parentheses and
+	Ord, Op, Open, Punct. @764
+Q254. Make the underline go further under. @735
+S255\>96. Compute the proper natural width when a displayed equation follows
+	a paragraph whose fillglue has been deleted by \\{line_break}. @1146
+* 20 May 1978
+A256. Fix the spurious value of \\{prev_depth} inside alignments. @775
+S257. Consider (and defeat) the following scenario:
+	The u and v lists are built in \\{init_align} using \\{temp_head};
+	then while scanning `|\tabskip 2pt\rt{...}|' the macro |\rt| is expanded,
+	clobbering \\{temp_head}. @779
+# That bug was more subtle than usual.
+Q258. Add the parameter \\{num3}, so that the positioning of\/ |\atop|
+	can be different from that for fractions. @700
+Q259. Add new parameters \\{delim1} and \\{delim2}, so that
+	|\comb| can use fixed size delimiters, not computed as with |\left|. @748
+* 22 May 1978
+C260\>221. Change |\|{\tentex\char'34} to |\|{\tentex\char'35} and introduce
+	|\|{\tentex\char'34} as the negative of\/ |\|{\tentex\char'35}.
+	[Later obsolete.] @226
+L261. Fix the display of negative penalty nodes; \\{show_node_list} is confused
+	when a negative value has been packed into the middle of a word. @194
+# Memory overflow just occurred with $\\{lo_mem_max}=7500$ and $\\{mem_max}=16384$.
+	So I have to go to 15-bit pointers. (A problem on 32-bit machines?)
+* 23 May 1978
+Q262. Add a new parameter \\{big_op_spacing5}, for
+	extra space above and below limits of big displayed operators. @751
+F263. Initialize \\{incompleat_noad} in |$$\halign{...}$$|. @775
+# That was another heretofore-untested operation. How much of the code
+	has not yet been exercised?
+F264\>238. Close the file when doing lookup-failure recovery. @27
+I265. Improve the error recovery for `|Extra &|'. @792
+R266. The top piece must be calculated mod 128 in \\{var_delimiter},
+	to guarantee a valid subscript range. [Obsolete in \TeX82.] @546
+B267\>252. Fix a blunder in new \\{missing_brace} code. @1065
+B268\>262. Fix a blunder in new code for limits on display operators. @751
+* 26 May 1978
+Q269. Don't insert a new penalty after an explicit penalty in math mode. @767
+# The hash table overflowed; I ought to make it much bigger.
+R270\>110. Avoid possible bad memory references in alignment
+	when there is erroneous input after |\cr|. [Instead of
+	\\{extra_info}, the value of \\{cur_align} in \TeX78 is negated,
+	because we need only distinguish |\cr| from |&|.] @789
+S271. Make the dimension parameters like |\hsize| all global, so that they can
+	be set in the |\output| routine. @279
+# This led to major simplifications, also to major surgery.
+# [But it was a kludgy decision, overruled in \TeX82.]
+D272\>94. Don't forget to set the type of the new null box in the |\end| routine. @1054
+* 27 May 1978
+# The data overflowed memory again, both low and high, doing Section 3.3.2.
+R273\>184. Mask off extra bits of\/ |\char| in math mode,
+	to avoid bad memory references. @1151
+B274. Zero out the negative |\medmuskip| in script styles. @732
+* 29 May 1978
+S275. Be prepared to handle an undefined control sequence during \\{get_x_token}.
+	(Can fix this by brute force, using \\{get_token} instead of \\{get_next}.)
+	@380
+D276. Correct the superscript shift when a single character is raised. @758
+R277\>184. Mask off all but 7 bits in |\char| routine,
+	to avoid space-factor index out of range. @435
+# More memory capacity overflows.
+E278\>22. Fix \TeX's overflow stop so that I don't have to wait for loading of the
+	|BAIL| debug routines. [System dependent.] @93
+F279. Remember to adjust the page number
+	when a file page ends in mid-macro. [System dependent.] @306
+* 5 Jun 1978
+R280. Make sure that the arguments of positioning commands don't overflow
+	their field size. @610
+I281. Report the excess amount when giving an overfull box warning. @666,677
+* 7 Jun 1978
+Q282. Use $\ge$ instead of $>$ as termination criterion in \\{var_delimiter}. @714
+R283. Disallow |\eject| in math mode. [In \TeX78, |\eject| is
+	distinct from |\break|; in horizontal mode it includes
+	\TeX82's `|\vadjust{\break}|'.] @1102
+Q284. Don't put too much clearance above |\sqrt| in text style. @737
+* 9 Jun 1978
+G285\>110. Make \\{align_state} an integer variable, not \\{boolean},
+	so that |\eqalign| can be within another |\eqalign|. @309
+C286. A |\mark| should expand its input. @1101
+* 10 Jun 1978
+E287. Provide for preloading of fonts. @1320
+L288. Close the output file before switching to edit the input file with
+	the `|e|' option. @84
+E289. Return adjustments found by \\{hpack} to free storage if
+	they're not used. [Later, \\{hpack} will detach them only
+	when they're used.] @655
+Q290. Strive for consistency between \\{make_under} and \\{make_over}.
+	@735
+* 18 Jun 1978
+B291\>236. Fix a serious error in \\{rebox}
+	(`$b$' instead of `$\\{list_ptr}(b)$'). @715
+# Strange that such a bug would now surface for the first time!
+C292. Remove |\deg| from |INITEX|, since macros suffice.
+Q293. Add an extra hyphenation penalty for two hyphenated lines in a row. @859
+* 19 Jun 1978
+S294. Introduce the `\\{no_new_control_sequence}' switch. Among other things,
+	this will prevent an undefined control sequence following \\{scan_math}
+	from clobbering the save stack. @259
+* 20 Jun 1978
+L295. Change the badness test
+	`$\\{glue}\le0.0$' to `$\\{glue}\le0.0001$'. [\TeX82 will avoid such
+	problems by calculating badness without floating point arithmetic.] @99
+R296. Force \\{badness} to be at most $10^{19}$. @108
+I297. Add \\{end_template} for better error recovery in alignments. @375
+E298\>287. Make |INITEX| more like the real \TeX; my simple scheme for
+	font preloading was no good because it left thousands of `dead'
+	words in memory. @8
+E299. Economize disk space by using internal arrays in load
+	modules that aren't being reinitialized. [System dependent.]
+E300. Move the declaration of \\{mem} to the semantics module, so that the
+	object code will be more efficient. [System dependent. The code of
+	\TeX78 was divided into separately compiled modules for syntax,
+	semantics, output, extensions, and general organization.]
+* 21 Jun 1978
+# Today I'm working on the user manual.
+C301. Disallow |\input| except in vertical mode. [I will change this in
+	\TeX82, treating |\input| as a case of expansion.] @378
+I302. Add error recovery for \\{endv} and \\{par_end} occurring in math mode.
+	@1047
+G303. Generalize |\ifT| to |\if T|. @506
+* 22 Jun 1978
+F304. Preload the |\bullet| [later done by |plain.tex|].
+D305\>256. Get the correct \\{prev_depth} at the beginning of an alignment. @775
+C306. Change |\eject| so that it ejects only once. @1000
+* 14 Jul 1978
+I307. Look in standard area if a file isn't found in the user's area. @537
+I308. Echo all online inputs in the transcript file. @71
+* 19 Jul 1978
+Q309. Equalize spacing when only one of numerator/denominator is big. @745
+Q310. Prevent subscript from getting too high above baseline. @757
+R311. Avoid infinite loop when stack overflows: \\{push_input} should say
+	`{\bf if} $\\{input_ptr}\ge\\{stack_size}\;\land\;\\{interaction}=
+	\\{error_stop_mode}$'. @321
+* 22 Jul 1978
+C312. Make |\quad| meaningful outside math mode. (All fonts must
+	be generated again!) @558
+I313. Show the nesting level at the end of \\{show_activities}.
+	[But I decided not to do this in \TeX82.] @218
+C314. Put in |\>| [namely, |\mskip\medmuskip|;
+	\TeX78 already has |\|{\tentex\char'35}, for conditional |\thinmuskip|,
+	as well as the negative amounts |\<|,~|\|{\tentex\char'34}].
+	Change the name of vector accent from |\>| to |\b|. [Math spacing
+	operators will become much more general in \TeX82.] @716
+* 25 Jul 1978
+Q315\>94. Give the correct |\hsize| and |\vsize| to the null boxes created
+	at |\end|. @1054
+A316\>94. And don't ``append'' them. [Later this was changed, so
+	that it would work better with generalized output routines.] @1054
+I317\>297. Remove the control sequence |\endv|,
+	since error recovery is now better. @375
+I318. Define another mode of tracing: It says `|OK|' and stops after
+	|\showlists|. @1298
+Q319\>244. Give better defaults to parameters. [Later done by |plain.tex|.] @209
+I320. Allow more bits in the packed representation of\/ |\showboxdepth|. @238
+I321. Scan past delimiters and/or dimensions when recovering from
+	ambiguous fractions. @1183
+R322. Reduce accent numbers modulo 128 or 512, depending on the
+	mode. @1165
+I323. Include a warning, `|(\end occurred on level ...)|'. @1335
+* 28 Jul 1978
+# (I'm writing Chapter 27 of the manual: `Recovery From Errors'.)
+I324. Improve the error message in \\{scan_digit}. [This procedure will change
+	its name to \\{scan_eight_bit_int}, when the number of registers
+	increases from 10 to~256.] @433
+I325. Don't report overfull boxes if they're less than .1~point
+	over. @666,677
+I326. Give the user extra chances to define the font, if \\{read_font_info}
+	is unsuccessful. @560
+I327. Change default recovery for bad parameter number from |#1| to |##|, since
+	|#1| won't always work and since |##| is probably intended. @479
+I328. Omit the |"Negative?"| message on things like \\{scan_char_num}. @435
+I329. Improve error recovery when a large delimiter isn't in family~3.
+	[Obsolete.]
+I330. Give a more appropriate error message when the input is `|$\right|'. @1192
+# Currently \TeX\ says `|Missing $|'!
+I331. Call \\{back_input} before the error message in \\{back_error},
+	not afterwards. @327
+* 1 Aug 1978
+I332. Give an appropriate warning when there's no input file and the user
+	types `|e|'. @84
+L333. Increase the system pushdownlist size so that the manual will compile.
+	[Procedures \\{hlist_out} and \\{vlist_out} can recurse deeply.]
+# Yesterday I distributed 45 preliminary copies of the manual; today I
+	took out the ``debugging hooks'' and put \TeX\ up as a system program.
+* 2 Aug 1978
+# I'm typing Volume 2 again (currently in Section 4.2.2). Culture shock!
+G334. Introduce a |\ragged| parameter, to indicate a degree of raggedness.
+	[Previously, ragged-right setting was performed when the
+	|\tolerance|/100 was odd! Eventually a better approach,
+	with |\rightskip| and such things, will be discovered.] @886
+Q335. Omit the `widow penalty' in one-line paragraphs. @890
+* 5 Aug 1978
+G336. Generalize |\pageno| to |\count|\<digit>. @236
+D337\>285. Update \\{align_state} when recovering from `|Missing {|' and
+	`|Extra }|' errors. @1069,1127
+I338. Show ``runaway'' tokens, making it easier to pinpoint an error. @306
+* 22 Aug 1978
+G339. Add |\predisplaypenalty|. @1203
+I340. Clarify error messages; they should indicate when something has been
+	inserted, etc. @1064
+* 23 Aug 1978
+I341\>114. Substitute `|Extra }|' for the losing `|Missing \cr|' error message. @1069
+I342\>213. Go past online insertions in \\{show_context}. @311
+Q343. Exact no penalty for breaking one line before a display. @1145
+I344\>338. Check for runaways at end of file. @362
+I345. Give error message when a macro argument begins with |}|. @395
+* 24 Aug 1978
+L346\>213. Remove extra line-feed in \\{show_context} after printing insertions.
+	[System dependent.] @318
+* 25 Aug 1978
+Q347. Leave no glue at top of page, even after |\eject|. @997
+* 27 Aug 1978
+P348. Adopt Guy Steele's new version of the \TeX\ source files. [He has
+	recently made a copy and modified it by introducing
+	compile-time switches for MIT conventions as an alternative to SUAI.
+	This is the first time that \TeX\ is being ported to another site;
+	additional switches for PARC, TENEX, TOPS10, and TOPS20 will be
+	added later, using the Steele style.]
+* 1 Sep 1978
+Q349. Don't pass over leader nodes in the \\{try_break} background
+	computation. [At this time, leaders have not yet been
+	unified with glue.] @837
+Q350\>82. Prune away all penalties at the top of a page. @997
+* 4 Sep 1978
+I351\>338. Include `|\|' in error message about a runaway argument. @306
+* 8 Sep 1978
+# I just remade all the fonts, with increased ligature field size.
+B352\>350. Insert a necessary {\bf goto} statement in the first branch of
+	the new penalty routine within \\{build_page}. @997
+* 30 Sep 1978
+M353\>338. Make the token list for runaway arguments meaningful outside
+	of \\{macro_call}. (I just had a runaway argument ending with
+	`|\lcm|', which turned out to be the
+	control sequence in hashtable location 0.) @371
+R354. Avoid infinite loop when recovering from |$$| in
+	restricted horizontal mode. @1138
+L355. Fix two hyphenation bugs related to |-ages|, |-ers|.
+	[A completely new algorithm for hyphenation will go into \TeX82.]
+Q356. Add |-est| to hyphenation routine;
+	also disable |puz-zled| and |rat-tled|, etc.
+* 4 Oct 1978
+G357. Add new primitive |\vtop|. @1087
+Q358. Treat implicit kerns properly after discretionary hyphens have been
+	inserted. @914
+* 4 Nov 1978
+Q359. Forget the half quad originally required at left and right when
+	centering displayed equations without equation numbers. @1202
+* 11 Nov 1978
+R360. Don't let the postamble come out empty. [This could occur if no fonts were
+	selected.] @642
+* 15 Nov 1978
+C361. Allow optional space after digit in \\{scan_int} routine. @444
+* 17 Nov 1978
+R362. Make the \\{check_mem} procedure slightly more robust. @167
+* 20 Nov 1978
+C363. Make the |\par| in a |\def| match the |\par| that comes automatically with
+	a blank line. (Suggested by Terry Winograd.) @351
+G364. Add new parameter |\mathsurround| for spacing before and after
+	math in text. @1196
+G365. Extend |\advance| to allow increase by other than unity. [At this
+	time it applies only to the ten |\count| registers, and it is
+	called |\advcount|.] @1238
+* 25 Nov 1978
+G366. Add a new primitive: |\unskip|. @1105
+G367. Add new primitives |\uppercase| and |\lowercase|. @1288
+* 28 Nov 1978
+M368\>338. Don't let |\mark| and \\{macro_call} interfere with each other's
+	\\{scanner_status}. @306
+M369. Omit extra |}| after \\{show_node_list} shows a |\mark|,
+	since the right brace is already there. (See \#210.) @176
+G370. Add a new primitive suggested by Terry Winograd: |\xdef|. @1218
+* 29 Nov 1978
+S371. Delete a space following |\else{...}| also in the
+	false case. [\TeX78 uses braces, not |\fi|, for conditionals.]
+D372\>320. Make |\tracing| set |\showboxbreadth| as advertised. @198
+F373. Account properly for kerns in width calculations of \\{line_break}.
+	@866
+Q374\>364. Delete a \\{math_node} at the beginning of a line. @148
+A375\>339. Guarantee that |\predisplaypenalty=10000| will suppress page breaking
+	before a display. @1005
+* 6 Dec 1978
+L376. Change the file opening statement to allow lines up to 150 characters long.
+	[System dependent.]
+* 16 Jan 1979
+F377\>365. Initialize \\{negative} properly in the |\advance| routine
+	with a |\count| as argument. @440
+* 20 Jan 1979
+R378. Try to keep complex, buggy preambles of alignments from
+	crashing the program. @789
+* 17 Feb 1979
+I379\>376. Give more detailed information when warning about a
+	long line being broken. [System dependent;
+	the buffer size in \TeX78 is very limited.]
+L380. Declare $p$ local to \\{try_break}, for the ``rare'' case code.
+	[My original program included the following comment:
+	``This case can arise only in weird circumstances due to
+	changing line lengths, and the code may in fact never be executed.''
+	Later Michael Plass will discover that variable line lengths require an
+	entirely different algorithm, using \\{last_special_line}.]
+	@847
+F381\>334. Don't omit the raggedness correction when the
+	last line of paragraph has to shrink. [Obsolete in \TeX82.]
+* 22 Feb 1979
+F382\>363. Don't forget to return from \\{get_x_token} after finding |\par|. @351
+Q383. Add a new parameter: |\lineskiplimit|. @679
+C384. Change the syntactic sugar:
+	`|\hbox par|' replaces `|\hjust to ...{overfull}|'. [This vastly improves on
+	the old idea (see \#40), but there still is no internal vertical mode.]
+C385. Introduce new names |\hbox| and |\vbox| for |\hjust| and |\vjust|. @1071
+G386. Add a new condition: |\ifpos|. [It will later be
+	generalized to |\ifnum| and |\ifdim|.] @513
+G387. Add |vu| and |\varunit|. [\TeX82 will eventually allow arbitrary
+	internal dimensions as units of measure.] @453
+G388\>312. Add an |em| unit. @455
+C389. Legalize |\hbox spread |\<negative dimension> [since \\{scan_spec}
+	no longer uses the sign as a flag]. @645
+* 10 Mar 1979
+C390\>370. Make \\{scan_toks} expand |\count| during |\xdef|. [This will
+	change later when |\the| and |\number| are introduced.] @367
+* 23 Mar 1979
+Q391. Put only 100000\thinspace pt stretch at the end of a paragraph instead of
+	10000000000\thinspace pt.
+	[In \TeX78, ``infinite'' glue is actually finite but large; in the
+	language of \TeX82 we would say that |\parfillskip|, which is
+	not yet user-settable, is being changed to be like |\hfil| instead of
+	like |\hfill|.] @816
+Q392. Treat the last line of a paragraph more consistently with
+	the other lines (e.g., when |\hfil| appears in mid-paragraph), by
+	effectively inserting \\{inf_penalty} at the end. @816
+* 31 Mar 1979
+S393. Ensure that penalty nodes aren't wiped out, in weird cases where
+	breaks occur at penalties that normally disappear. @879
+* 27 Apr 1979
+A394. Correct the page number count when files begin with an empty page.
+	[System dependent.]
+G395. Allow the \\{math_code} table to be changeable via |\chcode|.
+	[In \TeX82, |\chcode| will split into |\mathcode| and |\catcode|.] @1232
+I396\>332. Don't accept `|e|' after an error message if not
+	inputting from a file. @84
+* 29 May 1979
+F397. Don't call \\{end_file_reading} if you haven't already invoked
+	\\{begin_file_reading}; this could happen when trying to
+	recover from an error in \\{start_input}.@537
+* 7 Jun 1979
+A398\>306. Be sure to eject two pages,
+	when |\eject| comes just at the time another break is preferable
+	(e.g., when the page has just become too full). @1005
+* 27 Jun 1979
+I399\>354. Don't say `|You can't do that in math mode|' when the user
+	says `|$$|' in restricted horizontal mode! @1138
+* 30 Jun 1979
+G400. Add |wd|, |dp|, |ht| dimension units. @455
+I401\>307. Don't try the system area for file names whose area is explicitly
+	indicated. @537
+* 1 Jul 1979
+G402. Allow letters as (ASCII) numbers [without the |`| marker introduced
+	later]. @442
+* 2 Jul 1979
+F403. Fix a |\gdef| bug: If the control sequence was never defined before
+	[this later became the \\{restore_zero} option],
+	don't remove it at group end. @282
+* 16 Jul 1979
+I404\>320. Update \\{show_noad_list} to be like \\{show_node_list}.
+	[The two routines, originally separate, will be merged in \TeX82.] @238
+* 18 Jul 1979
+G405. Extend capacity from 32 fonts to 64 fonts if desired. @134
+Q406. Add new \\{extra_space} parameter to all text fonts (requested
+	by Frances Yao). @558
+F407. Make each \\{node_noad} print properly in \\{show_noad_list}. @183
+Q408. Make |\jpar| allow any break if it is 1000000 or more.
+	[In \TeX82, a |\tolerance| of 10000 or more allows any break.] @851
+* 23 Jul 1979
+E409. Introduce new primitives |\hfil|, |vfil|, |\hfilneg|, |\vfilneg|. @1058
+G410. Add |\ifmmode|. @501
+G411. Add |\firstmark|. @1012,1016
+C412. Allow break at leaders (horizontal mode only). @149
+* 25 Jul 1979
+I413\>213. Revise \\{error} so that online insertions work properly
+	after end-of-file errors. @336
+B414\>411. Change `{\bf if} $\\{first_mark}\ne0$' to
+	`{\bf if} $\\{first_mark}\ge0$' [because $-1$
+	is used to indicate `not yet given a value']. @1012
+* 28 Jul 1979
+C415\>370. Stop |\xdef| from expanding control sequences after |\def|'s.
+	[This decision will be rescinded later, after several more years of
+	experience with macro expansion will suggest better ways to cure
+	the problem.] @366
+I416. Change symbolic printout for control symbols. [System dependent.] @49
+L417\>308. Avoid linefeeds in the transcript file. [System dependent.]
+C418\>370. Expand |topmark|, etc., in |\xdef|. @366
+* 4 Aug 1979
+B419\>413. Fix an error introduced recently: |\par| was suddenly
+	omitted at end of page. [System dependent.]
+* 11 Aug 1979
+P420. Change error messages that use |SAIL| characters not in
+	standard ASCII. @360
+* 28 Aug 1979
+D421\>411. Move the command `$\\{first_mark}\gets-1$' from \\{vpackage}
+	to \\{fire_up}. @1012
+S422\>403. Correct a serious |\gdef| bug:
+	Control sequences don't obey a last-in-first-out
+	discipline, so \TeX\ loses things from the hash table when deleting a
+	control sequence. @259
+# To fix this, I either need to restrict \TeX\ (so that
+	|\gdef| can be used inside a group only for control sequences already
+	defined on the outer level) or need to change the hash table algorithm.
+	Although all applications of \TeX\ known to me will agree to the
+	former restriction, I've chosen the latter alternative, because it gives me
+	a chance to improve the language: Control sequences
+	of arbitrary length will now be recognized.
+D423. Make sure that \\{unsave} cannot call \\{eq_destroy}
+	with a value from the upper part of \\{eqtb}. @282
+# I noticed this long-standing bug while fixing \#422. It had very
+	low probability of causing damage (e.g., it required a certain field
+	of a floating-point number to have a certain value), but it would have
+	been devastating on the day it first showed up!
+* 29 Aug 1979
+F424. Call \\{eq_destroy} when a control sequence is |\gdef|'ed
+	after being |\def|'ed. @283
+F425\>418. Treat the first token consistently
+	when |\topmark| and its cousins are expanded in \\{scan_toks}. @477
+# Now I've checked things pretty carefully and I think \TeX\ is ``fully debugged.''
+* 25 Jan 1980
+I426\>338. Display runaway alignment preambles. @306
+G427. Introduce active characters (one-stroke control sequences).
+	[I don't yet go
+	all the way: The meanings of `|x|' and `|\x|' have to be identical.] @344
+* 7 Feb 1980
+F428\>314. Fix a glaring omission: Op space |\>| was
+	never implemented in math mode! @716
+* 25 Feb 1980
+G429. Add a new dimension `|ex|' (for units of xheight). @455
+* 3 Mar 1980
+C430\>427. Allow the control sequence |\:| to be redefined
+	[it was the `select font' operator];
+	this allows the character |:| to be active. [Obsolete.]
+* 23 Mar 1980
+# An extend-\TeX-for-the-eighties party:
+G431. Add a new |\copy| feature. @204
+G432. Add a new |\unbox| feature. @1110
+G433. Add a new |\open| feature [later |\openout|]. @1351
+G434. Add a new |\send| feature [later |\write|]. @1352.
+G435. Add a new |\leqno| feature, requested by MDS. @1204
+G436. Add a new |\ifdimen| feature [later |\ifdim|]. @513
+C437. Make |\|\<space> in vertical mode begin a paragraph. @1090
+G438. Add a new |\font| feature [replacing the silly previous convention that
+	a font must be defined when it is first selected]. @1256
+G439. Add new |\parval| and |\codeval| features [later
+	|\the|\thinspace\<whatever>\thinspace]. @413
+C440\>427. Don't let active characters gobble the following space. @344
+G441\>208. Add a new parameter to govern amount of token list dumped. [Obsolete.] @295
+G442. Add a new |\linebreak| feature [later replaced by |\break|]. @831
+* 25 Mar 1980
+# (Still working on the above, also thought of more.)
+G443. Add a new |\mskip| feature. @716
+G444. Add a new |\newname| feature (soon changed to |\let|). @1221
+G445\>430. Allow any control sequence to be redefined. @275
+I446. Send the output to the user's current file area, even when
+	input comes from elsewhere. @532
+* 27 Mar 1980
+Q447. Compute the xheight for accents in math mode from
+	family~1, not family~3. [Obsolete.]
+* 28 Mar 1980
+Q448. Increase minimum clearance between subscript and superscript. @759
+* 29 Mar 1980
+Q449\>222. When a display follows a display, the second should have the
+	`shortskip' glue. @1146
+* 4 Apr 1980
+A450\>445. Look at current token meanings when trying to recognize
+	|\tabskip| in alignment preambles. @782
+* 23 Apr 1980
+I451. Estimate the length of printed output, for the new
+	priority feature on our XGP device driver. [System dependent.]
+C452\>434. Break long |\send| lines
+	into pieces so that the file can be read in again. [System dependent.]
+* 19 May 1980
+Q453\>182. Don't make |\left| and |\right| delimiters too large; they
+	need to be only 90\% of the enclosed size. [This eventually
+	became |\delimiterfactor|.] @762
+* 21 May 1980
+G454. Add a new |\pagebreak| feature [later |\vadjust{\break}|]. @655
+* 13 Jun 1980
+# Today I'm beginning to overhaul the line-breaking routine,
+	and I'll also install miscellaneous goodies.
+G455. Allow a radical sign to be in different font positions. @737
+E456. Clear empty tokenlists off input stacks to allow deeper recursions
+	(suggested by Jim Boyce's macros for chess positions). @325
+G457. Make |\spaceskip| and |\parfillskip| changeable. @1228
+G458. Add a new parameter |\rfudge| (per request of Zippel) [later |\mag|]. @288
+G459. Add a new parameter |\loose| [later |\looseness|];
+	now parameters are allowed to take negative values. @875
+E460. Remove the variable \\{just_par}. [Obsolete; it was the \\{real} equivalent
+	of an \\{integer}].
+* 14 Jun 1980
+Q461. Install new line-breaking routines, including |\parshape|.
+	(These major changes are introduced as Michael Plass
+	and I write our article.) @813
+G462. Add a new parameter |\exhyf| [later |\exhyphenpenalty|]. @870
+* 16 Jun 1980
+S463\>444. Change conventions in \\{eqtb} so that glue is distinguishable
+	from other equivalents. @275
+A464\>444. Don't expand |\b| in |\xdef{\d\b{...}}| after |\let\d=\def|.
+	[Obsolete.]
+D465\>444. Avoid creating dead storage when doing \\{unsave} in certain regions. @275
+* 17 Jun 1980
+C466. Allow negative dimensions in rules. @138
+* 19 Jun 1980
+B467\>463. Make the new test for glue at the outer level of \\{show_eqtb}. @252
+* 27 Jun 1980
+Q468\>453. Don't let |\left| and |\right| become too small for big matrices.
+	[This eventually became |\delimitershortfall|.] @762
+* 3 Aug 1980
+Q469. Don't move extra-wide, numbered equations flush left unless
+	they begin with glue. @1202
+* 15 Sep 1980
+M470\>461. Say `$\ge\\{fz}$' instead of `$>\\{fz}$' in the pre-hyphenation
+	routine; I'd forgotten my definition of \\{fz} [a variable used to test
+	for a sequence of lowercase letters in the same font]. @897
+R471\>395. Check the range of the index in |\chcode| before saving the old value.
+	@1232
+* 18 Sep 1980
+D472\>457. Don't forget to increase the reference count to |\parfillskip|,
+	or it will mysteriously vanish. @816
+* 19 Sep 1980
+C473\>412. Make leaders break like glue in both horizontal and vertical modes.
+	@149
+Q474\>364. Make |\mathsurround| break properly at left and right end of lines.
+	@879
+* 13 Oct 1980
+I475\>461. Remove spurious overfull boxes generated when the looseness criterion
+	fails. [Obsolete.]
+A476\>461. Redesign the iteration for looseness; breakpoints were not chosen
+	optimally. @875
+E477\>461. Avoid storing a lot of breakpoints when they are dominated by
+	others. @836
+B478\>366. Don't say `\\{cur_node}' when you mean `\\{mem}[\\{cur_node}]'. @1105
+Q479\>461. Prefer the oldest break to the youngest break
+	when two break nodes have the same total demerits. @836
+L480\>461. Don't make badness too big for floating-point calculations,
+	when forced to make an overfull box. [Obsolete.]
+* 10 Dec 1980
+R481. Make it impossible to get unmatched `|}|' in a delimited macro
+	argument. @392
+G482. Add new |\topsep| and |\botsep| features. [These are \TeX78's
+	way to put space at the edge of inserts,
+	replaced in \TeX82 by the |\skip| register corresponding
+	to an |\insert| class.] @1009
+* 6 Jan 1981
+P483. Install new routines for reading the font metrics, using Ramshaw's
+	|TFM| files instead of\/ |TFX| files. @539
+I484. Abort after reporting 100 errors, if not pausing on errors. @82
+G485. Add new |\spacefactor| and |\specskip| and |\skip| primitives.
+	[At this time we write `|\specskip3=10pt|' and `|\skip3|' for what
+	will become `|\skip3=10pt|' and `|\hskip\skip3|' in \TeX82.] @1060
+G486\>366. |\unskip| is now allowed in internal vertical mode. @1105
+* 26 Jan 1981
+B487\>482. Don't say `\\{mem}[$q$]' when you mean `$q$'. (See \#143 and \#478.) @1009
+* 27 Feb 1981
+I488\>417. Put some linefeeds back into the transcript file, in order
+	to prevent overprinting in listings. [System dependent.]
+G489. Add a new |\dpenalty| feature [later |\postdisplaypenalty|]. @1205
+G490. Add the dimension |cc| for European users. @458
+C491. Make \\{scan_keyword} match uppercase letters as alternatives
+	to lowercase ones (suggested by Barbara Beeton's experiments
+	with |\uppercase|). @407
+I492. Add nonstop mode so that overnight batch processing is possible. @73
+* 2 Mar 1981
+S493\>422. Fix a still more serious |\gdef| bug: The generality
+	of\/ |\gdef| almost makes it a crime to
+	forget {\bf any\/} control sequence names, ever! (The previous bug was
+	only the tip of an iceberg.) @259
+I494. Issue warning message at the end of a file page if nesting level isn't zero.
+	[System dependent.]
+* 5 Mar 1981
+I495. Keep track of maximum memory usage, for statistical
+	reporting. [Obsolete.] @125
+Q496\>350. Prune away glue and penalties at top of page after marks, sends,
+	inserts. @1000
+G497. Allow |\mark| in horizontal mode. [Later it will
+	be |\vadjust{\mark...}|.] @655
+C498. Allow optional space before a required left brace, e.g., |\if AA {...}|.
+	[See \#251.] @403
+I499. Issue an incomplete |\if| error, to help catch a bad |\if|. @336
+* 17 Mar 1981
+I500\>494. Omit the warning message at end of a file page unless
+	the nesting level has changed on that page. [System dependent.]
+Q501\>310. Fix the spacing when there is a very tall subscript with
+	a superscript. @759
+* 20 Mar 1981
+S502\>371. Make space-eating after |\else| fully consistent between the
+	true and false cases. [Obsolete.]
+* 24 Mar 1981
+B503\>496. Change \\{glue_spec_size} to \\{ins_spec_size}
+	in \\{vpackage} [where insertions are done]. [Obsolete.]
+* 5 Apr 1981
+B504\>501. Fix a typo (`|+|' instead of `|-|') in the new subscript code;
+	this shifted certain subscripts down instead of up. @759
+* 18 Apr 1981
+G505. Make leaders with rules of specified size act like variable rules.
+	@626,635
+* 29 Apr 1981
+A506\>461. Don't consider $\\{badness}>\\{threshold}$ at a line |\break|
+	except in an emergency. @854
+* 13 Jul 1981
+C507\>402. Allow other characters as numbers. @442
+R508\>294. Avoid dead storage if a \\{no_new_control_sequence} error occurs.
+	[Obsolete.] @259
+G509. Add a new |\ifx| feature. @507
+G510. Add new features |\xleaders| and |\cleaders|. @626,635
+* 14 Jul 1981
+S511\>507. Amend the new code for constants;
+	the `|.|' in `|.5|' is thought to mean \O{056}! @442
+L512\>507. And fix an egregious blunder in that code: New commands at the
+	end of a procedure are ignored when earlier statements
+	exit via {\bf return}. @442
+* 4 Aug 1981
+P513. Accept alphabetic codes for all online error recovery options,
+	instead of insisting on control codes like line feed or form feed.
+	[The original error-recovery codes were suggested by the
+	conventions of the |SAIL| compiler.] @84
+G514. Add a new |\thebox| feature [later |\lastbox|]. @1079
+* 7 Aug 1981
+G515. Add |fil|, |fill|, and |filll| as units for glue stretching
+	or shrinking. @454
+I516. Suppress the overfull box error when shrinkage amount is negative. @664
+* 9 Aug 1981
+Q517. Let unset boxes inherit the size of their parent in alignments. @810
+* 12 Apr 1982
+F518. Make |INITEX| dump out the \\{font_dsize} array needed by
+	the new |DVI| output module. @1322
+* 1 May 1982
+S519\>151. Fix \\{clean_box} so that \\{mlist_to_hlist} cannot make
+	$\\{link}(q)=0$ and $\\{type}(q)=\\{glue_node}$. @720
+# [That was the historic final change to \TeX78. All subsequent entries
+	in this log refer to \TeX82.]
+* 28 Sep 1982
+# Here are the first changes made to the preliminary listing of \TeX82 that was
+	published by the \TeX\ project earlier this month.
+F520. Insert the missing cases \\{letter} and \\{other_char} after
+	\\{x_token} looks ahead. @1036
+C521. Change `|\pause|'  to `|\pausing|'. @236
+D522. Reset \\{overfull_rule} when determining tabskip glue. @804
+A523. Fix the logic for scanning |\ifcase| [in obsolete syntax---everything
+	is still done with braces since `|\fi|' doesn't exist yet]. @509
+* 30 Sep 1982
+I524. Change |"0.0"| to |"?.?"| (suggested by DRF). @186
+* 2 Oct 1982
+Q525. Use conditional thin spacing next to `Inner' noads. @764
+Q526. Make thick spaces conditional. @766
+* 4 Oct 1982
+P527. Increase \\{trie_size} from 7000 to 8000, because of Frank Liang's improved
+	(but longer) hyphenation patterns. @11
+* 6 Oct 1982
+F528. Change the string lengths to match the new \\{\TeX_format_default}. @520
+# Version 0 of \TeX\ is being released today!
+* 8 Oct 1982
+B529. Fix a blunder: I decreased $h$ mod a quarterword when it should have
+	been decreased mod \\{trie_op_hash_size} (HWT). @944
+* 9 Oct 1982
+P530. Fix a typo (`|!|' not `|&|') in the |WEB| documentation. @524
+F531. Remember to call \\{initialize} if a different format was preloaded
+	(Max D{\'\i}az). @1337
+# Version 0.1 incorporates the above changes.
+* 12 Oct 1982
+G532. Add the `|\immediate|' feature, by popular request. @1375
+# Version 0.2 incorporates this (somewhat extensive) change.
+* 13 Oct 1982
+P533. Introduce new |WEB| macros so that \\{glue_ratio} is more easily changed. @109
+# I began writing {\it The \TeX book\/} today: edited the old preface and
+	searched in the library for quotations.
+* 14 Oct 1982
+B534. Change the type of \\{hd} to \\{eight_bits}; it's
+	not a \\{quarterword} (HWT). @649
+S535. Revise the optimization of\/ |DVI| commands: It's not always safe to eliminate
+	\\{pop} when the preceding byte is \\{push}, since |DVI| commands
+	have variable length! (Embarrassing oversight caught by DRF.) @601
+* 15 Oct 1982
+C536. Test `$\\{prev_depth}>\\{ignore_depth}$', not `$\ne$'. @679
+# Version 0.3 incorporates the above changes.
+* 16 Oct 1982
+P537. Omit definition of \\{align_size}; it's never used (Bill Scherlis). @11
+I538. Inhibit error messages when packaging box 255. @1017
+* 21 Oct 1982
+A539. Subtract $\\{width}(q)$ from \\{page_goal}, don't add it to
+	$\\{page_so_far}[1]$. @1009
+# The comment in \S982 is correct, and so was my first draft of this code;
+	but when desk checking the program some months after writing it,
+	I introduced this bug, believing that I was making the algorithm
+	more elegant or something.
+# Version 0.4 incorporates the above changes.
+* 22 Oct 1982
+P540. Increase the amount of lower (variable-size) memory from 12000 to 13000,
+	since the \TeX\ program listing now needs about 11500. [At this time
+	there still is a fixed boundary between upper and lower memory.] @12
+G541. Add a new parameter |\boxmaxdepth|. @1086
+# Version 0.5 incorporates the above changes.
+* 26 Oct 1982
+B542. Fix an off-by-one error caught by Gabi Kuper and HWT.
+	(I forgot `${}+1$'). @1317
+B543. Fix the spacing of displayed control sequences: \\{print_cs} should base its
+	decision on $\\{cat_code}(p-\\{single_base})$, not $\\{cat_code}(p)$. @262
+# The |TRIP| test detected this bug, but I didn't notice.
+* 27 Oct 1982
+S544. Set \\{math_type} before saying $\\{fetch}(\\{nucleus}(q))$, since
+	fetching can have a side effect. @752
+* 28 Oct 1982
+G545. Install a major change: Fonts now have identifiers instead of code letters.
+	Eliminate the `|\:|' primitive, and give corresponding new
+	features to `|\the|'. @209
+# Actually I began making these changes on October 26, but I needed two days
+	to debug them and to put Humpty Dumpty together again.
+# At this time I'm also drafting macros for typesetting {\it The \TeX book}.
+# The above changes have been incorporated into Version 0.6.
+* 30 Oct 1982
+# After years of searching, I've finally found a definitive definition of
+	the printer's point; and (unfortunately) my previous conjecture was
+	wrong. The truth is that $\rm83\,pc=35\,cm$, exactly;
+	so I am changing \TeX\ to conform.
+C546. Revise unit definitions for the `real' printer's point. @458,617
+# Version 0.7 incorporates the above.
+* 1 Nov 1982
+# Oops! Retract error \#546, and retract \TeX\ Version 0.7;
+	the source of my information about points was flaky after all.
+	My original suppositions were correct,
+	as confirmed by NBS Circular 570.
+* 4 Nov 1982
+C547. Revise the definition of |dd|, conforming to the definitive value
+	shown me by Chuck Bigelow. @458
+R548\>545. Introduce ``frozen'' copies of
+	font identifiers, to be returned by |\the\font|, so that font
+	manipulation is more robust. @1257
+* 5 Nov 1982
+D549. Reset \\{looseness} and paragraph shape when beginning a |\vbox|. @1083
+* 6 Nov 1982
+D550. De-update \\{align_state} when braces are in constants. @442
+I551. Improve error recovery for bad alignments. @1127
+# Today I wrapped up Chapters 4 and 5.
+* 8 Nov 1982
+G552. Give more power to |\let|: the right-hand side needn't be a control
+	sequence. @1221
+I553. Amend \\{show_context} to say
+	`$(\\{base_ptr}=\\{input_ptr})\lor{}$'; otherwise undefined control
+	sequences can be invisible in unusual cases (John Hobby). @312
+A554. Compute demerits more suitably by adding a penalty squared, instead of
+	adding penalties before squaring. @859
+# Previously a slightly loose hyphenated line followed by a decent line
+	was considered worse than a decent hyphenated line followed by
+	a quite loose line.
+* 10 Nov 1982
+E555. Save a bit of buffer space by declaring \\{pool_file} only in
+	|INITEX|. @50
+* 11 Nov 1982
+I556. Introduce a new context indicator to clarify \TeX's scanning state:
+	A special type
+	called \\{backed_up} is distinguished from other kinds of \\{inserted}
+	lists; it is called `recently read' or `to be read again', while
+	others are called `inserted'. @314
+I557. Append a comment, `|treated as zero|', to the missing-number message. @446
+I558. Ignore the settings of\/ |\hfuzz| or |\vfuzz| if\/ |\hbadness| or |\vbadness|
+	is less than 100. @666,677
+* 13 Nov 1982
+# Major surgery on the program is planned for today, because of new ideas
+	suggested by correspondence with MDS and other macro writers.
+G559. Introduce a new |\tokens| register; this will be useful and easy to add,
+	since \TeX\ already can handle |\everypar| and |\output|. @1227
+C560. Change \\{get_x_token} to \\{get_token} when scanning an optional
+	space; then a construction like
+	|\def\foo{...}\foo| won't complain that |\foo| is undefined. @443
+# This change was retracted when it was being debugged, because it could
+	cause \\{endv} to abort the job. Then it was re-established again
+	when I found that \\{endv} needed to be more robust anyway.
+	[But it was eventually rescinded again.]
+G561. Make |\span| mean `expand' in a preamble. @782
+E562. Use three separate {\bf if\/} tests instead of
+	`$\land$' in the inner loop of \\{get_next}, to gain efficiency. @342
+R563. Introduce \\{get_r_token} so that assignments have uniform error
+	messages and so that frozen equivalents cannot be changed. @1215
+# I gave a few variables more mnemonic names as I made these changes.
+C564. Move conditional statements from the semantics (`stomach') part of
+	\TeX\ to the syntax (`mouth') part, by introducing `|\fi|'.
+	Also introduce |\csname| and |\endcsname|. @372,489\hbox{--}500
+# This makes macros much more predictable and logical, but it is by far
+	the most drastic change ever made to \TeX. The program began to come
+	back to life only after three days of solid hacking.
+# Several other things were cleaned up as part of this change
+	because it is now more natural to handle them differently.
+	For example, a null control sequence has now become more logical.
+# The result of all this is called Version 0.8.
+* 18 Nov 1982
+# Today I resumed writing Chapter 8. Tomorrow I'm $\,2^{14}$ days old!
+* 21 Nov 1982
+F565. Declare $c$ as a local variable for hyphenation (DRF). @912
+E566. Omit the ``first pass'' and try hyphenations immediately,
+	if\/ |\pretolerance| is negative (suggested by DRF). @863
+R567. Don't ship out incredibly huge pages; they might foul up
+	|DVI| files. @641
+* 2 Dec 1982
+G568. Add new features |\everymath| and |\everydisplay|. @1139,1145
+G569. Add a new feature |\futurelet|. @1221
+# The changes above have been incorporated into Version 0.9 of TeX.
+* 7 Dec 1982
+G570. Add a new |\endinput| primitive (suggested by FY). @362,378
+* 8 Dec 1982
+I571. Try \\{off_save}, if\/ |\par| occurs in restricted horizontal mode.
+	(This avoids embarrassment if \TeX\ says `type a command or
+	say |\end|', then when you type |\end| it says you can't!)
+	[However, I soon retracted this change.] @1094
+* 21 Dec 1982
+A572. Redefine |\relax| so that its \\{chr} field exceeds 127. (This facilitates
+	the test for end in \\{scan_file_name}.) @265
+F573\>566. Call \\{begin_diagnostic} when omitting
+	the first pass of line breaking. @863
+A574. Fix the logic of glue scanning: In |\hskip-1pt plus2pt| the minus should
+	apply only to the |1pt|. @461
+* 23 Dec 1982
+I575. Renumber the decimal codes in paragraph statistics for loose and tight
+	lines; they were ordered backwards. @817
+C576. Treat a paragraph that ends with leaders like a paragraph that
+	ends with glue. @816
+C577. Allow commas as alternates to radix points, for Europeans. @438
+C578. Change |\hangindent| to a normal dimension parameter. [It had been
+	a combination of\/ |\hangindent| and |\hangafter|, with special
+	syntax.] @247
+G579. Make |\prevgraf| accessible to users. @422,1244
+G580. Split |\clubpenalty| off from |\widowpenalty|. @890
+# I'm typing Chapter 14 while making these changes.
+* 24 Dec 1982
+S581. Use \\{back_input} instead of {\bf goto} \\{reswitch} when
+	inserting |\par|, because |\par| may have changed. @1095
+* 25 Dec 1982
+# It's 10pm after a very Merry Christmas!
+I582. Don't prompt for a new file name if\/ |\openin| doesn't find a file. @1275
+G583. Add a new |\jobname| primitive. @472
+I584. Give the user a way to delete the dollar sign, when \TeX\ decides
+	to insert one. @1047
+C585. Allow optional equals after |\parshape|, and implement |\the\parshape|.
+	@423,1248
+* 26 Dec 1982
+I586. Add an \\{if_line_field} to the condition stack entries,
+	so that more informative error messages can be given. @489
+D587\>549. Introduce a \\{normal_paragraph} procedure, since initialization is needed
+	also within |\insert|, |\vadjust|, |\valign|, |\output|. @1070
+* 27 Dec 1982
+G588. Give users access to |\pagetotal| and |\pagegoal|. (Analogous to
+	\#679 and \#585, but simpler.) @1245
+I589. Introduce |\tracingpages|, allowing users to see
+	page-optimization calculations. Also split |\tracingparagraphs| off from
+	|\tracingstats|. @987,1005,1011
+# The changes above have been incorporated into Version 0.91 of \TeX.
+* 31 Dec 1982
+P590. Break the \\{build_page} procedure into two parts, by extracting
+	the section now called \\{fire_up}. [This is necessary because
+	some Pascal compilers, notably for IBM mainframes, cannot
+	deal with large procedures.] @1012
+S591\>564. Make |\ifodd1\else| legal by introducing \\{if_code}. @489
+Q592. Improve alignments when columns don't occur: Don't append null boxes
+	for columns missing before |\cr|, and zero out the tabskip
+	glue after nonpresent columns. @802
+I593. Make the error message about overfull alignment more intelligible.
+	@801,804
+# The changes above have been incorporated into Version 0.92 of \TeX82,
+	which was the last version of 1982,
+	completed at 11:59pm on December 31.
+* 3 Jan 1983
+# Today I'm beginning to write Chapter 15, and
+	planning the |\output| routine of |plain.tex|.
+C594. Change the logic of \\{its_all_over}; use \\{max_dead_cycles} instead
+	of the fixed constant~100. @1054
+F595. Don't forget to \\{pop_nest} when an insert is empty. Also disallow
+	optional space after |\insert|$\,n\,$|{...}|. @1100
+* 4 Jan 1983
+C596\>541. Use the |\boxmaxdepth| that's declared inside a |\vbox| when packaging it.
+	@1086
+C597. Rename |\groupbegin| and |\groupend| as |\begingroup| and
+	|\endgroup|. @265
+G598. Make |\deadcycles| accessible to users. @1246
+Q599. Base the split insertions on natural height plus depth, not
+	on \\{delta}. @1010
+# The changes above have been incorporated into Version 0.93.
+* 6 Jan 1983
+D600. Add \\{push_math} to handle a case where I forgot
+	to clear \\{incompleat_noad}. (This long-standing bug was
+	unearthed today by Phyllis Winkler.) @1136
+G601\>588. Add |\pageshrink|, etc., too. @1245
+G602. Introduce new parameters |\floatingpenalty|, |\insertpenalties|. Also
+	adopt a new internal representation of insertion nodes,
+	so that |\floatingpenalty|, |\splittopskip| and |\splitmaxdepth|
+	can be stored with each insertion. @140,1008
+* 7 Jan 1983
+Q603. Improve the rules for entering \\{new_line}, in particular
+	when the end-of-line character is active. @343
+* 9 Jan 1983
+Q604. Distinguish between implicit and explicit kerns. @155,896
+C605. Change the name |\ignorespace| to |\ignorespaces|. @265
+C606\>560. Don't omit a blank space after |\def|, |\message|, |\mark|, etc.;
+	the previous hodge-podge of rules is impossible to learn. @473
+# The above changes appear in Version 0.94.
+* 12 Jan 1983
+# Beginning to write the chapters on math today.
+G607. Add a new feature: active characters in math mode. @1151
+* 15 Jan 1983
+A608. Fix a surprise bug: `|$1-$|' treated the |-| as binary. @729
+D609. Initialize \\{space_factor} inside discretionaries. @1117
+* 16 Jan 1983
+F610. Fix an incredibly embarrassing bug: I forgot to update \\{spotless} in the
+	\\{error} routine!
+# While fixing this, I decided to change
+	\\{spotless} to a more general \\{history} variable, as suggested
+	by IBMers who want a return code. @76,82,1335
+I611. Replace two calls of \\{confusion} by attempts at error recovery, in places
+	where `|This can't happen|' could actually happen. @1027,1372
+* 18 Jan 1983
+R612. Introduce the \\{normalize_selector} routine
+	to protect against startup anomalies
+	when the transcript file isn't open. Also make \\{open_log_file}
+	terminate in some cases. @92,535
+R613\>591. Insert |\relax|, not a blank space, to cure infinite
+	loop like |\ifeof\fi| (LL). @510
+G614. Change the old |\limitswitch| to |\limits|, |\nolimits|, and
+	|\displaylimits|. Incidentally, this fixes a bug in the former
+	positioning of integral signs. @682,749
+C615. Give a |\char| in math mode its inherited |\mathcode|. @1151
+Q616\>525. Make underline, overline, radical, vcenter, accent noads and |{...}|
+	all revert to type Ord instead of type Inner. Introduce a new primitive
+	|\mathinner|. (This fixes the spacing, which
+	got worse in some ways after change \#525.) @761
+# I'm working on Appendix G today.
+* 19 Jan 1983
+G617. Introduce a |\mathchoice| primitive. @1174
+C618. Move |\input| from the stomach to the eyes. @378
+C619. Introduce |\chardef|, analogous to |\mathchardef|. @1036,1224
+G620. Change |\unbox| to |\unhbox| and |\unvbox|; also add |\unhcopy|. @1110
+C621. Consider |\spacefactor|, |\pagetotal|, etc., as part of
+	\\{prefixed_command}, even though they are always global. @1211
+* 20 Jan 1983
+C622. Switch modes when |\hrule| occurs in horizontal mode or |\vrule|
+	in vertical. @1090,1094
+G623. Add a new |\globaldefs| feature. @1211
+* 21 Jan 1983
+E624. Optimize the code, in places where it's important (based on
+	frequency counts of \TeX\ usage
+	accumulated during the past week): Introduce \\{fast_get_avail}
+	and \\{fast_store_new_token}; reduce procedure-call overhead
+	in \\{begin_token_list}, \\{end_token_list}, \\{back_input},
+	\\{flush_node_list}; change some tests from `{\bf if} $a\land b$' to
+	`{\bf if}~$a$ {\bf then if}~$b$'. @122,371
+* 22 Jan 1983
+E625. Save space in math lists: Don't insert penalties within restricted
+	horizontal mode; simplify trivial boxes. @721,1196
+S626. Fix a surprising oversight in the \\{rebox} routine:
+	Ensure that $b$ isn't a vbox. @715
+C627\>545. Make |\nullfont| a primitive, so that \\{cur_font} always
+	has a value. (This is a dramatic improvement to \TeX78, where a
+	missing font was a fatal error called `|Whoa|'!) @552
+* 24 Jan 1983
+I628\>586. List all incomplete |\if|'s when the job ends. @1335
+* 29 Jan 1983
+C629. Change initialization of \\{align_state} so that |\halign\bgroup|
+	works. @777
+* 30 Jan 1983
+D630\>625. Be sure to test `\\{is_char_node}($q$)' when checking for a trivial
+	box. @721
+# By extraordinary coincidence, this bug was caught when somebody
+	used font number~11 ($=\\{kern_node}$) in the second character
+	of a list of length~2!
+I631. Improve format for stats at end of run, as suggested by DRF. @1334
+# The changes above have been incorporated into Version 0.95.
+C632. Don't ignore the space after a control symbol (except `|\ |'). @354
+P633. Remove all trailing spaces at the right of input lines,
+	so that there's perfect compatibility with IBM systems that
+	extend short lines with spaces. @31
+* 3 Feb 1983
+I634. Assume that a \\{math_accent} was intended, after giving an error
+	message in the case $\\{mmode}+\\{accent}$. @1165
+G635. Add new primitives |\iftrue| and |\iffalse|. @488
+* 6 Feb 1983
+A636. Improve the accuracy of fixed-point arithmetic when
+	calculating sizes for |\left| and |\right|. (I had started by
+	dividing \\{delimiter_factor}, not \\{delta1}, by 500.) @762
+* 12 Feb 1983
+C637. Change the name |\delimiterlimit| to |\delimitershortfall|. @248
+C638. Make |\abovewithdelims..| equivalent to |\above|; change the
+	order of operands so that delimiters precede the dimension. @1182
+C639\>607. Remove the kludgy math codes introduced earlier;
+	make |\fam| a normal integer parameter and allow |\mathcode|
+	to equal $2^{15}$. @1233
+R640. Don't let |\spacefactor| become $2^{15}$ or more. @1233,1243
+# I finished drafting Chapter 17 today.
+* 14 Feb 1983
+I641\>639. Replace octal output (\\{print_octal}) by hexadecimal (\\{print_hex})
+	so that math codes are clearer. @67
+F642\>619. Don't forget \\{char_given} in the \\{math_accent} routine. @1124
+* 17 Feb 1983
+C643. Switch modes when |\halign| occurs in horizontal mode, or |\valign|
+	in vertical mode. @1090,1094
+* 18 Feb 1983
+I644. Add a new feature |\tracingrestores|. This requires a new procedure called
+	\\{show_eqtb}, whose code can be
+	interspersed with the \\{eqtb} definitions. @252
+* 25 Feb 1983
+I645\>622. Suggest using |\leaders| when the user tries a horizontal rule
+	in restricted horizontal mode. @1095
+* 27 Feb 1983
+I646. Specify the range of source lines, when giving warning messages
+	for underfull or overfull boxes in alignments. @662,675
+# Why did it take me all day to type the middle part of Chapter 18?
+* 4 Mar 1983
+G647. Introduce a new feature |\xcr| (suggested by LL). [Changed later to
+	`|\crcr|'.] @785
+I648\>631. Subtract out \TeX's own string requirements from the stats. @1334
+* 6 Mar 1983
+G649. Add new features |\everyhbox| and |\everyvbox|. @1083,1167
+* 9 Mar 1983
+R650. Avoid accessing \\{math_quad} when the symbol fonts aren't known
+	to be present. @1199
+P651\>533. Introduce \\{float} and \\{unfloat} macros to aid portability (HWT). @109
+C652. Introduce new names |\abovedisplayskip| and |\belowdisplayskip| for
+	the old |\dispskip|; also |\abovedisplayshortskip| and
+	|\belowdisplayshortskip| for the old |\dispaskip| and |\dispbskip|. @226
+* 10 Mar 1983
+C653. Unbundle |\romannumeral| from |\number| (suggested by FY). @468
+* 12 Mar 1983
+C654. Ignore leading spaces in \\{scan_keyword}. @407
+* 14 Mar 1983
+E655\>631. Use \\{write} and \\{write_ln} directly when printing stats. @1334
+* 16 Mar 1983
+Q656\>602. Refine the page-break cost function (introducing `\\{deplorable}',
+	which is not quite `\\{awful_bad}'), after suggestion by LL. @974,1005
+# The changes above have been incorporated into Version 0.96.
+* 18 Mar 1983
+G657. Add a new feature |\everyjob| suggested by FY. @1030
+* 19 Mar 1983
+I658. Don't treat left braces specially when showing macros. @294
+C659. Ignore blanks that would otherwise become undelimited arguments. @393
+* 21 Mar 1983
+F660. Make |\lastskip| handle \\{mu_glue} as well as ordinary glue. @424
+C661\>561. Expand only one level in a preamble |\span|. @782
+* 22 Mar 1983
+C662. Let a single |#| suffice in |\tokens|, |\message|, etc. (The previous rule,
+	in which |##| was always required as in macros, was a loser especially
+	in |\write| where you had to say |####|!) @477
+C663. Require the keyword `|to|' in |\read|. (This will avoid the common error
+	of an incomplete constant when no space appears
+	before the |\cs|.) Also allow terminal
+	I/O as a default when a stream number is out of range. @482,1225,1370
+* 26 Mar 1983
+C664. Replace |\ifeven|\<countnumber> by |\ifodd|\<number>, for better
+	consistency of language. @504
+S665\>564. Introduce the \\{change_if_limit}, to overcome a big surprise
+	bug relating to |\if\if aabc\fi|. @497
+# Such examples show that \\{cur_if} might not be current,
+	in my original implementation.
+* 28 Mar 1983
+G666. Tolerate non-characters as arguments to |\if| and |\ifcat|. @506
+C667. Change `|absent|' to `|void|', a better word. @487
+C668. Clear the \\{shift_amount} in |\lastbox|, since I don't
+	want to figure out what it means in all cases. @1081
+* 29 Mar 1983
+I669. Wake up the terminal before giving an error message. (This
+	means a special \\{print_err} procedure is introduced.)
+	(Suggested by DRF.) @34,73
+* 1 Apr 1983
+# Today I finished Chapter 21 (boxes) and began to draft Chapter 22 (alignments).
+G670. Allow periodic preambles in alignments. @793
+C671. Make |\leaders| line up according to the smallest
+	enclosing box. @627,636
+Q672. Allow hyphenation after whatsits (e.g., after items for an index). @896
+* 2 Apr 1983
+Q673. Call \\{build_page} when |\par| occurs in vertical mode. @1094
+C674. Clear \\{aux} in \\{init_row}, for tidyness. @786
+* 4 Apr 1983
+C675. Let digits switch families in math mode. @232
+* 7 Apr 1983
+Q676\>602. Refine the test for not splitting an insertion. @1008
+* 8 Apr 1983
+C677\>647. Rename |\xcr| as |\crcr|, at LL's request. @780
+* 9 Apr 1983
+# Took a day off and had a chance to help print a sample page on
+	a 150-year-old letterpress in Murphys, California.
+* 11 Apr 1983
+I678. Recover more sensibly after a runaway preamble. @339
+* 12 Apr 1983
+C679. Make |\read| span several input lines, if necessary to get
+	balanced braces. @482
+* 14 Apr 1983
+S680. Fix a subtle bug found by JS: \S882 can make $q$ a \\{char_node},
+	so we need to test `{\bf if} $\lnot\\{is_char_node}(q)$'.
+	[Actually I discovered much later that the real bug was
+	to omit `{\bf else}' at this point.] @881
+* 15 Apr 1983
+C681. Make |\uppercase| and |\lowercase| apply to all characters, regardless
+	of category. @1289
+# 7:30am. After working all night, I completed a draft of the manual thru
+	Chapter 22, for distribution to volunteer readers.
+# 5pm. The changes above have been incorporated into Version 0.97.
+* 17 Apr 1983
+R682. Change `\\{small_number}' to `$0\,.\,.\,65$' in the
+	hyphenation routine (DRF). @901
+I683. Flush patterns in the input when the user tries |\patterns|
+	outside of\/ |INITEX| (suggested by DRF). @1252
+# Tomorrow I fly to England, where I'll lecture and write a paper about
+	`Literate Programming' [{\sl Comp.~J. \bf27} (1984), 97--111].
+* 14 May 1983
+I684\>663. Improve the behavior of\/ |\read| from terminal
+	(suggested by Todd Allen at Yale).
+	[I'd forgotten to implement the extended stream numbers in \#663.
+	Also, the prompt is now omitted if $n<0$.] @484
+* 18 May 1983
+I685. Restrict |\write| $n$ to the transcript file only, if $n<0$. @1350
+C686. Unify the syntax for registers and internal quantities. (Remove
+	primitives called `|\insthe|' and `|\minusthe|'; rename
+	\\{scan_the} to \\{scan_something_internal}, and change its
+	interface accordingly; clean up command codes generally.) @209,413
+G687. Introduce new parameters |\hoffset|, |\voffset|. @617
+* 24 May 1983
+G688. Introduce a new parameter |\everycr| (suggested by MDS). @774,799
+# Many macro writers and preliminary-manual readers have been requesting
+	new features; I'll try to keep the language as concise and consistent
+	as possible.
+* 25 May 1983
+G689. Introduce |\countdef|, |\dimendef|, etc.\ (suggested by DRF long ago,
+	easy now in view of \#686). @1224
+G690. Introduce |\advance|, |\multiply|, |\divide| (suggested by FY). @1240
+G691. Introduce |\hyphenchar|; this requires a new command
+	\\{assign_font_int}, plus minor changes to about 15 modules. @915
+G692. Introduce |\skewchar| (easy because of \#691). @741
+G693. Introduce |\noexpand|. (I had difficulty thinking of how to
+	implement this one!) @358,369
+G694. Introduce |\meaning|. @296
+G695. Remove `|dm|' and `|vu|'; allow the more general `|.5\hsize|'. @455
+C696. Change `|\texinfo| $f$ $n$' to `|\fontdimen| $n$ $f$'. @578
+* 27 May 1983
+G697. Add a new feature |\afterassignment| (suggested by ARK). @1269
+C698. Adjust the timing so that commands like `|\chardef\xx=5\xx|'
+	behave sensibly. @1224
+* 28 May 1983
+C699. Ignore `|\relax|' as if it were a space, in math mode and in a few other
+	places where |\relax| would otherwise be erroneous. @404
+Q700. Improve |\mathaccent| spacing with respect to subscripts
+	and superscripts (suggested by HWT). @742
+* 30 May 1983
+C701\>594. Terminate a job only when $\\{dead_cycles}=0$. @1054
+# The changes above constitute Version 0.98.
+* 3 Jun 1983
+# I finished the draft of Chapter 23 (output routines) today.
+G702. Allow |\mark| and |\insert| and |\vadjust| in restricted
+	horizontal mode, and also in math mode. (This is a comparatively
+	big change, triggered by the fact that |\mark| in a display
+	presently causes \TeX\ to crash with `|This can't happen|'!)
+	The global variable \\{adjust_tail} is introduced. @796,888,1085
+* 6 Jun 1983
+G703\>695. Replace (and generalize) the previous uses of\/ |ht|, |wd|, and |dp|
+	in dimensions by introducing the new control sequences
+	|\ht|, |\wd|, and |\dp|. @1247
+I704. Display sub-parts of noads with the symbols |^| and |_| instead of
+	|(| and~|[|. @696
+C705\>694. Allow |A..F| in hex constants to be \\{other_char} as well as
+	\\{letter}. @445
+* 7 Jun 1983
+E706\>654. Remove an instance of \<Scan optional space>, since it's now
+	redundant. @457
+C707. Legalize |\mkern\thinmuskip| and |\mkern5\thinmuskip|. @456
+C708. Clean up the treatment of optional spaces in numerical specifications. @455
+# A construction like |2.5\space\space\dimen0| was previously
+	valid after `|plus|' or `|minus|' only!
+# I'm obviously working on Chapter~24 today.
+C709\>545. Allow `|\font|' as a \<font identifier> for the current font. @577
+C710\>623. Don't make |\gdef| global when $\\{global_defs}<0$. @1218
+E711. Produce \\{zero_glue} as the outcome of
+	|\advance\spaceskip by-\spaceskip|. @1229
+I712. Make |\show| do something appropriate for every possible token. @1294
+G713\>559. Replace the (single) |\tokens| parameter by an array of
+	256 token registers. @230
+C714. Allow |\indent| in math mode; also make |\valign| in math mode produce the
+	`|Missing|~|$|' error. @1046,1093
+E715. Remove redundant code: There's no need to check \\{cur_group}
+	or call \\{off_save} when starting alignments or equation numbers
+	in displays. @1130,1142
+* 8 Jun 1983
+C716. Disallow |\openout-1| and |\closeout-1|. @1350
+C717. Disallow |\lastbox| in math mode. @1080
+* 9 Jun 1983
+I718. Call \\{back_error}, not \\{error}, when |\leaders| aren't followed by
+	proper glue. @1078
+D719. Initialize for a possible paragraph, after |\noalign|
+	in a |\valign|. @785
+* 10 Jun 1983
+C720. Expand the optional space after an ASCII constant. @442
+* 12 Jun 1983
+C721. Set $\\{space_factor}\gets1000$ after a rule or a
+	constructed accent. @1056,1123
+* 14 Jun 1983
+D722. Correct a serious blunder: Set $\\{disc_width}\gets0$ before testing
+	if $s$ is null (caught by JS). @870
+# This is a real bug that existed since the beginning!
+	It showed up on page~37 of the
+	Version~0 |TRIP| manual, but I didn't notice the problem.
+C723\>708. Make optional spaces after \<dimen> like those after \<number>. @448
+C724\>568. Insert \\{every_display} before calling \\{build_page}. @1145
+I725\>648. Report \TeX's capacity on overflow errors in a way that's
+	fully consistent with other statistical reports. @42
+* 17 Jun 1983
+C726. Make all |\tracing| decisions on the basis of $\ge$ versus $<$,
+	not $\ne$ versus~$=$. @581
+# Today I finished the draft of Chapter 27 (the last chapter)!
+# The changes above were released as Version 0.99 on June 19, 1983.
+* 20 Jun 1983
+C727. Set |\catcode`\%=14| in |INITEX|. @232
+C728\>587. Call \\{normal_paragraph} when |\par| occurs in vertical mode. @1094
+# Once again I'm retiring about 8am and awaking about 4pm.
+* 21 Jun 1983
+C729\>558. Don't append an overfull rule solely because of\/ |\hbadness|. @666
+R730. Don't allow the glue-ratio of shrinking to be less than~$-1$. @810,811
+* 22 Jun 1983
+B731\>653. Declare the parameter to \\{print_roman_int} to be of type \\{integer},
+	instead of \\{nonnegative_integer} (found by Debby Clark). @69
+C732\>690. Make the keyword `|by|' optional (suggested by LL). @1236
+* 24 Jun 1983
+I733. Say `|preloaded|' when announcing \\{format_ident}. @1328
+* 25 Jun 1983
+R734. Add extra boxes and
+	glue to the output of alignment. [This thwarts possible attempts
+	at trickery by which system-dependent glue set values
+	computed by |\span| could have gotten into \TeX's registers by
+	things like |\valign| and |\vsplit|. It also has the advantage
+	of perfect accuracy in alignment of vertical rules.] @809
+C735. Make leaders affect the height or width of the enclosing boxes. @656,671
+# Today I'm mainly installing a much-improved format for change files
+	in |WEB| programs (suggested by DRF).
+* 28 Jun 1983
+C736. Permit |\unskip| in vertical mode when we know that it does nothing. @1106
+* 1 Jul 1983
+E737\>700. Avoid redundant boxes when things like `|{\bf A}|' occur in math. @1186
+G738. Add a `|scaled|' feature to |\font| input. @1258
+D739\>700. Remember to correct \\{delta} when an accented box changes. @742
+* 2 Jul 1983
+R740.Introduce \\{bypass_eoln}, to remove anomalous behavior on input files
+	of length~1. (Suggested by DRF after the problem was discovered by LL). @31
+* 4 Jul 1983
+G741. Allow codes like |^^b| as well as |^^B|. @352,355
+G742. Introduce new parameters |\escapechar|, |\endlinechar|, |\defaulthyphenchar|,
+	and |\defaultskewchar|, to make \TeX\ less dependent on the
+	character set. (This affects many modules, since a lot of
+	error messages must be broken up so that they use \\{print_esc}.)
+* 7 Jul 1983
+P743. Use a system-dependent function \\{erstat} when opening or closing
+	files (suggested by DRF). @27
+* 11 Jul 1983
+# The computer is back up after more than 50 hours down time
+	(due to air conditioning failure).
+I744. Show total glue in the output of\/ |\tracingpages|. @985
+R745. Guard against insertion into an hbox. @993
+C746. Legalize the assignment \<tokenvar>=\<tokenvar>. @1227
+I747. Introduce a new parameter |\errhelp|. @1283
+F748\>623. Don't forget to check \\{global_defs} when |\tabskip| is changed. @782
+* 12 Jul 1983
+C749. Allow an |\outer| macro to appear after |\string|, |\noexpand|,
+	and |\meaning| (Todd Allen). @369,471
+C750. Make `|\the|' an expandable control sequence (i.e., move it
+	from the stomach to the throat); this cleans up
+	several annoying glitches. @367
+C751. Allow |\unhbox| and |\unhcopy| in math mode if the box is void. @1110
+* 13 Jul 1983
+# I lectured for four hours at the TUG meeting today after very little sleep!
+* 16 Jul 1983
+# The following were suggested by TUG meeting discussions.
+L752. Round the value of \\{default_rule} more properly: It should be 26215. @463
+Q753\>700. Fix |\mathaccent| again; it's still not right!
+	The final height should be the maximum of
+	the height of accented letter without superscript and
+	the height of unaccented letter with superscript.  @742
+G754. Add a new feature |\newlinechar|. @59
+G755. Allow boxes and rules in discretionaries (suggested by somebody
+	from Hewlett-Packard). @1121
+I756. Show all token expansions, not just macros,
+	when |\tracingcommands|. @367
+C757. Allow |\char| in a |\hyphenation| list. @935
+G758. Introduce a new feature |\aftergroup|; it can be implemented with
+	\\{save_stack}. @326
+C759. Run the running dimensions to alignment boundaries (suggested
+	by ARK). @806
+* 17 Jul 1983
+R760. Zero out \\{hyf} values at the edges, so that
+	weird pattern data cannot lead to Pascal range checks. @965
+R761. Decrease the |hc| codes for hyphenation, so that code~127 cannot
+	possibly be matched. @937,962
+C762\>672. Allow whatsits after hyphenatable words. @899
+C763\>604. Represent an italic correction as an explicit kern. @1113
+* 18 Jul 1983
+C764. Allow lowercase letters in file names. @519
+I765. Change the message `|No output file|' to: `|No pages of output|'. @642
+I766. Confirm that a quiet mode is being entered, when error
+	interaction ends with |Q|, |R|, or |S| (suggested by ARK). @86
+# Version 0.999 was finally installed today; a new program listing has
+	been printed.
+# From now on, I plan to keep all section numbers unchanged.
+# I'm done writing Appendix~H; beginning to revise Chapter~20.
+* 25 Jul 1983
+C767\>663. Allow space after `|to|' in the |\read| command (FY). @1215
+# To bed at 1pm today.
+* 27 Jul 1983
+S768\>665. Stack the current type of\/ |\if|; this precaution is necessary
+	in general (FY). @498
+# To bed at 2pm today.
+* 29 Jul 1983
+E769. Avoid putting a control sequence in the hash table
+	when it occurs after |\ifx|. (Requested by Math Reviews people.) @507
+# Finished a version of {\it The \TeX book\/} lacking only Appendices
+	D, E, and~I, for distribution to interested readers.
+# To bed at 10:30pm, planning to arise regularly at 6am for a change.
+* 31 Jul 1983
+I770\>766. Call \\{update_terminal} when going quiet (HWT). @86
+* 1 Aug 1983
+C771. Don't put an empty line at the end of an |\input| file! (This simplifies
+	the rules and the program, and also gets around a bug that occurred
+	at the end of files with $\\{end_line_char}<0$.) @362
+# The changes above went into Version 0.9999, which was widely distributed.
+* 16 Aug 1983
+B772\>665. Rectify a ridiculous gaffe: I initialized $q$ every time the loop
+	of \\{change_if_limit} was performed! (Found by FY.) @497
+I773\>648. Distinguish `|string|' from `|strings|' when reporting statistics. @1334
+A774. Introduce \\{lx}, to correct a bug in |\xleader| computations
+	(found by FY). @627
+* 20 Aug 1983
+F775. Don't forget to apply |\/| to ligatures! @1113
+# Today I began to read all previous issues of {\it TUGboat}, in preparation for
+	Appendix~D.
+* 27 Aug 1983
+I776. Add debugging hack number~16, to help catch subtle data structure bugs. @1339
+E777. Remove redundant setting and resetting of \\{name_in_progress}. @531
+S778. Suppress |\input| during a font size spec; otherwise
+	\\{cur_name} is clobbered (found by MDS). @1258
+G779. Introduce new conditionals |\ifhbox| and |\ifvbox|. @505
+* 29 Aug 1983
+D780\>750. Test for an empty list, if emptiness will mess up the data structure.
+	(Found by Todd Allen.) @478
+E781. Use \\{fast_for_new_token} for efficiency. @466
+I782. Say `|has only|' instead of `|has|'. @579
+# These changes yield Version 0.99999, used only at Stanford.
+* 30 Aug 1983
+C783. Make funny blank spaces showable. @298
+* 31 Aug 1983
+C784\>754. Make |\newlinechar| affect \\{print_char}, not just \\{print}. @58
+* 4 Sep 1983
+G785. Add new features |\lastkern|, |\lastpenalty|, |\unkern|, |\unpenalty|.
+	@424,996,1105
+# OK, Appendix D is finished!!
+# The above changes have been installed in Version 0.999999.
+* 17 Sep 1983
+P786\>548. Don't bother making duplicate font identifiers; that
+	was overkill, not really needed. @1258
+# Will this be the historic last change to \TeX?
+* 18 Sep 1983
+I787. Correct a minor inconsistency, `|display|' not `|displayed|'. @211
+* 20 Sep 1983
+C788\>604. Treat the kerns inserted for accents as explicit kerns. @1125
+* 26 Sep 1983
+I789. Change `|log|' to `|transcript|' in several messages. @535,1335
+# The index was finished today; I mailed the entire {\it \TeX book\/} East for
+	final proofreading before publication.
+* 1 Oct 1983
+D790. Prevent uninitialized trie positions in case of overflow
+	(found by Bernd Schulze). @944
+* 7 Oct 1983
+# Henceforth our weekly `\TeX\ lunch' meetings will be called `\MF\ lunch'.
+# DRF begins to produce {\it The \TeX book\/} on our APS phototypesetter.
+* 14 Oct 1983
+P791\>633. Ignore spaces at the ends of lines also in |TEX.POOL| (found
+	by DRF). @52
+D792. Initialize the \\{history} variable at \\{start_here} (DRF). @1332
+* 18 Oct 1983
+I793. Extend \\{runaway} to catch runaway text (suggested by FY). @306
+D794. Reset \\{cur_cs} after \\{back_input}, not after scanning the
+	`|=|' (found by FY). @1226
+* 24 Oct 1983
+I795\>638. Change the error recovery for bad delimiters, in accordance with
+	the changed syntax. (Found by Barry Smith.) @1183
+* 9 Nov 1983
+E796. Optimize the code a bit more, based on empirical frequency data gathered
+	during September and October: In \S45, use the fact that the
+	result is almost always true. In \S380, delete `{\bf while}
+	\\{true} {\bf do}' since many compilers implement that badly.
+	Rewrite \S852 to avoid calling \\{badness} in the most common case.
+	@45,380,852
+* 3 Dec 1983
+F797. Don't forget to call |error| after the message has been
+	given (noticed by Gabi Kuper). @500
+# Version 1.0 released today incorporates all of the above.
+* 9 Dec 1983
+# Dinner party with 36 guests to celebrate \TeX's coming of age.
+* 2 Feb 1984
+S798\>786. Reinstall |\font| precautions that I thought were unnecessary.
+	I overlooked many problematic possibilities, like
+	`|{\font\a=x| |\global\a}| |\the\font|'
+	and `|\font\a=x| |\font\b=x| |\let\b=\undefined| |\the\a|', etc.
+	(Found by Mike Urban.) The new remedy involves removal of the
+	\\{font_ident} array and putting the identifiers into a frozen
+	part of the hash table; so there's a sprinkling of corrections
+	in lots of modules. But basically the change is quite conservative,
+	so it shouldn't spawn any new bugs (it says here). @222,267,1257
+* 9 Feb 1984
+S799. Remove the possibility of double interrupt, in a scenario
+	found by Clint Cuzzo. @1031
+* 12 Feb 1984
+Q800. Improve spacing in a formula like |$(A,<)$|. @764
+* 13 Feb 1984
+A801. Avoid a bad {\bf goto}, as diagnosed by Clint Cuzzo and George O'Connor.
+	(Must not go directly to \\{switch}.) @346
+E802. Conserve string pool space by not storing file name in two
+	guises (suggested by DRF). @537
+* 26 Feb 1984
+I803. Make scaled output look cleaner by printing fewer decimals whenever
+	this involves no loss of accuracy. (Suggested by \MF\ development.) @103
+* 2 Mar 1984
+R804. Maintain 17-digit accuracy, not 16; now
+	constants like `|.00000762939453126pt|' will round correctly. @452
+* 16 Mar 1984
+R805. Plug a loophole that permitted recursion in \\{get_next}, by disallowing
+	deletions in \\{check_outer_validity}. @336
+* 24 Mar 1984
+I806. Open the terminal before trying to wake it up, when the program starts bad.
+	@1332
+* 27 Mar 1984
+R807. Check that $k<63$, to avoid the
+	|\patterns{xxx...xxxdxxxdxxx}| anomaly found by Jacques D\'esarm\'enien. @962
+* 11 Apr 1984
+F808. Supply code for the missing case \\{adjust_node} in \\{copy_node_list}. @206
+# Yoicks, how could serious bugs like that have escaped detection?
+* 11 Jun 1984
+D809\>627. Initialize \\{char_base}, etc., for \\{null_font}.
+	(Found by Nick Briggs.) @552
+R810. Clear the \\{buffer} array initially (Briggs). @331
+* 21 Jun 1984
+C811. Look ahead for ligature or kern after a |\chardef|'d item
+	(D\'esarm\'enien). @1036
+* 4 Jul 1984
+R812. Make the quarterword constraint explicit with a
+	new `\\{bad}' case (19). @111
+* 7 Jul 1984
+E813. Optimize \\{firm_up_the_line} slightly,
+	to be consistent with the \MF\ program. @363
+* 8 Jul 1984
+I814. Give additional diagnostics when |\tracingmacros>1|. @323
+# The changes above were incorporated in Version 1.1, released July 9, 1984.
+* 27 Jul 1984
+I815. Say `|see| |the| |transcript| |file|' after handling offline |\show|
+	commands. (Suggested by \MF.) @1298
+* 20 Oct 1984
+I816. Allow `|0|' in response to error prompts. @84
+# Those two changes led to Version 1.2.
+* 25 Nov 1984
+R817. Don't forget to check for \\{null} before looking at subfields
+	of a node. (This was ``dirty Pascal,'' with two quarterword 0's
+	read as a halfword.) @846
+R818. Ditto in another place! @939
+E819. Remove the fixed-at-compile-time
+	partition between lower and upper memory. @116,125,162
+# This major change in memory management
+	completes Version 1.3, which was published in preliminary
+	looseleaf form as `\TeX: The Program'.
+* 20 Dec 1984
+R820. Keep the \\{node_size} field from overflowing if the lower part of memory
+	is too large. @125
+# That was another bug in existence from the beginning!
+* 5 Jan 1985
+I821. Improve the missing-format-file error (DRF). @524
+* 7 Jan 1985
+I822. Update the terminal right away so that the welcoming message will
+	appear as soon as possible (DRF). @61
+* 23 Jan 1985
+I823. Convey more uncertainty in the
+	help message at times of \\{confusion}. @95
+I824. Improve the \\{history} logic in the \\{warning_issued} case. @245
+* 18 Feb 1985
+P825\>810. Stick to standard Pascal: Don't
+	use \\{first} in a {\bf for} loop. [Some procedures ``threaten'' it
+	globally, according to British Standard 6192, section 6.8.3.9.]
+	(Pointed out by CET.) @331
+* 11 Apr 1985
+S826. Prevent nonexistent characters from being output by
+	unusual combinations of ligatures and hyphenation. @915
+* 15 Apr 1985
+L827\>819. Compute memory usage correctly in |INITEX|; the previous number
+	was wrong because of a |WEB| text macro without parentheses (DRF). @164
+* 16 Apr 1985
+E828. Speed up \\{flush_list} by not calling \\{free_avail} (DRF). @123
+* 17 Apr 1985
+A829\>788. Introduce a special kind of kern for accent positioning;
+	it must not disappear after a line break. @837,879,1125
+* 18 Apr 1985
+R830\>755. Prevent |\lastbox| and |\unkern| from removing discretionary replacements.
+	@1081,1105
+# That completes Version 1.4.
+* 26 Apr 1985
+C831. Don't try \\{\TeX_area} if a nonstandard file area has been specified
+	(DRF). @537
+# That was \#401 in \TeX78; I never learn!
+* 30 Apr 1985
+C832\>754. Eliminate the limitation on |\write| length; the reason for it
+	has disappeared (Nancy Tuma). @1370
+* 8 May 1985
+D833\>819. Allocate two words for the head of the \\{active} list (CET). @162
+* 11 May 1985
+I834. Change \\{wterm} to \\{wterm_ln} after a bad beginning (Bill Gropp). @1332
+E835\>806. Don't open the terminal twice (CET). @1332
+* 22 May 1985
+R836. Test for \\{batch_mode} after trying to open the transcript file,
+	not before (DRF). @92
+R837. Be prepared for string pool overflow while reading the command line!
+	(This bug was first found in \MF, when it could occur more easily.) @525
+* 7 Aug 1985
+A838. Fix a bug in |\edef\foo{\iffalse\fi\the\toks0}|: \TeX\ should stay in the
+	loop when expanding non-|\the|. (Found by Dan Brotsky.) @478
+# The above changes were incorporated in Version 1.5.
+* 27 Nov 1985
+C839\>764. Make `|plain|' a lowercase name, for consistency with the manual. @521
+I840\>669. Wake up the terminal for |\show| commands. @1294,1297
+# The above changes were incorporated in Version 2.0, which was published
+	as Volume~B of the {\sl Computers \& Typesetting\/} series.
+* 15 Dec 1986
+I841. Punctuate the Poirot help message more carefully. @1283
+* 28 Jan 1987
+R842. Make sure that \\{max_in_open} doesn't exceed 127 (DRF). @14
+D843\>680. Don't allow a |\kern| to be clobbered at the end of a pre-break list
+	when a discretionary break is taken. (A missing `{\bf else}' was the
+	source of the error, diagnosed incorrectly before.) @881
+D844. Take account of discarded nodes when computing the background width
+	after a discretionary. @840
+# That was the first really serious bug detected for more than 17 months! I found it
+	while experimenting with right-to-left extensions.
+# Version 2.1 was released on January 26, 1987.
+* 5 Feb 1987
+E845. Remove cases in \\{shorthand_def} that cannot occur (found by Pat Monardo). @1224
+* 14 Apr 1987
+R846. Improve robustness of data structure display
+	when debugging (Ronaldo Am\'a). @174,182
+* 21 Apr 1987
+E847. Make the storage allocation algorithm more elegant and efficient. @127
+* 22 Apr 1987
+A848\>742. Calculate the empty-line condition properly when \\{end_line_char} is
+	absent. @360
+# The previous three changes were found while I was teaching a class based
+	on Volume~B; they led to Version 2.2.
+* 28 Apr 1987
+E849. Avoid closing a file when \TeX\ knows that it isn't open (JS). @560
+* 3 Aug 1987
+S850. Clean up unfinished output if it's necessary to
+	\\{jump_out} (Klaus Gunterman). @642
+# That makes Version 2.3; subsequent version numbers won't be logged here.
+* 19 Aug 1987
+A851. Indent rules properly in cases like\hfil\break
+	|\hangindent=1pt$$\halign{...\cr\noalign{\hrule}}$$|. @806
+* 20 Aug 1987
+S852. Introduce \\{co_backup} because of cases like
+	|\hskip 0pt plus 1fil\ifdim| (Alan Guth). @366
+* 9 Nov 1987
+S853. Change the calculation for number of leader boxes, so that
+	it won't be too sensitive to roundoff error near exact multiples
+	(M. F. Bridgland). @626
+* 17 Nov 1987
+A854. Replace my stupid algorithm
+	for fixed-point multiplication of negatives (WGS). @572
+* 12 Dec 1987
+B855. Fix a typo in the initialization of hyphenation tables  (PB). @952
+# That error was almost completely harmless, thus undetectable,
+	except if some |\lccode| is~1 and no |\patterns| are given.
+* 23 Dec 1987
+S856\>564. Be more cautious when ``relaxing'' a previously undefined |\csname|;
+	you might be inside a group (CET). @372
+* 20 Apr 1988
+S857. Make sure \\{temp_head} is well-formed whenever it can be
+	printed in a ``runaway'' message: Consider constructions like
+	|\outer\def\a0{}\a\a| (Silvio Levy). @391
+* 24 Apr 1988
+S858. Avoid conflicting use of the string pool in constructions like
+	|\def\\#1{}\input a\\\z| (Robert Messer). @260
+* 10 May 1988
+R859. Amend the |\patterns| data structure when $\\{trie_min}=0$
+	(PB). @951,953
+* 25 May 1988
+R860. Guarantee that \\{trie_pointer} cannot be out of range. @923
+S861. Avoid additional bugs like \#858 in constructions
+	like |\input a\romannumeral1|, etc. @464,465,470
+R862. Prevent similar string pool confusion that could occur
+	during the processing of |**\input\romannumeral6|. @525
+* 19 Jun 1988
+S863\>819. Prevent a negative dividend from rounding upward,
+	causing a loop (CET). @126
+E864\>819. Adopt a smoother allocation strategy when
+	memory is nearly gone (CET). @126
+* 20 Jun 1988
+D865\>852. Initialize \\{cur_order}, now that it's being backed up
+	(Tsunetoshi Hayashi). @439
+* 6 Nov 1988
+S866\>612. Disable \\{fatal_error} in \\{prompt_input}, so that
+	\\{open_log_file} can use it safely (Tim Morgan). @71
+S867\>836. Force terminal output whenever \\{open_log_file} fails. @535
+* 14 Dec 1988
+P868\>866. Restore \\{fatal_error} in \\{prompt_input}, but don't
+	let it be unsafe for \\{open_log_file}. @92,534
+* 23 Jan 1989
+D869. Give $q$ a legal value when recovering from ``infinite shrinkage''
+	error. @976,1004
+* 17 Feb 1989
+D870\>758. Avoid spurious error message for |\aftergroup\relax\dump| by avoiding
+	inaccessible |\aftergroup| tokens (FM and RS). @280
+* 20 Mar 1989
+R871. Don't refer to \\{link}(\\{null}) even when it ``can't happen''
+	(PB). @791
+* 7 Jun 1989
+S872. Avoid confusion from |$$\begingroup\halign{#\cr}$$| (FM). @1130
+* 20 Jun 1989
+S873. Put fraction digits into dynamic memory, not the global \\{dig} array,
+	because of constructions like |.5\ifdim.6| (FM). @452
+* 17 Jul 1989
+S874. Prevent embarrassing attempts to report errors before the string
+	mechanism has been fully initialized, for example when the
+	command line exceeds the buffer size (WGS). @31
+* 16 Aug 1989
+M875. Allow integer products to be 31 bits long (FM). @105
+* 31 Aug 1989
+C876\>441. Increase the number of tokens shown by \\{token\_show}
+	(J. Lavagnino). @295
+S877. Avoid confusion from |$$\begingroup\eqno$$| (FM). @1140
+# The recent TUG meeting turned out to be an extend-\TeX-for-the-nineties
+	party! I agreed that some extensions for non-English languages
+	ought to be made while I still knew how to do them. (In other words,
+	I broke my firm commitment to keeping \TeX\ completely stable;
+	but in this case nobody objected.) The following eleven changes
+	were coded during the month of September.
+* 30 Sep 1989
+G878. Install major change allowing general 8-bit code input. @38,352
+G879. Install major change allowing multiple hyphenation tables
+	(M. Ferguson). @923
+G880. Introduce new parameters |\lefthyphenmin| and |\righthyphenmin|. @923
+G881. Introduce major new ligature capabilities including implicit
+	boundary characters. @908,1037
+G882. Install new |\inputlineno| feature suggested by MDS. @424
+G883. Install new |\holdinginserts| feature suggested by FM. @1014
+G884. Install new |\badness| feature. @424,664
+G885. Install new |\emergencystretch| feature. @863
+G886. Install new |\errorcontextlines| feature suggested by FM. @311
+S887. Recover from anomaly when hyphenation |char_warning| clobbers
+	|old_setting|. @863
+P888. Make it easier to change the format extension (Don Hosek). @520,1328
+* 16 Oct 1989
+R889. Avoid range check in null font with |bc=256| (PB). @565
+* 22 Nov 1989
+S890\>856. Prevent \\{save\_stack} conflicts in
+	|{\hbox\expandafter{\csname\endcsname}}| and\kern-3pt\break
+	 similar constructions (WGS). @645,1117
+S891\>858. System-dependent parts of file names must be addressed relatively,
+	not absolutely (FM and RS). @516,517
+* 3 Dec 1989
+G892\>880. Allow different hyphenmins in the same paragraph (M. Ferguson). @1376
+S893. Distinguish |\par| from characters on |\if| tests. (MVL). @334
+S894\>378. Alignments need to be more robust against malicious
+	attacks (MVL). @782
+C895. Don't let kerns in discretionaries disappear at breaks (MVL). @869
+Q896\>881. Make the new hyphenation reconstruction procedure less cautious,
+	so that it doesn't lose hyphens found by the old method. @914
+* 11 Dec 1989
+D897\>879. Make an undumped trie dumpable again (PB). @1325
+* 18 Dec 1989
+G898. Allow access to page totals in |\output| routines (FM and Chris Rowley).
+	@421      
+* 22 Jan 1990
+R899\>611. Recognize more cases of unbalanced |\output| (CET). @1026
+* 29 Jan 1990
+S900\>758. Make |\aftergroup| work properly after |\eqno| (Michael Downes).
+	@1194
+* 1 Feb 1990
+S901\>878. Fix one more case of \\{end\_line\_char\_inactive} (WGS). @360
+* 22 Feb 1990
+R902. Don't lose the last active node when total demerits are very high (FM).
+	@836,854
+* 13 Mar 1990
+D903. Doublecheck math fonts after making equation number (MVL). @1194
+D904. Don't forget to rule out charnodes before testing \\{type} (MVL).
+	@805,1202
+* 23 Mar 1990
+F905\>881. Don't change the font of punctuation preceding a hyphenated word
+	(Scott C. Allendorf). @903
+I906. Balance the parentheses shown on the terminal during normal runs. @1335
+E907. Optimize |\ifx\p\q| after |\let\p=\q| (MVL). @508
+S907. Treat migration properly in displays (MVL). @1199,1205
+# We're now up to Version 3.0; I sincerely hope all bugs have been found.
+\relax
+\bye
+DRF David Fuchs
+HWT Howard Trickey
+FY  Frank Yellin
+LL  Leslie Lamport
+JS  Jim Sterken
+ARK Arthur Keller
+CET Chris Thompson
+FM  Frank Mittelbach (added subsequent to publication of paper)
+RS  Rainer Sch\"opf (ditto)
+PB  Peter Breitenlohner (ditto)
+WGS Wayne G. Sullivan (ditto)
+MVL Marc van Leeuwen

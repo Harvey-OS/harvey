@@ -1,0 +1,98 @@
+.TH DOSSRV 4
+.SH NAME
+dossrv, 9660srv, eject \- DOS and ISO9660 file systems
+.SH SYNOPSIS
+.B dossrv
+[
+.B -v
+] [
+.B -s
+] [
+.B -f
+.I file
+] [
+.I service
+]
+.PP
+.B 9660srv
+[
+.B -v
+] [
+.B -s
+] [
+.B -f
+.I file
+] [
+.I service
+]
+.PP
+.B eject
+.RB [ n ]
+.SH DESCRIPTION
+.I Dossrv
+is a file server that interprets DOS file systems.
+A single instance of
+.I dossrv
+can provide access to multiple DOS disks simultaneously.
+.PP
+.I Dossrv
+posts a file descriptor named
+.I service
+(default
+.BR dos )
+in the
+.B /srv
+directory.
+To access the DOS file system on a device, use
+.B mount
+with the
+.I spec
+argument
+(see
+.IR bind (1))
+the name of the file holding raw DOS file system, typically the disk.
+If
+.I spec
+is undefined in the
+.BR mount ,
+.I dossrv
+will use
+.I file
+as the default name for the device holding the DOS system.
+.PP
+Normally
+.I dossrv
+creates a pipe to act as the communications channel between
+itself and its clients.
+The
+.B -s
+flag instructs
+.I dossrv
+to use its standard input and output instead.
+The kernels use this if they are booting from a DOS disk.
+This flag also prevents the creation of an explicit service file in
+.BR /srv .
+.PP
+The
+.B -v
+flag causes verbose output for debugging.
+.PP
+.I 9660srv
+is identical to
+.I dossrv
+in specification, except that it interprets ISO9660 CD-ROM
+file systems instead of DOS file systems.
+.PP
+.I Eject
+ejects a floppy from drive
+.IR n ,
+default 0.
+.SH EXAMPLE
+Mount a floppy disk with a DOS file system on it.
+.IP
+.EX
+dossrv
+mount -c /srv/dos /n/a: /dev/fd0disk
+.EE
+.SH "SEE ALSO"
+.IR kfs (4)

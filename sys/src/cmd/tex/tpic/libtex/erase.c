@@ -1,0 +1,4 @@
+#include "tex.h"
+erase()
+{
+}

@@ -1,0 +1,105 @@
+% siam12.sty 5 Feb 88, based on art12.sty 22 Dec 87
+\lineskip 1pt \normallineskip 1pt
+\def\baselinestretch{1}
+
+\def\@normalsize{\@setsize\normalsize{15pt}\xiipt\@xiipt
+\abovedisplayskip 12pt plus3pt minus7pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \abovedisplayskip
+\belowdisplayshortskip \belowdisplayskip \let\@listi\@listI}
+\def\small{\@setsize\small{13.6pt}\xipt\@xipt
+\abovedisplayskip 11pt plus3pt minus6pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \abovedisplayskip\belowdisplayshortskip \belowdisplayskip
+\def\@listi{\leftmargin\leftmargini \topsep \z@\parsep \z@
+\itemsep \parsep}}
+\def\footnotesize{\@setsize\footnotesize{12pt}\xpt\@xpt
+\abovedisplayskip 10pt plus2pt minus5pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \abovedisplayskip\belowdisplayshortskip \belowdisplayskip
+\def\@listi{\leftmargin\leftmargini \topsep \z@\parsep \z@
+\itemsep \parsep}}
+\def\scriptsize{\@setsize\scriptsize{9.5pt}\viiipt\@viiipt}
+\def\tiny{\@setsize\tiny{7pt}\vipt\@vipt}
+\def\large{\@setsize\large{18pt}\xivpt\@xivpt}
+\def\Large{\@setsize\Large{22pt}\xviipt\@xviipt}
+\def\LARGE{\@setsize\LARGE{25pt}\xxpt\@xxpt}
+\def\huge{\@setsize\huge{30pt}\xxvpt\@xxvpt}
+\let\Huge=\huge
+\normalsize 
+
+\voffset -.4in
+\if@twoside \oddsidemargin .5in \evensidemargin -.15in
+\else \oddsidemargin  .25in \evensidemargin .25in \fi
+\marginparwidth 1in \marginparsep .25in
+ \topmargin \z@ \headheight 12pt \headsep .24in \footskip .2in
+
+\textheight 9in \textwidth 6.15in \columnsep 12pt \columnseprule 0pt 
+
+\footnotesep 8pt 
+\skip\footins 16pt plus 5pt minus 3pt 
+\floatsep 14pt plus 4pt minus 4pt \textfloatsep 20pt plus 2pt minus 4pt
+\intextsep 14pt plus 4pt minus 4pt \@maxsep 20pt \dblfloatsep 12pt plus 2pt
+minus 2pt \dbltextfloatsep 20pt plus 2pt minus 4pt \@dblmaxsep 20pt 
+\@fptop 0pt plus 1fil \@fpsep 8pt plus 2fil \@fpbot 0pt plus 1fil 
+\@dblfptop 0pt plus 1fil \@dblfpsep 8pt plus 2fil \@dblfpbot 0pt plus 1fil
+\marginparpush 5pt 
+
+\parskip 0pt plus 1pt \parindent .3in \partopsep \z@
+\@lowpenalty 51 \@medpenalty 151 \@highpenalty 301 
+\@beginparpenalty -\@lowpenalty \@endparpenalty -\@lowpenalty \@itempenalty
+-\@lowpenalty 
+
+
+\def\part{\par \addvspace{4ex} \@afterindentfalse \secdef\@part\@spart} 
+\def\@part[#1]#2{\ifnum \c@secnumdepth >\m@ne \refstepcounter{part}
+\addcontentsline{toc}{part}{\thepart \hspace{1em}#1}\else
+\addcontentsline{toc}{part}{#1}\fi { \parindent 0pt \raggedright 
+ \ifnum \c@secnumdepth >\m@ne \bf Part \thepart \par \nobreak \fi
+\bf #2\markboth{}{}\par } \nobreak \vskip 3ex \@afterheading } 
+\def\@spart#1{{\parindent 0pt \raggedright 
+ \bf 
+ #1\par} \nobreak \vskip 3ex \@afterheading } 
+\def\section{\@startsection {section}{1}{.3in}{1.6ex plus .6ex minus 
+    .2ex}{-.5em plus -.1em}{\bf}}
+\def\subsection{\@startsection {subsection}{2}{.3in}{1.6ex plus .6ex minus 
+    .2ex}{-.5em plus -.1em}{\bf}}
+\def\subsubsection{\@startsection {subsubsection}{3}{.3in}{1.6ex plus .6ex minus 
+    .2ex}{-.5em plus -.1em}{\bf}}
+\def\paragraph{\@startsection {paragraph}{4}{.3in}{1.6ex plus .6ex minus 
+    .2ex}{-.5em plus -.1em}{\it}}
+\def\subparagraph{\@startsection {subparagraph}{4}{.3in}{1.6ex plus .6ex minus 
+    .2ex}{-.5em plus -.1em}{\it}}
+
+
+\setcounter{secnumdepth}{3}
+
+\def\appendix{\par
+ \setcounter{section}{0}
+ \setcounter{subsection}{0}
+ \def\thesection{\Alph{section}}}
+
+
+\leftmargini .6in
+\leftmarginii 2.2em \leftmarginiii 1.87em \leftmarginiv 1.7em \leftmarginv 1em
+\leftmarginvi 1em
+\leftmargin\leftmargini
+\labelsep .5em
+\labelwidth\leftmargini\advance\labelwidth-\labelsep
+\def\@listI{\leftmargin\leftmargini \parsep \z@ \topsep \z@ \itemsep \parsep}
+\let\@listi\@listI
+\@listi 
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+ \topsep \z@
+ \parsep \z@
+ \itemsep \parsep}
+\def\@listiii{\leftmargin\leftmarginiii
+ \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
+ \topsep \z@
+ \parsep \z@ \partopsep \z@
+ \itemsep \topsep}
+\def\@listiv{\leftmargin\leftmarginiv
+ \labelwidth\leftmarginiv\advance\labelwidth-\labelsep}
+\def\@listv{\leftmargin\leftmarginv
+ \labelwidth\leftmarginv\advance\labelwidth-\labelsep}
+\def\@listvi{\leftmargin\leftmarginvi
+ \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
+

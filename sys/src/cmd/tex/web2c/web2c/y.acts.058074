@@ -1,0 +1,935 @@
+
+case 1:
+#line	66	"web2c.yacc"
+{block_level++;
+			 printf("#include \"%s\"\n", std_header);} break;
+case 2:
+#line	70	"web2c.yacc"
+{printf("\n#include \"%s\"\n", coerce_name); } break;
+case 3:
+#line	73	"web2c.yacc"
+{YYACCEPT;} break;
+case 6:
+#line	81	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = field_id_tok;
+			} break;
+case 7:
+#line	86	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = fun_id_tok;
+			} break;
+case 8:
+#line	91	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = const_id_tok;
+			} break;
+case 9:
+#line	96	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = fun_param_tok;
+			} break;
+case 10:
+#line	101	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = proc_id_tok;
+			} break;
+case 11:
+#line	106	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = proc_param_tok;
+			} break;
+case 12:
+#line	111	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = type_id_tok;
+			} break;
+case 13:
+#line	117	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = type_id_tok;
+			    sym_table[ii].val = lower_bound;
+			    sym_table[ii].val_sym = lower_sym;
+			    sym_table[ii].upper = upper_bound;
+			    sym_table[ii].upper_sym = upper_sym;
+			} break;
+case 14:
+#line	126	"web2c.yacc"
+{
+			    ii = add_to_table(last_id); 
+			    sym_table[ii].typ = var_id_tok;
+			} break;
+case 16:
+#line	136	"web2c.yacc"
+{	if (block_level > 0) my_output("{");
+			indent++; block_level++;
+		      } break;
+case 17:
+#line	141	"web2c.yacc"
+{if (block_level == 2) {
+			    if (strcmp(function_return_type, "void")) {
+			      my_output("register");
+			      my_output(function_return_type);
+			      my_output("Result;");
+			    }
+			    if (tex) {
+			      (void) sprintf(safe_string, "%s_regmem",
+						my_routine);
+			      my_output(safe_string);
+			      indent_line();
+			    }
+			 }
+			} break;
+case 18:
+#line	156	"web2c.yacc"
+{if (block_level == 1)
+				puts("\n#include \"coerce.h\"");
+			 doing_statements = TRUE;
+			} break;
+case 19:
+#line	161	"web2c.yacc"
+{if (block_level == 2) {
+			    if (strcmp(function_return_type,"void")) {
+			      my_output("return(Result)");
+			      semicolon();
+			     }
+			     if (tex) {
+			       if (uses_mem && uses_eqtb)
+				(void) fprintf(coerce,
+	"#define %s_regmem register memoryword *mem=zmem, *eqtb=zeqtb;\n",
+				   my_routine);
+			       else if (uses_mem)
+				(void) fprintf(coerce,
+			"#define %s_regmem register memoryword *mem=zmem;\n",
+				   my_routine);
+			       else if (uses_eqtb)
+				(void) fprintf(coerce,
+			"#define %s_regmem register memoryword *eqtb=zeqtb;\n",
+				   my_routine);
+			       else
+				(void) fprintf(coerce,
+				   "#define %s_regmem\n",
+				   my_routine);
+			    }
+			    my_routine[0] = '\0';
+			 }
+			 indent--; block_level--;
+			 my_output("}"); new_line();
+			 doing_statements = FALSE;
+			} break;
+case 21:
+#line	194	"web2c.yacc"
+{ my_output("/*"); } break;
+case 22:
+#line	196	"web2c.yacc"
+{ my_output("*/"); } break;
+case 25:
+#line	204	"web2c.yacc"
+{ my_output(temp); } break;
+case 27:
+#line	209	"web2c.yacc"
+{ indent_line(); } break;
+case 30:
+#line	217	"web2c.yacc"
+{ new_line(); my_output("#define"); } break;
+case 31:
+#line	219	"web2c.yacc"
+{ ii=add_to_table(last_id);
+				  sym_table[ii].typ = const_id_tok;
+				  my_output(last_id);
+				} break;
+case 32:
+#line	224	"web2c.yacc"
+{ sym_table[ii].val=last_i_num;
+				  new_line(); } break;
+case 33:
+#line	229	"web2c.yacc"
+{
+				  (void) sscanf(temp, "%ld", &last_i_num);
+				  if (labs((long) last_i_num) > 32767)
+				      (void) strcat(temp, "L");
+				  my_output(temp);
+				  yyval = ex_32;
+				} break;
+case 34:
+#line	237	"web2c.yacc"
+{ my_output(temp);
+				  yyval = ex_real;
+				} break;
+case 35:
+#line	241	"web2c.yacc"
+{ yyval = 0; } break;
+case 36:
+#line	243	"web2c.yacc"
+{ yyval = ex_32; } break;
+case 37:
+#line	247	"web2c.yacc"
+{ int i, j; char s[132];
+	  			  j = 1;
+				  s[0] = '"';
+	  			  for (i=1; yytext[i-1]!=0; i++) {
+	  			    if (yytext[i] == '\\' || yytext[i] == '"')
+					s[j++]='\\';
+	    			    else if (yytext[i] == '\'') i++;
+	    			    s[j++] = yytext[i];
+				  }
+	    			  s[j-1] = '"';
+				  s[j] = 0;
+				  my_output(s);
+				} break;
+case 38:
+#line	261	"web2c.yacc"
+{ char s[5];
+				  s[0]='\'';
+	    			  if (yytext[1] == '\\' || yytext[1] == '\'') {
+	  				s[2] = yytext[1];
+					s[1] = '\\';
+					s[3] = '\'';
+					s[4] = '\0';
+				  }
+	  			  else {
+					s[1] = yytext[1];
+					s[2]='\'';
+					s[3]='\0';
+				  }
+	  			  my_output(s);
+				} break;
+case 39:
+#line	279	"web2c.yacc"
+{ my_output(last_id); } break;
+case 44:
+#line	291	"web2c.yacc"
+{ my_output("typedef"); } break;
+case 45:
+#line	293	"web2c.yacc"
+{ ii = add_to_table(last_id);
+				  sym_table[ii].typ = type_id_tok;
+				  (void) strcpy(safe_string, last_id);
+				  last_type = ii;
+				} break;
+case 46:
+#line	299	"web2c.yacc"
+{
+				  array_bounds[0] = 0;
+				  array_offset[0] = 0;
+				} break;
+case 47:
+#line	304	"web2c.yacc"
+{ if (*array_offset) {
+			fprintf(stderr, "Cannot typedef arrays with offsets\n");
+					exit(1);
+				  }
+				  my_output(safe_string);
+				  my_output(array_bounds);
+				  semicolon();
+				  last_type = -1;
+				} break;
+case 50:
+#line	320	"web2c.yacc"
+{ if (last_type >= 0) {
+					sym_table[ii].val = lower_bound;
+					sym_table[ii].val_sym = lower_sym;
+			 		sym_table[ii].upper = upper_bound;
+					sym_table[ii].upper_sym = upper_sym;
+					ii= -1;
+				  }
+/* The following code says: if the bounds are known at translation time
+ * on an integral type, then we select the smallest type of data which
+ * can represent it in ANSI C.  We only use unsigned types when necessary.
+ */
+				  if (lower_sym == -1 && upper_sym == -1) {
+				    if (lower_bound>= -127 && upper_bound<=127)
+					my_output("schar");
+				    else if (lower_bound >= 0
+				      && upper_bound <= 255)
+					my_output("unsigned char");
+	  			    else if (lower_bound >= -32767
+				      && upper_bound <= 32767)
+					my_output("short");
+	  			    else if (lower_bound >= 0
+				      && upper_bound <= 65535)
+					my_output("unsigned short");
+	  			    else my_output("integer");
+				  }
+				  else my_output("integer");
+				} break;
+case 55:
+#line	358	"web2c.yacc"
+{lower_bound = upper_bound;
+				 lower_sym = upper_sym;
+				 (void) sscanf(temp, "%ld", &upper_bound);
+				 upper_sym = -1; /* no sym table entry */
+				} break;
+case 56:
+#line	364	"web2c.yacc"
+{ lower_bound = upper_bound;
+				  lower_sym = upper_sym;
+				  upper_bound = sym_table[l_s].val;
+				  upper_sym = l_s;
+				} break;
+case 57:
+#line	372	"web2c.yacc"
+{if (last_type >= 0) {
+	    sym_table[last_type].var_not_needed = sym_table[l_s].var_not_needed;
+	    sym_table[last_type].upper = sym_table[l_s].upper;
+	    sym_table[last_type].upper_sym = sym_table[l_s].upper_sym;
+	    sym_table[last_type].val = sym_table[l_s].val;
+	    sym_table[last_type].val_sym = sym_table[l_s].val_sym;
+	 }
+	 my_output(last_id); } break;
+case 58:
+#line	383	"web2c.yacc"
+{if (last_type >= 0)
+				    sym_table[last_type].var_not_needed = TRUE;} break;
+case 60:
+#line	387	"web2c.yacc"
+{if (last_type >= 0)
+				    sym_table[last_type].var_not_needed = TRUE;} break;
+case 61:
+#line	390	"web2c.yacc"
+{if (last_type >= 0)
+				    sym_table[last_type].var_not_needed = TRUE;} break;
+case 62:
+#line	395	"web2c.yacc"
+{if (last_type >= 0) {
+	    sym_table[last_type].var_not_needed = sym_table[l_s].var_not_needed;
+	    sym_table[last_type].upper = sym_table[l_s].upper;
+	    sym_table[last_type].upper_sym = sym_table[l_s].upper_sym;
+	    sym_table[last_type].val = sym_table[l_s].val;
+	    sym_table[last_type].val_sym = sym_table[l_s].val_sym;
+	 }
+	 my_output(last_id); my_output("*"); } break;
+case 65:
+#line	411	"web2c.yacc"
+{ compute_array_bounds(); } break;
+case 66:
+#line	413	"web2c.yacc"
+{ lower_bound = sym_table[l_s].val;
+				  lower_sym = sym_table[l_s].val_sym;
+				  upper_bound = sym_table[l_s].upper;
+				  upper_sym = sym_table[l_s].upper_sym;
+				  compute_array_bounds();
+				} break;
+case 68:
+#line	426	"web2c.yacc"
+{ my_output("struct"); my_output("{"); indent++;} break;
+case 69:
+#line	428	"web2c.yacc"
+{ indent--; my_output("}"); semicolon(); } break;
+case 72:
+#line	436	"web2c.yacc"
+{ field_list[0] = 0; } break;
+case 73:
+#line	438	"web2c.yacc"
+{
+				  /*array_bounds[0] = 0;
+				  array_offset[0] = 0;*/
+				} break;
+case 74:
+#line	443	"web2c.yacc"
+{ int i=0, j; char ltemp[80];
+				  while(field_list[i++] == '!') {
+					j = 0;
+					while (field_list[i])
+					    ltemp[j++] = field_list[i++];
+					i++;
+					if (field_list[i] == '!')
+						ltemp[j++] = ',';
+					ltemp[j] = 0;
+					my_output(ltemp);
+				  }
+				  semicolon();
+				} break;
+case 78:
+#line	464	"web2c.yacc"
+{ int i=0, j=0;
+				  while (field_list[i] == '!')
+					while(field_list[i++]);
+				  ii = add_to_table(last_id);
+				  sym_table[ii].typ = field_id_tok;
+				  field_list[i++] = '!';
+				  while (last_id[j])
+					field_list[i++] = last_id[j++];
+				  field_list[i++] = 0;
+				  field_list[i++] = 0;
+				} break;
+case 79:
+#line	476	"web2c.yacc"
+{ int i=0, j=0;
+				  while (field_list[i] == '!')
+					while(field_list[i++]);
+				  field_list[i++] = '!';
+				  while (last_id[j])
+					field_list[i++] = last_id[j++];
+				  field_list[i++] = 0;
+				  field_list[i++] = 0;
+				} break;
+case 80:
+#line	488	"web2c.yacc"
+{ my_output("file_ptr /* of "); } break;
+case 81:
+#line	490	"web2c.yacc"
+{ my_output("*/"); } break;
+case 86:
+#line	502	"web2c.yacc"
+{ var_list[0] = 0;
+				  array_bounds[0] = 0;
+				  array_offset[0] = 0;
+				  var_formals = FALSE;
+				  ids_paramed = 0;
+				} break;
+case 87:
+#line	509	"web2c.yacc"
+{
+				  array_bounds[0] = 0;	
+				  array_offset[0] = 0;
+				} break;
+case 88:
+#line	514	"web2c.yacc"
+{ fixup_var_list(); } break;
+case 91:
+#line	522	"web2c.yacc"
+{ int i=0, j=0;
+				  ii = add_to_table(last_id);
+				  sym_table[ii].typ = var_id_tok;
+				  sym_table[ii].var_formal = var_formals;
+				  param_id_list[ids_paramed++] = ii;
+	  			  while (var_list[i] == '!')
+					while(var_list[i++]);
+				  var_list[i++] = '!';
+				  while (last_id[j])
+					var_list[i++] = last_id[j++];
+	  			  var_list[i++] = 0;
+				  var_list[i++] = 0;
+				} break;
+case 92:
+#line	536	"web2c.yacc"
+{ int i=0, j=0;
+				  ii = add_to_table(last_id);
+	  			  sym_table[ii].typ = var_id_tok;
+				  sym_table[ii].var_formal = var_formals;
+				  param_id_list[ids_paramed++] = ii;
+	  			  while (var_list[i] == '!')
+					while (var_list[i++]);
+	  			  var_list[i++] = '!';
+				  while (last_id[j])
+					var_list[i++] = last_id[j++];
+	  			  var_list[i++] = 0;
+				  var_list[i++] = 0;
+				} break;
+case 93:
+#line	550	"web2c.yacc"
+{ int i=0, j=0;
+				  ii = add_to_table(last_id);
+	  			  sym_table[ii].typ = var_id_tok;
+				  sym_table[ii].var_formal = var_formals;
+				  param_id_list[ids_paramed++] = ii;
+	  			  while (var_list[i] == '!')
+					while(var_list[i++]);
+	  			  var_list[i++] = '!';
+				  while (last_id[j])
+					var_list[i++] = last_id[j++];
+				  var_list[i++] = 0;
+				  var_list[i++] = 0;
+				} break;
+case 95:
+#line	567	"web2c.yacc"
+{ my_output("void main_body() {");
+				  indent++;
+			      	  new_line();
+                                } break;
+case 96:
+#line	572	"web2c.yacc"
+{ indent--; my_output("}"); new_line(); } break;
+case 99:
+#line	580	"web2c.yacc"
+{ indent_line(); remove_locals(); } break;
+case 100:
+#line	582	"web2c.yacc"
+{ indent_line(); remove_locals(); } break;
+case 102:
+#line	589	"web2c.yacc"
+{ ii = add_to_table(last_id);
+				  if (debug)
+				  (void) fprintf(stderr, "%3d Procedure %s\n",
+					pf_count++, last_id);
+				  sym_table[ii].typ = proc_id_tok;
+				  (void) strcpy(my_routine, last_id);
+				  uses_eqtb = uses_mem = FALSE;
+				  my_output("void");
+				  orig_std = std;
+				  std = 0;
+				} break;
+case 103:
+#line	601	"web2c.yacc"
+{(void) strcpy(function_return_type, "void");
+				 do_proc_args();
+				 gen_function_head();} break;
+case 104:
+#line	605	"web2c.yacc"
+{ ii = l_s; 
+				  if (debug)
+				  (void) fprintf(stderr, "%3d Procedure %s\n",
+					pf_count++, last_id);
+				  (void) strcpy(my_routine, last_id);
+				  my_output("void");
+				} break;
+case 105:
+#line	613	"web2c.yacc"
+{(void) strcpy(function_return_type, "void");
+				 do_proc_args();
+				 gen_function_head();} break;
+case 106:
+#line	619	"web2c.yacc"
+{ (void) strcpy(z_id, last_id);
+				  mark();
+				  ids_paramed = 0;
+				} break;
+case 107:
+#line	624	"web2c.yacc"
+{ if (ansi) (void) strcpy(z_id, last_id);
+				  else (void) sprintf(z_id, "z%s", last_id);
+				  ids_paramed = 0;
+ 				  if (sym_table[ii].typ == proc_id_tok)
+				  	sym_table[ii].typ = proc_param_tok;
+				  else if (sym_table[ii].typ == fun_id_tok)
+					sym_table[ii].typ = fun_param_tok;
+				  mark();
+				} break;
+case 111:
+#line	640	"web2c.yacc"
+{ ids_typed = ids_paramed;} break;
+case 112:
+#line	642	"web2c.yacc"
+{int i, need_var;
+				 i = search_table(last_id);
+				 need_var = !sym_table[i].var_not_needed;
+				 for (i=ids_typed; i<ids_paramed; i++) {
+					(void) strcpy(arg_type[i], last_id);
+		if (need_var && sym_table[param_id_list[i]].var_formal)
+					(void) strcat(arg_type[i], " *");
+		else sym_table[param_id_list[i]].var_formal = FALSE;
+				 }
+				} break;
+case 113:
+#line	654	"web2c.yacc"
+{var_formals = 0;} break;
+case 115:
+#line	655	"web2c.yacc"
+{var_formals = 1;} break;
+case 120:
+#line	666	"web2c.yacc"
+{ orig_std = std;
+				  std = 0;
+				  ii = add_to_table(last_id);
+				  if (debug)
+				  (void) fprintf(stderr, "%3d Function %s\n",
+					pf_count++, last_id);
+	  			  sym_table[ii].typ = fun_id_tok;
+				  (void) strcpy(my_routine, last_id);
+				  uses_eqtb = uses_mem = FALSE;
+				} break;
+case 121:
+#line	677	"web2c.yacc"
+{ normal();
+				  array_bounds[0] = 0;
+				  array_offset[0] = 0;
+				} break;
+case 122:
+#line	682	"web2c.yacc"
+{(void) strcpy(function_return_type, yytext);
+			     do_proc_args();
+			     gen_function_head();
+			    } break;
+case 124:
+#line	689	"web2c.yacc"
+{ orig_std = std;
+				  std = 0;
+				  ii = l_s;
+				  (void) fprintf(stderr, "%3d Function %s\n",
+					pf_count++, last_id);
+				  (void) strcpy(my_routine, last_id);
+				  uses_eqtb = uses_mem = FALSE;
+				} break;
+case 125:
+#line	698	"web2c.yacc"
+{ normal();
+				  array_bounds[0] = 0;
+				  array_offset[0] = 0;
+				} break;
+case 126:
+#line	703	"web2c.yacc"
+{(void) strcpy(function_return_type, yytext);
+			     do_proc_args();
+			     gen_function_head();
+			    } break;
+case 132:
+#line	721	"web2c.yacc"
+{my_output("{"); indent++; new_line();} break;
+case 133:
+#line	723	"web2c.yacc"
+{ indent--; my_output("}"); new_line(); } break;
+case 138:
+#line	736	"web2c.yacc"
+{if (!doreturn(temp)) {
+				    (void) sprintf(safe_string, "lab%s:",
+					temp);
+				    my_output(safe_string);
+				 }
+				} break;
+case 139:
+#line	745	"web2c.yacc"
+{ semicolon(); } break;
+case 140:
+#line	747	"web2c.yacc"
+{ semicolon(); } break;
+case 145:
+#line	755	"web2c.yacc"
+{my_output("break");} break;
+case 146:
+#line	759	"web2c.yacc"
+{ my_output("="); } break;
+case 148:
+#line	762	"web2c.yacc"
+{ my_output("Result ="); } break;
+case 150:
+#line	767	"web2c.yacc"
+{ if (strcmp(last_id, "mem") == 0)
+					uses_mem = 1;
+				  else if (strcmp(last_id, "eqtb") == 0)
+					uses_eqtb = 1;
+				  if (sym_table[l_s].var_formal)
+					(void) putchar('*');
+				  my_output(last_id);
+				  yyval = ex_32;
+				} break;
+case 152:
+#line	778	"web2c.yacc"
+{ if (sym_table[l_s].var_formal)
+					(void) putchar('*');
+				  my_output(last_id); yyval = ex_32; } break;
+case 153:
+#line	784	"web2c.yacc"
+{ yyval = ex_32; } break;
+case 154:
+#line	786	"web2c.yacc"
+{ yyval = ex_32; } break;
+case 157:
+#line	794	"web2c.yacc"
+{ my_output("["); } break;
+case 158:
+#line	796	"web2c.yacc"
+{ my_output("]"); } break;
+case 159:
+#line	798	"web2c.yacc"
+{if (tex || mf) {
+				   if (strcmp(last_id, "int")==0)
+					my_output(".cint");
+				   else if (strcmp(last_id, "lh")==0)
+					my_output(".v.LH");
+				   else if (strcmp(last_id, "rh")==0)
+					my_output(".v.RH");
+				   else {
+				     (void)sprintf(safe_string, ".%s", last_id);
+				     my_output(safe_string);
+				   }
+				 }
+				 else {
+				    (void) sprintf(safe_string, ".%s", last_id);
+				    my_output(safe_string);
+				 }
+				} break;
+case 160:
+#line	816	"web2c.yacc"
+{ my_output(".hh.b0");} break;
+case 161:
+#line	818	"web2c.yacc"
+{ my_output(".hh.b1");} break;
+case 163:
+#line	823	"web2c.yacc"
+{ my_output("][");} break;
+case 165:
+#line	828	"web2c.yacc"
+{ yyval = yypt[-0].yyv; } break;
+case 166:
+#line	829	"web2c.yacc"
+{my_output("+");} break;
+case 167:
+#line	830	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 168:
+#line	831	"web2c.yacc"
+{my_output("-");} break;
+case 169:
+#line	832	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 170:
+#line	833	"web2c.yacc"
+{my_output("*");} break;
+case 171:
+#line	834	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 172:
+#line	835	"web2c.yacc"
+{my_output("/");} break;
+case 173:
+#line	836	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 174:
+#line	837	"web2c.yacc"
+{my_output("==");} break;
+case 175:
+#line	838	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 176:
+#line	839	"web2c.yacc"
+{my_output("!=");} break;
+case 177:
+#line	840	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 178:
+#line	841	"web2c.yacc"
+{my_output("%");} break;
+case 179:
+#line	842	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 180:
+#line	843	"web2c.yacc"
+{my_output("<");} break;
+case 181:
+#line	844	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 182:
+#line	845	"web2c.yacc"
+{my_output(">");} break;
+case 183:
+#line	846	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 184:
+#line	847	"web2c.yacc"
+{my_output("<=");} break;
+case 185:
+#line	848	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 186:
+#line	849	"web2c.yacc"
+{my_output(">=");} break;
+case 187:
+#line	850	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 188:
+#line	851	"web2c.yacc"
+{my_output("&&");} break;
+case 189:
+#line	852	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 190:
+#line	853	"web2c.yacc"
+{my_output("||");} break;
+case 191:
+#line	854	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv);} break;
+case 192:
+#line	856	"web2c.yacc"
+{ my_output("/ ((double)"); } break;
+case 193:
+#line	858	"web2c.yacc"
+{yyval = max(yypt[-3].yyv, yypt[-0].yyv); my_output(")"); } break;
+case 194:
+#line	860	"web2c.yacc"
+{ yyval = yypt[-0].yyv; } break;
+case 196:
+#line	865	"web2c.yacc"
+{ my_output("- (integer)"); } break;
+case 197:
+#line	867	"web2c.yacc"
+{ my_output("!"); } break;
+case 198:
+#line	871	"web2c.yacc"
+{ my_output("("); } break;
+case 199:
+#line	873	"web2c.yacc"
+{ my_output(")"); yyval = yypt[-3].yyv; } break;
+case 202:
+#line	877	"web2c.yacc"
+{ my_output(last_id); my_output("()"); } break;
+case 203:
+#line	879	"web2c.yacc"
+{ my_output(last_id); } break;
+case 205:
+#line	884	"web2c.yacc"
+{ my_output("("); } break;
+case 206:
+#line	886	"web2c.yacc"
+{ my_output(")"); } break;
+case 208:
+#line	891	"web2c.yacc"
+{ my_output(","); } break;
+case 213:
+#line	904	"web2c.yacc"
+{ my_output(last_id); my_output("()"); } break;
+case 214:
+#line	906	"web2c.yacc"
+{ my_output(last_id);
+				  ii = add_to_table(last_id);
+	  			  sym_table[ii].typ = proc_id_tok;
+				  my_output("()");
+				} break;
+case 215:
+#line	912	"web2c.yacc"
+{ my_output(last_id); } break;
+case 217:
+#line	917	"web2c.yacc"
+{if (doreturn(temp)) {
+				    if (strcmp(function_return_type,"void"))
+					my_output("return(Result)");
+				    else
+					my_output("return");
+				 } else {
+				     (void) sprintf(safe_string, "goto lab%s",
+					temp);
+				     my_output(safe_string);
+				 }
+				} break;
+case 226:
+#line	947	"web2c.yacc"
+{ my_output("if"); my_output("("); } break;
+case 227:
+#line	949	"web2c.yacc"
+{ my_output(")"); new_line();} break;
+case 229:
+#line	954	"web2c.yacc"
+{ my_output("else"); } break;
+case 231:
+#line	959	"web2c.yacc"
+{ my_output("switch"); my_output("("); } break;
+case 232:
+#line	961	"web2c.yacc"
+{ my_output(")"); indent_line();
+				  my_output("{"); indent++;
+				} break;
+case 233:
+#line	965	"web2c.yacc"
+{ indent--; my_output("}"); new_line(); } break;
+case 236:
+#line	973	"web2c.yacc"
+{ my_output("break"); semicolon(); } break;
+case 239:
+#line	981	"web2c.yacc"
+{ my_output("case"); 
+				  my_output(temp);
+				  my_output(":"); indent_line();
+				} break;
+case 240:
+#line	986	"web2c.yacc"
+{ my_output("default:"); indent_line(); } break;
+case 246:
+#line	999	"web2c.yacc"
+{ my_output("while");
+				  my_output("(");
+				} break;
+case 247:
+#line	1003	"web2c.yacc"
+{ my_output(")"); } break;
+case 249:
+#line	1008	"web2c.yacc"
+{ my_output("do"); my_output("{"); indent++; } break;
+case 250:
+#line	1010	"web2c.yacc"
+{ indent--; my_output("}"); 
+				  my_output("while"); my_output("( ! (");
+				} break;
+case 251:
+#line	1014	"web2c.yacc"
+{ my_output(") )"); } break;
+case 252:
+#line	1018	"web2c.yacc"
+{
+				  my_output("{");
+				  my_output("register");
+				  my_output("integer");
+				  if (strict_for)
+					my_output("for_begin,");
+				  my_output("for_end;");
+				 } break;
+case 253:
+#line	1027	"web2c.yacc"
+{ if (strict_for)
+					my_output("for_begin");
+				  else
+					my_output(control_var);
+				  my_output("="); } break;
+case 254:
+#line	1033	"web2c.yacc"
+{ my_output("; if (");
+				  if (strict_for) my_output("for_begin");
+				  else my_output(control_var);
+				  my_output(relation);
+				  my_output("for_end)");
+				  if (strict_for) {
+					my_output("{");
+					my_output(control_var);
+					my_output("=");
+					my_output("for_begin");
+					semicolon();
+				  }
+				  my_output("do"); 
+				  indent++; 
+				  new_line();} break;
+case 255:
+#line	1049	"web2c.yacc"
+{
+				  char *top = rindex(for_stack, '#');
+				  indent--; new_line();
+				  my_output("while"); 
+				  my_output("("); 
+				  my_output(top+1); 
+				  my_output(")"); 
+				  my_output(";");
+				  my_output("}");
+				  if (strict_for)
+					my_output("}");
+				  *top=0;
+				  new_line();
+				} break;
+case 256:
+#line	1066	"web2c.yacc"
+{(void) strcpy(control_var, last_id); } break;
+case 257:
+#line	1070	"web2c.yacc"
+{ my_output(";"); } break;
+case 258:
+#line	1072	"web2c.yacc"
+{ 
+				  (void) strcpy(relation, "<=");
+				  my_output("for_end");
+				  my_output("="); } break;
+case 259:
+#line	1077	"web2c.yacc"
+{ 
+				  (void) sprintf(for_stack + strlen(for_stack),
+				    "#%s++ < for_end", control_var);
+				} break;
+case 260:
+#line	1082	"web2c.yacc"
+{ my_output(";"); } break;
+case 261:
+#line	1084	"web2c.yacc"
+{
+				  (void) strcpy(relation, ">=");
+				  my_output("for_end");
+				  my_output("="); } break;
+case 262:
+#line	1089	"web2c.yacc"
+{ 
+				  (void) sprintf(for_stack + strlen(for_stack),
+				    "#%s-- > for_end", control_var);
+				} break;

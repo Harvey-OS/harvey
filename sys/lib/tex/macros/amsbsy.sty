@@ -1,0 +1,89 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSBSY.STY						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%% 
+%% This is file `amsbsy.sty' generated
+%% on <1990/7/10> with the docstrip utility (v1.1j). 
+%% 
+%% The original source file was `amsbsy.doc'.
+%% 
+%% 
+
+\def\fileversion{v1.0b}
+\def\filedate{89/11/26}
+\def\docdate {89/11/26}
+
+%% \CheckSum{130}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+%% Copyright (C) 1989 Frank Mittelbach and Rainer Sch\"opf,
+%% all rights reserved.
+\@ifundefined{extract@font}
+     {\errmessage{The style option `amsbsy' does not make sense if you
+                  do not use a format with the new font selection scheme.}
+      \endinput}
+     {}
+\immediate\write\sixt@@n{Style Option: `amsbsy'
+ \fileversion\space\space\space <\filedate>  (FMi and RmS)}
+\immediate\write\sixt@@n{English Documentation
+ \space\@spaces\@spaces  <\docdate>  (FMi and RmS)}
+\def\boldsymbol#1{%
+    \math@atom{#1}%
+    {\text{%
+           \mathversion{bold}$\m@th#1$}}}
+\@ifundefined{textdef@}{\input{amstext.sty}}{}
+\@ifundefined{setboxz@h}{%
+ \def\RIfM@{\relax\protect\ifmmode}
+ \def\setboxz@h{\setbox\z@\hbox}
+ \def\wdz@{\wd\z@}
+ \def\boxz@{\box\z@}
+ \def\setbox@ne{\setbox\@ne}
+ \def\wd@ne{\wd\@ne}}
+{}
+\def\math@atom#1#2{%
+   \binrel@{#1}\binrel@@{#2}}
+\def\binrel@#1{\setboxz@h{\thinmuskip0mu
+  \medmuskip\m@ne mu\thickmuskip\@ne mu$#1\m@th$}%
+ \setbox@ne\hbox{\thinmuskip0mu\medmuskip\m@ne mu\thickmuskip
+  \@ne mu${}#1{}\m@th$}%
+ \setbox\tw@\hbox{\hskip\wd@ne\hskip-\wdz@}}
+
+\def\pmb{\RIfM@\expandafter\mathpalette\expandafter\pmb@\else
+ \expandafter\pmb@@\fi}
+
+\def\pmb@@#1{\leavevmode\setboxz@h{#1}\kern-.025em\copy\z@\kern-\wdz@
+ \kern-.05em\copy\z@\kern-\wdz@\kern-.025em\raise.0433em\boxz@}
+
+\def\binrel@@#1{\ifdim\wd2<\z@\mathbin{#1}\else\ifdim\wd\tw@>\z@
+ \mathrel{#1}\else{#1}\fi\fi}
+
+\newdimen\pmbraise@
+
+\def\pmb@#1#2{\setbox\thr@@\hbox{$\m@th#1{#2}$}%
+ \setbox4 \hbox{$\m@th#1\mkern.7794mu$}\pmbraise@\wd4
+ \binrel@{#2}\binrel@@{\mkern-.45mu\copy\thr@@\kern-\wd\thr@@
+ \mkern-.9mu\copy\thr@@\kern-\wd\thr@@\mkern-.45mu\raise\pmbraise@\box\thr@@}}
+\endinput
+%% 
+%% End of file `amsbsy.sty'.

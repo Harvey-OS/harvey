@@ -1,0 +1,24 @@
+APE=/usr/ape
+< $APE/src/config
+CFLAGS=
+O=arc.o box.o circle.o closepl.o disc.o erase.o frame.o line.o move.o openpl.o range.o rmove.o rvec.o sbox.o vec.o
+
+all:V: lib.a
+
+compile:V: lib.a
+
+test:VQ:
+	echo no test for lib
+
+install: tpic
+	$INSTALL tpic $APEBIN/tpic "$INSOWNER" "$INSGROUP" $INSMODE
+
+clean:V:
+	rm -f lib.a *.o
+
+%.o: %.c
+	$CC -c $stem.c
+
+lib.a:	$O
+	$AR r lib.a $newprereq
+	$RANLIB lib.a

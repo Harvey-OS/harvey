@@ -1,0 +1,68 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=LDE
+OFILES=LDE.$O\
+	field.$O\
+	lex.$O\
+	main.$O\
+	out.$O\
+	tree.$O\
+	y.tab.$O\
+	QUINE.$O\
+	invert.$O\
+
+HFILES=dat.h\
+	fns.h\
+	gram.h\
+
+YFILES=lde.y\
+
+</sys/src/cmd/mkone
+YFLAGS=-S -d -v
+CFLAGS=-DPLAN9 -DX$objtype -w
+
+nlde:	ny.tab.o LDE.o field.o nlex.o main.o out.o tree.o QUINE.o invert.o
+	$LD -o $target $depend
+
+#ny.tab.c y.tab.h:	nlde.y
+#	# expect 1 shift/reduce conflict
+#	yacc -S -d -v nlde.y
+#	awk -f op.awk <y.tab.h  >op.h
+#	mv y.tab.c ny.tab.c
+
+regress: v.out
+	cd regress; mk
+
+LDE.$O:	op.h
+
+op.h:	y.tab.h
+	awk -f op.awk <y.tab.h  >op.h
+
+gram.h:EQ: y.tab.h
+	if(! test -f $target || ! cmp -s $prereq $target)
+		cp $prereq $target
+
+y.tab.$O: y.tab.c dat.h fns.h
+	$CC $CFLAGS -DYYMAXDEPTH'='2000 y.tab.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug gram.h y.output $TARG
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug gram.h y.output $TARG
+	rm -f op.h
+
+%.tst: 
+	cp $stem foo.lde
+	time LDE -q  foo.lde >foo.new
+	time lde foo.lde >foo.1
+	time quine -q <foo.1 >foo.2
+	time cover -s <foo.2 >foo.old
+	chkmt foo
+
+%.etst:
+	cp $stem foo.lde
+	time LDE -e foo.lde >foo.old
+	time espresso <foo.old >foo.new
+	time LDE -q  foo.lde >foo.old

@@ -1,0 +1,1134 @@
+.TH DB 1
+.ds TW \v'.25m'\s+2~\s-2\v'-.25m'
+.ds ST \v'.25m'*\v'-.25m'
+.ds IM \v'.1m'=\v'-.1m'\s-2\h'-.1m'>\h'.1m'\s+2
+.ds LE \(<=
+.ds LT \s-2<\s+2
+.ds GT \s-2>\s+2
+.SH NAME
+db, dbfmt \- debugger
+.SH SYNOPSIS
+.B db
+[
+.I option ...
+]
+[
+.I textfile
+[
+.I memfile
+]
+]
+.PP
+.B db
+[
+.B -k
+]
+.I pid
+.PP
+.B dbfmt
+.SH DESCRIPTION
+.I Db
+is a general purpose debugging program.
+It may be used to examine files and to provide
+a controlled environment for the execution
+of Plan 9 programs.
+.PP
+.I Textfile
+is normally an executable program file or
+.BI /proc/ pid /text .
+.I Memfile
+is the memory image of a process, usually obtained from
+.BI /proc/ pid /mem .
+If there is exactly one argument, and it is numeric, then it
+is used as a
+.I pid
+to find the
+.B text
+and
+.B mem
+files in
+.BI /proc/ pid .
+.PP
+Requests to
+.I db
+are read from the standard input and
+responses are to the standard output.
+The options are
+.TP
+.BI -k " pid"
+Use the kernel for the
+.I textfile
+and
+.IR memfile ,
+with the kernel stack of process
+.IR pid .
+.TP
+.B -w
+Create
+.I textfile
+and
+.I memfile
+if they don't exist; open them for writing
+as well as reading.
+.TP
+.BI -I path
+Directory in which to look for relative path names in
+.B $<
+and
+.B $<<
+commands.
+.TP
+.BI -m machine
+Assume instructions are for the given CPU type
+(one of
+.BR 386 ,
+.BR 68020 ,
+.BR 960 ,
+.BR hobbit ,
+.BR mips ,
+.BR mipsco ,
+.BR sparc ,
+or
+.BR sunsparc )
+instead of using the magic number in the text file to select
+the CPU type.
+.PP
+In general requests to
+.I  db
+have the following form.
+Multiple requests on one line must be separated by
+.LR ; .
+.IP
+.RI [ address ]
+.RB [ ,
+.IR count ]
+.RI [ command ]
+.PP
+If
+.I address
+is present then the current position, called `dot',
+is set to
+.IR address .
+Initially dot
+is set to 0.
+In general commands are repeated
+.I count
+times.
+Dot advances between repetitions.
+The default
+.I count
+is 1.
+.I Address
+and
+.I count
+are expressions.
+.SS Expressions
+Expressions are evaluated as long ints.
+.TP 7.2n
+.B .
+The value of dot.
+.TP 7.2n
+.B +
+The value of dot
+incremented by the current increment.
+.TP 7.2n
+.B ^
+The value of dot
+decremented by the current increment.
+.TP 7.2n
+.B \&"
+The last
+.I address
+typed.
+.TP 7.2n
+.I integer
+A number, in decimal radix by default.
+The prefixes
+.L 0
+and
+.L 0o
+and
+.L 0O
+(zero oh) force interpretation
+in octal radix; the prefixes
+.L 0t
+and
+.L 0T
+force interpretation in
+decimal radix; the prefixes
+.LR 0x ,
+.LR 0X ,
+and
+.L #
+force interpretation in
+hexadecimal radix.
+Thus
+.LR 020 ,
+.LR 0o20 ,
+.LR 0t16 ,
+and
+.L #10 
+all represent sixteen.
+.TP 7.2n
+.IB integer . fraction
+A single-precision floating point number.
+.TP 7.2n
+.BI \' c\| \'
+The
+.SM Unicode 
+value of a character.
+.L \e
+may be used to escape a
+.LR \' .
+.TP 7.2n
+.BI < name
+The value of
+.IR name ,
+which is either a variable name or a register name.
+.I db
+maintains a number of variables
+named by single letters or digits.
+The register names are
+those printed by the
+.B $r
+command.
+.TP 7.2n
+.I symbol
+A
+.I symbol
+is a sequence
+of upper or lower case letters, underscores or
+digits, not starting with a digit.
+.L \e
+may be used to escape other characters.
+The location of the
+.I symbol
+is calculated from the symbol table
+in
+.IR textfile .
+.TP 7.2n
+.IB routine . name
+The address of the variable
+.I name
+in the specified
+C routine.
+Both
+.I routine
+and
+.I name
+are
+.IR symbols .
+If
+.I name
+is omitted the value is the address of the
+most recently activated C stack frame
+corresponding to
+.IR routine ;
+if
+.I routine
+is omitted,
+the active procedure
+is assumed.
+.TP 7.2n
+.IB file : integer
+The address of the instruction corresponding
+to the C source statement at the indicated
+line number of the file.  If the source line contains
+no executable statement, the address of the
+instruction associated with the nearest
+executable source line is returned.  Files
+begin at line 1.  If multiple files of the same
+name are loaded, an expression of this form resolves
+to the first file encountered in the symbol table.
+.TP 7.2n
+.BI ( exp )
+The value of the expression
+.I exp.
+.LP
+.I  Monadic operators
+.TP 7.2n
+.BI * exp
+The contents of the location addressed
+by
+.I exp
+in
+.IR memfile .
+.TP 7.2n
+.BI @ exp
+The contents of the location addressed by
+.I exp
+in
+.IR textfile .
+.TP 7.2n
+.BI - exp
+Integer negation.
+.TP 7.2n
+.BI ~ exp
+Bitwise complement.
+.TP 7.2n
+.BI % exp
+If
+.I exp
+is used as an address,
+it is in register space;
+see `Addresses'.
+.LP
+.I "Dyadic\ operators"
+are left associative
+and are less binding than monadic operators.
+.TP 7.2n
+.IB e1 + e2
+Integer addition.
+.TP 7.2n
+.IB e1 - e2
+Integer subtraction.
+.TP 7.2n
+.IB e1 * e2
+Integer multiplication.
+.TP 7.2n
+.IB e1 % e2
+Integer division.
+.TP 7.2n
+.IB e1 & e2
+Bitwise conjunction.
+.TP 7.2n
+.IB e1 | e2
+Bitwise disjunction.
+.TP 7.2n
+.IB e1 # e2
+.I E1
+rounded up to the next multiple of
+.IR e2 .
+.DT
+.SS Commands
+Most commands consist of a verb followed by a modifier or list
+of modifiers.
+The following verbs are available.
+(The commands
+.L ?
+and
+.L /
+may be followed by 
+.LR * ;
+see `Addresses'
+for further details.)
+.TP .5i
+.BI ? f
+Locations starting at
+.I address
+in
+.I  textfile
+are printed according to the format
+.IR f .
+.TP
+.BI / f
+Locations starting at
+.I address
+in
+.I  memfile
+are printed according to the format
+.I f.
+.TP
+.BI  = f
+The value of
+.I address
+itself is printed in the
+styles indicated by the format
+.IR f .
+.PP
+A
+.I format
+consists of one or more characters that specify a style
+of printing.
+Each format character may be preceded by a decimal integer
+that is a repeat count for the format character.
+If no format is given then the last format is used.
+.PP
+Most format letters fetch some data,
+print it,
+and advance (a local copy of) dot
+by the number of bytes fetched.
+The total number of bytes in a format becomes the
+.I current increment.
+.ta 2.5n .5i
+.RS
+.TP
+.PD 0
+.B o
+Print two-byte integer in octal.
+.TP
+.B O
+Print four-byte integer in octal.
+.TP
+.B q
+Print two-byte in signed octal.
+.TP
+.B Q
+Print four-byte in signed octal.
+.TP
+.B d
+Print two-byte in decimal.
+.TP
+.B D
+Print four-byte in decimal.
+.TP
+.B x
+Print two-byte in hexadecimal.
+.TP
+.B X
+Print four-byte in hexadecimal.
+.TP
+.B u
+Print two-byte in unsigned decimal.
+.TP
+.B U
+Print four-byte in unsigned decimal.
+.TP
+.B f
+Print
+as a single-precision floating point number.
+.TP
+.B F
+Print double-precision floating point.
+.TP
+.B b
+Print the addressed byte in hexadecimal.
+.TP
+.B c
+Print the addressed byte as an
+.SM ASCII
+character.
+.TP
+.B C
+Print the addressed byte as a character.
+Printable
+.SM ASCII
+characters
+are represented normally; others
+are printed in the form
+.BI \exnn .
+.TP
+.B s
+Print the addressed characters, as a
+.SM UTF
+string, until a zero byte
+is reached.
+Advance dot
+by the length of the string,
+including the zero terminator.
+.TP
+.B S
+Print a string using 
+the escape convention (see
+.B C
+above).
+.TP
+.B r
+Print the addressed two-byte integer as a rune.
+.TP
+.B R
+Print the addressed two-byte integers as runes
+until a zero rune is reached.
+Advance dot
+by the length of the string,
+including the zero terminator.
+.TP
+.B Y
+Print a four-byte integer in date format (see
+.IR ctime (2)).
+.TP
+.B i
+Print as machine instructions.
+This style of printing causes variables
+0, (1, ...)
+to be set to the offset parts
+of the first (second, ...)
+operand of the instruction.
+.TP
+.B I
+As
+.B i
+above, but print the machine instructions in
+an alternate form if possible:
+.B sunsparc
+and
+.B mipsco
+reproduce the manufacturers' syntax.
+.TP
+.B M
+Print the addressed machine instruction in a
+machine dependent hexadecimal form.
+.TP
+.B a
+Print the value of dot
+in symbolic form.
+Dot is unaffected.
+.TP
+.B z
+Print the function name, source file, and line number
+corresponding to dot (textfile only). Dot is unaffected.
+.TP
+.B p
+Print the addressed value in symbolic form.
+Dot is advanced by the size of a machine address.
+.TP
+.B t
+When preceded by an integer tabs to the next
+appropriate tab stop.
+For example,
+.B 8t 
+moves to the next 8-space tab stop.
+Dot is unaffected.
+.TP
+.B n
+Print a newline.
+Dot is unaffected.
+.tr '"
+.TP
+.BR ' ... '
+Print the enclosed string.
+Dot is unaffected.
+.br
+.tr ''
+.TP
+.B ^
+Dot is decremented by the current increment.
+Nothing is printed.
+.TP
+.B +
+Dot is incremented by 1.
+Nothing is printed.
+.TP
+.B -
+Dot is decremented by 1.
+Nothing is printed.
+.RE
+.PD
+.TP
+newline
+Update dot by the current increment.
+Repeat the previous command with a
+.I count
+of 1.
+.TP
+.RB [ ?/ ] l "\fI value mask\fR"
+Words starting at dot
+are masked with
+.I mask
+and compared with
+.I value
+until
+a match is found.
+If
+.B l
+is used,
+the match is for a two-byte integer;
+.B L
+matches four bytes.
+If no match is found then dot
+is unchanged; otherwise dot
+is set to the matched location.
+If
+.I mask
+is omitted then ~0 is used.
+.TP
+.RB [ ?/ ] w "\fI value ...\fR"
+Write the two-byte
+.I value
+into the addressed
+location.
+If the command is
+.BR W ,
+write four bytes.
+.TP
+.RB [ ?/ ] "m\fI s b e f \fP" [ ?\fR]
+.br
+New values for
+.RI ( b,\ e,\ f )
+in the map entry named
+.I s
+are recorded.  Valid map entry names are
+.I text,
+.I data,
+.I ublock,
+or
+.IR regs .
+If less than three address expressions are given then
+the remaining map parameters are left unchanged.
+The address type (instruction or data)
+is unchanged in any case.
+If the list is terminated by
+.L ?
+or
+.L /
+then the file
+.RI ( textfile
+or
+.I memfile
+respectively) is used
+for subsequent requests.
+For example,
+.L /m?
+causes
+.L /
+to refer to
+.IR textfile .
+.TP
+.BI > name
+Dot is assigned to the variable or register named.
+.TP
+.B !
+Tem rest of the line is passed to the
+.IR rc (1)
+for execution.
+.TP
+.BI $ modifier
+Miscellaneous commands.
+The available 
+.I modifiers 
+are:
+.RS
+.TP
+.PD 0
+.BI < f
+Read commands from the file
+.IR f .
+If this command is executed in a file, further commands
+in the file are not seen.
+If
+.I f
+is omitted, the current input stream is terminated.
+If a
+.I count
+is given, and is zero, the command is ignored.
+The value of the count is placed in variable
+.B 9
+before the first command in
+.I f
+is executed.
+A common use for this command is to print the fields of a structure.
+The
+.I dbfmt
+program takes a structure description on standard input and produces
+a file on standard output suitable for use in a
+.IB addr $< f
+command.
+The
+.BI -s name
+option of
+.IR 2c (1)
+produces a structure description for structure or union
+.IR name .
+.TP
+.BI << f
+Similar to
+.B <
+except it can be used in a file of commands without
+causing the file to be closed.
+Variable
+.B 9
+is saved during the execution of this command, and restored
+when it completes.
+There is a (small) limit to the number of
+.B <<
+files that can be open at once.
+.br
+.ns
+.TP
+.BI > f
+Append output to the file
+.IR f ,
+which is created if it does not exist.
+If
+.I f
+is omitted, output is returned to the terminal.
+.TP
+.B ?
+Print process id, the condition which caused stopping or termination,
+as well as the registers.
+This is the default if
+.I modifier
+is omitted.
+.TP
+.B r
+Print the general registers and
+the instruction addressed by
+.BR pc .
+Dot is set to
+.BR pc .
+.TP
+.B R
+Like
+.BR $r ,
+but include miscellaneous registers
+such as the kernel stack pointer
+and floating point registers.
+.TP
+.B f
+Print floating-point register values as
+single-precision floating point numbers.
+.TP
+.B F
+Print floating-point register values as
+double-precision floating point numbers.
+.TP
+.B b
+Print all breakpoints
+and their associated counts and commands.
+.TP
+.B c
+C stack backtrace.
+If
+.I address
+is given then it is taken as the
+address of the current frame;
+otherwise,
+the current C frame pointer
+is used.
+If
+.B C
+is used then the names and (long) values of all
+parameters,
+automatic
+and static variables are printed for each active function.
+If
+.I count
+is given then only the first
+.I count
+frames are printed.
+.TP
+.B a
+Set the maximum number of arguments
+printed by
+.B $c
+or
+.B $C
+to
+.IR address .
+The default is 20.
+.TP
+.B e
+The names and values of all
+external variables are printed.
+.TP
+.B w
+Set the page width for output to
+.I address
+(default 80).
+.TP
+.B s
+Set the limit for symbol matches, used in printing addresses, to
+.I address
+(default 255).
+.TP
+.B q
+Exit from
+.IR db .
+.TP
+.B v
+Print all non zero variables.
+.TP
+.B m
+Print the address maps.
+.TP
+.B k
+Simulate kernel memory management.
+.TP
+.B p
+Use kernel data and stack maps for the specified process.
+.IP
+.B $k
+and
+.B $p
+are used for system debugging (see the Examples section).
+.TP
+.BI M machine
+Set the
+.I machine
+type used for disassembling instructions.
+.PD
+.RE
+.TP
+.BI : modifier
+Manage a subprocess.
+Available modifiers are:
+.RS
+.TP
+.PD 0
+.BI h
+Halt
+an asynchronously running process to allow breakpointing.
+Unnecessary for processes created under
+.I db,
+e.g. by
+.BR :r .
+.TP
+.BI b c
+Set breakpoint at
+.IR address .
+The breakpoint is executed
+.IR count \-1
+times before
+causing a stop.
+Also, if a command
+.I c
+is given it is executed at each
+breakpoint and if it sets dot to zero
+the breakpoint causes a stop.
+.TP
+.B d
+Delete breakpoint at
+.IR address .
+.TP
+.B r
+Run
+.I textfile
+as a subprocess.
+If
+.I address
+is given the
+program is entered at that point; otherwise
+the standard entry point is used.
+.I Count
+specifies how many breakpoints are to be
+ignored before stopping.
+Arguments to the subprocess may be supplied on the
+same line as the command.
+An argument starting with < or > causes the standard
+input or output to be established for the command.
+.TP
+.BI c s
+The subprocess is continued.
+If
+.I s
+is omitted
+or nonzero,
+the subprocess
+is sent the note that caused it to stop.
+If 0
+is specified,
+no note is sent.
+(If the stop was due to a breakpoint or single-step,
+the corresponding note is elided before continuing.)
+Breakpoint skipping is the same
+as for
+.BR r .
+.TP
+.BI s s
+As for
+.B c
+except that
+the subprocess is single stepped for
+.I count
+machine instructions.
+If a note is pending,
+it is received
+before the first instruction is executed.
+If there is no current subprocess then
+.I textfile
+is run
+as a subprocess as for
+.BR r .
+In this case no note can be sent; the remainder of the line
+is treated as arguments to the subprocess.
+.TP
+.BI S s
+Identical to
+.B s
+except the subprocess is single stepped for
+.I count
+lines of C source.  In optimized code, the correspondence
+between C source and the machine instructions is
+approximate at best.
+.TP
+.BI x
+The current subprocess, if any, is released by
+.I db
+and allowed to continue executing normally.
+.TP
+.B k
+The current subprocess, if any, is terminated.
+.TP
+.BI n c
+Display the pending notes for the process.
+If
+.I c
+is specified, first delete
+.I c'th
+pending note.
+.PD
+.RE
+.SS Variables
+.I db
+provides a number of variables.
+Named variables are set initially by
+.I db
+but are not used subsequently.
+Numbered variables are reserved for communication
+as follows.
+.TP
+.BR 0 ", " 1 ", ..."
+The offset parts of the first, second, ...
+operands of the last instruction printed.
+Meaningless if the operand was a register.
+.br
+.ns
+.TP
+.B 9
+The count on the last
+.B $<
+or
+.B $<<
+command.
+.PP
+On entry the following are set
+from the system header in the
+.IR memfile .
+If
+.I memfile
+does not appear to be a
+memory image then
+these values are set from
+.IR textfile .
+.TP
+.B b
+The base address of the data segment.
+.PD 0
+.TP
+.B d
+The data segment size.
+.TP
+.B e
+The entry point.
+.TP
+.B m
+The `magic' number (see
+.IR a.out (6)).
+.TP
+.B s
+The stack segment size.
+.TP
+.B t
+The text segment size.
+.PD
+.SS Addresses
+The address in a file associated with
+a written address is determined by a mapping
+associated with that file.
+Each mapping is represented by one or more quadruples
+.RI ( "t, b, e, f" ),
+mapping an address of type
+.I t
+(text,
+data,
+user block, or
+registers)
+in the range
+.I b
+through
+.I e
+to the part of the file
+beginning at
+address
+.IR f .
+An address
+.I a
+of type
+.I t
+is mapped
+to a file address
+by finding a quadruple
+of type
+.IR t ,
+for which
+.IR b \*(LE a < e ;
+the file address
+is
+.IR address + f \(mi b .
+As a special case,
+if a text space address is not found,
+a second search is made
+for the same address in data space.
+.PP
+Typically,
+the text segment of a program
+is mapped as text space,
+the data and bss segments
+as data space.
+If
+.I textfile
+is an executable file
+or if
+.I memfile
+is a memory image,
+maps are set accordingly.
+Otherwise,
+a single `data space'
+map is set up,
+with
+.I b
+and
+.I f
+set to zero,
+and
+.I e
+set to a huge number;
+thus the entire file can be examined
+without address translation.
+.PP
+The
+.B ?
+and
+.B /
+commands attempt to examine
+text and data space
+respectively.
+.B ?*
+tries for data space
+(in
+.IR textfile );
+.B /*
+accesses text space
+(in
+.IR memfile ).
+.PP
+Registers in
+process and core images
+are a special case;
+they live in a special `register' address space starting at
+.BR %0 ;
+the layout of this space is machine-dependent.
+.B %
+addresses
+are mapped to the registers
+for the `current frame,'
+set by local variable references,
+and reset to the outermost frame
+(the `real' registers)
+whenever a process runs
+or a stack trace is requested.
+.PP
+Simulated memory management
+translations
+(the
+.B $k
+and
+.B $p
+commands)
+are done before the mapping described above.
+.SH EXAMPLES
+To set a breakpoint at the beginning of
+.B write()
+in extant process 27:
+.IP
+.EX
+db 27
+:h
+write:b
+:c
+.EE
+.PP
+To examine the Plan 9 kernel stack for process 27:
+.IP
+.EX
+db -k 27
+$C
+.EE
+.PP
+Similar, but using a kernel
+.BR test :
+.IP
+.EX
+db test /proc/27/mem
+27$p
+$C
+.EE
+.PP
+To print the fields of the
+.B Dir
+structure at address
+.BR #20000 ,
+assuming
+.B main.c
+includes a declaration of that structure:
+.IP
+.EX
+!2c -sDir -o /dev/null main.c | dbfmt > Dir.dbfmt
+#20000$<Dir.dbfmt
+.EE
+.PP
+To set a breakpoint at the entry of function
+.B parse
+when the local variable
+.B argc
+in
+.B main
+is equal to 1:
+.IP
+.EX
+parse:b *main.argc-1=X
+.EE
+.PP
+This prints the value of
+.B argc-1
+which as a side effect sets dot; when
+.B argc
+is one the breakpoint will fire.
+Beware that local variables may be stored in registers; see the
+BUGS section.
+.SH FILES
+.B /proc/*/text
+.br
+.B /proc/*/mem
+.br
+.B /proc/*/ctl
+.br
+.B /proc/*/note
+.SH "SEE ALSO"
+.IR nm (1),
+.IR proc (3)
+.br
+J. F. Maranzano and S. R. Bourne, 
+`A Tutorial Introduction to ADB' in
+Bell Laboratories,
+.I UNIX Programmer's Manual,
+Volume\ 2,
+Holt, Rinehart and Winston (1984)
+.SH DIAGNOSTICS
+Exit status is null, unless the last command failed or
+returned non-null status.
+.SH BUGS
+The alternate
+.B sparc
+disassembly format,
+.BR sunsparc ,
+reverses the order of the first two registers
+relative to the SUN assembler.
+.PP
+Examining a local variable with
+.I routine.name
+returns the contents of the memory allocated for the variable.
+This might return the wrong value:
+optimization may move the variable
+into a register, especially in the current stack frame.
+Compiling with the
+.B -N
+flag may help.
+.PP
+Variables and parameters that have been
+optimized away do not appear in the
+symbol table, returning the error 
+.IR "bad local variable"
+when accessed by
+.I db.
+.PP
+In some cases, the stack frame is not completely
+set when a breakpoint or single step stops a process
+in the first couple of instructions of a function.
+As a result, the
+.I $c
+and
+.I $C
+produce inaccurate stack traces.  Stepping
+a couple of instructions into the function sets the
+stack frame and produces accurate traces.

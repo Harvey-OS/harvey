@@ -1,0 +1,74 @@
+CONF=sscpu
+CONFLIST=ss sscpu sscd
+
+objtype=sparc
+</$objtype/mkfile
+CFLAGS=-w
+
+DEV=`{rc ../port/mkdevlist $CONF}`
+STREAM=`{rc ../port/mkstreamlist $CONF}`
+MISC=`{rc ../port/mkmisclist $CONF}`
+
+OBJ=\
+	l.$O\
+	alarm.$O\
+	chan.$O\
+	clock.$O\
+	dev.$O\
+	fault.$O\
+	faultsparc.$O\
+	latin1.$O\
+	taslock.$O\
+	main.$O\
+	alloc.$O\
+	segment.$O\
+	swap.$O\
+	compile.$O\
+	mmu.$O\
+	net.$O\
+	page.$O\
+	pgrp.$O\
+	print.$O\
+	proc.$O\
+	qlock.$O\
+	queue.$O\
+	screen.$O\
+	sysfile.$O\
+	sysproc.$O\
+	trap.$O\
+	fptrap.$O\
+	$DEV\
+	boot$CONF.root.$O\
+	stream.$O\
+	$MISC $STREAM\
+	fcall.$O\
+	bbmalloc.$O\
+
+install:V: 9$CONF
+	cp 9$CONF /sparc/9$CONF
+
+9$CONF:	$OBJ $CONF.c /sparc/lib/libgnot.a /sparc/lib/libg.a 
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	kl -o 9$CONF -H0 -l -T0xE0004000 -R0x4 $OBJ $CONF.$O -lgnot -lg -lc
+	size 9$CONF
+
+screen.$O devbit.$O:	/sys/include/gnot.h
+
+faultsparc.$O clock.$O:	/$objtype/include/ureg.h
+
+init.h:	initcode /sys/src/libc/9syscall/sys.h
+	ka initcode
+	kl -l -s -o init.out -H2 -T0x1020 -R4 initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+nm:	$OBJ
+	kl -a -o 9 -l -b 0x80002020 $prereq -lgnot -lc > nm
+<../port/portmkfile
+
+9660srv.root.c:	/$objtype/bin/9660srv
+	cp $prereq 9660srv.out
+	../port/mkroot 9660srv fs
+

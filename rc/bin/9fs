@@ -1,0 +1,9 @@
+#!/bin/rc
+switch($1){
+case dump
+	mount -t /srv/boot /n/dump dump
+case juke
+	srv -m il!dj!juke juke /n/juke
+case *
+	srv -m $1 $*
+}

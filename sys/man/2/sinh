@@ -1,0 +1,17 @@
+.TH SINH 2
+.SH NAME
+sinh, cosh, tanh \- hyperbolic functions
+.SH SYNOPSIS
+.B
+double sinh(double x)
+.PP
+.B
+double cosh(double x)
+.PP
+.B
+double tanh(double x)
+.SH DESCRIPTION
+These functions compute the designated hyperbolic functions
+for real arguments.
+.SH SEE ALSO
+.IR intro (2)

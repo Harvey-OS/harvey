@@ -1,0 +1,58 @@
+% IDX.TEX -- A LaTeX input file for printing .IDX files.
+% Copyright (c) 1985 by Leslie Lamport.
+% This file created on 22 January 1985.
+
+\documentstyle[twocolumn]{article}
+
+\nofiles
+
+\oddsidemargin  0pt      
+\evensidemargin 0pt
+\textwidth 470pt         % Width of text line.
+\columnsep 30pt          % Space between columns 
+
+\raggedright
+
+\fontdimen3\tentt=3pt    % Add stretch and shrink to \tt interword space.
+\fontdimen4\tentt=3pt
+
+\makeatletter
+
+\def\isanitize{\@makeother\\\@makeother\$\@makeother\&%
+\@makeother\#\@makeother\^\@makeother\^^K\@makeother\_\@makeother\^^A%
+\@makeother\%\@makeother\~}
+
+\def\indexentry{\par\begingroup \isanitize \idxentry}
+
+\def\idxentry#1#2{\def\foo{#2}\ifx\foo\thispage 
+    \else \gdef\thispage{#2}
+          \vskip 7pt {\large \bf Page #2\par \vskip 2pt}\fi
+  \hangindent 20pt \tt #1\par\endgroup}
+
+\parindent = 0pt
+\parskip = 0pt plus .5pt
+
+\tolerance=10000          % prevents overfull boxes
+
+
+
+\begin{document}
+\typeout{}
+\typeout{IDX version of 5 January 1985}
+\typeout{}
+\typeout          {**********************************}
+\typeout          {*  Enter idx file's first name.  *}
+\typein[\filename]{**********************************}
+
+\twocolumn[\vspace*{20 pt} \centering \huge \filename.idx \par
+           \vspace*{20pt}]
+
+\dimen0=\columnwidth
+\advance\dimen0 by -20pt
+
+\parshape =2  0pt \columnwidth 20pt \dimen0
+
+\input \filename.idx\relax
+
+\end{document}
+

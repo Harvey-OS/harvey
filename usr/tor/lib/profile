@@ -1,0 +1,19 @@
+bind -c $home/tmp /tmp
+bind -a $home/bin/rc /bin
+bind -a $home/bin/$cputype /bin
+font = /lib/font/bit/pelm/euro.9.font
+switch($service){
+case terminal
+	prompt=('term% ' '	')
+	fn term%{ $* }
+	exec 8½ -i 8½start -s -f $font
+case cpu
+	bind -b /mnt/term/mnt/8½ /dev
+	prompt=('cpu% ' '	')
+	echo -n $sysname > /dev/label
+	fn cpu%{ $* }
+	news
+case con
+	prompt=('cpu% ' '	')
+	news
+}

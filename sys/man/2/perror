@@ -1,0 +1,52 @@
+.TH PERROR 2
+.SH NAME
+perror, syslog \- system error messages
+.SH SYNOPSIS
+.B
+void perror(char *s)
+.PP
+.B
+void syslog(int cons, char *logname, char *fmt, ...)
+.SH DESCRIPTION
+.I Perror
+produces a short error message
+on the standard error file
+describing the last error encountered during a call
+to the system.
+First the argument string
+.I s
+is printed, then a colon, then the message and a new-line.
+If
+.I s
+is 0, only the error message and new-line are printed.
+.PP
+.I Syslog
+logs messages in the file named by
+.I logname
+in the directory
+.BR /sys/log ;
+the file must already exist and should be append-only.
+.I Logname
+must contain no slashes.
+The message is a line with up to five fields:
+the current time;
+the program name (if
+.I argv0
+is set; see
+.IR ARG (2));
+the user name;
+the message specified by the
+.IR print (2)
+format
+.I fmt
+and any following arguments;
+and a final newline.
+If
+.I cons
+is set or the log file cannot be opened, the message is also printed
+on the system console.
+.I Syslog
+can be used safely in multi-threaded programs.
+.SH "SEE ALSO"
+.IR intro (2),
+.IR errstr (2)

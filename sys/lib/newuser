@@ -1,0 +1,33 @@
+user=`{cat /dev/user}
+echo 'on a single line, please type your full name
+(and sponsor, if a temporary user), for example:
+Elizabeth Bimmler (rob)'
+
+{echo -n $user^'	'; read} >> /adm/whois
+home=/usr/$user
+cd $home
+x='$'
+mkdir bin bin/rc bin/68020 bin/mips bin/sparc bin/386 bin/hobbit
+mkdir lib tmp
+bind -c tmp /tmp
+cat > lib/profile <<!
+bind -a $x^home/bin/rc /bin
+bind -a $x^home/bin/$x^cputype /bin
+font = /lib/font/bit/pelm/euro.9.font
+switch($x^service){
+case terminal
+	prompt=('term% ' '	')
+	fn term%{ $x^* }
+	exec 8½
+case cpu
+	bind -b /mnt/term/mnt/8½ /dev
+	prompt=('cpu% ' '	')
+	echo -n $x^sysname > /dev/label
+	fn cpu%{ $x^* }
+	news
+case con
+	prompt=('cpu% ' '	')
+	news
+}
+!
+. lib/profile

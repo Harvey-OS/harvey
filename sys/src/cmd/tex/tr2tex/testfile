@@ -1,0 +1,116 @@
+.LP
+.EQ
+delim $$
+gsize 11
+define dC "delta C"
+define xx 'x sup x'
+define B 'bold B'
+define (( 'left ('
+define )) 'right )'
+define ov 'over'
+.EN
+.ds CF %
+.ds LH Al-Yahya
+.ds RH troff to TeX translator
+.TL  	
+Testing the troff-to-tex translator
+.AU  		
+Kamal Al-Yahya
+.AI
+Stanford University
+.AB
+This file demonstrates the use of \fB tr2tex\fR which translates
+documents written in troff to a LaTeX style.
+Examples are given to show what the translator can do.
+.AE
+.PP
+First let's test some equation written for the
+.B eqn
+preprocessor:
+.EQ (1)
+2 left ( 1 ~+~ sqrt{omega sub i+1 + zeta -{x+1} over {THETA +1} y + 1} right )
+~~~=~~~ 1
+.EN
+.EQ
+left [
+matrix {
+   ccol { e sub 1 above . above . above e sub i above . above . above e sub N }
+}
+right ] sub n+1 ~~=~~ y + 1
+.EN
+.EQ
+bold X + roman a ~>=~
+a under hat fwd 20 sum from i to N lim from {x -> k} dC
+.EN
+.EQ
+(( "speed" times "time" = "distance travelled" ))
+.EN
+.EQ
+beta tilde i >= zeta dC
+.EN
+.IP
+In-line math like $beta +1$ which is surrounded by math delimiters, as
+defined by
+.I delim
+is also translated.
+.R
+.PP
+Only simple tables are translated. Translation of more complicated tables
+is painful and I won't do it now. Here is an example:
+.TS
+tab(&);
+l rc n.
+name	& type		& color	& value
+$alpha$	& real		& red	& 2.3
+$x$	& imaginary	& green	& -1.2
+$a + 2$	& real		& white	& 0.0
+.TE
+\" this is a commented text
+.PP
+Now we start a figure.
+.Is
+.sp 3i
+.Ic 1
+This is the caption of the figure.
+.Ie
+.PP
+Try some floating objects.
+.br
+.KS
+This text should be kept in one page. i.e. a page break is discouraged here.
+.KE
+.br
+Now a floating text.
+.KF
+This text should be kept in one page even if we had to move it around,
+since it is a
+.I floating
+object. This is a boxed
+.BX word.
+.KE
+.br
+These characters are special in TeX, so they need to be escaped
+in the translation % & # _, while these characters have to be
+printed in math mode < > |. 
+.FS
+This is a footnote
+.FE
+.PP
+.Ac
+Thanks to all of those who contributed by reporting bugs and suggesting
+some improvements. Special thanks go to Nelson Beebe for all of his valuable
+contributions and suggestions. He is responsible for making the translator
+portable to other computers. He also made significant improvements to
+the translation of manuals.
+.Re
+Knuth, D.E., 1984, The TeXBook, Addison-Wesley Publishing Company.
+.Re
+Lamprt, L., 1986, LaTeX: user's guide & reference manual, Addison-Wesley
+Publishing Company.
+.Re
+Lesk, M.E., 1978, Typing documents on the UNIX
+system: using the -ms macros
+with troff and nroff, UNIX programmer's manual, v. 2B, sec. 3.
+.Re
+McGilton, H. and Morgan, R., 1983, Introducing the UNIX system, McGraw-Hill
+Book Company.

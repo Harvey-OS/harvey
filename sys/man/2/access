@@ -1,0 +1,41 @@
+.TH ACCESS 2
+.SH NAME
+access \- determine accessibility of file
+.SH SYNOPSIS
+.B
+int access(char *name, int mode)
+.SH DESCRIPTION
+.I Access
+evaluates the given
+file
+.I name
+for accessibility.
+If \fImode\fL&4\fR
+is nonzero,
+read permission is expected;
+if \fImode\fL&2\fR,
+write permission;
+if \fImode\fL&1\fR,
+execute permission.
+If \fImode\fL==0\fR,
+the file merely need exist.
+In any case
+all directories leading to the file
+must permit searches.
+Zero is returned if the desired access is permitted,
+\-1 if not.
+.PP
+Only access bits are checked.
+A directory may be announced as writable by
+.IR access ,
+but an attempt to open it for writing will fail
+(although files may be created there);
+a file may look executable, but
+.IR exec (2)
+will fail unless it is in proper format.
+.PP
+.SH SEE ALSO
+.IR stat (2)
+.SH DIAGNOSTICS
+Sets
+.I errstr.

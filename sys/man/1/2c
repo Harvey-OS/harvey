@@ -1,0 +1,286 @@
+.TH 2C 1 
+.SH NAME
+2c, 6c, 8c, kc, vc, zc \- C compilers
+.SH SYNOPSIS
+.B 2c
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B 6c
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B 8c
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B kc
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B vc
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B zc
+[
+.I option ...
+]
+[
+.I name ...
+]
+.SH DESCRIPTION
+.IR 2c ,
+.IR 6c ,
+.IR 8c ,
+.IR kc ,
+.IR vc ,
+and
+.I zc
+compile the named C files into MC68020, i960, i386, SPARC, MIPS, and Hobbit object files.
+The compilers handle most preprocessing directives themselves; a complete
+preprocessor is available in
+.IR cpp (1),
+which must be run separately.
+.PP
+Let the first letter of the compiler name be
+.IR O =
+.BR 2 ,
+.BR 6 ,
+.BR 8 ,
+.BR k ,
+.BR v ,
+or
+.BR z .
+The output object files end in
+.RI . O .
+The letter is also the prefix of related programs:
+.IB O a
+is the assembler,
+.IB O l
+is the loader.
+Associated with each compiler is a string
+.IR objtype =
+.BR 68020 ,
+.BR 960 ,
+.BR 386 ,
+.BR sparc ,
+.BR mips ,
+or
+.BR hobbit .
+Plan 9 conventionally sets the
+.B $objtype
+environment variable to the
+.I objtype
+string appropriate to the current machine's type.
+Plan 9 also conventionally has
+.RI / objtype
+directories, which contain among other things:
+.BR include ,
+for machine-dependent include files;
+.BR lib ,
+for public object code libraries;
+.BR bin ,
+for public programs;
+and
+.BR mkfile ,
+for preconditioning
+.IR mk (1).
+.PP
+The compiler options are:
+.TP 1i
+.BI -o " obj"
+Place output in file
+.I obj
+(allowed only if there is just one input file).
+Default is to take the last element of the input pathname,
+strip any trailing
+.BR .c ,
+and append
+.RI . O .
+.TP
+.B -w
+Print warning messages about unused variables, etc.
+.TP
+.B -A
+Complain about functions used without a new-style
+ANSI C function prototype.
+This option is on by default.
+.TP
+.B -B
+Turn off the action of the
+.B -A
+flag.
+.TP
+.BI -D\*S name=def
+.br
+.ns
+.TP
+.BI -D \*Sname
+Define the
+.I name
+to the preprocessor,
+as if by
+.LR #define .
+If no definition is given, the name is defined as
+.LR 1 .
+.TP
+.BI -I \*Sdir
+.L #include
+files whose names do not begin with 
+.L /
+are always
+sought first in the directory 
+of the
+.I file
+argument,
+then in directories named in 
+.B -I
+options,
+then in
+.BR /sys/include ,
+and finally in
+.BR /$objtype/include.
+.TP
+.B -O
+Perform object code optimization.
+This option is on by default.
+.TP
+.B -N
+Turn off the action of the
+.B -O
+flag.
+.TP
+.B -S
+Print an assembly language version of the object code
+on standard output as well as generating the
+.RI . O
+file.
+.TP
+.BI -s \*Sname
+Print on standard output a listing of the fields in structure or union
+.I name
+together with their offsets and some type information.
+This can be used in conjunction with the debugger (see
+.IR db (1)).
+.PP
+The compilers support several extensions to ANSI C:
+.TP
+\-
+A structure or union may contain unnamed substructures and subunions.
+The fields of the substructures or
+subunions can then be used as if they were members of the parent
+structure or union (the resolution of a name conflict is unspecified).
+When a pointer to the outer structure or union is used in a context
+that is only legal for the unnamed substructure, the compiler promotes
+the type and adjusts the pointer value to point at the substructure.
+.TP
+\-
+A structure value can be formed with an expression such as
+.EX
+    (struct S){v1, v2, v3}
+.EE
+where the list elements are values for the fields of struct
+.BR S .
+.TP
+\-
+Array initializers can specify the indices of the array in square
+brackets, as
+.EX
+    int a[] = { [3] 1, [10] 5 };
+.EE
+which initializes the third and tenth elements of the eleven-element array
+.BR a .
+.TP
+\-
+A global variable can be dedicated to a register
+by declaring it
+.B "extern register"
+in
+.I all
+modules and libraries.
+.TP
+\-
+A
+.B #pragma
+of the form
+.EX
+#pragma	lib "libbio.a"
+.EE
+records that the program needs to be loaded with file
+.BR /$objtype/lib/libbio.a ;
+such lines, typically placed in library header files, obviate the
+.B -l
+option of the loaders.
+.SH EXAMPLE
+For the 68020, produce a program
+.B prog
+from C files
+.BR main.c
+and
+.BR sub.c :
+.IP
+.EX
+2c -w main.c sub.c
+2l -o prog main.2 sub.2
+.EE
+.SH FILES
+.TF /$objtype/include
+.TP
+.B /sys/include
+system area for machine-independent
+.B #include
+directives.
+.TP
+.B /$objtype/include
+system area for machine-dependent
+.B #include
+directives.
+.SH "SEE ALSO"
+.IR 2a (1),
+.IR 2l (1),
+.IR rl (1),
+.IR mk (1),
+.IR nm (1),
+.IR db (1)
+.PP
+Rob Pike,
+``How to Use the Plan 9 C Compiler''
+.SH BUGS
+The i960 compiler has been used only to program one I/O controller
+and is certainly buggy.
+.PP
+Bitfields are not supported in
+.IR zc .
+.PP
+The preprocessor only handles
+.LR #define ,
+.LR #include ,
+.LR #undef ,
+.LR #ifdef ,
+.LR #line ,
+and
+.LR #ifndef .
+For a full ANSI preprocessor, use
+.IR cpp (1)
+on the files first.

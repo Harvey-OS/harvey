@@ -1,0 +1,18 @@
+.TH PICINFO 9.1
+.SH NAME
+picinfo \- print information about picture files
+.SH SYNOPSIS
+.B fb/picinfo
+.I file ...
+.SH DESCRIPTION
+.I Picinfo
+prints the header information as described in
+.IR picfile (9.6)
+from the named
+.I files.
+If the file has no
+.B picfile
+header, it tries to guess from its size what sort of
+image it might be.
+.SH "SEE ALSO
+.IR picfile (9.6)

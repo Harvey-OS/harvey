@@ -1,0 +1,38 @@
+.TH CONC 3 
+.SH NAME
+conc \- Datakit concentrator
+.SH SYNOPSIS
+.nf
+.B
+ctlfd = open("\fIrawdkdev\fP/ctl", ORDWR);
+.B
+write(ctlfd, "push conc", 9);
+.B
+write(ctlfd, "config \fIname nc0 nc1\fP...", n);
+.fi
+.sp
+.B bind -a
+.BI #K name
+.B /dev
+.sp
+.B
+dkctlfd = open("/dev/\fIname\fP/\fIn\fP/ctl", ORDWR);
+.SH DESCRIPTION
+The concentrator partitions the channel space of a raw Datakit device
+(typically
+.B #i
+or
+.BR #h )
+into subspaces of size
+.IR nc0 ,
+.IR nc1 ...
+Channel numbers are adjusted on all messages so that each subdevice
+sees a channel space starting at zero.
+This arrangement must agree with the switch configuration
+as provisioned by the local Datakit operating company.
+.SH FILES
+.B /dev/\fIname\fP/\fIn\fP/data
+.br
+.B /dev/\fIname\fP/\fIn\fP/ctl
+.SH SEE ALSO
+.IR datakit (3)

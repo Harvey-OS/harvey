@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+TARG = telnet\
+	tftpd\
+	bootp\
+	ipconfig\
+	arpd\
+	rarpd\
+
+BIN=/$objtype/bin/ip
+</sys/src/cmd/mkmany
+
+$O.fakearp:	fakearp.$O getether.$O
+	$LD -o $target $prereq
+
+$BIN/telnet:V:	$O.telnet
+	cp $prereq /$objtype/bin/telnet

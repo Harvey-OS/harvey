@@ -1,0 +1,42 @@
+#!/bin/rc
+# converts a regular ascii file to PostScript
+if (! ~ $DEBUG '') flag x +
+switch ($IBIN) {
+case -P*;
+case man manual manualfeed;
+	IBIN='statusdict begin /manualfeed true def end'
+case [0-9];
+	IBIN='statusdict begin '^$IBIN^' setpapertray end'
+case 11x17 ledger;
+	IBIN='statusdict begin '^$IBIN^'tray end'
+case *;
+	IBIN=''
+}
+if (! ~ $#DUPLEX 0 && ~ $DUPLEX 1 && ! ~ $IBIN -P*)
+	IBIN=$IBIN' statusdict begin true setduplexmode end';
+if (! ~ $IBIN '' -P*)
+	IBIN=-P''''$IBIN'''';
+switch ($LAND) {
+case -p*;
+case ''; LAND=-pp
+case 1;	LAND=-pl
+}
+if (! ~ $COPIES '' -c*) COPIES=-c^$COPIES
+switch ($FONT) {
+case ''; FONT=-fCW
+case -f*;
+case *; FONT=-f$FONT
+}
+switch ($POINT) {
+case ''; POINT=-s10
+case -s*;
+case *; POINT=-s$POINT
+}
+if (! ~ $LINES '' -l*) LINES=-l^$LINES;
+if (! ~ $MAG '' -m*) MAG=-m^$MAG;
+if (! ~ $NPAG '' -n*) NPAG=-n^$NPAG;
+if (! ~ $XOFF '' -x*) XOFF=-x`{echo $XOFF + .4|hoc};
+if not XOFF=-x.4
+if (! ~ $YOFF '' -y*) YOFF=-y^$YOFF;
+eval /sys/lib/postscript/bin/$cputype/postprint -EUTF $FONT $XOFF $YOFF $COPIES $LINES $MAG $NPAG $POINT $LAND $OLIST $IBIN | $LPLIB/process/hpost
+exit

@@ -1,0 +1,853 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREM.DOC						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\fileversion{v2.1b}
+\def\filedate{90/06/04}
+\def\docdate {90/06/04}
+
+%% \CheckSum{509}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%% 
+% \iffalse
+%
+% Style-option `theorem' to use with LaTeX v2.09
+% Copyright (C) 1989,1990 Frank Mittelbach, all rights reserved.
+%
+% Copying of this file is authorized only if either
+% (1) you make absolutely no changes to your copy, including name, or
+% (2) if you do make changes, you name it something other than
+%     theorem.doc.
+%       
+% Distribution of this file (make it available to other people)
+% is allowed if and only if all files mentioned in readme.mz2 are
+% distributed together.
+% This restriction helps ensure that all styles developed at Mainz
+% are identical.
+%
+% Error reports for UNCHANGED versions please to:
+%
+%                          F. Mittelbach
+%                          Eichenweg 29
+%                          D-6500 Mainz 1
+%                          Federal Republic of Germany
+%                 Bitnet:  <PZF5HZ@DRUEDS2>
+%
+% \fi
+%
+%
+% \changes{v1.0}{87/05/07}{First draft.}
+% \changes{v1.0a}{87/05/07}{`thistheoremstyle' added.}
+% \changes{v1.1a}{87/07/29}{New concept: redefine the internal
+%                          \protect\LaTeX{} commands `@xnthm' etc.}
+% \changes{v1.1b}{87/07/31}{`theoremfont' used to specify font.}
+% \changes{v1.2a}{88/01/08}{`@endtheorem' now globally defined.}
+% \changes{v1.2b}{88/01/11}{`newtheorem' only allowed in the preamble.}
+% \changes{v1.3a}{88/02/14}{`theoremfont' now a toks register.}
+%
+% \changes{v2.0a}{88/11/16}{New implementation and new documentation.}
+% \changes{v2.0a}{88/11/16}{No layout changes but internal modifications
+%                           old sybstyles won't work.}
+% \changes{v2.0b}{89/01/30}{`global' used for all definitions.}
+% \changes{v2.0c}{89/06/15}{Documentation translated to English.
+%                            Thanks to LLL and Nina}
+% \changes{v2.1a}{90/02/15}{Support for new font selection.}
+%
+% \DoNotIndex{\@endparenv,\@ifdefinable,\@ifnextchar,\@ifundefined}
+% \DoNotIndex{\@namedef,\@nameuse,\@spaces,\@tempa,\@warning}
+% \DoNotIndex{\ }
+% \DoNotIndex{\begingroup,\bf}
+% \DoNotIndex{\csname}
+% \DoNotIndex{\def,\do,\docdate}
+% \DoNotIndex{\endcsname,\endgroup,\endinput,\endtrivlist,\expandafter}
+% \DoNotIndex{\filedate,\fileversion}
+% \DoNotIndex{\gdef,\global}
+% \DoNotIndex{\hbox,\hskip}
+% \DoNotIndex{\ignorespaces,\input,\it,\item}
+% \DoNotIndex{\labelsep,\let,\llap}
+% \DoNotIndex{\makeatletter}
+% \DoNotIndex{\noexpand}
+% \DoNotIndex{\refstepcounter,\relax,\rlap}
+% \DoNotIndex{\setlength,\sl,\space,\string,\strut}
+% \DoNotIndex{\the,\trivlist,\typeout}
+% \DoNotIndex{\vbox}
+% \DoNotIndex{\xdef}
+%
+% \def\deflabel#1{\tt #1\hfill}
+% \def\deflist#1{\begin{list}{}{\settowidth\labelwidth{\tt #1}%
+%                               \setlength\leftmargin\labelwidth
+%                               \addtolength\leftmargin\labelsep
+%                               \let\makelabel\deflabel}}
+% \def\enddeflist{\end{list}}
+% \def\envfont{\tt}
+%
+% \title{An Extension of the
+%        \LaTeX{} theorem environment\thanks{This file
+%        has version number \fileversion, last
+%        revised \filedate, documentation dated \docdate.}}
+% \author{Frank Mittelbach}
+%
+% \signature{\advance\hsize by 3pc
+%       Frank Mittelbach\\
+%	Electronic Data Systems\\
+%         (Deutschland) GmbH\\
+%       Eisenstra\ss e 56\\
+%	D-6090 R\"usselsheim\\
+%	Federal Republic of Germany\\
+%	\net {\rm Bitnet:} pzf5hz@drueds2}
+%
+% \maketitle
+%
+% \begin{abstract}
+%    The macros described in this paper yield an extension of the
+%    \LaTeX{} theorem mechanism. It is designed is to satisfy the
+%    different requirements of various journals. Thus, the
+%    layout of the ``theorems'' can be manipulated by determining a
+%    ``style''. This article describes not only the use, but
+%    also the definition, of the necessary macros.
+% \end{abstract}
+%
+% \section*{Preface to version 2.1}
+%
+% This version is identical to 2.0g described in \TUB\ 10\#3 execpt
+% for some internal defaults which are now set depending on the used
+% font selection scheme.
+%
+% This was done to avoid unplesant surpises if the new font selection
+% scheme is in force. For further details see
+% section~\ref{sec:newfonts} and \cite{fs-basics,fs-latex}.
+%
+% \section{Introduction}
+%
+% For our purposes here, ``theorems'' are labelled enunciations,
+% often set off from the main text by extra space and a font change.
+% Theorems, corollaries, conjectures, definitions, and remarks
+% are all instances of ``theorems''.  The ``header'' of these structures
+% is composed of a label (such as {\sc Theorem} or {\sc Remark})
+% and a number which serializes an item in the sequence of items
+% with the same label.
+%
+% Shortly after the introduction of \LaTeX{} at the Fachbereich
+% Mathematik in Mainz, the desire to manipulate the layout of
+% ``theorems'' arose.  In Mainz, the following two conventions came
+% into general use:
+% \begin{enumerate}
+%   \item The number of the theorem is shown in the margin.
+%   \item There is a line break at 
+%         the end of the theorem header.
+% \end{enumerate}
+%
+% Additionally, some journals require different formats which depend on
+% the ``sort of theorem'': e.g.\ often remarks and definitions are set
+% in \verb+\rm+, while \verb+\it+ is employed for main theorems.
+%
+% Confronted with these requirements, a theorem environment was
+% developed in Mainz which allows separate determination of the
+% layout of the ``theorems sets'', comparable to \verb+\pagestyle+.
+%
+%
+% \section{The user interface}
+% \subsection{Defining new theorem sets}
+%
+% \DescribeMacro\newtheorem
+% As in the original \LaTeX{} version, the command \verb+\newtheorem+
+% defines a new ``theorem set'' or ``theorem-like structure''.
+% Two required arguments name the new environment and give the text
+% to be typeset with each instance of the new ``set'', while
+% an optional argument determines how
+% the ``set'' is enumerated:
+% \begin{description}
+%    \item[\tt \bslash newtheorem\{foo\}\{bar\}]
+%       The theorem set {\envfont foo} (whose name is {\tt bar})
+%       uses its own counter.
+%    \item[\tt \bslash newtheorem\{foo2\}{[foo]}\{bar2\}]
+%       The theorem set {\envfont foo2} (printed name {\tt bar2})
+%       uses the same counter as the theorem set {\tt foo}.
+%    \item[\tt \bslash newtheorem\{foo3\}\{bar3\}{[section]}] 
+%       The theorem set {\envfont foo3} (printed name {\tt bar3}) is
+%       enumerated within the counter {\tt section}, i.e.\ with every
+%       new \verb+\section+ the enumeration begins again with 1, and
+%       the enumeration is composed from the section-number and the
+%       theorem counter itself.
+% \end{description}
+%
+% \DescribeMacro\theoremstyle
+% Additionally, the command \verb+\theoremstyle+ can define the layout
+% of various, or all, theorem sets.  It should be noted that any
+% theorem set defined by \verb+\newtheorem+ is typeset in the
+% \verb+\theoremstyle+ that is current at the time of the definition.
+% Thus, the following
+% \begin{verbatim}
+%    \theoremstyle{break}        \newtheorem{Cor}{Corollary}
+%    \theoremstyle{plain}        \newtheorem{Exa}{Example}[section]
+%\end{verbatim}                             ^^A No blank at line start
+% leads to the result that the set {\envfont Cor} is formatted in the style
+% {\tt break}, while the set {\envfont Exa} and all the following ones are
+% formatted in the style {\tt plain}, unless another \verb+\theoremstyle+
+% follows.  Since the definitions installed by \verb+\newtheorem+ are
+% global, one also can limit \verb+\theoremstyle+ locally by grouping
+% braces.
+%
+% \DescribeMacro\theorembodyfont
+% The choice of the font for the theorem body is completely
+% independent of the chosen \verb+\theoremstyle+; this has proven to
+% be very advantageous.  For example,
+% \begin{verbatim}
+%   {\theorembodyfont{\rm}          \newtheorem{Rem}{Remark}}
+%\end{verbatim}
+% defines a theorem set {\envfont Rem}, which will be set
+% in \verb+\rm+ in the current layout (which in our example is {\tt plain}).
+% As with \verb+\theoremstyle+, the \verb+\theorembodyfont+ chosen
+% is that current at the time of \verb+\newtheorem+.  If
+% \verb+\theorembodyfont+ is not specified or one defines
+% \verb+\theorembodyfont{}+, then the font used will be that defined by
+% the \verb+\theoremstyle+.
+%
+% \DescribeMacro\theoremheaderfont
+% It is also possible to customize the font used for the
+% theorem headers.  This is, however, a global declaration, and therefore there
+% should be at most one \verb+\theoremheaderfont+ declaration in the
+% preamble.\footnote{If it is actually necessary to have different
+% header fonts, one has to define new theorem styles (substituting the
+% desired font) or specify the information directly in the {\tt\bslash
+% newtheorem} declaration (the unclean variant).}
+%
+% \DescribeMacro\theorempreskipamount
+% \DescribeMacro\theorempostskipamount
+% Two additional parameters affect the vertical space around the
+% theorem environments: \verb+\theorempreskipamount+ and
+% \verb+\theorempostskipamount+ define, respectively, the spacing
+% before and after such an environment.  These parameters apply for
+% all theorem sets and can be manipulated with the ordinary length
+% macros.  They are rubber lengths, (`{\sf skips}'), and therefore can
+% contain {\tt plus} and {\tt minus} parts.
+%
+% Since the definition of theorem sets should---most sensibly---be
+% placed in the preamble, we only allow installation there.
+% It is therefore possible to release the memory used here after
+% \verb+\begin{document}+, in order to make room for other
+% applications.
+%
+%
+% \subsection{Existing theorem styles}
+%
+% The following theorem styles exist to date:
+% \begin{deflist}{marginbreak}
+%    \item[plain]
+%       This theorem style emulates the original \LaTeX{} definition,
+%       except that additionally the parameters
+%       \verb+\theorem...skipamount+ are used.
+%    \item[break]
+%       In this style, the theorem header is followed by a line
+%       break.
+%    \item[marginbreak]
+%       The theorem number is set in the margin, and there is a line
+%       break as in {\tt break}.
+%    \item[changebreak]
+%       Like {\tt break}, but with header number and text interchanged.
+%    \item[change]
+%       Header number and text are interchanged, without a line break.
+%    \item[margin]
+%       The number is set in the left margin, without a line break.
+% \end{deflist}
+% All styles (except {\tt plain}) select \verb+\sl+ as the default
+% \verb+\theorembodyfont+.
+% 
+%
+% \subsection{Examples}
+%
+% Given the above theorem sets {\envfont Cor}, {\envfont Exa}
+% and {\envfont Rem},
+% suppose that the preamble also contains the declarations:
+% \begin{verbatim}
+%    \theoremstyle{marginbreak}   \newtheorem{Lem}[Cor]{Lemma}
+%    \theoremstyle{change}
+%    \theorembodyfont{\it}        \newtheorem{Def}[Cor]{Definition}
+%
+%    \theoremheaderfont{\sc}
+%\end{verbatim}
+% Then the following are some typical examples of the typeset output
+% resulting from their use.
+%
+% \begin{Cor}
+%    This is a sentence typeset in the theorem environment {\envfont Cor}.
+% \end{Cor}
+%
+% \begin{Exa}
+%    This is a sentence typeset in the theorem environment {\envfont Exa}.
+% \end{Exa}
+%
+% \begin{Rem}
+%    This is a sentence typeset in the theorem environment {\envfont Rem}.
+% \end{Rem}
+%
+% \begin{Lem}[Ben User]
+%    This is a sentence typeset in the theorem environment {\envfont Lem}.
+% \end{Lem}
+%
+% \begin{Def}[Very impressive Definition]
+%    This is a sentence typeset in the theorem environment {\envfont Def}.
+% \end{Def}
+%
+% The last two examples show the effect of the optional argument to
+% a theorem environment (it is the text typeset in parentheses).
+%
+%
+% \section{Special Considerations}
+% \label{sec:newfonts}
+%
+% Theoremheader and body are implemented as a unit. This means that
+% the \verb+\theoremheaderfont+  will inherit characteristics of the
+% \verb+\theorembodyfont+ if the new font selection scheme
+% \cite{fs-latex} is in force. Thus, if for example
+% \verb+\theorembodyfont+ is \verb+\it+ and \verb+\theoremheaderfont+
+% is \verb+\bf+ the font selected for the header will have the
+% characteristics `bold extended italic'. If this is not desired one
+% should set the \verb+\theoremheaderfont+ to something like
+% \begin{verbatim}
+%      \theoremheaderfont{\normalshape\bf}
+%\end{verbatim}
+% i.e.\ supplying all necessary font informations explicitly.
+%
+% \section{Acknowledgements}
+%
+% The publication of this set of macros was only possible with the
+% help of Christina Busse (translating the manuscript into English),
+% Joachim Pense (playing the r\^ole of typist), Chris Rowley
+% (looking everything over) and many others providing useful
+% suggestions.  
+%
+% \StopEventually{%
+%    \begin{thebibliography}{9}
+%       \bibitem{latex:source} {\sc Lamport, Leslie.} \newblock
+%                               {\tt latex.tex}, version 2.09, date 
+%                               Feb. 1990.  
+%       \bibitem{fs-basics} {\sc Mittelbach, Frank} and
+%                          {\sc Sch\"opf, Rainer.} \newblock
+%                          A new font selection scheme for \TeX{}
+%                          macro packages---the basic macros,
+%                          \newblock
+%                          \TUB 10\#2, pp.222--238  ,1989 
+%       \bibitem{fs-latex} {\sc Mittelbach, Frank} and
+%                          {\sc Sch\"opf, Rainer.} \newblock
+%                          The \LaTeX{} interface for the new font
+%                          selection scheme, 
+%                          \newblock
+%                          \TUB 11\#1, to appear.
+%    \end{thebibliography}
+%    \PrintIndex
+%    \PrintChanges
+%    \makesignature}
+% 
+% \section{Definition of the Macros}
+%
+% If the file has been loaded before, we abort immediately. If not,
+% the current version of the style is shown on the screen and in the
+% transcript file.
+% \changes{v2.0e}{89/07/19}{Spaces removed from `typeout'.}
+%    \begin{macrocode}
+\@ifundefined{theorem@style}{}{\endinput}
+\typeout{Style option: `theorem' \fileversion \space\space
+         <\filedate>  (FMi)}
+\typeout{English documentation as of \space\space\space
+         <\docdate>  (FMi)}
+%    \end{macrocode}
+%
+%
+% \subsection{Definition of theorem styles and fonts}
+%
+% All the definitions in this file are done globally to allow
+% inputting this file inside a group.
+%
+% \begin{macro}{\theoremstyle}
+%    Before a theorem style can be installed, the
+%    chosen style must be known. For that reason, we must test to see that
+%    \verb+\th@+\meta{style} is known or, more precisely, that
+%    it is different from \verb+\relax+. If the style is not known then
+%    \verb+\th@plain+ is used.
+%    \begin{macrocode}
+\gdef\theoremstyle#1{%
+   \@ifundefined{th@#1}{\@warning
+          {Unknown theoremstyle `#1'. Using `plain'}%
+          \theorem@style{plain}}%
+%    \end{macrocode}
+%    We save the theorem style to be used in the token register
+%    \verb+\theorem@style+.
+%    \begin{macrocode}
+      {\theorem@style{#1}}%
+%    \end{macrocode}
+%    Now we ``evaluate'' the theorem style: this means, we call the
+%    macro \verb+\th@+\meta{style} which will activate the relevant
+%    definitions which are contained in a separate file.  This is done
+%    in a group to suppress changes to the current font.  This could
+%    otherwise pose problems together with the new font selection
+%    scheme\footnote{When I printed the original article using the new
+%    font selection scheme I ended with a document with slanted
+%    typefaces (text headings and all) simply because one of the
+%    theorem styles used {\tt\bslash sl} at toplevel.} if the
+%    \verb+\th@+\meta{style} is evaluated a second time.
+% \changes{v2.1a}{90/02/15}{Group added around `th@..}
+% \changes{v2.1a}{90/02/15}{Reseting of `..@begintheorem removed.}
+%    \begin{macrocode}
+      \begingroup
+        \csname th@\the\theorem@style \endcsname
+      \endgroup}
+%    \end{macrocode}
+% \end{macro}
+%
+%
+% \begin{macro}{\@begintheorem}
+% \changes{v2.1a}{90/02/15}{Relaxed at toplevel.}
+% \begin{macro}{\@opargbegintheorem}
+% \changes{v2.1a}{90/02/15}{Relaxed at toplevel.}
+%    We reset \verb+\@begintheorem+ and \verb+\@opargbegintheorem+ to
+%    \verb+\relax+ since these commands are no longer necessary at
+%    toplevel. This will save a few tokens.
+%    \begin{macrocode}
+\global\let\@begintheorem\relax
+\global\let\@opargbegintheorem\relax
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{\theorem@style}
+%    Obviously the {\sf token} register used above has to be
+%    allocated. To assure the utmost compatibility with the
+%    original \LaTeX{} definition, we set the default theorem style to
+%    {\tt plain}, which implements the usual \LaTeX{} convention.
+% \changes{v2.0f}{89/07/20}{Unnecessary `global' removed.}
+%    \begin{macrocode}
+\newtoks\theorem@style
+\global\theorem@style{plain}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\theorembodyfont}
+%    For the theorem font, we simply use a {\sf token} register, whose
+%    contents can be inserted into the definition of the theorem
+%    set.
+% \changes{v2.0f}{89/07/20}{Unnecessary `global' removed.}
+% \changes{v2.0g}{89/09/19}{`theoremfont to `theorembodyfont.}
+%    \begin{macrocode}
+\newtoks\theorembodyfont
+\global\theorembodyfont{}
+%    \end{macrocode}
+% \end{macro}
+% 
+%
+% \begin{macro}{\theoremheaderfont}
+% \changes{v2.0g}{89/09/19}{Macro added.}
+%    The font for the theorem headers is handled differently because
+%    this definition applies to all theorem styles.
+%    \begin{macrocode}
+\gdef\theoremheaderfont#1{\gdef\theorem@headerfont{#1}%
+%    \end{macrocode}
+%    After using the macro once it is redefined to produce an error
+%    message.
+%    \begin{macrocode}
+       \gdef\theoremheaderfont##1{%
+        \typeout{\string\theoremheaderfont\space should be used
+                 only once.}}}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}{\theorem@headerfont}
+% \changes{v2.0g}{89/09/19}{Macro added.}
+%    To set the \verb+\theorem@headerfont+ default we first test if
+%    the new fontselection scheme is in force.
+% \changes{v2.1a}{90/02/15}{Support for new font selection.}
+%    \begin{macrocode}
+\ifx\normalshape\undefined
+%    \end{macrocode}
+%    If not we define it to expand into \verb+\bf+. We don't use
+%    \verb+\let+ just in case a following style option redefines this
+%    macro.
+%    \begin{macrocode}
+\gdef\theorem@headerfont{\bf}
+%    \end{macrocode}
+%    Otherwise we reset the current shape before calling \verb+\bf+. 
+%    \begin{macrocode}
+\else \gdef\theorem@headerfont{\normalshape\bf}\fi
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\th@plain}
+% \begin{macro}{\th@break}
+% \begin{macro}{\th@marginbreak}
+% \begin{macro}{\th@changebreak}
+% \begin{macro}{\th@change}
+% \begin{macro}{\th@margin}
+%    The different styles are defined in macros such as
+%    \verb+\th@plain+.  Since memory space is precious in
+%    ``non-Big-versions'', we have to avoid offering too many unused
+%    definitions.  Therefore we define these styles in separate files
+%    that can be loaded on demand.  Thus the commands themselves only
+%    load these files.
+%    \begin{macrocode}
+\gdef\th@plain{\input thp.sty}
+\gdef\th@break{\input thb.sty}
+\gdef\th@marginbreak{\input thmb.sty}
+\gdef\th@changebreak{\input thcb.sty}
+\gdef\th@change{\input thc.sty}
+\gdef\th@margin{\input thm.sty}
+%    \end{macrocode}
+%    This list will be expanded when new styles become
+%    available.  For testing,  just append new theorem substyles
+%    as document options.
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+% \end{macro}
+%
+%
+%
+% \subsection{Definition of a new theorem set}
+%
+% As already pointed out, a new theorem environment can be defined in
+% three different ways:
+% \begin{verbatim}
+%    \newtheorem{Lem}{Lemma}
+%    \newtheorem{Lem}{Lemma}[section]
+%    \newtheorem{Lem}[Theorem]{Lemma}
+%\end{verbatim}
+% The function of the macro \verb+\newtheorem+ is to recognize these
+% cases and then to branch into one of the three macros
+% \verb+\@ynthm+, \verb+\@xnthm+ or \verb+\@othm+.  This mechanism
+% is adopted unchanged from \cite{latex:source}; the essential point
+% here is that, for example, in the second case, the arguments {\tt
+% Lem}, {\tt Lemma} and {\tt section} are passed over to the macro
+% \verb+\@xnthm+.
+%
+% We inspect this case first because the others present fewer problems,
+% and thus are easily derived from this one.
+%
+% \begin{macro}{\@xnthm}
+%    For our example arguments, the macro \verb+\@xnthm+ must fulfill
+%    the following:
+%    \begin{itemize}
+%       \item
+%          Define a new \LaTeX-counter `Lem'
+%       \item
+%          reset this counter within a \verb+\section+
+%       \item
+%          define the macro \verb+\theLem+
+%       \item
+%          define the environment macros \verb+\Lem+ and
+%          \verb+\endLem+ using the current
+%          \verb+\theoremstyle+ and \verb+\theorembodyfont+.
+%    \end{itemize}
+%    Obviously, all this should happen only if the first argument
+%    of \verb+\@xnthm+ (i.e.\ {\tt Lem} in our example) is chosen so
+%    as not to conflict with any previously defined commands or
+%    environments.  This test is performed by the \LaTeX{} macro
+%    \verb+\@ifdefinable+.
+%    \begin{macrocode}
+\gdef\@xnthm#1#2[#3]{\expandafter\@ifdefinable\csname #1\endcsname
+%    \end{macrocode}
+%    Therefore, the first argument of \verb+\@ifdefinable+ is the
+%    expansion (in the example, \verb+\Lem+) of
+%    \verb+\csname+\verb+#1\endcsname+.  The second argument is
+%    executed only if the test has been completed successfully.
+%    \begin{macrocode}
+   {%
+%    \end{macrocode}
+%    Now we define the new counter. The names of the \LaTeX{}
+%    macros employed should speak for themselves:
+%    \begin{macrocode}
+    \@definecounter{#1}\@addtoreset{#1}{#3}%
+%    \end{macrocode}
+%    In defining `\verb+\theLem+' we must generate the desired macro
+%    name by use of \verb+\expandafter+ and \verb+\csname+.
+%    \begin{macrocode}
+    \expandafter\xdef\csname the#1\endcsname
+%    \end{macrocode}
+%    An \verb+\xdef+ is used in order to make the definition global,
+%    and to ensure that it contains the replacement texts of
+%    \verb+\@thmcountersep+ and \verb+\@thmcounter+.\footnote{These
+%    two macros can be defined by the document style.  Their default
+%    values produce a `{\tt.}' as separation and an arabic
+%    representation of the number.} However, not everything should be
+%    expanded. For example, it saves space to use \verb+\thesection+
+%    instead of its---at times---lengthy expansion.
+%    \begin{macrocode}
+      {\expandafter \noexpand \csname the#3\endcsname
+       \@thmcountersep \@thmcounter{#1}}%
+%    \end{macrocode}
+%    Thus with the defaults of \LaTeX{}, \verb+\theLem+ would be
+%    replaced by the command sequence \verb+\thesection.\arabic{Lem}+.
+%
+%    We will now look at the definition of the macro which is executed
+%    at the beginning of the actual environment (in our example this
+%    macro is \verb+\Lem+). It should be noted that we use an
+%    ``\verb+\expandafter+ trick'' to expand only certain parts of the
+%    replacement text at the time of the definition.
+%    \begin{macrocode}
+    \def\@tempa{\global\@namedef{#1}}%
+    \expandafter \@tempa \expandafter{%
+%    \end{macrocode}
+%    First, the macro that contains the current definitions of
+%    \verb+\@begintheorem+ and \verb+\@opargtheorem+ should be called
+%    up.  The name of this macro---as is already known---has the form
+%    \verb+\th@+\meta{theorem\ style}; therefore, it must be called by
+%    \begin{macrocode}
+      \csname th@\the \theorem@style
+%    \end{macrocode}
+%    In addition the default theorem font should be changeable, i.e.\
+%    we have to insert the contents of \verb+\theorembodyfont+. For
+%    that reason, we expand even further, beyond \verb+\endcsname+,
+%    and thus insert the contents of the {\sf token} register
+%    \verb+\theorembodyfont+ in the replacement text.
+%    \begin{macrocode}
+            \expandafter \endcsname \the \theorembodyfont
+%    \end{macrocode}
+%    Now it is time to call the macro \verb+\@thm+ which takes over
+%    the further processing.  It has two arguments: the current
+%    counter name (in our example, {\tt Lem}), and the text of the
+%    label (in our example, {\tt Lemma}).
+%    \begin{macrocode}
+     \@thm{#1}{#2}}%
+%    \end{macrocode}
+%    With this, the `sub-definition' is complete.  The macro
+%    \verb+\@endtheorem+ ends a theorem environment and is, so far,
+%    nothing but an \verb+\endtrivlist+.  (Hence it is defined
+%    globally, and not within the theorem
+%    styles.\footnote{This has to be changed as soon as theorem
+%                     styles that
+%                     change {\tt \bslash @endtheorem} exist.
+%                     In such a case, all existing styles must be changed
+%                     as well since they will have to reset the macro.})
+%    Therefore, we can set it equivalent to the macro that ends the
+%    theorem set (in our example, \verb+\endLem+).  However, if some
+%    day theorem styles exist that do change
+%    \verb+\@endtheorem+, we would have to use the commented-out line
+%    instead.
+%    \begin{macrocode}
+    \global \expandafter \let \csname end#1\endcsname \@endtheorem
+%   \global\@namedef{end#1}{\@endtheorem}%
+%    \end{macrocode}
+%    With these commands all the required definitions are employed,
+%    unless the test \verb+\@ifdefinable+ has failed.  Therefore, we
+%    end the second argument of this macro and with it the definition
+%    of \verb+\@xnthm+.
+%    \begin{macrocode}
+   }}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@ynthm}
+%    The definition of \verb+\@ynthm+ is completely analogous. In
+%    this case the new counter that is defined is not reset within
+%    another counter; thus the definition of \verb+\the...+
+%    is simplified:
+%    \begin{macrocode}
+\gdef\@ynthm#1#2{\expandafter\@ifdefinable\csname #1\endcsname
+   {\@definecounter{#1}%
+    \expandafter\xdef\csname the#1\endcsname{\@thmcounter{#1}}%
+%    \end{macrocode}
+%    The rest of the definition corresponds literally to that of
+%    \verb+\@xnthm+:
+%    \begin{macrocode}
+    \def\@tempa{\global\@namedef{#1}}\expandafter \@tempa
+     \expandafter{\csname th@\the \theorem@style \expandafter
+     \endcsname \the\theorembodyfont \@thm{#1}{#2}}%
+%   \global\@namedef{end#1}{\@endtheorem}%
+    \global \expandafter \let \csname end#1\endcsname \@endtheorem}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@othm}
+%    The definition of \verb+\@othm+ does not contain anything new. We
+%    do not define a new counter but instead use one that has already
+%    been defined.  Thus the only definition we need is that of this
+%    pseudo-counter (i.e.\ \verb+\the+\meta{env.\ name}).
+%    \begin{macrocode}
+\gdef\@othm#1[#2]#3{\expandafter\@ifdefinable\csname #1\endcsname
+  {\expandafter \xdef \csname the#1\endcsname
+     {\expandafter \noexpand \csname the#2\endcsname}%
+%    \end{macrocode}
+%    All other parts of the definition can be adopted from
+%    \verb+\@xnthm+. We have to remember, though, that in this case
+%    the name of the current counter and the theorem label have moved
+%    to the second and third arguments.
+%    \begin{macrocode}
+    \def\@tempa{\global\@namedef{#1}}\expandafter \@tempa
+     \expandafter{\csname th@\the \theorem@style \expandafter
+     \endcsname \the\theorembodyfont \@thm{#2}{#3}}%
+%   \global\@namedef{end#1}{\@endtheorem}%
+    \global \expandafter \let \csname end#1\endcsname \@endtheorem}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Macros that are employed in a {\envfont theorem} environment}
+%
+% \begin{macro}{\@thm}
+%    The macro \verb+\@thm+ has to increase the current counter.
+%    Then, depending on whether the environment has (or does not have) an
+%    optional argument, it has to branch into either
+%    \verb+\@begintheorem+ or \verb+\@opargtheorem+.
+%    \begin{macrocode}
+\gdef\@thm#1#2{\refstepcounter{#1}%
+%    \end{macrocode}
+%    Now we start a {\envfont trivlist} environment, and give
+%    \verb+\@topsep+ and \verb+\@topsepadd+ the values of the {\sf
+%    skip} registers \verb+\theorempreskipamount+ and
+%    \verb+\theorempostskipamount+. The value in \verb+\@topsep+ is
+%    the vertical space that is inserted by the first (and only)
+%    \verb+\item+ in our \verb+\trivlist+ whilst \verb+\@topsepadd+ is
+%    inserted by \verb+\@endparenv+ at the end of that {\envfont trivlist}
+%    environment.  By using these registers, we obtain the desired
+%    space around a {\envfont theorem} environment.
+%    \begin{macrocode}
+   \trivlist
+   \@topsep \theorempreskipamount               % used by first \item
+   \@topsepadd \theorempostskipamount           % used by \@endparenv
+%    \end{macrocode}
+%    Now we have to test whether an optional argument has been given.
+% \changes{v2.0d}{89/07/18}{Forgotten percent added.}
+%    \begin{macrocode}
+   \@ifnextchar [%
+%    \end{macrocode}
+%    If there is an optional argument, we will call \verb+\@ythm+, and
+%    move the arguments read back into the input stream.
+%    \begin{macrocode}
+   {\@ythm{#1}{#2}}%
+%    \end{macrocode}
+%    If not, we call \verb+\@begintheorem+. Its first argument is the
+%    name of the theorem set (hence the second argument of
+%    \verb+\@thm+). Its second argument is the macro that produces the
+%    current number.
+%    \begin{macrocode}
+   {\@begintheorem{#2}{\csname the#1\endcsname}\ignorespaces}}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\@xthm}
+% \begin{macro}{\@ythm}
+%    Both these macros were originally called by \verb+\@thm+.  We do
+%    not need \verb+\@xthm+ anymore, hence we reset it to
+%    \verb+\relax+. The definition of \verb+\@ythm+ has not changed at
+%    all from its definition in \LaTeX. In order to make the macros
+%    easier to understand, we will
+%    nevertheless present it (commented out).
+%    \begin{macrocode}
+\global\let\@xthm\relax
+% \def\@ythm#1#2[#3]{\@opargbegintheorem{#2}{\csname
+%           the#1\endcsname}{#3}\ignorespaces}
+%    \end{macrocode}
+%    The primitive \verb+\ignorespaces+ in \verb+\@ythm+ and
+%    \verb+\@thm+ is needed to remove the spaces between the
+%    \verb+\begin{...}+ and the actual text.
+% \end{macro}
+% \end{macro}
+%
+%
+% \subsection{Definition of the theorem substyles}
+% 
+% As already pointed out, the theorem substyles, defined below, are
+% only loaded when necessary.  Note that all these substyles, except
+% {\tt plain}, have \verb+\sl+ as the default body font.
+%
+% \subsubsection{The {\tt plain} style}
+% \input{thp.doc}
+%
+% \subsubsection{The {\tt break} style}
+% \input{thb.doc}
+%
+% \subsubsection{The {\tt changebreak} style}
+% \input{thcb.doc}
+%
+% \subsubsection{The {\tt change} style}
+% \input{thc.doc}
+%
+% \subsubsection{The {\tt marginbreak} style}
+% \input{thmb.doc}
+%
+% \subsubsection{The {\tt margin} style}
+% \input{thm.doc}
+%
+%
+% \subsection{Final Definitions}
+%
+% \begin{macro}{\theorempreskipamount}
+% \begin{macro}{\theorempostskipamount}
+%    The {\sf skip} parameters that regulate the vertical empty space
+%    before and after the {\envfont theorem} environment have 
+%    to be allocated as well.
+% \changes{v2.0f}{89/07/20}{Unnecessary `global' removed.}
+%    \begin{macrocode}
+\newskip\theorempreskipamount
+\newskip\theorempostskipamount
+%    \end{macrocode}
+%    Since we have used the same values for all theorem sets, we now can
+%    assign them.
+%    \begin{macrocode}
+\global\setlength\theorempreskipamount{12pt plus 5pt minus 3pt}
+\global\setlength\theorempostskipamount{8pt plus 3pt minus 1.5pt}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+%
+% \begin{macro}{\@endtheorem}
+%    The same holds for the macro \verb+\@endtheorem+, which ends a
+%    {\envfont theorem} environment. Since it is the same for all theorem sets,
+%    it is removed from the macros \verb+\th@+\meta{style}.  It simply
+%    ends the {\envfont trivlist} environment, which was begun in
+%    \verb+\@thm+.
+%    \begin{macrocode}
+\global\let\@endtheorem=\endtrivlist
+%    \end{macrocode}
+% \end{macro}
+%
+%
+%
+% \begin{macro}{\@preamblecmds}
+%    All macros defined above are to be used only in the preamble.
+%    Therefore, we insert them in \verb+\@preamblecmds+ (separated by
+%    the macro \verb+\do+). All the commands not allowed after the
+%    \verb+\begin{document}+ are stored here. This is achieved by
+%    having \verb+\document+ (with the help of \verb+\do+) redefine
+%    all macros in \verb+\@preamblecmds+ to a \LaTeX{} error routine
+%    call.
+% \changes{v2.0g}{89/09/19}{`theoremheaderfont and `theorembodyfont added.}
+%    \begin{macrocode}
+{\def\do{\noexpand\do\noexpand}
+\xdef\@preamblecmds{\@preamblecmds \do\@xnthm \do\@ynthm \do\@othm
+        \do\newtheorem \do\theoremstyle \do\theorembodyfont
+        \do\theoremheaderfont}
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% Finally we declare the {\tt plain} theorem style to be the default.
+% \changes{v2.1b}{90/06/04}{Fixed missing `item by declaring default style.}
+%    \begin{macrocode}
+\theoremstyle{plain}
+%    \end{macrocode}
+%
+% \Finale
+
+\endinput
+

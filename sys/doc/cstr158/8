@@ -1,0 +1,1258 @@
+%!PS
+%%Version: 3.3
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	/Symbol /S Sdefs cf
+	/Times-Roman /S1 S1defs cf
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put} {pop pop} ifelse} forall
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+/linewidth 0.5 def
+/landscape false def
+/resolution 720 def
+setup
+2 setdecoding
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+12 B f
+(A New C Compiler)3 974 1 2393 1230 t
+10 I f
+(Ken Thompson)1 603 1 2578 1470 t
+10 R f
+(AT&T Bell Laboratories)2 993 1 2383 1650 t
+(Murray Hill, New Jersey 07974)4 1267 1 2246 1770 t
+10 I f
+(ABSTRACT)2643 2150 w
+10 R f
+( compilers were)2 681( These)1 310( series of C compilers.)4 984(This paper describes yet another)4 1375 4 1330 2410 t
+( compilers are)2 575( These)1 293( the last several years and are now in use on Plan 9.)12 2114(developed over)1 618 4 1080 2530 t
+( were)1 223( of the ideas)3 497( Some)1 282(experimental in nature and were developed to try out new ideas.)10 2598 4 1080 2650 t
+(good and some not so good.)5 1122 1 1080 2770 t
+10 B f
+(1. Introduction)1 670 1 720 3130 t
+10 R f
+( compiler has the)3 700( typical C)2 397( A)1 126(Most C compilers consist of a multitude of passes with numerous interfaces.)11 3097 4 720 3286 t
+( assembly optimi-)2 721(following passes \261 pre-processing, lexical analysis and parsing, code generation, optional)10 3599 2 720 3406 t
+(sation, assembly \(which itself is usually multiple passes\), and loading. [Joh79a])10 3184 1 720 3526 t
+( the cpu)2 342( Of)1 168( it becomes clear that I/O dominates.)6 1545(If one profiles what is going on in this whole process,)10 2265 4 720 3682 t
+( with these many)3 716( Even)1 267( from intermediate file formats.)4 1304(cycles expended, most go into conversion to and)7 2033 4 720 3802 t
+( these conventional compil-)3 1119( With)1 254( efficient.)1 386(passes, the code generated is mostly line-at-a-time and not very)9 2561 4 720 3922 t
+( it seemed easy to make a new compiler that could execute much faster and still produce)16 3558(ers as benchmarks,)2 762 2 720 4042 t
+(better code.)1 465 1 720 4162 t
+( were for the National 32000, Western 32100, and an internal computer called)12 3127(The first three compilers built)4 1193 2 720 4318 t
+( for the Motorola)3 712( there are active compilers)4 1092( Currently)1 443( compilers have drifted into disuse.)5 1454( These)1 298(a Crisp.)1 321 6 720 4438 t
+(68020 and MIPS 2000/3000 computers. [Mot85, Kan88])6 2271 1 720 4558 t
+10 B f
+(2. Structure)1 535 1 720 4798 t
+10 R f
+( in the compiler are the traditional)6 1377( Combined)1 469(The compiler is a single program that produces an object file.)10 2474 3 720 4954 t
+( object)1 270( The)1 206( and first half of the assembler.)6 1245(roles of pre-processor, compiler, code generator, local optimiser,)7 2599 4 720 5074 t
+( what might be passed between the first and second)9 2103(files are binary forms of assembly language, similar to)8 2217 2 720 5194 t
+(passes of an assembler.)3 931 1 720 5314 t
+( produce the executable binary.)4 1277(Object files and libraries are combined and loaded by a second program to)12 3043 2 720 5470 t
+( is a)2 185( There)1 294( second half of the assembler, global optimiser, and loader.)9 2465(The loader combines the roles of)5 1376 4 720 5590 t
+( takes an assembler-like input and performs a simple)8 2198( It)1 123( as an assembler.)3 712(third small program that serves)4 1287 4 720 5710 t
+(translation into the object format.)4 1335 1 720 5830 t
+10 B f
+( Language)1 448(3. The)1 292 2 720 6070 t
+10 R f
+( C with some restrictions and extensions. [Ker88] If this had been a)12 2969(The compiler implements ANSI)3 1351 2 720 6226 t
+( a research vehicle, the compiler would have implemented exact ANSI)10 2878(product-oriented project rather than)3 1442 2 720 6346 t
+( the imple-)2 447( several extensions were added to help in)7 1680( Also,)1 270( of the poorer features were left out.)7 1476(C. Several)1 447 5 720 6466 t
+(mentation of Plan 9. [Pik90] There are many more departures from the standard, particularly in the)15 4320 1 720 6586 t
+(libraries, that are beyond the scope of this paper.)8 1940 1 720 6706 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Page: 2 2
+/saveobj save def
+mark
+2 pagesetup
+10 R f
+(- 2 -)2 166 1 2797 480 t
+10 B f
+( volatile, const)2 608(3.1. Register,)1 579 2 720 840 t
+10 R f
+(The keywords)1 587 1 720 996 t
+10 CW f
+(register)1351 996 w
+10 R f
+(,)1831 996 w
+10 CW f
+(volatile)1900 996 w
+10 R f
+(, and)1 213 1 2380 996 t
+10 CW f
+(const)2637 996 w
+10 R f
+( are semantically)2 716(, are recognised syntactically but)4 1387 2 2937 996 t
+(ignored.)720 1116 w
+10 CW f
+(Volatile)1108 1116 w
+10 R f
+( if ignoring it is a departure from the)8 1515(seems to have no meaning, so it is hard to tell)10 1904 2 1621 1116 t
+(standard.)720 1236 w
+10 CW f
+(Const)1133 1236 w
+10 R f
+(only confuses library interfaces with the hope of catching some rare errors.)11 2992 1 1458 1236 t
+10 CW f
+(Register)720 1392 w
+10 R f
+( should be assigned over the individual lives of a vari-)10 2244( Registers)1 430(is a holdover from the past.)5 1133 3 1233 1392 t
+( by pre-)2 314( allocating registers over the life of a variable, rather than)10 2321( By)1 170(able, not on the whole variable name.)6 1515 4 720 1512 t
+( to get the effect of about twice as many registers.)10 2077(allocating registers at declaration, it is usually possible)7 2243 2 720 1632 t
+(The compiler is also in a much better position to judge the allocation of a register variable than the pro-)19 4320 1 720 1752 t
+( one does, the)3 585( When)1 300( register variables wisely.)3 1056( is extremely hard for a programmer to place)8 1872(grammer. It)1 507 5 720 1872 t
+( of a pro-)3 368( portability of the performance)4 1229( The)1 206(code is usually optimised to a particular compiler or computer.)9 2517 4 720 1992 t
+(gram with register declarations is poor.)5 1564 1 720 2112 t
+( This)1 232( is illegal to take its address.)6 1154(There is a semantic feature of a declared register variable in ANSI C \261 it)14 2934 3 720 2268 t
+( would be easy to carry a flag in the symbol table to rectify this,)14 2577( It)1 114(compiler does not catch this ``mistake.'')5 1629 3 720 2388 t
+(but that seems fussy.)3 833 1 720 2508 t
+10 B f
+( pre-processor)1 612(3.2. The)1 367 2 720 2748 t
+10 R f
+( of differences are)3 760( Most)1 268(The C pre-processor is probably the biggest departure from the ANSI standard.)11 3292 3 720 2904 t
+( of the difference is due to the generally poor specification of the)12 2768( Some)1 294(protests about common usage.)3 1258 3 720 3024 t
+(existing pre-processors prior to the ANSI report.)6 1938 1 720 3144 t
+(This compiler does not support)4 1284 1 720 3300 t
+10 CW f
+(#if)2039 3300 w
+10 R f
+(, though it does handle)4 948 1 2219 3300 t
+10 CW f
+(#ifdef)3202 3300 w
+10 R f
+( practice,)1 375(. In)1 168 2 3562 3300 t
+10 CW f
+(#if)4141 3300 w
+10 R f
+(is almost always)2 683 1 4357 3300 t
+( is that the programmer has buried some old code that)10 2167( it means)2 367( What)1 269(followed by a variable like ``pdp11.'')5 1517 4 720 3420 t
+( ``portable'' code by expanding all possibilities)6 1922( common usage is to write)5 1072( Another)1 381(will no longer compile.)3 945 4 720 3540 t
+(in a jumble of left-justified chicken scratches.)6 1827 1 720 3660 t
+( very efficient normal)3 891(As an alternate, the compiler will compile)6 1720 2 720 3816 t
+10 CW f
+(if)3364 3816 w
+10 R f
+(statements with constant expressions.)3 1523 1 3517 3816 t
+(This is usually enough to rewrite old)6 1466 1 720 3936 t
+10 CW f
+(#if)2211 3936 w
+10 R f
+(-laden code.)1 487 1 2391 3936 t
+( the compiler can be run with any of the existing pre-processors that are still maintained as)16 3712(If all else fails,)3 608 2 720 4092 t
+(separate passes.)1 631 1 720 4212 t
+10 B f
+( substructures)1 608(3.3. Unnamed)1 617 2 720 4452 t
+10 R f
+( used of the extensions is the declaration of an unnamed substructure)11 2803(The most important and most heavily)5 1517 2 720 4608 t
+( example:)1 391( For)1 189(or subunion.)1 500 3 720 4728 t
+10 CW f
+(struct lock)1 960 1 1152 4908 t
+({)1152 5028 w
+(int locked;)1 840 1 1512 5148 t
+(} *lock;)1 480 1 1152 5268 t
+(struct node)1 960 1 1152 5508 t
+({)1152 5628 w
+(int type;)1 660 1 1512 5748 t
+(union)1512 5868 w
+({)1512 5988 w
+(double dval;)1 720 1 1872 6108 t
+(float fval;)1 720 1 1872 6228 t
+(long lval;)1 720 1 1872 6348 t
+(};)1512 6468 w
+(struct lock;)1 720 1 1512 6588 t
+(} *node;)1 480 1 1152 6708 t
+10 R f
+(This is a declaration with an unnamed substructure,)7 2079 1 720 6888 t
+10 CW f
+(lock)2827 6888 w
+10 R f
+( shows the two)3 609( This)1 231(, and an unnamed subunion.)4 1133 3 3067 6888 t
+( first allows references to elements of the subunit to be accessed as if they)14 2977( The)1 207(major usages of this feature.)4 1136 3 720 7008 t
+( Thus)1 252(were in the outer structure.)4 1080 2 720 7128 t
+10 CW f
+(node->dval)2079 7128 w
+10 R f
+(and)2706 7128 w
+10 CW f
+(node->locked)2877 7128 w
+10 R f
+( C, the)2 270( In)1 136(are legitimate references.)2 1010 3 3624 7128 t
+(name of a union is almost always a non-entity that is mechanically declared and used with no purpose.)17 4094 1 720 7248 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 2 2
+%%Page: 3 3
+/saveobj save def
+mark
+3 pagesetup
+10 R f
+(- 3 -)2 166 1 2797 480 t
+( a pointer to the outer structure is used in a context that is)13 2380( When)1 295( is poor man's classes.)4 924(The second usage)2 721 4 720 840 t
+( in assignment state-)3 825( happens)1 355( This)1 231(only legal for an unnamed substructure, the compiler promotes the type.)10 2909 4 720 960 t
+( continuing with the example,)4 1191( Thus,)1 275(ments and in argument passing where prototypes have been declared.)9 2766 3 720 1080 t
+10 CW f
+(lock = node;)2 720 1 1152 1260 t
+10 R f
+(would assign a pointer to the unnamed lock in the node to the variable)13 2805 1 720 1440 t
+10 CW f
+(lock)3550 1440 w
+10 R f
+( example,)1 388(. Another)1 402 2 3790 1440 t
+10 CW f
+(extern void lock\(struct lock*\);)3 1860 1 1152 1620 t
+(func\(...\))1152 1740 w
+({)1152 1860 w
+(...)1512 1980 w
+(lock\(node\);)1512 2100 w
+(...)1512 2220 w
+(})1152 2340 w
+10 R f
+(will pass a pointer to the lock substructure.)7 1715 1 720 2520 t
+( the implicit conversions to unnamed substructures, but this would conflict)10 3045(It would be nice to add casts to)7 1275 2 720 2676 t
+( problem comes about from the almost ambiguous dual meaning of the cast)12 3104( The)1 213( practice.)1 373(with existing C)2 630 4 720 2796 t
+( for example)2 604( usage is conversion;)3 982(operator. One)1 622 3 720 2916 t
+10 CW f
+(\(double\)5)3003 2916 w
+10 R f
+(is a conversion, but)3 927 1 3618 2916 t
+10 CW f
+(\(struct)4620 2916 w
+(lock*\)node)720 3036 w
+10 R f
+(is a PL/1 ``unspec.'')3 815 1 1345 3036 t
+10 B f
+( displays)1 371(3.4. Structure)1 610 2 720 3276 t
+10 R f
+(A structure cast followed by a list of expressions in braces is an expression with the type of the structure)19 4320 1 720 3432 t
+( citizens of the)3 621( now almost first-class)3 941( Structures are)2 652(and elements assigned from the corresponding list.)6 2106 4 720 3552 t
+( is common to see code like this:)7 1308(language. It)1 496 2 720 3672 t
+10 CW f
+(r = \(Rectangle\){point1, \(Point\){x,y+2}}.)3 2400 1 1152 3852 t
+10 B f
+( indexes)1 342(3.5. Initialisation)1 746 2 720 4152 t
+10 R f
+( This)1 236( an initialiser.)2 563(In initialisers of arrays, one may place a constant expression in square brackets before)13 3521 3 720 4308 t
+( use of)2 288( feature comes from the expanded)5 1414( This)1 240(causes the next initialiser to go in that indicated element.)9 2378 4 720 4428 t
+10 CW f
+(enum)720 4548 w
+10 R f
+(declarations. Example:)1 940 1 985 4548 t
+10 CW f
+(enum errors)1 720 1 1152 4728 t
+({)1152 4848 w
+(Etoobig,)1512 4968 w
+(Ealarm,)1512 5088 w
+(Egreg,)1512 5208 w
+(};)1152 5328 w
+(char* errstrings[] =)2 1200 1 1152 5448 t
+({)1152 5568 w
+( list too long",)3 960([Etoobig] "Arg)1 960 2 1512 5688 t
+( call",)1 420([Ealarm] "Alarm)1 1080 2 1512 5808 t
+( out of mbufs",)3 900([Egreg] "Panic)1 1080 2 1512 5928 t
+(};)1152 6048 w
+10 R f
+(This example also shows a micro-extension \261 it is legal to place a comma on the last)16 3374 1 720 6228 t
+10 CW f
+(enum)4119 6228 w
+10 R f
+( \(Wow!)1 333(in a list.)2 322 2 4385 6228 t
+(What were they thinking?\))3 1067 1 720 6348 t
+10 B f
+( register)1 351(3.6. External)1 572 2 720 6588 t
+10 R f
+(The declaration)1 625 1 720 6744 t
+10 CW f
+(extern register)1 867 1 1372 6744 t
+10 R f
+( can only be)3 494( It)1 114( a global basis.)3 603(will dedicate a register to a variable on)7 1563 4 2266 6744 t
+( register variables must be identically declared in all modules)9 2539( External)1 398( special circumstances.)2 937(used under)1 446 4 720 6864 t
+( is efficient, but rather it represents a unique)8 1800( declaration is not for efficiency, although it)7 1786( The)1 209(and libraries.)1 525 4 720 6984 t
+( external)1 354( a shared-memory multi-processor, an)4 1552( On)1 181(storage class that would be hard to get any other way.)10 2233 4 720 7104 t
+( is)1 104( It)1 123( one-per-system \(external\).)2 1101(register is one-per-machine and neither one-per-procedure \(automatic\) or)7 2992 4 720 7224 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 3 3
+%%Page: 4 4
+/saveobj save def
+mark
+4 pagesetup
+10 R f
+(- 4 -)2 166 1 2797 480 t
+(used for two variables in the Plan 9 kernel,)8 1783 1 720 840 t
+10 I f
+(u)2537 840 w
+10 R f
+(and)2621 840 w
+10 I f
+(m)2798 840 w
+10 R f
+(.)2870 840 w
+10 I f
+(U)2953 840 w
+10 R f
+(is a pointer to the structure representing the cur-)8 1982 1 3058 840 t
+(rently running process and)3 1062 1 720 960 t
+10 I f
+(m)1807 960 w
+10 R f
+(is a pointer to the per-machine data structure.)7 1807 1 1904 960 t
+10 B f
+( case, goto default)3 760(3.7. Goto)1 411 2 720 1200 t
+10 R f
+( is legal to say)4 608( a switch it)3 460( In)1 141(The last extension has not been used, so is probably not a good idea.)13 2837 4 720 1356 t
+10 CW f
+(goto)4800 1356 w
+(case 5)1 325 1 720 1476 t
+10 R f
+(or)1070 1476 w
+10 CW f
+(goto default)1 685 1 1178 1476 t
+10 R f
+(with the obvious meaning.)3 1061 1 1888 1476 t
+10 B f
+( module conventions)2 873(4. Object)1 413 2 720 1716 t
+10 R f
+( this sec-)2 369( In)1 140( important to runtime efficiency.)4 1329(The overall conventions of the runtime environment are very)8 2482 4 720 1872 t
+(tion, several of these conventions are discussed.)6 1913 1 720 1992 t
+10 B f
+( saving)1 298(4.1. Register)1 554 2 720 2232 t
+10 R f
+( the caller save the)4 786( compiler has)2 558( This)1 238(In most compilers, the called program saves the exposed registers.)9 2738 4 720 2388 t
+( the leaf subroutines can use all the registers)8 1811( caller-saves,)1 527( With)1 257( are arguments both ways.)4 1073(registers. There)1 652 5 720 2508 t
+( called-saves, the)2 702( In)1 142( spend a lot of time at the leaves, this seems preferable.)11 2303( you)1 183( If)1 124(and never save them.)3 866 6 720 2628 t
+( interested in space, this)4 993( you are)2 341( If)1 126(saving of the registers is done in the single point of entry and return.)13 2860 4 720 2748 t
+( con-)1 206( The)1 209( saved.)1 281( both, there is a degree of uncertainty about what registers need to be)13 2788( In)1 136(seems preferable.)1 700 6 720 2868 t
+( the decision to registerise a variable can include the cost of sav-)12 2608(vincing argument is that with caller-saves,)5 1712 2 720 2988 t
+(ing the register across calls.)4 1106 1 720 3108 t
+( many registers, would to have both caller-saved reg-)8 2128(Perhaps the best method, especially on computers with)7 2192 2 720 3264 t
+(isters and called-saved registers.)3 1291 1 720 3384 t
+( such the caller has)4 775( As)1 165( subroutine calls.)2 688(In the Plan 9 operating system, calls to the kernel look like normal)12 2692 4 720 3540 t
+( makes system call considerably faster.)5 1633( This)1 243( does not have to.)4 762(saved the registers and the system entry)6 1682 4 720 3660 t
+( potential security hole, and can lead to non-determinisms, the system may eventually save)13 3743(Since this is a)3 577 2 720 3780 t
+(the registers on entry, or more likely clear the registers on return.)11 2597 1 720 3900 t
+10 B f
+( convention)1 492(4.2. Calling)1 512 2 720 4140 t
+10 R f
+( between the)2 532( relationship)1 510( The)1 218(Rule: ``It is a mistake to use the manufacturer's special call instruction.'')11 3060 4 720 4296 t
+( is just extra work to mark this)7 1282( It)1 120( known by the compiler.)4 1010(\(virtual\) frame pointer and the stack pointer is)7 1908 4 720 4416 t
+( towards lower addresses, then there is no need for an)10 2206( the stack grows)3 664( If)1 122(known point with a real register.)5 1328 4 720 4536 t
+( convention is that the caller)5 1174( the)1 157( If)1 126( is also at a known offset from the stack pointer.)10 2022( It)1 121(argument pointer.)1 720 6 720 4656 t
+( call)1 173( is therefore no advantage to a special)7 1525( There)1 285(saves the registers, then the entry point saves no registers.)9 2337 4 720 4776 t
+(instruction.)720 4896 w
+( programs compiled with the simple ``jsr'' instruction would run in about)11 2989(On the National 32100 computer)4 1331 2 720 5052 t
+(half the time of programs compiled with the ``call'' instruction.)9 2541 1 720 5172 t
+10 B f
+( stack pointer)2 583(4.3. Floating)1 556 2 720 5412 t
+10 R f
+( push and pop the top of)6 972(On computers like the VAX and the 68020, there is a short, fast addressing mode to)15 3348 2 720 5568 t
+( popped many)2 574( a sequence of subroutine calls within a basic block, arguments may be pushed and)14 3378(stack. In)1 368 3 720 5688 t
+( the argu-)2 400( If)1 125( activity, but popping is just overhead.)6 1587( arguments is, to some extent, a useful)7 1585(times. Pushing)1 623 5 720 5808 t
+( arguments \(usu-)2 679(ments of the first call are left on the stack for the second call, a single pop of both sets of)20 3641 2 720 5928 t
+( optimisation is worth several percent in both)7 1884( This)1 239( ``add'' instruction\) will suffice for both calls.)7 1918(ally an)1 279 4 720 6048 t
+(space and runtime of object modules.)5 1492 1 720 6168 t
+( in debugging, when the distance between the stack pointer and the frame pointer)13 3342(The only penalty comes)3 978 2 720 6324 t
+( counter-dependent variable rather than a single variable for an entire)10 2818(must be communicated as a program)5 1502 2 720 6444 t
+(subroutine.)720 6564 w
+10 B f
+( returning structures)2 893(4.4. Functions)1 623 2 720 6804 t
+10 R f
+( since they do not fit in registers and must be)10 1883(Structures longer than one word are awkward to implement)8 2437 2 720 6960 t
+( compilers pass)2 630( These)1 295( return structures are particularly clumsy.)5 1681( that)1 183( Functions)1 453(passed around in memory.)3 1078 6 720 7080 t
+( Thus)1 250(the return address of a structure as the first argument of a function that has a structure return value.)18 3943 2 720 7200 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 4 4
+%%Page: 5 5
+/saveobj save def
+mark
+5 pagesetup
+10 R f
+(- 5 -)2 166 1 2797 480 t
+10 CW f
+(x = f\(...\))2 600 1 1152 900 t
+10 R f
+(is rewritten as)2 560 1 720 1080 t
+10 CW f
+(f\(&x, ...\).)1 660 1 1152 1260 t
+10 R f
+( call this)2 365( disadvantage is that if you)5 1134( A)1 134(This saves a copy and makes the compilation much less clumsy.)10 2687 4 720 1440 t
+( earlier version of the compiler)5 1283( An)1 182( assignment, a dummy location must be invented.)7 2050(function without an)2 805 4 720 1560 t
+( after measuring some run-)4 1091(passed a null pointer in such cases, but was changed to pass a dummy argument)14 3229 2 720 1680 t
+(ning programs.)1 605 1 720 1800 t
+( Before)1 334( structure without declaring it as such.)6 1601(There is also a danger of calling a function that returns a)11 2385 3 720 1956 t
+(ANSI C function prototypes, this would probably be enough consideration to find some other way of)15 4320 1 720 2076 t
+( subroutine is com-)3 796( compilers have an option that complains every time that a)10 2416( These)1 296(returning structures.)1 812 4 720 2196 t
+( is)1 102( This)1 238( catches this and many other errors.)6 1476(piled that has not been fully specified by a prototype, which)10 2504 4 720 2316 t
+(now the default and is highly recommended for all ANSI C compilers.)11 2813 1 720 2436 t
+10 B f
+(5. Implementation)1 808 1 720 2676 t
+10 R f
+( divided internally into four machine-independent passes, four machine-dependent passes,)9 3677(The compiler is)2 643 2 720 2832 t
+( next nine sections describe each pass in order.)8 1865( The)1 205(and an output pass.)3 766 3 720 2952 t
+10 B f
+(5.1. Parsing)1 528 1 720 3192 t
+10 R f
+( into a parse tree and collected, without)7 1653(The first pass is a YACC-based parser. [Joh79b] All code is put)11 2667 2 720 3348 t
+( later passes then walk this tree.)6 1267( The)1 205(interpretation, for the body of a function.)6 1636 3 720 3468 t
+( preprocessor expansions of)3 1156( The)1 220( the parser is a pushdown list of input activations.)9 2117(The input stream of)3 827 4 720 3624 t
+10 CW f
+(#define)720 3744 w
+10 R f
+(and)1170 3744 w
+10 CW f
+(#include)1344 3744 w
+10 R f
+( there is no separate pass for preprocess-)7 1642( Thus)1 254( pushdowns.)1 504(are implemented as)2 786 4 1854 3744 t
+(ing.)720 3864 w
+( is just one pass of many, the parsing take 50% of the execution time of the whole compiler.)18 3727(Even though it)2 593 2 720 4020 t
+( remaining 25% of the parse time is due to the)10 1842( The)1 205( the inefficiencies of YACC.)4 1145(Most of this \(75%\) is due to)6 1128 4 720 4140 t
+( initial writing of the com-)5 1068( flexibility of YACC was very important in the)8 1885( The)1 206(low level character handling.)3 1161 4 720 4260 t
+(piler, but it would probably be worth the effort to write a custom recursive descent parser.)15 3590 1 720 4380 t
+10 B f
+(5.2. Typing)1 507 1 720 4620 t
+10 R f
+( operations on the tree are)5 1073( Implicit)1 375( node of the tree.)4 705(The next pass distributes typing information to every)7 2167 4 720 4776 t
+(added, such as type promotions and taking the address of arrays and functions.)12 3139 1 720 4896 t
+10 B f
+( optimisation)1 559(5.3. Machine-independent)1 1134 2 720 5136 t
+10 R f
+( of the transforms:)3 753( Typical)1 361( tree.)1 205(The next pass performs optimisations and transformations of the)8 2615 4 720 5292 t
+10 CW f
+(&*x)4685 5292 w
+10 R f
+(and)4896 5292 w
+10 CW f
+(*&x)720 5412 w
+10 R f
+(are converted into)2 720 1 925 5412 t
+10 CW f
+(x)1670 5412 w
+10 R f
+( expressions are converted to constants in this pass.)8 2050(. Constant)1 431 2 1730 5412 t
+10 B f
+( rewrites)1 373(5.4. Arithmetic)1 665 2 720 5652 t
+10 R f
+( of add, subtract, and multiply of integers are)8 1861( Subtrees)1 402(This is another machine-independent optimisation.)4 2057 3 720 5808 t
+( major transformation is factoring;)4 1416( The)1 215(rewritten for easier compilation.)3 1316 3 720 5928 t
+10 CW f
+(4+8*a+16*b+5)3702 5928 w
+10 R f
+(is transformed)1 583 1 4457 5928 t
+(into)720 6048 w
+10 CW f
+(9+8*\(a+2*b\))901 6048 w
+10 R f
+( expressions arise from address manipulation and array indexing.)8 2598(. Such)1 275 2 1561 6048 t
+10 B f
+(5.5. Addressability)1 823 1 720 6288 t
+10 R f
+( addressability of a computer is defined as the)8 1990( The)1 225( the machine-dependent passes.)3 1318(This is the first of)4 787 4 720 6444 t
+( addressability of differ-)3 976( The)1 208( legal in the address field of a machine language instruction.)10 2434(expression that is)2 702 4 720 6564 t
+( are the 68020 and VAX, which allow a complex)9 2002( one end of the spectrum)5 1004( At)1 154(ent computers varies widely.)3 1160 4 720 6684 t
+( the other end is the MIPS, which)7 1338( At)1 150( relative addressing.)2 801(array of incrementing, decrementing, indexing and)5 2031 4 720 6804 t
+( can be different for)4 807( addressability)1 583( The)1 208(allows registers and constant offsets from the contents of a register.)10 2722 4 720 6924 t
+(different instructions within the same computer.)5 1920 1 720 7044 t
+( This)1 229( a subtree represents an address of a particular type.)9 2069(It is important to the code generator to know when)9 2022 3 720 7200 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 5 5
+%%Page: 6 6
+/saveobj save def
+mark
+6 pagesetup
+10 R f
+(- 6 -)2 166 1 2797 480 t
+( When)1 294( this pass, the leaves are labelled with small integers.)9 2165( In)1 139( with a bottom-up walk of the tree.)7 1429(is done)1 293 5 720 840 t
+(an internal node is encountered, it is labelled by consulting a table indexed by the labels on the left and)19 4320 1 720 960 t
+( the 68020 computer, it is possible to address an offset from a named loca-)14 3032( example, on)2 523( For)1 194(right subtrees.)1 571 4 720 1080 t
+( C, this is represented by the expression)7 1629(tion. In)1 320 2 720 1200 t
+10 CW f
+(*\(&name+constant\))2701 1200 w
+10 R f
+( is marked addressable by)4 1059(. This)1 260 2 3721 1200 t
+( the table, a node represented by the left column is marked with a small integer from)16 3401( In)1 135(the following table.)2 784 3 720 1320 t
+( of the form)3 474( Marks)1 305(the right column.)2 686 3 720 1440 t
+10 CW f
+(A1)2210 1440 w
+10 R f
+(are addressable while marks of the form)6 1601 1 2355 1440 t
+10 CW f
+(N1)3981 1440 w
+10 R f
+(are not addressable.)2 789 1 4126 1440 t
+10 B f
+(Node Marked)1 1064 1 1152 1620 t
+10 CW f
+(name A1)1 840 1 1152 1740 t
+(const A2)1 840 1 1152 1860 t
+(&A1 A3)1 840 1 1152 1980 t
+(A3+A1 N1)1 840 1 1152 2100 t
+10 R f
+(\(note this is not addressable\))4 1143 1 2052 2100 t
+10 CW f
+(*N1 A4)1 840 1 1152 2220 t
+10 R f
+( between a node marked)4 989(Here there is a distinction)4 1042 2 720 2400 t
+10 CW f
+(A1)2781 2400 w
+10 R f
+(and a node marked)3 771 1 2931 2400 t
+10 CW f
+(A4)3732 2400 w
+10 R f
+(because the address operator)3 1158 1 3882 2400 t
+(of an)1 202 1 720 2520 t
+10 CW f
+(A4)947 2520 w
+10 R f
+( to extend the table:)4 788( So)1 156(node is not addressable.)3 954 3 1092 2520 t
+10 B f
+(Node Marked)1 1064 1 1152 2700 t
+10 CW f
+(&A4 N2)1 840 1 1152 2820 t
+(N2+N1 N1)1 840 1 1152 2940 t
+10 R f
+( one ports the compiler, this)5 1161( When)1 297( of the 68020 is expressed in 18 rules like this.)10 1947(The full addressability)2 915 4 720 3120 t
+( code produced is)3 707( The)1 207( labelled as addressable and nothing else.)6 1656(table is usually initialised so that leaves are)7 1750 4 720 3240 t
+( table can be extended later.)5 1113( The)1 205(poor, but porting is easy.)4 994 3 720 3360 t
+(In the same bottom-up pass of the tree, the nodes are labelled with a Sethi-Ullman complexity. [Set70] This)17 4320 1 720 3516 t
+( address-)1 364( An)1 179( an ideal machine.)3 747(number is roughly the number of registers required to compile the tree on)12 3030 4 720 3636 t
+( unary operator is marked as the maximum of)8 1851( A)1 126( function call is marked infinite.)5 1302( A)1 126( marked 0.)2 432(able node is)2 483 6 720 3756 t
+( operator with equal marks on its subtrees is marked with a subtree)12 2716( binary)1 285( A)1 127(1 and the mark of its subtree.)6 1192 4 720 3876 t
+( marks on its subtrees is marked with the maximum mark of)11 2478( binary operator with unequal)4 1205( A)1 128(mark plus 1.)2 509 4 720 3996 t
+( goal is to)3 392( The)1 205( relative values are.)3 775( actual values of the marks are not too important, but the)11 2269( The)1 206(its subtrees.)1 473 6 720 4116 t
+(compile the harder \(larger mark\) subtree first.)6 1825 1 720 4236 t
+10 B f
+( generation)1 480(5.6. Code)1 422 2 720 4476 t
+10 R f
+( completely guides the order.)4 1178( Sethi-Ullman complexity)2 1045( The)1 208(Code is generated by simple recursive descent.)6 1889 4 720 4632 t
+( only difficult part is compiling a tree that has two infinite \(func-)12 2610( The)1 207( defines the leaves.)3 765(The addressability)1 738 4 720 4752 t
+( one subtree is compiled into the return register \(usually the most conve-)12 3016( this case,)2 409( In)1 142(tion call\) subtrees.)2 753 4 720 4872 t
+( other subtree is compiled into the return)7 1665( The)1 211(nient place for a function call\) and then stored on the stack.)11 2444 3 720 4992 t
+(register and then the operation is compiled with operands from the stack and the return register.)15 3815 1 720 5112 t
+( is fundamentally different)3 1062( This)1 228(There is a separate boolean code generator that compiles conditional jumps.)10 3030 3 720 5268 t
+( the program)2 540( result of the boolean code generator is the position of)10 2312( The)1 221(than compiling an expression.)3 1247 4 720 5388 t
+( version of that described in)5 1182( boolean code generator is an expanded)6 1651( The)1 218(counter and not an expression.)4 1269 4 720 5508 t
+(chapter 8 of Aho, Sethi, and Ullman. [Aho87])7 1836 1 720 5628 t
+( with a)2 302(There is a considerable amount of talk in the literature about automating this part of a compiler)16 4018 2 720 5784 t
+( this code generator is so small \(less than 500 lines of C\) and easy, it hardly)16 3192( Since)1 284(machine description.)1 844 3 720 5904 t
+(seems worth the effort.)3 920 1 720 6024 t
+10 B f
+(5.7. Registerisation)1 838 1 720 6264 t
+10 R f
+( syntax trees that are roughly equivalent to the original source lan-)11 2681(Up to now, the compiler has operated on)7 1639 2 720 6420 t
+( next two passes oper-)4 891( The)1 206( an internal format.)3 768( previous pass has produced machine language in)7 1985(guage. The)1 470 5 720 6540 t
+( of the next pass is to reintroduce registers for)9 1854( purpose)1 343( The)1 207(ate on the internal machine language structures.)6 1916 4 720 6660 t
+(heavily used variables.)2 912 1 720 6780 t
+( vari-)1 215( \(Suitable)1 413( within a routine are placed in a table.)8 1521(All of the variables that can be potentially registerised)8 2171 4 720 6936 t
+( constants that)2 588( Some)1 286( all automatic or external scalars that do not have their addresses extracted.)12 3086(ables are)1 360 4 720 7056 t
+( separate data flow equations are evalu-)6 1620( Four)1 246( to reference are also considered for registerisation.\))7 2125(are hard)1 329 4 720 7176 t
+( of the equations are the normal set-behind and used-)9 2187( Two)1 241( variables.)1 418(ated over the routine on all of these)7 1474 4 720 7296 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 6 6
+%%Page: 7 7
+/saveobj save def
+mark
+7 pagesetup
+10 R f
+(- 7 -)2 166 1 2797 480 t
+( a variable life crosses a function call)7 1538( two new bits tell if)5 810( The)1 212(ahead bits that define the life of a variable.)8 1760 4 720 840 t
+( a cost for registerising.)4 988( examining a variable over its lifetime, it is possible to get)11 2464( By)1 180(ahead or behind.)2 688 4 720 960 t
+( are sorted)2 433( Costs)1 282( of loop nesting.)3 677(Loops are detected and the costs are multiplied by three for every level)12 2928 4 720 1080 t
+(and the variables are replaced by available registers on a greedy basis.)11 2797 1 720 1200 t
+( the 68020, two different costs are calculated for each)9 2210( For)1 197( registers.)1 396(The 68020 has two different types of)6 1517 4 720 1356 t
+( are broken by counting the num-)6 1349( Ties)1 225( the register type that affords the better cost is used.)10 2090(variable life and)2 656 4 720 1476 t
+(ber of available registers of each type.)6 1520 1 720 1596 t
+( a)1 73( is done by evaluating the semantics of)7 1572( This)1 231(Note that externals are registerised together with automatics.)7 2444 4 720 1752 t
+( outside the local procedure, it)5 1219( a call goes)3 455( Since)1 275(``call'' instruction differently for externals and automatics.)6 2371 4 720 1872 t
+( before an ``entry'')3 769( externals are assumed to be set)6 1270( Similarly,)1 450(is assumed that a call references all externals.)7 1831 4 720 1992 t
+( in)1 104( makes sure that externals are)5 1187( This)1 230(instruction and assumed to be referenced after a ``return'' instruction.)9 2799 4 720 2112 t
+(memory across calls.)2 840 1 720 2232 t
+( would be nice to be able to do this processing in a machine-)13 2598( It)1 125( very satisfying.)2 669(The overall results are)3 928 4 720 2388 t
+( choices by examin-)3 807(independent way, but it is impossible to get all of the costs and side effects of different)16 3513 2 720 2508 t
+(ing the parse tree.)3 709 1 720 2628 t
+( major machine-dependency is in)4 1349( The)1 211( is machine-independent.)2 1013(Most of the code in the registerisation pass)7 1747 4 720 2784 t
+(examining a machine instruction to ask if it sets or references a variable.)12 2891 1 720 2904 t
+10 B f
+( code optimisation)2 778(5.8. Machine)1 572 2 720 3144 t
+10 R f
+( the most part, this is highly spe-)7 1313( For)1 190( for opportunistic optimisations.)3 1287(The next pass walks the machine code)6 1530 4 720 3300 t
+( is performed on all of the computers is the removal of)11 2199( optimisation that)2 707( One)1 219(cific to a particular computer.)4 1195 4 720 3420 t
+( previous pass.)2 593( most of these instructions were inserted by the)8 1881( Ironically,)1 463(unnecessary ``move'' instructions.)2 1383 4 720 3540 t
+( The)1 216( repetitively matched and replaced until no more matches are found.)10 2829(There are two patterns that are)5 1275 3 720 3660 t
+(first tries to remove ``move'' instructions by relabelling variables.)8 2643 1 720 3780 t
+( the source variable is)4 906(When a ``move'' instruction is encountered, if the destination variable is set before)12 3414 2 720 3936 t
+( the)1 164(referenced, then all of the references to the destination variable can be renamed to the source and)16 4156 2 720 4056 t
+( transformation uses the reverse data flow set up in the previous pass.)12 2770( This)1 228(``move'' can be deleted.)3 974 3 720 4176 t
+( pattern is in the left column and the)8 1555( The)1 219(An example if this pattern is depicted in the following table.)10 2546 3 720 4332 t
+(replacement action is in the right column.)6 1662 1 720 4452 t
+10 CW f
+(MOVE a,b)1 540 1 1152 4632 t
+10 R f
+(\(remove\))2592 4632 w
+(\(no use of)2 399 1 1152 4752 t
+10 CW f
+(a)1576 4752 w
+10 R f
+(\))1636 4752 w
+10 CW f
+( a)1 240( USE)1 1200(USE b)1 420 3 1152 4872 t
+10 R f
+(\(no use of)2 399 1 1152 4992 t
+10 CW f
+(a)1576 4992 w
+10 R f
+(\))1636 4992 w
+10 CW f
+( b)1 240( SET)1 1200(SET b)1 420 3 1152 5112 t
+10 R f
+( rename uses of the destination variable with)7 1839(Experiments have shown that it is marginally worth while to)9 2481 2 720 5328 t
+(uses of the source variable up to the first use of the source variable.)13 2688 1 720 5448 t
+( a ``move'' instruction is)4 1061( When)1 305( without deleting instructions.)3 1246(The second transform will do relabelling)5 1708 4 720 5604 t
+(encountered, if the source variable has been set prior to the use of the destination variable then all of the ref-)20 4320 1 720 5724 t
+( this)1 177( Typically,)1 465( the destination and the ``move'' is inverted.)7 1824(erences to the source variable are replaced by)7 1854 4 720 5844 t
+( and allow the first transformation another chance to)8 2218(transformation will alter two ``move'' instructions)5 2102 2 720 5964 t
+( transformation uses the forward data flow set up in the previous pass.)12 2798( This)1 228(remove code.)1 537 3 720 6084 t
+( pattern is in the left column and the)8 1539(Again, the following is a depiction of the transformation where the)10 2781 2 720 6240 t
+(rewrite is in the right column.)5 1188 1 720 6360 t
+10 CW f
+( b)1 240( SET)1 1200(SET a)1 420 3 1152 6540 t
+10 R f
+(\(no use of)2 399 1 1152 6660 t
+10 CW f
+(b)1576 6660 w
+10 R f
+(\))1636 6660 w
+10 CW f
+( b)1 240( USE)1 1200(USE a)1 420 3 1152 6780 t
+10 R f
+(\(no use of)2 399 1 1152 6900 t
+10 CW f
+(b)1576 6900 w
+10 R f
+(\))1636 6900 w
+10 CW f
+( b,a)1 300( MOVE)1 1140(MOVE a,b)1 540 3 1152 7020 t
+10 R f
+(Iterating these transformations will usually get rid of all redundant ``move'' instructions.)11 3551 1 720 7200 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 7 7
+%%Page: 8 8
+/saveobj save def
+mark
+8 pagesetup
+10 R f
+(- 8 -)2 166 1 2797 480 t
+( previous pass must)3 825(A problem with this organisation is that the costs of registerisation calculated in the)13 3495 2 720 840 t
+( a fine candidate for reg-)5 982( Often,)1 302( well this pass can detect and remove redundant instructions.)9 2424(depend on how)2 612 4 720 960 t
+( the registerisation)2 744( Perhaps)1 369( of the cost of instructions that are later removed.)9 1990(isterisation is rejected because)3 1217 4 720 1080 t
+(pass should discount a large percentage of a ``move'' instruction anticipating the effectiveness of this pass.)15 4275 1 720 1200 t
+10 B f
+( the object file)3 601(5.9. Writing)1 539 2 720 1440 t
+10 R f
+( file is reduces in)4 706( object)1 274( The)1 210(The last pass walks the internal assembly language and writes the object file.)12 3130 4 720 1596 t
+( most important aspect of the)5 1243( The)1 221( techniques.)1 493(size by about a factor of three with simple compression)9 2363 4 720 1716 t
+( integer and floating numbers in the object code are)9 2081( All)1 181( is machine-independent.)2 1007(object file format is that it)5 1051 4 720 1836 t
+( might be)2 392( is important for Plan 9 because the compiler)8 1856( This)1 236(converted to known formats and byte orders.)6 1836 4 720 1956 t
+(run on different computers.)3 1092 1 720 2076 t
+10 B f
+( loader)1 297(6. The)1 292 2 720 2316 t
+10 R f
+( an executable)2 608(The loader is a multiple pass program that reads object files and libraries and produces)14 3712 2 720 2472 t
+( of the operations per-)4 893( Many)1 286( loader also does some minimal optimisations and code rewriting.)9 2653(binary. The)1 488 4 720 2592 t
+(formed by the loader are machine-dependent.)5 1811 1 720 2712 t
+( into an internal data structure that looks like binary)9 2157(The first pass of the loader reads the object modules)9 2163 2 720 2868 t
+( Condi-)1 339( instructions are read, unconditional branch instructions are removed.)8 2855( the)1 159( As)1 173(assembly language.)1 794 5 720 2988 t
+( loader will)2 471( The)1 213( are inverted to prevent the insertion of unconditional branches.)9 2606(tional branch instructions)2 1030 4 720 3108 t
+( example of this appears in a)6 1148( An)1 173(also make a copy of a few instructions to remove an unconditional branch.)12 2999 3 720 3228 t
+(later section.)1 510 1 720 3348 t
+( of computers is the 68020 which can refer-)8 1772( Typical)1 359( pass allocates addresses for all external data.)7 1834(The next)1 355 4 720 3504 t
+(ence)720 3624 w
+10 S f
+(\261)931 3624 w
+10 R f
+( loader allocates the address register)5 1458( The)1 208( an address register.)3 801(32K from)1 395 4 986 3624 t
+10 CW f
+(A6)3876 3624 w
+10 R f
+( The)1 208(as the static pointer.)3 808 2 4024 3624 t
+(value placed in)2 604 1 720 3744 t
+10 CW f
+(A6)1349 3744 w
+10 R f
+( reference all data in the first)6 1152( is then cheap to)4 649( It)1 111(is the base of the data segment plus 32K.)8 1634 4 1494 3744 t
+( variables are allocated to the data segment with the smallest variables)11 2891( External)1 396(64K of the data segment.)4 1033 3 720 3864 t
+( into the first 64K of the data segment, then usually only a few)13 2601( all of the data cannot fit)6 1018( If)1 123(allocated first.)1 578 4 720 3984 t
+(large arrays need more expensive addressing modes.)6 2097 1 720 4104 t
+( pass over the internal structures exchanging instructions to try)9 2550(For the MIPS computer, the loader makes a)7 1770 2 720 4260 t
+( delay slot on the MIPS is a euphemism for a timing bug that)13 2566( \(A)1 165(to fill ``delay slots'' with useful work.)6 1589 3 720 4380 t
+( to fill a delay slot, the loader will)8 1368( a useful instruction cannot be found)6 1465( If)1 117(must be avoided by the compiler.\))5 1370 4 720 4500 t
+( 20% of all)3 474( About)1 312( pass is very expensive and does not do a good job.)11 2174( This)1 240(insert ``noop'' instructions.)2 1120 5 720 4620 t
+( ven-)1 204( The)1 207( useful instructions and 50% are ``noops.'')6 1717( 50% of these are)4 696( About)1 301(instructions are in delay slots.)4 1195 6 720 4740 t
+( job much more effectively filling about 80% of the delay slots with useful)13 3009(dor supplied assembler does this)4 1311 2 720 4860 t
+(instructions.)720 4980 w
+( on the relative distance of)5 1066(On the 68020 computer, branch instructions come in a variety of sizes depending)12 3254 2 720 5136 t
+( loader uses)2 475( The)1 207( mutually dependent on each other.)5 1413( the size of branch instructions can be)7 1526( Thus)1 253(the branch.)1 446 6 720 5256 t
+( [Szy78] Initially, all branches are assumed minimal)7 2100(a multiple pass algorithm to resolve the branch lengths.)8 2220 2 720 5376 t
+( no more)2 371( When)1 296( each subsequent pass, the branches are reassessed and expanded if necessary.)11 3197(length. On)1 456 4 720 5496 t
+(expansions occur, the locations of the instructions in the text segment are known.)12 3246 1 720 5616 t
+( the)1 151( single pass over the instructions will determine)7 1928( A)1 125(On the MIPS computer, all instructions are one size.)8 2116 4 720 5772 t
+(locations of all addresses in the text segment.)7 1809 1 720 5892 t
+( and other tables are produced to)6 1314( symbol table)2 541( A)1 123(The last pass of the loader produces the executable binary.)9 2342 4 720 6048 t
+(help the debugger to interpret the binary symbolically.)7 2175 1 720 6168 t
+( but the interpretation of these numbers relative to)8 2157(The loader has source line numbers at its disposal,)8 2163 2 720 6324 t
+10 CW f
+(#include)720 6444 w
+10 R f
+( loader is also in a good position to perform some global optimisations,)12 2919( The)1 211(files is not done.)3 679 3 1231 6444 t
+(but this has not been exploited.)5 1244 1 720 6564 t
+10 B f
+(7. Performance)1 678 1 720 6804 t
+10 R f
+(The following is a table of the source size of the various components of the compilers.)15 3450 1 720 6960 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 8 8
+%%Page: 9 9
+/saveobj save def
+mark
+9 pagesetup
+10 R f
+(- 9 -)2 166 1 2797 480 t
+(lines module)1 660 1 1152 900 t
+( compiler headers)2 709(409 machine-independent)1 1169 2 1202 1020 t
+( compiler Yacc)2 609(975 machine-independent)1 1169 2 1202 1140 t
+( compiler C)2 472(5161 machine-independent)1 1219 2 1152 1260 t
+( compiler headers)2 709(819 68020)1 560 2 1202 1500 t
+( compiler C)2 472(6574 68020)1 610 2 1152 1620 t
+( loader headers)2 603(223 68020)1 560 2 1202 1740 t
+( loader C)2 366(4350 68020)1 610 2 1152 1860 t
+( compiler headers)2 709(461 MIPS)1 544 2 1202 2100 t
+( compiler C)2 472(4820 MIPS)1 594 2 1152 2220 t
+( loader headers)2 603(263 MIPS)1 544 2 1202 2340 t
+( loader C)2 366(4035 MIPS)1 594 2 1152 2460 t
+( compiler headers)2 709(3236 Crisp)1 577 2 1152 2700 t
+( compiler C)2 472(2526 Crisp)1 577 2 1152 2820 t
+( loader headers)2 603(132 Crisp)1 527 2 1202 2940 t
+( loader C)2 366(2256 Crisp)1 577 2 1152 3060 t
+( table is timing of a test program that does Quine-McClusky boolean function minimisation.)13 3747(The following)1 573 2 720 3276 t
+( execu-)1 293( The)1 208( a single file of 907 lines of C that is dominated by bit-picking and sorting.)15 3033(The test program is)3 786 4 720 3396 t
+( runs on Plan 9,)4 637( no other compiler)3 741( Since)1 274(tion time does not significantly depend on library implementation.)8 2668 4 720 3516 t
+( opti-)1 220( The)1 211( MIPS 3000 computer with vendor supplied software.)7 2190(these tests were run on a single-processor)6 1699 4 720 3636 t
+( compiler,)1 407( Another)1 379(miser in the vendor supplied compiler is reputed to be extremely good.)11 2852 3 720 3756 t
+10 I f
+(lcc)4385 3756 w
+10 R f
+(, is compared)2 539 1 4501 3756 t
+(in this list.)2 447 1 720 3876 t
+10 I f
+(Lcc)1230 3876 w
+10 R f
+( highly portable compiler jointly written at Bell Labs and Princeton.)10 2838(is another new and)3 790 2 1412 3876 t
+(None of the compilers were tuned on this test.)8 1839 1 720 3996 t
+( cc compile time)3 663(1.0s new)1 426 2 1252 4176 t
+( cc load time)3 513(0.5s new)1 426 2 1252 4296 t
+( cc run time)3 474(90.4s new)1 476 2 1202 4416 t
+( cc compile time)3 663(1.6s vendor)1 537 2 1252 4656 t
+( cc load time)3 513(0.1s vendor)1 537 2 1252 4776 t
+( cc run time)3 474(138.8s vendor)1 637 2 1152 4896 t
+( cc)1 113(4.0s vendor)1 537 2 1252 5136 t
+10 S f
+(-)1927 5136 w
+10 R f
+(O compile time)2 622 1 1982 5136 t
+( cc)1 113(0.1s vendor)1 537 2 1252 5256 t
+10 S f
+(-)1927 5256 w
+10 R f
+(O load time)2 472 1 1982 5256 t
+( cc)1 113(84.7s vendor)1 587 2 1202 5376 t
+10 S f
+(-)1927 5376 w
+10 R f
+(O run time)2 433 1 1982 5376 t
+( lcc compile time)3 691(1.6s vendor)1 537 2 1252 5616 t
+( lcc load time)3 541(0.1s vendor)1 537 2 1252 5736 t
+( lcc run time)3 502(96.3s vendor)1 587 2 1202 5856 t
+(Although it was not possible to directly compare)7 1960 1 720 6036 t
+10 I f
+(gcc)2707 6036 w
+10 R f
+( new compiler,)2 602(to the)1 227 2 2872 6036 t
+10 I f
+(lcc)3729 6036 w
+10 R f
+(typically compiles in 50% of)4 1167 1 3873 6036 t
+(the time of)2 437 1 720 6156 t
+10 I f
+(gcc)1184 6156 w
+10 R f
+( the time of)3 461(and the object runs in 75% of)6 1188 2 1349 6156 t
+10 I f
+(gcc)3024 6156 w
+10 R f
+( original)1 337(. The)1 231 2 3162 6156 t
+10 I f
+(pcc)3756 6156 w
+10 R f
+(compiler is also not directly)4 1120 1 3920 6156 t
+( Since)1 276( runtime to compete with the above compilers.)7 1887( is too slow in both compilation and)7 1458(compared. It)1 532 4 720 6276 t
+10 I f
+(pcc)4902 6276 w
+10 R f
+( find test programs to form a)6 1203(has not been updated to accept ANSI function prototypes, it is also hard to)13 3117 2 720 6396 t
+(comparison.)720 6516 w
+10 B f
+(8. Example)1 503 1 720 6756 t
+10 R f
+(Here is a small example of a fragment of C code to be compiled on the 68020 compiler.)17 3505 1 720 6912 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 9 9
+%%Page: 10 10
+/saveobj save def
+mark
+10 pagesetup
+10 R f
+(- 10 -)2 216 1 2772 480 t
+10 CW f
+(int a[10];)1 720 1 1152 900 t
+(void)1152 1020 w
+(f\(void\))1152 1140 w
+({)1152 1260 w
+(int i;)1 360 1 1512 1380 t
+(for\(i=0; i<10; i++\))2 1140 1 1512 1620 t
+(a[i] = i;)2 540 1 1872 1740 t
+(})1152 1860 w
+10 R f
+( numbers in)2 474( The)1 205(The following is the tree of the assignment statement after all machine-independent passes.)12 3641 3 720 2076 t
+( addressability, 9, for the)4 1041( The)1 217( 10 or larger are addressable.)5 1211( Numbers)1 428( addressabilities.)1 678(angle brackets are)2 745 6 720 2196 t
+10 CW f
+(INDEX)720 2316 w
+10 R f
+( in)1 114( number)1 340( The)1 215(operation means addressable if its second operand is placed in an index register.)12 3316 4 1055 2316 t
+( typing information is at the end of each line.)9 1798( The)1 205(parentheses is the Sethi-Ullman complexity.)4 1768 3 720 2436 t
+10 CW f
+(ASSIGN \(1\) long)2 900 1 1152 2616 t
+(INDEX <9> long)2 840 1 1512 2736 t
+(ADDR <12> *long)2 900 1 1872 2856 t
+(NAME "a" 0 <10> long)4 1200 1 2232 2976 t
+(NAME "i" -4 <11> *long)4 1320 1 1872 3096 t
+(NAME "i" -4 <11> long)4 1260 1 1512 3216 t
+10 R f
+( that there is)3 512( Note)1 251( the 68020 machine language generated before the registerisation pass.)9 2884(The following is)2 673 4 720 3432 t
+( this compiler; this is a print of the internal form in the same sense as the previous)17 3323(no assembly language in)3 997 2 720 3552 t
+(tree is a print of that internal form.)7 1381 1 720 3672 t
+(Here is some explanation of notation:)5 1511 1 720 3828 t
+10 CW f
+(\(SP\))2258 3828 w
+10 R f
+(denotes an automatic variable;)3 1226 1 2526 3828 t
+10 CW f
+(\(SB\))3780 3828 w
+10 R f
+(denotes an external vari-)3 992 1 4048 3828 t
+(able;)720 3948 w
+10 CW f
+(A7)939 3948 w
+10 R f
+(is the stack pointer,)3 777 1 1084 3948 t
+10 CW f
+($4)1886 3948 w
+10 R f
+(is a constant.)2 519 1 2031 3948 t
+10 CW f
+(f: TEXT)1 600 1 1152 4128 t
+(SUBL $4,A7)1 660 1 1512 4248 t
+(CLRL i\(SP\))1 660 1 1512 4368 t
+( $10,R0)1 480(loop: MOVL)1 600 2 1152 4488 t
+(CMPL R0,i\(SP\))1 840 1 1512 4608 t
+(BLE ret)1 540 1 1512 4728 t
+(MOVL i\(SP\),R0)1 840 1 1512 4848 t
+(MOVL i\(SP\),a\(SB\)\(R0.L*4\))1 1500 1 1512 4968 t
+(ADDL $1,i\(SP\))1 840 1 1512 5088 t
+(JMP loop)1 600 1 1512 5208 t
+(ret: ADDL $4,A7)2 1020 1 1152 5328 t
+(RTS)1512 5448 w
+10 R f
+(The following is the code after all compiling passes, but before loading:)11 2874 1 720 5664 t
+10 CW f
+(f: TEXT)1 600 1 1152 5844 t
+(SUBL $4,A7)1 660 1 1512 5964 t
+(CLRL R1)1 480 1 1512 6084 t
+( $10,R0)1 480(loop: MOVL)1 600 2 1152 6204 t
+(CMPL R0,R1)1 660 1 1512 6324 t
+(BLE ret)1 540 1 1512 6444 t
+(MOVL R1,a\(SB\)\(R1.L*4\))1 1320 1 1512 6564 t
+(ADDL $1,R1)1 660 1 1512 6684 t
+(JMP loop)1 600 1 1512 6804 t
+(ret: ADDL $4,A7)2 1020 1 1152 6924 t
+(RTS)1512 7044 w
+10 R f
+( and inversion)2 578( only real difference is the expansion)6 1504( The)1 210(The following is the code produced by the loader.)8 2028 4 720 7260 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 10 10
+%%Page: 11 11
+/saveobj save def
+mark
+11 pagesetup
+10 R f
+(- 11 -)2 216 1 2772 480 t
+(of the loop condition to prevent an unconditional branch.)8 2278 1 720 840 t
+10 CW f
+(f: TEXT)1 600 1 1152 1020 t
+(CLRL R1)1 480 1 1512 1140 t
+( $10,R0)1 480(loop: MOVL)1 600 2 1152 1260 t
+(CMPL R0,R1)1 660 1 1512 1380 t
+(BLE ret)1 540 1 1512 1500 t
+( R1,a\(SB\)\(R1.L*4\))1 1080(l1: MOVL)1 600 2 1152 1620 t
+(ADDL $1,R1)1 660 1 1512 1740 t
+(MOVL $10,R0)1 720 1 1512 1860 t
+(CMPL R0,R1)1 660 1 1512 1980 t
+(BGT l1)1 480 1 1512 2100 t
+(ret: RTS)1 540 1 1152 2220 t
+10 R f
+(The compare sequence)2 913 1 720 2436 t
+10 CW f
+(MOVL $10,R0)1 720 1 1512 2616 t
+(CMPL R0,R1)1 660 1 1512 2736 t
+10 R f
+(was expanded from the single instruction)5 1645 1 720 2916 t
+10 CW f
+(CMPL $10,R1)1 720 1 1512 3096 t
+10 R f
+( relatively dumb loader made a second copy of the)9 2177( The)1 223( former is both shorter and faster.)6 1441(because the)1 479 4 720 3276 t
+(sequence without realising that the)4 1387 1 720 3396 t
+10 CW f
+(MOVL $10,R0)1 720 1 1512 3576 t
+10 R f
+(is redundant.)1 516 1 720 3756 t
+10 B f
+(9. Conclusions)1 643 1 720 3996 t
+10 R f
+( compilers)1 422( The)1 208(The new compilers compile quickly, load slowly, and produce medium quality object code.)12 3690 3 720 4152 t
+( a different computer.)3 882(are relatively portable, requiring but a couple weeks work to produce a compiler for)13 3438 2 720 4272 t
+( Plan 9, where we needed several compilers with specialised)9 2474( For)1 196( is a success.)3 531(As a whole, the experiment)4 1119 4 720 4392 t
+(features and our own object formats, the project was indispensable.)9 2686 1 720 4512 t
+( first has to do with the division of labour between compiler)11 2406( The)1 206( up in retrospect.)3 674(Two problems have come)3 1034 4 720 4668 t
+( Unfortu-)1 402( and as such compilations are often done in parallel.)9 2101( 9 runs on a multi-processor)5 1138( Plan)1 232(and loader.)1 447 5 720 4788 t
+( With)1 251( load is then single-threaded.)4 1155( The)1 206( loading can begin.)3 763(nately, all compilations must be complete before)6 1945 5 720 4908 t
+( same is)2 322( The)1 205( a significant increase in real time.)6 1372(this model, any shift of work from compile to load results in)11 2421 4 720 5028 t
+( the future, we will try to put some of)9 1556( In)1 140(true of libraries that are compiled infrequently and loaded often.)9 2624 3 720 5148 t
+(the loader work back into the compiler.)6 1572 1 720 5268 t
+( optimisa-)1 407( Often)1 281(The second problem comes from the various optimisations performed over several passes.)11 3632 3 720 5424 t
+( the passes could compromise efficiency, or even)7 2018( Iterating)1 396( on each other.)3 611(tions in different passes depend)4 1295 4 720 5544 t
+( see no real solution to this problem.)7 1455(loop. We)1 391 2 720 5664 t
+10 B f
+(10. References)1 639 1 720 5904 t
+10 R f
+( Ravi Sethi, and Jeffrey D. Ullman,)6 1424( V. Aho,)2 346(Aho87. Alfred)1 607 3 720 6132 t
+10 I f
+(Compilers \261 Principles, Techniques, and Tools,)5 1916 1 3124 6132 t
+10 R f
+(Addison Wesley, Reading, MA \(1987\).)4 1573 1 970 6252 t
+( Johnson, ``A Tour Through the Portable C Compiler,'' in)9 2332( C.)1 117(Joh79a. S.)1 439 3 720 6408 t
+10 I f
+(UNIX Programmer's Manual, Sev-)3 1406 1 3634 6408 t
+(enth Ed., Vol. 2A)3 683 1 970 6528 t
+10 R f
+(, AT&T Bell Laboratories, Murray Hill, NJ \(1979\).)7 2050 1 1653 6528 t
+( C. Johnson, ``YACC \261 Yet Another Compiler Compiler,'' in)9 2595(Joh79b. S.)1 445 2 720 6684 t
+10 I f
+(UNIX Programmer's Manual,)2 1239 1 3801 6684 t
+(Seventh Ed., Vol. 2A)3 821 1 970 6804 t
+10 R f
+(, AT&T Bell Laboratories, Murray Hill, NJ \(1979\).)7 2050 1 1791 6804 t
+( Kane,)1 260(Kan88. Gerry)1 573 2 720 6960 t
+10 I f
+(MIPS RISC Architecture,)2 1012 1 1578 6960 t
+10 R f
+(Prentice-Hall, Englewood Cliffs, NJ \(1988\).)4 1767 1 2615 6960 t
+( W. Kernighan and Dennis M. Ritchie,)6 1677(Ker88. Brian)1 546 2 720 7116 t
+10 I f
+( Programming Language, Second Edition,)4 1786(The C)1 264 2 2990 7116 t
+10 R f
+(Prentice-Hall, Englewood Cliffs, NJ \(1988\).)4 1767 1 970 7236 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 11 11
+%%Page: 12 12
+/saveobj save def
+mark
+12 pagesetup
+10 R f
+(- 12 -)2 216 1 2772 480 t
+(Mot85. Motorola,)1 739 1 720 840 t
+10 I f
+(MC68020 32-Bit Microprocessor User's Manual, Second Edition,)6 2672 1 1487 840 t
+10 R f
+(Prentice-Hall, Engle-)1 852 1 4188 840 t
+(wood Cliffs, NJ \(1985\).)3 952 1 970 960 t
+( Thompson, and Howard Trickey, ``Plan 9 from Bell Labs,'')9 2517( Pike, Dave Presotto, Ken)4 1072(Pik90. Rob)1 476 3 720 1116 t
+10 I f
+(Proc.)4821 1116 w
+(UKUUG Conf.)1 600 1 970 1236 t
+10 R f
+(, London, UK \(July 1990\).)4 1063 1 1570 1236 t
+( ``The Generation of Optimal Code for Arithmetic Expressions,'')8 2625( Sethi and J. D. Ullman,)5 966(Set70. R.)1 395 3 720 1392 t
+10 I f
+(J. ACM)1 307 1 4733 1392 t
+10 B f
+(17)970 1512 w
+10 R f
+(\(4\), pp. 715-728 \(1970\).)3 965 1 1070 1512 t
+( Szymanski, ``Assembling Code for Machines with Span-dependent Instructions,'')8 3443( G.)1 138(Szy78. T.)1 411 3 720 1668 t
+10 I f
+(Comm.)4754 1668 w
+(ACM)970 1788 w
+10 B f
+(21)1206 1788 w
+10 R f
+(\(4\), pp. 300-308 \(1978\).)3 965 1 1306 1788 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 12 12
+%%Trailer
+done
+%%Pages: 12
+%%DocumentFonts: Courier Times-Bold Times-Italic Times-Roman Symbol

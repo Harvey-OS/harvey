@@ -1,0 +1,67 @@
+.TH HARD 3 
+.SH NAME
+hard, wren \- hard disk interface
+.SH SYNOPSIS
+.nf
+.B bind
+.BI  #w[ target [. lun ]]/dev
+
+.B /dev/hd0disk
+.B /dev/hd0partition
+ ...
+.fi
+.SH DESCRIPTION
+.PP
+The hard disk interfaces
+.RI ( wren
+is a SCSI disk;
+.I hard
+is a Safari's internal ST506 disk)
+serve a one-level directory giving access to the
+hard disk partitions.
+The parameter to
+.B attach
+defines the numerical SCSI
+.I target
+and logical unit number to access.
+Both default to zero.
+.PP
+Each partition name is prefixed by 
+.B hd
+and the numeric drive identifier.
+The partition
+.L disk
+always exists and covers the entire disk.
+The size of each partition as reported by
+.IR stat (2)
+is the number of bytes
+in the partition, so the size of
+.L disk
+is the size of the entire disk.
+.PP
+The partition
+.L partition
+also always exists; it is the last block on the disk.
+If it contains valid partition data, those partitions will be visible as well.
+Every time the device is bound, the partitions are updated to reflect any changes
+in the partition file.
+.PP
+The format of the
+.B partition
+file is the string
+.IP
+.B
+plan9 partitions
+.PP
+on a line,
+followed by a partition specification on a line consisting of a name
+and textual strings for the block start and limit on the disk.
+.PP
+The program
+.IR prep (8)
+writes the
+.B partition
+table for the disk; its use is preferred to writing it by hand.
+.SH SEE ALSO
+.IR prep (8),
+.IR scsi (3)

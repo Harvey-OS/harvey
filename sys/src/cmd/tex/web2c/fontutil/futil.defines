@@ -1,0 +1,44 @@
+{This file is concated by ./convert to the beginning of the Pascal code
+ that tangle outputs.  The idea is to put all these things, which are
+ defined in either .h or .c file, into web2c's symbol table, so that we
+ can access them from a change file.  web2c.yacc can parse these @define
+ commands.}
+
+@define const false;
+@define const FILENAMESIZE;
+@define const PKFILEPATH;
+@define const stdout;
+@define const TFMFILEPATH;
+@define const true;
+
+@define function abs ();
+@define function chr ();
+@define function eof ();
+@define function eoln ();
+@define function fabs ();
+@define function odd ();
+@define function round ();
+@define function testreadaccess ();
+@define function toint ();
+
+@define procedure argv ();
+@define procedure printpascalstring ();
+@define procedure printreal();
+@define procedure putbyte ();
+@define procedure read ();
+@define procedure readln ();
+@define procedure reset ();
+@define procedure rewrite ();
+@define procedure setpaths;
+@define procedure uexit ();
+@define procedure write ();
+@define procedure writeln ();
+
+@define type boolean = 0..1;
+@define type ccharpointer;
+@define type char = 0..255;
+@define type integer;
+@define type real;
+@define type text;
+
+@define var argc;

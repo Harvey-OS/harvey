@@ -1,0 +1,49 @@
+% LABLST.TEX -- A LaTeX input file for printing label definitions.
+% Copyright (c) 1985 by Leslie Lamport.
+% This file created on 5 January 1985.
+
+\typeout{}
+\typeout{LABLST version of 24 November 1984}
+\typeout{}
+\typeout{**************************}
+\typeout{* Enter input file name. *}
+\typein[\filename]{**************************}
+
+\def\spaces{\space\space\space\space\space}
+\typeout{}
+\typeout{*********************************************}
+\typeout{* Enter document style used in file \filename, *}
+\typeout{* with no options. \spaces\spaces\spaces\spaces\spaces *}
+\typein[\docsty]{*********************************************}
+
+\documentstyle{\docsty}
+\nofiles
+\parindent 0pt
+\newwrite \labfile \relax
+\immediate\openout \labfile =lablst.lab\relax
+\begin{document}
+\makeatletter
+
+\def\toc{toc}
+\def\@writefile#1#2{\def\temp{#1}\ifx\temp\toc \immediate\write\labfile
+   {#2}\fi}
+\def\newlabel#1#2{\immediate\write\labfile{\string\newlabel{#1}{#2}}}
+\def\bibcite#1#2{\immediate\write\labfile{\string\bibcite{#1}{#2}}}
+
+\input \filename.aux
+
+\immediate\closeout\labfile
+
+\def\newlabel#1#2{\par 
+\hbox to \textwidth{\hfill\makebox[10em][l]{\tt #1}\makebox[3.5em][l]{\first 
+   #2}\hspace{1em}Page:\makebox[3em][r]{\second #2}\hspace{4em}}}
+\def\first#1#2{#1}
+\def\second#1#2{#2}
+
+\def\bibcite#1#2{\par\makebox[2in][l]{\tt #1}[#2]}
+
+\input lablst.lab
+
+\end{document}
+
+

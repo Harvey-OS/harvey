@@ -1,0 +1,61 @@
+.TH TEL 1
+.SH NAME
+tel, pq \- look in phone book
+.SH SYNOPSIS
+.B tel
+.I key ...
+.br
+.B pq
+.I name ...
+.SH DESCRIPTION
+.I Tel
+looks up
+.I key
+in a private telephone book,
+.B $home/lib/tel,
+and in the public telephone book,
+.BR /lib/tel .
+It uses
+.IR grep
+(with the
+.B -i
+option to ignore case differences),
+so the key may be any part of a name or number.
+Customarily, the telephone book contains names, userids, home numbers,
+and office numbers of users.
+It also contains a directory of area codes and miscellaneous people
+of general interest.
+.PP
+.I Pq
+looks up names in the AT&T personnel database.
+.I Name
+should be a surname optionally prefixed by initials and periods, as
+in
+.B emlin
+or
+.B g.emlin
+or
+.BR g.r.emlin .
+.I Pq
+also accepts keyword arguments of the form
+.IB key = value.
+.I Key
+may be one of
+.B org
+for organization number,
+.B ext
+or
+.B tel
+for office telephone extension,
+or
+.B room
+for office number.
+Beware that
+.B =
+must be quoted when passed through
+.IR rc (1).
+.SH FILES
+.TF /lib/tel
+.TP
+.B /lib/tel
+Public telephone number database.

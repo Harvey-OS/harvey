@@ -1,0 +1,29 @@
+.TH ANNOTATE 10.1
+.SH NAME
+annotate \- annotate circuit schematic files with pin numbers
+.SH SYNOPSIS
+.B cda/annotate
+.I net-list
+.I net-files
+.SH DESCRIPTION
+.PP
+.I Annotate
+takes the pin numbers from the net-list file (output from
+.IR cdmglob (10.1))
+and the net files (output from
+.IR gnet (10.1)
+and stored in filenames ending in
+.BR .w )
+and writes the coordinates of the pin numbers
+to corresponding files with a
+.B .a
+suffix.
+When combined with the corresponding
+.B .g
+files (or the older, deprecated
+.B .j
+files),
+circuit schematics will display pin numbers next to chips.
+.SH SEE ALSO
+.IR cdmglob (10.1),
+.IR graw (10.1)

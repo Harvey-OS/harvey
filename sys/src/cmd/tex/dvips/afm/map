@@ -1,0 +1,44 @@
+AvantGarde-Book			Avant
+AvantGarde-BookOblique		Avanti
+AvantGarde-Demi			Avantd
+AvantGarde-DemiOblique		Avantdi
+Bookman-Demi			Bookd
+Bookman-DemiItalic		Bookdi
+Bookman-Light			Bookl
+Bookman-LightItalic		Bookli
+Courier-Bold			Courb
+Courier-BoldOblique		Courbi
+Courier-Oblique			Couri
+Courier				Cour
+Helvetica-Bold			Helvb
+Helvetica-BoldOblique		Helvbi
+Helvetica-Narrow-Bold		Helvcb		Helvetica-Bold -e .82
+Helvetica-Narrow-BoldOblique	Helvcbi		Helvetica-BoldOblique -e .82
+Helvetica-Narrow-Oblique	Helbci		Helvetica-Oblique -e .82
+Helvetica-Narrow		Helvc		Helvetica -e .82
+Helvetica-Oblique		Helvi
+Helvetica			Helv
+NewCenturySchlbk-Bold		Centb
+NewCenturySchlbk-BoldItalic	Centbi
+NewCenturySchlbk-Italic		Centi
+NewCenturySchlbk-Roman		Cent
+Palatino-Bold			Palb
+Palatino-BoldItalic		Palbi
+Palatino-BoldUnslanted		Palbu		Palatino-BoldItalic -s -.1763
+Palatino-Condensed		Palc		Palatino -e .82
+Palatino-Extended		Palx		Palatino -e 1.2
+Palatino-Italic			Pali
+Palatino-Slanted		Palsl		Palatino -s .167
+Palatino-Roman			Pal
+Palatino-Unslanted		Palu		Palatino-Italic -s -.2763
+Symbol
+Symbol-Slanted			Symbolsl	Symbol -s .167
+Times-Bold			Timesb
+Times-BoldItalic		Timesbi
+Times-Condensed			Timesc		Times-Roman -e .8
+Times-Extended			Timesx		Times-Roman -e 1.2
+Times-Italic			Timesi
+Times-Slanted			Timessl		Times-Roman -s .167
+Times-Roman			Times
+ZapfChancery-MediumItalic	Chanc
+ZapfDingbats			Dingbats

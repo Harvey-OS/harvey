@@ -1,0 +1,48 @@
+% proc.sty 24-Sep-85
+
+\typeout{Document Style Option 'proc' -- Released 24 September 1985}
+
+
+ \oddsidemargin -10pt \evensidemargin -10pt
+ \topmargin -47pt \headheight 12pt \headsep 25pt \footheight 12pt \footskip
+75pt 
+
+\textheight 9in \textwidth 6.75in \columnsep .375in \columnseprule 0pt 
+
+
+\def\@oddhead{}\def\@evenhead{}
+\def\@oddfoot{\rm\rightmark \hfil Page \thepage}
+\def\@evenfoot{\@oddfoot}
+
+
+\def\maketitle{\par
+ \begingroup
+ \def\thefootnote{\fnsymbol{footnote}}
+ \def\@makefnmark{\hbox 
+ to 0pt{$^{\@thefnmark}$\hss}} 
+ \twocolumn[\@maketitle] 
+ \@thanks
+ \endgroup
+ \setcounter{footnote}{0}
+ \let\maketitle\relax
+ \let\@maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+\def\@maketitle{\vbox to 2.25in{\hsize\textwidth 
+ \linewidth\hsize \vfil \centering
+ {\LARGE \@title \par} \vskip 2em {\large \begin{tabular}[t]{c}\@author
+\end{tabular}\par} 
+ \vfil}}
+
+\def\copyrightspace{\footnotetext[0]{\mbox{}\vrule height 97pt width 0pt}}
+
+\def\abstract{\section*{Abstract}}
+\def\endabstract{\par}
+
+\twocolumn 
+\sloppy
+\parindent 1em
+\leftmargini 2em
+\leftmargin\leftmargini 
+\leftmarginv .5em
+\leftmarginvi .5em
+\flushbottom

@@ -1,0 +1,4 @@
+TEXT _UNMOUNT(SB), 1, $0
+MOVL $35, R0
+TRAP $0
+RTS

@@ -1,0 +1,102 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSTEXT.STY						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%% This is file `amstext.sty' generated
+%% on <1990/7/10> with the docstrip utility (v1.1j). 
+%% 
+%% The original source file was `amstext.doc'.
+%% 
+\def\fileversion{v1.0b}
+\def\filedate  {90/02/05}
+\def\docdate   {90/02/05}
+
+%% \CheckSum{190}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%% Copyright (C) 1989 Frank Mittelbach and Rainer Sch\"opf,
+%% all rights reserved.
+\@ifundefined{extract@font}
+     {\errmessage{The style option `amstext' does not make sense if you
+                  do not use a format with the new font selection scheme.}
+      \endinput}
+     {}
+\immediate\write\sixt@@n{Style Option: `amstext'
+ \fileversion\space\space <\filedate>  (FMi and RmS)}
+\immediate\write\sixt@@n{English Documentation
+ \@spaces\space\@spaces  <\docdate>  (FMi and RmS)}
+\def\text{\RIfM@\expandafter\text@\else\expandafter\mbox\fi}
+\def\RIfM@{\relax\ifmmode}
+
+\def\text@#1{\mathchoice
+   {\textdef@\displaystyle\f@size{#1}}%
+   {\textdef@\textstyle\f@size{\firstchoice@false #1}}%
+   {\textdef@\scriptstyle\sf@size{\firstchoice@false #1}}%
+   {\textdef@\scriptscriptstyle
+             \ssf@size
+             {\firstchoice@false #1}}%
+   \glb@settings}
+
+\def\textdef@#1#2#3{\hbox{{%
+                    \everymath{#1}%
+                    \let\f@size#2\selectfont
+                    #3}}}
+\newif\iffirstchoice@
+\firstchoice@true
+\def\stepcounter#1{%
+  \iffirstchoice@
+     \global\expandafter\advance\csname c@#1\endcsname \@ne
+     \let\@elt\@stpelt
+         \csname cl@#1\endcsname
+     \let\@elt\relax
+  \fi}
+\def\ref#1{\@ifundefined{r@#1}%
+         {{\bf ??}%
+          \iffirstchoice@
+             \@warning
+                {Reference `#1' on page \thepage\space undefined}%
+          \fi}
+         {\expandafter\expandafter\expandafter
+          \@car \csname r@#1\endcsname \@nil\null}}
+\def\pageref#1{\@ifundefined{r@#1}{{\bf ??}
+   \iffirstchoice@ \@warning
+       {Reference `#1' on page \thepage \space
+    undefined}\fi}{\edef\@tempa{\csname r@#1\endcsname}\expandafter
+    \@cdr\@tempa\@nil\null}}
+\def\@wrindex#1{\iffirstchoice@\let\thepage\relax
+   \xdef\@gtempa{\write\@indexfile{\string
+      \indexentry{#1}{\thepage}}}\endgroup\@gtempa
+   \if@nobreak \ifvmode\nobreak\fi\fi\fi\@esphack}
+
+\def\@wrglossary#1{\iffirstchoice@\let\thepage\relax
+   \xdef\@gtempa{\write\@glossaryfile{\string
+      \glossaryentry{#1}{\thepage}}}\endgroup\@gtempa
+   \if@nobreak \ifvmode\nobreak\fi\fi\fi\@esphack}
+\def\label#1{\@bsphack\iffirstchoice@\if@filesw {\let\thepage\relax
+   \def\protect{\noexpand\noexpand\noexpand}%
+\xdef\@gtempa{\write\@auxout{\string
+      \newlabel{#1}{{\@currentlabel}{\thepage}}}}}\@gtempa
+   \if@nobreak \ifvmode\nobreak\fi\fi\fi\fi\@esphack}
+\def\mathhexbox#1#2#3{\text{$\m@th\mathchar"#1#2#3$}}
+\endinput
+%% 
+%% End of file `amstext.sty'.

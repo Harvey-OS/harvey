@@ -1,0 +1,413 @@
+.TH BOOTING 8
+.SH NAME
+booting \- bootstrapping procedures
+.SH SYNOPSIS
+none
+.SH DESCRIPTION
+This manual collects the incantations required to bootstrap Plan 9 machines.
+Some of the information here is specific to the installation at Bell Labs;
+some is generic.
+.PP
+If a CPU server is up, BOOTP and TFTP will run from there;
+if not, the necessary files and services must be available on a separate machine
+such as a Unix system to use these protocols for bootstrapping.
+.PP
+Be sure to read
+.IR boot (8)
+to understand what happens after the kernel is loaded.
+.SS Terminals
+First, here are instructions to bootstrap the various Plan 9 terminals.
+To bootstrap a terminal or a CPU server, a file server must be running.
+On all the terminals, typing two control-T's followed by a lower-case
+.B r
+reboots the machine;
+other methods of rebooting are mentioned for some machines.
+.SS Gnot
+The boot ROM prints
+.IP
+.EX
+server[default==incon!nj/astro/Nfs!/68020/9gnot]
+.EE
+.PP
+Typing just a newline bootstraps the default system.
+The components of the
+.B server
+string are defaulted from the right, for example, to bootstrap
+.B /sys/src/9/gnot/9gnot
+type just that file name;
+to bootstrap from a different file server, say kremvax, type
+.IP
+.EX
+kremvax!/68020/9gnot
+.EE
+.PP
+The bootstrap devices available are
+.BR incon ,
+.BR 9600 ,
+.BR 19200
+and
+.BR scsi ;
+with
+.B scsi
+the server name (here
+.BR nj/astro/Nfs )
+becomes a unit number, usually
+.BR 0 ,
+and the file name is a boot partition to use.
+For example,
+.IP
+.EX
+scsi!0!boot
+.EE
+.PP
+means boot from the SCSI disk
+.B 0
+the kernel in disk partition
+.B /dev/hd0boot. 
+.PP
+If running with a local cache file system,
+one normally bootstraps using the SCSI disk.
+However, if the local kernel has been destroyed or is hopelessly
+out of date, bootstrap using the serial line.
+To do this, use the boot line
+.IP
+.EX
+9600!nj/astro/Nfs!/68020/9gnotdisk
+.EE
+.PP
+to bootstrap from the serial line at 9600 baud or
+.IP
+.EX
+19200!nj/astro/Nfs!/68020/9gnotdisk
+.EE
+.PP
+for a 19200 baud connection.
+.PP
+To shut the system down, just turn off the power.
+.SS Nextstation
+When powered on and left alone, a Nextstation will download
+.BR /68020/9nextstation
+using the BOOTP and TFTP protocols.
+(Actually, first it loads
+.B /lib/tftpd/boot
+and uses that to download the operating system.)
+It then prompts for the user name and password and asks for the Ethernet
+protocol to use; request the default.
+.PP
+While the system is downloading, it displays an Ethernet symbol;
+at this time, holding the left
+.B Command
+key down and typing the
+.B ~
+key aborts the download and transfers control to a ROM-resident
+monitor.
+The monitor will use the Ethernet to boot an alternate kernel
+given the command, e.g.,
+.IP
+.EX
+ben /sys/src/9/next/9nextstation
+.EE
+.PP
+or
+.IP
+.EX
+ben kgbvax:/sys/src/9/next/9nextstation
+.EE
+.PP
+to force the download to come from system
+.B kgbvax.
+.PP
+If running with a local cache file system, bootstrap from
+the disk.
+While the system is downloading, it displays a symbol of a spinning
+disk.
+The processor first loads a program, Disclabel, from the kernel partition
+.B /dev/hd1label
+and then the real kernel from
+.BR /dev/hd1boot .
+.PP
+See Next's documentation for other details, in particular how to
+initialize a new machine to boot from Ethernet instead of disk.
+.PP
+To turn the power off, hold down the left
+.B Command
+and
+.B Alternate
+keys and press the power key.
+To reboot, hold down the left
+.B Command
+and
+.B Alternate
+and press the
+.L *
+key in the upper left corner of the keypad.
+.SS Sun Sparcstation
+Type a
+.L b
+to the power-on monitor and the kernel will be downloaded.
+The kernel resides in
+.BI /lib/tftpd/ xxxxxxxx .SUN4C
+where
+.I xxxxxxxx
+is the upper-case hexadecimal IP number of the machine.
+There is no way to specify an alternate file to download.
+Once running, the operating system asks the same questions as on the Nextstation.
+.SS MIPS Magnum
+The Magnum ROM monitor can boot from the ethernet or from a local disk.
+To boot from the ethernet, type
+.IP
+.EX
+.B bootp()/mips/9magnum
+.EE
+.PP
+or use the ROM command
+.B setenv
+to set the variable
+.B bootfile
+to that same string and type
+.BR boot .
+To load a different file, tell
+.B bootp
+which file to load,
+and to force the download to come from a particular system,
+.BR bootp()system:file .
+Any arguments after
+.B bootp()file
+are passed to
+.B /boot.
+.PP
+To boot from disk, type
+.IP
+.EX
+dksd()b
+.EE
+.PP
+to load the Plan 9 bootstrap program
+or use the ROM command
+.B setenv
+to set the variable
+.B bootfile
+to that same string and type
+.BR boot .
+The bootstrap program will then
+prompt for the partition to boot from.
+If nothing is typed in 15 seconds, a kernel will
+be booted from the hard disk partition
+.B /dev/hd0boot.
+Any arguments after
+.B dksd()b
+are passed to
+.B /boot.
+.PP
+Once running, the operating system asks the same questions as on the Nextstation.
+.PP
+To reboot the machine, cycle the power or hit the reset button on the back.
+.SS AT&T Safari and other PCs
+The Safari always boots DOS when you turn it on.
+Once DOS is booted, it will prompt with a
+.BR C> .
+To that type
+.B b
+to boot Plan 9.
+If there is no diskette in the floppy drive, the kernel
+will automatically be loaded from the hard disk partition
+.B /dev/hd0boot.
+To boot from diskette, insert one (with a DOS file system) before typing
+.BR b .
+The boot program
+will prompt for the kernel to boot with
+.IP
+.EX
+server[hd!0!boot]:
+.EE
+.PP
+A return causes a boot from hard disk partition,
+.B /dev/hd0boot.
+Typing
+.IP
+.EX
+fd!0!9
+.EE
+.PP
+will bootstrap a kernel from the file named
+.B 9
+on the diskette.
+.PP
+Once the kernel is booted, it behaves like all others.
+See
+.IR boot (8)
+for details.
+.SS CPU Servers
+The Plan 9 CPU servers are multi-user, so they do not request a user name
+when booting.
+On the CPU servers, typing a control-P on the console reboots the machine.
+.SS SGI Power Series
+To the power-on menu, type a
+.B 5
+to get the
+.B >>
+prompt.
+Then boot Plan 9 using the Plan 9 bootstrap program,
+.BR b ,
+which resides on the disk volume header (dvh) of the SCSI boot disk.
+The bootstrap program takes two
+arguments, the method with which to attach to a file server (as in
+.IR boot (8))
+and a kernel file to boot.
+The default method is
+.I cyc
+and the default kernel file is
+.B /mips/9power.
+For example, to boot the standard kernel over the Cyclone,
+just type
+.IP
+.EX
+.B b
+.EE
+.PP
+To boot a test kernel via the Ethernet using the IL protocol type
+.IP
+.EX
+.B b il /sys/src/9/power/9power
+.EE
+.PP
+Any arguments given to the bootstrap program will also be passed on to
+.B /boot
+in the loaded kernel.
+.PP
+The bootstrap program reads a configuration
+description from file
+.B /mips/conf/x.x.x.x
+where
+.B x.x.x.x
+is the decimal value of the each byte of the
+IP address separated by dots.
+After loading the kernel it passes to it the
+configuration information.
+.PP
+Before using Plan 9 for the first time
+you will have to bring up Unix to copy the bootstrap
+program to the dvh.
+Copy
+.B /mips/9powerboot
+onto the Unix file system.
+Then use
+.B dvhtool
+to copy it to the dvh file
+.B b.
+.SS Sun Sparcstation
+Proceed as for the Sparcstation running as a terminal but load
+.BR /sparc/9sscpu .
+.SS Mips Magnum
+Booting from the ethernet
+proceed as for the Magnum running as a terminal but load
+.BR /mips/9magnumcpu .
+Booting from the disk proceed as for the Magnum running as a terminal.
+.PP
+With a disk a two stage boot is also possible.
+This allows us to boot from networks and or
+protocols unknown to the ROM monitor.
+Instead of copying a kernel into the boot partition,
+we copy a bootstrap program that will load the real kernel
+across a network.
+The arguments following
+.B dksd()b
+are passed both to the bootstrap program and to the
+downloaded kernel.
+The first specifies the network and machine to boot from
+and the second specifies the file to boot.
+For example, to boot via the Datakit high speed board from the
+file server
+.B nj/astro/x
+type
+.IP
+.EX
+dksd()b hs!nj/astro/bootes /mips/9magnumcpu
+.EE
+.PP
+To boot via the ethernet using the IL protocol type
+.IP
+.EX
+dksd()b il /mips/9magnumcpu
+.EE
+.SS Hobbit
+The ROM uses some variables in non-volatile RAM for booting.
+The variables can be examined by typing an
+.B e
+in response to the ROM prompt
+.B '>>>'
+and initialized to useful defaults by
+.BR 'e\ -i' .
+In order to boot the default kernel (ROM variable
+.BR bootfile )
+.IP
+.EX
+b -- incon!nj/astro/Nfs
+.EE
+.PP
+and to boot an alternate kernel
+.IP
+.EX
+e bootfile /sys/src/9/hobbit/9cpu
+b -- incon!nj/astro/Nfs
+.EE
+.PP
+or
+.IP
+.EX
+b /sys/src/9hobbit/9cpu -- incon!nj/astro/Nfs
+.EE
+.PP
+The second form will also initialize the
+.B bootfile
+variable.
+.PP
+Currently, Hobbit boards boot only using
+.BR incon .
+.SS File servers
+The CPU servers and terminals run essentially the same program, but
+the Plan 9 file servers run a distinct system.
+The file servers accept only the commands described in
+.IR fs (8)
+on their consoles.
+.SS SGI Power Series
+To the power-on menu, type a
+.B 5
+to get the
+.B >>
+prompt.
+Then boot the system like a Magnum but load
+.BR 9powerfs .
+These files are in
+.B /sys/src/fs/power
+on
+.B bootes
+or in
+.B /usr/local/boot
+on
+.BR tempel .
+The system will come up automatically.
+On
+.BR bootes ,
+several minutes will be spent initializing the WORM jukebox; the machine
+will chat happily while this is going on.
+.SS Mips 6280
+In response to the PROM
+.B >>
+prompt, type
+.IP
+.EX
+bootp(,egl)tempel:96280fs
+.EE
+.SS Sparc Sparcstation
+Proceed as for the Sparcstation running as a terminal, but load
+.BR /sparc/9ssfs .
+.SS Mips Magnum
+Proceed as for the Magnum running as a terminal, but load
+.BR /mips/9magnumfs .
+.SH "SEE ALSO"
+.IR boot (8),
+.IR fs (8),
+.IR init (8)
+.SH BUGS
+The file server should be able to boot from its own disk.

@@ -1,0 +1,51 @@
+.fp 3 H
+.ps8
+.ps22
+.sp 3.0i
+.ce
+PLAN 9
+.sp .2i
+.ce
+from
+.ce
+.sp .2i
+BELL LABS
+.sp .75i+4p
+.ce
+PROGRAMMER'S MANUAL
+.ps12
+.sp .75i
+.ft I
+.ce
+First Edition
+.sp |9.25i-1
+.ce
+Computing Science Research Center
+.ce
+AT&T Bell Laboratories
+.ce
+Murray Hill, New Jersey
+.bp
+.ll 4.8i
+.in .75i
+.hy 0
+.vs 12p
+.ps 10
+--
+.sp |7i
+.nf
+.ce 1000
+AT&T \(em Proprietary
+This document contains proprietary information of 
+AT&T and is not to be disclosed or used except in
+accordance with applicable agreements.
+
+Copyright \(co 1992 AT&T
+
+Unpublished and not for publication
+All Rights Reserved
+.ce 0
+.sp 1i
+.ce
+PostScript and ThinkJet are registered trademarks.
+.fi

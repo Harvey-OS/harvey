@@ -1,0 +1,202 @@
+.TH DK 3 
+.SH NAME
+dk \- Datakit conversations
+.SH SYNOPSIS
+.B bind
+.BI #k name
+.B /net/dk
+.br
+.B bind
+.BI #i name
+.B /net/dk
+.nf
+.sp
+.B
+ctlfd = open(".../ctl", ORDWR);
+.B
+write(ctlfd, "push dkmux", 10);
+.B
+write(ctlfd, "config \fIcsc \fP[no]restart\fI name nvc window\fP", n);
+.fi
+.SH DESCRIPTION
+A Datakit device\(emeither
+.B k
+for the regular Datakit or
+.B i
+for the Incon\(emis a directory containing up to 256
+directories, one per virtual circuit, named
+.B 0
+through
+.B 255,
+and a special file named
+.BR clone .
+The specifier
+.I name
+matches the Datakit device to a physical device that
+its virtual circuits are multiplexed over (see
+.IR dkmux
+below).
+.PP
+Normally, the standard routines
+.IR dial ,
+.IR hangup ,
+.IR listen ,
+and
+.I announce
+(see
+.IR dial (2))
+are used to make, listen for, and control calls over
+any network.
+The routines expect the following properties of
+any multiplexed network, not just Datakit.
+.PP
+Opening the
+.I clone
+file is a macro for opening the 
+.B ctl
+file of an unused virtual circuit.
+Reading any
+.I ctl
+file returns the name of the
+virtual circuit directory.
+For example, reading
+.B #k/17/ctl
+will return the string
+.BR 17 .
+.PP
+Each virtual circuit directory contains the files:
+.TP 10
+.B ctl
+to control the virtual circuit: establish a connection, hang it up, etc.
+.TP 10
+.B data
+to converse with the remote end (via read and write)
+.TP 10
+.B listen
+to listen for calls (after announcing; see below)
+.TP 10
+.B other
+information about the conversation
+.TP 10
+.B raddr
+the address of the remote end
+.TP 10
+.B ruser
+the id of the user at the remote end (when applicable)
+.PP
+To set up and tear down virtual circuits a process writes
+textual commands to the 
+.B ctl
+file:
+.TP 14
+.BI connect " addr
+connect to address
+.IR addr .
+If the connection fails, the write returns an error.
+.TP 14
+.B hangup
+tear down a connected virtual circuit.
+.TP 14
+.BI announce " name
+announce the readiness to accept calls to
+.IR name .
+.TP 14
+.BI accept " n
+accept the call on virtual circuit
+.IR n .
+.TP 14
+.BI reject " n e"
+reject the call on virtual circuit
+.I n
+with error code
+.I e.
+.I e
+must be a number from 0 to 7.
+.PP
+Once a virtual circuit is set up,
+a process can converse with the remote service
+by reading and writing the
+.B data
+file.
+Write boundaries are preserved.
+.PP
+Accepting calls to
+.I name
+requires the following dance:
+.IP 1)
+announce 
+.I name
+on a virtual circuit.
+.IP 2)
+open the
+.B listen
+file in that virtual circuit's directory.
+When a call comes in on a virtual circuit for
+.I name,
+the open will return with the file descriptor open to
+the control file of the incoming virtual circuit.
+.IP 3)
+accept or reject the call by writing an
+.B accept
+or
+.B reject
+command to the 
+.B ctl
+file of the announced virtual circuit.
+.PP
+A
+.I dkmux
+module pushed onto a stream makes that stream a multiplexed
+connection to a Datakit.
+The subsequent 
+.B config
+control message configures the multiplexer and matches it to a
+.I dk
+device.
+The parameters to the
+.B config
+message are
+.TP
+.I csc
+the line number of the common signalling channel (must be > 0)
+.TP
+.I nvc
+the number of virtual circuits (optional; default chosen by Datakit)
+.TP
+.RB [ no ] restart
+the word
+.B restart
+or
+.B norestart
+(optional; default is
+.BR restart ).
+.B Restart
+tells the Datakit to forget all previous connections and
+authentications for this machine.
+.TP
+.I name
+The name used in binding
+.I dk
+device.
+.TP
+.I window
+the default URP window size for virtual circuits on this Datakit line (default is 2048).
+.LP
+.SH FILES
+.B #k/clone
+.br
+.B #k/[0-255]
+.br
+.B #k/[0-255]/data
+.br
+.B #k/[0-255]/ctl
+.br
+.B #k/[0-255]/listen
+.br
+.B #k/[0-255]/ruser
+.br
+.B #k/[0-255]/raddr
+.SH SEE ALSO
+.IR stream (3),
+.IR dkconfig (8),
+.IR datakit (3)

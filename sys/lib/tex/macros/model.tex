@@ -1,0 +1,99 @@
+% Arthur Keller's 1:1 ACM/IEEE proceedings paper model format
+% (see example at end)
+\newdimen\fullhsize	\fullhsize=42truepc
+\newdimen\fullvsize	\fullvsize=52truepc
+\newdimen\colhsize	\colhsize=20truepc
+\newdimen\topvsize	\topvsize=10truepc % this number can be changed
+\newdimen\shortvsize	
+\newif\iftitlepage	\titlepagetrue
+\newbox\leftcolumn	\newbox\rightcolumn	\newbox\topcolumn
+\newcount\totalpages	\totalpages=0	% specify this if you want page numbers
+\output{
+\iftitlepage
+	\if T\column
+		\global\shortvsize=\fullvsize
+		\global\advance\shortvsize by -\topvsize
+		\global\hsize\colhsize	\global\vsize\shortvsize
+		\global\setbox\topcolumn=\columnbox 
+		\global\let\column=L
+	\else	\if L\column
+			\global\setbox\leftcolumn=\columnbox
+			\global\let\column=R
+		\else	\shipout\vbox to \fullvsize{\pagenumberbox
+				\box\topcolumn
+				\vss
+				\hbox to \fullhsize{\box\leftcolumn
+					\hfill\columnbox}}
+			\advancepageno
+			\global\let\column=L
+			\global\titlepagefalse
+			\global\vsize=\fullvsize
+		\fi
+	\fi
+\else	\if L\column
+		\global\setbox\leftcolumn=\columnbox
+		\global\let\column=R
+	\else	\shipout\vbox to \fullvsize{\pagenumberbox
+			\hbox to\fullhsize{\box\leftcolumn
+				\hfill\columnbox}}
+		\advancepageno
+		\global\let\column=L
+	\fi
+\fi}
+
+\def\columnbox{\leftline{\pagebody}}
+
+\def\pagenumberbox{\baselineskip0pt\lineskip0pt
+	\vbox to 0pt{\vss\hbox to \fullhsize{\hfil\tenrm
+	  Page \folio\ifnum\totalpages>0\ of \number\totalpages.\fi\hfil}
+	 \vskip1pc}}
+
+\let\column=T
+\vsize=\topvsize	\hsize=\fullhsize
+
+\def\endoftitle{\par\vfill\eject}
+
+\def\endofpaper{\par\vfill\supereject\if R\column \null\vfill\eject\fi}
+
+% 8 point footnotes
+\catcode`@=11 % allow at signs in following entry
+\def\vfootnote#1{\insert\footins\bgroup
+  \eightpoint
+  \interlinepenalty\interfootnotelinepenalty
+  \splittopskip\ht\strutbox % top baseline for broken footnotes
+  \splitmaxdepth\dp\strutbox \floatingpenalty\@MM
+  \leftskip\z@skip \rightskip\z@skip \spaceskip\z@skip \xspaceskip\z@skip
+  \textindent{#1}\footstrut\futurelet\next\fo@t}
+\catcode`@=12 % at signs are no longer letters
+
+\def\eightpoint{\let\rm=\eightrm
+\setbox\strutbox=\hbox{\vrule height7pt depth2pt width0pt}%
+\rm\baselineskip=9pt}
+\font\eightrm=amr8
+
+\def\eatone#1{}
+
+% \unnumberedfootnote{...text...} gives an unnumbered footnote
+% \footnote{symbol/number}{...text...} gives a labelled footnote
+\def\unnumberedfootnote{\footnote{\eatone}}
+
+
+% \acmpermission puts the ACM permission text in a unnumbered footnote
+\def\acmpermission{\unnumberedfootnote{Permission to copy without fee all or
+  part of this material is granted provided that the copies are not made
+  or distributed for direct commercial advantage, the ACM copyright notice
+  and the title of the publication and its date appear, and notice is
+  given that copying is by permission of the Association of Computing
+  Machinery.
+To copy otherwise, or to republish, requires a fee and/or
+  specific permission.}}
+
+%%%%%% example of use:
+% \input model
+% \totalpages=5 % if you want the total number of pages to appear in the heading
+% \centerline{title}
+% \centerline{authors names}
+% \endoftitle
+% rest of paper
+% \endofpaper\end
+

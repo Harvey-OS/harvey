@@ -1,0 +1,219 @@
+.TH CDL 10.6
+.ds CD \s-2CDL\s0
+.SH NAME
+cdl \- circuit description language
+.PD .2i
+.ds or \fP\ |\ \fB
+.SH DESCRIPTION
+The circuit descriptions used by the various circuit design aid programs
+are expressed in dialects of \*(CD \(em the circuit design language described below.
+This is half of a complete project specification; namely
+an electrical circuit with chips, pins and connecting signals.
+The other half, a physical layout with pins and chip positions, is described in
+.IR fizz (10.6)
+format.
+The commands described below are recommended;
+others exist and may work but are regarded as obsolete.
+.sp
+.PP
+.SS Logic design
+.PP
+A circuit consists of
+.I chips
+connected by
+.I signals.
+The point of connection is denoted by a
+.I pin.
+Each chip has a
+.I type
+which describes its logical and electrical
+characteristics.
+(For example,
+.B 74S181
+is a chip type.)
+.PP
+Types, signals, and chips are identified by name.
+Pins  are identified by name and number.
+A
+.I name
+is a string of letters,
+digits, or any of the characters
+.BR +-.$/:<=>[]_ .
+Sometimes, the first character
+may not be a digit.
+A name may not be longer than 16 characters.
+.PP
+In the following description,
+literals appear as
+.B constantwidth
+and names are in
+.I italic.
+[ ] enclose an optional item and
+a list of items is written
+.IP
+.RI { item }
+.PP
+Commands are separated by either newline or
+semi-colon.
+A comment
+starts with a
+.B %
+and ends with a newline
+and may appear on any line.
+All white space serves only to separate tokens.
+.SS General
+.B .f
+[
+.I file
+]
+.br
+Subsequent input originated in
+.I file .
+If
+.I file
+is not present, the previous file name is restored.
+.PP
+.B .q
+.br
+End of file.
+.SS Signal Description
+.I signal
+[
+.I pin-number
+] [ [
+.I ,
+]
+.I pin-name
+]
+.br
+.I name
+=
+.I signal
+.br
+Lines that do not start with a period are signal
+definition lines.
+Signal definitions refer to the most recent
+.B .c
+command.  The pin name and number refer to the chip.
+.SS Circuit Description
+.B .c
+.I name
+[ [
+.B ,
+]
+.I type
+]
+.br
+Instantiates the chip
+.I name
+with type
+.I type.
+This is typically used for I/O connectors.
+The command may occur more than once.
+The
+.I type
+of a chip need only be specified
+once in a circuit description.
+Signal descriptions that follow
+a
+.B .c
+command refer to pins on the chip.
+.PP
+.ne 10
+.B .c
+.I name
+.B =
+.I chip
+.br
+Establish
+.I name
+as a synonym for the previously defined
+.IR chip .
+.PP
+.B .m
+.I name1 name2
+.br
+Macro parameter definition.
+The signal
+.I name1
+is to be associated with macro parameter
+.I name2.
+.SS Chip Type Description
+.B .t
+.I name package
+.RI [ pin ]\ ...
+.br
+Define a chip type
+.I name.
+The name of the
+.I package
+in which it is installed,
+and pin numbers,
+.I pin,
+for the special signal connections
+are specified.
+The special voltage
+pin numbers, if present, must be in the same
+sequence with which the special signals are numbered.
+This usage is discouraged;
+use the
+.BR .t [ tT ]
+commands described below.
+(See
+.B .v
+command.)
+All commands of the form
+.BR .t ?
+are meant to follow a
+.B .t
+line.
+.PP
+.B .t
+.I name
+.B =
+.I type
+.br
+.I name
+is a synonym for
+.I type .
+.PP
+.BI .tt \ sequence_of_single_character_pin_descriptors
+.br
+The number of characters must equal the numbers of pins on this
+.IR type .
+The meaning of the descriptors is given in
+.IR smoke (10.1).
+.PP
+.BI .tT \ sequence_of_single_character_pin_descriptors
+.br
+This means the same as the equivalent
+.B .tt
+command except that every
+.B [gvwxyz]
+pin must have a corresponding
+.B .vb
+pin.
+.PP
+.B .tp
+.I name
+.I number
+\&...
+.br
+The given
+pin
+.I name
+is associated with the pin
+.I number.
+.I Name
+may contain generators such as
+.B Q[0-7]
+which cause pin names
+.B Q0
+.B \&...
+.B Q7
+to be assigned to the pin numbers given.
+Multiple bracket constructs may be used.
+In any case, the resulting list is lexicographically sorted before
+assigning to pin numbers.
+.SH SEE ALSO
+.I cdm (10.1)

@@ -1,0 +1,75 @@
+.TH INTRO 3 
+.SH NAME
+intro \- introduction to the Plan 9 devices
+.SH DESCRIPTION
+A Plan 9
+.I device
+implements a file tree for client processes.
+A file name beginning with a pound sign, such as
+.LR #c ,
+names the root of a file tree implemented by
+a particular
+.IR "kernel device driver"
+identified by the character after the pound sign.
+Such names are usually bound to conventional locations
+in the name space.
+For example, after
+.EX
+	bind("#c", "/dev", MREPL)
+.EE
+an
+.IR ls (1)
+of
+.B /dev
+will list the files provided by the
+.I console
+device.
+.PP
+A kernel device driver is a
+.I server
+in the sense of the Plan 9 File Protocol, 9P (see Section 5),
+but with the messages implemented by local
+rather than remote procedure calls.
+Also, several of the messages
+.RI ( Nop ,
+.IR Session ,
+.IR Flush ,
+and
+.IR Error )
+have no subroutine equivalents.
+.PP
+When a system call is passed a file name beginning with
+.L "#"
+it looks at the next character, and if that is a valid
+.I device character
+it performs an
+.IR attach (5)
+on the corresponding device to get a channel representing the
+root of that device's file tree.
+If there are any characters after the device character but
+before the next
+.L "/"
+or end of string, those characters are passed as parameter
+.I aname
+to the attach.  For example,
+.IP
+.EX
+#Itcp
+.EE
+.PP
+identifies the implementation of the TCP protocol supplied by the IP device
+(see
+.IR ip (3)).
+.PP
+Each kernel device has a conventional place at which to be bound
+to the name space.
+The
+.I SYNOPSIS
+sections of the following pages includes a shell
+.I bind
+command to put the device in the conventional place.
+Most of these binds are done automatically by
+.IR init (8).
+.SH SEE ALSO
+.IR intro (5),
+.IR intro (2)

@@ -1,0 +1,441 @@
+.TH TEX 1
+.SH NAME
+tex, latex, slitex, bibtex, dvips, dviselect, mf \- text formatting and typesetting
+.SH SYNOPSIS
+.B tex
+[
+.I first-line
+]
+.PP
+.B latex
+.IR file [.tex]
+.PP
+.B slitex
+.IR file [.tex]
+.PP
+.B dvips
+[
+.I option ...
+]
+.I dvifile
+.PP
+.PP
+.B dviselect
+[
+.B \-s
+] [
+.B \-i
+.I infile
+] [
+.B \-o
+.I outfile
+]
+.I "list of pages"
+[
+.I infile
+[
+.I outfile
+] ]
+.PP
+.B bibtex
+.I auxname
+.PP
+.B mf
+[
+.I first-line
+]
+.SH DESCRIPTION
+.I Tex
+formats interspersed text and commands
+and outputs a 
+.B .dvi
+(`device independent') file.
+.PP
+An argument given on the command line
+behaves as the first input line.
+That line should begin with a (possibly truncated) file name
+or a 
+.IR \econtrolsequence .
+Thus
+.B tex paper
+processes the file
+.BR paper.tex .
+The base name of
+.B paper
+becomes the
+.IR jobname ,
+and is used in forming output file names.
+If no file is named, the jobname is
+.BR texput .
+The default
+.B .tex
+extension can be overridden by specifying an extension explicitly.
+.PP
+The output is written on
+.IB jobname .dvi ,
+which can be printed using
+.IR lp (1).
+A log of error messages goes into
+.IB jobname .log.
+.PP
+As well as the standard TeX fonts, many Postscript
+fonts can be used
+(see the contents of
+.BR /sys/lib/tex/fonts/psvf ).
+The file
+.B testfont.tex
+(in the standard macro directory) will print a table of any font.
+.PP
+These environment variables adjust the behavior of
+.IR tex :
+.TF TEXINPUTS
+.TP
+.B TEXINPUTS
+Search path for
+.B \einput
+and
+.B \eopenin
+files.
+It should be colon-separated,
+and start with dot.
+Default:
+.B .:/sys/lib/tex/macros
+.TP
+.B TEXFONTS
+Search path for font metric files.
+Default: 
+.B /sys/lib/tex/fonts/tfm
+.TP
+.B TEXFORMATS
+Search path for format files.
+Default:
+.B /sys/lib/tex/macros
+.TP
+.B TEXPOOL
+Search path for strings.
+Default:
+.B /sys/lib/tex
+.TP
+.B TEXEDIT
+Template for the switch-to-editor-on-error option,
+with
+.B %s
+for the file name
+and
+.B %d
+for the line number.
+Default:
+.B /bin/ed %s
+.PD
+.PP
+.I Latex
+is a version of
+.I tex
+with a standard set of macros loaded.
+.I Latex
+produces
+.IB file .dvi
+and a cross-referencing file,
+.IB file .aux .
+It might be necessary to run
+.I latex
+twice, to get all of the cross-referencing done properly.
+.I Slitex
+is a variant of
+.I latex
+with fonts and commands suitable for making slides.
+.PP
+.I Bibtex
+is a bibliography processing program, often used in conjunction
+with
+.IR latex .
+.I Bibtex
+reads the top-level auxiliary
+.RB ( .aux )
+file output by
+.I latex
+and creates a bibliography
+.RB ( .bbl )
+file to be included in the LaTeX
+source file.
+The
+.I auxname
+on the command line should be given without an extension.
+Each
+.B \ecite
+in the source file is looked up in bibliography files to gather
+together those used in the document.
+Then a bibliography style file is executed to write a
+.B \ethebibliography
+environment.
+.PP
+The source file should have defined the bibliography
+.RB ( .bib )
+files to search with the
+.B \ebibliography
+command, and the bibliography style
+.RB ( .bst )
+file to execute with the
+.B \ebibliographystyle
+command.
+.I Bibtex
+searches the
+.B TEXINPUTS
+path for
+.BR .bst
+files, and the
+.B BIBINPUTS
+path for
+.B .bst
+files.
+The LaTeX manual describes how to make bibliography files.
+.PP
+.I Dvips
+converts 
+.B .dvi
+files to Postscript,
+writing the result on standard output.
+It is normally invoked by
+.IR lp (1),
+but if invoked separately, the following options are useful:
+.TP "\w'\fL-T\fP \fIdev\fLXX'u"
+.B -r
+reverse pages.
+.B -r0
+means don't reverse pages (if reversing is default).
+.TP
+.BI -T dev
+output device:
+.I dev
+is one of
+.B laserwriter
+(default for
+.IR dvips ),
+.BR gnot ,
+.BR fax ,
+or
+.B lino
+(the computer center's high resolution Postscript service).
+The
+.B -Tgnot
+option should be used for preparing output for
+.IR psi (1).
+.TP
+.B -L
+print paper in landscape mode.
+.TP
+.B -Z
+compress the fonts before sending them.
+.TP
+.B -Z0
+don't compress the fonts before sending them.
+.PP
+The following environment variables affect
+.IR dvips :
+.TF TEXVFONTS
+.TP
+.B TEXPKS
+Search path for font bitmaps (PK files).
+.TP
+.B TEXVFONTS
+Search path for virtual font descriptions.
+.PD
+.PP
+.I Dviselect
+selects pages from a
+.B .dvi
+file, creating a new
+.B .dvi
+file.
+A
+.I range
+is a string of the form
+.I first:last
+where both
+.I first
+and
+.I last
+are optional numeric strings, with negative numbers indicated by
+a leading underscore character
+.RB ( _ ).
+If both
+.I first
+and
+.I last
+are omitted, the colon may also be omitted, or may be replaced
+with an asterisk
+.RB ( * ).
+A
+.I TeX page selector
+is a list of pages separated by periods.  A
+.I "list of pages"
+is described by a set of page TeX page selectors,
+separated by commas and/or white space.
+.I Dviselect
+actually looks at the ten
+.I count
+variables that TeX writes; the first of these (\e\fLcount0\fP) is the
+page number, with \e\fLcount1\fP through \e\fLcount9\fP having varied uses
+depending on which macro packages are in use.  (Typically \e\fLcount1\fP
+is a chapter or section number.)  A page is included in
+.IR dviselect 's
+output if all its \ecount values are within any one of the ranges
+listed on the command line.  For example, the command
+.L "dviselect *.1,35:"
+might select everything in chapter 1, as well as pages 35 and up.
+.PP
+Instead of \e\fLcount\fP values,
+.I dviselect
+can also select by absolute page number,
+indicated by a leading equal sign
+.RB ( = ).
+Ranges of absolute
+pages are also allowed:
+.L "dviselect =3:7"
+will extract the third
+through seventh pages.
+.PP
+.I Dvips
+understands some extended graphics commands that can be output using
+.I "tpic specials"
+in the TeX source.
+Many of them work by building up a path of
+.I x,y
+pairs, and then doing something with the path.
+The tpic coordinate system has its origin at the current dvi position
+when a drawing special is emitted;
+all length arguments are in units of milli-inches,
+and the y-axis goes positive downward.
+.TP
+.BI "\especial{pa " "x y" }
+Add
+.I x,y
+to the current path.
+.TP
+.B "\especial{fp}
+Flush the current path: draw it as a polygonal line and reset the path
+to be empty.
+.TP
+.BI "\especial{da " dlen }
+Like
+.B fp
+but draw dashed line, with dashes
+.I dlen
+milli-inches long.
+.TP
+.BI "\especial{dt " slen }
+Like
+.B fp
+but draw a dotted line, with dots
+.I slen
+apart.
+.TP
+.B "\especial{sp}"
+Like
+.B fp
+but draw a quadratic spline.  The spline goes through the midpoints of the
+segments of the path, and straight pieces extend it to the endpoints.
+.TP
+.BI "\especial{ar " "x y xr yr s e" }
+Draw a circular or elliptical arc with center at
+.I x,y
+and radii
+.IR xr " and " yr .
+The arc goes clockwise from angle
+.I s
+to angle
+.I e
+(angles measured clockwise from the positive x-axis).
+.TP
+.BI "\especial{pn " n }
+Set line width (pen diameter) to 
+.IR n milli-inches.
+.TP
+.B "\especial{bk}"
+Set shading to black (will fill the next object drawn with black).
+.TP
+.B "\especial{sh}"
+Set shading to grey.
+.TP
+.B "\especial{wh}"
+Set shading to white.
+.TP
+.BI "\especial{psfile=" "file options" }
+Include
+.IR file ,
+which should be a Postscript illustration,
+making its origin be the current dvi position.
+The default Postscript transformation matrix will be in effect,
+but it can be modified by the
+.IR options ,
+a list of space-separated
+.IR key = value
+assignments.
+Allowed keys are:
+hoffset, voffset, hscale, vscale, angle,
+If supplied, these values are supplied to Postscript
+.IR translate , scale ", and " rotate"
+commands, in that order.
+Also, keys hsize and vsize may be supplied, to cause clipping to
+those sizes.
+Sizes and offsets should be specified in points,
+angles should be specified in degrees.
+.PP
+All of the specials leave TeX at the same position on the page that
+it started in.
+.PP
+.I Mf
+runs metafont, program that produces fonts for TeX.
+It is used by
+.I dvips
+when bitmaps for a given font at a given size do not exist.
+.SH FILES
+.TF /sys/lib/tex/macros/doc/*
+.TP
+.B /sys/lib/tex/macros/*
+macros and preloaded format files
+.TP
+.B /sys/lib/tex/macros/doc/*
+more TeX-related documentation
+.TP
+.B /sys/lib/tex/fonts/tfm
+font metrics
+.TP
+.B /sys/lib/tex/fonts/psvf
+PostScript virtual font metrics
+.TP
+.B /sys/lib/tex/fonts/canonpk
+bitmaps for canon engines (300 dpi)
+.TP
+.B /sys/lib/tex/fonts/linopk
+bitmaps for Linotron (1270 dpi)
+.TP
+.B /sys/lib/tex/fonts/gnotpk
+bitmaps for gnot screen (100 dpi)
+.TP
+.B /sys/lib/tex/*
+miscellaneous configuration files and Postscript headers
+.SH "SEE ALSO"
+.IR pic (1),
+.IR lp (1),
+.IR proof (1),
+.IR psi (1),
+.IR troff (1
+.br
+D. E. Knuth,
+.I The TEXbook,
+Addison-Wesley, 1984
+.br
+L. Lamport,
+.I
+LaTeX, A Document Preparation System,
+Addison-Wesley, 1985
+.br
+H. Trickey,
+`Latex User Guide',
+Unix Research System Programmer's Manual, Volume 2
+.br
+Various documents in
+.B /sys/lib/tex/macros/doc.
+.SH BUGS
+Should be spelled τεχ.

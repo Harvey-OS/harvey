@@ -1,0 +1,48 @@
+</$objtype/mkfile
+
+OFILES=\
+	datn.$O\
+	data.$O\
+	datm.$O\
+	plane.$O\
+	vor.$O\
+	navaid.$O\
+	dgy.$O\
+	subr.$O\
+	adf.$O\
+	main.$O\
+	mgv.$O\
+	isin.$O\
+	inp.$O\
+	att.$O\
+	clk.$O\
+	ihyp.$O\
+	pwr.$O\
+	alt.$O\
+	iatan.$O\
+	tab.$O\
+	roc.$O\
+	asi.$O\
+	junk.$O\
+	aport.$O\
+	mkb.$O\
+
+HFILES=\
+	type.h\
+
+$O.out:	$OFILES
+	$LD $OFILES
+
+%.$O:	%.c
+	$CC -w $stem.c
+
+%.$O:	$HFILES
+
+clean:V:
+	rm -f *.[$OS] *.db[$OS] [$OS].out
+
+install:V:	$O.out
+	cp $O.out /$objtype/bin/games/fsim
+
+installall:V:
+	for(objtype in $CPUS) mk install

@@ -1,0 +1,36 @@
+LHASH=local.sys\
+	local.ip\
+	local.ipnet\
+	local.tcp\
+	local.il\
+	local.udp\
+	local.dom\
+	local.ether\
+	local.soa
+
+
+GHASH=global.sys\
+	global.ip\
+	global.ipnet\
+	global.tcp\
+	global.il\
+	global.udp\
+	global.dom\
+	global.ether\
+	global.soa
+
+all:V: global $LHASH $GHASH
+
+local.%: local
+	ndb/mkhash local $stem
+global.%: global
+	ndb/mkhash global $stem
+
+global: hosts mkfile
+	cat hosts > all$pid
+	grep 'kremlin.mos.su' all$pid > sorted$pid
+	grep -v 'kremlin.mos.su' all$pid >> sorted$pid
+	rm all$pid
+	ndb/mkdb < sorted$pid > global.new
+	rm sorted$pid
+	mv global.new global

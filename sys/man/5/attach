@@ -1,0 +1,124 @@
+.TH ATTACH 5 
+.SH NAME
+attach, session, nop \- messages to initiate activity
+.SH SYNOPSIS
+.ta \w'\fLTsession 'u
+.B Tnop	
+.IR tag [2]
+.br
+.B Rnop	
+.IR tag [2]
+.PP
+.B
+Tsession	
+.IR tag [2]
+.br
+.B
+Rsession	
+.IR tag [2]
+.PP
+.B
+Tattach	
+.IR tag [2]
+.IR fid [2]
+.IR uid [28]
+.IR aname [28]
+.IR auth [28]
+.br
+.B
+Rattach	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.SH DESCRIPTION
+The
+.B nop
+request does nothing overt but may be used to synchronize the
+channel between two service hosts initially.
+.PP
+The
+.B session
+request is used to initialize a connection between a client and a server.
+All outstanding I/O on the connection is aborted.
+The set of messages between
+.B session
+requests is called a
+.IR session .
+Tags and fids must be unique per session.
+.PP
+The
+.I tag
+should be
+.B NOTAG
+(value
+.BR 0xFFFF )
+for a
+.B nop
+or
+.B session
+message.
+.PP
+The
+.B attach
+message serves as a fresh introduction from a user on
+the client machine to a server.
+The message identifies the user
+.RI ( uid )
+and may select
+the file tree to access
+.RI ( aname ).
+The
+.I auth
+argument contains authorization data
+derived from the
+.I chal
+field of an
+.B auth
+message; see
+.IR auth (5)
+and
+.IR auth (6).
+.PP
+As a result of the
+.B attach
+transaction, the client will have a connection to the root
+directory of the desired file tree,
+represented by
+.IR fid .
+An error is returned if
+.I fid
+is already in use.
+The server's idea of the root of the file tree is represented by the returned
+.BR qid .
+.SH ENTRY POINTS
+An
+.B attach
+transaction will be generated for kernel devices
+(see
+.IR intro (3))
+when a system call evaluates a file name
+beginning with
+.LR # .
+.IR Pipe (2)
+generates an attach on the kernel device
+.IR pipe (3).
+.B Mount
+(see
+.IR bind (2))
+generates
+.B auth
+and
+.B attach
+messages to the remote file server.
+When the kernel boots, an
+.I attach
+is made to the root device,
+.IR root (3),
+and then an
+.B auth
+and an
+.B attach
+are made to the requested file server machine.
+.SH SEE ALSO
+.IR auth (5),
+.IR auth (6)

@@ -1,0 +1,39 @@
+</$objtype/mkfile
+#
+#on mips & pixel machines jslr.c needs an overriding compiler flag
+#uncomment the next line and comment out the following one
+#PIXMIP=-Wf,-XNg520	
+PIXMIP=
+
+TARG=psi
+LIB=lib/libpsi.a$O
+OFILES=main.$O
+
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=-DPlan9
+
+all:V:	psi.mf
+
+psi.mf : $O.out
+	cp $O.out psi.mf
+
+
+main.$O: njerq.h font.h object.h system.h
+
+
+$LIB:
+	cd lib
+	mk
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
+	cd lib
+	mk clean
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
+	cd lib
+	mk nuke
+

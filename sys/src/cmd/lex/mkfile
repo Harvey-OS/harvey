@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+TARG=lex
+OFILES=lmain.$O\
+	y.tab.$O\
+	sub1.$O\
+	sub2.$O\
+	header.$O\
+
+HFILES=ldefs.h\
+
+YFILES=parser.y\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=
+
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+	cp ncform /sys/lib/lex

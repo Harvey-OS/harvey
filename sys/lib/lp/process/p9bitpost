@@ -1,0 +1,6 @@
+#!/bin/rc
+# convert plan 9 bitmap to PostScript
+if (! ~ $MAG '' -m*) MAG=-m^$MAG
+if (! ~ $LAND '') LAND=-L
+eval /sys/lib/postscript/bin/$cputype/p9bitpost $LAND $MAG | $LPLIB/process/hpost
+exit

@@ -1,0 +1,113 @@
+.TH GETFLAGS 9.2
+.SH NAME
+getflags, usage \- process flag arguments in argv
+.SH SYNOPSIS
+.nf
+.B #include <libg.h>
+.PP
+.B #include <fb.h>
+.PP
+.B int getflags(int argc, char *argv[], char *flags)
+.PP
+.B int usage(char *tail)
+.PP
+.B extern char **flag[], cmdline[], *cmdname, *flagset[];
+.fi
+.SH DESCRIPTION
+.I Getflags
+digests an argument vector
+.IR argv ,
+finding flag arguments listed in
+.IR flags .
+.I Flags
+is a string of flag letters.
+A letter followed by a colon and a number
+is expected to have the given number of parameters.
+A flag argument starts with
+.RB ` - '
+and is followed by any number of flag letters.
+A flag with one or more parameters must be the last flag in an argument.
+If any characters follow it, they are the flag's first parameter.  Otherwise
+the following argument is the first parameter.  Subsequent parameters are taken
+from subsequent arguments.
+.PP
+The global array
+.I flag
+is set to point to an array of parameters for each flag found.
+Thus, if flag
+.B -x
+was seen,
+.B flag['x']
+is non-zero, and
+.B flag['x'][i]
+is the flag's
+.IR i th
+parameter.
+If flag
+.B -x
+has no parameters
+.BR flag['x']==flagset .
+Flags not found
+are marked with a zero.
+Flags and their parameters are deleted from
+.I argv.
+.I Getflags
+returns the adjusted argument count.
+.PP
+.I Getflags
+stops scanning for flags upon encountering a non-flag argument,
+or the argument
+.BR -- ,
+which is deleted.
+.PP
+.I Getflags
+places a pointer to 
+.IB argv [0]
+in the external variable
+.I cmdname.
+It also concatenates the original members of
+.IR argv ,
+separated by spaces, and places the result in the external array
+.IR cmdline .
+.PP
+.I Usage
+constructs a usage message, prints it on the standard error file,
+and exits with status 1.
+The command name printed is
+.IB argv [0] .
+Appropriate flag usage syntax is generated from
+.IR flags .
+As an aid,
+explanatory information about flag parameters may be included in
+.I flags
+in square brackets as in the example.
+.I Tail
+is printed at the end of the message.
+If
+.I getflags
+encountered an error,
+.I usage
+tries to indicate the cause.
+.SH EXAMPLES
+.EX
+	main(int argc, char *argv[]){
+		if((argc=getflags(argc, argv, "vinclbhse:1[expr]", 1))==-1)
+			usage("[file ...]");
+	}
+.EE
+might print:
+.EX
+	Illegal flag -u
+	Usage: grep [-vinclbhs] [-e expr] [file ...]
+.EE
+.SH "SEE ALSO"
+.IR ARG (2)
+.SH DIAGNOSTICS
+.I Getflags
+returns \-1 on error:
+a syntax error in
+.I flags,
+setting a flag more than once, setting a flag not mentioned
+in
+.IR flags ,
+or running out of argv while collecting a flag's parameters.

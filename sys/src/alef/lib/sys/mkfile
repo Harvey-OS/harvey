@@ -1,0 +1,28 @@
+
+LIB=/$objtype/lib/alef/libA.a
+
+</$objtype/mkfile
+
+install:V:
+	SYS=`{sed 's/#define.([A-Z0-9_]*).*/\1/' sys.h}
+	for(I in $SYS) {
+		i=`{echo $I|tr A-Z a-z}
+		n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' sys.h}
+		if(~ $i exits) i=__exits
+		{switch($objtype){
+		case mips
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW '$'$n, R1
+			echo SYSCALL
+			echo RET
+		case sparc
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW '$'$n, R7
+			echo TA R0
+			echo RETURN
+		}} > $i.s
+		$AS $i.s
+	}
+	ar vu $LIB *.$O
+	$RL $LIB
+	rm -f *.$O *.s

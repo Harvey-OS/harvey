@@ -1,0 +1,12 @@
+CC=kc
+ALEF=kal
+LD=kl
+O=k
+RL=rl
+AS=ka
+OS=2kvz8
+CPUS=mips 68020 sparc 386 hobbit
+CFLAGS=
+LEX=lex
+YACC=yacc
+MK=/bin/mk

@@ -1,0 +1,207 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSART10.DOC						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\fileversion{v1.0b}
+\def\filedate{90/06/21}
+\def\docdate{90/06/21}
+
+%% \CheckSum{2006}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \StopEventually{}
+%
+% \subsection{AMSART10.STY}
+%
+%      First some size-changing commands.  
+%    \begin{macrocode}
+\def\@normalsize{\@setsize\normalsize{12\p@}\xpt\@xpt
+  \abovedisplayskip 6\p@ \@plus 6\p@ 
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus 6\p@
+  \belowdisplayshortskip 3\p@ \@plus 6\p@ 
+  \let\@listi\@listI} 
+%    \end{macrocode}
+%      Normally \verb=\small= is 9pt but we just make it 8pt.
+%    \begin{macrocode}
+\def\small{\footnotesize} 
+\def\footnotesize{\@setsize\footnotesize{10\p@}\viiipt\@viiipt
+  \abovedisplayskip 5\p@ \@plus 5\p@ 
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus 5\p@
+  \belowdisplayshortskip 3\p@ \@plus 5\p@ 
+  \def\@listi{\topsep \smallskipamount \parsep \z@ \itemsep \z@}}
+\def\scriptsize{\@setsize\scriptsize{8\p@}\viipt\@viipt}
+\def\tiny{\@setsize\tiny{6\p@}\vpt\@vpt}
+
+\def\large{\@setsize\large{14\p@}\xiipt\@xiipt}
+%    \end{macrocode}
+%      Sizes larger than \verb=\large= are not needed in
+%      AMSART.STY and AMSBOOK.STY, so, to save memory, we
+%      make them all the same as \verb=\large=.
+%    \begin{macrocode}
+\def\Large{\large}
+\def\LARGE{\large}
+\def\huge{\large}
+\def\Huge{\large}
+
+\normalsize
+
+\lineskip=1pt \normallineskip=1pt \normallineskiplimit=1pt
+\def\baselinestretch{1}
+%    \end{macrocode}
+%
+%      Settings for \verb=\textheight= and \verb=\textwidth=.
+%      We start with the value 50pc specified in AMS journal
+%      specifications as the total height of the type block
+%      and then subtract the running head height and adjust
+%      for \verb=\topskip= to get the proper value for the
+%      text block.
+%    \begin{macrocode}
+\headheight=8pt \headsep=16pt \footskip=24pt 
+\textheight=50pc \topskip=10pt
+\textwidth=30pc 
+\columnsep=10pt \columnseprule=0pt 
+
+\marginparwidth=90pt 
+\marginparsep=11pt
+
+\setbox0=\hbox{\footnotesize M$^1$}
+\footnotesep=\ht0
+\skip\footins=7pt plus11pt 
+\skip\@mpfootins=\skip\footins
+
+\fboxsep=3pt \fboxrule=.4pt 
+
+\arrayrulewidth=.4pt    \doublerulesep=2pt 
+\labelsep=5pt           \arraycolsep=\labelsep 
+\tabcolsep=\labelsep    \tabbingsep=\labelsep 
+
+\floatsep=6pt plus9pt             \textfloatsep=6pt plus9pt
+\intextsep=6pt plus9pt            \@maxsep=6pt 
+\dblfloatsep=6pt plus9pt          \dbltextfloatsep=12pt plus9pt 
+\@dblmaxsep=12pt                  \@fptop=0pt plus1fil 
+\@fpsep=8pt plus2fil              \@fpbot=0pt plus1fil 
+\@dblfptop=0pt plus1fil           \@dblfpsep=8pt plus2fil 
+\@dblfpbot=0pt plus1fil           \marginparpush=5pt 
+
+\parskip=0pt plus1pt
+%    \end{macrocode}
+%      \verb=\@parboxrestore=, used by \verb=\@footnotetext=, sets
+%      \verb=\parindent= to 0pt; since this is not what we want, we
+%      make a new dimen \verb=\normalparindent= and after calling
+%      \verb=\@parboxrestore=, \verb=\@footnotetext= resets
+%      \verb=\parindent= back to normal.
+%
+%    \begin{macrocode}
+\newdimen\normalparindent       \normalparindent=12pt
+\parindent=\normalparindent
+
+\partopsep=0pt
+
+\@lowpenalty=51         \@medpenalty=151        \@highpenalty=301
+\@beginparpenalty=-\@lowpenalty
+\@endparpenalty=-\@lowpenalty
+\@itempenalty=-\@lowpenalty
+%    \end{macrocode}
+%      The arguments of \verb=\@startsection= are given for reference:
+%    \begin{verbatim}
+% % #1    #2     #3      #4          #5         #6
+% {NAME}{LEVEL}{INDENT}{BEFORESKIP}{AFTERSKIP}{STYLE}
+%    \end{verbatim}
+%    \begin{macrocode}
+\def\part{\@startsection{\@string\part}%
+        0\z@{12\p@\@plus12\p@}{6\p@}%
+        {\raggedright\defaultfont\bf}}
+
+\def\partname{Part}
+%    \end{macrocode}
+%      Cf.~the definition of \verb=\appendix=.
+%    \begin{macrocode}
+\def\section{\@startsection{\@string\section}%
+        1\z@{9\p@\@plus12\p@}{6\p@}%
+        {\centering\defaultfont\sc}}
+%    \end{macrocode}
+%      
+%      Negative value for arg\#5 is a signal to make a run-in heading instead
+%      of doing a vskip after the heading.
+%    \begin{macrocode}
+\def\subsection{\@startsection{\@string\subsection}%
+        2\z@{6\p@\@plus9\p@}{-.5em}%
+        {\defaultfont\bf}}
+
+\def\subsubsection{\@startsection{\@string\subsubsection}%
+        3\z@{6\p@\@plus9\p@}{-.5em}%
+        \defaultfont\it}
+
+\def\paragraph{\@startsection{\@string\paragraph}%
+        4\z@\z@{-\spaceskip}\defaultfont}
+
+%\def\subparagraph{\@startsection{subparagraph}{5}{\z@}{\z@}{\z@}{\rm}}
+%    \end{macrocode}
+%      To save one control sequence name, we don't provide 
+%      \verb=\subparagraph.=  We don't expect it to be used often
+%      enough to be worth it.
+%
+%    \begin{macrocode}
+\def\appendix{\par\c@section\z@ \c@subsection\z@
+   \let\sectionname\appendixname
+   \def\thesection{\@Alph\c@section}}
+
+\def\appendixname{Appendix}
+
+\settowidth\leftmargini{\labelenumi\hspace*\labelsep}
+\advance\leftmargini by 18pt
+\settowidth\leftmarginii{\labelenumii\hspace*\labelsep}
+\advance\leftmarginii by 15pt
+\settowidth\leftmarginiii{\labelenumiii\hspace*\labelsep}
+\advance\leftmarginiii by 12pt 
+\settowidth\leftmarginiv{\labelenumiv\hspace*\labelsep}
+\advance\leftmarginiv by 10pt
+\leftmarginv=10pt
+\leftmarginvi=10pt
+\leftmargin=\leftmargini
+\labelsep=5pt
+\labelwidth=\leftmargini \advance\labelwidth-\labelsep
+
+\def\@listI{\leftmargin\leftmargini \parsep\z@ 
+  \topsep\smallskipamount \itemsep\z@}
+\let\@listi\@listI
+\@listi 
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii \advance\labelwidth-\labelsep
+ \topsep\z@ \parsep\z@ \itemsep\z@}
+\def\@listiii{\leftmargin\leftmarginiii
+ \labelwidth\leftmarginiii \advance\labelwidth-\labelsep
+ \topsep\z@ \parsep\z@ \partopsep\z@ \itemsep\z@}
+\def\@listiv{\leftmargin\leftmarginiv
+ \labelwidth\leftmarginiv \advance\labelwidth-\labelsep}
+\def\@listv{\leftmargin\leftmarginv
+ \labelwidth\leftmarginv \advance\labelwidth-\labelsep}
+\def\@listvi{\leftmargin\leftmarginvi
+ \labelwidth\leftmarginvi \advance\labelwidth-\labelsep}
+
+\if@article \else %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BOOK ONLY
+\input amsbk1\@ptsize.sty\relax
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%    \end{macrocode}

@@ -1,0 +1,649 @@
+% USERDOC.DEF						February 1990
+%
+% Header file with definitions for use by USERDOC.TEX, which is the 
+%   AMSFonts User's Guide.
+% American Mathematical Society, Technical Support Group, P. O. Box 6248,
+%        Providence, RI 02940
+% 800-321-4AMS or 401-455-4080;  Internet: Tech-Support@Math.AMS.com
+
+\def\makeatletter{\catcode`\@=11 }
+\chardef\other=12
+\def\makeatother{\catcode`\@=\other}
+
+\makeatletter           % used, as in PLAIN, in protected control sequences
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Utility registers and definitions
+%
+
+
+%  Test registers for transient use; paired - internal/external
+\newbox\T@stBox                 \newbox\TestBox
+\newcount\T@stCount             \newcount\TestCount
+\newdimen\T@stDimen             \newdimen\TestDimen
+\newif\ifT@stIf                 \newif\ifTestIf
+
+
+\newif\ifPrelimDraft            \PrelimDraftfalse
+
+
+%  Avoid unwanted vertical glue when making up pages.
+\def \basezero{\baselineskip\z@ \lineskip\z@}
+
+
+%  Vertical `laps'; cf. \llap and \rlap
+\long\def\ulap#1{\vbox to \z@{\vss#1}}
+\long\def\dlap#1{\vbox to \z@{#1\vss}}
+
+%
+%  Support ad-hoc strut construction.
+\def \makestrut[#1;#2]{\vrule height#1 depth#2 width\z@ }
+
+
+%       Miscellaneous useful stuff
+
+\def \BlackBoxes{\overfullrule=5pt }
+\def \NoBlackBoxes{\overfullrule=0pt }
+
+\def \linebreak{\unskip\break}
+\def \newline{\hskip0pt plus \pagewd \break}
+\def \newpage{\par\vfill\eject}
+
+\def \bull{\vrule height 1ex width .8ex depth -.2ex } % square bullet
+\def \cents{{\rm\raise.2ex\rlap{\kern.05em$\scriptstyle/$}c}}
+\def \Dag{\raise .6ex\hbox{$\scriptstyle\dagger$}}
+
+\def \careof{\leavevmode\hbox{\raise.75ex\hbox{c}\kern-.15em
+    /\kern-.125em\smash{\lower.3ex\hbox{o}}} \ignorespaces}
+\def \sfrac#1/#2{\leavevmode\kern.1em
+    \raise.5ex\hbox{\the\scriptfont0 #1}\kern-.1em
+    /\kern-.15em\lower.25ex\hbox{\the\scriptfont0 #2}}
+
+\def \d@sh#1{\nobreak\thinspace#1\penalty0\thinspace}
+\def \dash{\d@sh{--}}
+\def \Dash{\d@sh{---}}
+
+%  Hack to permit automatic hyphenation after an actual hyphen.
+
+\def \hyph{-\penalty0\hskip0pt\relax }
+
+\def \slash{/\penalty0\hskip0pt}        % "breakable" slash
+
+\def \dotsfill{\leaders\hbox to1em{\hfil.\hfil}\hfill}
+
+
+%  Today's date, to be printed on drafts.  Based on TeXbook, p.406.
+
+\def\today{\number\day\space \ifcase\month\or
+    Jan \or Feb \or Mar \or Apr \or May \or Jun \or
+    Jul \or Aug \or Sep \or Oct \or Nov \or Dec \fi
+    \number\year}
+
+%  Current time; this may be system dependent!
+\newcount\hours
+\newcount\minutes
+\def \SetTime{\hours=\time
+    \global\divide\hours by 60
+    \minutes=\hours
+    \multiply\minutes by 60
+    \advance\minutes by-\time
+    \global\multiply\minutes by-1 }
+\SetTime
+\def \now{\number\hours:\ifnum\minutes<10 0\fi\number\minutes}
+
+\def \Now{\today\ \now}
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Page dimensions
+%
+
+
+%  Dimensions given before fonts; \colwd is needed in definition of \ragged...
+
+\newdimen\pagelgt
+\newdimen\rheadlgt      \rheadlgt=2.5pc
+\newdimen\collgt        \collgt=47pc
+\maxdepth=2pt
+\newdimen\rfootlgt      \rfootlgt=2pc
+
+\newif\ifThisIsFirstPage        \ThisIsFirstPagetrue
+
+\def \resetpagelgt{\pagelgt=\collgt
+    \advance\pagelgt by \rheadlgt
+    \advance\pagelgt by \maxdepth
+    \global\advance\pagelgt by \rfootlgt
+    \global\vsize=\collgt }
+
+\resetpagelgt
+\raggedbottom
+
+\newdimen\colwd         \colwd=30pc
+\hsize=\colwd
+\newdimen\pagewd        \pagewd=30pc
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Fonts and friends
+%
+
+
+%  PLAIN CM fonts needed for \tenpoint, ninepoint and \eightpoint
+
+\font\tenrm=cmr10
+\font\ninerm=cmr9
+\font\eightrm=cmr8
+\font\sevenrm=cmr7
+\font\sixrm=cmr6
+\font\fiverm=cmr5
+
+\font\teni=cmmi10  \skewchar\teni='177
+\font\ninei=cmmi9  \skewchar\ninei='177
+\font\eighti=cmmi8 \skewchar\eighti='177
+\font\seveni=cmmi7 \skewchar\seveni='177
+\font\sixi=cmmi6   \skewchar\sixi='177
+\font\fivei=cmmi5  \skewchar\fivei='177
+
+\font\tensy=cmsy10  \skewchar\tensy='60
+\font\ninesy=cmsy9  \skewchar\ninesy='60
+\font\eightsy=cmsy8 \skewchar\eightsy='60
+\font\sevensy=cmsy7 \skewchar\sevensy='60
+\font\sixsy=cmsy6   \skewchar\sixsy='60
+\font\fivesy=cmsy5  \skewchar\fivesy='60
+
+\font\tenex=cmex10
+
+\font\tenbf=cmbx10
+\font\ninebf=cmbx9
+\font\eightbf=cmbx8
+\font\sevenbf=cmbx7
+\font\sixbf=cmbx6
+\font\fivebf=cmbx5
+
+\font\tentt=cmtt10
+\font\ninett=cmtt9
+\font\eighttt=cmtt8
+
+\font\tensl=cmsl10
+\font\ninesl=cmsl9
+\font\eightsl=cmsl8
+
+\font\tenit=cmti10
+\font\nineit=cmti9
+\font\eightit=cmti8
+\font\sevenit=cmti7
+
+\font\tensmc=cmcsc10
+
+\def \mit{\fam\@ne}
+\def \cal{\fam\tw@}
+
+%
+%  Approximations, no ``actual-size'' fonts available
+\font \sixteenssb=cmssbx10 scaled \magstep3
+\font \twelvessb=cmssbx10 scaled \magstep1
+\font \tenssb=cmssbx10
+
+\newfam\titlefam
+\newdimen\titlefontbaselineskip         \titlefontbaselineskip=18pt
+\def \titlefont{\textfont\titlefam=\sixteenssb
+    \scriptfont\titlefam=\twelvessb \scriptscriptfont\titlefam=\tenssb
+    \fam\titlefam \sixteenssb \baselineskip=\titlefontbaselineskip }
+
+
+%  Struts give ascenders and descenders to assist in baseline alignment
+%  (e.g. of adjoining vertical boxes); useful only with text fonts.
+%
+%  \strut is defined in PLAIN .  The structure of \strutt is equivalent.
+
+\newbox\struttbox
+\def\strutt{\relax\ifmmode\copy\struttbox\else\unhcopy\struttbox\fi}
+
+%  Struts are given the following dimensions:
+%
+%       \strut = height/depth of parenthesis in current font
+%                (not the same as PLAIN)
+%       \strutt height + depth = \normalbaselineskip,
+%                height = same as \strut
+%                (equivalent to PLAIN \strut )
+
+
+%  PLAIN's definition of \raggedright doesn't permit any stretch, and
+%  results in too many overfull boxes.  Change.
+\newdimen\raggedskip            \raggedskip=\z@
+\newdimen\raggedstretch         \raggedstretch=\colwd
+\newskip\raggedparfill          \raggedparfill=\z@ plus 1fil
+
+\def \raggedspaces{\spaceskip=.3333em \xspaceskip=.5em }
+%  Some applications may have to add stretch, in order to avoid
+%  all overfull boxes.
+
+\def \raggedright{\rightskip=\raggedskip plus\raggedstretch \raggedspaces
+        \parfillskip=\raggedparfill }
+\def \raggedleft{\leftskip=\raggedskip plus\raggedstretch \raggedspaces 
+        \parfillskip=\z@ }
+\def \raggedcenter{\leftskip=\raggedskip plus\raggedstretch
+        \rightskip=\leftskip \raggedspaces 
+        \parindent=\z@ \parfillskip=\z@ }
+
+\def \normalspaces{\spaceskip=.3333em plus.1667em minus.1111em
+        \xspaceskip=.4444em plus.5em minus.037em }
+
+%
+%  Allow text to be a bit stretchier than the built-in setting;
+%  TeXbook, page 433, 355
+
+\newdimen\normaltenptstretch    \normaltenptstretch=1.6667pt
+\newdimen\extratenptstretch     \extratenptstretch=4pt
+\def\NormalTenPointSpacing{\fontdimen3\tenrm=\normaltenptstretch
+        \fontdimen3\tenit=\normaltenptstretch}
+\def\StretchyTenPointSpacing{\fontdimen3\tenrm=\extratenptstretch
+        \fontdimen3\tenit=\extratenptstretch}
+
+\def \tenpoint{\normalbaselineskip=12pt
+    \abovedisplayskip=3pt plus 3pt minus 1pt
+    \belowdisplayskip=3pt plus 3pt minus 1pt
+    \abovedisplayshortskip=0pt plus 3pt
+    \belowdisplayshortskip=1pt plus 3pt minus 1pt
+    \def\rm{\fam\z@\tenrm}%
+    \textfont0=\tenrm \scriptfont0=\sevenrm \scriptscriptfont0=\fiverm
+    \def\oldstyle{\fam\@ne\teni}%
+    \textfont1=\teni \scriptfont1=\seveni \scriptscriptfont1=\fivei
+    \textfont2=\tensy \scriptfont2=\sevensy \scriptscriptfont2=\fivesy
+    \textfont3=\tenex \scriptfont3=\tenex \scriptscriptfont3=\tenex
+    \def\it{\fam\itfam\tenit}%
+    \textfont\itfam=\tenit \scriptfont\itfam=\sevenit
+    \def\sl{\fam\slfam\tensl}%
+    \textfont\slfam=\tensl
+    \def\bf{\fam\bffam\tenbf}%
+    \textfont\bffam=\tenbf \scriptfont\bffam=\eightbf
+        \scriptscriptfont\bffam=\sixbf
+    \def\smc{\tensmc}%
+    \def\tt{\tentt}%
+    \setbox\strutbox=\hbox{\vrule height7.5pt depth2.5pt width\z@}%
+    \setbox\struttbox=\hbox{\vrule height8.5pt depth3.5pt width\z@}%
+    \normalbaselines \rm }
+
+\tenpoint                       % initialize -- default font
+
+%
+\newdimen\normalnineptstretch   \normalnineptstretch=1.5pt
+\newdimen\extranineptstretch    \extranineptstretch=3.6pt
+\def\NormalNinePointSpacing{\fontdimen3\ninerm=\normalnineptstretch}
+\def\StretchyNinePointSpacing{\fontdimen3\ninerm=\extranineptstretch}
+
+\def \ninepoint{\normalbaselineskip=11pt
+    \abovedisplayskip=2.5pt plus 2.5pt minus 1pt
+    \belowdisplayskip=2.5pt plus 2.5pt minus 1pt
+    \abovedisplayshortskip=0pt plus 2.5pt
+    \belowdisplayshortskip=1pt plus 2.5pt minus 1pt
+    \def\rm{\fam\z@\ninerm}%
+    \textfont0=\ninerm \scriptfont0=\sevenrm \scriptscriptfont0=\fiverm
+    \def\oldstyle{\fam\@ne\ninei}%
+    \textfont1=\ninei \scriptfont1=\seveni \scriptscriptfont1=\fivei
+    \textfont2=\ninesy \scriptfont2=\sevensy \scriptscriptfont2=\fivesy
+    \def\it{\fam\itfam\nineit}%
+    \textfont\itfam=\nineit
+    \def\sl{\fam\slfam\ninesl}%
+    \textfont\slfam=\ninesl
+    \def\bf{\fam\bffam\ninebf}%
+    \textfont\bffam=\ninebf \scriptfont\bffam=\sevenbf
+        \scriptscriptfont\bffam=\sixbf
+    \def\tt{\ninett}%
+    \setbox\strutbox=\hbox{\vrule height 6.75pt depth 2.25pt width\z@}%
+    \setbox\struttbox=\hbox{\vrule height 7.75pt depth 3.25pt width\z@}%
+    \normalbaselines \rm }
+
+%
+\newdimen\normaleightptstretch  \normaleightptstretch=1.333pt
+\newdimen\extraeightptstretch   \extraeightptstretch=3pt
+\def\NormalEightPointSpacing{\fontdimen3\eightrm=\normaleightptstretch}
+\def\StretchyEightPointSpacing{\fontdimen3\eightrm=\extraeightptstretch}
+
+\def \eightpoint{\normalbaselineskip=10pt
+    \abovedisplayskip=2pt plus 2pt minus 1pt
+    \belowdisplayskip=2pt plus 2pt minus 1pt
+    \abovedisplayshortskip=0pt plus 2pt
+    \belowdisplayshortskip=1pt plus 2pt minus 1pt
+    \def\rm{\fam\z@\eightrm}%
+    \textfont0=\eightrm \scriptfont0=\sixrm \scriptscriptfont0=\fiverm
+    \def\oldstyle{\fam\@ne\eighti}%
+    \textfont1=\eighti \scriptfont1=\sixi \scriptscriptfont1=\fivei
+    \textfont2=\eightsy \scriptfont2=\sixsy \scriptscriptfont2=\fivesy
+    \def\it{\fam\itfam\eightit}%
+    \textfont\itfam=\eightit
+    \def\sl{\fam\slfam\eightsl}%
+    \textfont\slfam=\eightsl
+    \def\bf{\fam\bffam\eightbf}%
+    \textfont\bffam=\eightbf \scriptfont\bffam=\sixbf
+        \scriptscriptfont\bffam=\sixbf
+    \def\smc{\eightsmc}%
+    \def\tt{\eighttt}%
+    \setbox\strutbox=\hbox{\vrule height 6pt depth 2pt width\z@}%
+    \setbox\struttbox=\hbox{\vrule height 7pt depth 3pt width\z@}%
+    \normalbaselines \rm }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Headers/footers
+%
+
+
+\newdimen\pagenowidth
+\setbox0=\hbox{\tenrm 99\quad}
+\pagenowidth=\wd0
+
+\newdimen\rtitlebaseline        \rtitlebaseline=10pt
+\def\rtitlex{\ignorespaces\firstmark\unskip}
+
+\def \runhead{\vbox to \rheadlgt{%
+    \line{\tenrm
+        \makestrut[\rtitlebaseline;\z@]%
+        \ifodd\pageno \hfil\rtitlex\hbox to\pagenowidth{\hfil\number\pageno}%
+        \else \hbox to\pagenowidth{\number\pageno\hfil}\rtitlex\hfil \fi }%
+    \vfil }}
+
+\def \runfoot{\vbox to \rfootlgt{\baselineskip=1.5pc
+    \line{\hfil\line{\hfil
+            \ifPrelimDraft \tenrm \makestrut[1.5pc;\z@]\Now \fi
+            }\hfil}
+    \vfil }}
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Output
+%
+
+
+\output{\shipout \vbox{\basezero
+    \hrule height\z@ depth\z@ width\p@
+    \vskip-\rheadlgt
+    \vbox to \pagelgt{\basezero
+        \ifThisIsFirstPage \vskip\rheadlgt \global\ThisIsFirstPagefalse
+        \else \runhead
+        \fi             % \vsize applied in \pagebody
+        \hbox to \pagewd{\hfil\pagebody \hfil}%
+        \vfil           % if no depth, avoid underfull box
+        \runfoot }%
+    }%
+    \global\advancepageno }
+
+
+%  Reorganize \pagecontents from PLAIN to put footnotes at very
+%  bottom of page, even if \raggedbottom.
+
+\def\pagecontents{\ifvoid\topins\else\unvbox\topins\fi
+  \dimen@=\dp\@cclv \unvbox\@cclv % open up \box255
+  \ifr@ggedbottom \kern-\dimen@ \vfil \fi
+  \ifvoid\footins\else % footnote info is present
+    \vskip\skip\footins
+    \footnoterule
+    \unvbox\footins\fi }
+
+%  Redefine \@ins to avoid the \par of PLAIN.
+
+\def\@ins{\begingroup\setbox\z@\vbox\bgroup} % start a \vbox
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Titles and section headings
+%
+
+\newskip\AboveTitleSkip  \AboveTitleSkip=18pt
+\newskip\BelowTitleSkip  \BelowTitleSkip=8pt
+
+\setbox\T@stBox=\hbox{\titlefont O}
+\newdimen\mtfontheight          \mtfontheight=\ht\T@stBox
+\newdimen\mtrulethickness       \mtrulethickness=.6pt
+\newcount\n@stnum               \n@stnum=0
+\def \mthrule{\hrule height\mtrulethickness depth 0pt \relax }
+\let\DoHrule=\mthrule
+\def \mtvrule{\vrule height 2\mtfontheight depth\mtfontheight
+                        width\mtrulethickness }
+\def \maintitlebox #1<{\vbox{%
+    \vskip-\rheadlgt \vskip\rtitlebaseline
+    \mthrule
+    \hbox to \hsize{\mtvrule\hfil #1\hfil\vrule width\mtrulethickness }%
+    \mthrule }}
+
+\def \maintitle #1<{\n@stnum=0
+    {\def\\{ }\setbox\T@stBox=\hbox{\titlefont#1}%
+    \ifdim\wd\T@stBox < \hsize \def\result{\unhbox\T@stBox}%
+    \else \def\\{\cr\noalign{\global\advance\n@stnum by 1 }}%
+        \setbox\T@stBox=\vbox{\titlefont
+            \halign{\hfil##\hfil\cr#1\crcr}}%
+        \def\result{\vbox{\unvbox\T@stBox}}%
+    \fi
+    \ifnum\n@stnum>0
+        \def\mtvrule{\T@stDimen=\n@stnum\titlefontbaselineskip
+            \advance\T@stDimen by-\titlefontbaselineskip
+            \advance\T@stDimen by 3.5\mtfontheight
+            \vrule height \T@stDimen depth\mtfontheight
+                width\mtrulethickness }%
+    \fi
+    \centerline{\maintitlebox \titlefont\result<}}%
+    \nobreak \vskip\baselineskip \SetupFirstPar }
+
+
+%  First-paragraph formatting
+
+\newif\ifFirstPar       \FirstParfalse
+\def \SetupFirstPar{\global\parindent=0pt \global\FirstPartrue }
+
+\newif\ifNoParIndent    \NoParIndentfalse
+\def \NoParIndent{\parindent=0pt \NoParIndenttrue}
+
+\newdimen\normalparindent        \normalparindent=20pt
+\def \NormalParIndent{\global\parindent=\normalparindent
+    \global\NoParIndentfalse}
+\NormalParIndent
+
+%  Make the first paragraph after a title start flush left, then reset
+%  \parindent; but don't reset if all paragraphs should start flush left.
+\everypar{\ifNoParIndent
+    \else \ifFirstPar \NormalParIndent \global\FirstParfalse \fi
+    \fi }
+%
+\newif\ifFigure         \Figurefalse
+
+\def \figuretitle{\Figuretrue \title }
+
+\def \title #1\par{\toks0={#1}\immediate\write16{\the\toks0}%
+    \vskip\AboveTitleSkip
+    \kern\topskip
+    \hrule height\z@ depth\z@ width 10pt
+    \kern-\topskip
+    \kern-\mtrulethickness
+    \hrule height\mtrulethickness depth\z@
+    \nobreak
+    \kern\medskipamount
+    {\raggedstretch=.3\hsize \raggedright
+      {\bf\noindent\ignorespaces#1\unskip}\strutt
+      \ifFigure \global\Figurefalse
+      \else \mark{#1}%
+      \fi \endgraf
+    }%
+    \nobreak \vskip\BelowTitleSkip
+    \SetupFirstPar }
+
+
+%  This is based on \section in PLAIN.
+%  Note that, since \raggedbottom is turned on, there is already an
+%  implied 60pt (= 5\baselineskip) margin allowed, so the penalty
+%  should not be overly attractive.
+\def \section#1\par{\ifFirstPar \nobreak
+    \else \vskip\z@ plus 4\baselineskip \penalty-10
+        \vskip\z@ plus-4\baselineskip \vskip 8pt \vskip\parskip \fi
+    \toks0={#1}\immediate\write16{\the\toks0}%
+    {\raggedright\hyphenpenalty=10000 \exhyphenpenalty=10000
+        \noindent\bf#1\endgraf}\nobreak \vskip 4pt
+    \SetupFirstPar }
+
+
+%  Define address blocks and other structures that use \obeylines
+%  in the context  \tag ...<
+%  This requires that < be active, so that \obeylines is invoked
+%  at the outer level.  \tag{...} will not deliver the data with
+%  ^M (carriage return) intact, so is not a suitable format for
+%  any construction using \obeylines; the reference (if any) in
+%  The TeXbook has not been found, and this information has been
+%  determined empirically, referring to \obeylines constructions
+%  in PLAIN and MANMAC.TeX (The TeXbook macros).
+{\catcode`\^^M=\active % these lines must end with %
+  \gdef\obeylinesblock{\catcode`\^^M\active \def^^M{\par\nobreak}}}
+
+{\catcode`\<=\active \obeylines
+\gdef\TextAddr{\endgraf\def\Phone{\leavevmode\kern\parindent}%
+    \let\NetAddr=\Phone %
+    \catcode`\<=\active %
+%               next line intentionally ends with <cr> %
+    \def<{
+          \egroup\allowbreak\catcode`\<=12 }%
+    \bgroup\penalty9999 \obeylinesblock }%
+}
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Abbreviations and logos
+%
+
+
+\def\AMS{American Mathematical Society}
+
+\def\AmSTeX{{\the\textfont2 A}\kern-.1667em\lower.5ex\hbox
+    {\the\textfont2 M}\kern-.125em{\the\textfont2 S}-\TeX}
+
+\def\AW{Addison\kern.1em-\penalty0\hskip0pt Wesley}
+
+\def\BibTeX{{\rm B\kern-.05em{\smc i\kern-.025emb}\kern-.08em\TeX}}
+
+\def\CandT{{\sl Computers \& Typesetting}}
+
+\def\JoT{{\sl The Joy of \TeX}}
+\def\Joy{{\sl Joy}}
+
+%  note -- \LaTeX definition is from LATEX.TEX 2.09 of 7 Jan 86,
+%          adapted for additional flexibility.
+%\def\LaTeX{\TestCount=\the\fam \leavevmode L\raise.42ex
+%       \hbox{$\fam\TestCount\scriptstyle\kern-.3em A$}\kern-.15em\TeX}
+%  note -- broken in two parts, to permit separate use of La, as in (La)TeX
+\def\La{\TestCount=\the\fam \leavevmode L\raise.42ex
+    \hbox{$\fam\TestCount\scriptstyle\kern-.3em A$}}
+\def\LaTeX{\La\kern-.15em\TeX}
+        
+\font\manual=logo10 % font used for the METAFONT logo, etc.
+
+\def\MF{{\manual META}\-{\manual FONT}}
+\def\mf{{\manual MF}}
+
+\def\MR{{\sl Mathematical Reviews}}
+
+\def\POBox{P.\thinspace O.~Box }
+
+\def\TB{{\sl The \TeX book}}
+
+\def\TeX{T\kern-.1667em\lower.424ex\hbox{E}\kern-.125emX}
+
+\def\TUB{{\sl TUGboat}}
+\def\TUG{\TeX{} Users Group}
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Verbatim
+%
+
+
+%  Verbatim listing of TeX source, as defined in TeXbook, p. 421.
+
+\def\ttverbatim{\begingroup \catcode`\\=\other
+  \catcode`\{=\other \catcode`\}=\other \catcode`\$=\other
+  \catcode`\&=\other \catcode`\#=\other \catcode`\%=\other
+  \catcode`\~=\other \catcode`\_=\other \catcode`\^=\other
+  \catcode`\"=\other \catcode`\@=\other
+  \obeyspaces \obeylines \hyphenpenalty=10000 \tt}
+
+\newskip\ttglue
+{\tenpoint\tt \global\ttglue=.5em plus .25em minus .15em}
+% this should be installed in each font
+
+{\obeyspaces\gdef {\ifvmode\indent\fi\space}}
+
+%  Permissible overhang beyond right margin; in MANMAC, this is 5pc,
+%  which is fine for the TeXbook, but too much here.
+\newdimen\ttrightskip
+\ttrightskip=1pc
+   
+\newcount\linenumber
+
+\def\setuptt{%
+  \vskip\abovedisplayskip
+  \begingroup\def\par{\leavevmode\null\endgraf}\ttverbatim\parskip=\z@
+  \linenumber=0
+  \everypar={\global\advance\linenumber by\@ne
+          \ifnum\linenumber<3 \nobreak \fi}%
+  \catcode`\|=0
+  \frenchspacing\rightskip=-\ttrightskip}
+\outer\def\begintt{\setuptt\ttfinish}
+\def\skipaftertt{%
+  \vskip\belowdisplayskip
+  \nobreak
+  \vskip-\parskip
+  \vskip-\abovedisplayshortskip
+  \vskip-2\baselineskip
+  \vskip-\belowdisplayshortskip
+  $$\null$$     % whatever follows will behave as if it follows a display
+ }
+{\catcode`\|=0 |catcode`|\=\other % | is temporary escape character
+  |obeylines % end of line is active
+  |gdef|ttfinish#1^^M#2\endtt{#1#2|endgroup|endgroup|skipaftertt%
+  |ignorespaces}}
+
+%
+%  Other non-tt elements that may be embedded within \begintt...\endtt .
+\def\MTH{$}
+\def\sb{_}
+\def\sp{^}
+\def\SP{{\tt\char"20 }}         % "visible" space
+\chardef\bs=`\\
+\def\vrt{{\tt\char`\|}}
+
+\catcode`\|=\active
+{\obeylines %
+  \gdef|{\ttverbatim \spaceskip\ttglue \xspaceskip\ttglue %
+         \hyphenpenalty=10000 \let^^M=\  \let|=\endgroup}}
+
+
+\makeatother
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Initialization
+%
+
+
+\PrelimDrafttrue
+\pageno=1
+
+\StretchyTenPointSpacing
+\StretchyEightPointSpacing
+
+\clubpenalty=10000
+\widowpenalty=10000
+
+\normallineskiplimit=1pt
+
+%       some hyphenation exceptions:
+\hyphenation{man-u-script man-u-scripts}
+
+\endinput
+

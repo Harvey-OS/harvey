@@ -1,0 +1,12 @@
+/build_Lb {
+    pop
+    /picstr 78 string def
+    gsave
+    currentpoint translate
+    1.03 72 mul size mul 36 div
+    .5 72 mul size mul 36 div
+    scale
+    309 150 1 [309 0 0 -150 0 150]
+    {currentfile picstr readhexstring pop} image
+    grestore
+} def

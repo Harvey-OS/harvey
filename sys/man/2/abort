@@ -1,0 +1,12 @@
+.TH ABORT 2
+.SH NAME
+abort \- generate a fault
+.SH SYNOPSIS
+.nf
+.B
+void	abort(void)
+.fi
+.SH DESCRIPTION
+.I Abort
+causes an access fault, causing the current process to enter the `Broken' state.
+The process can then be inspected by a debugger.

@@ -1,0 +1,93 @@
+#!/bin/rc
+# Tries to determine what type of file you are printing and do the correct
+# thing with it.
+# It currently knows about bitmaps, troff intermediate, and ascii files.
+TMPFILE=/tmp/lp$pid
+# fn sigexit { rm -f $TMPFILE; }
+if (! ~ $DEBUG '') flag x +
+if (~ $LPCLASS *nohead*) NOHEAD=1
+if (~ $LPCLASS *duplex*) DUPLEX=1
+cat >$TMPFILE
+FILETYPE=`{file $TMPFILE}
+switch ($FILETYPE(2)) {
+case troff;
+	switch ($LPCLASS) {
+	case *Latin1* *post* *opost*;	switch ($FILETYPE(5)) {
+					case Latin1 post; tcs -s -f utf -t latin1 < $TMPFILE |$LPLIB/process/dpost
+					case UTF; $LPLIB/process/dpost < $TMPFILE
+					}
+	case *imagen*;	switch ($FILETYPE(5)) {
+			case i300 im300;	$LPLIB/process/dimp -T$FILETYPE(5) < $TMPFILE
+			case *;			$LPLIB/process/dimp < $TMPFILE
+			}
+	case *202*;	$LPLIB/process/d202 < $TMPFILE
+	case *lino*;	switch ($FILETYPE(5)) {
+			case *Latin1* *post*;	$LPLIB/process/dpost < $TMPFILE|$LPLIB/process/daps
+			case *;		echo $FILETYPE(2) -T$FILETYPE(5) output is improper for $LPDEST >[1=2]
+			}
+	case *mhcc*;	$LPLIB/process/dpost < $TMPFILE | $LPLIB/process/mhcc
+	case *;		echo $FILETYPE(2) -T$FILETYPE(5) output is improper for $LPDEST >[1=2]
+	}
+case special;
+	switch ($FILETYPE(4)) {
+	case '#b';	$LPLIB/process/p9bitpost < $TMPFILE
+	case *;		echo $FILETYPE file is improper for $LPDEST >[1=2]
+	}
+case plan;	# type is really 'plan 9 bitmap'
+	switch ($LPCLASS) {
+	case *post*;	$LPLIB/process/p9bitpost < $TMPFILE
+	}
+case bitmap;
+	switch ($LPCLASS) {
+	case *imagen*;	$LPLIB/process/bimp < $TMPFILE
+	case *lino*;	$LPLIB/process/bpost < $TMPFILE | $LPLIB/process/daps
+	case *post*;	$LPLIB/process/bpost < $TMPFILE
+	case *mhcc*;	$LPLIB/process/bpost < $TMPFILE | $LPLIB/process/mhcc
+	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	}
+case tex;
+	mv $TMPFILE $TMPFILE.dvi
+	TMPFILE=$TMPFILE.dvi
+	switch ($LPCLASS) {
+	case *lino*;	$LPLIB/process/dvipost -Tlino $TMPFILE | $LPLIB/process/daps
+	case *post*;	$LPLIB/process/dvipost $TMPFILE
+	case *202*;	dvit -T202 $TMPFILE | $LPLIB/process/d202
+	case *imagen*;	$LPLIB/process/dviimp < $TMPFILE
+	case *mhcc*;	$LPLIB/process/dvipost $TMPFILE | $LPLIB/process/mhcc
+	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	}
+case postscript;
+	switch ($LPCLASS) {
+	case *post*;		$LPLIB/process/post < $TMPFILE
+	case *aps* *lino*;	$LPLIB/process/daps < $TMPFILE
+	case *mhcc*;		$LPLIB/process/mhcc < $TMPFILE
+	case *;			echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	}
+case imagen;
+	switch ($LPCLASS) {
+	case *imagen*;	cat < $TMPFILE
+	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	}
+case daisy;
+	switch ($LPDEST) {
+	case *imagen*;	$LPLIB/process/daisimag < $TMPFILE
+	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	}
+case English short extended ascii assembler c latin rc sh as;
+	switch ($LPCLASS) {
+	case *imagen*;	$LPLIB/process/daisimag < $TMPFILE
+	case *post*;	$LPLIB/process/ppost < $TMPFILE
+	case *canon*;	$LPLIB/process/can $* < $TMPFILE
+	case *lino* *mhcc*; echo you want to send text to $LPDEST^'?' >[1=2]
+	case *;		echo Unrecognized class of line printer for $LPDEST >[1=2]
+	}
+case empty;
+	echo file is empty >[1=2]
+case cannot;
+	echo cannot open file >[1=2]
+case *;
+	echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+}
+rv=$status
+rm -f $TMPFILE
+exit $status

@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+LIB=../$objtype/libp.a
+OFILES=\
+	qlock.$O\
+	rwlock.$O\
+	malloc.$O\
+
+</sys/src/cmd/mklib
+CFLAGS=-w -I../$objtype
+
+nuke:VQ:
+	mk clean

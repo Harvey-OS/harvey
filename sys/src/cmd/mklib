@@ -1,0 +1,45 @@
+CFLAGS=-w
+AFLAGS=
+YFLAGS=-d
+
+LIBOBJ=${OFILES:%=$LIB(%)}
+LIBDIR=.
+
+default:V:	$LIB
+
+all:V:	$LIB
+
+$LIB:	$LIBOBJ
+	names=`{membername $newprereq}
+	ar vu $LIB $names
+	$RL $LIB
+	rm $names
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+
+y.tab.h y.tab.c:	$YFILES
+	yacc $YFLAGS $prereq
+
+$LIB(%.$O):N:	%.$O
+
+install:V:	$LIB
+	~ $LIBDIR '.' || cp $LIB $LIBDIR/$LIB
+
+installall:V:
+	for (objtype in $CPUS) {
+		objtype = $objtype
+		mk install
+	}
+
+nuke:V:
+	rm -f *.[$OS] y.tab.? y.output y.error
+	rm -f $LIB
+
+clean:V:
+	rm -f *.[$OS] y.tab.? y.output y.error

@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+TARG=mk
+OFILES=arc.$O\
+	bufblock.$O\
+	dir9.$O\
+	env9.$O\
+	graph.$O\
+	job.$O\
+	lex.$O\
+	main.$O\
+	match.$O\
+	mk.$O\
+	parse.$O\
+	recipe.$O\
+	rule.$O\
+	run.$O\
+	shprint.$O\
+	symtab.$O\
+	t_ar.$O\
+	t_driver.$O\
+	t_file.$O\
+	var.$O\
+	varsub.$O\
+	word.$O\
+
+HFILES=fns.h\
+	mk.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

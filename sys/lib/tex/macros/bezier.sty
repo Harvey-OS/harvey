@@ -1,0 +1,29 @@
+% bezier.sty  17-Dec-85
+
+\newcounter{@sc}
+\newcounter{@scp}
+\newcounter{@t}
+\newlength{\@x}
+\newlength{\@xa}
+\newlength{\@xb}
+\newlength{\@y}
+\newlength{\@ya}
+\newlength{\@yb}
+\newsavebox{\@pt}
+\def\bezier#1(#2,#3)(#4,#5)(#6,#7){\c@@sc#1\relax
+ \c@@scp\c@@sc \advance\c@@scp\@ne
+ \@xb #4\unitlength \advance\@xb -#2\unitlength \multiply\@xb \tw@
+ \@xa #6\unitlength \advance\@xa -#2\unitlength
+ \advance\@xa -\@xb \divide\@xa\c@@sc
+ \@yb #5\unitlength \advance\@yb -#3\unitlength \multiply\@yb \tw@
+ \@ya #7\unitlength \advance\@ya -#3\unitlength
+ \advance\@ya -\@yb \divide\@ya\c@@sc
+ \setbox\@pt\hbox{\vrule height\@halfwidth depth\@halfwidth 
+ width\@wholewidth}\c@@t\z@ 
+ \put(#2,#3){\@whilenum{\c@@t<\c@@scp}\do
+ {\@x\c@@t\@xa \advance\@x\@xb \divide\@x\c@@sc \multiply\@x\c@@t 
+ \@y\c@@t\@ya \advance\@y\@yb \divide\@y\c@@sc \multiply\@y\c@@t 
+ \raise \@y \hbox to \z@{\hskip \@x\unhcopy\@pt\hss}\advance\c@@t\@ne}}}
+
+
+

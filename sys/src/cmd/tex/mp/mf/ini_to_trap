@@ -1,0 +1,35 @@
+#!/bin/sh
+# A shell script to perform modifications on the mfd.h file
+# to make trapmf instead of inimf.
+#
+# To use it, say:
+# ini_to_trap <original mfd.h>
+# 
+# and that file changes into a file with the trap constants.
+# 
+# The output is in pairs of lines: the first is the definition for
+# inimf, and the second is the definition for trapmf.
+
+cp $1 $1.bak
+
+ed - $1 <<edscriptend
+/undef	TRAP/
+s/undef/define/p
+/memmax/
+s/[0-9][0-9]*/3000/p
+/errorline/
+s/[0-9][0-9]*/64/p
+/halferrorline/
+s/[0-9][0-9]*/32/p
+/maxprintline/
+s/[0-9][0-9]*/72/p
+/screenwidth/
+s/[0-9][0-9]*/100/p
+/screendepth/
+s/[0-9][0-9]*/200/p
+/gfbufsize/
+s/[0-9][0-9]*/8/p
+/memtop/
+s/[0-9][0-9]*/3000/p
+w
+edscriptend

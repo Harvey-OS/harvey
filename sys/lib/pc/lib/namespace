@@ -1,0 +1,33 @@
+# root
+mount -a #s/boot / #f/fd0disk
+mount -a #s/boot / #f/fd1disk
+mount -a #s/boot / #w/hd0dos
+mount -c #s/boot /n/a: #f/fd0disk
+mount -c #s/boot /n/b: #f/fd1disk
+mount -c #s/boot /n/c: #w/hd0dos
+
+# kernel devices
+bind #c /dev
+bind #d /fd
+bind -c #e /env
+bind #p /proc
+bind -c #s /srv
+
+# standard bin
+bind /$cputype/bin /bin
+bind -a /rc/bin /bin
+
+# networks
+mount -b /srv/cs /net
+mount -a /srv/dns /net
+bind -b #l /net
+bind -b #Iudp /net
+bind -b #Itcp /net
+bind -b #Iil /net
+bind -b #kdk /net
+
+# local fs
+mount -c /srv/kfs /n/kfs
+
+bind -c /usr/$user/tmp /tmp
+cd /usr/$user

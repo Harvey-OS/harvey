@@ -1,0 +1,6 @@
+#!/bin/rc
+# set up a shell running in an approximate POSIX 1003.2 environment
+rfork en
+bind -b /rc/bin/ape /bin
+bind -b /$objtype/bin/ape /bin
+exec /bin/sh

@@ -1,0 +1,37 @@
+dev
+	root	/
+	cons	c
+	env	e
+	mnt	M
+	bit	b
+	uart	t
+	pipe	|
+	floppy	f
+	hard	w
+	srv	s
+	dup	d
+	proc	p
+	rtc	r
+	ether	l
+	ip	I	tcpinput tcpoutput tcptimer tcpif stil
+	arp	a
+	iproute	P
+	config	v
+
+stream
+	fcall
+	ip
+	async
+
+misc
+	dossrv.root
+
+port
+	int cpuserver = 0;
+	void consdebug(void){}
+	long cfslen = 0; ulong cfscode[1];
+
+boot
+	local
+	il
+	tcp

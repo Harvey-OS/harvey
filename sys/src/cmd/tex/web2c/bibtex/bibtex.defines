@@ -1,0 +1,33 @@
+@define const FILENAMESIZE;
+
+@define function chr();
+@define function eof();
+@define function eoln();
+@define function getc();
+@define function getcmdline();
+@define function testaccess();
+
+@define procedure aclose();
+@define procedure decr();
+@define procedure hack1;
+@define procedure hack2;
+@define procedure incr();
+@define procedure lineread();
+@define procedure printstr();
+@define procedure readln();
+@define procedure reset();
+@define procedure rewrite();
+@define procedure uexit();
+@define procedure write();
+@define procedure writeln();
+
+@define type boolean=0..1;
+@define type char=0..127;
+@define type integer;
+@define type palphafile;
+
+@define var false;
+@define var gargc;
+@define var stdin;
+@define var stdout;
+@define var true;

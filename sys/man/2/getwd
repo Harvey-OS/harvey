@@ -1,0 +1,25 @@
+.TH GETWD 2
+.SH NAME
+getwd \- get current directory
+.SH SYNOPSIS
+.B
+char* getwd(char *buf, int size)
+.SH DESCRIPTION
+.I Getwd
+will fill
+.I buf
+with a null-terminated string representing the current directory
+and return
+.IR buf .
+.PP
+Getwd will place no more than
+.I size
+bytes in the buffer provided.
+.SH "SEE ALSO"
+.IR pwd (1)
+.SH DIAGNOSTICS
+On error, zero is returned and
+.I buf
+is filled with a diagnostic message.
+.IR Errstr (2)
+may be consulted for more information.

@@ -1,0 +1,59 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=prance\
+	wrap\
+	artwork\
+	mw\
+	cvt\
+	check\
+	kollmorgen\
+	list\
+	draw\
+	pkgplot\
+	clip\
+	ring\
+	getparts\
+
+</sys/src/cmd/mkmany
+CFLAGS=-DPLAN9
+
+DIRS=lib place
+
+all:V:	place
+
+$DIRS:V:
+	cd $target
+	mk all
+
+install:V:	installdirs
+
+installdirs:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk install
+	}
+
+clean:V:
+	for (i in $DIRS) @{
+		echo clean $i
+		cd $i
+		mk clean
+	}
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG
+
+nuke:V:
+	for (i in $DIRS) @{
+		echo nuke $i
+		cd $i
+		mk nuke
+	}
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG
+
+%.install-n:V:	%
+	mk -n $stem
+	echo mv $stem $BIN/$stem
+
+%.installall-n:V:
+	for(objtype in $CPUS) mk -n $stem.install

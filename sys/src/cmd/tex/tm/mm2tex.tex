@@ -1,0 +1,144 @@
+% -*-latex-*-
+% Document name: /home2/boris/tla/Tex/mm2tex/mmstatus.tex
+% Creator: Terry L Anderson 201-580-4428 [tla@seldon]
+% Creation Date: Mon Jun  3 14:24:11 1991
+\documentstyle[]{tm}
+\newcommand{\X}[1]{{#1}\index{{#1}}}
+\title{MM to \LaTeX\ Translator}
+\input authors.sty
+\input bitmap.sty
+\input mymacros.sty
+\authordata{tla}
+%\chargecase{978899-0100}
+%\filecase{61093}
+%\documentno{900000}{02}{TMS}
+\keywords{\TeX , \LaTeX , mm, troff}
+\mercurycode{CMP}
+\date{\today}
+\memotype{TECHNICAL MEMORANDUM}
+\abstract{Mm2tex is a filter to convert documents written in troff
+using the mm macro package into \LaTeX\ using the tm.sty style package.
+}
+\organizationalapproval
+%\markdraft*
+\markproprietary
+\begin{document}
+\bibliographystyle{atttm}
+\makehead
+\makeabstract
+\section{Introduction}
+The {\bf mm2tex} filter converts documents written in mm into \LaTeX\ using
+the tm.sty style developed for writing AT\&T memoranda.  The filter
+currently uses a combination of sed and awk scripts. 
+\section{Status}
+The filter
+cannot handle all mm and troff macros but handles most of the commonly
+used ones, passing the rest on through into the \LaTeX\ document where
+they can be edited manually. Tables~\ref{tab:mmmacros} -
+\ref{tab:strings} show which troff and mm features are currently translated.
+\begin{table}[htp]
+\input{mm2texmac1}
+\caption{\label{tab:mmmacros}MM Macros Supported}
+\end{table}
+\begin{table}[htp]
+\input{mm2texmac2}
+\caption{\label{tab:mmmacros2}MM Macros Supported, con't}
+\end{table}
+\begin{table}[htp]
+\input{mm2textr1}
+\caption{\label{tab:troffmacros}Troff Macros Supported}
+\end{table}
+\begin{table}[htp]
+\input{mm2textr2}
+\caption{\label{tab:troffmacros2}Troff Macros Supported, con't}
+\end{table}
+\begin{table}[htp]
+\input{mm2texsym}
+\caption{\label{tab:specialsymb}Special Symbols}
+\end{table}
+\begin{table}[htp]
+\input{mm2texnr}
+\caption{\label{tab:numreg}MM Number Registers}
+\end{table}
+\begin{table}[htp]
+\input{mm2texsr}
+\caption{\label{tab:strings}MM String Registers}
+\end{table}
+\section{Limitations}
+  \begin{enumerate}
+    \item The sequences \verb|\*(Fg| and \verb|\*(Fg+1| are recognized
+          but other added number is treated as 1.  The same is true
+          for \verb|\*(Tb|.  \verb|\*(Rf| is recognized and
+          autoincremented as normal.  \verb|.RS| and \verb|.RF|
+          reference the previous value of Rf as expected.
+    \item tabs not handled.
+    \item The MM standard string registers may be interpolated (used
+          in text) but not changed. 
+    \item The MM number registers may be interpolated and those
+          modified implicitly by mm macros (such as F is modified by
+          .FS) are maintained but they may not be set explicitly.
+  \end{enumerate}
+\section{Usage}
+The use the translator type
+\begin{itemize}
+\item[]
+\verb|mm2tex |{\it mmfile}
+\end{itemize}
+If {\it mmfile\/} does not exist {\bf mm2tex} will try {\it mmfile}.mm.
+The output is put into the file {\it mmfile}.tex.  
+\section{Implementation}
+The following
+scripts are used by {\bf mm2tex} and must be accessible.
+\begin{table}[htp]
+\noindent
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{{\vrule height12pt width0pt depth3.5pt\Large
+mm2tex Files}}\\ 
+\hline\hline
+\multicolumn{1}{|c|}{script}&\multicolumn{1}{c|}{type}&\multicolumn{1}{c|}{description}\\
+\hline
+mm2tex&      shell script&      main script\\
+mm2tex.sh&   shell script&      raw filter\\
+mm2tex.sed&  sed script&  pre filter\\
+mm2tex.sed2&  sed script& post filter\\
+mm2tex.awk&   awk script&     main translation\\
+mm2tex.tex&   \TeX\ source&   this document\\
+\hline
+\end{tabular}
+\end{center}
+\medskip
+\caption{\label{tab:scripts}mm2tex Files}
+\end{table}
+The mm2tex.sh script must be edited to know the path to the sed and
+awk scripts.  mm2tex and mm2tex.sh must be in PATH.
+\section{Availability}
+The files are available from the author on request and are included
+with the other tm.sty related files when they are distributed.
+\makefacesignature{/home3/face}
+%\noindent Atts.\\
+%References\\
+%Appendixes A-C\\
+%Table 1
+
+%\copyto{{\nobreak\topsep=0pt\partopsep=0pt\begin{tabbing}\nobreak%
+%\hskip2in\=WW \=\kill%
+%All Members Department 59114\\
+%All Members Department 59112\\
+%All Supervision Center 5911\\
+%\copytoline{dgb}\\%Belanger
+%\copytoline{jph}\\%Holtman
+%\copytoline{jwh}\\%Hunt
+%\copytoline{fml}\\%Lax
+%\copytoline{jfm}\\%Maranzano
+%copytoline{drr}\\%Ryan
+%J.\ W.\ Foo		\>LC 0N-X00
+%\end{tabbing}}}
+%\bibliography{sim,rapid,tutorial,softengr}
+%\appendices
+%\input{glossary}
+%\tableofcontents
+%\listoffigures
+%\coversheet
+\end{document}

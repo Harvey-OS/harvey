@@ -1,0 +1,43 @@
+.TH SEEK 2
+.SH NAME
+seek \- change file offset
+.SH SYNOPSIS
+.B
+long seek(int fd, long n, int type)
+.SH DESCRIPTION
+.I Seek
+sets the offset for the file
+associated with
+.I fd
+as follows:
+.IP
+If
+.I type
+is 0, the offset is set to
+.I n
+bytes.
+.IP
+If
+.I type
+is 1, the pointer is set to its current location plus
+.IR n .
+.IP
+If
+.I type
+is 2, the pointer is set to the size of the
+file plus
+.IR n .
+.PP
+The new file offset value is returned.
+.PP
+Seeking far beyond the end of a file, then writing,
+creates a gap, or `hole,' that occupies no
+physical space and reads as zeros.
+.PP
+Seeking in a directory is not allowed.
+.SH SEE ALSO
+.IR intro (2),
+.IR open (2)
+.SH DIAGNOSTICS
+Sets
+.I errstr.

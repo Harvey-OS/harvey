@@ -1,0 +1,49 @@
+% TITLEPAGE DOCUMENT-STYLE OPTION - released 27 January 1985
+%    for LaTeX version 2.09
+% Copyright (C) 1985 by Leslie Lamport
+
+% PREPARING A FOREIGN LANGUAGE VERSION:
+%
+% This document style is for documents prepared in the English language.
+% To prepare a version for another language, various English words must
+% be replaced.  All the English words that required replacement are
+% indicated below, where we give the name of the command in which the
+% words appear, and the entire line containing the word(s), with the
+% actual words underlined.
+% 
+% abstract environment:
+% {\bf Abstract}
+%      ~~~~~~~~
+
+\def\maketitle{\begin{titlepage}
+ \let\footnotesize\small      % Local definitions to make \thanks produce
+ \let\footnoterule\relax      % \normalsize footnotes with no separating rule.
+ \setcounter{page}{0}
+ \null
+ \vfil
+ \vskip 60pt                   % To adjust centering.
+ \begin{center}
+   {\LARGE \@title \par}        % Set title in \LARGE size.
+   \vskip 3em                  % Vertical space after title.
+   {\large                     % Set author in \large size.
+     \lineskip .75em
+     \begin{tabular}[t]{c}\@author 
+     \end{tabular}\par}      
+    \vskip 1.5em               % Vertical space after author.
+   {\large \@date \par}        % Set date in \large size.
+\end{center} \par
+\@thanks
+\vfil
+\null
+\end{titlepage}
+\setcounter{footnote}{0}       % Footnotes start at zero again.
+\let\thanks\relax
+\gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\maketitle\relax}    
+
+\def\abstract{\titlepage
+\null\vfil
+\begin{center}
+{\bf Abstract}
+\end{center}}
+
+\def\endabstract{\par\vfil\null\endtitlepage}

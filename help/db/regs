@@ -1,0 +1,18 @@
+#!/bin/rc
+if(~ $#* 1) id=$1
+if not{
+	eval `{help/parse -0}
+	if(~ $#id 0){
+		echo regs: no pid
+		exit 1
+	}
+}
+x=`{cat /mnt/help/new/ctl}
+{
+	echo A
+	echo '$r' | db $id | sed 1,3d
+} | help/buf > /mnt/help/$x/ctl
+{
+	echo a
+	echo '	'$id' regs	Close!'
+} | help/buf > /mnt/help/$x/ctl

@@ -1,0 +1,183 @@
+
+
+		Adding a new machine type to plan 9 applications
+
+Some commands contain machinbe-dependent code: db, file and size parse
+the contents of an a.out header; nm and rl depend on the a.out file
+header and the machine-dependent encoding of object files.  A new processor
+type is added by adding entries to tables in a couple of files in this
+directory and subdirectory "lib".
+
+Each architecture requires at least two pieces of code: a disassembler
+and an object file parser.  Some code for each may be borrowed from
+existing processors but in general, this code is unique to each machine.
+Additionally, a new processor may require some special code for such things
+as parsing the bootable executable header (this is defined by the manufacturer),
+traversing the run-time stack frames (compiler-dependent), accessing
+special registers, etc.  Often these types of functions tend to fall into
+one or two classes based on processor type (RISC or CISC), and it is usually
+possible to reuse code for an existing architecture.
+
+The disassembler must supply three entry points: print a disassembled
+instruction; print the hexadecimal representation of an instruction;
+and calculate the follow set of an instruction.  All three functions
+take a pc as an argument.
+
+The object code parser must supply two entry points: one to identify
+an object file for the target architecture from the first 8 bytes
+of the file and one to extract symbol definition and
+symbol reference information from the object file.  Usually the name,
+type, and address (if known) of a symbol is sufficient.  Once again,
+much of this code can be adapted from that of other architectures.
+
+Given these pieces, the following steps install support for a
+new architecture.
+
+General Processor-dependent Services
+
+Code to parse executable headers, symbol tables, and enforce byte-ordering
+constraints is stored in directory /sys/src/cmd/db/lib.  It makes a
+library per executable type named libmach.<code>.a in that directory, where
+<code> is the code for the processor type.  All processor-dependent
+applications link against these libraries.  Header files mach.h and obj.h
+define data structures used for cracking executables and object files,
+respectively.
+
+The Mach data structure contains general processor parameters; the Machdata
+data structure contains debugger-specific information and a jump table
+to functions providing several processor-dependent services used by the debugger.
+
+To add a new processor type, perform the following steps in the lib
+subdirectory:
+
+	1. Add symbolic names for the new architecture in the enum at
+		the beginning of header mach.h.  Required symbols include
+		codes identifying the architecture, the a.out and bootable images,
+		and a type code for at least one disassembler.
+	2. Define the register set information for the processor then initialize a
+		Mach data structure.  By convention, this initialization is
+		stored in a C source file named after the processor code
+		(e.g., v.c for mips, k.c for sparc.c, 2.c for 68020.c,etc.).
+	3. Add two entries to table exectab in file executable.c describing the
+		decoding of the executable file header for the architecture.
+		One entry controls the decoding of application executable
+		images (a.out) and the other applies to bootable images.
+	4. If the processor has a unique bootable image format, add
+		the name of the typedef describing the image, found in
+		/sys/include/bootexec.h, to the union in structure
+		ExecHdr in file executable.c.
+	5. Add the names of the functions that identify and crack an object
+		file to the table named obj in file obj.c.  These functions
+		are conventionally stored in a file named after the code for
+		the architecture followed by "obj", e.g., vobj.c, kobj.c,
+		2obj.c.
+	6. Add the new files to the mkfile.  Do a "mk installall".
+
+Debugger Processor-dependent Services
+
+Add the new processor type to the debugger by performing the following steps
+in directory /sys/src/cmd/db:
+
+	1. Initialize a Machdata structure describing the debugger-specific
+		information and the jump table of machine specific services.
+		By convention, this table is initialized in a file named
+		<machine-name>db.c; e.g., 68020db.c for the 68020, mipsdb.c
+		for the mips, sparcdb.c for the sparc.  Any special code
+		needed to support the debugger is usually stored in this
+		file.  The disassembler associated with a machine type is
+		conventionally stored in a file named <machine-name>das.c;
+		e.g., 68020das.c, mipsdas.c.
+
+	2. Add an entry to the tables named "machines" at the start of source
+		file machine.c.  This table relates a machine code or machine
+		name to the proper Mach and Machdata tables and also selects
+		the appropriate disassembler type for machines with multiple
+		disassembly formats.
+
+	3. Add the names of the new files to the mkfile.
+
+	4. Do a "mk installall".
+
+Other applications with processor-dependent code
+
+All other applications load processor-dependent code from the machine-dependent
+library.  They only need to be reloaded.
+
+	1. cd /sys/src/cmd; mk size.installall file.installall
+
+	2. cd /sys/src/cmd/nm; mk installall
+
+Special helpful notes for initializing the data structures.
+
+1. Processor-specific data initialization
+	Most of the fields of the Mach data structure are self-explanatory
+	or can be inferred from the initialization tables of currently
+	supported processors.  See files 2.c, 8.c, v.c, k.c or 6.c in
+	/sys/src/cmd/db/lib for examples.
+
+2. The Machdata structure contains pointers to functions
+	providing machine-specific services.  Some functions are
+	unique for each architecture while others are shared.  Among the
+	latter are:
+
+	A. The short and long byte order conversion functions always select
+	   functions beswab and beswal or leswab and leswal for big-endian
+	   and little-endian processors, respectively.
+	B. Function ctrace provides a C back trace appropriate for most CISC
+	   processors.  Functions mipsctrace or hobbitctrace are suitable
+	   for many RISC architectures.
+	C. Functions findframe and mipsfindframe locate stack frames
+	   for CISC and RISC architectures, respectively.
+	D. Functions rsnarf4 and rrest4 are usually suitable for
+	   retrieving and storing registers, respectively.
+	E. Functions beieeesfpout and beieeedfpout or leieeesfpout and
+	   leieeedfpout are usually suitable for printing single and
+	   double precision IEEE floating point numbers in big endian and
+	   little endian representation, respectively.  If your processor
+	   does not use IEEE representation, custom formatting functions
+	   are required.
+
+	Services to print a single instruction, calculate the follow set,
+	print the floating point registers, and print an exception description
+	are almost always unique.  A linkage to an initialization function is
+	provided, but seldom needed.
+
+2. The executable decoding table
+	This table is initialized in file executable.c and contains two entries for
+	each processor: one describing the header for an application
+	executable (an "a.out") and one describing the header for a bootable image.
+	Each entry contains:
+
+	A. The magic number (always specified in big endian form).
+	B. A string describing the image.
+	C. The internal type code of the machine, from mach.h.
+	D. The address of the Mach structure for the architecture.
+	E. The size of the header.  For application executables this
+	   is always sizeof(Exec), where Exec is defined in a.out.h.
+	F. The address of a long-word byte swapping function: this is either
+	   beswal or leswal for bootable files for big endian or little
+	   endian architectures.  Application executable headers ("a.out") 
+	   are always big endian.
+	G. The address of a function to parse the header into an Fhdr structure.
+	   Function adotout is usually suitable for all executables, but the
+	   headers of bootable images are defined by the manufacturers, are
+	   mutually inconsistent, and must be custom parsed for each architecture.
+
+3. The debugger decoding table
+
+	This table is used to select a machine-dependent debugging environment,
+	either by name or by executable image type code.  The "machines" table,
+	stored in file /sys/src/cmd/db/machine.c, pulls together the information
+	required to construct the environment.  Each entry contains:
+
+	A. A string describing the name of the processor.
+
+	B. The type code of an a.out executable for the architecture.
+
+	C. The type code of a bootable executable for the architecture.
+
+	D. The assembler type code associated with the architecture.
+
+	E. The address of the Mach data structure for the processor.
+
+	F. The address of the Machdata data structure for the processor.

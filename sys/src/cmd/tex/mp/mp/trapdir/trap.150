@@ -1,0 +1,43 @@
+%!PS-Adobe-2.0
+%%BoundingBox: -5 -5 33 25 
+%%Creator: MetaPost
+%%CreationDate: 1990.08.28:1027
+%%Pages: 1
+%%EndProlog
+%%Page: 1 1
+newpath 7.5 4.5 moveto
+7.5 4.5 lineto
+ closepath fill
+newpath 7.5 4.5 moveto
+7.5 4.5 lineto
+ closepath fill
+newpath 2.5 9.5 moveto
+2.5 7 lineto
+7.5 8 lineto
+7.5 10.5 lineto
+7.5 15.5 lineto
+7.5 18 lineto
+2.5 17 lineto
+2.5 14.5 lineto
+ closepath fill
+newpath 0 5 moveto
+0 5 lineto
+0 -5 lineto
+0 -5 lineto
+10 5 10 5 10 5 curveto
+15 10 lineto
+10 15 lineto
+0 25 lineto
+0 15 lineto
+30 5 lineto
+30 5 lineto
+30 15 lineto
+30 15 lineto
+0 25 lineto
+-15 30 lineto
+0 15 lineto
+10 5 lineto
+10 15 lineto
+10 15 10 15 0 5 curveto closepath fill
+showpage
+%%Trailer

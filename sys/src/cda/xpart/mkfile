@@ -1,0 +1,36 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=xpart
+OFILES=parser.tab.$O\
+	part.$O\
+	alloc.$O\
+	utility.$O\
+	scanner.$O\
+	plan9.$O\
+
+HFILES=part.h\
+
+LFILES=scanner.l\
+
+YFILES=paddle.y\
+
+</sys/src/cmd/mkone
+CFLAGS=-B -DPLAN9
+YFLAGS=-v -d -D1
+
+scanner.c:	$LFILES parser.tab.h
+	$LEX -t $LFILES > $target
+
+parser.tab.h parser.tab.c parser.debug: $YFILES
+	yacc $YFLAGS -s parser $prereq
+
+parser.tab.$O: parser.tab.c y.debug
+	$CC $CFLAGS -DYYDEBUG parser.tab.c
+
+y.debug: parser.debug
+	mv $prereq $target
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG parser.* scanner.c
+

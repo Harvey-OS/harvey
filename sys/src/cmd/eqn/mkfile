@@ -1,0 +1,44 @@
+< /$objtype/mkfile
+
+TARG=eqn
+OFILES=main.$O\
+	tuning.$O\
+	diacrit.$O\
+	eqnbox.$O\
+	font.$O\
+	fromto.$O\
+	funny.$O\
+	glob.$O\
+	integral.$O\
+	input.$O\
+	lex.$O\
+	lookup.$O\
+	mark.$O\
+	matrix.$O\
+	move.$O\
+	over.$O\
+	paren.$O\
+	pile.$O\
+	shift.$O\
+	size.$O\
+	sqrt.$O\
+	text.$O\
+	eqn.$O\
+
+YFILES=eqn.y\
+
+HFILES=e.h\
+	y.tab.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CC=pcc
+LD=pcc
+YFLAGS=-d -S
+CFLAGS=-c
+
+eqn.c:	y.tab.c prevy.tab.h
+	mv y.tab.c $target
+
+prevy.tab.h:	y.tab.h
+	rc -c 'cmp -s y.tab.h prevy.tab.h || cp y.tab.h prevy.tab.h'

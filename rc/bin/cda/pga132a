@@ -1,0 +1,23 @@
+#!/bin/rc
+/bin/awk 'BEGIN {
+	p = 1
+}
+{
+	for (i = 1; i <= length($1); i++) {
+		c = substr($1,i,1)
+		tot = 0
+		for (j = 2; j <= NF; j += 2) {
+			for (k = 1; k <= $j; k++)
+				print "Pin "c""k+tot" "p++
+			tot = tot + $j + $(j+1)
+		}
+	}
+}' <<eof
+ABC	13
+D	3	2	3	2	3
+E	3	7	3
+FGH	4	5	4
+J	3	7	3
+K	3	2	3	2	3
+LMN	13
+eof

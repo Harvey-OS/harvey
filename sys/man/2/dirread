@@ -1,0 +1,57 @@
+.TH DIRREAD 2
+.SH NAME
+dirread \- read directory
+.SH SYNOPSIS
+.B
+int dirread(int fd, Dir *buf, long nbytes)
+.SH DESCRIPTION
+The data returned by a
+.IR read (2)
+on a directory is a set of complete directory entries
+in a machine-independent format, exactly equivalent to
+the result of a
+.IR stat (2)
+on each file or subdirectory in the directory.
+.I Dirread
+returns the entries decoded into an addressable form.
+It reads from
+.IR fd
+and unpacks the data into
+.B Dir
+structures in
+.I buf
+(see
+.IR stat (2)
+for the layout of a
+.BR Dir ).
+.I Nbytes
+is the size of
+.BR buf ;
+it should be a multiple of
+.BR sizeof(Dir) .
+Directory entries have length
+.B DIRLEN
+(defined in
+.BR <libc.h> )
+in machine-independent form.
+A successful
+.I read
+of a directory always returns a multiple of
+.BR DIRLEN ;
+.I dirread
+always returns a multiple of
+.BR sizeof(Dir) .
+.PP
+.I Dirread
+returns the number of bytes filled in
+.BR buf ;
+the number returned may be
+less than the number requested.
+The file offset is advanced by the number of bytes actually read.
+.SH SEE ALSO
+.IR intro (2),
+.IR open (2),
+.IR read (2)
+.SH DIAGNOSTICS
+Sets
+.I errstr.

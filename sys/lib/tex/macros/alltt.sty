@@ -1,0 +1,32 @@
+% ALLTT DOCUMENT-STYLE OPTION - released 17 December 1987
+%    for LaTeX version 2.09
+% Copyright (C) 1987 by Leslie Lamport
+
+% Defines the `alltt' environment, which is like the `verbatim'
+% environment except that `\', `\{', and `\}' have their usual meanings.
+% Thus, other commands and environemnts can appear within an `alltt'
+% environment.  Here are some things you may want to do in an `alltt'
+% environment:
+% 
+% * Change fonts--e.g., by typing `{\em empasized text\/}'.
+% 
+% * Insert text from a file foo.tex by typing `input{foo}'.  Beware that
+%   each <return> stars a new line, so if foo.tex ends with a <return>
+%   you can wind up with an extra blank line if you're not careful.
+% 
+% * Insert a math formula.  Note that `$' just produces a dollar sign,
+%   so you'll have to type `\(...\)' or `\[...\]'.  Also, `^' and `_'
+%   just produce their characters; use `\sp' or `\sb' for super- and
+%   subscripts, as in `\(x\sp{2}\)'.
+
+\def\docspecials{\do\ \do\$\do\&%
+  \do\#\do\^\do\^^K\do\_\do\^^A\do\%\do\~}
+
+\def\alltt{\trivlist \item[]\if@minipage\else\vskip\parskip\fi
+\leftskip\@totalleftmargin\rightskip\z@
+\parindent\z@\parfillskip\@flushglue\parskip\z@
+\@tempswafalse \def\par{\if@tempswa\hbox{}\fi\@tempswatrue\@@par}
+\obeylines \tt \catcode``=13 \@noligs \let\do\@makeother \docspecials
+ \frenchspacing\@vobeyspaces}
+
+\let\endalltt=\endtrivlist

@@ -1,0 +1,13 @@
+#!/bin/rc
+
+exec sed 's/[ 	]*%.*$//' $* | awk '
+/^\.t[ 	]/	{ ++need[$3]; next }
+/^Package{/	{ p=$0; getline
+		if ($2 in need) { print p; out=1; delete need[$2]; }
+		else { out = 0 }
+		}
+		{ if (out) print }
+END		{ for (i in need) {
+			print i > "/fd/2"; ++errors }
+		 if (errors > 0) exit 1 }
+'

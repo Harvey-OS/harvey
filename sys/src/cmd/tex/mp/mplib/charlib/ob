@@ -1,0 +1,7 @@
+vardef C.ob(expr n) =
+ save p; picture p;
+ p=nullpicture;
+ addto p doublepath makepath pencircle shifted(.5,.5)
+  withpen pencircle scaled.0889;
+ p scaled(.375*fontsize n)
+enddef;

@@ -1,0 +1,324 @@
+.TH SCUZZ 8
+.SH NAME
+scuzz \- SCSI target control
+.SH SYNOPSIS
+.B scuzz
+[
+.B -q
+]
+[
+.I target-id
+]
+.SH DESCRIPTION
+.I Scuzz
+is an interactive program for exercising
+raw SCSI devices.
+It reads commands from standard input and applies them to a SCSI target.
+If
+.I target-id
+is given on the command line, an
+.B open
+(see below)
+is immediately applied to the target.
+On successful completion of a command,
+.BI ok " n
+is printed, where
+.I n
+is the number of bytes transferred to/from the target;
+the
+.B -q
+command line option suppresses the 
+.B ok
+message.
+.SS Commands
+.TP
+.BI help " command
+.B Help
+is rudimentary and prints a one line synopsis for the named
+.IR command ,
+or for all commands if no argument is given.
+.TP
+.B probe
+.B Probe
+attempts an
+.B inquiry
+command on all SCSI target ids,
+and prints the result preceded by the id of those
+targets which respond.
+.LP
+The
+.B help
+and
+.B probe
+commands may be given at any time.
+.TP
+.BI open " target-id
+.B Open
+must be given before any of the remaining commands will be accepted.
+Internally,
+.B open
+issues
+.B ready
+then
+.BR inquiry ,
+followed by a device class-specific command to determine the
+logical block size of the target.
+.TP
+.B close
+.B Close
+need only be given if another target is to be opened in the current
+session.
+.LP
+The remaining commands are in two groups,
+generic SCSI commands,
+and those specific to the Philips CDD521 Compact Disc Recorder
+.RB ( flushcache
+onwards).
+With the exception of the
+.BR read ,
+.BR write ,
+.BR space ,
+and
+.B wtrack
+commands,
+all arguments are in the style of ANSI-C integer constants.
+.TP
+.B ready
+Test Unit Ready
+checks if the unit is powered up and ready to do
+.B read
+and 
+.B write
+commands.
+.TP
+.B rezero
+Rezero
+Unit requests that a disc be brought to a known state,
+usually by seeking to track zero.
+.TP
+.B rewind
+Rewind
+positions a tape at the beginning of current partition
+(there is usually only one partition, the beginning of tape).
+.TP
+.B reqsense
+Request Sense retrieves Sense Data concerning an error or
+other condition and is usually issued following the completion of a command
+that had check-condition status.
+.I Scuzz
+automatically issues a
+.B reqsense
+in response to a check-condition status and prints the result.
+.TP
+.B format
+Format
+Unit performs a ``low level'' format of a disc.
+.TP
+.B rblimits
+Read Block Limits
+reports the possible block lengths for the logical unit. Tapes only.
+.TP
+.BI read " file nbytes
+.B Read
+transfers data from the target to the host.
+A missing
+.I nbytes
+causes the entire device to be read.
+.TP
+.BI write " file nbytes
+.I Write
+transfers data from the host to the target.
+A missing
+.I nbytes
+causes the entire input file to be transferred.
+.IP
+The first argument to the
+.BR read ,
+.BR write ,
+and
+.B wtrack
+(q.v.)
+commands specifies a source
+.RB ( write
+and
+.BR wtrack )
+or destination
+.RB ( read )
+for the I/O.
+The argument is either a plain file name or
+.B |
+followed by a command to be executed by
+.IR rc (1).
+The argument may be quoted in the style of
+.IR rc (1).
+.TP
+.BI seek " offset whence
+.I Seek
+requests the target to seek to a position on a disc,
+arguments being in the style of
+.IR seek (2);
+.I whence
+is 0 by default.
+.IP
+.I Scuzz
+maintains an internal notion of where the current target
+is positioned.
+The
+.BR seek ,
+.BR read ,
+.BR write ,
+.BR rewind ,
+.BR rezero ,
+and
+.B wtrack
+commands all manipulate the internal offset.
+.TP
+.BI filemark " howmany
+Write Filemarks
+writes one (default) or more filemarks on a tape.
+.TP
+.BI space\ [-b]\ [-f]\ [[--] howmany ]
+.I Space
+positions a tape forwards or backwards.
+The arguments
+specify logical block
+.RB ( -b )
+or
+filemark
+.RB ( -f )
+spacing;
+default is
+.BR -b .
+If
+.I howmany
+is negative
+it specifies spacing backwards,
+and should be preceded by
+.B --
+to turn off any further
+option processing.
+Default is 1.
+.TP
+.B inquiry
+Inquiry
+is issued to determine the device type of a particular target,
+and to determine some basic information about the implemented options and
+the product name.
+.TP
+.BI modeselect " bytes...
+Mode
+Select
+is issued to set variable parameters in the target.
+.I Bytes
+given as arguments comprise all the data for the target;
+see an appropriate manual for the format.
+.TP
+.BI modesense\ [ page \ [ nbytes ]]
+Mode
+Sense
+reports variable and fixed parameters from the target.
+If no
+.I page
+is given,
+all pages are returned.
+.I Nbytes
+specifies how many bytes should be returned.
+.TP
+.BI start " code
+.TP
+.BI stop " code
+.TP
+.BI eject " code
+.BR Start ,
+.BR stop ,
+and
+.B eject
+are synonyms for Start/Stop Unit with different default values of
+.IR code .
+Start/Stop Unit is typically used to spin up and spin down a rotating
+disk drive.
+.I Code
+is 0 to stop,
+1 to start and
+3 to eject (if the device supports ejection of the medium).
+.TP
+.B capacity
+Read Capacity reports the number of blocks and the block
+size of a disc.
+.LP
+The remaining commands are specific to the CDD521 Compact Disc Recorder.
+A brief description of each is given; see the manual for details of arguments.
+.TP
+.B flushcache
+The Flush Cache command forces data in the cache memory
+of the CDD521 to be written to the physical medium.
+.TP
+.BI rdiscinfo\ [ track/session-number [ ses ]]
+The Read TOC/PMA command transfers data from one of the tables of contents
+(TOC or PMA) on the CD medium.
+.TP
+.BI fwaddr\ [ track [ mode [ npa\ \L]]]
+The First Writeable Address command reports the next logical writeable address
+for the next
+.B write
+command.
+.TP
+.BI treserve " nbytes
+The Reserve Track command reserves one track on the disc.
+Tracks can only be reserved in successive order.
+.TP
+.BI trackinfo " track
+Read Track Info reports the starting
+address, the length of a given track on the disc
+and the number of free blocks in that track.
+.TP
+.BI wtrack file [ nbytes \ [ track \ [ mode ]]]
+Write Track sets up for track-writing if 
+.I nbytes
+is 0 (default), or
+writes a complete track.
+See
+.B write
+above.
+.TP
+.B load
+.TP
+.B "unload
+Load
+and
+Unload
+open or close the tray.
+.TP
+.BI fixation\ [ toc-type ]
+.I Fixation
+writes table of contents (TOC) and LEADOUT information to the disc to
+complete a session.
+
+
+.SH FILES
+.TF #S/scsi-target-id\/data
+.TP
+.B #S/\fIscsi-target-id\fP/cmd
+raw SCSI interface for command and status.
+.TP
+.B #S/\fIscsi-target-id\fP/data
+raw SCSI interface for I/O.
+.SH "SEE ALSO"
+.IR scsi (3)
+.br
+.IR "Small Computer System Interface - 2 (X3T9.2/86-109)" ,
+Global Engineering Documents
+.br
+.IR "SCSI Command Set CDD521/10" ,
+Philips IMS
+.br
+.IR "SCSI Bench Reference" ,
+ENDL Publications
+.SH BUGS
+Only a limited subset of SCSI commands has been implemented (as needed).
+.LP
+Only one target can be open at a time.
+.LP
+LUNs other than 0 are not supported.
+.LP
+No way to force 6 or 10 byte commands.

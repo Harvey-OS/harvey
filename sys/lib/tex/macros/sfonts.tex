@@ -1,0 +1,490 @@
+% File SFONTS - Version of 27 October 1989
+% (Lyle Ramshaw replaced "circle" with "lcircle" on 22 Oct 89.)
+% (Lyle Ramshaw replaced "am*" with "cm*" on 27 Oct 89.)
+
+%  Definition of \newfont and \symbol
+%  Note that fonts defined with \newfont won't work
+%  with color slides---characters in that font will appear
+%  in all color layers and in `invisible' text.
+% 
+\def\newfont#1#2{\@ifdefinable #1{\font #1=#2\relax}}
+\def\symbol#1{\char #1\relax}
+
+\message{fonts,}
+
+% visible fourteen point fonts
+\font\fourteenrm   = lcmss8  scaled \magstep 3 % roman
+\font\fourteeni    = cmmi8   scaled \magstep 3 % math italic
+    \skewchar\fourteeni ='177                  %  for math accents
+\font\fourteensy   = cmsy8   scaled \magstep 3 % symbol
+    \skewchar\fourteensy ='60           %   for placement of math accents
+\font\fourteenit   = lcmssi8 scaled \magstep 3 % italic
+\font\fourteenbf   = lcmssb8 scaled \magstep 3 % bold
+\font\fourteentt   = cmtt8   scaled \magstep 3 % typewriter
+    \hyphenchar\fourteentt = -1         %  suppress hyphenation in \tt font
+\font\fourteenlasy = lasy8  scaled \magstep 3 % LaTeX symbol
+
+% invisible fourteen point fonts
+\font\ifourteenrm   = ilcmss8  scaled \magstep 3 % roman
+\font\ifourteeni    = icmmi8   scaled \magstep 3 % math italic
+    \skewchar\ifourteeni ='177                  %  for math accents
+\font\ifourteensy   = icmsy8   scaled \magstep 3 % symbol
+    \skewchar\ifourteensy ='60           %   for placement of math accents
+\font\ifourteenit   = ilcmssi8 scaled \magstep 3 % italic
+\font\ifourteenbf   = ilcmssb8 scaled \magstep 3 % bold
+\font\ifourteentt   = icmtt8   scaled \magstep 3 % typewriter
+    \hyphenchar\ifourteentt = -1         %  suppress hyphenation in \tt font
+\font\ifourteenlasy = ilasy8  scaled \magstep 3 % LaTeX symbol
+
+% visible seventeen point fonts
+\font\seventeenrm   = lcmss8  scaled \magstep 4 % roman
+\font\seventeeni    = cmmi8   scaled \magstep 4 % math italic
+    \skewchar\seventeeni ='177                  %  for math accents
+\font\seventeensy   = cmsy8   scaled \magstep 4 % symbol
+    \skewchar\seventeensy ='60           %   for placement of math accents
+\font\seventeenit   = lcmssi8 scaled \magstep 4 % italic
+\font\seventeenbf   = lcmssb8 scaled \magstep 4 % bold
+\font\seventeentt   = cmtt8   scaled \magstep 4 % typewriter
+    \hyphenchar\seventeentt = -1         %  suppress hyphenation in \tt font
+\font\seventeenlasy = lasy8  scaled \magstep 4 % LaTeX symbol
+
+% invisible seventeen point fonts
+\font\iseventeenrm   = ilcmss8  scaled \magstep 4 % roman
+\font\iseventeeni    = icmmi8   scaled \magstep 4 % math italic
+    \skewchar\iseventeeni ='177                  %  for math accents
+\font\iseventeensy   = icmsy8   scaled \magstep 4 % symbol
+    \skewchar\iseventeensy ='60           %   for placement of math accents
+\font\iseventeenit   = ilcmssi8 scaled \magstep 4 % italic
+\font\iseventeenbf   = ilcmssb8 scaled \magstep 4 % bold
+\font\iseventeentt   = icmtt8   scaled \magstep 4 % typewriter
+    \hyphenchar\iseventeentt = -1         %  suppress hyphenation in \tt font
+\font\iseventeenlasy = ilasy8  scaled \magstep 4 % LaTeX symbol
+
+% visible twenty point fonts 
+\font\twentyrm   = lcmss8  scaled \magstep 5 % roman
+\font\twentyi    = cmmi8   scaled \magstep 5 % math italic
+    \skewchar\twentyi ='177                  %  for math accents
+\font\twentysy   = cmsy8   scaled \magstep 5 % symbol
+    \skewchar\twentysy ='60           %   for placement of math accents
+\font\twentyit   = lcmssi8 scaled \magstep 5 % italic
+\font\twentybf   = lcmssb8 scaled \magstep 5 % bold
+\font\twentytt   = cmtt8   scaled \magstep 5 % typewriter
+    \hyphenchar\twentytt = -1         %  suppress hyphenation in \tt font
+\font\twentylasy = lasy8  scaled \magstep 5 % LaTeX symbol
+
+% invisible twenty point fonts
+\font\itwentyrm   = ilcmss8  scaled \magstep 5 % roman
+\font\itwentyi    = icmmi8   scaled \magstep 5 % math italic
+    \skewchar\itwentyi ='177                  %  for math accents
+\font\itwentysy   = icmsy8   scaled \magstep 5 % symbol
+    \skewchar\itwentysy ='60           %   for placement of math accents
+\font\itwentyit   = ilcmssi8 scaled \magstep 5 % italic
+\font\itwentybf   = ilcmssb8 scaled \magstep 5 % bold
+\font\itwentytt   = icmtt8   scaled \magstep 5 % typewriter
+    \hyphenchar\itwentytt = -1         %  suppress hyphenation in \tt font
+\font\itwentylasy = ilasy8  scaled \magstep 5 % LaTeX symbol
+
+% visible twentyfour point fonts -- \magstep 6
+\font\twentyfourrm   = lcmss8  scaled 2986 % roman
+\font\twentyfouri    = cmmi8   scaled 2986 % math italic
+    \skewchar\twentyfouri ='177                  %  for math accents
+\font\twentyfoursy   = cmsy8   scaled 2986 % symbol
+    \skewchar\twentyfoursy ='60           %   for placement of math accents
+\font\twentyfourit   = lcmssi8 scaled 2986 % italic
+\font\twentyfourbf   = lcmssb8 scaled 2986 % bold
+\font\twentyfourtt   = cmtt8   scaled 2986 % typewriter
+    \hyphenchar\twentyfourtt = -1         %  suppress hyphenation in \tt font
+\font\twentyfourlasy = lasy8  scaled 2986 % LaTeX symbol
+
+% invisible twentyfour point fonts
+\font\itwentyfourrm   = ilcmss8  scaled 2986 % roman
+\font\itwentyfouri    = icmmi8   scaled 2986 % math italic
+    \skewchar\itwentyfouri ='177                  %  for math accents
+\font\itwentyfoursy   = icmsy8   scaled 2986 % symbol
+    \skewchar\itwentyfoursy ='60           %   for placement of math accents
+\font\itwentyfourit   = ilcmssi8 scaled 2986 % italic
+\font\itwentyfourbf   = ilcmssb8 scaled 2986 % bold
+\font\itwentyfourtt   = icmtt8   scaled 2986 % typewriter
+    \hyphenchar\itwentyfourtt = -1         %  suppress hyphenation in \tt font
+\font\itwentyfourlasy = ilasy8  scaled 2986 % LaTeX symbol
+
+% visible twentynine point fonts -- \magstep 7
+\font\twentyninerm   = lcmss8  scaled 3583 % roman
+\font\twentyninei    = cmmi8   scaled 3583 % math italic
+    \skewchar\twentyninei ='177                  %  for math accents
+\font\twentyninesy   = cmsy8   scaled 3583 % symbol
+    \skewchar\twentyninesy ='60           %   for placement of math accents
+\font\twentynineit   = lcmssi8 scaled 3583 % italic
+\font\twentyninebf   = lcmssb8 scaled 3583 % bold
+\font\twentyninett   = cmtt8   scaled 3583 % typewriter
+    \hyphenchar\twentyninett = -1         %  suppress hyphenation in \tt font
+\font\twentyninelasy = lasy8  scaled 3583 % LaTeX symbol
+
+% invisible twentynine point fonts
+\font\itwentyninerm   = ilcmss8  scaled 3583 % roman
+\font\itwentyninei    = icmmi8   scaled 3583 % math italic
+    \skewchar\itwentyninei ='177                  %  for math accents
+\font\itwentyninesy   = icmsy8   scaled 3583 % symbol
+    \skewchar\itwentyninesy ='60           %   for placement of math accents
+\font\itwentynineit   = ilcmssi8 scaled 3583 % italic
+\font\itwentyninebf   = ilcmssb8 scaled 3583 % bold
+\font\itwentyninett   = icmtt8   scaled 3583 % typewriter
+    \hyphenchar\itwentyninett = -1         %  suppress hyphenation in \tt font
+\font\itwentyninelasy = ilasy8  scaled 3583 % LaTeX symbol
+
+% visible thirtyfour point fonts -- \magstep 8
+\font\thirtyfourrm   = lcmss8  scaled 4300 % roman
+\font\thirtyfouri    = cmmi8   scaled 4300 % math italic
+    \skewchar\thirtyfouri ='177                  %  for math accents
+\font\thirtyfoursy   = cmsy8   scaled 4300 % symbol
+    \skewchar\thirtyfoursy ='60           %   for placement of math accents
+\font\thirtyfourit   = lcmssi8 scaled 4300 % italic
+\font\thirtyfourbf   = lcmssb8 scaled 4300 % bold
+\font\thirtyfourtt   = cmtt8   scaled 4300 % typewriter
+    \hyphenchar\thirtyfourtt = -1         %  suppress hyphenation in \tt font
+\font\thirtyfourlasy = lasy8  scaled 4300 % LaTeX symbol
+
+% invisible thirtyfour point fonts
+\font\ithirtyfourrm   = ilcmss8  scaled 4300 % roman
+\font\ithirtyfouri    = icmmi8   scaled 4300 % math italic
+    \skewchar\ithirtyfouri ='177                  %  for math accents
+\font\ithirtyfoursy   = icmsy8   scaled 4300 % symbol
+    \skewchar\ithirtyfoursy ='60           %   for placement of math accents
+\font\ithirtyfourit   = ilcmssi8 scaled 4300 % italic
+\font\ithirtyfourbf   = ilcmssb8 scaled 4300 % bold
+\font\ithirtyfourtt   = icmtt8   scaled 4300 % typewriter
+    \hyphenchar\ithirtyfourtt = -1         %  suppress hyphenation in \tt font
+\font\ithirtyfourlasy = ilasy8  scaled 4300 % LaTeX symbol
+
+% fortyone point fonts
+\font\fortyonerm  = lcmss8  scaled 5160 % roman
+\font\ifortyonerm = ilcmss8 scaled 5160 % roman
+
+% math extension
+\font\tenex =cmex10  scaled\magstep3
+\font\itenex=icmex10 scaled\magstep3
+
+% line and circle fonts
+\font\tenln    = line10
+\font\tenlnw   = linew10
+\font\tencirc  = lcircle10
+\font\tencircw = lcirclew10
+
+\ifnum\fontdimen8\tenln=\fontdimen8\tencirc \else 
+  \@warning{Incompatible thin line and circle fonts}\fi
+\ifnum\fontdimen8\tenlnw=\fontdimen8\tencircw \else 
+  \@warning{Incompatible thick line and circle fonts}\fi
+
+% Definition of type sizes
+
+% NOTE: In this file, \lineskip is 1pt for all font sizes.
+\lineskip 1pt
+\normallineskip 1pt
+
+\def\@subfam#1#2{\@warning{No \string#1\space typeface in 
+        SLiTeX, using \string#2}#2}
+
+
+% protected font names
+\def\rm{\protect\prm}
+\def\it{\protect\pit}
+\def\bf{\protect\pbf}
+\def\tt{\protect\ptt}
+\def\sl{\@subfam\sl\it}
+\def\sf{\@subfam\sf\rm}
+\def\sc{\@subfam\sc\rm}
+
+\def\em{\protect\pem{}}
+\def\pem{\ifdim \fontdimen\@ne\font >\z@ \rm \else \it \fi}
+
+\def\mit{\fam\@ne} 
+\def\cal{\fam\tw@}
+
+\def\boldmath{\@warning{No \string\boldmath\space in SLiTeX}}
+\let\unboldmath=\relax
+
+\def\@nomath#1{\ifmmode \@warning{\string#1\space in math mode.}\fi}
+
+
+% unused families defined to keep family numbering the same as in LaTeX
+%
+\newfam\itfam      % \it is family 4
+\newfam\slfam      % \sl is family 5  -  Not used in SLiTeX
+\newfam\bffam      % \bf is family 6
+\newfam\ttfam      % \tt is family 7
+\newfam\sffam      % \sf is family 8  -  Not used in SLiTeX
+\newfam\scfam      % \sf is family 9  -  Not used in SLiTeX
+\newfam\lyfam      % \ly is family 10
+
+
+\def\fourteenpt{\def\prm{\fam\z@\fourteenrm\def\@currfont{\rm}}%
+\textfont\z@\fourteenrm \scriptfont\z@\fourteenrm 
+  \scriptscriptfont\z@\fourteenrm
+\textfont\@ne\fourteeni \scriptfont\@ne\fourteeni 
+  \scriptscriptfont\@ne\fourteeni
+\textfont\tw@\fourteensy \scriptfont\tw@\fourteensy 
+  \scriptscriptfont\tw@\fourteensy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\pit{\fam\itfam\fourteenit\def\@currfont{\it}}\textfont\itfam\fourteenit 
+    \scriptfont\itfam\fourteenit \scriptscriptfont\itfam\fourteenit
+\def\pbf{\fam\bffam\fourteenbf\def\@currfont{\bf}}\textfont\bffam\fourteenbf 
+   \scriptfont\bffam\fourteenbf \scriptscriptfont\bffam\fourteenbf
+\def\ptt{\fam\ttfam\fourteentt\def\@currfont{\tt}}\textfont\ttfam\fourteentt 
+    \scriptfont\ttfam\fourteentt \scriptscriptfont\ttfam\fourteentt
+\def\lasy{\fam\lyfam\fourteenlasy\def\@currfont{\lasy}}%
+\textfont\lyfam\fourteenlasy \scriptfont\lyfam\fourteenlasy 
+   \scriptscriptfont\lyfam\fourteenlasy}
+
+\def\ifourteenpt{\def\prm{\fam\z@\ifourteenrm\def\@currfont{\rm}}%
+\textfont\z@\ifourteenrm \scriptfont\z@\ifourteenrm 
+   \scriptscriptfont\z@\ifourteenrm
+\textfont\@ne\ifourteeni \scriptfont\@ne\ifourteeni 
+   \scriptscriptfont\@ne\ifourteeni
+\textfont\tw@\ifourteensy \scriptfont\tw@\ifourteensy 
+    \scriptscriptfont\tw@\ifourteensy
+\textfont\thr@@\itenex \scriptfont\thr@@\itenex \scriptscriptfont\thr@@\itenex
+\def\pit{\fam\itfam\ifourteenit\def\@currfont{\it}}\textfont\itfam\ifourteenit 
+    \scriptfont\itfam\ifourteenit \scriptscriptfont\itfam\ifourteenit
+\def\pbf{\fam\bffam\ifourteenbf\def\@currfont{\bf}}\textfont\bffam\ifourteenbf 
+  \scriptfont\bffam\ifourteenbf \scriptscriptfont\bffam\ifourteenbf
+\def\ptt{\fam\ttfam\ifourteentt\def\@currfont{\tt}}\textfont\ttfam\ifourteentt 
+  \scriptfont\ttfam\ifourteentt \scriptscriptfont\ttfam\ifourteentt
+\def\lasy{\fam\lyfam\ifourteenlasy\def\@currfont{\lasy}}%
+\textfont\lyfam\ifourteenlasy \scriptfont\lyfam\ifourteenlasy 
+   \scriptscriptfont\lyfam\ifourteenlasy}
+
+\def\seventeenpt{\def\prm{\fam\z@\seventeenrm\def\@currfont{\rm}}%
+\textfont\z@\seventeenrm \scriptfont\z@\fourteenrm 
+   \scriptscriptfont\z@\fourteenrm
+\textfont\@ne\seventeeni \scriptfont\@ne\fourteeni 
+   \scriptscriptfont\@ne\fourteeni
+\textfont\tw@\seventeensy \scriptfont\tw@\fourteensy 
+   \scriptscriptfont\tw@\fourteensy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\pit{\fam\itfam\seventeenit\def\@currfont{\it}}\textfont\itfam\seventeenit 
+   \scriptfont\itfam\fourteenit \scriptscriptfont\itfam\fourteenit
+\def\pbf{\fam\bffam\seventeenbf\def\@currfont{\bf}}\textfont\bffam\seventeenbf 
+   \scriptfont\bffam\fourteenbf \scriptscriptfont\bffam\fourteenbf
+\def\ptt{\fam\ttfam\seventeentt\def\@currfont{\tt}}\textfont\ttfam\seventeentt
+   \scriptfont\ttfam\fourteentt \scriptscriptfont\ttfam\fourteentt
+\def\lasy{\fam\lyfam\seventeenlasy\def\@currfont{\lasy}}%
+\textfont\lyfam\seventeenlasy \scriptfont\lyfam\fourteenlasy 
+   \scriptscriptfont\lyfam\fourteenlasy}
+
+\def\iseventeenpt{\def\prm{\fam\z@\iseventeenrm\def\@currfont{\rm}}%
+\textfont\z@\iseventeenrm \scriptfont\z@\ifourteenrm 
+   \scriptscriptfont\z@\ifourteenrm
+\textfont\@ne\iseventeeni \scriptfont\@ne\ifourteeni 
+   \scriptscriptfont\@ne\ifourteeni
+\textfont\tw@\iseventeensy \scriptfont\tw@\ifourteensy 
+   \scriptscriptfont\tw@\ifourteensy
+\textfont\thr@@\itenex \scriptfont\thr@@\itenex \scriptscriptfont\thr@@\itenex
+\def\pit{\fam\itfam\iseventeenit\def\@currfont{\it}}%
+\textfont\itfam\iseventeenit 
+   \scriptfont\itfam\ifourteenit \scriptscriptfont\itfam\ifourteenit
+\def\pbf{\fam\bffam\iseventeenbf\def\@currfont{\bf}}%
+\textfont\bffam\iseventeenbf 
+   \scriptfont\bffam\ifourteenbf \scriptscriptfont\bffam\ifourteenbf
+\def\ptt{\fam\ttfam\iseventeentt\def\@currfont{\tt}}%
+\textfont\ttfam\iseventeentt
+   \scriptfont\ttfam\ifourteentt \scriptscriptfont\ttfam\ifourteentt
+\def\lasy{\fam\lyfam\iseventeenlasy\def\@currfont{\lasy}}%
+\textfont\lyfam\iseventeenlasy \scriptfont\lyfam\ifourteenlasy 
+   \scriptscriptfont\lyfam\ifourteenlasy}
+
+\def\twentypt{\def\prm{\fam\z@\twentyrm\def\@currfont{\rm}}%
+\textfont\z@\twentyrm \scriptfont\z@\seventeenrm 
+   \scriptscriptfont\z@\fourteenrm
+\textfont\@ne\twentyi \scriptfont\@ne\seventeeni 
+   \scriptscriptfont\@ne\fourteeni
+\textfont\tw@\twentysy \scriptfont\tw@\seventeensy 
+   \scriptscriptfont\tw@\fourteensy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\pit{\fam\itfam\twentyit\def\@currfont{\it}}\textfont\itfam\twentyit 
+   \scriptfont\itfam\seventeenit \scriptscriptfont\itfam\fourteenit
+\def\pbf{\fam\bffam\twentybf\def\@currfont{\bf}}\textfont\bffam\twentybf 
+   \scriptfont\bffam\seventeenbf \scriptscriptfont\bffam\fourteenbf
+\def\ptt{\fam\ttfam\twentytt\def\@currfont{\tt}}\textfont\ttfam\twentytt
+   \scriptfont\ttfam\seventeentt \scriptscriptfont\ttfam\fourteentt
+\def\lasy{\fam\lyfam\twentylasy\def\@currfont{\lasy}}%
+\textfont\lyfam\twentylasy \scriptfont\lyfam\seventeenlasy 
+   \scriptscriptfont\lyfam\fourteenlasy}
+
+\def\itwentypt{\def\prm{\fam\z@\itwentyrm\def\@currfont{\rm}}%
+\textfont\z@\itwentyrm \scriptfont\z@\iseventeenrm 
+   \scriptscriptfont\z@\ifourteenrm
+\textfont\@ne\itwentyi \scriptfont\@ne\iseventeeni 
+   \scriptscriptfont\@ne\ifourteeni
+\textfont\tw@\itwentysy \scriptfont\tw@\iseventeensy 
+   \scriptscriptfont\tw@\ifourteensy
+\textfont\thr@@\itenex \scriptfont\thr@@\itenex \scriptscriptfont\thr@@\itenex
+\def\pit{\fam\itfam\itwentyit\def\@currfont{\it}}\textfont\itfam\itwentyit 
+   \scriptfont\itfam\iseventeenit \scriptscriptfont\itfam\ifourteenit
+\def\pbf{\fam\bffam\itwentybf\def\@currfont{\bf}}\textfont\bffam\itwentybf 
+   \scriptfont\bffam\iseventeenbf \scriptscriptfont\bffam\ifourteenbf
+\def\ptt{\fam\ttfam\itwentytt\def\@currfont{\tt}}\textfont\ttfam\itwentytt
+   \scriptfont\ttfam\iseventeentt \scriptscriptfont\ttfam\ifourteentt
+\def\lasy{\fam\lyfam\itwentylasy\def\@currfont{\lasy}}%
+\textfont\lyfam\itwentylasy \scriptfont\lyfam\iseventeenlasy 
+   \scriptscriptfont\lyfam\ifourteenlasy}
+
+\def\twentyfourpt{\def\prm{\fam\z@\twentyfourrm\def\@currfont{\rm}}%
+\textfont\z@\twentyfourrm \scriptfont\z@\twentyrm 
+   \scriptscriptfont\z@\seventeenrm
+\textfont\@ne\twentyfouri \scriptfont\@ne\twentyi 
+   \scriptscriptfont\@ne\seventeeni
+\textfont\tw@\twentyfoursy \scriptfont\tw@\twentysy 
+   \scriptscriptfont\tw@\seventeensy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\pit{\fam\itfam\twentyfourit\def\@currfont{\it}}%
+\textfont\itfam\twentyfourit 
+   \scriptfont\itfam\twentyit \scriptscriptfont\itfam\seventeenit
+\def\pbf{\fam\bffam\twentyfourbf\def\@currfont{\bf}}%
+\textfont\bffam\twentyfourbf 
+   \scriptfont\bffam\twentybf \scriptscriptfont\bffam\seventeenbf
+\def\ptt{\fam\ttfam\twentyfourtt\def\@currfont{\tt}}%
+\textfont\ttfam\twentyfourtt
+   \scriptfont\ttfam\twentytt \scriptscriptfont\ttfam\seventeentt
+\def\lasy{\fam\lyfam\twentyfourlasy\def\@currfont{\lasy}}%
+\textfont\lyfam\twentyfourlasy \scriptfont\lyfam\twentylasy 
+   \scriptscriptfont\lyfam\seventeenlasy}
+
+\def\itwentyfourpt{\def\prm{\fam\z@\itwentyfourrm\def\@currfont{\rm}}%
+\textfont\z@\itwentyfourrm \scriptfont\z@\itwentyrm 
+   \scriptscriptfont\z@\iseventeenrm
+\textfont\@ne\itwentyfouri \scriptfont\@ne\itwentyi 
+   \scriptscriptfont\@ne\iseventeeni
+\textfont\tw@\itwentyfoursy \scriptfont\tw@\itwentysy 
+   \scriptscriptfont\tw@\iseventeensy
+\textfont\thr@@\itenex \scriptfont\thr@@\itenex \scriptscriptfont\thr@@\itenex
+\def\pit{\fam\itfam\itwentyfourit\def\@currfont{\it}}%
+\textfont\itfam\itwentyfourit
+   \scriptfont\itfam\itwentyit \scriptscriptfont\itfam\iseventeenit
+\def\pbf{\fam\bffam\itwentyfourbf\def\@currfont{\bf}}%
+\textfont\bffam\itwentyfourbf 
+   \scriptfont\bffam\itwentybf \scriptscriptfont\bffam\iseventeenbf
+\def\ptt{\fam\ttfam\itwentyfourtt\def\@currfont{\tt}}%
+\textfont\ttfam\itwentyfourtt
+   \scriptfont\ttfam\itwentytt \scriptscriptfont\ttfam\iseventeentt
+\def\lasy{\fam\lyfam\itwentyfourlasy\def\@currfont{\lasy}}%
+\textfont\lyfam\itwentyfourlasy \scriptfont\lyfam\itwentylasy 
+   \scriptscriptfont\lyfam\iseventeenlasy}
+
+\def\twentyninept{\def\prm{\fam\z@\twentyninerm\def\@currfont{\rm}}%
+\textfont\z@\twentyninerm \scriptfont\z@\twentyfourrm 
+   \scriptscriptfont\z@\twentyrm
+\textfont\@ne\twentyninei \scriptfont\@ne\twentyfouri 
+   \scriptscriptfont\@ne\twentyi
+\textfont\tw@\twentyninesy \scriptfont\tw@\twentyfoursy 
+   \scriptscriptfont\tw@\twentysy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\pit{\fam\itfam\twentynineit\def\@currfont{\it}}%
+\textfont\itfam\twentynineit 
+   \scriptfont\itfam\twentyfourit \scriptscriptfont\itfam\twentyit
+\def\pbf{\fam\bffam\twentyninebf\def\@currfont{\bf}}%
+\textfont\bffam\twentyninebf 
+   \scriptfont\bffam\twentyfourbf \scriptscriptfont\bffam\twentybf
+\def\ptt{\fam\ttfam\twentyninett\def\@currfont{\tt}}%
+\textfont\ttfam\twentyninett
+   \scriptfont\ttfam\twentyfourtt \scriptscriptfont\ttfam\twentytt
+\def\lasy{\fam\lyfam\twentyninelasy\def\@currfont{\lasy}}%
+\textfont\lyfam\twentyninelasy \scriptfont\lyfam\twentyfourlasy 
+   \scriptscriptfont\lyfam\twentylasy}
+
+\def\itwentyninept{\def\prm{\fam\z@\itwentyninerm\def\@currfont{\rm}}%
+\textfont\z@\itwentyninerm \scriptfont\z@\itwentyfourrm 
+   \scriptscriptfont\z@\itwentyrm
+\textfont\@ne\itwentyninei \scriptfont\@ne\itwentyfouri 
+   \scriptscriptfont\@ne\itwentyi
+\textfont\tw@\itwentyninesy \scriptfont\tw@\itwentyfoursy 
+   \scriptscriptfont\tw@\itwentysy
+\textfont\thr@@\itenex \scriptfont\thr@@\itenex 
+   \scriptscriptfont\thr@@\itenex
+\def\pit{\fam\itfam\itwentynineit\def\@currfont{\it}}%
+\textfont\itfam\itwentynineit 
+\scriptfont\itfam\itwentyfourit \scriptscriptfont\itfam\itwentyit
+\def\pbf{\fam\bffam\itwentyninebf\def\@currfont{\bf}}%
+\textfont\bffam\itwentyninebf 
+   \scriptfont\bffam\twentyfourbf \scriptscriptfont\bffam\twentybf
+\def\ptt{\fam\ttfam\itwentyninett\def\@currfont{\tt}}%
+\textfont\ttfam\itwentyninett
+   \scriptfont\ttfam\twentyfourtt \scriptscriptfont\ttfam\twentytt
+\def\lasy{\fam\lyfam\itwentyninelasy\def\@currfont{\lasy}}%
+\textfont\lyfam\itwentyninelasy \scriptfont\lyfam\itwentyfourlasy 
+   \scriptscriptfont\lyfam\itwentylasy}
+
+\def\thirtyfourpt{\def\prm{\fam\z@\thirtyfourrm\def\@currfont{\rm}}%
+\textfont\z@\thirtyfourrm \scriptfont\z@\twentyninerm 
+   \scriptscriptfont\z@\twentyfourrm
+\textfont\@ne\thirtyfouri \scriptfont\@ne\twentyninei 
+   \scriptscriptfont\@ne\twentyfouri
+\textfont\tw@\thirtyfoursy \scriptfont\tw@\twentyninesy 
+   \scriptscriptfont\tw@\twentyfoursy
+\textfont\thr@@\tenex \scriptfont\thr@@\tenex \scriptscriptfont\thr@@\tenex
+\def\pit{\fam\itfam\thirtyfourit\def\@currfont{\it}}%
+\textfont\itfam\thirtyfourit 
+   \scriptfont\itfam\twentynineit \scriptscriptfont\itfam\twentyfourit
+\def\pbf{\fam\bffam\thirtyfourbf\def\@currfont{\bf}}%
+\textfont\bffam\thirtyfourbf 
+   \scriptfont\bffam\twentyninebf \scriptscriptfont\bffam\twentyfourbf
+\def\ptt{\fam\ttfam\thirtyfourtt\def\@currfont{\tt}}%
+\textfont\ttfam\thirtyfourtt
+   \scriptfont\ttfam\twentyninett \scriptscriptfont\ttfam\twentyfourtt
+\def\lasy{\fam\lyfam\thirtyfourlasy\def\@currfont{\lasy}}%
+\textfont\lyfam\thirtyfourlasy \scriptfont\lyfam\twentyninelasy 
+   \scriptscriptfont\lyfam\twentyfourlasy}
+
+\def\ithirtyfourpt{\def\prm{\fam\z@\ithirtyfourrm\def\@currfont{\rm}}%
+\textfont\z@\ithirtyfourrm \scriptfont\z@\itwentyninerm 
+   \scriptscriptfont\z@\itwentyfourrm
+\textfont\@ne\ithirtyfouri \scriptfont\@ne\itwentyninei 
+   \scriptscriptfont\@ne\itwentyfouri
+\textfont\tw@\ithirtyfoursy \scriptfont\tw@\itwentyninesy 
+   \scriptscriptfont\tw@\itwentyfoursy
+\textfont\thr@@\itenex \scriptfont\thr@@\itenex \scriptscriptfont\thr@@\itenex
+\def\pit{\fam\itfam\ithirtyfourit\def\@currfont{\it}}%
+\textfont\itfam\ithirtyfourit 
+   \scriptfont\itfam\itwentynineit \scriptscriptfont\itfam\itwentyfourit
+\def\pbf{\fam\bffam\ithirtyfourbf\def\@currfont{\bf}}%
+\textfont\bffam\ithirtyfourbf 
+   \scriptfont\bffam\itwentyninebf \scriptscriptfont\bffam\itwentyfourbf
+\def\ptt{\fam\ttfam\ithirtyfourtt\def\@currfont{\tt}}%
+\textfont\ttfam\ithirtyfourtt
+   \scriptfont\ttfam\itwentyninett \scriptscriptfont\ttfam\itwentyfourtt
+\def\lasy{\fam\lyfam\ithirtyfourlasy\def\@currfont{\lasy}}%
+\textfont\lyfam\ithirtyfourlasy \scriptfont\lyfam\itwentyninelasy 
+   \scriptscriptfont\lyfam\itwentyfourlasy}
+
+\def\fortyonept{\thirtyfourpt\def\prm{\fam\z@\fortyonerm\def\@currfont{\rm}}%
+\textfont\z@\fortyonerm 
+\scriptfont\z@\twentyninerm \scriptscriptfont\z@\twentyfourrm}
+
+\def\ifortyonept{\ithirtyfourpt
+  \def\prm{\fam\z@\ifortyonerm\def\@currfont{\rm}}%
+\textfont\z@\ifortyonerm 
+\scriptfont\z@\itwentyninerm \scriptscriptfont\z@\itwentyfourrm}
+
+% Definitions of math operators added by LaTeX
+\mathchardef\mho"0A30
+\mathchardef\Join"3A31
+\mathchardef\Box"0A32
+\mathchardef\Diamond"0A33
+\mathchardef\leadsto"3A3B
+\mathchardef\sqsubset"3A3C
+\mathchardef\sqsupset"3A3D
+\def\lhd{\mathbin{< \hbox to -.43em{}\if@visible 
+   \hbox{\vrule \@width .065em \@height .55em \@depth .05em}\else
+   \hbox{\hskip .065em \vrule \@width \z@ \@height .55em \@depth .05em}
+    \fi\hbox to .2em{}}}
+\def\rhd{\mathbin{\hbox to .3em{}\if@visible
+    \hbox{\vrule \@width .065em \@height .55em \@depth .05em}\else
+    \hbox{\hskip .065em \vrule \@width \z@ \@height .55em \@depth .05em}\fi
+    \hbox to -.43em{}>}}
+\def\unlhd{\mathbin{\leq \hbox to -.43em{}\if@visible
+    \hbox{\vrule \@width .065em \@height .63em \@depth -.08em}\else
+    \hbox{\hskip .065em \vrule \@width \z@ \@height .63em \@depth -.08em}\fi
+    \hbox to .2em{}}}
+\def\unrhd{\mathbin{ \hbox to .3em{}\if@visible
+    \hbox{\vrule \@width .065em \@height .63em \@depth -.08em}\else
+    \hbox{\hskip .065em \vrule \@width \z@ \@height .63em \@depth -.08em}\fi
+    \hbox to -.43em{}\geq}}

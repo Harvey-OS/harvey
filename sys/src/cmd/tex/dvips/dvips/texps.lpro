@@ -1,0 +1,106 @@
+% Thanks for some changes to:
+%+ This is TEXPS.LPRO as modified by Rob Hutchings 1992Apr02
+%+ My comments are marked as %+ 
+% PostScript prolog for using resident fonts.
+%+ Provision is made to change the encoding scheme in special instructions. 
+%+ This is the only way to access the 20 characters which are present in  
+%+ a standard PostScript font, but not included in the standard encoding. 
+% All we do is change the widths so that PostScript positioning 
+% matches the assumptions of dvips.
+
+% The calling sequence defining font foo to be resident font Bar is
+%+       /foo wdmaxcc ... wd1 wd0 {specials} numc atsize /Bar rf
+% where each character width wdi is in pixels,
+%+ and atsize is the desired font size, after magnification, in pixels.
+
+%
+TeXDict begin
+%
+/rf 
+% We copy everything but the FID entry of the resident font
+% (just as in section 5.6 of the Red Book second edition).
+% We also don't copy UniqeID, even though we want to, because
+% this messes up systems that cache the fonts, for some
+% PostScript fonts.
+{ findfont dup length 1 add dict begin 
+        { 1 index /FID ne 2 index /UniqueID ne and
+          {def} {pop pop} ifelse } forall
+% Now the top entry on the stack is the desired size, which
+% we use to construct the matrix to transform the font.
+% The way we do this is constrained by our desire to leave
+% a hook for extending and/or slanting; the hook also allows
+% the font to be reencoded extremely cheaply.
+% Extend and slant are coded in positions 0 and 2 of the matrix,
+% whose default values are atsize and 0
+        [ 1 index 0
+% at this point we pick up and obey the special instructions
+        6 -1 roll exec  
+% and then insert the rest of the matrix.  It is imperative that
+%   VResolution Resolution div mul
+% be used instead of
+%   VResolution mul Resolution div
+% because the latter gives us floating point roundoff error that
+% causes the interpreter to think the font isn't square, and this
+% leads to substantially deteriorated character glyphs.
+        0 exch 5 -1 roll VResolution Resolution div mul neg 0 0 ]
+% we use this to scale the font later.  We store it in Metrics,
+% which we'll give a different definition to anyway later.
+       /Metrics exch def
+% now we start the dictionary
+        dict begin
+% When the font is used the width in the Metrics dictionary will be 
+% multiplied by FontMatrix[0] to give the actual character width. 
+% We therefore divide each width by FontMatrix[0] before storing.
+% Note that using FontMatrix[0] is safer than assuming milli-em units, 
+% and that loading the widths on to the stack rather than using an array 
+% allows the following simple coding.
+%   We also allow marks on the stack ([) to mean that we don't use
+%   that character and thus don't need an Metrics entry for it.
+%   This saves lots of VM.
+        Encoding { exch dup type /integertype ne
+          {pop pop 1 sub dup 0 le {pop} {[} ifelse}
+             {FontMatrix 0 get div Metrics 0 get div def} ifelse } forall
+% Now we put the widths dictionary into the font, after grabbing
+% the current definition of Metrics back.
+        Metrics /Metrics currentdict end def
+% and duplicate /foo so that it can be used both in definefont
+% and as the name of the macro, which is created first as a 
+% non-executable array so that we can put the new font dictionary 
+% itself inside the macro;
+%  We need two definefont's.
+        [ 2 index currentdict end definefont 3 -1 roll makefont
+% this involves a circumlocution to insert the setfont command.
+          /setfont load ] 
+% finally the macro is made executable and given the name /foo.
+        cvx def } def
+%
+%   Now here's some oblique hackery... an example of making
+%   variants of a resident font look like it is resident.
+%+ Since dvips has to repeat the special instructions for each 
+%+ incarnation of such a hacked font, there appears to be little virtue in 
+%+ the halfway-house of naming the hacked font. I have therefore omitted 
+%+ the PostScript names of the modified fonts; 
+%+ the defining lines in psfonts could be
+%+            rptmro Times-Roman ".167 SlantFont"
+%+ My versions of SlantFont and ExtendFont are obeyed in the core of the
+%+ main macro, at a point where the stack contains
+%+           atsize [ x y
+%+ where x and y will become entries 0 and 2 of the transformation matrix.
+%   Optionally replace the `slant' by `angle ObliqueSlant';
+%   note that the ObliqueSlant of Times-Italic is -15.5 (negative).
+%
+/ObliqueSlant {   % angle ObliqueSlant slant
+    dup sin S cos div neg
+    } B
+
+% A slant is multiplied by atsize and added to entry 2 (initially 0)
+/SlantFont {4 index mul add} def 
+
+% An extend is simply a multiplier for entry 0 (initially atsize)
+/ExtendFont {3 -1 roll mul exch} def
+
+% Since at the point at which the hook is obeyed, the current dictionary
+% is that of the new font and writeable, it is trivial to include the
+% option of reencoding the font.
+/ReEncodeFont {/Encoding exch def} def
+end

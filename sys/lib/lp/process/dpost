@@ -1,0 +1,44 @@
+#!/bin/rc
+if (~ $DEBUG 1) flag x +
+# convert troff output to PostScript
+PATCH=''
+for (i in `{echo $IBIN|awk -F, '{ n=split($0, a, ","); for (i=1;i<=n;i++) print a[i]; }'}) {
+	switch ($i) {
+	case -P*;
+	case man manual manualfeed;
+		PATCH=$PATCH'
+statusdict begin /manualfeed true def end'
+	case simplex;
+		DUPLEX=0
+	case [0-9];
+		PATCH=$PATCH'
+statusdict begin '$i' setpapertray end'
+	case 11x17 ledger;
+		PATCH=$PATCH'
+statusdict begin '$i'tray end'
+	case *;
+		echo illegal option ''''-i $i'''' >[1=2]
+	}
+}
+if (! ~ $#DUPLEX 0) {
+	if (~ $DUPLEX 1 )
+		PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin true setduplexmode end} if';
+	if (~ $DUPLEX 0 )
+		PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin false setduplexmode end} if';
+}
+if (! ~ $PATCH '' -P*)
+	PATCH=-P''''$PATCH'''';
+switch ($LAND) {
+case -p*;
+case ''; LAND=-pp
+case 1;	LAND=-pl
+}
+if (! ~ $COPIES '' -c*) COPIES=-c^$COPIES
+if (! ~ $MAG '' -m*) MAG=-m^$MAG
+if (! ~ $NPAG '' -n*) NPAG=-n^$NPAG
+if (! ~ $XOFF '' -x*) XOFF=-x^$XOFF
+if (! ~ $YOFF '' -y*) YOFF=-y^$YOFF
+eval /sys/lib/postscript/bin/$cputype/dpost -e2 -w0.5 $XOFF $YOFF $COPIES $MAG $NPAG $LAND $OLIST $PATCH | $LPLIB/process/hpost
+exit

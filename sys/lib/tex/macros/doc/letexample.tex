@@ -1,0 +1,78 @@
+% example of a letter using attletter.sty
+%
+\documentstyle{attletter}
+\date{January 16, 1989}
+\labelheight=1.5in
+\makelabels
+\phone{201 580-4428}\room{4N-E01}
+\eaddress{tla@mozart.att.com}
+\signature{Terry L Anderson\\Author of attletter.sty}
+\begin{document}
+\begin{letter}{Mr Really Somebody\\123 Fourth St\\Someplace, XX\quad 00000}
+\opening{Dear Really}
+This is a sample letter using the attletter style.  Note that I have
+used the default \verb|\address| which is set to the address of my
+location in the last few lines of attletter.sty.  I have added my
+personal phone number which replaces that of the information operator
+at my location and have added my room number and electronic address.
+
+The height of each mailing label defaults to 1 inch in attletter
+(compared to 2 inches in the standard letter.sty), but for this letter
+I have changed it to 1.5 inches using \verb|\labelheight|.  I have
+called \verb|makelabels| to illustrate this.  Labels can be printed on
+or photocopied onto ``peel-off'' label sheets.
+
+Many of the extensions to \LaTeX\ offered by tm.sty are also available
+in attletter.sty.  These include 
+\begin{alphenum}
+\item \verb|\markbottom|
+\item the additional types of enumerated lists
+\item draft markings
+\item the trademark macros
+\item \UNIX\
+\item \verb|\markedfootenote|
+\end{alphenum}
+
+Bitmaps can be used although there is not a special version of the
+closing incorporating faces.  
+
+This is a nonsense paragraph in order to make this letter long enough
+to extend to a second sheet.
+
+This is a another nonsense paragraph in order to make this letter long enough
+to extend to a second sheet.
+
+This is a another nonsense paragraph in order to make this letter long enough
+to extend to a second sheet.
+
+This is a another nonsense paragraph in order to make this letter long enough
+to extend to a second sheet.
+
+This is a another nonsense paragraph in order to make this letter long enough
+to extend to a second sheet.
+
+This is a another nonsense paragraph in order to make this letter long enough
+to extend to a second sheet.
+
+This is the last nonsense paragraph in order to make this letter long enough
+to extend to a second sheet.
+
+The default page style has been changed to {\it headings} so that
+letters that extend onto additional pages have a heading at the top of
+each subsequent page.  If you do not want this you can declare
+\verb|\pagestyle{plain}| to have the style that was default in
+standard letter.sty.
+
+\closing{Sincerely,}
+\end{letter}
+\begin{letter}{Mrs. Anybody Else\\4321 Easy St\\Timbuktu, Mali}
+\opening{Dear Mrs Else}
+This is a second letter to illustrate that the attletter style like
+the standard letter style supports multiple letters in a single file.
+Each letter will have the letter head.  Labels if produced with
+\verb|\makelabels| will be in two columns on as many sheets as
+necessary, the number depending on the labelheight.
+\closing{Yours Truly,}
+\end{letter}
+\end{document}
+

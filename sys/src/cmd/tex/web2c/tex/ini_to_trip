@@ -1,0 +1,45 @@
+#!/bin/sh
+# A shell script to perform modifications on the texd.h file
+# to make triptex instead of initex.
+#
+# To use it, say:
+# ini_to_trip <original texd.h>
+#
+# and that file changes into a file with the trip constants.
+# 
+# The output is in pairs of lines: the first is the definition for
+# initex, and the second is the definition for triptex.
+
+cp $1 $1.bak
+
+ed - $1 <<edscriptend
+/undef	TRIP/
+s/undef/define/p
+/memmax/
+s/[0-9][0-9]*/2999/p
+/bufsize/
+s/[0-9][0-9]*/500/p
+/errorline/
+s/[0-9][0-9]*/64/p
+/halferrorline/
+s/[0-9][0-9]*/32/p
+/maxprintline/
+s/[0-9][0-9]*/72/p
+/maxinopen/
+s/[0-9][0-9]*/6/p
+/fontmax/
+s/[0-9][0-9]*/75/p
+/fontmemsize/
+s/[0-9][0-9]*/20000/p
+/maxstrings/
+s/[0-9][0-9]*/3000/p
+/stringvacancies/
+s/[0-9][0-9]*/8000/p
+/poolsize/
+s/[0-9][0-9]*/32000/p
+/savesize/
+s/[0-9][0-9]*/600/p
+/memtop/
+s/[0-9][0-9]*/2999/p
+w
+edscriptend

@@ -1,0 +1,5 @@
+#!/bin/rc
+#dcon service net dir
+echo -n OK
+user=`{cat $3/ruser}
+exec /$objtype/bin/aux/telnetd -n -u $user

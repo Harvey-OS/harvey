@@ -1,0 +1,98 @@
+.TH CARD 9.1
+.SH NAME
+card, ramp \- create simple color fields
+.SH SYNOPSIS
+.B fb/card
+[
+.BI -c rgba
+] [
+.BI -w "x0 y0 x1 y1
+]
+.I red
+[
+.I green blue
+] [
+.I alpha
+]
+.PP
+.B fb/ramp
+[
+.BI -v
+] [
+.BI -w "x0 y0 x1 y1
+]
+[ [
+.I leftcolor
+]
+.I rightcolor
+]
+.SH DESCRIPTION
+.I Card
+writes a constant (all pixels equal) picture on standard output.
+The
+.I red, green blue
+and
+.I alpha
+arguments are numbers between 0 and 255.
+.I Green
+and
+.I blue
+default equal to
+.I red.
+.I Alpha
+defaults to 255.
+Option
+.B -c
+specifies the
+.B CHAN=
+attribute of the picture file.
+The default is
+.BR CHAN=m ,
+.BR CHAN=ma ,
+.BR CHAN=rgb ,
+or
+.B CHAN=rgba
+depending on which of
+.I red, green blue
+and
+.I alpha
+are specified.
+.PP
+.I Ramp
+creates a picture file whose pixel values range
+from
+.I leftcolor
+to
+.I rightcolor
+across each scan line, writing on standard output.
+.I Leftcolor
+defaults to 0;
+.I rightcolor
+defaults to 255.  If three arguments are given
+for
+.I leftcolor
+and
+.I rightcolor
+the output will have
+.BR CHAN=rgb .
+Otherwise, it will have
+.BR CHAN=m .
+.PP
+Option
+.B -v
+causes
+.I ramp
+to make a vertical ramp
+.RI ( leftcolor
+at the top,
+.I rightcolor
+at the bottom).
+.PP
+For both commands, 
+option
+.B -w
+specifies the size of the picture.
+The default gives
+.BR "WINDOW=0 0 1280 1024" .
+.SH "SEE ALSO
+.IR picfile (9.6)

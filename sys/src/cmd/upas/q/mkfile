@@ -1,0 +1,8 @@
+</$objtype/mkfile
+
+LIB=../libString/libString.a$O
+TARG = qer\
+	runq\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkmany

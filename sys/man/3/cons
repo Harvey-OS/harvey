@@ -1,0 +1,271 @@
+.TH CONS 3 
+.SH NAME
+cons \- console, clocks, process/process group ids, user, null, klog, stats, lights, noise, sysstat, hz, swap, crypt, chal, key
+.SH SYNOPSIS
+.nf
+.B bind #c /dev
+
+.B /dev/chal
+.B /dev/clock
+.B /dev/cons
+.B /dev/consctl
+.B /dev/cputime
+.B /dev/crypt
+.B /dev/hz
+.B /dev/key
+.B /dev/klog
+.B /dev/lights
+.B /dev/msec
+.B /dev/noise
+.B /dev/null
+.B /dev/pgrpid
+.B /dev/pid
+.B /dev/ppid
+.B /dev/swap
+.B /dev/sysname
+.B /dev/sysstat
+.B /dev/time
+.B /dev/user
+.fi
+.SH DESCRIPTION
+The console device serves a one-level directory
+giving access to the console and
+miscellaneous information.
+.PP
+Reading the
+.B cons
+file returns characters typed on the keyboard.
+Normally, characters are buffered to enable erase and kill processing.
+A control-U,
+.LR ^U ,
+typed at the keyboard
+.I kills
+the current input line (removes all characters
+from the buffer of characters
+not yet read via
+.BR cons ),
+and a backspace
+.I erases
+the previous non-kill, non-erase character from the input buffer.
+Killing and erasing only delete characters back to, but not including,
+the last newline.
+Characters typed at the keyboard actually produce 16-bit runes (see
+.IR utf (6)),
+but the runes are translated into the variable-length
+.SM UTF
+encoding (see
+.IR utf (6))
+before putting them into the buffer.
+A
+.IR read (2)
+of length greater than zero causes the process to wait until a
+newline or a
+.L ^D
+ends the buffer, and then returns as much of the buffer as the argument
+to
+.B read
+allows, but only up to one complete line.
+A terminating
+.L ^D
+is not put into the buffer.
+If part of the line remains, the next
+.B read
+will return characters from that remainder and not part of any new line
+that has been typed since.
+.PP
+If
+the string
+.B rawon
+has been written to the
+.B consctl
+file and the file is still open,
+.B cons
+is in
+.IR "raw mode" :
+characters are not echoed as they are typed,
+backspace and
+.L ^D
+are not treated specially,
+and characters are available to
+.I read
+as soon as they are typed.
+Ordinary mode is reentered when
+.B rawoff
+is written to
+.B consctl
+or this file is closed.
+.PP
+A
+.I write
+(see
+.IR read (2))
+to
+.B cons
+causes the characters to be printed on the console screen.
+.PP
+The
+.B null
+file throws away anything written to it
+and always returns zero bytes when read.
+.PP
+The
+.B klog
+file contains the tail of messages written by kernel logging statements.
+.PP
+Writing a number (as plain text) to the
+.B lights
+device directs any lights that are available to turn on and off.
+The bits of the number are mapped to the lights in a processor-dependent way.
+.PP
+Writing two blank- or tab- separated numbers to the
+.B noise
+device causes the machine to make a tone, if possible.
+The first number is the frequency, in Hertz, and the second is
+the duration, in milliseconds.
+.PP
+The
+.B crypt
+file performs DES encryption. 
+To encrypt data, first a character
+.L E
+.RB ( 0x45 )
+is written to the file, and then the data, which must be at least 8 bytes long.
+Data longer that 127 bytes is truncated.
+Data is encrypted with the same algorithm used in
+.IR encrypt (2).
+The encrypted data can then be read from the file.
+A similar procedure is used to decrypt data, except an
+.SM ASCII
+.L D
+.RB ( 0x44 )
+is written to the file before the data.
+.PP
+The
+.B key
+file is used to set the DES key used for encryption;
+the key is shared within a process group (see
+.IR auth (6)).
+.PP
+The
+.B chal
+file is used for authenticated setting of the user name.
+When read, it returns an encrypted challenge string
+to be used for authenticating the user's identity.
+When written with the appropriate string,
+the user name and encryption key are set.
+The format of the strings is documented in
+.IR auth (6).
+.PP
+The rest of the files contain (mostly) read-only strings.
+Each string has a fixed length: a
+.IR read (2)
+of more than that gives a result of that fixed length (the result does not
+include a terminating zero byte);
+a
+.I read
+of less than that length leaves the file offset so the
+rest of the string (but no more) will be read the next time.
+To reread the file without closing it,
+.I seek
+must be used to reset the offset.
+When the file contains numeric data, each number is formatted
+in decimal as an 11-digit number with leading blanks and
+one trailing blank: twelve bytes total.
+.PP
+The
+.B user
+file contains the name of the user associated with the current process.
+.PP
+The
+.B cputime
+file holds 6 numbers, containing the time in milliseconds
+that the current process has spent in user mode, system calls,
+real elapsed time, and then the time spent, by exited children and their descendants,
+in user mode, system calls, and real elapsed time.
+.PP
+The
+.B clock
+file holds two numbers: the number of
+clock ticks since booting followed by the number of clock ticks
+in a second.
+.PP
+The
+.B sysname
+file holds the textual name of the machine, e.g.
+.BR kremvax ,
+if known.
+.PP
+The
+.B sysstat
+file holds 8 numbers:
+processor number, context switches, interrupts, system calls, page faults,
+tlb faults, tlb purges, and load average.
+If the machine is a multiprocessor,
+.B sysstat
+holds one line per processor.
+Writing anything to
+.B sysstat
+resets all of the counts on all processors.
+.PP
+The
+.B swap
+device holds a string of the form
+.IP
+.IR m1 / m2
+.B memory
+.IR s1 / s2
+.B swap
+.PP
+These give, for each of
+internal memory and the swapping area,
+the number of pages used and the total available.
+These numbers are not blank padded.
+To turn on swapping, write to
+.B swap
+the textual file descriptor number of a file or device on which to swap.
+See
+.IR swap (8).
+.PP
+The other files served by the
+.I cons
+device are all single numbers:
+.TP 10
+.B hz
+frequency of the system clock
+.TP
+.B msec
+number of milliseconds since booting
+.TP
+.B pgrpid
+process group number
+.TP
+.B pid
+process number
+.TP
+.B ppid
+parent's process number
+.TP
+.B time
+number of seconds since the epoch 00:00:00 GMT, Jan. 1, 1970.
+(Can be written once, to set at boot time.)
+.SH SEE ALSO
+.IR bit (3),
+.IR keyboard (6),
+.IR auth (6),
+.IR utf (6)
+.SH BUGS
+For debugging, two control-T's followed by a letter
+generate console output:
+.L ^T^Tp
+prints data about processes,
+.L ^T^Tq
+prints data about streams,
+.L ^T^Tm
+prints data about the mount device,
+.L ^T^Tb
+prints data about the bitblt device, and
+.L ^T^Tx
+prints date about kernel memory allocation.
+.PP
+The system can be rebooted by typing
+.L ^T^Tr.

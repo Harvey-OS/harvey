@@ -1,0 +1,195 @@
+.TH KEYFS 4
+.SH NAME
+keyfs \- authentication database files
+.SH SYNOPSIS
+.B keyfs
+[
+.BI -m mntpt
+]
+[
+.BI -k key
+]
+[
+.BI -r nsfile
+]
+[
+.I keyfile
+]
+.SH DESCRIPTION
+.I Keyfs
+serves a two-level file tree for manipulating authentication information.
+It runs on the machine providing authentication service for the local
+Plan 9 network, which may be a dedicated authentication server or
+a CPU server.
+The programs described in
+.IR auth (8)
+use
+.I keyfs
+as their interface to the authentication database.
+.PP
+.I Keyfs
+reads and decrypts file
+.I keyfile
+(default
+.BR /adm/keys )
+using the DES key
+.IR key ,
+which is by default read from
+.B #r/nvram
+(see
+.IR rtc (3)).
+.I Keyfile
+holds a 41-byte record for each user in the database.
+Each record is encrypted separately
+and contains the user's name,
+DES key,
+status,
+host status,
+and expiration date.
+The name is a
+null-terminated
+.SM UTF
+string
+.B NAMELEN
+bytes long.
+The status is a byte containing
+binary 0 if the account is enabled,
+1 if it is disabled.
+Host status is a byte containing
+binary 1 if the user is a host,
+and 0 otherwise.
+The expiration date is four-byte little-endian integer
+which represents the time in seconds since the epoch
+(see
+.IR date (1))
+at which the account will expire.
+If any changes are made to the database that affect the information stored in
+.IR keyfile ,
+a new version of the file is written.
+If given
+option
+.BR -r ,
+.I keyfs
+rebuilds its name space from
+.I nsfile
+before writing any changes to its database.
+.PP
+There are two authentication databases,
+one for Plan 9 user information,
+and one for SecureNet user information.
+A user need not be installed in both databases
+but must be installed in the Plan 9 database to connect to a Plan 9 server.
+.PP
+.I Keyfs
+serves an interpretation of the
+.I keyfile
+in the file tree rooted at
+.I mntpt
+(default
+.BR /mnt/keys ).
+Each user
+.I user
+in
+.I keyfile
+is represented as the directory
+.IR mntpt / user .
+.PP
+Making a new directory in
+.I mntpt
+creates a new user entry in the database.
+Removing a directory removes the user entry,
+and renaming it changes the name in the entry.
+.I Keyfs
+does not allow duplicate names when creating or renaming user entries.
+.PP
+All files in the user directories except for
+.B key
+contain
+.SM UTF
+strings with a trailing newline when read,
+and should be written as
+.SM UTF
+strings with or without a trailing newline.
+.B Key
+contains the
+.BR DESKEYLEN -byte
+encryption key for the user.
+.PP
+The following files appear in the user directories.
+.TP
+.B key
+The authentication key for the user.
+If the user's account is disabled or expired,
+reading this file returns an error.
+Writing
+.I key
+changes the key in the database.
+.TP
+.B log
+The number of consecutive failed authentication attempts for the user.
+Writing the string
+.B bad
+increments this number; writing
+.B good
+resets it to 0.
+If the number reaches fifty,
+.I keyfs
+disables the account.
+Once the account is disabled,
+the only way to enable it is to write the string
+.B ok
+to
+.BR status .
+This number is not stored in
+.IR keyfile ,
+and is initialized to 0 when
+.I keyfs
+starts.
+.TP
+.B status
+The current status of the account, either
+.B ok
+or
+.BR disabled .
+Writing
+.B ok
+enables the account;
+writing
+.B disabled
+disables it.
+.TP
+.B expire
+The expiration time for the account.
+When read, it contains either the string
+.B never
+or the time in seconds since the epoch
+that the account will expire.
+When written with strings of the same form,
+it sets the expiration date for the user.
+If the expiration date is reached,
+the account is not disabled,
+but
+.I key
+cannot be read without an error.
+.TP
+.B ishost
+This file exists only if the user is a host (the host status for the user is 1).
+Hosts are the only users able to receive calls.
+Creating it makes the user a host and sets the host status to 1,
+and removing it sets the host status to 0.
+.SH FILES
+.TF \w'/adm/keysXXXX'u
+.TP
+.B /adm/keys
+Encrypted key file for the Plan 9 database.
+.TP
+.B /adm/netkeys
+Encrypted key file for the SecureNet database.
+.TP
+.B #r/nvram
+The non-volatile RAM on the server, which holds the key used
+to decrypt key files.
+.SH "SEE ALSO"
+.IR auth (6),
+.IR namespace (6),
+.IR auth (8)

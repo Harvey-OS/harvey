@@ -1,0 +1,25 @@
+.TH XNF 10.1
+.SH NAME
+xnf \- minterm to xilinx XNF translation
+.SH SYNOPSIS
+.B cda/xnf
+\fIfile\fP.m
+.SH DESCRIPTION
+.PP
+.I Xnf
+translates input in
+.IR minterm (10.6)
+format to Xilinx Netlist Format suitable for processing
+by the Xilinx minimization, placing routing software.  This
+translation is very naive and not guaranteed to be acceptable
+by the Xilinx
+.I ppr
+program for X4000 parts.  In any case, the Xilinx
+.I xnfopt
+program should be run first.
+.SH SEE ALSO
+.IR lde (10.1)
+.SH BUGS
+Use
+.I xil
+and the 4000 series parts instead.

@@ -1,0 +1,6 @@
+dvit isn't quite right because ken doesn't truncate
+on conversion of doubles to int.
+should change one day.
+
+a troff-to-latex converter is available at wsmr-simtel20.army.mil
+in pd2:<unix-c.textproc> as troff-to-latex.tar-Z

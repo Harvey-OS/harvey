@@ -1,0 +1,29 @@
+The AMS files were retrieved from e-math.ams.com, Oct 5 1990.
+The fontsel files were retrieved from ymir.claremont.edu, Oct 5 1990.
+
+The documentation can be printed by putting this directory in
+your TEXINPUTS path, and using the following commands.
+
+amltinst -- installation guide for ams-latex
+	latex amltinst
+
+amsguide -- user guide for amstex (I haven't installed amstex)
+	tex amstex
+	\input amsguide
+
+amslatex -- user guide for ams-latex
+	latex amslatex
+
+fontsel -- user guide for new font selection scheme
+	initex
+	&nlatex fontsel
+
+testart -- a test article for ams-latex
+	amslatex testart
+
+testbook -- a test book for ams-latex
+	amslatex testbook
+
+userdoc -- user documentation for ams fonts
+	tex userdoc
+

@@ -1,0 +1,322 @@
+.TH FRAME 2X
+.SH NAME
+frinit, frsetrects, frclear, frcharofpt, frptofchar, frinsert, frdelete, frselect, frselectp, frselectf, frgetmouse \- frames of text
+.SH SYNOPSIS
+.nf
+.B
+#include <u.h>
+.B
+#include <libc.h>
+.B
+#include <libg.h>
+.B
+#include <frame.h>
+.PP
+.B
+void  frinit(Frame *f, Rectangle r, Font *ft, Bitmap *b);
+.PP
+.B
+void  frsetrects(Frame *f, Rectangle r, Bitmap *b);
+.PP
+.B
+void  frclear(Frame *f);
+.PP
+.B
+ulong frcharofpt(Frame *f, Point pt);
+.PP
+.B
+Point frptofchar(Frame *f, ulong p);
+.PP
+.B
+void  frinsert(Frame *f, Rune *r0, Rune *r1, ulong p);
+.PP
+.B
+int   frdelete(Frame *f, ulong p0, ulong p1);
+.PP
+.B
+void  frselect(Frame *f, Mouse *m);
+.PP
+.B
+void  frselectp(Frame *f, Fcode fc);
+.PP
+.B
+void  frselectf(Frame *f, Point p0, Point p1, Fcode c);
+.PP
+.B
+extern void frgetmouse(void);
+.fi
+.SH DESCRIPTION
+This library supports
+.I frames
+of editable text in a single font on bitmap displays, such as in
+.IR sam (1)
+and
+.IR 8½ (1).
+Frames may hold any character except NUL (0).
+Long lines are folded and tabs are at fixed intervals.
+.PP
+The user-visible data structure, a
+.BR Frame ,
+is defined in
+.BR <frame.h> :
+.IP
+.EX
+.ta 6n +\w'Rectangle 'u +\w'lastlinefull;   'u
+typedef struct Frame Frame;
+struct Frame
+{
+	Font	*font;	/* of chars in the frame */
+	Bitmap	*b;	/* on which frame appears */
+	Rectangle	r;	/* in which text appears */
+	Rectangle	entire;	/* of full frame */
+	Frbox	*box;
+	ulong	p0, p1;	/* selection */
+	short	left;	/* left edge of text */
+	ushort	nbox, nalloc;
+	ushort	maxtab;	/* max size of tab, in pixels */
+	ushort	nchars;	/* # runes in frame */
+	ushort	nlines;	/* # lines with text */
+	ushort	maxlines;	/* total # lines in frame */
+	ushort	lastlinefull;	/* last line fills frame */
+	ushort	modified;	/* changed since frselect() */
+};
+.EE
+.PP
+.B Frbox
+is an internal type and is not used by the interface.
+.B P0
+and
+.B p1
+may be changed by the application provided the selection routines are called
+afterwards to maintain a consistent display.
+.I Maxtab
+determines the size of tab stops.
+.I Frinit
+sets it to 8 times the width of a
+.B 0
+(zero)
+character in the font;
+it may be changed before any text is added to the frame.
+The other elements of the structure are maintained by the library and
+should not be modified directly.
+.PP
+The text within frames
+is not directly addressable;
+instead frames are designed to work alongside
+another structure that holds the text.
+The typical application is to display a section of a longer document such
+as a text file or terminal session.
+Usually the application will keep its own copy of the
+text in the window (probably as
+an array of
+.BR Runes )
+and pass components of this text to the frame routines to
+display the visible portion.
+Only the text that is visible is held by the
+.BR Frame ;
+the application must check
+.BR maxlines ,
+.BR nlines ,
+and
+.B lastlinefull
+to determine, for example, whether new text needs to be appended
+at the end of the
+.B Frame
+after calling
+.I frdelete
+(q.v.). 
+.PP
+There are no routines in the library to allocate
+.BR Frames ;
+instead the interface assumes that
+.B Frames
+will be components of larger structures.
+.I Frinit
+prepares the
+.B Frame
+.I f
+so characters drawn in it will appear
+in the single
+.B Font
+.I ft.
+It then calls
+.B frsetrects
+to initialize the geometry for the
+.B Frame.
+The
+.B Bitmap
+.I b
+is where the
+.B Frame
+is to be drawn;
+.B Rectangle
+.I r
+defines the limit of the portion of the
+.B Bitmap
+the text will occupy.
+The
+.B Bitmap
+pointer
+may be null, allowing the other routines to be called to maintain the
+associated data structure in, for example, an obscured window.
+.PP
+.I Frclear
+frees the internal structures associated with
+.I f,
+permitting another
+.I frinit
+or
+.I frsetrects
+on the
+.BR Frame .
+If
+.I f
+is to be deallocated, the associated
+.B Font
+and
+.B Bitmap
+must be freed separately.
+.PP
+To reshape a
+.BR Frame ,
+use
+.I frclear
+and
+.I frinit
+and then
+.I frinsert
+(q.v.) to recreate the display.
+If a
+.B Frame
+is being moved but not reshaped, that is, if the shape of its containing
+rectangle is unchanged, it is sufficient to
+.IR bitblt (2)
+the containing rectangle from the old to the new location and then call
+.I frsetrects
+to establish the new geometry.
+No redrawing is necessary.
+.PP
+.B Frames
+hold text as runes,
+not as bytes.
+.I Frptofchar
+returns the location of the upper left corner of the
+.I p'th
+rune in the
+.B Frame
+.I f.
+If
+.I f
+holds fewer than
+.I p
+runes,
+.I frptofchar
+returns the location of the upper right corner of the last character in
+.I f.
+.I Frcharofpt
+is the inverse: it
+returns the index of the closest rune whose image's upper left corner
+is up and to the left of
+.I pt.
+.PP
+.I Frinsert
+inserts into
+.B Frame
+.I f
+starting at rune index
+.I p
+the runes between
+.I r0
+and
+.I r1.
+If a NUL (0) character
+is inserted, chaos will ensue.
+Tabs and newlines
+are handled by the library, but all other characters,
+including control characters, are just displayed.
+For example, backspaces are printed; to erase
+a character, use
+.I frdelete.
+.PP
+.I Frdelete
+deletes from the
+.B Frame
+the text between
+.I p0
+and
+.IR p1 ;
+.I p1
+points at the first rune beyond the deletion.
+.PP
+.I Frselect
+tracks the mouse to select a contiguous string of text in the
+.BR Frame .
+When called, mouse button 1 should be depressed.
+It will return when the button is released and will set
+.IB f ->p0
+and
+.IB f ->p1
+to the selected range of text.
+.I Frselectf
+and
+.I Frselectp
+modify the display of the selected text.
+.I Frselectf
+highlights the text between
+.I p0
+and
+.I p1
+(which must have been returned by
+.IR frptofochar )
+using
+.B bitblt
+in mode
+.I c.
+.I Frselectp
+is similar but highlights the text from
+.IB f ->p0
+to
+.IB f ->p1 .
+Neither
+.I frselectf
+nor
+.I frselectp
+modifies
+.IB f ->p0
+or
+.IB f ->p1 .
+.PP
+Upon return from
+.I frinsert
+or
+.I frdelete,
+the display will be consistent but
+.IB f ->p0
+and
+.IB f ->p1
+may not point to the desired selection.
+It may be necessary to adjust the selection and use
+.I frselectf
+or
+.I frselectp
+to fix the display.
+.PP
+.I Frgetmouse
+must be provided by the application;
+.I frselect
+calls it to get mouse updates.
+Each call to
+.I frgetmouse
+should update
+the
+.B Mouse
+structure pointed to by
+.I frselect's
+argument
+.I m.
+.I Frgetmouse
+should block until the mouse status has changed.
+.SH SEE ALSO
+.IR graphics (2),
+.IR bitblt (2),
+.IR cachechars (2).

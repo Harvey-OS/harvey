@@ -1,0 +1,56 @@
+# This file makes GFtoDVI, GFtoPK, GFtype, mft, PKtoGF, and PKtype from
+# their respective sources.
+#
+
+APE=/sys/src/ape
+< $APE/config
+SITEDIR=..
+OPT=-B
+SHELL=/bin/rc
+
+TARG=gftype gftodvi gftopk mft
+
+OFILES=mfwarext.$O\
+
+HFILES=mfware.h\
+	$SITEDIR/site.h\
+
+</sys/src/cmd/mkmany
+
+CFLAGS=$OPT -Dlink=link_array -I$SITEDIR -c
+LDFLAGS=
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+
+all:V:		triptrap
+triptrap:V:	$O.gftype
+
+$O.mft:		mftext.$O
+
+mfwarext.c mftext.c:Q:		#dummy to keep these out of %.c rule
+		echo -n
+
+%.c:		%.p mfware.defines
+		$SHELL ./convert $stem.p $stem.c
+
+%.p:		%.ch %.web ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle $stem.web $stem.ch > /dev/null
+		
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG *.pool
+
+nuke:V:
+		rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG *.pool
+		rm -f *.p
+		rm -f gftodvi.c gftype.c gftopk.c mft.c
+		rm -f gftodvi.h gftype.h gftopk.h mft.h
+		rm -f '#'*'#' *~ *.bak

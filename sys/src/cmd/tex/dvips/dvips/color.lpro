@@ -1,0 +1,195 @@
+%!
+%% color.lpro: this sets up color macros used by dvips and defines some
+%%             default color parameters (if these are not already user
+%%             defined by another header file).
+%%
+%% This was written by J. Hafner (hafner@almaden.ibm.com) and was last
+%% modified on 2/14/92.  It was then rewritten by Tomas Rokicki to be
+%% smaller.
+%%
+%% The color names used here mostly come from the Crayola Crayon box of
+%% 64 colors, with some small additions and deletions.  The names match 
+%% those used in the color.[sty,tex] and black.[sty,tex] files. 
+%% The actual color parameters were set using a Tektronix Phaser
+%% printer.  Approximate PANTONE numbers are given for most colors.
+%% 
+%% If any of these colors don't match the reditions given by your 
+%% color device, then you can redefine them by adding another header file 
+%% to predefine the colors in userdict.  In this way you can easily 
+%% customize these colors to every device by adding a header entry in the
+%% corresponding config.PRINTER file.
+%%
+%% This header file assumes that tex.pro is already loaded (e.g., B is
+%% defined in that header).
+%%
+TeXDict begin
+%%
+%% This defines the currentcmykcolor and setcmykcolor in terms of rbg
+%% if they are not defined in the current interpreter.
+%%
+/setcmykcolor where {pop}
+      { /setcmykcolor
+          { dup 10 eq {pop setrgbcolor}
+                    {1 sub 4 1 roll 3
+                        { 3 index add neg dup 0 lt {pop 0} if 3 1 roll
+                        } repeat
+                      setrgbcolor pop
+                    } ifelse
+           } B
+      } ifelse
+/TeXcolorcmyk { setcmykcolor } def
+/TeXcolorrgb { setrgbcolor } def
+/TeXcolorgrey { setgray } def
+/TeXcolorgray { setgray } def
+/TeXcolorhsb { sethsbcolor } def
+/currentcmykcolor where {pop}
+      { /currentcmykcolor
+          { currentrgbcolor 10   % The 10 signals colors in rbg on stack
+          } B
+      } ifelse
+%%
+%% This is intended to set the color states by these defaults, only if
+%% they are not defined elsewhere, particularly in another header file.
+%% If defined in another header file, they must be defined in userdict to
+%% take effect.
+%%
+/DC { % define a color
+   exch dup userdict exch known { pop pop } { X } ifelse
+} B
+%% GreenYellow  Approximate PANTONE 388
+/GreenYellow { 0.15 0 0.69 0 setcmykcolor } DC
+%% Yellow  Approximate PANTONE YELLOW
+/Yellow { 0 0 1 0 setcmykcolor } DC
+%% Goldenrod  Approximate PANTONE 109
+/Goldenrod { 0 0.10 0.84 0 setcmykcolor } DC
+%% Dandelion  Approximate PANTONE 123
+/Dandelion { 0 0.29 0.84 0 setcmykcolor } DC
+%% Apricot  Approximate PANTONE 1565
+/Apricot { 0 0.32 0.52 0 setcmykcolor } DC
+%% Peach  Approximate PANTONE 164
+/Peach { 0 0.50 0.70 0 setcmykcolor } DC
+%% Melon  Approximate PANTONE 177
+/Melon { 0 0.46 0.50 0 setcmykcolor } DC
+%% YellowOrange  Approximate PANTONE 130
+/YellowOrange { 0 0.42 1 0 setcmykcolor } DC
+%% Orange  Approximate PANTONE ORANGE-021
+/Orange { 0 0.61 0.87 0 setcmykcolor } DC
+%% BurntOrange  Approximate PANTONE 388
+/BurntOrange { 0 0.51 1 0 setcmykcolor } DC
+%% Bittersweet  Approximate PANTONE 167
+/Bittersweet { 0 0.75 1 0.24 setcmykcolor } DC
+%% RedOrange  Approximate PANTONE 179
+/RedOrange { 0 0.77 0.87 0 setcmykcolor } DC
+%% Mahogany  Approximate PANTONE 484
+/Mahogany { 0 0.85 0.87 0.35 setcmykcolor } DC
+%% Maroon  Approximate PANTONE 201
+/Maroon { 0 0.87 0.68 0.32 setcmykcolor } DC
+%% BrickRed  Approximate PANTONE 1805
+/BrickRed { 0 0.89 0.94 0.28 setcmykcolor } DC
+%% Red  VERY-Approx PANTONE RED
+/Red { 0 1 1 0 setcmykcolor } DC
+%% OrangeRed  No PANTONE match
+/OrangeRed { 0 1 0.50 0 setcmykcolor } DC
+%% RubineRed  Approximate PANTONE RUBINE-RED
+/RubineRed { 0 1 0.13 0 setcmykcolor } DC
+%% WildStrawberry  Approximate PANTONE 206
+/WildStrawberry { 0 0.96 0.39 0 setcmykcolor } DC
+%% Salmon  Approximate PANTONE 183
+/Salmon { 0 0.53 0.38 0 setcmykcolor } DC
+%% CarnationPink  Approximate PANTONE 218
+/CarnationPink { 0 0.63 0 0 setcmykcolor } DC
+%% Magenta  Approximate PANTONE PROCESS-MAGENTA
+/Magenta { 0 1 0 0 setcmykcolor } DC
+%% VioletRed  Approximate PANTONE 219
+/VioletRed { 0 0.81 0 0 setcmykcolor } DC
+%% Rhodamine  Approximate PANTONE RHODAMINE-RED
+/Rhodamine { 0 0.82 0 0 setcmykcolor } DC
+%% Mulberry  Approximate PANTONE 241
+/Mulberry { 0.34 0.90 0 0.02 setcmykcolor } DC
+%% RedViolet  Approximate PANTONE 234
+/RedViolet { 0.07 0.90 0 0.34 setcmykcolor } DC
+%% Fuchsia  Approximate PANTONE 248
+/Fuchsia { 0.47 0.91 0 0.08 setcmykcolor } DC
+%% Lavender  Approximate PANTONE 223
+/Lavender { 0 0.48 0 0 setcmykcolor } DC
+%% Thistle  Approximate PANTONE 245
+/Thistle { 0.12 0.59 0 0 setcmykcolor } DC
+%% Orchid  Approximate PANTONE 252
+/Orchid { 0.32 0.64 0 0 setcmykcolor } DC
+%% DarkOrchid  No PANTONE match
+/DarkOrchid { 0.40 0.80 0.20 0 setcmykcolor } DC
+%% Purple  Approximate PANTONE PURPLE
+/Purple { 0.45 0.86 0 0 setcmykcolor } DC
+%% Plum  VERY-Approx PANTONE 518
+/Plum { 0.50 1 0 0 setcmykcolor } DC
+%% Violet  Approximate PANTONE VIOLET
+/Violet { 0.79 0.88 0 0 setcmykcolor } DC
+%% RoyalPurple  Approximate PANTONE 267
+/RoyalPurple { 0.75 0.90 0 0 setcmykcolor } DC
+%% BlueViolet  Approximate PANTONE 2755
+/BlueViolet { 0.86 0.91 0 0.04 setcmykcolor } DC
+%% Periwinkle  Approximate PANTONE 2715
+/Periwinkle { 0.57 0.55 0 0 setcmykcolor } DC
+%% CadetBlue  Approximate PANTONE (534+535)/2
+/CadetBlue { 0.62 0.57 0.23 0 setcmykcolor } DC
+%% CornflowerBlue  Approximate PANTONE 292
+/CornflowerBlue { 0.65 0.13 0 0 setcmykcolor } DC
+%% MidnightBlue  Approximate PANTONE 302
+/MidnightBlue { 0.98 0.13 0 0.43 setcmykcolor } DC
+%% NavyBlue  Approximate PANTONE 293
+/NavyBlue { 0.94 0.54 0 0 setcmykcolor } DC
+%% RoyalBlue  No PANTONE match
+/RoyalBlue { 1 0.50 0 0 setcmykcolor } DC
+%% Blue  Approximate PANTONE BLUE-072
+/Blue { 1 1 0 0 setcmykcolor } DC
+%% Cerulean  Approximate PANTONE 3005
+/Cerulean { 0.94 0.11 0 0 setcmykcolor } DC
+%% Cyan  Approximate PANTONE PROCESS-CYAN
+/Cyan { 1 0 0 0 setcmykcolor } DC
+%% ProcessBlue  Approximate PANTONE PROCESS-BLUE
+/ProcessBlue { 0.96 0 0 0 setcmykcolor } DC
+%% SkyBlue  Approximate PANTONE 2985
+/SkyBlue { 0.62 0 0.12 0 setcmykcolor } DC
+%% Turquoise  Approximate PANTONE (312+313)/2
+/Turquoise { 0.85 0 0.20 0 setcmykcolor } DC
+%% TealBlue  Approximate PANTONE 3145
+/TealBlue { 0.86 0 0.34 0.02 setcmykcolor } DC
+%% Aquamarine  Approximate PANTONE 3135
+/Aquamarine { 0.82 0 0.30 0 setcmykcolor } DC
+%% BlueGreen  Approximate PANTONE 320
+/BlueGreen { 0.85 0 0.33 0 setcmykcolor } DC
+%% Emerald  No PANTONE match
+/Emerald { 1 0 0.50 0 setcmykcolor } DC
+%% JungleGreen  Approximate PANTONE 328
+/JungleGreen { 0.99 0 0.52 0 setcmykcolor } DC
+%% SeaGreen  Approximate PANTONE 3268
+/SeaGreen { 0.69 0 0.50 0 setcmykcolor } DC
+%% Green  VERY-Approx PANTONE GREEN
+/Green { 1 0 1 0 setcmykcolor } DC
+%% ForestGreen  Approximate PANTONE 349
+/ForestGreen { 0.91 0 0.88 0.12 setcmykcolor } DC
+%% PineGreen  Approximate PANTONE 323
+/PineGreen { 0.92 0 0.59 0.25 setcmykcolor } DC
+%% LimeGreen  No PANTONE match
+/LimeGreen { 0.50 0 1 0 setcmykcolor } DC
+%% YellowGreen  Approximate PANTONE 375
+/YellowGreen { 0.44 0 0.74 0 setcmykcolor } DC
+%% SpringGreen  Approximate PANTONE 381
+/SpringGreen { 0.26 0 0.76 0 setcmykcolor } DC
+%% OliveGreen  Approximate PANTONE 582
+/OliveGreen { 0.64 0 0.95 0.40 setcmykcolor } DC
+%% RawSienna  Approximate PANTONE 154
+/RawSienna { 0 0.72 1 0.45 setcmykcolor } DC
+%% Sepia  Approximate PANTONE 161
+/Sepia { 0 0.83 1 0.70 setcmykcolor } DC
+%% Brown  Approximate PANTONE 1615
+/Brown { 0 0.81 1 0.60 setcmykcolor } DC
+%% Tan  No PANTONE match
+/Tan { 0.14 0.42 0.56 0 setcmykcolor } DC
+%% Gray  Approximate PANTONE COOL-GRAY-8
+/Gray { 0 0 0 0.50 setcmykcolor } DC
+%% Black  Approximate PANTONE PROCESS-BLACK
+/Black { 0 0 0 1 setcmykcolor } DC
+%% White  No PANTONE match
+/White { 0 0 0 0 setcmykcolor } DC
+end

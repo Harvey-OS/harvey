@@ -1,0 +1,15 @@
+ed ../8c/8.out.h <<!
+v/^	A/d
+g/^	A/s//	"/
+g/ .*$/s///
+g/,.*$/s//",/
+$ a
+};
+.
+1i
+char	*anames[] =
+{
+.
+w enam.c
+Q
+!

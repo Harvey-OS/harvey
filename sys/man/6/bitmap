@@ -1,0 +1,90 @@
+.TH BITMAP 6
+.SH NAME
+bitmap \- external format for bitmaps
+.SH SYNOPSIS
+.B #include <libg.h>
+.SH DESCRIPTION
+Bitmaps are described in
+.IR graphics (2).
+Fonts and bitmaps are stored in external files
+in machine-independent formats.
+.PP
+Bitmap files are read and written using
+.I rdbitmapfile
+and
+.I wrbitmapfile
+(see
+.IR balloc (2)).
+A bitmap file starts with 5
+decimal strings:
+.BR ldepth ,
+.BR r.min.x ,
+.BR r.min.y ,
+.BR r.max.x ,
+and
+.BR r.max.y .
+Each number is right-justified and blank padded in 11 characters, followed by a blank.
+The rest of the file contains the
+.BR r.max.y \- r.min.y
+rows of bitmap data.
+A
+.I row
+consists of the byte containing pixel
+.B r.min.x
+and all the bytes up to and including the byte containing pixel
+.B r.min.x\fR\(mi1.
+A pixel with x-coordinate =
+.I x
+in a bitmap with
+.B ldepth
+=
+.I l
+will appear as
+.if t \fIw\fP = 2\u\s8\fIl\fP\s10\d
+.if n w = 2^l
+contiguous bits in a byte, with the pixel's high order bit
+starting at the byte's bit number
+.if t \fIw\fP\(mu((\fIx\fP mod 8)/\fIw\fP),
+.if n w*(x mod 8/w),
+where bits within a byte are numbered 0 to 7 from the
+high order to the low order bit.
+If
+.I w
+is greater than 8, it is a multiple of 8, so
+pixel values take up an integral number of bytes.
+Rows contain integral number of bytes, so there may be some unused
+pixels at either end of a row.
+.PP
+The
+.I rdbitmap
+and
+.I wrbitmap
+functions described in
+.IR balloc (2)
+also deal with rows in this format, stored in user memory.
+.PP
+Some small images, in particular 48\(mu48 face files
+as used by
+.I seemail
+(see
+.IR mail (1))
+and 16\(mu16
+cursors, are stored textually, suitable for inclusion in C source.
+Each line of text represents one scan line as a
+comma-separated sequence of hexadecimal
+bytes, shorts, or words in C format.
+For cursors, each line defines a pair of bytes.
+(It takes two images to define a cursor; each must be stored separately
+to be processed by programs such as
+.IR tweak (1).)
+Face files of one bit per pixel are stored as a sequence of shorts,
+those of larger pixel sizes as a sequence of longs.
+Software that reads these files must deduce the image size from
+the input; there is no header.
+These formats reflect history rather than design.
+.SH "SEE ALSO"
+.IR tweak (1),
+.IR graphics (2),
+.IR bitblt (2),
+.IR balloc (2),
+.IR font (6)

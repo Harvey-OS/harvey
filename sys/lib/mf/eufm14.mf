@@ -1,0 +1,19 @@
+% EUFM14.MF                     June 1990
+% This Metafont file is part of AMSFonts 2.0.
+% Copyright (C) 1990, American Mathematical Society.
+% All rights reserved.  Copying of this file is authorized only if either:
+%   (1) you make absolutely no changes to your copy including filename; OR
+%   (2) if you do make changes, you first rename it to some other filename.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% -----     Euler Fraktur Medium 14pt ---------------------------------
+
+     font_identifier := "EUFM";
+
+     ptsize = 14;
+
+      leftside# = 0h#;
+     rightside# = 0h#;
+
+     input eufmch;
+
+     bye

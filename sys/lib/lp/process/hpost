@@ -1,0 +1,104 @@
+#!/bin/rc
+if (! ~ $DEBUG '') flag x +
+REVFLAG=''
+if (~ $LPCLASS *reverse*) {
+	switch ($REVERSE) {
+	case '';
+		REVFLAG=1
+	case 1;
+		REVFLAG=''
+	}
+}
+if (! ~ $REVFLAG '')
+	/sys/lib/postscript/bin/$cputype/postreverse
+
+if (~ $NOHEAD '') {
+	DATE=`{date}
+	face='00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000
+00000000000000000000000000000000'
+	faceinfo = `{/$cputype/bin/aux/geticon $LPMACHID $LPUSERID 1}
+	facefile = $faceinfo(4)
+	facedepth = `{echo 2 '^' $faceinfo(3)|hoc}
+	if (! test -r $facefile ) facefile = /lib/face/face48/unknown
+	if (test -r $facefile ) face=`{cat $facefile | \
+		sed -e 's/0x//g' -e 's/, *//g' | \
+		tr 0123456789abcdef fedcba9876543210 };
+}
+
+# We have to make sure the face information is set before rc sees the HERE file
+# so the cat has to be in a separate if statement.  This is an rc bug.
+if (~ $NOHEAD '') cat <<EOF
+%!PS-Adobe-2.0	div 112 page header - research!pg
+/banner {
+	/saveobj save def
+	erasepage initgraphics
+	/#copies 1 def
+	/inch {72 mul} bind def
+	/pageborder {
+		25 747 moveto
+		590 747 lineto
+		590 25 lineto
+		25 25 lineto
+		closepath
+		2 setlinewidth
+		0 setgray
+		stroke
+	} def
+
+	/topborder {
+		25 773 moveto
+		590 773 lineto
+		590 747 lineto
+		25 747 lineto
+		closepath
+		2 setlinewidth
+		0 setgray
+		stroke
+	} def
+
+	/toptext {
+		120 756 moveto
+		/Courier-Bold findfont 14 scalefont setfont
+		($LPUSERID $DATE) show
+	} def
+
+	/prface {
+		gsave
+		translate rotate scale
+		setgray
+		48 48 $facedepth [48 0 0 -48 0 48] {<$face>} image
+		grestore
+	} def
+
+	statusdict /setduplexmode known {statusdict begin false setduplexmode end} if
+	statusdict begin /manualfeed false def end
+	pageborder
+	topborder
+	toptext
+	0 14 14 0 94 752 prface
+	.3 180 180 -90 3.0 inch 10.2 inch prface
+	showpage
+	saveobj
+	restore
+} bind def
+banner
+EOF
+
+if (~ $REVFLAG '') cat
+exit ''

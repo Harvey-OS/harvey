@@ -1,0 +1,36 @@
+</$cputype/mkfile
+
+TARG=urom.codes urom.notes
+LIB=/sys/lib/cda
+CFLAGS=-w -DPLAN9
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+
+all:V:	urom.codes urom.notes
+
+urom.codes: $cpuobjtype.dump alg.sys
+	$cpuobjtype.dump -8 -P -s alg.sys >$target
+
+urom.notes: $cpuobjtype.notes devfnote.sys
+	$cpuobjtype.notes <devfnote.sys >$target
+
+$cpuobjtype.(notes|dump):R:
+	objtype=$cputype
+	mk $stem1.$cputype
+
+%.$cputype:	%.$O
+	$LD -o $O.$stem $prereq
+
+%.$O: %.c
+	$CC $CFLAGS $stem.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out urom.codes urom.notes [$OS].dump [$OS].notes
+
+install:V: $LIB/urom.codes $LIB/urom.notes
+
+$LIB/urom.%:	urom.%
+	cp $prereq $target
+
+installall:V:	install
+
+nuke:V:	clean

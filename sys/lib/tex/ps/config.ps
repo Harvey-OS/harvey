@@ -1,0 +1,48 @@
+*   Make it a quiet filter
+*   Memory is for Apple LaserWriter (it actually has 180K)
+f
+q
+*   Default printer is Apple LaserWriter.  It has 180K, but
+*   the memory accounting doesn't allow for included figures.
+D 300
+m 150000
+*   Reverse pages and don't compress fonts by default
+r
+Z0
+
+@ letterSize 8.5in 11in
+
+@ letter 8.5in 11in
+@+ %%BeginPaperSize: Letter
+@+ letter
+@+ %%EndPaperSize
+
+@ legal 8.5in 14in
+@+ ! %%DocumentPaperSizes: Legal
+@+ %%BeginPaperSize: Legal
+@+ legal
+@+ %%EndPaperSize
+
+@ ledger 17in 11in
+@+ ! %%DocumentPaperSizes: Ledger
+@+ %%BeginPaperSize: Ledger
+@+ ledger
+@+ %%EndPaperSize
+
+@ tabloid 11in 17in
+@+ ! %%DocumentPaperSizes: Tabloid
+@+ %%BeginPaperSize: Tabloid
+@+ 11x17
+@+ %%EndPaperSize
+
+@ a4 210mm 297mm
+@+ ! %%DocumentPaperSizes: a4
+@+ %%BeginPaperSize: a4
+@+ a4
+@+ %%EndPaperSize
+
+@ a3 297mm 420mm
+@+ ! %%DocumentPaperSizes: a3
+@+ %%BeginPaperSize: a3
+@+ a3
+@+ %%EndPaperSize

@@ -1,0 +1,32 @@
+\input rotate
+\newbox\rotbox
+\newbox\rottwo
+%
+\font\big=cmr17 scaled\magstep4
+This is a \setbox\rotbox=\hbox{simple}\rotl\rotbox\ test of
+\setbox\rotbox=\hbox{some}\rotu\rotbox\ rotation primitives that
+\setbox\rotbox=\hbox{\big work}\rotr\rotbox.
+Or maybe \setbox\rotbox=\hbox{\vrule height .2in width .2in}\rotl\rotbox\
+not.
+\bigskip
+\centerline{\vbox{\offinterlineskip
+\def\tablerule{\noalign{\hrule}}
+\def\breather{height 2pt&&&&&&&&&&\cr}
+\def\allfive#1{\breather
+&\global\setbox\rottwo=\hbox{#1}\copy\rottwo&&%
+\setbox\rotbox=\copy\rottwo\rotl\rotbox&&%
+\setbox\rotbox=\copy\rottwo\rotu\rotbox&&%
+\setbox\rotbox=\copy\rottwo\rotr\rotbox&&%
+\rotf\rottwo&\cr
+\breather\tablerule}
+\offinterlineskip
+\halign{\vrule#&\hfil\ #\ \hfil&\vrule#&\hfil\ #\ \hfil&\vrule#&%
+   \hfil\ #\ \hfil&\vrule#&\hfil\ #\ \hfil&\vrule#&\hfil\ #\ \hfil&\vrule#\cr
+\tablerule
+\breather
+&\strut Upside&&Leftside&&Downside&&Rightside&&Flipside&\cr
+\breather\tablerule
+\allfive{gnus}
+\allfive{$-b\pm\sqrt{b^2-4ac}\over2a$}
+\allfive{{\big A}}}}}%
+\bye

@@ -1,0 +1,20 @@
+.TH ERROR 5 
+.SH NAME
+error \- return an error
+.SH SYNOPSIS
+.ta \w'\fLTerror 'u
+.B
+Rerror
+.IR tag [2]
+.IR ename [28]
+.SH DESCRIPTION
+The
+.B Rerror
+request
+(there is no
+.BR Terror )
+is used to return an error string describing the
+failure of a transaction.
+It replaces the corresponding reply message
+that would accompany a successful call; its tag is that
+of the request.

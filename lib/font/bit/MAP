@@ -1,0 +1,274 @@
+# an attempt to tie together the fonts as seen from
+# troff et al to the corresponding bitmaps
+
+# map
+#	lists mapping from name of character to its decimal position
+#	in a font; a particular map applies to a list of fonts that
+#	follows it.
+
+# troff F dir/prefix
+#	maps troff font name into files in /lib/font/bit/dir/prefix...
+#	all files in a group share the preceding map.
+
+# these may be repeated ad libitum.  in principle this ought to work
+# for tex and postscript, but caveat emptor.
+
+map
+	dg	1
+	em	2
+	en	3
+	fi	4
+	fl	5
+	hy	6
+	sc	7
+	!	33
+	"	34
+	#	35
+	$	36
+	%	37
+	&	38
+	'	39
+	(	40
+	)	41
+	*	42
+	+	43
+	pl	43
+	,	44
+	-	45
+	hy	45
+	.	46
+	/	47
+	sl	47
+	0	48
+	1	49
+	2	50
+	3	51
+	4	52
+	5	53
+	6	54
+	7	55
+	8	56
+	9	57
+	:	58
+	;	59
+	<	60
+	=	61
+	>	62
+	?	63
+	@	64
+	A	65
+	B	66
+	C	67
+	D	68
+	E	69
+	F	70
+	G	71
+	H	72
+	I	73
+	J	74
+	K	75
+	L	76
+	M	77
+	N	78
+	O	79
+	P	80
+	Q	81
+	R	82
+	S	83
+	T	84
+	U	85
+	V	86
+	W	87
+	X	88
+	Y	89
+	Z	90
+	[	91
+	\	92
+	]	93
+	^	94
+	_	95
+	`	96
+	a	97
+	b	98
+	c	99
+	d	100
+	e	101
+	f	102
+	g	103
+	h	104
+	i	105
+	j	106
+	k	107
+	l	108
+	m	109
+	n	110
+	o	111
+	p	112
+	q	113
+	r	114
+	s	115
+	t	116
+	u	117
+	v	118
+	w	119
+	x	120
+	y	121
+	z	122
+	{	123
+	|	124
+	}	125
+	~	126
+
+# this group has to end with a blank line!!!!
+# the following fonts all share the map above
+
+troff	R	times/R.
+troff	I	times/I.
+troff	B	times/B.
+troff	BI	times/BI.
+
+troff	CW	courier/R.
+troff	CB	courier/R.
+
+troff	R	palatino/R.
+troff	I	palatino/I.
+troff	B	palatino/B.
+troff	BI	palatino/BI.
+
+troff	H	helvetica/R.
+troff	HI	helvetica/I.
+troff	HI	helvetica/I.
+troff	HX	helvetica/BI.
+
+map
+	!=	1
+	**	2
+	*C	3
+	*D	4
+	*F	5
+	*G	6
+	*H	7
+	*L	8
+	*P	9
+	*Q	10
+	*S	11
+	*W	12
+	*a	13
+	*b	14
+	*c	15
+	*d	16
+	*e	17
+	*f	18
+	*g	19
+	*h	20
+	*i	21
+	*k	22
+	*l	23
+	*m	24
+	*n	25
+	*o	26
+	*p	27
+	*q	28
+	*r	29
+	*s	30
+	*t	31
+	*u	32
+	*w	33
+	*x	34
+	*y	35
+	*z	36
+	+-	37
+	->	38
+	..	39
+	12	40
+	14	41
+	34	42
+	<-	43
+	<=	44
+	==	45
+	>=	46
+	L.	47
+	L1	48
+	Sl	49
+	\-	50
+	\_	51
+	aa	52
+	al	53
+	ap	54
+	b9	55
+	br	56
+	bs	57
+	bu	58
+	bv	59
+	bx	60
+	ca	61
+	cd	62
+	ci	63
+	co	64
+	ct	65
+	cu	66
+	da	67
+	dd	68
+	de	69
+	di	70
+	eq	71
+	es	72
+	fa	73
+	fe	74
+	fm	75
+	ga	76
+	gr	77
+	hc	78
+	ib	79
+	if	80
+	ip	81
+	is	82
+	l.	83
+	lb	84
+	lc	85
+	lf	86
+	lh	87
+	lk	88
+	lt	89
+	ma	90
+	mi	91
+	mo	92
+	mu	93
+	no	94
+	ob	95
+	or	96
+	pd	97
+	pl	98
+	pp	99
+	pt	100
+	rb	101
+	rc	102
+	rf	103
+	rg	104
+	rh	105
+	rk	106
+	rn	107
+	rt	108
+	ru	109
+	sb	110
+	sl	111
+	sp	112
+	sq	113
+	sr	114
+	te	115
+	tm	116
+	tp	117
+	ts	118
+	ua	119
+	ul	120
+	vr	121
+	~=	122
+	~~	123
+
+special	S	special/S.
+
+# etc.
+
+# tex	...
+
+# postscript	...

@@ -1,0 +1,23 @@
+AMSFONTS.BUG
+
+Bugs in the amsfonts distribution files that  have been corrected.
+
+
+======================================================================
+Date: 17-SEP-1990
+File name: amssym.def
+Revised by: MJD
+Revision: Replaced \setboxz@h and \wdz@ in the definitions of
+\widetilde and \widehat by their expansions (\setbox\z@\hbox and
+\wd\z@) so that amssym.def will be fully usable outside of AMSTeX.
+
+This problem did not show up until you actually tried to use
+\widetilde or \widehat after loading amssym.def in a non-AMSTeX
+environment.  Reported to tech-support August 18 1990 by
+Meinhard E. Mayer (Univ. of California, Irvine).
+======================================================================
+
+======================================================================
+======================================================================
+======================================================================
+======================================================================

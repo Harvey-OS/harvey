@@ -1,0 +1,140 @@
+.TH IP 3 
+.SH NAME
+ip \- TCP, UDP, IL network protocols over IP
+.SH SYNOPSIS
+.nf
+.B bind -a #Itcp /net
+.B bind -a #Iudp /net
+.B bind -a #Iil  /net
+
+.B #Itcp/tcp/clone
+.B #Itcp/tcp/[0-7]
+.B #Itcp/tcp/[0-7]/data
+.B #Itcp/tcp/[0-7]/ctl
+.B #Itcp/tcp/[0-7]/local
+.B #Itcp/tcp/[0-7]/remote
+.B #Itcp/tcp/[0-7]/status
+.B #Itcp/tcp/[0-7]/listen
+\&...
+.fi
+.SH DESCRIPTION
+The IP device provides the interface for several protocols that
+run over IP on an Ethernet.
+TCP and UDP provide the standard Internet
+protocols for reliable stream and unreliable datagram
+communication.
+IL provides a reliable datagram service for communication
+between Plan 9 machines.
+IL is the protocol of choice for most Plan 9 services.
+.PP
+Each of the protocols is served by the IP device, which represents each
+connection by a set of device files.
+The top level directory of each protocol contains a
+.B clone
+file and subdirectories numbered from zero to the number of connections
+configured for this protocol.
+.PP
+Opening the
+.B clone
+file reserves a connection.  The file descriptor returned from the
+.IR open (2)
+will point to the control file,
+.BR ctl ,
+of the newly allocated connection.  Reading the
+.B ctl
+file returns a text
+string representing the number of the
+connection.  Connections may be used either to listen for incoming calls
+or to initiate calls to other machines.
+.PP
+A connection is controlled by writing text strings to the associated
+.B ctl
+file.  After a connection has been established data may be read from
+and written to the data file.
+For the datagram services, IL and UDP, a
+.B read
+of less than the length of a datagram will cause
+the entire datagram to be consumed.
+Each write to the data file will send a single datagram on the network.
+The TCP protocol provides a stream connection that does not preserve
+.BR read / write
+boundaries.
+.PP
+Prior to sending data remote and local addresses must be set for the connection.
+For outgoing calls the local port number will be allocated randomly if none is set.
+Addresses are set by writing control messages to the
+.B ctl
+file of the connection.
+The connection is not established until the data file is opened.
+For IL and TCP the
+process will block until the remote host has acknowledged the connection.
+UDP opens always succeed.
+.PP
+The following control messages are supported:
+.TP
+.BI connect\  ipaddress ! port [!r]
+Set the remote IP address and port number for the connection.
+If the
+.I r
+flag
+is supplied and no local address has been specified the system will allocate
+a restricted port number (less than 1024) for the connection to allow communication
+with Unix machines login/exec services.
+.TP
+.B disconnect
+(UDP only.)
+Clear the remote address of a UDP connection.
+.TP
+.BI announce\  port
+Set the local address to
+.I port.
+The local IP address can not be set.
+.TP
+.BI backlog\  n
+(IL and TCP only.)
+Set the maximum number of pending requests for a given service
+to
+.I n.
+By default
+.I n
+is set to five.  If more than
+.I n
+connections are pending
+further requests for a service will be rejected.
+.PP
+Port numbers must be in the range 1 to 32767.
+If a local port has not been
+announced prior to a
+.B connect
+a local port number will be allocated automatically.
+Local ports are allocated from 5000 up.
+.PP
+Several files report the status of a
+connection.
+The
+.B remote
+and
+.B local
+files contain the IP address and port number for the remote and local side of the
+connection.  The
+.B status
+file contains protocol-dependent information to help debug network connections.
+.PP
+A process may accept incoming connections by calling
+.B open
+on the
+.B listen
+file.
+The
+.B open
+will block until a new connection request arrives.
+Then
+.B open
+will return an open file descriptor which points to the control file of the
+newly accepted connection.
+This procedure will accept all calls for the
+given protocol.
+.SH "SEE ALSO"
+.IR listen (8),
+.IR dial (2),
+.IR ndb (6)

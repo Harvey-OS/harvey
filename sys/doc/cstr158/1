@@ -1,0 +1,333 @@
+%!PS
+%%Version: 3.3
+%%DocumentFonts: (atend)
+%%Pages: (atend)
+%%EndComments
+%
+% Version 3.3 prologue for troff files.
+%
+
+/#copies 1 store
+/aspectratio 1 def
+/formsperpage 1 def
+/landscape false def
+/linewidth .3 def
+/magnification 1 def
+/margin 0 def
+/orientation 0 def
+/resolution 720 def
+/rotation 1 def
+/xoffset 0 def
+/yoffset 0 def
+
+/roundpage true def
+/useclippath true def
+/pagebbox [0 0 612 792] def
+
+/R  /Times-Roman def
+/I  /Times-Italic def
+/B  /Times-Bold def
+/BI /Times-BoldItalic def
+/H  /Helvetica def
+/HI /Helvetica-Oblique def
+/HB /Helvetica-Bold def
+/HX /Helvetica-BoldOblique def
+/CW /Courier def
+/CO /Courier def
+/CI /Courier-Oblique def
+/CB /Courier-Bold def
+/CX /Courier-BoldOblique def
+/PA /Palatino-Roman def
+/PI /Palatino-Italic def
+/PB /Palatino-Bold def
+/PX /Palatino-BoldItalic def
+/Hr /Helvetica-Narrow def
+/Hi /Helvetica-Narrow-Oblique def
+/Hb /Helvetica-Narrow-Bold def
+/Hx /Helvetica-Narrow-BoldOblique def
+/KR /Bookman-Light def
+/KI /Bookman-LightItalic def
+/KB /Bookman-Demi def
+/KX /Bookman-DemiItalic def
+/AR /AvantGarde-Book def
+/AI /AvantGarde-BookOblique def
+/AB /AvantGarde-Demi def
+/AX /AvantGarde-DemiOblique def
+/NR /NewCenturySchlbk-Roman def
+/NI /NewCenturySchlbk-Italic def
+/NB /NewCenturySchlbk-Bold def
+/NX /NewCenturySchlbk-BoldItalic def
+/ZD /ZapfDingbats def
+/ZI /ZapfChancery-MediumItalic def
+/S  /S def
+/S1 /S1 def
+/GR /Symbol def
+
+/inch {72 mul} bind def
+/min {2 copy gt {exch} if pop} bind def
+
+/setup {
+	counttomark 2 idiv {def} repeat pop
+
+	landscape {/orientation 90 orientation add def} if
+	/scaling 72 resolution div def
+	linewidth setlinewidth
+	1 setlinecap
+
+	pagedimensions
+	xcenter ycenter translate
+	orientation rotation mul rotate
+	width 2 div neg height 2 div translate
+	xoffset inch yoffset inch neg translate
+	margin 2 div dup neg translate
+	magnification dup aspectratio mul scale
+	scaling scaling scale
+
+	/Symbol /S Sdefs cf
+	/Times-Roman /S1 S1defs cf
+	0 0 moveto
+} def
+
+/pagedimensions {
+	useclippath userdict /gotpagebbox known not and {
+		/pagebbox [clippath pathbbox newpath] def
+		roundpage currentdict /roundpagebbox known and {roundpagebbox} if
+	} if
+	pagebbox aload pop
+	4 -1 roll exch 4 1 roll 4 copy
+	landscape {4 2 roll} if
+	sub /width exch def
+	sub /height exch def
+	add 2 div /xcenter exch def
+	add 2 div /ycenter exch def
+	userdict /gotpagebbox true put
+} def
+
+/pagesetup {
+	/page exch def
+	currentdict /pagedict known currentdict page known and {
+		page load pagedict exch get cvx exec
+	} if
+} def
+
+/decodingdefs [
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg /y exch def counttomark 2 idiv {y moveto show} repeat}
+	{neg moveto {2 index stringwidth pop sub exch div 0 32 4 -1 roll widthshow} repeat}
+	{neg moveto {spacewidth sub 0.0 32 4 -1 roll widthshow} repeat}
+	{counttomark 2 idiv {y moveto show} repeat}
+	{neg setfunnytext}
+] def
+
+/setdecoding {/t decodingdefs 3 -1 roll get bind def} bind def
+
+/w {neg moveto show} bind def
+/m {neg dup /y exch def moveto} bind def
+/done {/lastpage where {pop lastpage} if} def
+
+/f {
+	dup /font exch def findfont exch
+	dup /ptsize exch def scaling div dup /size exch def scalefont setfont
+	linewidth ptsize mul scaling 10 mul div setlinewidth
+	/spacewidth ( ) stringwidth pop def
+} bind def
+
+/changefont {
+	/fontheight exch def
+	/fontslant exch def
+	currentfont [
+		1 0
+		fontheight ptsize div fontslant sin mul fontslant cos div
+		fontheight ptsize div
+		0 0
+	] makefont setfont
+} bind def
+
+/sf {f} bind def
+
+/cf {
+	dup length 2 idiv
+	/entries exch def
+	/chtab exch def
+	/newfont exch def
+
+	findfont dup length 1 add dict
+	/newdict exch def
+	{1 index /FID ne {newdict 3 1 roll put} {pop pop} ifelse} forall
+
+	newdict /Metrics entries dict put
+	newdict /Metrics get
+	begin
+		chtab aload pop
+		1 1 entries {pop def} for
+		newfont newdict definefont pop
+	end
+} bind def
+
+%
+% A few arrays used to adjust reference points and character widths in some
+% of the printer resident fonts. If square roots are too high try changing
+% the lines describing /radical and /radicalex to,
+%
+%	/radical	[0 -75 550 0]
+%	/radicalex	[-50 -75 500 0]
+%
+% Move braceleftbt a bit - default PostScript character is off a bit.
+%
+
+/Sdefs [
+	/bracketlefttp		[201 500]
+	/bracketleftbt		[201 500]
+	/bracketrighttp		[-81 380]
+	/bracketrightbt		[-83 380]
+	/braceleftbt		[203 490]
+	/bracketrightex		[220 -125 500 0]
+	/radical		[0 0 550 0]
+	/radicalex		[-50 0 500 0]
+	/parenleftex		[-20 -170 0 0]
+	/integral		[100 -50 500 0]
+	/infinity		[10 -75 730 0]
+] def
+
+/S1defs [
+	/underscore		[0 80 500 0]
+	/endash			[7 90 650 0]
+] def
+%
+% Tries to round clipping path dimensions, as stored in array pagebbox, so they
+% match one of the known sizes in the papersizes array. Lower left coordinates
+% are always set to 0.
+%
+
+/roundpagebbox {
+    7 dict begin
+	/papersizes [8.5 inch 11 inch 14 inch 17 inch] def
+
+	/mappapersize {
+		/val exch def
+		/slop .5 inch def
+		/diff slop def
+		/j 0 def
+		0 1 papersizes length 1 sub {
+			/i exch def
+			papersizes i get val sub abs
+			dup diff le {/diff exch def /j i def} {pop} ifelse
+		} for
+		diff slop lt {papersizes j get} {val} ifelse
+	} def
+
+	pagebbox 0 0 put
+	pagebbox 1 0 put
+	pagebbox dup 2 get mappapersize 2 exch put
+	pagebbox dup 3 get mappapersize 3 exch put
+    end
+} bind def
+
+%%EndProlog
+%%BeginSetup
+mark
+/linewidth 0.5 def
+/landscape false def
+/resolution 720 def
+setup
+2 setdecoding
+%%EndSetup
+%%Page: 1 1
+/saveobj save def
+mark
+1 pagesetup
+12 B f
+(Plan 9: The Early Papers)4 1294 1 2233 1230 t
+10 I f
+(Rob Pike)1 363 1 2698 1470 t
+(Dave Presotto)1 574 1 2593 1590 t
+(Ken Thompson)1 603 1 2578 1710 t
+(Howard Trickey)1 652 1 2554 1830 t
+(Tom Duff)1 381 1 2689 1950 t
+(Gerard Holzmann)1 730 1 2515 2070 t
+10 R f
+({rob)1722 2250 w
+10 S f
+(\357)1903 2250 w
+10 R f
+(presotto)1952 2250 w
+10 S f
+(\357)2274 2250 w
+10 R f
+(ken)2323 2250 w
+10 S f
+(\357)2467 2250 w
+10 R f
+(howard)2516 2250 w
+10 S f
+(\357)2815 2250 w
+10 R f
+(td)2864 2250 w
+10 S f
+(\357)2942 2250 w
+10 R f
+(gerard}@research.att.com)2991 2250 w
+(AT&T Bell Laboratories)2 993 1 2383 2370 t
+(Murray Hill, New Jersey 07974)4 1267 1 2246 2490 t
+10 I f
+(ABSTRACT)2643 2870 w
+10 R f
+( 9 from Bell)3 510(This report reprints half a dozen early but still current papers on Plan)12 2840 2 1330 3130 t
+( at the Computing Science)4 1199(Labs, a distributed computing system being developed)6 2401 2 1080 3250 t
+(Research Center of AT&T Bell Laboratories.)5 1807 1 1080 3370 t
+(The papers were all presented at conferences; the original citations were:)10 2908 1 720 3646 t
+( 9 from Bell Labs'', Proc. of the)7 1382(Rob Pike, Dave Presotto, Ken Thompson, and Howard Trickey, ``Plan)9 2938 2 720 3802 t
+(Summer 1990 UKUUG Conf., London, July, 1990, pp. 1-9)8 2360 1 720 3922 t
+(Dave Presotto, Rob Pike, Ken Thompson, and Howard Trickey, ``Plan 9, A Distributed System'', Proc. of)15 4320 1 720 4078 t
+(the Spring 1991 EurOpen Conf., Troms, May, 1991, pp. 43-50)9 2501 1 720 4198 t
+(Rob Pike, ``8)2 544 1 720 4354 t
+10 S1 f
+()1264 4354 w
+cleartomark
+saveobj restore
+%%BeginGlobal
+/build_12 {
+    pop
+    /optsize ptsize def
+    /osize size def
+    /ofont font def
+
+    optsize 2 div dup R exch R f
+    0 size 2 mul 3 div dup neg exch 0 exch rmoveto
+
+    (1) show
+    rmoveto
+    optsize R f
+    (\244) show
+    f
+    (2) show
+
+    optsize ofont f
+} def
+%%EndGlobal
+/saveobj save def
+mark
+10 S1 f
+1264 4354 m
+75 build_12
+1339 4354 m
+10 R f
+( Summer 1991 USENIX Conf., Nashville, June,)6 1951(, the Plan 9 Window System'', Proc. of the)8 1750 2 1339 4354 t
+(1991, pp. 257-265)2 733 1 720 4474 t
+( for Plan 9'', Proc. of the Summer 1990 UKUUG Conf., London,)11 2674(Dave Presotto, ``Multiprocessor Streams)3 1646 2 720 4630 t
+(July, 1990, pp. 11-19)3 850 1 720 4750 t
+( Gerard Holzmann, ``Process Sleep and Wakeup on a)8 2330(Rob Pike, Dave Presotto, Ken Thompson, and)6 1990 2 720 4906 t
+(Shared-Memory Multiprocessor'', Proc. of the Spring 1991 EurOpen Conf., Troms, May, 1991, pp.)12 4320 1 720 5026 t
+(161-166)720 5146 w
+( ``Rc - A Shell for Plan 9 and UNIX Systems'', Proc. of the Summer 1990 UKUUG Conf., Lon-)18 3892(Tom Duff,)1 428 2 720 5302 t
+(don, July, 1990, pp. 21-33)4 1050 1 720 5422 t
+( ``A New C Compiler'', Proc. of the Summer 1990 UKUUG Conf., London, July, 1990,)14 3667(Ken Thompson,)1 653 2 720 5578 t
+(pp. 41-51)1 383 1 720 5698 t
+cleartomark
+showpage
+saveobj restore
+%%EndPage: 1 1
+%%Trailer
+done
+%%Pages: 1
+%%DocumentFonts: Times-Bold Times-Roman Times-Italic Times-Roman Symbol

@@ -1,0 +1,306 @@
+This file describes web2c, a system which converts TeX, Metafont, and
+other products of the Stanford TeX project to C.  (It is definitely not
+a general-purpose Pascal-to-C translator.)
+
+web2c is primarily the product of Tim Morgan <morgan@ics.uci.edu>.
+Tomas Rokicki wrote the original TeX to C program.  Pierre Mackay
+<mackay@cs.washington.edu> wrote the original change files for most
+of the Metafontware programs.  Karl Berry <karl@cs.umb.edu> made everything
+work with the new ``8-bit'' release, and is probably to blame for things
+that don't work now, but used to.  And over a hundred more people
+have contributed in other ways.
+
+The file ./MACHINES contains a list of known configurations that have
+passed the trip and trap test.  If your configuration is not on this
+list, you should build triptex and trapmf (instructions below), and then
+send mail to Karl with the vital statistics, and, of course, any changes
+you made, preferably in the form of context diffs.
+
+The file ./ChangeLog records changes to web2c.  The current version number
+of web2c can be found at the beginning of that file.
+
+The file ./PROJECTS describes some improvements to the current setup
+that would be nice to have.
+
+The file ./PROBLEMS describes various difficulties people have
+encountered.  If you have trouble getting the distribution up, look here
+first.
+
+We try to keep web2c up-to-date with respect to the master versions of
+the WEB files.  But we can't, always.  The web-*.tar.Z file holds the
+versions that we know to work with these change files.  If you get
+different versions and encounter any problems, please write to us.
+
+Here is a table of contents for the rest of this file:
+   Bootstrapping tangle
+   Installation
+   Changing constants
+   Format files and preloading
+   Online output from Metafont
+   Portability
+
+
+
+Bootstrapping tangle
+%%%%%%%%%%%%%%%%%%%%
+If you have an already working tangle, you need do nothing special.  If
+you don't, the Makefile in the subdirectory web will attempt to compile
+a bootstrap version.  This step can fail and go into a loop.  If this
+happens you need to fix the problem manually.  Possible problems and
+remedies:
+
+If tangle fails tangling tangle.web:
+	tangle.ch may not match tangle.web; get the correct versions.
+
+If tangleboot.c or tanglext.c does not compile:
+	Make the converted C files acceptable to your compiler and retry
+        (also tell Karl, so web2c can be fixed).
+
+Your shell cannot find tangle, current directory not in search path:
+	Add . to search path or edit web/Makefile to invoke
+	./tangle on tangle.web.
+
+
+
+Installation
+%%%%%%%%%%%%
+Here is the procedure for getting things running.
+
+1. Edit ./site.h and ./Makefile to set up your local paths, compiler, etc.
+   The symbols BSD and SYSV affect the conversion from WEB to C, not
+   just the compilation of the C files.  Therefore, you must recompile
+   web2c if you change the definition of these symbols.  (The Makefile 
+   does that automatically if you change site.h, but you should be aware
+   of this, anyway.)  If you move ./site.h to another directory (i.e.,
+   change SITEDIR in Makefile), move ./defaults.h there, also.
+2. `make triptrap' to build triptex and trapmf (and some of the other 
+   programs that are needed to run the tests).
+3. `make run-triptrap' to run the tests.  The differences (and many
+   error messages) will show up on your terminal.  If you have a
+   question about whether the differences are OK or not, consult the
+   trip/trap manuals.
+4. `make clean-triptrap' to get rid of those programs and output.  You
+   need to do this before making the working versions.
+5. `make' to make the working versions of every program in this
+   hierarchy.  If you wish to make a `big' TeX or Metafont, now is the
+   time to set up for it.  See below.
+6. cd into `tex' and make the format files you want.  If you don't know
+   what this means, see the section `Format files and preloading' below.
+7. cd into `mf' and make the base files you want.  It is also a good
+   idea to try to draw something online (if you intend to support that)
+   before installing Metafont, as this often fails to work right on the
+   first try.  See the `Running Metafont' chapter in the Metafontbook.
+8. TeX uses the name it was invoked as the name of the format file to
+   read.  Therefore, you have set up links in two places:
+   (1) In the binary directory, links to virtex named `latex', `slitex',
+       `texinfo', or whatever versions of TeX you are going to provide.
+   (2) In the format directory, a link to plain.fmt named `tex.fmt',
+       and, if you like, a link to lplain.fmt named `latex.fmt', etc.
+       The important thing is that a .fmt file with the same name as the
+       binary exists.
+   This goes for Metafont, too.
+9. `make install' to do the obvious.  texware/pooltype and
+   texware/patgen are not installed by default, since most sites would
+   never want to run them.
+10. `make clean' if you intend to compile the programs on another
+   architecture.  Since the .c files are intended to be portable across
+   architectures, they are not removed by this.
+11. `make veryclean' when you're all done.  This removes everything that
+   was not in the original distribution (and more besides).
+
+If you wish to make just TeX or Metafont, the top-level Makefile has
+targets named `TeX' and `MF' which make {ini,vir}{tex,mf}, and nothing
+else.
+
+web2c.yacc has one shift/reduce conflict, so expect that message.
+
+Ordinarily, you don't need to ever `make' anything in subdirectories,
+but only from the top-level directory.  If you ever do run `make' in a
+subdirectory, you should be aware that they all define their own CC,
+OPT, etc. -- and so you will probably want to change them.
+
+You will also need the latest plain.tex, plain.mf, and other macro
+files.  You can get them from labrea.stanford.edu, in the directory
+tex/lib.  LaTeX's lplain.tex and splain.tex have not yet been updated. 
+For them, you should create a small file lplain3.tex (or whatever):
+
+\lefthyphenmin = 2
+\righthyphenmin = 3
+\input lplain
+
+to run initex on, so that LaTeX users do not get weird hyphenations.
+
+
+
+Changing constants
+%%%%%%%%%%%%%%%%%%
+The files tex/bigtex.diff and mf/bigmf.diff contain patches to build
+versions of TeX and Metafont with much more memory, pool space, etc.
+You should apply the patches before beginning to compile the programs.
+The 32-bit TeX that results (all of this goes for Metafont, too) will
+have a smaller text segment and run faster, because it doesn't have to
+convert frequently between 16-bit and 32-bit integers.  It is therefore
+a good idea to build such a TeX if possible.
+
+You should also change the type |glue_ratio| in site.h from |float| to
+|double| if you do this.
+
+You can obtain the patch program (written by Larry Wall
+<lwall@jpl-devvax.jpl.nasa.gov>) from a comp.sources.unix archive, or by
+ftp from his machine.
+
+You should first save the original c{tex,mf}.ch as ctex16.ch or some
+such, because `make veryclean' removes files whose names end in ~, etc.,
+which could wipe out the originals.
+Then apply the patches by saying, e.g.,
+% cd tex; patch < bigtex.diff
+
+
+
+Format files and preloading
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TeX (and Metafont; I'll talk about TeX, but MF is completely analogous)
+can write its memory to a file; such a file is called a ``format file''.
+Why is this interesting?  Because TeX can read a format file much faster
+than the source file that gave rise to it.
+
+To create a format file, you give the command `\dump' to initex after
+reading the source file.  (This is more or less the whole raison d'etre
+for initex.)  For example:
+% initex
+This is TeX, C Version 3.0
+**plain \dump
+<blurbs>
+Starting to dump on file plain.fmt
+<more blurbs>
+
+Voila, you have a plain.fmt you can install somewhere with `make
+install' (or whatever).
+
+Unlike all the other files in the TeX world, format files are not
+portable across architectures.
+
+Well, I said Metafont is completely analogous, but you actually need to
+do a little more: create a file that defines your local output devices
+(i.e., ``mode_defs'').  The conventional name for this file is
+<site>.mf, e.g., I called mine UMB.mf (University of Massachusetts at
+Boston).  You can get sample definitions from the file waits.mf that
+should be with all the standard Metafont input files.  If your device
+isn't listed there, you can write to the TeX Users Group (of which you
+should consider becoming a member, anyway) <tug@math.ams.com>.  You can
+also experiment yourself with the parameters; what goes into a mode_def
+is not particularly mysterious, and it is all described in the
+Metafontbook.
+
+Once you've gotten your site.mf file, you say something like the
+following:
+% inimf
+This is METAFONT, C Version 2.0
+**plain
+<blurbs>
+*input site
+<blurbs>
+*dump
+<final blurbs>
+
+and you should have .base file, analogous to TeX's .fmt file.
+
+TeX uses the name it was invoked with to figure out what format file to
+read.  Therefore, for each format file, you should create a link to the
+virtex executable named the name of the format file.  For example:
+
+% cd $(bindir)
+% ln virtex tex
+% ln virtex latex
+% ln virtex texinfo
+
+Then, when you run, say,
+% texinfo
+TeX looks for a format file named `texinfo.fmt'.
+All of this goes for Metafont, too, as usual.
+
+One more thing about format (and base) files: It is possible to
+``preload'' TeX, i.e., avoid reading the .fmt file at runtime.  However,
+on most modern machines, you don't gain a lot of startup time, and you
+lose a lot of disk space.  Furthermore, different flavors of TeX will
+not have their code segments shared.  Therefore, it is probably best not
+to preload, unless, of course, you try that and the response is
+horrible.
+
+Here is some data collected by Ken Yap <ken@cs.rochester.edu> on a
+Sun 3/60 running Sun Unix 3.4 on preloaded vs. non-preloaded, and also
+16-bit vs. 32-bit.
+
+    16 bit, unloaded:  42.1u 1.4s 0:50 86% 10+29k 72+17io 0pf+0w
+    16 bit, preloaded: 41.7u 0.9s 0:46 90% 10+27k 4+17io 80pf+0w
+    32 bit, unloaded:  42.4u 1.7s 0:47 92% 10+52k 95+17io 0pf+0w
+    32 bit, preloaded: 41.6u 1.2s 0:48 88% 10+47k 5+17io 102pf+0w
+
+    It is interesting that i/o is traded off with page faulting, as is to
+    be expected. Also 32 bit unloaded runs slightly faster than 16 bit
+    unloaded, in spite of more i/o.
+
+    Sizes:
+    text    data    bss     dec     hex
+    180224  16384   587868  784476  bf85c   virtex (16 bit)
+    180224  630784  0       811008  c6000   latex (32 bit)
+    172032  16384   3110692 3299108 325724  virtex (32 bit)
+    172032  3153920 0       3325952 32c000  latex (32 bit)
+
+    File sizes:
+    -rwxr-xr-x  1 ken        196608 Jun 29 15:57 virtex (16 bit)
+    -rwxr-xr-x  1 ken        811008 Jun 29 15:58 latex (32 bit)
+    -rwxr-xr-x  1 ken        188416 Jun 29 15:34 virtex (32 bit)
+    -rwxr-xr-x  1 ken       3325952 Jun 29 15:36 latex (32 bit)
+
+
+
+Online output from Metafont
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Metafont in C can be compiled to support multiple window systems. 
+You say which you want via definitions in site.h.  You also have to say
+which system libraries should be linked into the library in the
+top-level Makefile.
+
+There are two versions of the X11 support in mf/MFwindow.  One is based
+on Xt, one on Xlib.  The Xt version is faster and has more
+functionality, so if it works on your system, you should use it.  It is
+the default.  But if it fails, you can try the Xlib version.
+
+Defining more devices is fairly straightforward.  A file should be put
+in mf/MFwindow to support the actual interface routines, all of which
+are described in the Metafont source.  Then you need to add another
+entry to the tables in mf/extra.c; that should be it.
+
+
+
+Portability
+%%%%%%%%%%%
+The C code generated by the web2c translator is intended to be as
+portable as possible (for any given set of definitions in site.h).  If
+you find bugs or portability programs with the generated code, report
+them to Tim.
+
+The generated code assumes that the type |short| has at least the range
+-32768..32767, and that |unsigned short| has at least the range
+0..65535.  If this isn't the case, the translator will have to be
+modified.
+
+Also, if you change the type of |integer| in site.h to something other
+than |long|, you will have to modify web2c/fixwrites.c, since it
+generates code to integer output using "%ld", and casts all integral
+values to be printed to |long|.
+
+The file tex/extra.c contains the routines `clearterminal' and
+`wakeupterminal' written for machines running BSD.  If you're not on
+such a machine, you may wish to write your own version of the routines
+(and please send them to Karl or Tim).
+
+On another front, various of the `convert' scripts assume some basic
+Unix utilities: basename, cat, cp, diff, ln, make, mv, rm, sed, and
+touch.  The Bourne shell is also assumed.  If your system versions are
+broken, you can try the GNU versions, available from prep.ai.mit.edu in
+pub/gnu, among other places.  The GNU C compiler is also better (more
+reliable, faster, and produces better code) than many other C compilers,
+so you might want to get that.  For more information about the GNU
+project, write to gnu@prep.ai.mit.edu.

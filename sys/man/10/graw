@@ -1,0 +1,176 @@
+.TH GRAW 10.1
+.SH NAME
+graw \- gnot graphic editor
+.SH SYNOPSIS
+.B graw
+[
+.B -f
+.I fontfile
+]
+[
+.B -g
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.PP
+.I Graw
+is a multi-file graphic editing program specialized for schematic entry.
+.I Graw
+drawings consist of lines, boxes, text objects, and instantiations of previously
+defined drawings called
+.I masters.
+The
+.I graw
+user interface differs from that of most 5620/gnot programs in that button 1
+controls
+.I all
+graphical entry.
+.PP
+The
+.B -g
+flag invokes an experimental mode in which
+.B graw
+attempts to render in grey scale.
+The
+.B -f
+flag allows the user to specify a font for displaying text objects.
+.PP
+By default, pressing button 1 will create a line with one end fixed and the other
+end attached to the cursor as long as button 1 is held down.  Objects other than
+lines can be drawn by prefacing a drawing operation with a button 2
+.B onesies\(->
+selection.
+Button 1 is also used for
+.I grabbing
+objects.  Grabbing takes precedence over drawing, and
+.I graw
+evaluates every button 1 hit to see if there is something to grab.
+.PP
+Grabbing rules vary by object.  For example, a box can be grabbed by pointing to
+its interior.  A grabbed box will cause all objects inside or touching it to be
+grabbed also.  Grabbing a box's corner will also grab objects touching the two
+sides of that corner.  An object inside a box may be grabbed without grabbing
+the box.
+.I Graw's
+grabbing rules are meant to be intuitively obvious.  The author apologizes for
+cases in which this is not true.
+.PP
+.I Graw
+keeps a "text point" at the last location of a button 1 hit.
+Typing to
+.I graw
+creates a text object at the current text point.
+A text object orients itself based on its surroundings each time it is typed
+at or moved.
+Typing a carriage return causes graw to move the current text point down one or
+two ticks, depending on the surroundings.
+.PP
+Buttons 2 and 3 contain editing and file oriented menus, respectively.
+The button 2 menu entries are
+.B onesies\(-> (box, dots, macro),
+.B inst\(->
+.RI ( master
+.IR list ),
+.B sweep, slash, cut, paste,
+and
+.B scroll.
+.RS
+.TP
+.B onesies\(->
+selects a non-line object to be drawn with button 1.
+You get at most one non-line object per onesie.
+.TP
+.B inst\(->
+selects a master to be instantiated and attached to the cursor until any button
+is pressed.
+.TP
+.B sweep
+uses a rectangle input with button 1 (N.B.) to grab a set of objects and drag
+them until any button is pressed.
+.TP
+.B slash
+differs from
+.B sweep
+only in that rectilinear lines are first cut by the input rectangle.
+.TP
+.B cut
+undraws and moves the object(s) last drawn or moved to the cut/paste buffer.
+.TP
+.B paste
+attaches a copy of the cut/paste buffer to the cursor until any button is
+pressed.
+.TP
+.B snarf
+is a
+.B cut
+without the undraw.
+.TP
+.B scroll
+attaches the entire drawing to the cursor until any button is pressed.
+.RE
+.PP
+The button 3 menu entries are
+.B edit, read, write, exit,
+and
+.B new,
+followed by the list of filenames currently being edited.
+.RS
+.TP
+.B edit
+prompts for a file name and reads in the file for editing.  Backspace and
+control-W may be used to edit the name; a null file name aborts the operation.
+.TP
+.B read
+prompts for the name of a master file, reads it in, and plants a reference to
+it in the current file.  The names of the masters in the file are added to
+those in the
+.B inst\(->
+menu for the current file, overwriting older definitions if necessary.
+.TP
+.B write
+prompts for a file name (starting with the current file name).  The non-null
+result becomes the new file name and the file is written.
+.TP
+.B exit
+terminates the program.  It may be necessary to type a character and/or move the
+mouse after
+.I graw
+exits to really exit.
+.TP
+.B new
+creates a new, unnamed drawing for editing.
+.PP
+Selecting a file name selects the current file.
+.RE
+.PP
+.IR Gnet (10.1)
+produces
+.IR cdl_format (10.6)
+files from
+.I graw_format
+files.
+.SH FILES
+.TF /lib/graw/analog.g
+.TP
+.B /lib/graw/gates.g
+the standard gate file
+.TP
+.B /lib/graw/analog.g
+analog parts file
+.TP
+.B /sys/font/1/7/PA
+default font file
+.SH SEE ALSO
+.IR gnet (10.1),
+.IR graw_format (10.6),
+.IR cdmglob (10.1),
+.IR grawp (10.1),
+.IR annotate (10.1)
+.SH BUGS
+Doesn't handle parse errors well.
+.br
+Crashes when it reads two
+.B 'e'
+(end of master) lines in succession.

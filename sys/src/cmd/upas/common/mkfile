@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+LIB=libcommon.a$O
+OFILES=aux.$O\
+	mail.$O\
+	process.$O\
+	libsys.$O\
+	config.$O\
+
+HFILES=common.h\
+	sys.h\
+
+</sys/src/cmd/mklib
+
+nuke:V:
+	mk clean
+	rm -f libcommon.a[$OS]

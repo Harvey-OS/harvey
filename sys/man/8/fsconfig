@@ -1,0 +1,228 @@
+.TH FSCONFIG 8
+.SH NAME
+fsconfig \- configuring a file server
+.SH SYNOPSIS
+.B service
+.I name
+.PP
+.B config
+.I device
+.PP
+.B filsys
+.I name
+.I device
+.PP
+.B ream
+.I name
+.PP
+.B recover
+.I name
+.PP
+.B ip
+.I ipaddr
+.PP
+.B ipgw
+.I ipaddr
+.PP
+.B ipmask
+.I ipaddr
+.PP
+.B ipauth
+.I ipaddr
+.PP
+.B end
+.SH DESCRIPTION
+When a file server's configuration has not been set,
+or by explicit request early in the server's initialization (see
+.IR fs (8)),
+the server enters `config mode'.  The commands described here
+apply only in that mode.  They establish configuration constants
+that are typically valid for the life of the server, and therefore
+need be run only once.  If the non-volatile RAM on the server
+gets erased, it will be necessary to recreate the configuration.
+.PP
+In these commands,
+.I ipaddr
+is an IP address in the form
+.BR 111.103.94.19
+and
+.I name
+is a text string without white space.
+The syntax of a
+.I device
+is more complicated:
+.TP
+.BI w. n1 . n2 . n3
+A SCSI disk on target id
+.IR n2 ,
+unit
+.IR n1 ,
+and partition
+.IR n3 .
+The values
+.I n1
+and
+.I n3
+(and their associated periods) are optional; they default to zero.
+Any one of the numbers may be replaced by
+.BI < m - n >
+to represent the values
+.I m
+through
+.I n
+inclusive.  For example,
+.B (w<1-4>)
+is the concatenation of SCSI targets 1 through 4.
+.TP
+.BI r. n1 . n2 . n3
+A SCSI WORM disk on unit
+.IR n1 ,
+target
+.IR n2 ,
+and partition
+.IR n3 .
+The values are as in
+.BR w .
+.TP
+.BI ( device... )
+A pseudo-device formed from the concatenation of the
+.I devices
+in the list.  The devices are
+.I not
+blank- or comma-separated.
+.TP
+.BI [ device... ]
+A pseudo-device formed from the block-wise interleaving of the
+.I devices
+in the list.  The size of the result is the number of devices times
+the size of the smallest device.
+.TP
+.BI p device . n1 . n2
+A partition starting at
+.IR n1 %
+from the beginning of
+.I device
+with a length
+.IR n2 %
+of the size of the device.
+Parenthesize
+.I device
+if it contains periods.
+.TP
+.BI f device
+A pseudo-WORM disk: blocks on
+.I device
+can be written only once and may not be read unless written.
+.TP
+.BI c device1device2
+A cached WORM.  The first
+.I device
+is the cache, the second the WORM.
+.TP
+.BI o
+(Letter o) The read-only (dump) file system
+of the previously defined cached WORM file system.
+.PP
+The
+.B service
+command sets the textual name of the server as known in
+the network databases.
+.PP
+The configuration information is stored in block zero on a
+device whose device string is written in non-volatile RAM.
+The
+.B config
+command identifies the
+.I device
+on which the information is recorded.
+.PP
+The
+.I filsys
+command configures a file system on
+.I device
+and calls it
+.I name.
+.I Name
+is used as the specifier in
+.B attach
+messages to connect to that file system.
+(The file system
+.I main
+is the one attached to if the specifier is null; see
+.IR attach (5)).
+.PP
+The
+.I ream
+command initializes the named file system.  It overwrites
+any previous file system on the same device
+and creates an empty root directory
+on the device.
+If
+.I name
+is
+.BR main ,
+the file server, until the next reboot,
+will accept
+.B wstat
+messages
+(see
+.IR stat (5))
+that change the owner and group of files,
+to enable initializing a fresh file system from a
+.IR mkfs (8)
+archive.
+.TP
+.BI recover " name
+The named file system
+must be a cached WORM.
+.I Recover
+clears the associated magnetic cache and initializes the file
+system, effectively resetting its contents to the last dump.
+.PP
+The rest of the commands record IP addresses: the file server's address
+.RI ( ip ),
+the local gateway's
+.RI ( ipgw ),
+the local authentication server's
+.RI ( ipauth ),
+and the local subnet mask
+.RI ( ipmask ).
+.I Ipauth
+should be
+.B 0.0.0.0
+if the system is doing its own authentication rather than
+calling an external authentication server.
+.PP
+The various configuration commands only record what to do; they write
+no data to disk.  The command
+.I end
+exits config mode and begins running the file server proper.
+The server will then perform whatever I/O is required to establish
+the configuration.
+.SH EXAMPLE
+Initialize a file server
+.B kgbsun
+with a single file system interleaved between SCSI targets 3 and 4.
+.IP
+.EX
+service kgbsun
+config w3
+filsys main [w<3-4>]
+ream main
+.EE
+.PP
+Initialize a file server
+.B kremvax
+with a single disk on target 0 partitioned as a cached pseudo-WORM
+file system with the the cache on the third quarter of the drive
+and the pseudo-WORM on the interleave of the first, second, and
+fourth quarters.
+.IP
+.EX
+service kremvax
+config p(w0)50.1
+filsys main cp(w0)50.25f[p(w0)0.25p(w0)25.25p(w0)75.25]
+filsys dump o
+ream main
+.EE
+.SH BUGS

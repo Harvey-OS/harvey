@@ -1,0 +1,791 @@
+% local.tex -- released 6 November 1986
+%   for LaTeX version 2.09
+%
+% This file is used to produce a Local Guide for LaTeX users containing
+% information specific to a site plus errors and omissions from the LaTeX
+% manual (published by Addison-Wesley).
+%
+% The installer of LaTeX at a site is responsible for customizing this
+% document and providing copies for users.  He will have to read the
+% text of this file CAREFULLY to see what must be added, removed, and
+% changed.  
+
+% The \contact command is defined to generate the name of the person to
+% whom questions should be sent.  This should be someone at the site.
+% Most users' questions are easily answered by anyone slightly familiar
+% with LaTeX or TeX. Don't bother anyone at another site with questions
+% that can be answered locally.
+
+\documentstyle[authors,bitmap]{tm}
+\newcommand{\contact}{Terry L Anderson}
+
+\newcommand{\BibTeX}{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\newcommand{\SLiTeX}{{\rm S\kern-.06em{\sc l\kern-.035emi}\kern-.06em T\kern
+   -.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+
+\newcommand\bs{\char '134 }  % A backslash character for \tt font
+
+
+\pagestyle{headandfoot}
+%\markdraft
+\markproprietary
+\title{Using \LaTeX\ at AT\&T LC 59112, 59114; For \LaTeX\ Version 2.09}
+\authordata{tla}
+\date{\today}
+%\chargecase{546112-0100}
+%\filecase{47027}
+%\documentno{870421}{01}{TM}
+\keywords{}
+\mercurycode{CMP}
+\memotype{INTERNAL MEMORANDUM}
+\abstract{This document serves as a local guide to use of \LaTeX\ on
+the computers of AT\&T Bell Laboratories Departments 59112 and 59114
+at Liberty Corner.  It documents the location of key files, the
+environment variables that must be set and the local extensions to the
+\LaTeX\ document production environment.}
+\begin{document}
+\bibliographystyle{atttm}
+\makehead
+
+\LaTeX\ runs on a variety of computers at many different sites.  This
+document tells you how to use \LaTeX\ on mozart, miles and the Suns 
+in AT\&T Bell Laboratories Departments 59112 and 59114 at LC. It is
+not about \LaTeX\ itself, which is described by 
+the manual---{\em \LaTeX: A Document Preparation System}, published by
+Addison-Wesley, available at fine book stores everywhere\cite{bib:latex}.
+
+If you have a question that you can't answer by reading the manual and
+this document, ask \contact.  He should also be informed of any
+possible \LaTeX\ bugs or undocumented anomalies.
+
+
+\section{Getting Started}
+
+\subsection{Setting up your environment}
+
+Before any \LaTeX\ commands can be run your must set a few environment
+variables and possibly add some paths to your \verb|PATH| variable.
+There is a file, 
+\begin{verbatim}
+	/usr/tools/ctex/tex.env		(Suns)
+	/usrs4/tla/Tex/ctex/tex.env	(mozart)
+	/usrs3/tla/Tex/ctex/tex.env	(miles)
+\end{verbatim}
+which contains the appropriate additions to the environment.  This can
+be used as 
+\begin{verbatim}
+	. /usr/tools/ctex/tex.env       (Suns)
+	. /usrs4/tla/Tex/ctex/tex.env   (mozart)
+	. /usrs3/tla/Tex/ctex/tex.env   (miles)
+\end{verbatim}
+(You must type the `.' and a space).  Or, you can copy the file's
+contents into your \verb|.profile|.  You must either log off and log
+back on again or 
+\begin{verbatim}
+	. .profile
+\end{verbatim}
+to re-read your profile into your current environment.
+
+\subsection{Running a Sample File} \label{sec:sample}
+
+Before preparing your own documents, you may want to get acquainted
+with \LaTeX\ by running it on a sample input file.  First make your own
+copy of the file \mbox{\tt sample.tex} by typing the following
+\UNIX\ command:
+\begin{verbatim}
+     cp $TEX/latex/sample.tex .
+\end{verbatim}
+(You must type the space followed by the period at the end.  This
+and all other \UNIX\ commands are ended by typing {\em return}.)
+A copy of the file \mbox{\tt sample.tex} is now in your current
+directory; you can edit it just like any other file.  If you destroy or
+mess up your copy, typing the above command again gets you a fresh
+one.
+
+Next, run \LaTeX\ on the file \mbox{\tt sample.tex} by typing:
+\begin{verbatim}
+     latex sample
+\end{verbatim}
+When \LaTeX\ has finished, it will have produced the file \mbox{\tt
+sample.dvi} in your directory.  You can print this file by typing the
+command
+\begin{verbatim}
+     dviimp sample.dvi
+\end{verbatim}
+The output will be produced on one of the Imagen printer, located in
+room 4N-E10.
+
+After your output has been printed, you can delete \mbox{\tt
+sample.dvi} by typing
+\begin{verbatim}
+     rm sample.dvi
+\end{verbatim}
+
+\subsection{Preparing and Running \LaTeX\ on Your Own Files}
+
+You must use a text editor to prepare an input file for \LaTeX. 
+The easiest way to start learning about \LaTeX\ is by 
+examining the file \mbox{\tt small.tex} with your text editor.
+You can obtain your own copy of this file, in your directory,
+by typing the command
+\begin{verbatim}
+     cp $TEX/latex/small.tex .
+\end{verbatim}
+
+After you have prepared your file, whose name should have the extension
+{\tt tex}, you must run it through \LaTeX\ and print the output.
+Follow the instructions in Section~\ref{sec:sample}, except substitute
+the first name of your file for ``\mbox{\tt sample}''.  Remember to
+save disk space by deleting the {\tt dvi} file after printing the
+output.
+
+The editor, GNUemacs, has a special mode for producing \LaTeX\ files.
+It has special command keys reduce the typing necessary for some
+\LaTeX\ command and a spelling mode that ignores the \LaTeX\ macros.
+
+%List the text editors, available, and any special features they have
+%for producing \LaTeX\ input.  Explain how the various text editors
+%could cause bad characters to appear in the input file that would
+%generate the
+%\begin{verbatim}
+%! Text line contains an invalid character.
+%\end{verbatim}
+%error.
+
+If you want to stop \LaTeX\ in the middle of its execution, perhaps
+because it is printing a seemingly unending string of uninformative
+error messages, type {\em Control-C\/} (press $C$ while holding down
+the key labeled {\em CTRL\/}).  This will make \LaTeX\ stop as if it
+had encountered an ordinary error, and you can return to \UNIX\ command
+level by typing {\tt X}, as described in the manual.  If typing {\em
+Control-C\/} doesn't work, typing {\em Control-Z\/} will get you
+immediately to \UNIX\ command level, but this will leave a stopped job
+hanging around.  A stopped job won't hurt anything and will disappear
+when you log out, but it forces you to type two successive \mbox{\tt
+logout} commands to log out.
+
+To use the {\em spell\/} program for finding spelling errors in a
+\LaTeX\ input file named \mbox{\tt myfile.tex}, type the following
+command:
+\begin{verbatim}
+     delatex myfile.tex | spell
+\end{verbatim}
+This will type a list of possibly misspelled words on your terminal.
+If you'd rather have the output written to a file named \mbox{\tt
+foo.bar}, type
+\begin{verbatim}
+     delatex myfile.tex | spell >foo.bar
+\end{verbatim}
+
+
+\section{Carrying On}
+
+\subsection{\LaTeX\ on \UNIX } \label{sec:op-system}
+
+The only special problems in using \LaTeX\ caused by the \UNIX\
+operating system involve the way \UNIX\ handles files.  The first
+problem arises because, when a program starts to write a file, \UNIX\
+destroys the previous version of that file.  Thus, if an error forces
+you to stop \LaTeX\ prematurely (by typing {\em Control-C\/} or {\em
+Control-Z\/}), then the files that \LaTeX\ was writing are incomplete,
+and the previous complete versions have been destroyed.  You probably
+don't care about the output on the {\tt dvi} file, but, if you are
+making a table of contents or using cross-referencing commands, then
+\LaTeX\ also writes one or more {\em auxiliary files\/} that it reads
+the next time it processes the same input file.  If the auxiliary files
+are incomplete because \LaTeX\ was stopped before reaching the end of
+its input file, then the table of contents and cross-references will be
+incorrect the next time \LaTeX\ is run on the same input file.  You
+will have to run \LaTeX\ a second time to get them right.  If you want
+to avoid having to run \LaTeX\ twice after making an error---for
+example, if your input is very long---then you should save copies of
+these auxiliary files before running \LaTeX. An input file named
+\mbox{\tt myfile.tex} and all the auxiliary files produced by \LaTeX\
+from it are included in the \UNIX\ file specifier \mbox{\tt myfile.*}.
+Use the \UNIX\ {\tt cp} command to save copies of these files.
+
+The second problem in using \LaTeX\ on \UNIX\ involves the files that
+\LaTeX\ reads.  The file whose name you type with \UNIX's {\tt latex}
+command is called the {\em root file}.  In addition to reading the root
+file, \LaTeX\ also reads the files specified by \hbox{\verb|\input|}
+and \hbox{\verb|\include|} commands.  With the \UNIX\ directory system,
+\LaTeX\ must know not only the names of these file but also on what
+directories they are.  It will have no problem finding the correct
+files if you follow two simple rules:
+\begin{enumerate}
+\item Run \LaTeX\ from the directory containing the root file.  
+\item Keep all files specified by \hbox{\verb|\input|} and
+      \hbox{\verb|\include|} commands in the same directory as the root
+      file.  
+\end{enumerate}
+
+If you follow these rules, you never have to type an \UNIX\ path
+specifier when using \LaTeX.
+
+You should never break the first rule, otherwise \LaTeX\ will have
+trouble finding auxiliary files.  (To run \LaTeX\ on someone else's
+file, copy the file to your directory.) If you break the second
+rule, specifying a file from another directory in an
+\hbox{\verb|\input|} or \hbox{\verb|\include|} command, you must use a
+complete path name.  For example, to include the file \mbox{\tt hisfile.tex} 
+from Jones' directory \hbox{\verb|/foo/bar|}, you can type
+\begin{verbatim}
+     \include{/udir/jones/foo/bar/hisfile}
+\end{verbatim}
+A \verb|~| character may not appear in the argument of an
+\hbox{\verb|\input|} or \hbox{\verb|\include|} command, so you {\em
+can't\/} use a file name such as \hbox{\verb|~jones/foo/bar/hisfile|}.
+
+For people who don't like to obey rules, 
+here is exactly how \LaTeX\ finds its
+files.  The root file is found by \UNIX\ according to its usual rules.
+\LaTeX's auxiliary files are read and written in the directory from
+which it is run.  All file names specified in the \LaTeX\ input,
+including the names of document-style ({\tt sty}) files specified by
+the \hbox{\verb|\documentstyle|} command, are interpreted relative to
+the directory from which \LaTeX\ is run.  If \LaTeX\ does not find a
+file starting in this directory, it looks in the system directory
+\hbox{\verb|$TEX/macros|}.  You can change the directories in
+which \LaTeX\ looks for its input files by setting the environment
+variable \mbox{\tt TEXINPUTS}.  Putting the command
+\begin{verbatim}
+setenv TEXINPUTS :.:/udir/jones/myown:$TEX/macros:	(for csh) or
+TEXINPUTS=".:/udir/jones/myown:$TEX/macros"		(for sh or ksh)
+\end{verbatim}
+in your \mbox{\tt .login} or {\tt .profile} file causes \LaTeX\ to
+look for files first 
+in the current directory, then in Jones' {\tt /myown} directory, and
+then in the system directory.  You might want to do this if your name
+is Jones and you have your own personal document-style files in your
+{\tt /myown} directory. 
+
+\subsection{Document Styles}
+
+
+There are a number document styles and style options available at LC that
+are not described in the manual: the \mbox{\tt proc} style option for
+making camera-ready copy for conference proceedings, the {\tt bezier}
+option for drawing curves, the {\tt ifthen} option for implementing
+{\bf if-then-else} and {\bf while-do} control structures, the \mbox{\tt
+attletter} style for making letters that include the AT\&T logo, the
+{\tt tm} style for AT\&T memoranda, the {\tt rp} style for AT\&T released
+papers, the {\tt showidx} option for 
+printing index entries in the margin, and a number of
+options for {\tt tm, rp} and {\tt attletter}.
+Styles {\tt tm}, {\tt rp}, {\tt attletter} and their new options are
+described in the document {\it Using the \LaTeX\ Document
+Style};\cite{bib:tmdoc} the others are
+described below.  There are a number of other undocumented document
+styles and options in \verb|$TEX/macros| and \verb|$TEX/collection|.
+These undocumented styles will not be discussed here.  
+
+\subsubsection{The {\tt tm} Style}
+
+The {\tt tm} style allows documents to be formatted as AT\&T Technical
+or Internal Memoranda.  It generates the correct style, cover sheets,
+distribution lists, etc.  All users are encouraged to obtain a copy of
+the detailed documentation in {\it Using the \LaTeX\ Document
+Style}.\cite{bib:tmdoc}  This may be requested from the author or
+printed by running \LaTeX\ on the file \verb|$TEX\man\tm.doc|.
+
+\subsubsection{The {\tt rp} Style}
+
+The {\tt rp} style allows documents to be formatted in AT\&T released
+paper style.  It accepts \LaTeX\ source identical to that accepted by
+{\tt tm} style so that separate source files are not needed.  See {\it
+Using the \LaTeX\ Document Style}\cite{bib:tmdoc} for complete
+documentation.  
+
+\subsubsection{The {\tt attletter} Style}
+
+The {\tt attletter} style formats letters adding the AT\&T letterhead.
+See {\it Using the \LaTeX\ Document Style}\cite{bib:tmdoc} for complete
+documentation. 
+
+\subsubsection{The {\tt proc} Style Option}
+
+The {\tt proc} option is used with the \mbox{\tt article} document
+style.  It produces two-column output for ACM and IEEE conference
+proceedings.  The command \hbox{\verb|\copyrightspace|} makes the blank
+space at the bottom of the first column of the first page, where the
+proceedings editor will insert a copyright notice.  This command works
+by producing a blank footnote, so it is placed in the text of the first
+column.  It must go after any \hbox{\verb|\footnote|} command that
+generates a footnote in that column.
+
+\LaTeX\ automatically numbers the output pages.  It's a good idea 
+to identify the paper on each page of output.  Placing the command
+\begin{verbatim}
+     \markright{Jones---Foo}
+\end{verbatim}
+in the preamble (before the \hbox{\verb|\begin{document}|} command)
+prints ``Jones---Foo'' at the bottom of each page.  
+
+\subsubsection{The {\tt bezier} Style Option}
+
+This option defines a single command, \hbox{\verb|\bezier|}, that draws
+a curved line in a {\tt picture} environment.  Let $P_{i}$ be the point
+with coordinates $(x_{i},y_{i})$, for $i=1$, 2, and 3.  The command
+\begin{itemize} \tt
+\item[]
+\verb|\bezier{|$n$\verb|}(|$x_{1}$,$y_{1}$)($x_{2}$,$y_{2}$)($x_{3}$,$y_{3}$)
+\end{itemize}
+draws $n$ points on the quadratic Bezier spline determined by the three
+points $P_{1}$, $P_{2}$, and $P_{3}$.  The locus of points on this
+spline is a parabolic arc from $P_{1}$ to $P_{3}$ having the line
+$P_{1}P_{2}$ tangent to it at $P_{1}$ and the line $P_{2}P_{3}$ tangent
+to it at $P_{3}$.  Note that $P_{2}$ is {\em not\/} on this arc unless
+$P_{1}$, $P_{2}$, and $P_{3}$ are colinear, in which case the arc is a
+straight line.  Bezier splines are useful because it's easy to join two
+of them together smoothly by giving them the same tangent line where
+they meet.
+
+It takes roughly 75 points per inch to form a solid line, depending
+upon the line thickness.  See Section~C.13.3 of the manual for commands
+to specify line thickness in a {\tt picture} environment.  This command
+is {\em very\/} slow, and \TeX\ has enough memory to hold only about
+1000 points plus a page of text.  (Remember that \TeX\ keeps the
+current page plus all as yet unprinted figures in memory.) So, the
+\verb|bezier| command should be used for only a small number of small
+curves.
+
+
+\subsubsection{The {\tt ifthen} Style Option}
+
+This option provides two programming language features that are useful
+only for people who already know how to program.  It defines the
+two commands
+\begin{itemize} 
+\item[]
+\verb|\ifthenelse{|{\em test\/}\verb|}{|{\em then clause\/}\verb|}{|%
+{\em else clause\/}\verb|}|\\
+\verb|\whiledo{|{\em test\/}\verb|}{|{\em do clause\/}\verb|}|
+\end{itemize}
+that implement the following two Pascal language structures
+\begin{itemize}
+\item[]
+\begin{tabbing}
+{\bf if} {\em test\/} \= {\bf then} \= {\em then clause\/} \\
+ \> {\bf else} \> {\em else clause\/} \\[2pt]
+{\bf while} {\em test\/} {\bf do} {\em do clause\/}
+\end{tabbing}
+\end{itemize}
+The {\em then\/}, {\em else\/}, and {\em do\/} clauses
+are ordinary \LaTeX\ input; {\em test\/} is one of the following:
+\begin{itemize}
+ \item A relation between two numbers formed with {\tt <}, {\tt >},
+or {\tt =}; for example, \hbox{\verb|\value{page}>3|}.
+ \item \verb|\equal{|{\em string1\/}\verb|}{|%
+{\em string2\/}\verb|}|, which evaluates to {\em true\/} if {\em
+string1\/} and {\em string2\/} are the same strings of characters after
+all commands have been replaced by their definitions.  (Upper- and
+lowercase letters are unequal.)
+ \item A logical combination of the above two kinds of tests
+    using the operators \hbox{\verb|\or|}, \hbox{\verb|\and|},
+    and \hbox{\verb|\not|} and the parentheses \hbox{\verb|\(|}
+    and \hbox{\verb|\)|}---for example:
+\begin{verbatim}
+\not \( \value{section} = 1  \and  \equal{Jones}{\myname} \)
+\end{verbatim}
+\end{itemize}
+The {\em test\/} argument is a violently moving argument, which means
+that not only fragile commands but even some commands that are not
+normally fragile will break, causing \TeX\ to enter an infinite loop.
+The \verb|\protect| command works in these situations.
+
+These commands, together with \hbox{\verb|\renewcommand|} and the
+commands of Section~C.7.4 for manipulating counters, open up a whole
+new world of hacking.
+
+
+\subsubsection{The {\tt showidx} Style Option}
+
+This style option, for use with the {\tt report} pr {\tt book} document
+styles, causes index entries to be printed in the outer margin.  It
+does not change the effect of the \verb|\makeindex|, which controls
+whether or not an {\tt .idx} file is written.  No attempt is made to
+avoid overprinting marginal notes.  This option issues a 
+\verb|\flushbottom| declaration.
+
+
+\subsection{Where the Files Are}
+
+% must explain where the following files are:
+%   small.tex, sample.tex, *.sty, *.doc, lablst.tex, idx.tex
+%
+
+All \LaTeX\ files mentioned in the manual are in subdirectories of
+\verb|$TEX|.  The {\tt sty} files are in \verb|$TEX/macros|, the {\tt doc} 
+files are in the directory \verb|$TEX/man|.  The documentation for
+{\tt tm, rp} and {\tt attletter} is in \verb|$TEX/man/tm.doc| and the
+example files from that document are in \verb|$TEX/man|.
+Fonts are stored in two directories: the {\tt tfm} files used by \TeX\
+are on \verb|$TEX/fonts|, and the pixel files used by
+{\it dviimp\/}, {\it dvix\/} and other device drivers are in
+\verb|$TEX/pixels| and \verb|$TEX/pixels118|.
+
+\subsection{Running {\tt lablst.tex} and {\tt idx.tex}}
+
+A list of labels and citations in an input file is printed
+by running \LaTeX\ on the input file \mbox{\tt lablst.tex},
+which is done by typing
+\begin{verbatim}
+     latex $TEX/latex/lablst.tex
+\end{verbatim}
+\LaTeX\ will then ask for the name of the input file, which should be
+typed without an extension, and for the name of the main document style
+(e.g., \mbox{\tt article}), used by that file.
+
+The index entries on an {\tt idx} file are printed by running \LaTeX\
+on the file \mbox{\tt idx.tex}, which is done by typing
+\begin{verbatim}
+     latex $TEX/idx
+\end{verbatim}
+\LaTeX\ will ask for the name of the {\tt idx} file, which is typed
+without an extension.
+
+
+
+\subsection{Differences from the Manual}
+
+All \LaTeX\ features described in the manual are provided by 
+the implementation at LC.
+
+%Explain here any characters that can appear in input files other than
+%the ones listed in Section 2.1.
+
+%Tell if the \mbox{\tt log} file has an extension other than
+%\mbox{\tt .log}.  Note: on TOPS-20, its extension is \mbox{\tt .lst}.
+
+%Describe the sizes of disks and circles the are available.
+
+%Don't forget to mention if the invisible fonts needed for \SLiTeX\
+%color slides are unavailable.
+
+\subsection{Using \BibTeX}
+
+\BibTeX\ is a program for compiling a reference list for a document
+from a bibliographic database.  It is run by typing
+\begin{verbatim}
+     bibtex myfile
+\end{verbatim}
+where \mbox{\tt myfile.tex} is the name of your \LaTeX\ input file.
+This reads the file \mbox{\tt myfile.aux}, which was generated when you
+ran \LaTeX\ on \mbox{\tt myfile.tex}, and produces the file \mbox{\tt
+myfile.bbl}.  \BibTeX\ should be run from the directory containing
+\mbox{\tt myfile.tex} (which should be the same directory from which
+\LaTeX\ was run on that file).
+
+If the {\tt bib} file is not in the same directory as the \LaTeX\ input
+file---for example, if you're using someone else's {\tt bib}
+file---then you must include a path as part of the file name specified
+by the \hbox{\verb|\bibliography|} command.  A \verb|~| cannot appear
+in the argument of a \hbox{\verb|\bibliography|} command, so you should
+use a complete path name.  For example, the \LaTeX\ command
+\begin{verbatim}
+     \bibliography{/udir/jones/bibfiles/gnus}
+\end{verbatim}
+specifies the file \mbox{\tt gnus.bib} kept by Jones in his 
+\mbox{\tt /bibfiles} directory.
+
+
+There is now no formal provision for sharing bibliographic database
+information, nor are there programs to assist in making your own {\tt
+bib} files.  Suggestions for forming one or more common {\tt bib} files
+are welcome.
+
+In addition to the bibliography styles described in the manual, there
+is a {\tt ieeetr} style that formats entries in the style of the IEEE
+transactions.
+
+In addition to the usual three-letter abbreviations for the months, the
+following abbreviations are defined by the bibliography styles:
+\begin{list}{}{\labelwidth 0pt \itemindent-.5\leftmargin
+       \itemsep=2pt plus 1pt
+       \let\makelabel\descriptionlabel}\it
+\item[\tt acmcs] ACM Computing Surveys
+\item[\tt acta] Acta Informatica
+\item[\tt cacm] Communications of the ACM
+\item[\tt ibmjrd] IBM Journal of Research and Development
+\item[\tt ibmsj] IBM Systems Journal
+\item[\tt ieeese] IEEE Transactions on Software Engineering
+\item[\tt ieeetc] IEEE Transactions on Computers
+\item[\tt ieeetcad]
+ IEEE Transactions on Computer-Aided Design of Integrated Circuits
+\item[\tt ipl] Information Processing Letters
+\item[\tt jacm] Journal of the ACM
+\item[\tt jcss] Journal of Computer and System Sciences
+\item[\tt scp] Science of Computer Programming
+\item[\tt sicomp] SIAM Journal on Computing
+\item[\tt tocs] ACM Transactions on Computer Systems
+\item[\tt tods] ACM Transactions on Database Systems
+\item[\tt tog] ACM Transactions on Graphics
+\item[\tt toms] ACM Transactions on Mathematical Software
+\item[\tt toois] ACM Transactions on Office Information Systems
+\item[\tt toplas] ACM Transactions on Programming Languages and Systems
+\item[\tt tcs] Theoretical Computer Science
+\end{list}
+
+% Note: All styles should share the same set of abbreviations.
+
+\subsubsection{ATTTM.bst}
+An additional \BibTeX\ bibliography style is available, {\tt
+atttm.sty}.  The {\it
+atttm} style is similar to the {\it unsrt} style but is somewhat closer to
+the style recommended in {\it The Bell Labs Style
+Guide}\cite{bib:blstyle} (though there are still some differences).
+The bibliography style can be set by calling
+\begin{itemize}
+\item[]
+\verb|\bibliographystyle{|{\it style-file}\verb|}|
+\end{itemize}
+just after the \verb|\begin{document}| (but before the call to
+\verb|\makehead| if using tm.sty).
+
+atttm.bst recognizes a few additional abbreviations
+\begin{list}{}{\labelwidth 0pt \itemindent-.5\leftmargin
+       \itemsep=2pt plus 1pt
+       \let\makelabel\descriptionlabel}\it
+\item[\tt bl] AT\&T Bell Laboratories
+\item[\tt atttechj] AT\&T Technical Journal
+\end{list}
+
+\subsection{Using \SLiTeX}
+
+\SLiTeX\ is a version of \LaTeX\ for making slides.
+To run \SLiTeX\  with a root file \mbox{\tt myroot.tex}, you type
+\begin{verbatim}
+     slitex myroot
+\end{verbatim}
+(You should be connected to the directory containing \mbox{\tt
+myroot.tex}.) Refer to Section~\ref{sec:op-system} if you want slide
+files or \hbox{\verb|\input|} files to be in a different directory from
+your root file.
+
+Black and white slides can be made by copying the laser printer output
+pages onto PPC transparency film available in the stockroom or by
+using the transparency machine in the secretarial pool.
+
+\subsection{Fonts}
+
+Almost all the symbols available on our fonts can be generated by
+ordinary \LaTeX\ commands.  However, there are type sizes not
+obtainable by \LaTeX's size-changing commands with the ordinary
+document styles.  Consult a local \TeX\ expert to find the
+\TeX\ name for such a font.
+
+Tables~\ref{tab:styles} and \ref{tab:fonts} allow you
+to determine if the font for a type style at a particular
+size is preloaded, loaded on demand, or unavailable.
+\begin{table}
+\centering
+\begin{tabular}{l|r|r|r|}
+\multicolumn{1}{l}{size} & 
+\multicolumn{1}{c}{default (10pt)} &
+        \multicolumn{1}{c}{11pt option}  &
+        \multicolumn{1}{c}{12pt option}\\
+\cline{2-4}
+\verb|\tiny|       & 5pt  & 6pt & 6pt\\
+\cline{2-4}
+\verb|\scriptsize| & 7pt  & 8pt & 8pt\\
+\cline{2-4}
+\verb|\footnotesize| & 8pt & 9pt & 10pt \\
+\cline{2-4}
+\verb|\small|        & 9pt & 10pt & 11pt \\
+\cline{2-4}
+\verb|\normalsize| & 10pt & 11pt & 12pt \\
+\cline{2-4}
+\verb|\large|      & 12pt & 12pt & 14pt \\
+\cline{2-4}
+\verb|\Large|      & 14pt & 14pt & 17pt \\
+\cline{2-4}
+\verb|\LARGE|      & 17pt & 17pt & 20pt\\
+\cline{2-4}
+\verb|\huge|       & 20pt & 20pt & 25pt\\
+\cline{2-4}
+\verb|\Huge|       & 25pt & 25pt & 25pt\\
+\cline{2-4}
+\end{tabular}
+\caption{Type sizes for \LaTeX\ size-changing commands.}\label{tab:styles}
+\end{table}
+\begin{table}
+\centering
+\begin{tabular}{l|c|c|c|c|c|c|}
+\multicolumn{1}{l}{}& 
+\multicolumn{1}{c}{\tt \bs it} &
+\multicolumn{1}{c}{\tt \bs bf} &
+\multicolumn{1}{c}{\tt \bs sl} &
+\multicolumn{1}{c}{\tt \bs sf} &
+\multicolumn{1}{c}{\tt \bs sc} &
+\multicolumn{1}{c}{\tt \bs tt} \\
+\cline{2-7}
+5pt  & D & D & X & X & X & X \\
+\cline{2-7}
+6pt  & X & D & X & X & X & X \\
+\cline{2-7}
+7pt  & P & D & X & X & X & X \\
+\cline{2-7}
+8pt  & P & D & D & D & D & D \\
+\cline{2-7}
+9pt  & P & P & D & D & D & P \\
+\cline{2-7}
+10pt & P & P & P & P & D & P \\
+\cline{2-7}
+11pt & P & P & P & P & D & P \\
+\cline{2-7}
+12pt & P & P & P & P & D & P \\
+\cline{2-7}
+14pt & D & P & D & D & D & D \\
+\cline{2-7}
+17pt & D & P & D & D & D & D \\
+\cline{2-7}
+20pt & D & D & D & D & D & D \\
+\cline{2-7}
+25pt & X & D & X & X & X & X \\
+\cline{2-7}
+\end{tabular}
+\caption{Font classes: P = preloaded, D = loaded on demand, 
+         X = unavailable.}\label{tab:fonts}
+\end{table}
+Table~\ref{tab:styles} tells you what size of type is used for each
+\LaTeX\ type-size command in the various document-style options.  For
+example, with the {\tt 12pt} option, the \hbox{\verb|\large|}
+declaration causes \LaTeX\ to use 14pt type.  Table~\ref{tab:fonts}
+tells, for every type size, to which class of fonts each type style
+belongs.  For example, in 14pt type, \verb|\bf| uses a preloaded
+font and the other five type-style commands use load-on-demand fonts.
+Roman (\verb|\rm|) and math italic (\verb|\mit|) fonts are all
+preloaded; the \hbox{\verb|\em|} declaration uses either italic
+(\verb|\it|) or roman.
+
+%Describe any special fonts available here.
+
+%Tell where to find a font manual, listing the character numbers of
+%the symbols on different fonts.
+
+%Include a table telling which fonts are preloaded, loaded on demand,
+%and unavailable.  
+
+\subsection{Printing}
+All \LaTeX\ documents are printed on the Imagen printers in 4N-E10.
+There are two printer filters available, {\tt dviimp} and {\tt dvips}.
+{\tt dviimp} converts a dvi file to impress and automatically prints
+the file on one of the printers.  {\tt dvips} converts a dvi file to
+Postscript and send the output its standard output.  It should be
+directed to a file.  That file can only be printed on the Imagen
+attached to the Suns.  From other machines the file must be
+transferred to a Sun.  The file can then be printed by
+\begin{verbatim}
+	lpr -Lultrascript filename
+\end{verbatim}
+\subsection{Screen Previewing}
+A dvi file can be previewed on 630 terminals running layers or on the
+Suns running either X-windows or SunTools.  The 630 previewer is
+called {\tt dvidmd}.  The X-window previewer is {\tt dvix} or {\tt
+texx} and the SunTools previewer is {\tt preview}.
+\subsection{Making Figures}
+The picture environment of \LaTeX\ is somewhat easier to use than
+troff's pic but any method of entering graphics textually is
+cumbersome.  There are several tools for creating line drawings for
+use in \LaTeX\ documents.
+\subsubsection{cip or xcip}
+There is a mouse oriented screen drawing tool for DMD's (630 or 5620)
+called cip and an improved version called xcip.  cip is also available
+under X-windows on the Suns.  Both of these tools output graphics in
+the form of pic code.  Pic code can be converted to \TeX\
+\verb|\specials| that are recognized by {\it dviimp} using the tool
+tpic descibed in the following section.  
+
+Since pic is designed to work
+with troff, cip outputs font information in troff form.  This is not
+converted by tpic.  This font information must be removed by editor.
+Remove all 
+\begin{verbatim}
+	\f4\p10\&  and
+	\f1\p0
+\end{verbatim}
+\subsubsection{Tpic}
+Tpic is a tool for converting pic files into \verb|specials| that are
+recognized by {\tt dviimp}.  To convert a file use
+\begin{verbatim}
+	tpic picfile.pic
+\end{verbatim}
+This will produce a file with the same basename but with the extension
+.tex.  This should be included in your document as
+\begin{verbatim}
+	\begin{figure}[htp]
+	\input{picfile.tex}
+	\centerline{\box\graph}
+
+	\medskip
+	\caption{Some Appropriate Caption}
+	\end{figure}
+\end{verbatim}
+
+Only the \verb|\input| and \verb|\centerline| commands are required.
+\subsubsection{Fig}
+Another tools for making line drawings that has many more capabilities
+than cip is {\tt fig}.  Fig runs on our Suns under SunTools and an X-window
+version is available as {\tt xfig}.  Fig output files can be converted
+to Postscript, pic, \LaTeX\ picture environment or PiC\TeX\ form.
+\subsubsection{PostScript}
+Dvips allows Postscript figures created with any tool to be
+incorporated into the document.  We do not have any generally
+available tools for creating Postscript graphics
+\subsection{Special Versions}
+
+No foreign-language or other special versions of \LaTeX\
+are currently available at LC.
+
+
+\section{Bugs}
+
+There are a few known bugs in \LaTeX\ that occur very seldom and
+cause the user little trouble, but would be very difficult to fix.
+Moreover, given the nature of complex systems, it is not unlikely that
+the corrections would lead to even worse problems.  Therefore, these
+bugs will probably not be fixed.  
+
+The bugs and ways to get around them are listed below.  Do not worry
+about any of them until you are preparing the final draft, since
+changes to the text are very likely to cause the problem to disappear.
+\begin{itemize}
+\item In rare instances, a figure or table will be printed on the page
+preceding the text where the {\tt figure} or {\tt table} environment
+appears.  This can be fixed by either moving the environment further
+towards the end of the document. 
+
+\item A marginal note at the top of a page may appear in the wrong
+margin.  This can be fixed by inserting a redundant \verb|\pagebreak|
+command to force a page break exactly where \LaTeX\ started the new
+page anyway.
+
+\item A footnote can be broken across two pages when it should fit on a
+single page.  This happens when there is one or more figures or tables
+on the page.  The problem is corrected by moving, towards the end of the
+file, the last {\tt figure} or {\tt table} environment that produces a
+figure or table on the page where the footnote starts.
+\end{itemize}
+\makefacesignature{/usr/banc/tla/face}
+{\noindent Att.\\
+Appendix A}
+\bibliography{tm}
+\appendices
+
+\section{Errata and Additions to the Manual}
+
+\input{addendum}
+\tableofcontents
+\mffcoversheet
+\end{document}
+
+%&c&@i*\hbox{* 2@s\|\ @i|}|#&
+%&i&\index{#}&
+%&m&\mbox#&
+%&t&{\tt #}&
+%&v&\hbox{\verb|#|}&
+%&b&\verb|#|&
+%&h&\hbox#&

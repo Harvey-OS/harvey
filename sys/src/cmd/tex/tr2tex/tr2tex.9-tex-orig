@@ -1,0 +1,124 @@
+% -*-LaTeX-*-
+% Converted automatically from troff to LaTeX by tr2tex on Fri Feb 20 12:05:23 1987
+% tr2tex was written by Kamal Al-Yahya at Stanford University
+% (Kamal%Hanauma@SU-SCORE.ARPA)
+
+
+\documentstyle[troffman]{article}
+\begin{document}
+%
+% input file: tr2tex.9
+%
+\phead{TR2TEX}{9}{1\ January\ 1987}
+
+\shead{NAME}
+tr2tex -- convert a document from troff to LaTeX
+\shead{SYNOPSIS}
+{\bf tr2tex}
+[
+{\bf -m}
+]
+{\it filename}
+\shead{DESCRIPTION}
+{\bf Tr2tex}
+converts a document typeset in
+{\bf troff}
+to a
+{\bf LaTeX}
+format.
+It is intended to do the first pass of the conversion. The user
+should then finish up the rest of the conversion and customize the
+converted manuscript to his/her liking.
+It can also serve as a tutor for those who want to convert from
+troff to LaTeX.
+\par
+Most of the converted document will be in LaTeX
+but some of it may
+be in plain
+{\bf TeX.}
+It will also use some macros in
+{\bf troffms.sty}
+or
+{\bf troffman.sty}
+which are included in the package and must be available to the document
+when processed with LaTeX.
+\par
+If there is more than one input file, they will all be converted into
+one LaTeX document.
+\par
+{\bf Tr2tex}
+understands most of the
+{\bf -ms}
+and
+{\bf -man}
+macros and
+{\bf eqn}
+preprocessor symbols. It also understands several plain
+{\bf troff}
+commands. Few
+{\bf tbl}
+preprocessor commands are understood to help convert very simple tables.
+\par
+When converting manuals, use the
+{\bf -m}
+flag.
+\par
+If a troff command cannot be converted, the line that contain that
+command will be commented out.
+\par
+NOTE: if you have
+{\bf eqn}
+symbols, you must have the in-line mathematics delimiter defined by
+{\bf delim}
+in the file you are converting. If it is defined in another
+setup file, that setup file has to be concatenated with the
+file to be converted, otherwise
+{\bf tr2tex}
+will regard the in-line math as ordinary text.
+\shead{BUGS}
+Many of these bugs are harmless. Most of them cause local errors
+that can be fixed in the converted manuscript.
+\par
+-- Some macros and macro arguments are not recognized.
+\par
+-- Commands that are not separated from their argument by a space are
+not properly parsed (e.g .sp3i).
+\par
+-- When some operators (notably over, sub and sup) are renamed (via define),
+then they are encountered in the text,
+{\bf tr2tex}
+will treat them as
+ordinary macros and will not apply their rules.
+\par
+-- rpile, lpile and cpile are treated the same as cpile.
+\par
+-- rcol, lcol are treated the same as ccol.
+\par
+-- Math-mode size, gsize, fat, and gfont are ignored.
+\par
+-- lineup and mark are ignored. The rules are so different.
+\par
+-- Some troff commands are translated to commands that require
+delimiters that have to be explicitly put. Since they are
+sometimes not put in troff, they can create problems.
+Example: .nf not closed by .fi.
+\par
+-- When local motions are converted to \bs raise or \bs lower, an \bs hbox
+is needed, which has to be put manually after the conversion.
+\par
+-- 'a sub i sub j' is converted to 'a\_i\_j' which TeX
+parses as 'a\_i\{\}\_j\}' with a complaint that it is vague. 'a sub \{i sub j\}'
+is parsed correctly and converted to 'a\_\{i\_j\}'.
+\par
+-- Line spacing is not changed within a paragraph in TeX
+(which is a bad practice anyway).
+TeX uses the last line spacing in effect in that paragraph.
+\shead{TODO}
+Access registers via
+{\bf .nr}
+command.
+\shead{SEE ALSO}
+texmatch(9), trmatch(9).
+\shead{AUTHOR}
+Kamal Al-Yahya, Stanford University
+\end{document}

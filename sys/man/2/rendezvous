@@ -1,0 +1,45 @@
+.TH RENDEZVOUS 2
+.SH NAME
+rendezvous \- user level process synchronization
+.SH SYNOPSIS
+.B
+ulong rendezvous(ulong tag, ulong value)
+.SH DESCRIPTION
+The rendezvous system call allows two processes to synchronize and
+exchange a value.
+In conjunction with the shared memory system calls
+(see
+.IR segattach (2)
+and
+.IR fork (2)),
+it enables parallel programs to access the system scheduler.
+.PP
+Two processes wishing to synchronize call
+.I rendezvous
+with a common
+.IR tag ,
+typically an address in
+memory they share.
+One process will arrive at the rendezvous first;
+it suspends execution until a second arrives.
+When a second process meets the rendezvous
+the
+.I value
+arguments are exchanged between the processes and returned
+as the result of the respective
+.I rendezvous
+system calls.
+Both processes are awakened when
+the rendezvous succeeds.
+.PP
+The tag space is common to processes in the same file name space.
+.PP
+If a rendezvous is interrupted the return value is
+.BR ~0 ,
+so that value should not be used in normal communication.
+.SH SEE ALSO
+.IR segattach (2),
+.IR fork (2)
+.SH DIAGNOSTICS
+Sets
+.I errstr.

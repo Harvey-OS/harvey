@@ -1,0 +1,45 @@
+</$objtype/mkfile
+
+bin=/$objtype/bin/auth
+cmd=keyfs wrkey convkeys cron \
+	adduser changeuser removeuser renameuser expire enable disable status printnetkey
+srv=fsauth rexauth changekey chal guard check
+libn=findkey ishost keyconv netcheck okpasswd readarg readln getauthkey tm2sec log error
+
+libo=${libn:%=libauth.$O(%.$O)}
+all=${cmd:%=$O.%} ${srv:%=$O.%.srv}
+inst=${cmd:%=%.install} ${srv:%=%.srv.install}
+
+all:V:	$all
+install:V:	$inst
+
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+
+%.installall:V:
+	for(objtype in $CPUS)
+		mk $stem.install&
+	wait
+
+&.install:V:	$O.&
+	mv $prereq /$objtype/bin/auth/$stem
+
+&.srv.install:V:	$O.&.srv
+	mv $prereq /$objtype/bin/aux/$stem
+
+$O.%:	%.$O libauth.$O
+	$LD -o $target $stem.$O
+
+%.$O:	%.c authsrv.h
+	$CC -c -w $stem.c
+
+libauth.$O(%.$O):N:%.$O
+libauth.$O:Q:	$libo
+	names=`{membername $newprereq}
+	ar vu libauth.$O $names
+	$RL libauth.$O
+	rm $names
+
+clean:V:
+	rm -f [$OS].* *.[$OS]

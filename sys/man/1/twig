@@ -1,0 +1,81 @@
+.TH TWIG 1
+.SH NAME
+twig \- tree-manipulation language
+.SH SYNOPSIS
+.B twig
+[
+.B -sASC
+]
+[
+.BI -w " suffix"
+]
+.I file.mt
+.SH DESCRIPTION
+.I Twig
+converts a tree-specification scheme consisting of pattern-action
+rules with associated costs into C functions that can be called
+to manipulate input trees.
+The C functions first find a minimum-cost covering of an input tree
+using a dynamic programming algorithm and then execute
+the actions associated with the patterns used in the covering.
+The tree-specification scheme may allow several coverings for an input tree,
+but the dynamic programming algorithm resolves any ambiguities
+by selecting a cheapest covering.
+.PP
+The input file containing the tree-specification scheme
+must have the suffix
+.LR .mt .
+.I Twig
+produces two output files:
+.BR walker.c ,
+which becomes the source file for the tree matcher, and
+.BR symbols.h ,
+which contains the definitions for the node and label symbols used
+in the source file.
+.PP
+To build
+.BR walker.c ,
+.I twig
+uses an internal template file,
+by default on appropriate for use with
+.IR fprintf (2).
+The options are
+.TP "\w'\fL-w \fIsuffix\fLXX'u"
+.B -A
+Use a template file for ANSI/POSIX source files.
+.TP
+.B -C
+Use a template file for files that use libc's
+.IR print (2)
+routines.
+.TP
+.B -S
+Use a template file for files that use
+.IR fprintf (2).
+.TP
+.B -s
+Do not produce a
+.B symbols.h
+file.
+.TP
+.BI -w " suffix"
+Use the template file
+.BI /sys/lib/twig/walker. suffix.
+.SH FILES
+.TF /sys/lib/twig
+.TP
+.B /sys/lib/twig
+System area for template files.
+.SH "SEE ALSO"
+.IR yacc (1)
+.br
+S. W. K. Tjiang,
+.I "The Twig Reference Manual,"
+Computing Science Technical Report No. 120,
+AT&T Bell Laboratories,
+Murray Hill, N.J.
+.br
+A. V. Aho, M. Ganapathi, and S. W. K. Tjiang,
+.I "Code generation using tree matching and dynamic programming."
+.SH BUGS
+When tree matching fails, the debugging output is cryptic.

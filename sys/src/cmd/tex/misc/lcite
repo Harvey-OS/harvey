@@ -1,0 +1,107 @@
+# Usage: cite f
+#	where f.tex is a latex source file containing
+#	BibTeX commands \cite, \bibliography, and 
+#	\bibliographystyle.
+#
+#	After running this script over a file, the next
+#	run of latex should have correctly formatted citations.
+#	It should be used whenever new references are cited, or 
+#	when the bibliography style is changed, in order to 
+#	cut the number of needed LaTeX runs down from 3 to 1.
+#
+#	This script, and the awk programs it uses, make certain 
+#	assumptions about the LaTeX source file that may not be
+#	justified in all cases.  It assumes that the \bibliography
+#	and \bibliographystyle commands appear on lines by themselves,
+#	and that the strings "\bibstyle" and "\bibdata" do not find 
+#	their way into the .aux file except as a result of 
+#	\bibliographystyle and \bibliography commands.  If for some 
+#	some reason these assumptions are violated, a clean state 
+#	can be reached by deleting the .aux and .bbl files and 
+#	running LaTeX three times.
+#	
+#	This script fails miserably if you have the csh option
+#	`noclobber' set.  
+#
+echo " " >> $1.aux	# (To make sure the .aux file exists)
+egrep -v '\\bibstyle|\\bibdata|\\citation|\\bibcite' $1.aux > ,cite_temp1
+mv ,cite_temp1 $1.aux
+awk '
+#
+#  pullcite.awk:  AWK program to pull citations out of 
+#		LaTeX source code.  The idea is to put this
+#		and BiBTeX together in a shell script with a 
+#		couple of other filters, in order to reduce 
+#		the number of initial runs through TeX to 
+#		get citations in place from 3 to 1 by building
+#		the .bbl file and augmenting the .aux file.
+#		
+/\\cite/ {
+	comment = index($0,"%");	# ignore after the %
+	if (comment >0) {
+		line = substr($0,1,--comment);
+		len = comment;
+	} 
+	else {				# use the complete line
+		line = $0;
+		len = length;
+	}
+	where = index(line,"\\cite");
+	# Loop for each citation in the line
+	while (where > 0) {  
+	   # The citation is in curly brackets following \cite,
+	   # possibly after page reference in []
+	   line = substr(line, where + 1, len)
+	   startcite  = index(line, "{") + 1
+	   endcite = index(line, "}")
+	   citation = substr(line, startcite, endcite - startcite)
+	   #  Print out the citation in .aux file format
+	   print "\\citation{" citation "}" 
+	   #  Look for next citation on line
+	   line = substr(line, endcite + 1, len)
+	   where = index(line, "\\cite")	
+	}	
+}
+/\\bibliography{/  {
+	line = $0;
+	startname = index(line,"{") + 1;
+	endname = index(line,"}") -1;
+	database = substr(line, startname, 1 + endname - startname);
+	print "\\bibdata{" database "}"
+}
+/\\bibliographystyle{/ {
+	line = $0;
+	startname = index(line,"{") + 1;
+	endname = index(line,"}") -1;
+	style = substr(line, startname, 1 + endname - startname);
+	print "\\bibstyle{" style "}"
+}
+' $1.tex >> $1.aux
+bibtex $1
+awk '
+#
+#  pullkey.awk:  AWK program to augment .aux file with the 
+#		\bibcite commands that will prevent undefined 
+#		references in next LaTeX run (thus decreasing by 
+#		one the number of LaTeX runs needed after adding 
+#		new citations).
+#
+/\\bibitem/ {
+	line = $0;
+	bibitemnum++;
+	# 
+	# Form of citation is \bibitem[key]{database-key}
+	# .aux file needs     \bibcite{database-key}{key}
+	#
+	# When the key is missing from \bibitem, it should be the bibitemnum
+	#
+	startkey = index(line,"[")+1;
+	endkey   = index(line,"]")-1;
+	citation_key  = substr(line,startkey, 1 + endkey - startkey);
+	if (citation_key == "") citation_key = bibitemnum;
+	startkey = index(line,"{")+1;
+	endkey   = index(line,"}")-1;
+	database_key = substr(line,startkey, 1 + endkey - startkey);
+	print "\\bibcite{" database_key "}{" citation_key "}";
+}
+' $1.bbl >> $1.aux

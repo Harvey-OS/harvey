@@ -1,0 +1,50 @@
+# This file makes some font utilities that are not part of MFware
+# from their respective sources.
+#
+APE=/sys/src/ape
+< $APE/config
+SITEDIR=..
+OPT=-B
+SHELL=/bin/rc
+
+TARG=pktogf pktype vftovp vptovf
+
+OFILES=extra.$O
+
+HFILES=extra.h\
+	$SITEDIR/site.h\
+
+</sys/src/cmd/mkmany
+
+CFLAGS=$OPT -I$SITEDIR -c
+LDFLAGS=
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}`
+
+extra.c:Q:		#dummy - needed to keep out of %.c rule
+		echo -n
+
+%.c:		%.p futil.defines
+		$SHELL ./convert $stem.p $stem.c
+
+%.p:		%.ch %.web ../stamp-tangle.$cputype
+		# redirected to stop chatter - remove redirection for debugging
+		../web/$cpuobjtype.tangle $stem.web $stem.ch > /dev/null
+
+../stamp-tangle.$cputype:
+		cd ..; objtype=$cputype mk stamp-tangle.$cputype
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..
+
+clean:V:
+		rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG *.pool
+
+nuke:V:
+		rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG *.pool
+		rm -f *.p
+		rm -f pktogf.c pktype.c vftovp.c vptovf.c
+		rm -f pktogf.h pktype.h vftovp.h vptovf.h
+		rm -f '#'*'#' *~ *.bak

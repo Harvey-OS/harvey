@@ -1,0 +1,20 @@
+\contentsline {section}{\numberline {1}General remarks}{297}
+\contentsline {section}{\numberline {2}Choosing a new text font}{298}
+\contentsline {subsection}{\numberline {2.1}Choosing a new {\pem family}}{298}
+\contentsline {subsection}{\numberline {2.2}Choosing a new {\pem series}}{300}
+\contentsline {subsection}{\numberline {2.3}Choosing a new {\pem shape}}{300}
+\contentsline {subsection}{\numberline {2.4}Choosing a new {\pem size}}{300}
+\contentsline {subsection}{\numberline {2.5}Doing it by hand}{300}
+\contentsline {subsection}{\numberline {2.6}Changing the meaning of {\ptt \bslash rm}, {\ptt \bslash sf} etc.}{300}
+\contentsline {section}{\numberline {3}Fonts for Math}{300}
+\contentsline {subsection}{\numberline {3.1}Simple formulas}{300}
+\contentsline {subsection}{\numberline {3.2}Special math alphabets}{301}
+\contentsline {section}{\numberline {4}Processing older documents}{302}
+\contentsline {section}{\numberline {5}Setting up a new format}{302}
+\contentsline {subsection}{\numberline {5.1}Preparations}{302}
+\contentsline {subsubsection}{\numberline {5.1.1}Preloading Fonts}{302}
+\contentsline {subsubsection}{\numberline {5.1.2}Making more fonts available}{302}
+\contentsline {subsection}{\numberline {5.2}Running IniT\hbox {\kern -.1667em\lower .424ex\hbox {E}\kern -.125emX}}{303}
+\contentsline {section}{\numberline {6}Remarks on the development of this interface}{304}
+\contentsline {section}{\numberline {7}Acknowledgements}{304}
+\contentsline {section}{\numberline {8}List of distributed files}{304}

@@ -1,0 +1,28 @@
+objtype=386
+</386/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	main9.$O\
+	main9p.$O\
+	argv0.$O\
+	frexp.$O\
+	getfcr.$O\
+	getfsp.$O\
+	memccpy.$O\
+	memchr.$O\
+	memcmp.$O\
+	memcpy.$O\
+	memmove.$O\
+	memset.$O\
+	nan.$O\
+	notejmp.$O\
+	setjmp.$O\
+	strcat.$O\
+	strchr.$O\
+	strcpy.$O\
+	strlen.$O\
+
+HFILES=/sys/include/libc.h
+
+</sys/src/cmd/mksyslib

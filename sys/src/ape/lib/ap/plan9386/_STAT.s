@@ -1,0 +1,4 @@
+TEXT _STAT(SB), $0
+MOVL $18, AX
+INT $64
+RET

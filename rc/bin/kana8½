@@ -1,0 +1,8 @@
+#!/bin/rc
+aux/kana </dev/cons &
+args=$*
+switch ($#*) {
+case 0
+	args=(-f /lib/font/bit/pelm/unicode.9.font)
+}
+exec 8½ -i /rc/lib/kwinstart $args

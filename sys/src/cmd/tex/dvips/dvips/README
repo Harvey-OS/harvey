@@ -1,0 +1,3 @@
+All real documentation is now in the file dvips.tex.  There is also a file
+called test.tex that you can read and run to test some basic capabilities of
+dvips.  INSTALLATION has the primary installation instructions.

@@ -1,0 +1,8 @@
+#!/bin/rc
+/bin/bind -a '#w' /dev >/dev/null
+/bin/bind -a '#f' /dev >/dev/null
+/bin/bind -a '#t' /dev >/dev/null
+/bin/bind -a '#v' /dev >/dev/null
+mount -c /srv/boot /n/a: '#f/fd0disk' > /dev/null >[2=1]
+mount -c /srv/boot /n/b: '#f/fd1disk' > /dev/null >[2=1]
+mount -c /srv/boot /n/c: '#w/hd0disk' > /dev/null >[2=1]

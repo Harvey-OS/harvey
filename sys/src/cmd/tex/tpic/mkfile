@@ -1,0 +1,45 @@
+APE=/usr/ape
+< $APE/src/config
+CFLAGS=
+#DEF=-DNOEXPANDDASH
+DEF=
+
+all:V: tpic
+
+compile:V: tpic
+
+test:VQ:
+	echo there is no test for tpic
+
+clean nuke:V:
+	rm -f tpic *.o libtex/lib.a
+
+install:V: tpic
+	$INSTALL tpic $APEBIN/tpic "$INSOWNER" "$INSGROUP" $INSMODE
+
+
+Q=main.o print.o misc.o symtab.o blockgen.o boxgen.o \
+	 circgen.o arcgen.o linegen.o movegen.o textgen.o input.o for.o
+O=$Q picy.o picl.o
+
+tpic: pltex.o $O libtex/lib.a
+	$CC -o $target pltex.o $O libtex/lib.a -lm
+
+%.o: %.c
+	$CC -c $DEF $stem.c
+
+$Q:N:	pic.h y.tab.h
+
+picy.o: picy.y
+	yacc -d picy.y
+	$CC -c y.tab.c
+	rm y.tab.c
+	mv y.tab.o picy.o
+picl.o: picl.l
+	lex  picl.l
+	$CC -c lex.yy.c
+	rm lex.yy.c
+	mv lex.yy.o picl.o
+
+libtex/lib.a:
+	cd libtex; mk; cd ..

@@ -1,0 +1,67 @@
+LIB=/sys/lib/man
+
+default:V: check
+
+indices:V:
+	for (i in [0-9] [0-9][0-9]){
+		$LIB/secindex $i > $i/INDEX
+	}
+
+permind:V: $LIB/permind/out
+	cd $LIB/permind
+	rm -f out
+	mk out > /dev/null >[2] /dev/null
+
+check:V:
+	awk -f $LIB/checkman.awk [0-9]/* [0-9][0-9]/*
+
+lookindex:V:
+	cd $LIB/lookman
+	mkindex
+
+prints%:V:
+	cd $stem
+	{ for(j in [a-z0-9]*)
+		switch($stem/$j){
+		case 1/tbl
+			tbl $j
+		case 1/eqn
+			eqn $j
+		case 1/pic 10/paddle
+			pic $j
+		case 1/grap
+			grap $j | pic
+		case *
+			cat $j
+		}
+	} | troff -man | lp -du
+
+print:V: print.out
+	lp print.out
+	rm -f print.out
+
+print.out: permind
+	{
+		troff $LIB/title
+		cat $LIB/permind/out
+		{for (i in [0-9] [0-9][0-9]){
+			cd $i
+			for(j in [a-z0-9]*)
+				switch($i/$j){
+				case 1/tbl
+					tbl $j
+				case 1/eqn
+					eqn $j
+				case 1/pic 10/paddle
+					pic $j
+				case 1/grap
+					grap $j | pic
+				case *
+					cat $j
+				}
+			cd ..
+		}} | troff -man
+	} > print.out
+
+clean:V:
+	rm -f man.out

@@ -1,0 +1,37 @@
+#-----------------------------------------------------------------------
+# Makefile for troff-to-TeX translator using MS-DOS
+# Make targets:
+#	(none)	same as tr2tex
+#	tr2tex	build translator
+#	lint	run lint on sources
+#	clean	remove object and executable files
+#	share	make ../ttr.sh for mailing
+#
+# Author: Nelson H.F. Beebe	 25-Oct-86
+
+CFLAGS = -O -DMSC -DNO_SGTTY
+CFILES = tr2tex.c tr.c subs.c
+LINTFLAGS = -abchnpux
+B =
+
+tr2tex:	tr2tex.o tr.o subs.o
+	cc $(CFLAGS) tr2tex.o tr.o subs.o -o $(B)tr2tex
+
+share:
+	make clean
+	makescript ../ttr.sh *
+
+tr2tex.o:	tr2tex.c setups.h
+	cc $(CFLAGS) -c tr2tex.c
+
+tr.o:	tr.c setups.h
+	cc $(CFLAGS) -c tr.c
+
+subs.o:	subs.c setups.h similar.h greek.h flip.h troff_mac.h mathcom.h
+	cc $(CFLAGS) -c subs.c
+
+lint:
+	lint $(LINTFLAGS) $(CFILES) > lint.lst
+
+clean:
+	\rm -f *.o core *junk* tr2tex lint.lst

@@ -1,0 +1,81 @@
+.TH FINDPARTS 10.1
+.SH NAME
+findparts, ics, lookup, pins \- find and manage parts
+.SH SYNOPSIS
+.PP
+.B cda/findparts
+[
+.I file
+\&...
+]
+.PP
+.B cda/ics
+.I part
+\&...
+.PP
+.B cda/pins
+.I library
+.I part ...
+.PP
+.B cda/lookup
+[
+.BR type | chip | index
+]
+.I part ...
+.SH DESCRIPTION
+.PP
+.I Findparts
+reads the output of
+.I getparts
+(see
+.IR fizz (10.1))
+and finds the bin number of each part (or functional equivalent)
+in the local stockroom.
+.PP
+.I Ics
+searches the stock list to find the bins for the
+.I part
+arguments.
+The arguments should be the name of a chip, such as
+.BR 74F00 .
+.PP
+.I Pins
+searches the standard pins file
+to find the pin names of the
+.I part
+and its relevant pin numbers.
+if three arguments are given instead of two, then the second argument is
+used as the pin library filename.
+.PP
+.I Lookup
+searches the chip database in one of three modes: 
+.B type
+searches the database by type, e.g. driver or dsp.  However, certain
+names are common (driver is one of them).
+Mode
+.B index
+should be used first to see all the fields for a given chip type.
+After filtering the output, then use the "type" option to find
+all chips of that type.
+Mode
+.B chip
+looks up all chips with that string, e.g.
+.B 2901
+will find all
+.B 2901
+chips.
+.SH FILES
+.B /n/coma/usr/ucds/lib/stock	stock list
+.B /sys/lib/cda/lib.pins	system pin library
+.SH BUGS
+The equivalence classes known to
+.I findparts
+are fairly crude.
+.PP
+The string matches are done exactly with
+.IR grep (1);
+an inverted index would be better.
+.PP
+The CAPS database is much better than
+.IR lookup ,
+but is not on line.

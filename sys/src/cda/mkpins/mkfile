@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=mkpins
+OFILES=mkpins.$O\
+	psym.$O\
+	sub.$O\
+
+HFILES=mkpin.h\
+
+</sys/src/cmd/mkone
+CFLAGS=-DPLAN9 -w

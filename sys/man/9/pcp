@@ -1,0 +1,67 @@
+.TH PCP 9.1
+.SH NAME
+pcp \- copy pictures
+.SH SYNOPSIS
+.B fb/pcp
+[
+.BI -w "x0 y0 x1 y1
+] [
+.BI -o "x y
+] [
+.BI -t "type
+] [
+.BI -c "channels
+] [
+.BI -C "channels
+] [
+.I input
+[
+.I output
+] ]
+.SH DESCRIPTION
+.I Pcp
+copies the input picture (default standard input) to the
+output file (default standard output).
+Options control the attributes and content of the output picture.
+.TP
+.BI -w " x0 y0 x1 y1
+causes only the given window of the input picture to be copied.
+By default the whole picture is copied.
+.TP
+.BI -o " x y
+causes the output picture's
+.B WINDOW=
+attribute to be translated by adding
+.RI ( x , y )
+to the input window coordinates.
+.TP
+.BI -t " type
+sets the
+.B TYPE=
+attribute of the output file.  The default is to use the input
+file's type.
+.TP
+.BI -c " channels
+causes only the given channels of the input picture to be copied.
+The default is to copy all channels.  If channels not present in
+the input picture are specified, they are computed in the ``most
+plausible'' way.  For example, a missing
+.I alpha
+channel is set to 255, and an
+.B m
+channel will be synthesized from
+.B rgb
+channels by computing NTSC luminance.  A
+.B 0
+in
+.I channels
+causes a zero channel to be written.
+.TP
+.BI -C " channels
+sets the output
+.B CHAN=
+attribute.
+.I Channels
+must be the same length as the selected channels of the input picture.
+.SH "SEE ALSO
+.IR picfile (9.6)

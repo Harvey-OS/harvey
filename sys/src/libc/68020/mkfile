@@ -1,0 +1,31 @@
+objtype=68020
+</68020/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	main9.$O\
+	main9p.$O\
+	argv0.$O\
+	frexp.$O\
+	getfcr.$O\
+	memccpy.$O\
+	memchr.$O\
+	memcmp.$O\
+	memcpy.$O\
+	memmove.$O\
+	memset.$O\
+	nan.$O\
+	notejmp.$O\
+	scale.$O\
+	setjmp.$O\
+	strcat.$O\
+	strchr.$O\
+	strcmp.$O\
+	strcpy.$O\
+	strlen.$O\
+	vl.$O\
+
+HFILES=/sys/include/libc.h
+
+</sys/src/cmd/mksyslib
+

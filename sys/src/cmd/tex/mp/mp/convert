@@ -1,0 +1,41 @@
+#!/bin/sh
+awk '
+BEGIN {
+    dot=0
+}
+/\.$/ {
+    if (dot) printf(".")
+    dot=1
+    print substr($0,1,length($0)-1)
+    next
+}
+{
+    if (dot) printf(".")
+    print 
+    dot=0
+}
+END {
+    if (dot) printf(".\n")
+}
+' mp.defines mp.p | \
+sed -e '
+    s/\.hh/.hhfield/g
+    s/\.lh/.lhfield/g
+' | ../web2c/web2c -hmp.h -m \
+    | sed -e '
+    s/else write/else\
+    write/
+    s/  *\([A-Za-z0-9]*\) *= *\(".*"\) *;/  (void) strcpy(\1 + 1, \2) ;/
+    s/  *nameoffile *= *poolname/  (void) strncpy(nameoffile+1, poolname, sizeof poolname)/
+    s/ maxcoef\( *[^( ]\)/ lmaxcoef\1/g
+    s/ b1/ lb1/g
+    / *read/ s/read *( *\([a-z]*\) *, *\([a-z]*\) *, *\([a-z]*\)/read (\1 , \2); read (\1, \3/g
+' \
+	| ../web2c/fixwrites \
+	| ./fix \
+	| ../web2c/splitup mp
+
+cat fixcoerce.h >> coerce.h
+rm -f stack.stack
+# cp mpd.h orig_mpd.h
+# ini_to_trap orig_mpd.h trap_mpd.h

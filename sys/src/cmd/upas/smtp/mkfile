@@ -1,0 +1,31 @@
+</$objtype/mkfile
+LIB=../common/libcommon.a$O ../libString/libString.a$O
+TARG = smtpd\
+	smtp\
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkmany
+CFLAGS=-w -I../common
+
+%.$O:	../common/common.h ../common/sys.h
+
+$O.smtpd:	smtpd.tab.$O
+
+$O.smtp:	rfc822.tab.$O mxdial.$O
+
+$O.to:	rfc822.tab.$O
+
+smtpd.$O: smtpd.h
+
+smtp.$O: smtp.h
+
+to.$O: smtp.h
+
+smtpd.tab.c: smtpd.y smtpd.h
+	yacc -o $target $prereq
+
+rfc822.tab.c: rfc822.y smtp.h
+	yacc -d -o $target $prereq
+
+clean:V:
+	rm -f *.[$OS] [$OS].$TARG smtpd.tab.c rfc822.tab.c y.tab.? y.debug $TARG 

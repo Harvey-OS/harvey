@@ -1,0 +1,157 @@
+.TH NDB 6
+.SH NAME
+ndb \- Network database
+.SH DESCRIPTION
+.PP
+The network database consists of the two files
+.B /lib/ndb/local
+and
+.BR /lib/ndb/global .
+The files comprise multi-line entries made up of
+attribute/value pairs of the form
+.IR attr = value .
+Each line starting without white space starts a new entry.
+Lines starting with
+.B #
+are comments.
+.PP
+Within entries pairs on the same line bind tighter than
+pairs on different lines.
+.PP
+The program
+.B ndb/cs
+(see
+.IR ndb (8))
+and the library routine
+.B ipinfo
+(see
+.IR ndb (2))
+perform searches for information relative to a particular host.
+.BR Ndb/cs
+resolves meta-addresses of the form
+.BI $ attribute
+by returning the
+.I value
+from the
+.IB attribute = value
+most closely related to the resolving host.
+The attribute-value pair comes from the entry for the system, its subnet, or its network
+with the system entry having precedence, subnet next, and network last.
+.PP
+A number of attributes are meaningful to programs and thus
+reserved.
+They are:
+.TF restricted
+.TP
+.B sys
+system name
+.TP
+.B dom
+Internet domain name
+.TP
+.B ip
+Internet address
+.TP
+.B ether
+Ethernet address
+.TP
+.B dk 
+Datakit address
+.TP
+.B bootf
+file to download for initial bootstrap
+.TP
+.B ipnet
+Internet network name
+.TP
+.B ipmask
+Internet network mask
+.TP
+.B ipgw
+Internet gateway
+.TP
+.B auth
+authentication server to be used
+.TP
+.B fs
+file server to be used
+.TP
+.B tcp
+a TCP service name
+.TP
+.B udp
+a UDP service name
+.TP
+.B il
+an IL service name
+.TP
+.B port
+a TCP, UDP, or IL port number
+.TP
+.B restricted
+a TCP service that can be called only by ports numbered
+less that 1024
+.TP
+.B proto
+a protocol supported by a host.
+The pair
+.I proto=il
+is needed by
+.I cs
+(see
+.IR ndb (8))
+in entries for hosts that support the IL protocol.
+.TP
+.B 9P
+parameters for the 9P file protocol, in particular whether the server authenticates
+.RB ( 9P=auth ).
+.SH EXAMPLES
+.LP
+An entry for the CPU server, spindle.
+.LP
+.EX
+sys = spindle
+	dom=spindle.research.att.com
+	bootf=/mips/9powerboot
+	ip=135.104.117.32 ether=080069020677
+	dk=nj/astro/spindle
+	proto=il
+.EE
+.LP
+Entries for the network
+.B mh-astro-net
+and its subnets.
+.LP
+.EX
+ipnet=mh-astro-net ip=135.104.0.0 ipmask=255.255.255.0
+	fs=bootes.research.att.com
+	ipgw=r70.research.att.com
+	auth=p9auth.research.att.com
+ipnet=unix-room ip=135.104.117.0
+	ipgw=135.104.117.1
+ipnet=third-floor ip=135.104.51.0
+	ipgw=135.104.51.1
+.EE
+.LP
+Mappings between TCP service names and port numbers.
+.LP
+.EX
+.ta \w'\fLtcp=sysmonxxxxx'u \w'\fLtcp=sysmonxxxxxport=512xxx'u
+tcp=sysmon	port=401
+tcp=rexec	port=512	restricted
+tcp=9fs	port=564
+.EE
+.SH FILES
+.TP
+.B /lib/ndb/local
+first database file searched
+.TP
+.B /lib/ndb/global
+second database file searched
+.SH "SEE ALSO"
+.IR dial (2),
+.IR ndb (2),
+.IR ndb (8),
+.IR bootp (8),
+.IR ipconfig (8),
+.IR con (1),

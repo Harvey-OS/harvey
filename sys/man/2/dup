@@ -1,0 +1,28 @@
+.TH DUP 2
+.SH NAME
+dup \- duplicate an open file descriptor
+.SH SYNOPSIS
+.B
+int dup(int oldfd, int newfd)
+.SH DESCRIPTION
+Given a file descriptor,
+.IR oldfd ,
+referring to an open file,
+.I dup
+returns a new file descriptor referring to the same file.
+If
+.I newfd
+is in the range of legal file descriptors
+.I dup
+will use that for the new file descriptor
+(closing any old file associated with
+.IR newfd);
+if
+.I newfd
+is \-1 the system chooses the lowest available file descriptor.
+.SH SEE ALSO
+.IR intro (2),
+.IR dup (3)
+.SH DIAGNOSTICS
+Sets
+.I errstr.

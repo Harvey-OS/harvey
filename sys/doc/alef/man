@@ -1,0 +1,99 @@
+.TH ALEF 1 
+.SH NAME
+val, kal \- ALEF compilers
+.SH SYNOPSIS
+.B kal
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B val
+[
+.I option ...
+]
+[
+.I name ...
+]
+.SH DESCRIPTION
+ALEF is a concurrent programming language with a syntax like C's.
+.I Kal 
+and
+.I val
+compile the named ALEF source files into SPARC and MIPS object files.
+Source files have the extension
+.BR .l .
+The ALEF source is passed through
+.IR cpp (1)
+prior to compilation. Object files have the
+normal extension for each architecture:
+.B .k
+for SPARC
+and
+.B .v
+for MIPS.
+.PP
+The compiler options are:
+.TP .7i
+.BI -o " obj"
+Place output in file
+.I obj
+(ignored if there is more than one input file).
+Default is to take the last element of the input pathname,
+strip any trailing
+.BR .l ,
+and append
+.B .v
+or
+.B .k .
+.TP
+.B -w
+Print warning messages for non fatal errors.
+.TP
+.B -N
+Do not run the code optimizer.
+.TP
+.B -c
+Generate code for
+.B check
+statements.
+.TP
+.B -S
+Produce assembly language as output.
+Default is to take the last element of the input pathname,
+strip any trailing
+.BR .l ,
+and append
+.BR .s .
+.TP
+.B -D#
+Produce various forms of debugging. The # is a character in the range a-z or A-Z.
+.SH EXAMPLE
+To compile and run on a SPARC the ALEF program in the current directory:
+.IP
+.EX
+kal -w *.l
+kl *.k
+k.out
+.EE
+.SH FILES
+.TF /$objtype/lib/alef
+.TP
+.B /sys/include/alef
+directory for
+.B #include
+files.
+.TP
+.B /$objtype/lib/alef
+directory for ALEF libraries
+.SH "SEE ALSO"
+.IR 2a (1),
+.IR 2l (1),
+.IR rl (1),
+.IR mk (1),
+.IR nm (1),
+.IR db (1)
+.br
+Phil Winterbottom, "ALEF Reference Manual"

@@ -1,0 +1,528 @@
+.TH INTRO 5 
+.SH NAME
+intro \- introduction to the Plan 9 File Protocol, 9P
+.SH SYNOPSIS
+.B #include <fcall.h>
+.SH DESCRIPTION
+A Plan 9
+.I server
+is an agent that provides one or more hierarchical file systems
+\(em file trees \(em
+that may be accessed by Plan 9 processes.
+A server responds to requests by
+.I clients
+to navigate the hierarchy,
+and to create, remove, read, and write files.
+The prototypical server is a separate machine that stores
+large numbers of user files on permanent media;
+such a machine is called, somewhat confusingly, a
+.I file server.
+Another possibility for a server is to synthesize
+files on demand, perhaps based on information on data structures
+inside the kernel; the
+.IR proc (3)
+.I kernel device
+is a part of the Plan 9 kernel that does this.
+User programs can also act as servers.
+.PP
+A
+.I connection
+to a server is a bidirectional communication path from the client to the server.
+There may be a single client or
+multiple clients sharing the same connection.
+A server's file tree is attached to a process
+group's name space by
+.IR bind (2)
+and
+.I mount
+calls;
+see
+.IR intro (2).
+Processes in the group are then clients
+of the servers:
+system calls operating on files are translated into requests
+and responses transmitted on the connection to the appropriate service.
+.PP
+The
+.IR "Plan 9 File Protocol" ,
+9P, is used for messages between
+.I clients
+and
+.IR servers .
+A client transmits
+.I requests
+.RI ( T-messages )
+to a server, which
+subsequently returns
+.I replies
+.RI ( R-messages )
+to the client.
+The combined acts of transmitting (receiving) a request of a particular type,
+and receiving (transmitting)
+its reply is called a
+.I transaction
+of that type.
+.PP
+Each message consists of a sequence of bytes.
+The first byte is the message type, one of the constants
+in the enumeration in the include file
+.BR <fcall.h> .
+The remaining bytes are parameters.
+Each parameter consists of a
+fixed number of bytes (except the
+.I data
+fields of write requests or read replies);
+in the message descriptions below, the number of bytes in a field
+is given in brackets after the field name.
+The two-, four-, and eight-byte fields may hold unsigned
+integers represented in little-endian order
+(least significant byte first).
+Fields that contain names are 28-character strings
+(including a terminal NUL (zero) byte).
+Other than the NUL terminator,
+all characters are legal
+in file names.
+(Systems may choose to reduce the set of legal characters
+to reduce syntactic problems,
+for example to remove slashes from name components,
+but the protocol has no such restriction.
+Plan 9 names may contain any printable character except slash and blank.)
+Messages are transported in byte form to allow for machine independence;
+.IR fcall (2)
+describes routines that convert to and from this form into a machine-dependent
+C structure.
+.SH MESSAGES
+.ta \w'\fLTsession 'u
+.IP
+.B Tnop	
+.IR tag [2]
+.br
+.B Rnop	
+.IR tag [2]
+.IP
+.B
+Tsession	
+.IR tag [2]
+.br
+.B
+Rsession	
+.IR tag [2]
+.IP
+.B
+Rerror	
+.IR tag [2]
+.IR ename [64]
+.IP
+.B
+Tflush	
+.IR tag [2]
+.IR oldtag [2]
+.br
+.B
+Rflush	
+.IR tag [2]
+.IP
+.B
+Tauth	
+.IR tag [2]
+.IR fid [2]
+.IR uid [28]
+.IR chal [36]
+.br
+.B
+Rauth	
+.IR tag [2]
+.IR fid [2]
+.IR chal [30]
+.br
+.B
+Tattach	
+.IR tag [2]
+.IR fid [2]
+.IR uid [28]
+.IR aname [28]
+.IR auth [28]
+.br
+.B
+Rattach	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.IP
+.B
+Tclone	
+.IR tag [2]
+.IR fid [2]
+.IR newfid [2]
+.br
+.B
+Rclone	
+.IR tag [2]
+.IR fid [2]
+.IP
+.ne 2v
+.B
+Tclwalk	
+.IR tag [2]
+.IR fid [2]
+.IR newfid [2]
+.IR name [28]
+.br
+.B
+Rclwalk	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.IP
+.ne 2v
+.B
+Twalk	
+.IR tag [2]
+.IR fid [2]
+.IR name [28]
+.br
+.B
+Rwalk	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.IP
+.ne 2v
+.B
+Topen	
+.IR tag [2]
+.IR fid [2]
+.IR mode [1]
+.br
+.B
+Ropen	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.IP
+.ne 2v
+.B
+Tcreate	
+.IR tag [2]
+.IR fid [2]
+.IR name [28]
+.IR perm [4]
+.IR mode [1]
+.br
+.B
+Rcreate	
+.IR tag [2]
+.IR fid [2]
+.IR qid [8]
+.IP
+.ne 2v
+.B
+Tread	
+.IR tag [2]
+.IR fid [2]
+.IR offset [8]
+.IR count [2]
+.br
+.B
+Rread	
+.IR tag [2]
+.IR fid [2]
+.IR count [2]
+.IR pad [1]
+.IR data [ count ]
+.IP
+.ne 2v
+.B
+Twrite	
+.IR tag [2]
+.IR fid [2]
+.IR offset [8]
+.IR count [2]
+.IR pad [1]
+.IR data [ count ]
+.br
+.B
+Rwrite	
+.IR tag [2]
+.IR fid [2]
+.IR count [2]
+.IP
+.B
+Tclunk	
+.IR tag [2]
+.IR fid [2]
+.br
+.B
+Rclunk	
+.IR tag [2]
+.IR fid [2]
+.IP
+.B
+Tremove	
+.IR tag [2]
+.IR fid [2]
+.br
+.B
+Rremove	
+.IR tag [2]
+.IR fid [2]
+.IP
+.B
+Tstat	
+.IR tag [2]
+.IR fid [2]
+.br
+.B
+Rstat	
+.IR tag [2]
+.IR fid [2]
+.IR stat [116]
+.IP
+.B
+Twstat	
+.IR tag [2]
+.IR fid [2]
+.IR stat [116]
+.br
+.B
+Rwstat	
+.IR tag [2]
+.IR fid [2]
+.PP
+Each T-message has a
+.I tag
+field, chosen and used by the client to identify the message.
+The reply to the message will have the same tag.
+Clients must arrange that no two outstanding messages
+on the same connection have the same tag.
+An exception is the tag
+.BR 0xFFFF ,
+meaning `no tag': the client can use it, when establishing a connection,
+to
+override tag matching in
+.B nop
+and
+.B session
+messages.
+.PP
+The type of an R-message will either be one greater than the type
+of the corresponding T-message or
+.BR Rerror ,
+indicating that the request failed.
+In the latter case, the
+.I ename
+field contains a string describing the reason for failure.
+.PP
+The
+.B nop
+message request has no obvious effect.
+Its main purpose is in debugging the connection between
+a client and a server.
+It is never necessary.
+A
+.B session
+request initializes a connection and
+aborts all outstanding I/O on the connection.
+The set of messages between
+.B session
+requests is called a
+.IR session .
+.PP
+Most T-messages contain a
+.I fid,
+a 16-bit unsigned integer that the client uses to identify
+a ``current file'' on the server.
+Fids are somewhat like file descriptors in a user process,
+but they are not restricted to files open for I/O:
+directories being examined, files being accessed by
+.IR stat (2)
+calls, and so on \(em all files being manipulated by the operating
+system \(em are identified by fids.
+Fids are chosen by the client.
+All requests on a connection share the same fid space;
+when several clients share a connection,
+the agent managing the sharing must arrange
+that no two clients choose the same fids.
+.PP
+The first fid supplied (in an
+.B attach
+message)
+will be taken by the server to refer to the root of the served file tree.
+The
+.B attach
+identifies the user
+to the server and may specify a particular file tree served
+by the server (for those that supply more than one).
+A
+.B walk
+message causes the server to change the current file associated
+with a fid to be a file in the directory that is the old current file.
+Usually, a client maintains a fid for the root,
+and navigates by
+.B walks
+on a fid
+.B cloned
+from the root fid.
+.PP
+A client can send multiple T-messages without waiting for the corresponding
+R-messages, but all outstanding T-messages must specify different tags.
+The server may delay the response to a request on one fid
+and respond to later requests on other fids;
+this is sometimes necessary, for example when the client reads
+from a file that the server synthesizes from external events
+such as keyboard characters.
+.PP
+Replies (R-messages) to
+.BR attach ,
+.BR walk ,
+.BR open
+and
+.B create
+requests convey a
+.I qid
+field back to the client.
+The qid represents the server's unique identification for the
+file being accessed:
+two files on the same server hierarchy are the same if and only if their qids
+are the same.
+(The client may have multiple fids pointing to a single file on a server
+and hence having a single qid.)
+The eight-byte qid fields represent two four-byte unsigned integers:
+first the qid
+.IR path ,
+then the qid
+.IR version .
+The path is an integer unique among all files in the hierarchy.
+If a file is deleted and recreated with the
+same name in the same directory, the old and new path components of the qids
+should be different.
+Directories always have the
+.B CHDIR
+bit
+.RB ( 0x80000000 )
+set in their qid path.
+The version is a version number for a file;
+typically, it is incremented every time the file is modified.
+.PP
+An existing file can be
+.B opened,
+or a new file may be
+.B created
+in the current (directory) file.
+I/O of a given number of bytes
+(limited to 8192)
+at a given offset
+on an open file is done by
+.B read
+and
+.BR write .
+.PP
+A client should
+.B clunk
+any fid that is no longer needed.
+The
+.B remove
+transaction deletes files.
+.PP
+The
+.B stat
+request returns information about the file.
+The
+.I stat
+field in the reply includes the file's
+name,
+access permissions (read, write and execute for owner, group and public),
+access and modification times, and
+owner and group identifications
+(see
+.IR stat (2)).
+The owner and group identifications are 28-byte names.
+The
+.B wstat
+transaction allows some of a file's properties
+to be changed.
+.PP
+A request can be aborted with a
+.B Tflush
+request.
+When a server receives a
+.BR Tflush ,
+it should not reply to the message with tag
+.I oldtag
+(unless it has already replied),
+and it should immediately send an
+.BR Rflush .
+The client should ignore replies with tag
+.IR oldtag
+until it gets the
+.BR Rflush ,
+at which point
+.I oldtag
+may be reused.
+.PP
+Most programs do not see the 9P protocol directly; instead calls to library
+routines that access files are
+translated by the mount driver,
+.IR mnt (3),
+into 9P messages.
+.SH DIRECTORIES
+Directories are created by
+.B create
+with
+.B CHDIR
+set in the permissions argument (see
+.IR stat (5)).
+The members of a directory can be found with
+.IR read (5).
+All directories must support
+.B walks
+to the directory
+.B ..
+meaning parent directory.
+The parent of the root directory of a server's tree is itself.
+.SH "ACCESS PERMISSIONS"
+Each server maintains a set of user and group names.
+Each user can be a member of any number of groups.
+Each group has a
+.I group leader
+who has special privileges (see
+.IR stat (5)
+and
+.IR users (6)).
+Every file request has an implicit user id (copied from the original
+.BR attach )
+and an implicit set of groups (every group of which the user is a member).
+.PP
+Each file has an associated
+.I owner
+and
+.I group
+id and
+three sets of permissions:
+those of the owner, those of the group, and those of ``other'' users.
+When the owner attempts to do something to a file, the owner, group,
+and other permissions are consulted, and if any of them grant
+the requested permission, the operation is allowed.
+For someone who is not the owner, but is a member of the file's group,
+the group and other permissions are consulted.
+For everyone else, the other permissions are used.
+Each set of permissions says whether reading is allowed,
+whether writing is allowed, and whether executing is allowed.
+A
+.B walk
+in a directory is regarded as executing the directory,
+not reading it.
+Permissions are kept in the low-order bits of the file
+.IR mode :
+owner read/write/execute permission represented as 1 in bits 8, 7, and 6
+respectively (using 0 to number the low order).
+The group permissions are in bits 5, 4, and 3,
+and the other permissions are in bits 2, 1, and 0.
+.PP
+The file
+.I mode
+contains some additional attributes besides the permissions.
+If bit 31 is set, the file is a directory;
+if bit 30 is set, the file is append-only (offset is ignored in writes);
+if bit 29 is set, the file is exclusive-use (only one client may have it
+open at a time).

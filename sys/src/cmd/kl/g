@@ -1,0 +1,13 @@
+#!/bin/rc
+mk
+cd ../astro
+objtype=sparc mk
+../kl/v.out *.k
+echo ':r -d
+1992 7 1
+$q' | ki k.out | tee astro1
+diff astro1 astro2
+echo ':r -d
+1992 7 1
+$ii
+$q' | ki k.out | grep 'Memory cycles'

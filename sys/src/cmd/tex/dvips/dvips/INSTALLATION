@@ -1,0 +1,224 @@
+Installation
+
+If dvips has not already been installed on your system, the installation
+following steps are all that is needed.
+
+First update the Makefile---in particular, the paths.  Everything
+concerning dvips can be adjusted in the Makefile.  Make sure
+you set key parameters such as the default resolution, and make sure
+that the path given for packed pixel files is correct.
+
+Next, check the file name definitions in MakeTeXPK.  If you don't
+have METAFONT installed, you cannot use MakeTeXPK to automatically
+generate the fonts; you can, however, modify it to generate pk
+fonts from gf fonts if you don't have a full set of pk fonts
+but do have a set of gf fonts.  If you don't have that, you should
+probably not install MakeTeXPK at all; this will disable automatic
+font generation.
+
+Now, check the configuration parameters in config.ps.  You should
+also update the default resolution here.  This file is the
+system-wide configuration file that will be automatically installed.
+If you are unsure how much memory your PostScript printer has, print the
+following file:
+
+%! Hey, we're PostScript
+/Times-Roman findfont 30 scalefont setfont 144 432 moveto
+vmstatus exch sub 40 string cvs show pop showpage
+
+Note that the number returned by this file is the total memory free;
+it is often a good idea to tell dvips that the printer has somewhat
+less memory.  This is because many programs download permanent macros
+that can reduce the memory in the printer.  In general, a memory size
+of about 300000 is plenty, since dvips can automatically split
+a document if required.  It is unfortunate that PostScript printers with
+much less virtual memory still exist.
+
+Some systems or printers can dynamically increase the memory available
+to a PostScript interpreter; for these systems, a value of one million
+works well.
+
+Next, run make.  Everything should compile smoothly.  You may need
+to adjust the compiler options in the Makefile if something goes
+amiss.
+
+Once everything is compiled, run make install.  After this is done,
+you may want to create a configuration file for each PostScript printer
+at your site.
+
+If the font caching is considered a security hole, make the `cache'
+directory be something like /tmp/pks, and cron a job to move the
+good pk files into the real directory.  Or simply disable this
+feature by not installing MakeTeXPK.
+
+Don't forget to install the new vf files and tfm files.  Note
+that the tfm files distributed with earlier (pre-5.471) versions
+of dvips, and all versions of other PostScript drivers, are different.
+
+Diagnosing Problems
+
+You've gone through all the trouble of installing dvips, carefully
+read all the instructions in this manual, and still can't get something
+to work.  This is all too common, and is usually caused by some broken
+PostScript application out there.  The following sections provide some
+helpful hints if you find yourself in such a situation.
+
+In all cases, you should attempt to find the smallest file that causes
+the problem.  This will not only make debugging easier, it will also
+reduce the number of possible interactions among different parts of the
+system.
+
+Debug Options
+
+The -d flag to dvips is very useful for helping to track down
+certain errors.  The parameter to this flag is an integer that tells
+what errors are currently being tracked.  To track a certain class of
+debug messages, simply provide the appropriate number given below;
+if you wish to track multiple classes, sum the numbers of the classes
+you wish to track.  The classes are:
+
+1   specials
+2   paths
+4   fonts
+8   pages
+16  headers
+32  font compression
+64  files
+128 memory
+
+No Output At All
+
+If you are not getting any output at all, even from the simplest
+one-character file (for instance, \ \bye),
+then something is very wrong.  Practically any file sent to a
+PostScript laser printer should generate some output, at the very
+least a page detailing what error occurred, if any.  Talk to your
+system administrator about downloading a PostScript error handler.
+(Adobe distributes a good one called ehandler.ps.)
+
+It is possible, especially if you are using non-Adobe PostScript,
+that your PostScript interpreter is broken.  Even then it should
+generate an error message.  I've tried to work around as many bugs
+as possible in common non-Adobe PostScript interpreters, but I'm
+sure I've missed a few.
+
+If dvips gives any strange error messages, or compilation on your
+machine generated a lot of warnings, perhaps the dvips program
+itself is broken.  Carefully check the types in structures.h and
+the declarations in the Makefile, and try using the debug options
+to determine where the error occurred.
+
+It is possible your spooler is broken and is misinterpreting the
+structured comments.  Try the -N flag to turn off
+structured comments and see what happens.
+
+Output Too Small or Inverted
+
+If some documents come out inverted or too small, your spooler is not
+supplying an end of job indicator at the end of each file.  (This happens
+a lot on small machines that don't have spoolers.)  You can
+force dvips to do this with the -F flag, but note that this
+generates files with a binary character (control-D) in them.  You can
+also try using the -s flag to enclose the entire job in a save/restore
+pair.
+
+Error Messages From Printer
+
+If your printer returns error messages, the error message gives very
+good information on what might be going wrong.  One of the most common
+error messages is bop undefined.  This is caused by old versions
+of Transcript and other spoolers that do not properly parse the
+setup section of the PostScript.  To fix this, turn off structured
+comments with the -N option, but make sure you get your spooling
+software updated.
+
+Another error message is VM exhausted.  (Some printers indicate
+this error by locking up; others quietly reset.)  This is caused by telling
+dvips that the printer has more memory than it actually does, and
+then printing a complicated document.  To fix this, try lowering the
+parameter to m in the configuration file; use the debug option
+to make sure you adjust the correct file.
+
+Other errors may indicate that the graphics you are trying to include
+don't nest properly in other PostScript documents, or any of a number of
+other possibilities.  Try the output on a QMS PS-810 or other Adobe
+PostScript printer; it might be a problem with the printer itself.
+
+400 DPI Is Used Instead Of 300 DPI
+
+This common error is caused by not editing the config.ps file to
+reflect the correct resolution for your site.  You can use the debug flags
+(-d64) to see what files are actually being read.
+
+Long Documents Fail To Print
+
+This is usually caused by incorrectly specifying the amount of memory
+the printer has in config.ps; see the description above.
+
+Including Graphics Fails
+
+The reasons why graphics inclusions fail are too numerous to mention.
+The most common problem is an incorrect bounding box; read the section
+on bounding boxes and check your PostScript file.  Complain very loudly
+to whoever wrote the software that generated the file if the bounding
+box is indeed incorrect.
+
+Another possible problem is that the figure you are trying to include
+does not nest properly; there are certain rules PostScript applications
+should follow when generating files to be included.  The dvips
+program includes work-arounds for such errors in Adobe Illustrator and
+other programs, but there are certainly applications that haven't
+been tested.
+
+One possible thing to try is the -K flag, to strip the comments from
+an included figure.  This might be necessary if the PostScript spooling
+software does not read the structuring comments correctly.  Use of this
+flag will break graphics from some applications, though, since some
+applications read the PostScript file from the input stream looking for
+a particular comment.
+
+Any application which generates graphics output containing raw binary
+(not hex) will probably fail with dvips.
+
+Can't Find Font Files
+
+If dvips complains that it cannot find certain font files, it is
+possible that the paths haven't been set up correctly for your system.
+Use the debug flags to determine precisely what fonts are being looked
+for and make sure these match where the fonts are located on your system.
+
+Can't Generate Fonts
+
+This happens a lot if either MakeTeXPK hasn't been properly edited
+and installed, or if the local installation of METAFONT isn't correct.
+If MakeTeXPK isn't properly edited or isn't installed, an error
+such as MakeTeXPK not found will be printed on the console.  The
+fix is to talk to the person who installed dvips and have them fix
+this.
+
+If METAFONT isn't found when MakeTeXPK is running, make sure it is installed
+on your system.  The person who installed TeX should be able to install
+METAFONT easily.
+
+If METAFONT runs but generates fonts that are too large (and prints out the
+name of each character as well as just a character number), then your
+METAFONT base file probably hasn't been made properly.  To make a proper
+plain.base, assuming the local mode definitions are contained in
+local.mf (on the NeXT, next.mf; on the Amiga, amiga.mf),
+type the following command (assuming csh under UNIX):
+
+localhost> inimf "plain; input local; dump"
+
+Now, copy the plain.base file from the current directory to where
+the base files are stored on your system.
+
+Note that a preloaded cmbase.base should never be used when creating
+fonts, and a program such as cmmf should never exist on the system.
+The macros defined in cmbase will break fonts that do not use
+cmbase; such fonts include the LaTeX fonts.  Loading the cmbase
+macros when they are needed is done automatically and takes less than a
+second---an insignificant fraction of the total run time of METAFONT for a
+font, especially when the possibility of generating incorrect fonts is
+taken into account.  If you create the LaTeX font {\tt circle10,
+for instance, with the cmbase macros loaded, the characters will
+have incorrect widths.

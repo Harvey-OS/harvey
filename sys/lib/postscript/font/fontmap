@@ -1,0 +1,54 @@
+%
+% First string is full PostScript font name, exactly as it would appear
+% in a %%DocumentFonts comment. Second string is the name of the Unix
+% file relative to *hostfontdir, unless that string begins with a /, in
+% which case it's taken as the full pathname.
+%
+
+	AvantGarde-Book			AR
+	AvantGarde-BookOblique		AI
+	AvantGarde-Demi			AB
+	AvantGarde-DemiOblique		AX
+	Bookman-Demi			KB
+	Bookman-DemiItalic		KX
+	Bookman-Light			KR
+	Bookman-LightItalic		KI
+	CaslonFiveForty-Roman		CaslonR
+	CaslonFiveForty-Italic		CaslonI
+	Courier				C
+	Courier-Bold			CB
+	Courier-BoldOblique		CX
+	Courier-Oblique			CI
+	Helvetica			H
+	Helvetica-Bold			HB	
+	Helvetica-BoldOblique		HX	
+	Helvetica-Narrow		Hr
+	Helvetica-Narrow-Oblique	Hi
+	Helvetica-Narrow-Bold		Hb
+	Helvetica-Narrow-BoldOblique	Hx
+	LetterGothic			LettGoth
+	LetterGothic-Bold		LettGothB
+	LetterGothic-BoldSl		LettGothBSl
+	LetterGothic-Slanted		LettGothSl
+	NewCenturySchlbk-Roman		NR
+	NewCenturySchlbk-Italic		NI
+	NewCenturySchlbk-Bold		NB
+	NewCenturySchlbk-BoldItalic	NX
+	Palatino-Roman			PA
+	Palatino-Italic			PI
+	Palatino-Bold			PB
+	Palatino-BoldItalic		PX
+	Sonata				Sonata
+	Symbol				S
+	Times-Bold			B
+	Times-BoldItalic		BI
+	Times-Italic			I
+	Times-Roman			R
+	Universal-MathOne		UnivMath1
+	Universal-MathTwo		UnivMath2
+	Universal-MathThree		UnivMath3
+	Universal-MathFour		UnivMath4
+	Universal-MathFive		UnivMath5
+	Universal-MathSix		UnivMath6
+	ZapfDingbats			ZD
+	ZapfChancery-MediumItalic	ZI

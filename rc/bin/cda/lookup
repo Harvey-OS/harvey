@@ -1,0 +1,52 @@
+#!/bin/rc
+name=$1
+string=$2
+switch($name){
+case chip
+	grep -i $string /sys/lib/cda/lookup/ics | awk '
+	BEGIN	{ FS = ","; result=1;
+		  print "fn : chip mfr mfr.name #pins pkg";
+		  for(line=0; result>0; line++) {
+			result = getline main[line] < "/sys/lib/cda/lookup/ics.fn";
+			if (length(main[line]) == 0) break;
+		  }
+		  for(category=0; result>0; category++) {
+		    for(subcategory=0; ;subcategory++) {
+			result = getline subs[category subcategory] < "/sys/lib/cda/lookup/ics.fn";
+			if (subs[category subcategory] == "") break;
+		    }
+		  }
+		}
+		{ print subs[$1 $2],":",$3,$4,$5,$6,$7; }
+	'
+case type
+	grep -i $string /sys/lib/cda/lookup/ics.index | awk '
+	BEGIN	{ FS=":"; }
+		{ category[$1] = count; subcategory[$2] = count++;
+		  title[$1 $2] = $3;
+		}
+	END	{ FS=",";
+		  if (count == 0) {
+		  	print "lookup: type not found";
+		  	exit(1);
+		  }
+		  print "fn : chip mfr mfr.name #pins pkg";
+		  for(;;) {
+			result = getline < "/sys/lib/cda/lookup/ics";
+			if (result <= 0) break;
+			for(c in category)
+			    if ($1 == c)
+				for(sc in subcategory)
+				    if ($2 == sc)
+					print title[$1 $2],":",$3,$4,$5,$6,$7;
+		  }
+		}
+	'
+case index
+	grep -i $string /sys/lib/cda/lookup/ics.index | awk '
+	BEGIN	{ FS=":"; }
+		{ print $3; }
+	'
+case *
+	echo usage: lookup [chip type index] string
+}

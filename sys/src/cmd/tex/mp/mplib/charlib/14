@@ -1,0 +1,9 @@
+vardef C.xiv(expr n) =
+ save s,t,p,q;
+ q=fontsize n;
+ def s=infont "Times" scaled(q/fontsize"Times"/2)enddef;
+ def t=shifted(xpart urcorner p,0)enddef;
+ picture p; p="1"s shifted(0,q/3);
+ addto p also char164 s scaled2 t;
+ addto p also "4"s t;
+ p enddef;

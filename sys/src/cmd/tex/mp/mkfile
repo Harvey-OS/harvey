@@ -1,0 +1,108 @@
+APE=/usr/ape
+< $APE/src/config
+TEXBIN=/usr/lib/tex/bin
+TEXPOOL=/usr/lib/tex
+TEXFORMATS=/usr/lib/tex/macros
+MFBASES=/usr/lib/mf
+MFPOOL=/usr/lib/mf
+SITEDIR=..
+APEBINPROGS=tex latex slitex mf bibtex
+TEXS=initex virtex
+MFS=inimf virmf
+MFWARE=gftodvi gftopk gftype mft
+TEXWARE=dvitype patgen pltotf pooltype tftopl
+WEBWARE=tangle weave
+FONTUTILS=pktogf pktype vftovp vptovf
+ALL=$APEBINPROGS $TEXS $MFS $MFWARE $TEXWARE $WEBWARE $FONTUTILS
+MARGS="$MKFLAGS" CC="$CC" SITEDIR="$SITEDIR"
+
+compile:V: $ALL
+
+install:V: $ALL
+	for i in $TEXS ; do
+		$INSTALL tex/$i $TEXBIN/$i "$INSOWNER" "$INSGROUP" $INSMODE
+	done
+	for i in $MFS ; do
+		$INSTALL mf/$i $TEXBIN/$i "$INSOWNER" "$INSGROUP" $INSMODE
+	done
+	for i in $MFWARE ; do
+		$INSTALL mfware/$i $TEXBIN/$i "$INSOWNER" "$INSGROUP" $INSMODE
+	done
+	for i in $TEXWARE ; do
+		$INSTALL texware/$i $TEXBIN/$i "$INSOWNER" "$INSGROUP" $INSMODE
+	done
+	for i in $WEBWARE ; do
+		$INSTALL web/$i $TEXBIN/$i "$INSOWNER" "$INSGROUP" $INSMODE
+	done
+	for i in $FONTUTILS ; do
+		$INSTALL fontutil/$i $TEXBIN/$i "$INSOWNER" "$INSGROUP" $INSMODE
+	done
+	$INSTALL bibtex/bibtex $APEBIN/bibtex "$INSOWNER" "$INSGROUP" $INSMODE
+	$INSTALL tex/tex.pool $TEXPOOL/tex.pool "$INSOWNER" "$INSGROUP" 664
+	$INSTALL mf/mf.pool $MFPOOL/mf.pool "$INSOWNER" "$INSGROUP" 664
+	rm -f $APEBIN/tex $APEBIN/latex $APEBIN/slitex $APEBIN/mf
+	ln -s $TEXBIN/virtex $APEBIN/tex
+	$INSTALL tex/plain.fmt $TEXFORMATS/tex.fmt "$INSOWNER" "$INSGROUP" 664
+	ln -s $TEXBIN/virtex $APEBIN/latex
+	$INSTALL tex/lplain.fmt $TEXFORMATS/latex.fmt "$INSOWNER" "$INSGROUP" 664
+	ln -s $TEXBIN/virtex $APEBIN/slitex
+	$INSTALL tex/splain.fmt $TEXFORMATS/slitex.fmt "$INSOWNER" "$INSGROUP" 664
+	ln -s $TEXBIN/virmf $APEBIN/mf
+	$INSTALL mf/plain.base $MFBASES/mf.base "$INSOWNER" "$INSGROUP" 664
+
+test:V:
+	make $MARGS triptrap
+	make $MAKEFLAGS run-triptrap
+	make $MAKEFLAGS clean-triptrap
+
+clean:V:
+	make $MARGS clean
+
+nuke:V:
+	make $MARGS veryclean
+
+$TEXS:V: stamp-web2c stamp-tangle
+	make $MARGS TeX
+
+$MFS:V: stamp-web2c stamp-tangle
+	make $MARGS MF
+
+tangle:V: stamp-tangle
+	make $MARGS stamp-tangle
+
+weave:V: stamp-web2c stamp-tangle
+	cd web; make $MARGS weave
+
+$MFWARE:V: stamp-web2c stamp-tangle
+	cd mfware; make $MARGS
+
+$TEXWARE:V: stamp-web2c stamp-tangle
+	cd texware; make $MARGS
+
+$FONTUTILS:V: stamp-web2c stamp-tangle
+	cd fontutil; make $MARGS
+
+bibtex:V: stamp-web2c stamp-tangle
+	cd bibtex; make $MARGS
+
+stamp-web2c:
+	make $MARGS stamp-web2c
+
+stamp-tangle:
+	make $MARGS stamp-tangle
+
+tex:V: $TEXS
+	cd tex
+	initex 'plain \dump'
+
+latex:V: $TEXS
+	cd tex
+	initex 'lplain \dump'
+
+slitex:V: $TEXS
+	cd tex
+	initex 'splain \dump'
+
+mf:V: $MFS
+	cd mf
+	inimf 'plain ; input att; dump'

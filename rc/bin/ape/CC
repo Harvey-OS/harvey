@@ -1,0 +1,179 @@
+#!/bin/rc
+#
+# c++ CC based on POSIX standard c89
+#
+# standard options: -c, -D name[=val], -E (preprocess to stdout),
+#    -g, -L dir, -o outfile, -O, -s, -U name
+#    (and operands can have -l lib interspersed)
+#
+# nonstandard but specified options: -S (assembly language left in .s),
+# nonstandard option: -v (echo real commands to stdout as they execute)
+	
+rfork e
+fn searchlib {
+	switch($1){
+	case c
+		echo /$objtype/lib/ape/libap.a
+	case m
+		echo /$objtype/lib/ape/libap.a
+	case l
+		echo /$objtype/lib/ape/libl.a
+	case y
+		echo /$objtype/lib/ape/liby.a
+	case *
+		y=()
+		for(a in $libdirs /$objtype/lib/c++ /$objtype/lib/ape)
+			if (test -r $a/lib$1.a)
+				if(~ $#y 0) y=$a/lib$1.a
+		if(! ~ $#y 0)
+			echo $y
+	}
+}
+switch($objtype){
+case mips
+	CC=vc
+	LD=vl
+	O=v
+case 68020
+	CC=2c
+	LD=2l
+	O=2
+case sparc
+	CC=kc
+	LD=kl
+	O=k
+case 386
+	CC=8c
+	LD=8l
+	O=8
+case hobbit
+	CC=zc
+	LD=zl
+	O=z
+}
+oname=a.out
+srcs=()
+objs=()
+libdirs=()
+cppargs=()
+ccargs=(-B -J -D_POSIX_SOURCE)
+cflag=0
+vflag=0
+Eflag=0
+Sflag=0
+main=MAIN
+pflag=()
+while(! ~ $#* 0){
+	switch($1){
+	case -c
+		cflag=1
+	case -l
+		if (~ $#2 0)
+			echo CC: no arg for -l
+		if not {
+			y=`{searchlib $2}
+			if(~ $#y 0)
+				echo CC: cannot find lib $2
+			if not
+				objs=($objs $y)
+			shift
+		}
+	case -l*
+		y=`{echo $1 | sed 's/-l//'}
+		y=`{searchlib $y}
+		if(~ $#y 0)
+			echo CC: cannot find lib $2
+		if not
+			objs=($objs $y)
+	case -o
+		if (~ $#2 0)
+			echo CC: no arg for -o
+		if not {
+			oname=$2
+			shift
+		}
+	case -[DIU]
+		if (~ $#2 0)
+			echo CC: no arg for $1
+		if not {
+			cppargs=($cppargs $2)
+			shift
+		}
+	case -[DIU]*
+		cppargs=($cppargs $1)
+	case -[EF]
+		ccargs=($ccargs $1)
+		cflag=1
+	case -p
+		pflag=-p
+		main=MAINP
+	case -g
+		;
+	case -s
+		;
+	case -O
+		;
+	case -v
+		vflag=1
+	case -S
+		Sflag=1
+	case -*
+		echo CC: flag $1 ignored
+	case *
+		switch(`{echo $1 | sed 's/.*(\..*)$/\1/'}){
+		case .c
+			b=`{ape/basename $1 .c}
+			d=`{ape/dirname $1}
+			srcs=($srcs $d/$b)
+			objs=($objs $b.o)
+		case .o
+			objs=($objs $1)
+		case .$O
+			objs=($objs $1)
+		case .a
+			objs=($objs $1)
+		case .a$O
+			objs=($objs $1)
+		case *
+			echo CC: argument $1 ignored
+		}
+	}
+	shift
+}
+if(~ $#objs 0){
+	echo CC: no files to compile or load!
+	exit nofiles
+}
+for(f in $srcs){
+	# $f is the full pathname without the extension
+	# -N turns off default includes
+	bf=`{ape/basename $f}
+	if (~ $Sflag 1) {
+		if (~ $vflag 1)
+			echo c++/$CC $ccargs -S $f.i '>' $bf.s
+		if(! c++/$CC $ccargs -S $f.i > $bf.s)
+			exit ccerr
+	}
+	if not {
+		rm -f $bf.$O
+		if (~ $vflag 1)
+			echo $CC $ccargs $f.c
+	   	if (! c++/$CC $ccargs $f.c)
+			exit ccerr
+		if(test -r $bf.$O)
+	   		mv $bf.$O $bf.o
+	}
+}
+libC=/$objtype/lib/c++/libC.a
+ctdt=/$objtype/lib/c++/__ctdt.$O
+if(~ $cflag 0){
+	# -l turns off default MAIN, libc
+	if (~ $vflag 1)
+			echo $LD $pflag -o $oname $objs $libn -lC -lap
+	$LD $pflag -l -o $oname /$objtype/lib/ape/$main.$O $objs $ctdt $ldargs $libC /$objtype/lib/ape/libap.a
+	if(~ $status '')
+		/bin/c++/patch $oname
+	if not
+		exit lderr
+}
+exit ''

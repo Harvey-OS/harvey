@@ -1,0 +1,101 @@
+.TH HOME 8
+.SH NAME
+home, 40meg, 80meg, 100meg, newkernel, personalize, update, Disclabel \- administration for local file systems
+.SH SYNOPSIS
+.B gnot/home
+.PD 0
+.PP
+.B gnot/personalize
+.PP
+.B gnot/update
+.PD
+.PP
+.PD 0
+.B magnum/home
+.PP
+.B magnum/personalize
+.PP
+.B magnum/update
+.PD
+.PP
+.PD 0
+.B safari/40meg
+.PP
+.B safari/80meg
+.PP
+.B safari/personalize
+.PP
+.B safari/update
+.PD
+.PP
+.PD 0
+.B nextstation/100meg
+.PP
+.B nextstation/personalize
+.PP
+.B nextstation/update
+.PD
+.PP
+.B disk/newkernel
+.PP
+.B cp Disclabel /dev/hd1label
+.SH DESCRIPTION
+These programs help maintain a file system on a local disk for a private machine.
+.PP
+.I Home
+partitions a disk, copies the appropriate kernel to the disk,
+and makes a new file system on the disk.
+.IR 40meg ,
+.IR 80meg ,
+and
+.I 100meg
+configure disks and make file systems for disks of the appropriate size.
+.PP
+.I Update
+copies the current kernel to the disk and updates
+files on the local file system.
+It only updates those files put there by the
+.I home
+program.
+.PP
+.I Personalize
+removes the contents of the
+.B /usr
+directory on the local disk and copies a minimal set of files for
+the user who runs the command.
+.PP
+.I Newkernel
+updates the kernel in the boot partition.
+If the running kernel was linked more than 10 minutes before
+the kernel on the file system was installed,
+.I newkernel
+verifies with the user that the kernel should be installed,
+and copies the kernel.
+.PP
+.I Disclabel
+is the bootstrap program copied into the partition
+.B /dev/hd1label
+on Nextstations.
+.SH FILES
+.TP
+.B /lib/proto/portproto
+.IR Mkfs
+prototype files for
+.IR magnum/home ,
+.IR magnum/update ,
+.IR gnot/home ,
+and
+.IR gnot/update .
+.TP
+.B /lib/proto/386proto
+prototype files for
+.IR Mkfs
+.IR safari/40meg ,
+.IR safari/80meg ,
+and
+.IR safari/update .
+.SH "SEE ALSO"
+.IR kfs (4),
+.IR mkfs (8),
+.IR prep (8),
+.IR hard (3)

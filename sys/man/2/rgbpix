@@ -1,0 +1,75 @@
+.TH RGBPIX 2G
+.SH NAME
+RGB, rgbpix, rdcolmap, wrcolmap \- handle color screens
+.SH SYNOPSIS
+.PP
+.ta \w'\fLulong 'u
+.B
+ulong	rgbpix(Bitmap *b, RGB rgb)
+.PP
+.B
+void	rdcolmap(Bitmap *b, RGB *map)
+.PP
+.B
+void	wrcolmap(Bitmap *b, RGB *map)
+.fi
+.SH DESCRIPTION
+Colors are described by the red, green, and blue
+light intensities, in an
+.B RGB
+datum:
+.IP
+.EX
+.ta 6n
+typedef
+struct RGB {
+	ulong red;
+	ulong green;
+	ulong blue;
+} RGB;
+.EE
+.PP
+Black is represented by zero in all three positions and
+white has the maximum
+.B unsigned
+.B long
+value in all three positions.
+.PP
+Some of the graphics functions, such as
+.I point
+(see
+.IR bitblt (2)),
+take a
+.I pixel value
+argument, which is a single
+.B unsigned
+.BR long .
+For a given bitmap,
+.I rgbpix
+returns the pixel value with a color closest to
+the color represented by the
+.I rgb
+argument.
+.PP
+There is a
+.I colormap
+associated with each Bitmap.  A colormap is an array of
+.BR RGB s,
+of length
+.if t 2\u\s82\u\s6\fIldepth\fP\d\d\s10,
+.if n 2^(2^\fIldepth\fP),
+giving the colors for pixels 0, 1, 2, etc.
+.PP
+.I Rdcolmap
+reads the colormap for the given bitmap into the provided
+.IR map ,
+which must have enough space to hold it.
+.I Wrcolmap
+associates the given colormap with the given bitmap, if possible.
+(The hardware might not allow this.)
+.SH BUGS
+These functions work only for the screen bitmap.
+This interface will have to be refined for screens with
+more than 8 bits per pixel.
+.SH "SEE ALSO"
+.IR graphics (2)

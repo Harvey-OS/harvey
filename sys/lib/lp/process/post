@@ -1,0 +1,29 @@
+#!/bin/rc
+PATCH='%!PS'
+for (i in `{echo $IBIN|awk -F, '{ n=split($0, a, ","); for (i=1;i<=n;i++) print a[i]; }'}) {
+	switch ($i) {
+	case -P*;
+	case man manual manualfeed;
+		PATCH=$PATCH'
+statusdict begin /manualfeed true def end'
+	case simplex;
+		DUPLEX=0
+	case [0-9];
+		PATCH=$PATCH'
+statusdict begin '$i' setpapertray end'
+	case 11x17 ledger;
+		PATCH=$PATCH'
+statusdict begin '$i'tray end'
+	case *;
+		echo illegal option ''''-i $i'''' ignored >[1=2]
+	}
+}
+if (! ~ $#DUPLEX 0) {
+	if (~ $DUPLEX 1 )
+		PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin true setduplexmode end} if';
+	if (~ $DUPLEX 0 )
+		PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin false setduplexmode end} if';
+}
+echo $PATCH; cat

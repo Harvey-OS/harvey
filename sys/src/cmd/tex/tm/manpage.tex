@@ -1,0 +1,465 @@
+% -*-latex-*-
+% Document name: /home/gorby/tla/Tex/manpage.tex
+% Creator: Terry L Anderson [tla@spot]
+% Creation Date: Wed Oct 24 00:28:25 1990
+\documentstyle[manpage]{tm}
+\newcommand{\X}[1]{{#1}\index{{#1}}}
+\title{A Latex Style for UNIX Man Pages}
+\author{Terry L Anderson}% 
+    \initials{TLA}% 
+    \signatureextra{Software Development Environment Group\\Software Architecture Department}%
+    \eaddress{tla@bartok.att.com}% 
+    \department{59114}%
+    \location{LC}{4N-E01}{908-580-4428}% 
+    \cityaddr{Warren, NJ\quad 07059-0908}% 
+\chargecase{978899-0100}
+\filecase{61093}
+\documentno{901026}{02}{TMS}
+\keywords{man pages; \LaTeX ; Technical Memorandum}
+\mercurycode{CMP}
+\date{October 26, 1990}
+\memotype{INTERNAL MEMORANDUM}
+\abstract{Man pages have become the standard form of documentation for software
+used in conjunction with the \UNIX\ operating system.  \UNIX\
+Documenters Workbench software contains a special macro package for
+preparing man pages.  This \LaTeX\ manpage style offers similar
+assistance in preparing man pages with \LaTeX .  It offers macros for
+most of the common man page structures and sections and formats the
+page in the standard man page format.  The style follows many of the
+recommendations of the document {\it Manual Page Standards}.}
+\organizationalapproval
+%\markdraft*
+\markproprietary
+\begin{document}
+\bibliographystyle{atttm}
+\makehead
+\section{Introduction}
+Man pages have become the standard form of documentation for software
+used in conjunction with the \UNIX\ operating system.  \UNIX\
+Documenters Workbench software contains a special macro package for
+preparing man pages.  This \LaTeX\ manpage style offers similar
+assistance in preparing man pages with \LaTeX .  It offers macros for
+most of the common man page structures and sections and formats the
+page in the standard man page format.  The style follows many of the
+recommendations of the document {\it Manual Page
+Standards}.\cite{bib:manpagestd}  
+
+Since man pages are often printed as appendices in other documents,
+the manpage.sty has been constructed in such a way that it can be
+loaded as an option to other documentstyles; such as,
+tm.sty.\cite{bib:tmdoc}  Manpage is implemented as an environment.
+Even if the man page is to be printed as the 
+entire document, another document such as tm.sty should be used as the
+document style
+  \begin{itemize}
+    \item[]
+          \verb|\documentstyle[manpage]{tm}|\\
+          \verb|\begin{document}|\\
+          \verb|\begin{manpage}|\\
+          {\it manpage code}\\
+          \verb|\end{manpage}|\\
+          \verb|\end{document}|
+  \end{itemize}
+
+
+\section{Preamble-like Macros}
+The following macros are primarily for use in the first part of
+a {\tt manpage} environment.  This can be thought of very much like the
+preamble before the \verb|\begin{document}|.  These cannot actually be
+placed in the preamble of the document since 
+\begin{enumerate}
+  \item some of these macros conflict with others used in documents (an
+        so must be used only inside a manpage environment
+  \item a document may contain more than one man page and so more than
+        one manpage environment and these macros specify things about
+        a single man page
+  \item and finally because these macros are defined by the
+        \verb|\begin{manpage}| and so are not yet defined at the time
+        the preamble is processed.
+\end{enumerate}
+
+The macros {\tt NAME} and {\tt title} are synonyms and are used to
+specify the title of the man page, usually the command or function
+name in all upper case characters.
+  \begin{itemize}
+    \item[]
+          \verb|\NAME{|{\it name-in-caps}\verb|}|\\
+          \verb|\title{|{\it name-in-caps}\verb|}|
+  \end{itemize}
+
+The {\it section}, usually a digit 1-8 optionally followed by a single
+character, is specified by the macro
+  \begin{itemize}
+    \item[]
+          \verb|\section{|{\it section-id}\verb|}|
+  \end{itemize}
+
+The  date of last change and the {\it chapter}, an optional string
+used to identify a collection of related man pages and printed at the
+center of the man page header, are specified by the macros
+  \begin{itemize}
+    \item[]
+          \verb|\update{|{\it date-last-changed}\verb|}|\\
+          \verb|\chapter{|{\it chapter-title}\verb|}|
+  \end{itemize}
+
+All of the items set by the these preamble-like macros are initially
+set to null. 
+They may be called in any order.
+Though all are optional in the sense that no \LaTeX\ error will occur
+if they are not set, {\tt NAME} or {\tt title} and {\tt section} must
+be set to create a man page with the standard form.  {\tt update} and
+{\tt chapter} are often omitted but their use is recommended.  They
+must be called before the end of first page.  We recommend calling
+them before any of the {\it body macros}.
+
+\section{Body Macros}
+
+The rest of the macro are for use in the body of the man page; i.e.,
+after the \verb|\begin{document}|.  Most are implemented as \LaTeX\
+environments and are intended to format the various sections of the
+man page.  They must be called in the order in which they should
+appear.    
+
+All of the section environments are implemented using special cases of
+the {\tt manblock} environment.  The {\tt manblock} environment can be
+used directly to implement sections with titles other than those
+provided.  For example, a section labeled ``HISTORY'' would be
+formatted by
+  \begin{itemize}
+    \item[]
+          \verb|\begin{manblock}{HISTORY}|\\
+          \verb|The text of the section which can have|\\
+          \verb|as many lines or paragraphs as necessary.|\\
+          \verb|\end{manblock}|
+  \end{itemize}
+Note that the environment takes a required argument specifying the
+label. 
+
+The {\tt name} environment is used to format the {\bf NAME} section of
+the man page.  The contents are normally the name of the command (or
+function) or a comma separated list of names of the commands (or
+functions) to be documented followed by a dash (two hyphens in \LaTeX)
+and a brief phrase describing the command (or function).  For example
+  \begin{itemize}
+    \item[]
+          \verb|\begin{name}|\\
+          \verb|mail, rmail -- send mail to users or read mail|\\
+          \verb|\end{name}|
+  \end{itemize}
+
+The {\tt synopsis} section shows the usage form of the command or
+function along with any options.  For example,
+  \begin{itemize}
+    \item[]
+          \verb|\begin{synopsis}|\\
+          \verb|{\bf mail} [ -{\bf epqr} ] [ -{\bf f} {\it file} ]|\\
+          \verb|{\bf mail} [ -{\bf t} ] {\it persons}|\\
+          \verb|{\bf rmail} [ -{\bf t} ] {\it persons}|\\
+          \verb|\end{synopsis}|
+  \end{itemize}
+There is also a special macro for formatting arguments which are
+commonly printed with a minus sign plus one or more
+characters in bold and optionally a string argument name in
+italic.  
+  \begin{itemize}
+    \item[]
+          \verb|\arg{|{\it str1}\verb|}{|{\it str2}\verb|}|
+  \end{itemize}
+The first string is printed in bold font, the second in italic.  
+Some arguments have a space between the option in bold and the
+substitutable parameter in italic; others do not.  The {\tt arg}
+macros {\bf does not} supply the space.  If a space is desired the
+first character of {\it str2} should be a space.  This could have been
+used in the previous example of the synopsis section to format the
+first line as  
+  \begin{itemize}
+    \item[]
+          \verb|{\bf mail} [ \arg{-}{epqr}{} ] [ \arg{-}{f}{ file} ]|
+  \end{itemize}
+Note that any of the three arguments to {\tt arg} can be empty to
+print nothing in that font.  The macro is intended to reduce the
+number of explicit font changes that must be used and is similar to
+some of the troff macros that alternate between two fonts.
+
+The macro is implemented as 
+  \begin{itemize}
+    \item[]
+          \verb|\def\arg#1#2{{\bf#1}\if\relax#2\ \else\{\it#2}\fi}|
+  \end{itemize}
+If different font choices are desired, simply redefine the macro in
+the preamble using other font macros.
+
+The {\tt description} section contains paragraphs describing the
+command or function.
+  \begin{itemize}
+    \item[]
+          \verb|\begin{description}|\\
+          \verb|The description contains text with as many|\\
+          \verb|lines or paragraphs are required|\\
+          \verb|\end{description}|
+  \end{itemize}
+
+In some man page styles the option or parameter list is included in
+the {\tt DESCRIPTION} section.  In others it is a separate labeled
+section. The label OPTIONS or PARAMETERS are commonly used for this
+section.  Section macros are provided for each of these.
+  \begin{itemize}
+    \item[]
+          \verb|\begin{options}|\\
+          {\it the options text}\\
+          \verb|\end{options}|
+
+          \verb|\begin{parameters}|\\
+          {\it the parameters text}\\
+          \verb|\end{parameters}|
+  \end{itemize}
+These are synonyms except for the label used.  
+
+The {\tt OPTIONS} and the {\tt PARMATERS} sections often contain only
+an option list.   Special list environments for are provided; e.g.,
+  \begin{itemize}
+    \item[]
+          \verb|\begin{optionlist}|\\
+          \verb|\item[\arg{-r}{}]causes messages to be printed in first-in, first-out order|\\
+          \verb|\item[\arg{-f}{ file}causes mail to use {\it file} (e.g., {\bf mbox}) instead of the default {\it mailfile}.|\\
+          \verb|\end{optionlist}|
+  \end{itemize}
+Using these, the {\tt OPTIONS} or {\tt PARAMETERS} sections would look like
+  \begin{itemize}
+    \item[]
+          \verb|\begin{option}\begin{optionlist}|\\
+          \verb|\item[\arg{-r}{}]causes messages to be printed in first-in, first-out order|\\
+          \verb|\end{optionlist}\end{option}|
+
+          \verb|\begin{parameters}\begin{parameterlist}|\\
+          \verb|\item[\arg{-r}{}]causes messages to be printed in first-in, first-out order|\\
+          \verb|\end{parameterlist}\end{parameters}|
+  \end{itemize}
+
+The name {\tt parameterlist} is a synonym for {\tt optionlist}.  The
+option or parameter is used as the label.  The amount of indent for
+the text section of the list is specified by \LaTeX\ dimensions {\tt
+parametersindent} and {\tt optionsindent}.  These are set to 0.5in but
+can be reset by 
+  \begin{itemize}
+    \item[]
+          \verb|\parametersindent=|{\it new-size}\\
+          \verb|\optionsindent=|{\it new-size}
+  \end{itemize}
+
+The {\tt files} and {\tt environment} environments, like the {\tt
+options} or {\it parameters} environment usually contain only lists.  
+Special lists for these are also available.
+  \begin{itemize}
+    \item[]
+          \verb|\begin{files}\begin{filelist}|\\
+          \verb|\item[|{\it path-and-file-name}\verb|]|{\it description}\\
+          \verb|\end{filelist\end{files}|
+
+          \verb|\begin{environment}\begin{environmentlist}|\\
+          \verb|\item[|{\it environment-var}\verb|]|{\it description}\\
+          \verb|\end{environmentlist}\end{environment}|
+  \end{itemize}
+The {\tt files} environment can be used without the {\tt filelist}
+environment if the user wishes to do custom formatting.  These indents
+are also preset, \verb|\fileindent=1in| and
+\verb|environmentindent=2in|.  These can also be reset by the user.
+
+The {\tt optionlist}, {\tt parameterlist}, and {\tt environmentlist}
+labels are set in bold font by default (since this is the recommended
+style, see Section\ref{sec:std}).  The {\tt filelist} labels are set
+in roman font.
+
+The other environments provided do no special formatting of their
+contents and include
+ \begin{itemize}
+    \item[]
+          \verb|\begin{exitcodes}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{exitcodes}|
+
+          \verb|\begin{restrictions}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{restrictions}|
+
+          \verb|\begin{examples}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{examples}|
+
+          \verb|\begin{diagnostics}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{diagnostics}|
+
+          \verb|\begin{extendeddescription}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{extendeddescription}|
+
+          \verb|\begin{seealso}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{seealso}|
+
+          \verb|\begin{references}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{references}|
+
+          \verb|\begin{caveats}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{caveats}|
+
+          \verb|\begin{bugs}|\\
+          {\it user formatted text}\ldots{}\\
+          \verb|\end{bugs}|
+  \end{itemize}
+
+Any special formatting of the text in these environment must be
+provided by the user using \LaTeX\ formatting commands.
+
+\section{Man Page Standards}\label{sec:std}
+The Software Development System project has produced a manual page
+standard for departments 55511 and 55513.\cite{bib:manpagestd}  Some
+of the issues are specific to that project but many are general and
+worth following.  There are good recommendations concerning writing
+style.  They recommend against using right justification on manpages.
+One can follow this recommendation by placing the {\tt manpage}
+environment inside a {\tt flushleft} environment or calling the \TeX\
+raggedright command.
+
+\subsection{Fonts}
+They recommend the following be set in bold font
+  \begin{itemize}
+    \item all parameters,
+    \item all C and C preprocessor constructs,
+    \item all environment variables, etc.,
+    \item all error messages (except for variable portions)(e.g., {\bf
+          vi: cannot open file}{\it filename}),
+    \item all command names, and
+    \item section and subsection headings (only when used to mark the
+          start of the sectgion -- when they are used in the text of
+          the manual page, they are in Roman-type style).
+  \end{itemize}
+
+All substitutable items should be set in italics; e.g., filenames and
+patterns.  All other parts should be printed in Roman font.
+\subsection{Section Ordering}
+They recommend the following sections and recommend that they appear
+in the indicated order.  They recommend against any addition sections
+(although manpage.sty supports a few others that are in common use).
+Not all sections are required on all man pages.
+  \begin{enumerate}
+    \item TITLE (heading line)
+    \item NAME
+    \item SYNOPSIS
+    \item DESCRIPTIONS
+    \item PARMETERS (rather than OPTIONS)
+    \item ENVIRONMENT
+    \item EXIT CODES
+    \item RESTRICTIONS
+    \item EXAMPLES
+    \item DIAGNOSTICS
+    \item EXTENDED DESCRIPTION
+    \item FILES
+    \item SEE ALSO
+    \item REFERENCES
+  \end{enumerate}
+
+They also make useful recommendations concerning the contents of each
+section.
+
+\section{Conclusion}
+The author hopes you find this manpage style useful.  Feel free to
+direct bug reports, comments or suggestions to him by email, paper
+mail or phone.
+
+\makesignature
+\noindent Atts.\\
+%References\\
+Appendixes A-B\par
+%Table 1
+\vspace{12pt}
+\copytocov{{\nobreak\topsep=0pt\partopsep=0pt\begin{tabbing}\nobreak%
+\hskip2.5in\=WWW \=\kill%
+All Members Department 59114\\
+%All Members Department 59112\\
+All Supervision Center 5911\\
+Y.\ Afek		\>MH\>3D-438\\
+E.\ Ayanoglu (vax135!ender)\>HO\>4F-507\\
+Sihem Ben Saad (buckaroo!sihem)	\>HO\>3K-602\\
+M.\ Beutnagel		\>MH\>2D-513\\
+C.\ D.\ Blewett		\>MH\>2C-470\\
+D.\ S.\ Booth		\>HO\>4E-526\\
+R.\ J.\ Brachman (allegra!rjb)	\>MH\>3C-439\\
+B.\ Carpenter (hos1cad!wjc)	\>HO\>1L-410\\
+M.\ Carroll (mozart!carroll)	\>LC\>4N-D02\\
+Asheem Chandna (hou2d!asheem)	\>HR\>2K-058\\
+H.\ H.\ Chefitz		\>LC\>3W-F09\\
+Y.\ Chen (ulysses!chen)	\>MH\>3C-535\\
+Johanan Codona (whutt!jlc)	\>WH\>15F-326\\
+Manuel F.\ Costa (arch3!manuel)	\>HO\>1J-332A\\
+D.\ L.\ De Bruler (iexist!dennis)  \>IHP\>1B-104\\
+R.\ A.\ Deighan		\>ALC\>1C-343\\
+David Dougherty (attunix!dwd)	\>SF\>E-125\\
+Elias Drakopoulos (ihlpa!eliasd)	\>IH\>4A-264\\
+Robert Ducharme (drutx!rld)	\>DR\>30F-016\\
+Bryn Ekroot (hocus!bce)	\>HO\>3K-320\\
+David Etherington (allegra!ether)	\>MH\>3C404A\\
+P.\ Glassman		\>HO\>3K-324\\
+Judith Grass (ulysses!grass)	\>MH\>3C-532C\\
+Albert Greenberg (gauss!albert)	\>MH\>2C-119\\
+Hsueh-Ming Hang (vax135!hmh)	\>HO\>4C-520\\
+Mark Hartman (ihlpm!hartman)	\>IX\>1C-441\\
+R.\ S.\ Hauck (ihlpe!micro)	\>IH\>6B-420\\
+A.\ I.\ Hauser		\>HR\>2C-227\\
+Gary Hurm (ihuxz!hurm)	\>IHP\>1E-546\\
+Dan Jacobson		\>IH\>1D-213\\
+Henry Kautz (allegra!kautz)	\>MH\>3C-402C\\
+T.\ J.\ Kowalski	\>MH\>2C-552
+\end{tabbing}}}%\vspace*{-20pt}
+\restofcopytocov{{\nobreak\topsep=0pt\partopsep=0pt\begin{tabbing}\nobreak%
+\hskip2.5in\=WWW \=\kill
+P.\ Kravitz		\>MH\>30H-016\\
+Bala Krishnamurthy	\>MH\>3D-561\\
+Peter Kroon (alice!kroon)	\>MH\>2D-550\\
+G.\ R.\ Kuntz		\>SF\>5345\\
+Daniel Jacobson (ihlpa!danj1)	\>IH\>1D-213\\
+L.\ S.\ Levy		\>MT\>3G-108\\
+M.\ Y.\ Liberman	\>MH\>2D-444\\
+J.\ P.\ Linderman	\>MH\>3D-435\\
+Robert Lyons (vax135!lyons)	\>HO\>4E-626\\
+S.\ Luke Jones (mtung!luke)	\>MT\>2E-337\\
+Victor McCrary		\>MH\>2A-337\\
+M.\ Murdocca		\>HO\>4G-538\\
+R.\ B.\ Murray (mozart!rbm)	\>LC\>4N-W09\\
+Steve North (ulysses!north)	\>MH\>3C-539\\
+Kostas Oikonomou (honet7!ko)	\>HO\>3M-521\\
+Harold Pomeranz (homxa!hrp)	\>HO\>3D-225A\\
+Christopher Rath (melmac!car)	\>LC\>3W-G20\\
+A.\ Reibman (hoqaa!alr)	\>HO\>2J-502\\
+J.\ R.\ Rowland		\>LC\>3W-G25\\
+E. Sampieri		\>HO\>4G-616\\
+Juergen Schroeter (alice!jsh)	\>MH\>2D-545\\
+T.\ Sizer		\>HO\>4G-530\\
+Richard Stone (hocus!res)	\>HO\>3K-328\\
+V.\ Tavernini		\>AN\>4S-125\\
+S.\ K.\ Tewksbury (vax135!skt)	\>HO\>4B-505\\
+Mark K.\ Trettin (ihlpy!mkt)	\>IHP\>2A-316\\
+H.\ Trickey (coma!trickey)	\>MH\>2C-514\\
+J.\ D.\ Weld (whutt!jdw)	\>WH\>4C-228A\\
+Robert Wentworth (hoh-1!rhw)	\>HOH\>L-171\\
+Alexander Wolf (ulysses!wolf)	\>MH\>3C-533
+\end{tabbing}}}
+\bibliography{tm}
+\appendices
+\def\bv{\begin{verbatim}}% These are necessary to get verbatim to 
+\section{Example Man Page Source File}
+\def\infil{\input man.1.tex}% begin only after input is redirected
+\expandafter\bv\infil
+\end{verbatim}
+\section{Formatted Man Page Resulting from Example Source File}
+{\it starts on next page}
+\newpage
+\input{man.1.tex}
+\tableofcontents
+%\listoffigures
+\coversheet
+\end{document}

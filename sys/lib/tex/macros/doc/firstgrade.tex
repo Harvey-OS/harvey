@@ -1,0 +1,2271 @@
+% This is the "TEX Beginner's Manual" source text
+
+\font\ninerm=cmr9  \font\eightrm=cmr8  \font\sixrm=cmr6 % \font\mc=cmcsc
+\font\ttt=cmtt9
+
+\def\TeX{T\kern-.1667em\lower.5ex\hbox{E}\kern-.125em X}
+\def\TEX{T\kern-.1667em\lower.5ex\hbox{E}\kern-.125em X}
+\def\La{L\kern-.1667em\raise.5ex\hbox{a}\kern-.1em}
+
+\magnification=1200
+
+\def\undertext#1{$\underline{\hbox{#1}}$}
+\def\\{{\tt \char'134}}
+\def\up{{\sy \char'42}}
+\def\down{{\sy \char'43}}
+\def\caret{{\char'17}}
+\parskip 10pt plus 1pt
+\parindent 0pt
+
+\def\cs{{\sl control sequence}} 
+\def\css{{\sl control sequences}} 
+\def\Css{{\sl Control sequences}}
+\def\lbr{{\tt \char'173}}  \def\rbr{{\tt \char'175}}  \def\rrbr{{\tt \char'175\char'175}}
+\def\und{\tt \char'137}
+\def\til{\tt \char'176}
+\def\sup{\tt \char'136}
+\pageno=-1
+\null\vfill
+\centerline {\bf A Beginner's Preface}
+
+\vfill
+The beginner can easily be confused by the different
+versions of \TeX82 that seem to exist on different computers
+and by the conflicting claims for different {\sl Macro Packages\/}
+that are supposed to making \TeX\ `user friendly'.
+This preface attempts to clarify the situation.
+
+In the first place, there is only one official version of \TeX82 and users
+are specifically cautioned not to make any changes to the basic program
+itself.  A `{\sl change file\/}' mechanism is provided to allow
+the program to be compiled differently as dictated by the hardware and
+system software constraints that exist at any particular computer
+installation, but these changes should not modify \TeX's formatting 
+capabilities.
+
+It is customary, and indeed desirable, to supply \TeX\ with a fairly large
+amount of additional information, either in the form of a separate
+input file or as information that is preloaded with \TeX\ so that
+it becomes available automatically when the \TeX\ program is used.  Such
+files are usually called {\sl macro packages\/} and you, as a user, may
+have to concern yourself with the number and kinds of {\sl macro
+packages\/} that are available at your installation.
+
+{\sl Macro packages\/} are used to supply \TeX\ with  several quite different
+kinds of information, much of it being fairly standard and of no immediate concern.
+{\sl Macro packages\/} often assign values to a fair number of the approximately
+eighty \TeX\ {\sl primitives\/} that can be so preassigned and you may wish
+to assign different values to these.
+Of major concern are the fairly large number of {\sl
+control sequences\/} that are predefined.  These {\sl control
+sequences\/} attach names to certain logical combinations of selected {\sl
+primitives\/} (and of other {\sl control sequences\/}) that together perform
+frequently-used formatting functions. The availability of these predefined sequences
+can make your task very much easier when you wish to do the
+specific things for which they were designed.
+
+This manual is written on the assumption that you will be using the {\tt
+PLAIN.TEX} {\sl macro package}.  This package simplifies many formatting
+tasks without interfering with the separate use of any of \TeX's {\sl
+primitives\/}.  Having mastered plain \TeX\ to the extent that it is
+explained in this manual, you may later want to define some additional
+{\sl control sequences\/} that will help you in specifying the
+formatting conventions that you employ.
+
+Some {\sl macro packages} are written from quite a different point of view
+from that used for plain \TeX,
+where the aim is to make certain global formatting conventions very easy to
+use at the expense (and sometimes with the deliberate intent) of making it more
+difficult for other formatting conventions to be specified.  Some of
+these packages actually redefine terms that \TeX\ uses for {\sl primitives\/}
+so that these {\sl primitives} can no longer be called directly.
+If one of these packages completely meets your needs then you should
+use it, but beware.
+
+One final word---there is a certain amount of circularity in the language
+used in this manual. If you do not understand everything the first time
+through, plow straight ahead until you bog down and then start all
+over again at the beginning. You will be surprised how much clearer
+everything will be on the second reading.
+
+\eject
+
+\pageno=1
+\null \vfil
+\centerline{\bf First Grade \TeX} 
+\vskip .1in 
+\centerline{\bf A Beginner's \TeX\ Manual}
+{\bf Introduction}
+
+This is an introductory ready-reference \TeX82 manual for the beginner
+who would like to do First Grade \TeX\ work.
+Only the most basic features of the \TeX\
+system are discussed in detail.  Other features are summarized in an
+appendix and references are given to the more complete documentation
+available elsewhere.
+
+\TeX\ is a computerized typesetting system.  As \TeX\ is normally used,
+the original text is typed (into an input file) very much as it would be
+typed for submission to an old-fashioned printer except that this input file
+must now contain all of the instructions that are needed to describe the
+desired format for the printed output.  Given such a description, still in
+rather general terms, the \TeX\ compiler is able to specify in precise
+detail the font (i.e., the size and kind of typeface)
+and the location for each character that is to be printed.
+Your final output can meet the very best publishing standards.
+
+Defining book quality text is not an easy task.  While the \TeX\ system
+takes care of many of the tedious details, the wealth of facilities that
+\TeX\ provides can be very confusing to the beginner and sometimes even to
+the experienced user.  These facilities include the handling of such
+matters as: 1)~ligature replacements (for example, fi for f{i}),
+2)~kerning (different spacings between certain letter pairs), 3)~automatic
+hyphenation, 4)~line justification, 5)~centering, 6)~flushing right or
+left, 7)~tabular aligning, 8)~the formatting of complicated mathematical
+expressions, 9)~section and page numbering, 10)~the introduction of
+running heads, 11)~the numbering and placing of footnotes, and 12) the
+preparation of a table of contents and an index, to name but a few.
+
+It will be assumed that the reader is already acquainted with the use of a
+computer and with at least one text editor that can be used while typing
+the \TeX\ input file.  One minor warning at this point: Do not use an
+editor that requires or leaves its own special formatting marks (line numbers,
+word processing commands, etc.)
+in the
+file that it produces, unless your version of \TeX\ has been specially tailored to 
+tolerate them. Such marks will be assumed to be a part of the text
+by \TeX . The text in the input file should be broken up into
+reasonably short lines.  \TeX\ will ignore 1)~the way you break your
+paragraphs into lines, 2)~extra
+spaces between words, and 3)~extra blank lines between paragraphs,
+although it does accept one or more blank lines as indicating a paragraph break.
+
+\TeX\ is usually preloaded with one or more special files that define many
+very useful commands.  This manual assumes that you will be using a basic
+file called {\tt PLAIN.TEX}, and \TeX\ when so loaded will be refered to
+as {\sl plain} \TeX . We will not discuss the details as to how one
+actually types the input information, how this is saved as a file on the
+system, how one evokes the \TeX\ compiler, and how one instructs the
+computer system to print the final document, as these features are highly
+system dependent.
+
+\eject
+\noindent {\bf Toward Book Quality}
+
+Book quality text differs from ordinary typing in a number of simple but
+far from trivial ways.  In the first place, a distinction is made between
+the upper case O and the number 0 and between the lower case l and the number 1,
+then there is a distinction between hyphens, dashes, and the minus sign.
+Also, your terminal should contain two varieties of `single' quotes and
+when you want a ``double'' quote you simply type two of the appropriate
+single quotes and \TeX\ will space these correctly, as shown below.
+$$\vbox{\halign {\hfil #\hfil\quad &\hfil #\hfil\quad &\hfil #\hfil\quad&
+\hfil #\hfil\quad &\hfil #\hfil\quad&\hfil #\hfil\quad \cr
+Name&Hyphen&En-dash&Em-dash&Minus sign&Double quotes\cr
+To print&-&--&---&$-$&``text''\cr
+You type&\tt -&\tt -{}-&\tt -{}-{}-{}&$\$${\tt -}$\$$&\tt `{}`text'{}'\cr}}$$
+A word about hyphenation---\TeX\ can usually be depended upon to use
+hyphens correctly (when this is necessary to achieve right justification) and
+to avoid excessive hyphenation (by increasing or slightly decreasing
+the inter-word spacings within pre-assigned limits).
+There are exceptions,
+and there are words like pres-ent and
+pre-sent where the positioning of a hyphen depends upon how the word is
+used.  When \TeX\ either refuses to hyphenate or makes a mistake, you can
+gain hyphenation control over the word in question by inserting one or
+more {\sl discretionary hyphens\/} at acceptable locations, using the {\sl
+control sequence\/} `{\tt \\-}', as an example in the word {\tt re\\-cord}
+or {\tt rec\\-ord}.  These will be ignored when not needed and they will
+print as normal hyphens when needed.
+
+\TeX\ provides for the automatic substitution of ligatures when available,
+replacing f\/f by ff, f\/i by fi, and f\/l by fl, unless
+you specifically disallow it by typing either {\tt \hbox\lbr f\lbr \rbr f\rbr}
+to get \hbox{f{}f} or {\tt f\\/f} to get f\/f (slightly more space between).
+
+A nice feature of plain \TeX, is the ease with
+which special accents and a few special letters may be produced.
+$$\vbox{\tabskip 1em plus 2em minus .5em
+\halign{\hfil #\hfil &&\hfil #\hfil \cr
+Name&grave&acute&``hat''&umlaut&tilde&``bar''&dot\cr
+To print&\`a&\'e&\^o&\"u&\~n&\=y&\.p\cr
+You type&{\tt \\`a}&{\tt \\'e}&{\tt \\\^{}o}&{\tt \\"u}&{\tt
+\\\~{}n}&{\tt \\=y}&{\tt \\.p}\cr
+\noalign{\bigskip}
+Name&check&breve&long&tie-after&cedilla&bar-under&dot-under\cr
+To print&\v s&\u\i&\H \j&\t\i u&\c c&\b k&\d h\cr
+You type&{\tt \\v s}&{\tt \\u\\i}&{\tt \\H\\j}&{\tt \\t\\i u}&{\tt
+\\c c}&{\tt \\b k}&{\tt \\d h}\cr
+\noalign{\bigskip}
+To print&\oe ,\OE&\ae ,\AE&\aa ,\AA&\o ,\O&\l ,\L&\ ?`\qquad !`&\ss\cr
+You type&{\tt \\oe,\\OE}&{\tt \\ae,\\AE}&{\tt \\aa,\\AA}&{\tt
+\\o,\\O}&{\tt \\l,\\L}&\tt\ ?{}`\quad !{}`&{\tt \\ss}\cr}}$$
+
+Note that {\tt \\i} and {\tt \\j} give dotless i and j for use with accents.
+All of the above
+special symbols and characters work equally well in roman, italic,
+and bold type fonts.
+A few do not work in the fixed-width typewriter font.
+Many other symbols, mainly mathematical, are listed in the Appendix.
+{\bf Special Symbols}
+
+Plain \TeX\ assigns special meanings to ten infrequently used but normally
+available typewriter symbols. These symbols are used to simplify the task
+of issuing commands to \TeX.  Should you wish these symbols to be printed
+in your final document they must appear in your input file as shown below.
+$$\vbox{\halign{\tt \hfil #\hfil\quad &\tt \hfil #\hfil\quad &
+\vtop{\hsize=26em\strut #\strut}\cr
+\rm Symbol&\rm To print, type&\qquad\quad Special \TeX\ meaning when used directly\cr
+\noalign{\smallskip}
+\\&\$\\backslash\$& Used to indicate the start of a \TeX\ {\sl
+control sequence}, usually refered to as a {\sl backslash}\cr
+\noalign{\smallskip}
+\lbr\ and \rbr& $\$$\\\lbr$\$$ and $\$$\\\rbr$\$$&
+Grouping symbols, to indicate range of action of a {\sl control sequence} to the enclosed text\cr
+\noalign{\smallskip}
+\$&\\{}\$& Used to initiate and to terminate a portion of the text that is to be in Mathematics Mode\cr
+\noalign{\smallskip}
+\&&\\{}\&& Alignment tab, used to delineate fields within a table \cr
+\noalign{\smallskip}
+\#&\\{}\#& Parameter, used to signify a field within a table or in a \cs\cr
+\noalign{\smallskip}
+\sup{}&\\\sup{}$\{\}$&Superscript (also used as an accent, see previous page)\cr
+\noalign{\smallskip}
+\und&\\{\und}& Subscript\cr
+\noalign{\smallskip}
+\%&\\\%& Comment symbol, the rest of the line is ignored by \TeX \cr
+\noalign{\smallskip}
+\til{}&\\\til{}$\{\}$& 
+Used to introduce a single space in locations where a line break is not to
+be allowed.\cr}}$$
+{\bf Issuing Commands to \TeX}
+
+Commands to \TeX, as distinguished from the text itself, consist of the
+{\sl backslash}, `{\tt \\}', then the name of the command (without an
+intervening space) and then, in some cases, the parameters that are
+associated with the command.  The command name can be of two types, either
+1) a single non-alphabetic character,
+or 2) one or more alphabetic characters that must be
+terminated by a space if the name is to be followed by other alphabetic
+characters.  These alphabetic characters are often in lower case, but
+please note that the correct case, as specified, must always be used.
+For example, `{\tt \$\\Omega\$}' produces `$\Omega$', while
+`{\tt \$\\omega\$}' produces `$\omega$'. 
+Also note the basic distinction between non-alphabetic-character command names which
+are not to be followed by a space (unless a space is actually wanted
+in the output) and alphabetic-character command names which require a terminating space
+if they are followed by other alphabetic characters.
+
+Commands are of two types. Over 300 commands, called {\sl primitives},
+are a part of \TeX 's built-in vocabulary. Then
+there are {\sl control sequences}, sometimes called {\sl macros}, that are
+constructed from these {\sl primitives\/} (or from other {\sl control
+sequences\/}).
+
+Many of the {\sl primitives\/} are normally used only to define \css\/\ and
+need not concern the beginner, but others specify
+basic characteristics of \TeX 's output, such as, for example, the
+page size (`{\tt \\hsize=6.5in \\vsize=8.9in}'),
+the desired margins, and the spacing between paragraphs
+(`{\tt \\parskip=10pt plus 1pt}').  All
+of these latter are preassigned values in plain \TeX\
+although they can be changed by the user.
+
+
+{\sl Control sequences\/} are used to simplify the typing of commands to
+\TeX, since they are
+shorter and much easier to remember than the sequence of {\sl primitives}
+that they specify.
+ Many very useful {\sl control sequences\/} are to be found in the
+file {\tt PLAIN.TEX} and these {\sl control sequences\/} are, in effect, added
+to the basic vocabulary that \TeX\ understands when this file is preloaded
+with \TeX . In addition, there exist a number of special collections of
+{\sl macros\/} that \TeX\ experts have found useful for special purposes
+such as writing business letters, preparing internal
+memoranda, and preparing manuscripts for publication. The very first line
+appearing in your main input file may well be the control sequence \ \\{\tt
+input} \ followed by the name of the file that contains the desired macro
+collection. Incidentally, \TeX\ interprets a file name that is so used
+without a
+file name extension to mean a file with the extension of {\tt .TEX}, for example,
+{\tt \\input MYMACS} will cause the file {\tt MYMACS.TEX} to be loaded.
+
+Plain \TeX\ understands well over 900 {\sl control
+sequences\/} but many of these are self-evident from their names and
+others fall into a relatively few catagories, so that they can be easily
+learned when needed.  Some of the more important of these are listed in
+the Appendix.
+
+\noindent {\bf Fonts}
+
+\TeX\ provides for the use of as many as 256 different fonts, each
+containing as many as 256 different characters. Plain \TeX, as loaded,
+has 16 fonts that are assigned special control-sequence names.
+The default font, called roman, is requested
+by the use of the {\sl control sequence\/} `{\tt \\rm}'.
+If you wished the entire text to be typed in boldface you would type
+`{\tt \\bf}' before your text.  If, on the other hand, you
+want a single word or a phrase to appear in a different font you should
+use the grouping symbols `{\tt \lbr}' and `{\tt \rbr}' to delimit the range.
+
+For example, typing \ `{\tt to be \lbr\\bf bold\rbr\ is to \lbr\\sl
+emphasize\rbr\ something}' \ will produce `to be {\bf bold} is to {\sl
+emphasize\/} something'.
+Incidentally, an {\sl italic correction} command `{\tt \\/}' introduces a
+little extra space when used after letters in the the {\tt \\it} and {\tt \\sl}
+fonts to compensate for a change in slope of the letters.  Typing
+`{\tt \lbr\\it italicized\\/\rbr} text' produces `{\it italicized\/} text' as
+compared to `{\it italicized} text' when the correction is not used.
+
+The following {\sl control sequences\/} are for the type fonts as shown:
+
+$$\vbox{\tt \halign{\hfil#\hfil&& \quad \hfil #\hfil \cr
+\\rm&\\sl&\\it&\\tt&\\bf\cr
+\rm Roman&\sl Slanted&\it Italic&\tt Typewriter&\bf Boldface\cr
+}}$$
+
+Type fonts also come in different sizes. To demonstrate, if you type:
+
+\halign{#\cr
+{\tt \lbr\\{tenrm smaller and}\rbr\ \lbr\\{ninerm smaller and}\rbr\ 
+\lbr\\{eightrm smaller and}\rbr}\cr
+{\tt \lbr\\{sevenrm smaller and}\rbr\ \lbr\\{sixrm smaller}\rbr}{\rm
+ ,\quad you get} \hfil\cr}
+
+{\tenrm smaller and} {\ninerm smaller and} {\eightrm smaller and}
+{\sevenrm smaller and} {\sixrm smaller}, all lined up to a common {\sl
+baseline}.
+
+This manual uses {\sl 10~point\/} type, as called for by {\tt PLAIN.TEX},
+and defined to be
+{\tt \\tenrm}, except that the author has had everything
+magnified by 1.2 (for beginners), by having the command `\\{\tt
+magnification=1200}' \ appear ahead of any text in the input file. So the
+actual
+sizes, in the above example, are all multiplied by 1.2.  You may have also
+noticed that this manual uses `{\sl slanted type\/}' for emphasis and `{\tt
+typewriter type}' for things that you are told to type and for the messages
+that the computer displays.
+
+The characters within a font, including those not on your keyboard, can be
+gotten by typing `{\tt \\char<number>}'\ where {\tt <number>} is the
+decimal number of the character position, or by typing `{\tt \\char'<octal
+number>}'\ where {\tt <octal number>} is an octal number.  For example, typing
+`{\tt \\char'35}' produces {\char'35}.  Incidentally, the normal
+alphanumeric characters are at their {\sl ascii} positions regardless of
+the code that your computer may use externally.
+
+Another way to get symbols that are not on your keyboard is to define
+{\sl control sequences} for them. For example, {\tt PLAIN.TEX} defines 
+`{\tt \$\\ne\$}',
+`{\tt \$\\le\$}', and `{\tt \$\\ge\$}' for `$\ne$', `$\le$' and
+`$\ge$', respectively.
+Over 300 such {\tt PLAIN.TEX} definitions are listed in the Appendix.
+
+
+\noindent {\bf Dimensions and Keywords}
+
+\TeX\ understands a variety of dimensional units as
+{\sl keywords} that are used without the `{\tt \\}'. These 
+convey fixed meanings to \TeX\ when they are used in the proper context.
+These units and their meanings are:
+
+$$\vbox{\halign{\tt \hfil#\hfil\quad&#\quad&#\qquad\qquad\hfil
+&\tt \hfil#\hfil\quad&#\hfil\quad&#\cr
+{\rm Unit}&Meaning&Per inch&{\rm Unit}&Meaning&Per inch\hfil\cr
+\noalign{\smallskip}
+pt&point&72.27&mm&millimeter&25.4\cr
+pc&pica&6.023&dd&Didot point&67.54\cr
+in&inch&1&bp&big point&72\cr
+cm&centimeter&2.54&
+sp&scaled point&4736286.72\cr}}$$
+
+Sometimes it is convenient to use dimensions that are relative to the
+character sizes in the font being used at the time. Two such units are
+the {\tt em} and the {\tt ex}.
+The {\tt em}, used for measuring horizontal distances, is, by tradition,
+the width of the upper case `M'  but is an arbitrarily assigned value in
+\TeX\ that is the width of a `quad'.  The {\tt ex} is used for measuring
+vertical distances and is approximately the height of a lower case `x'.
+
+{\bf To Use \TeX }
+
+Having written a simple input file, say, {\tt MYFILE.TEX}, which contains the desired
+text together with a few {\sl control sequences\/} that define your
+wishes, you may now call on \TeX\ to operate on your file.
+On some computers you do this 
+by typing:  \ \ `{\tt run~tex;MYFILE}'. \
+Since the correct form 
+can vary from computer to computer, the best thing to do is to ask someone who
+knows what to do on your particular computer.
+Usually, \TeX\ will begin by prompting you with a 
+double asterisk `{\tt **}', to indicate that you can then type the name of your
+input file. 
+If, on the other hand, the prompt is a single asterisk
+`{\tt *}', (or if you are calling for another file within a file) then you
+must precede the file name by the `{\tt \\input}' command thus:  `{\tt
+\\input MYFILE}'. The \cs\/\ {\tt \\input} must usually be typed in lower case
+and typing `{\tt MYFILE}' implies `{\tt MYFILE.TEX}'.
+
+The input file itself may begin by referencing one or more additional
+files (this time using the `{\tt \\input}' command).  These files may
+define some special fonts that are to be used and they may contain the
+definitions of some specialized, frequently-used, constructs ({\sl
+control sequences\/} or {\sl macros\/}) that are used to simplify the
+typing of the desired instructions.  Once defined, these constructs can
+then be called by name as needed in the text file itself. Caution: Do not load up your
+working space with macros that you never use.
+
+The \TeX\ program produces a {\tt DVI} (\undertext{d}e\undertext{v}ice
+\undertext{i}ndependent) file, that specifies each character that is
+to be printed, together with its font and its exact location in the printed document.
+The {\tt DVI} file may require
+some further translation before it is acceptable as input to the available
+printer but on most systems this further action is usually automatic,
+requiring, at most, a carriage return confirmation. 
+The {\tt DVI} file is usually saved and it can then be reprinted at a later date,
+perhaps on a different printer, if this should be desired.
+
+It should be noted that \TeX\ does not need to know the exact shape
+of each character, but it does need to know the overall size and the
+details as to how the individual characters may interact with adjacent
+characters (resulting in ligature replacements or in kerning). This
+information is usually contained in what are known as {\tt TFM} files.  The
+printer, on the other hand, does need to have access to the detailed
+information as to the exact configuration of each character that is to be
+printed and this information is usually contained in what are known as
+{\tt PXL} files. The two sets of files must agree as to the fonts that they
+describe, or chaos will result.
+
+{\bf Boxing with Glue}
+
+There are a few facts about the inner working of \TeX\ that you will
+need to know.
+\TeX\ approaches the task of formatting a page of text much as a mason
+might build a brick wall, which is to be laid in courses to a fixed
+width using bricks that vary in size (and that have to be used in a fixed
+order), with limits as to the minimum and maximum amount of mortar that
+can be used between bricks.
+
+\TeX\ happens to use different terms, which you should learn to recognize.
+Instead of {\sl bricks}, \TeX\
+talks about `{\sl hboxes\/}' (initially, the individual
+words in your text), which it assembles
+out of simple `{\sl boxes\/}' (the individual letters). No {\sl mortar}
+is used between letters
+so words always look the same.
+There may be some
+`{\sl kerning}', e.g., there will be less space between an `o' and an `x', as in 
+box, than
+there will be between two `o's as in book.
+\TeX\ then puts these {\sl hboxes\/} together to form
+larger {\sl hboxes} (this time, a collection of words), using `{\sl glue\/}', in place of
+{\sl mortar} for the inter-word and inter-sentence spacings.
+The {\sl glue\/} has properties of being {\sl
+stretchable} and, to a lesser extent, {\sl shrinkable}.  This list of 
+{\sl hboxes\/} and {\sl glue} can then be expanded or compressed to meet
+the `{\sl hsize\/}' dimension that has been preset by {\tt PLAIN.TEX} to 6.5 in, or that you
+have changed by typing {\tt \\hsize 4.25in}, for example.  
+
+Plain \TeX\ takes care of such details as putting slightly more space after commas
+and after periods and by allowing
+these globs of glue to stretch more and shrink less than that allowed for
+the normal glue between words. While this is desirable in most cases,
+there are times when it is not desired and then you should use the {\sl
+backslash-space control sequence}, `{\tt \\ }', (that is a backslash
+followed by a space) to guarantee a normal
+space, or perhaps use the {\sl tie} symbol,
+` $\tilde{ }$ ', in place of the space after
+an abbreviation such as in `{\sl Fig.~23\/}' or {\sl Mr.~Smith}, where it is
+also desirable to prevent the sentence from being broken between the
+abbreviation and the following number or word.
+
+Actually, \TeX\ treats an entire paragraph as a unit and tries to distribute the
+text into as many lines as are required with the individual lines meeting
+the {\sl hsize\/} requirement without excessive stretching or shrinking.
+If this cannot be done, \TeX\ then tries to hyphenate. \TeX\
+will usually find several ways that the paragraph can be broken, and it
+will then pick the way that it thinks is best.
+The paragraph will then be broken up into a sequence of {\sl hboxes}, each of which
+should meet the specified line width.
+
+\TeX\ will complain with an `{\tt overfull hbox}' \ message, if it is
+unable to meet the tolerances that have been specified.
+Your task then is to inspect the offending line or lines to see if there
+is some simple way to overcome the difficulty; perhaps a discretionary
+hyphen is needed.  Lacking such a remedy, you can force a line break at an
+earlier place in the offending line or earlier in the paragraph,
+but this is seldom desirable. It is usually better
+simply to reconstruct the sentence or paragraph so as to avoid the
+trouble. Actually, there are a number of ways that you can anticipate
+trouble and provide for it in advance, as you will learn through
+experience.
+
+\noindent {\bf An Example}
+
+Perhaps, it is time to stop and show you an example, and what better
+example than the title page of this  manual itself, which was typed using plain \TeX.
+This example may seem a bit too complicated for a beginner but it does
+provide a convenient vehicle to illustrate a number of \TeX's
+idiosyncrasies that you need to know about and that are hard to explain in
+abstract terms. So do go through it line by line with the explanation that
+follows.
+
+My input file is divided into pages, although
+this is not required and some installations may not permit this nicety.
+\TeX, of course, ignores page breaks in the input, just as it ignores line breaks.
+
+The first part of the input file defines some \css\/\ and contains: \medskip
+\vbox{\halign{\tt #\hfil&\hfil #\cr
+\\font\\ninerm=cmr9\ \ \\font\\eightrm=cmr8\ \ \\font\\sixrm=cmr6\ \ \\font\\csc=cmcsc\cr
+\\def\\TeX\lbr T\\kern-.1667em\\lower.5ex\\hbox\lbr E\rbr\\kern-.125em X\rbr\cr
+\cr
+\\magnification=1200 \ \%\ This magnifies everything by 1.2. \cr
+\\parskip 10pt plus 1pt \ \%\ This puts some empty space between paragraphs\cr
+\\parindent 0pt \ \%\ Paragraphs are not to be indented\cr}}
+
+The next part of the input file contains: \medskip
+\vbox{\frenchspacing \halign{\tt #\hfil&\hfil #\cr
+\\nopagenumbers \%\ The title page is not to be numbered.\cr
+\\null\\vskip-46pt \% Put the first line 46 points higher than normal\cr
+\\hbox to 6.5truein \lbr November 1983 \\hfil Report No. STAN-CS-83-985\rbr\cr
+\ \ \ \% A convenient way to make a box of specific size.\cr
+\\vskip .1in \% Skip down 0.1 inch\cr
+\\line \lbr Stanford Department of Computer Science\\hfil (Version 1.1)\rbr\cr
+\\vfill \% This and similar commands later, will divide the space evenly.\cr
+\\centerline\lbr\\bf First-Grade \\TeX\rbr\cr
+\\vskip .1in\cr 
+\\centerline\lbr\\bf A Beginner's \\TeX\\ Manual\rbr\cr
+\\vskip .25in\cr
+\\centerline\lbr by\rbr\cr
+\\centerline\lbr Arthur L. Samuel\rbr\cr
+\\vfill\cr
+This manual is based on the publications of Donald~E.~Knuth who originated\cr
+the \\TEX\\ system and on the recent work of Professor Knuth and his many\cr
+students and collaborators who have helped bring the \TEX82 system to its\cr
+present advanced state of development. The \\TEX\\ logo that is used in this\cr
+manual is a trademark of The American Mathematical Society. The preparation\cr
+of this report was supported in part by National Science Foundation grant\cr\
+IST-820/926 and by the System Development Foundation.\cr
+\\eject\\end \% \\eject, only, would be used if other pages were to follow.\cr}}
+\medskip
+So let us consider this example in detail.
+We first note that the \cs\/\ `{\tt \\font}' is used to assign names to
+several fonts that {\tt PLAIN.TEX} had loaded but did not name.  Actually,
+only one of these fonts was used on the title page but it is good practice
+to start your input file by naming all of the other  fonts that you intend to
+use beside those in plain \TeX's standard set.  Note that this same \cs\/\
+would have instructed \TeX\ to copy the font metrics (the dimensional
+information that \TeX\ actually needs) from the named file, if this {\sl
+font} information had not been preloaded, as it had been by {\tt
+PLAIN.TEX}.
+
+Next comes a definition for the \TeX\ logo. You will probably not need to
+cause letters to be artificially displaced from their normal positions,
+but if you do, here is an example.  It also serves as a model for other
+\cs\/\ definitions that you may find occasion to use.  The `{\tt
+\\magnification}' {\sl control sequence} has already been explained (under {\bf Fonts}).
+
+The \cs\/\ `{\tt \\parskip=10pt plus 1pt}' is an example of a general class
+of \css\/\ that take dimensions.
+I could have written it as
+{\tt parskip10pt plus 1pt minus 1pt} had I been willing for the space to
+be shrunk by as much as 1pt on some occasions and stretched on others.
+Incidentally, plain \TeX\ sets
+`{\tt \\parindent=20pt}', \ but this has been redefined for this manual by
+`{\tt \\parindent 0pt}'. \ \ Note that the use of the `{\tt =}' sign is optional but that
+a unit of measure must be specified even when the value is zero.
+So much for the first part.
+
+After telling \TeX\ that the title page is not to be numbered, the
+information for the title page starts with the \cs\/\ `{\tt \\null}',
+which, as its name implies, normally does nothing.  So why use it?  One of
+\TeX's idiosyncrasies is that it gobbles up extra spaces that you leave
+between words, extra space between paragraphs, and any extra space that
+might be left over when it has just introduced a page break.  So, without
+the `{\tt \\null}', \TeX\ will assume that the negative space called for by
+the `{\tt \\vskip-46pt}' \cs\/\ was left over from a previous page and
+simply gobble it up.  The `{\tt \\null}' \cs\/\ starts the new page by
+putting almost nothing (actually an {\sl hbox} that contained nothing) on
+the first line.  Now since the page has been started, the negative-space
+\cs\/\ is honored.  The {\tt \\vskip} {\sl primitive} is an example of a
+\cs\/\ that takes a dimension.  Looking down the page, you will see other
+examples.
+
+The next \cs, `{\tt \\hbox to 6.5truein}', also takes a dimension, but in this case
+using the extra word `{\tt to}'. The dimension in this case
+is in {\sl true} inches since I did not want the value to be subject to the
+{\tt \\magnification} command.  Two lines below this is another \cs, `{\tt
+\\line}', that does essentially the same thing, in the context of this
+example, since {\sl \\line} is defined in {\tt PLAIN.TEX} to produce an {\sl \\hbox}
+to the current dimension of {\sl \\hsize}, which
+happens to be 6.5 true inches.
+Were I later to alter
+the page width by changing {\sl \\hsize}, I would have to find and
+alter all \css\/\ of the first variety if I wanted the lines that they produced
+to still line up with the rest of the text, so the {\tt \\line} form is better in
+this case.
+
+The text that is to be put in each of these two {\sl hboxes} is enclosed
+in {\sl grouping} symbols and contains still another \cs, to wit, {\tt
+\\hfil}. This tells \TeX\ where to put the extra space needed to fill out
+the text to exactly 6.5 inches, with the text before the {\tt \\hfil}
+{\sl flush left} and the text to the right of it {\sl flush right}.
+Without this {\tt \\hfil} \cs, \TeX\
+complains {\tt (Underfull box (badness 10000)}), and then it would print the
+first of these two lines as:\hfil\break
+\line{November\hfil 1983\hfil Report\hfil No.\hfil STAN-CS-83-985}
+
+But to continue with the example: {\tt \\centerline} \ is
+another \cs\/\ that
+requires the use of {\sl grouping} symbols to enclose the text to be
+centered, that is, if you want more than the single next character to be
+centered.  Then there is an embedded \cs\/\ within the {\sl grouping
+symbols} which specifies that the centered text is to be in {\bf bold face
+type}.
+
+It can be a bit confusing to observe that some \css\/\ take arguments
+within {\sl grouping} symbols while others are embedded within the {\sl
+grouping} symbols along with the text that they affect. There is always a
+logical reason for this difference in treatment.  When \TeX\ has
+interpreted the centering command, it must look ahead to determine how
+much text there is to be centered before taking any action, and it expects
+to find this information within a pair of grouping symbols.  By way of
+contrast, \TeX\ can start putting text in a different font without needing
+to know the range over which this command is to be effective. So, if you
+want the range of action to be limited, you put the font designation
+within the grouping symbols and the former font choice is reinstated when
+the closing symbol is reached.  For a more detailed
+explanation, see ``The \TeX book'' by Don Knuth.
+
+Next note the use of three {\tt \\vfill} \css\/\ to divide the excess
+vertical space that remains available on the page into three equal
+portions.  The fact that I used one `{\sl l\/}' in {\tt \\hfil} and two 
+in {\tt \\vfill} was deliberate, to call attention to the fact that
+both forms work for both horizontal or vertical {\sl fills}.  The
+double-{\sl l\/} variety simply is more stretchable than the single-{\sl l\/}
+variety and will do all of the stretching if both forms are used together.
+
+Finally, there is some normal text at the bottom of the page and then the
+commands {\tt \\eject \\end} that cause \TeX\ to finish off the page, to
+close out the {\tt DVI} file and to terminate the session.  Had this page
+been a normal text page, I would have used the \cs\/\ {\tt \\bye},
+the recommended way to stop, defined as
+{\tt \\par\\vfill\\supereject\\end}. This closes the paragraph, checks to see
+that there is no text yet to be processed and causes the last page to be
+filled out with blank space, if necessary, instead of spreading out the
+text to occupy the entire page, as we wanted in this case.
+
+It will help your understanding if you make
+a file containing a title page for some paper that you have written or
+intend to write by copying this sample and modifying it as needed.  Then
+try to run \TeX\ on this file.  Unless you are extremely lucky, you will
+be apt to get an error message that you will not understand---so read on.
+If you have been lucky you might try changing the page width by putting
+`{\tt \\hsize=4truein}' at the top of your input file, or better yet start \TeX\
+so that you get the `{\tt **}' prompt and then type `{\tt \\hsize=4truein}',
+a space, and then {\tt \\input} and the name of your file.
+
+{\bf Understanding Error Messages}
+
+Most of the errors that the beginner is apt to make, other than simple
+typos, will have to do with 1)~missing or misplaced {\sl grouping} symbols,
+2)~attempts to use \css\/\ in the wrong context, and 3)~a failure to understand
+some of the principles that \TeX\ uses in deciding how to break the text
+into lines and these lines into pages with the result that you ask it to do
+some quite impossible things.
+
+\TeX\ will report that \ ``{\tt \\end occurred inside group at level 1}''
+\ if a single `\rbr' is missing and \ ``{\tt too many \rbr's}'' \ if the
+contrary condition exists. Usually, it will have reported all sorts of
+strange things due to a mismatch of {\sl grouping} symbols.  So find and
+fix such troubles before checking further.  A somewhat similar problem may
+arise if you do not having matching `{\tt\$}' signs. You will usually get the
+message ``{\tt Missing \$ inserted}'' but only after some otherwise normal
+text has been improperly handled.
+
+\TeX\ may get confused if you tell it to do something out of context, for
+example, to do something that relates to the formatting of words into
+sentences when it is busy putting sentences onto pages. 
+ At any given time,
+\TeX\ will be operating in any one of six different {\sl modes}, as will
+be explained  below.
+If you type `{\tt h}' in response to an error message that you do not
+understand, \TeX\ will try to help you by explaining what it thought that it
+was doing. Often the help message will suggest a way to recover from the error.
+
+Finally, you need to know that
+\TeX\ decides how to format the text by
+considering the amount of `{\sl badness\/}' that is charged
+against each possible arrangement. {\sl Penalties\/} are assigned to each
+possible line break point, usually automatically, although you can specify
+a penalty if you wish.  These {\sl penalties\/}
+measure the undesirability of a break occurring at each particular place.
+{\sl Demerits\/} are assigned  1)~to each line for different features as
+to its departure from the ideal, 2)~for the presence of adjacent lines
+that differ from each other too much in their inter-word spacing
+or that
+are too similar in certain obnoxious ways, for example, in both ending
+with a hyphen, and 3)~for poor paragraphing, such as
+leaving a {\sl widow\/} word to appear at the top of a new page.
+
+If \TeX\ is unable to find a solution that will meet certain tolerance limits,
+it will complain, usually about the `{\tt badness}', and
+expect you to do something to fix the difficulty. Should you want \TeX\ to be more
+tolerant, you can increase the value of {\tt \\tolerance} from 200 to, say, 1000.
+
+{\bf The Six Modes}
+
+When \TeX\ is processing your text, it is constantly switching between six
+different {\sl modes} of operation.  The details need
+concern you only when \TeX\ reports an error on your part
+or when you are doing something special like making a table or
+displaying an equation.
+
+The two most obvious {\sl modes} are 1)~the {\sl horizontal mode} when
+\TeX\ is putting letters together to form words, and when it is putting
+spaces or glue between words, in preparation for making {\sl hboxes} after the
+line breaks are chosen,
+and 2)~the {\sl vertical mode} when it is stacking these
+{\sl hboxes} (or already prepared {\sl vboxes}) vertically to go on a
+page. \TeX\ switches from {\sl horizontal mode} to {\sl vertical mode} when it
+encounters something that clearly indicates that it should be in the {\sl vertical
+mode}, such, for example, as 1)~an empty line or the {\sl control sequence}
+{\tt \\par}, both of which tell it to start a new paragraph, or 2)~a v-type
+{\sl control sequence}, such as {\tt \\vfill} or {\tt \\vskip .1in}, both of which were
+used in the example on page~8.  \TeX\ switches from {\sl vertical mode} to {\sl 
+horizontal mode} when it encounters an ordinary character or any one of several 
+{\sl horizontal mode control sequences} such, for example, as {\tt \\indent} or
+{\tt \\noindent} with obvious meanings.
+
+The six {\sl modes} are:
+$$\vbox{\halign{#\quad\hfil&#\hfil\cr
+\quad Mode&\qquad Used when building\cr
+\noalign{\smallskip}
+Vertical&Main vertical list for a page\cr
+Horizontal&Horizontal list for a paragraph\cr
+Internal vertical& Vertical list for a vbox\cr
+Restricted horizontal&Horizontal list for an hbox\cr
+Math&Mathematical formula for a horizontal list\cr
+Displayed math&Math formula on a separate line.\cr}}$$
+
+You signal the entering and leaving of the {\sl math mode} by the use of a
+single `{\tt\$}' sign as in `{\tt \$<math~formula>\$}', and the entering and
+leaving of the {\sl display math mode} by the use of a pair of `{\tt\$}' signs as in
+`{\tt \${}\$<formula~to~be~displayed>\${}\$}'.  The display math mode is also useful
+for tables that may not actually involve mathematical material, because it
+centers material on the page and introduces a space above and below the
+material.
+
+A typical use of {\sl restricted horizontal} mode occurs when you center some
+material on the page by writing `{\tt \\centerline\lbr\\bf\ First Grade \\TeX \rbr}'.
+\TeX\ will be in the {\sl vertical} mode on encountering the
+`{\tt \\centerline}' \ control
+sequence; it will shift to the {\sl restricted horizontal} mode while
+processing the  material delineated by the braces and then back to
+the {\sl vertical} mode to add this to the material that is to form the page.
+Restricted horizontal mode differs from regular horizontal mode because {\tt \\par}
+and {\tt \$\$} do not end a paragraph or start a display; a single line is
+always produced.
+{\bf Making Tables}
+
+\TeX\ provides two different methods for typesetting tables.  The first
+method apes the typewriter's tab-setting ability, and is preferred for very
+large tables that may extend over several pages.  Tabs, set by the {\tt
+\\settabs} command, are preserved when you introduce some ordinary text
+(or even with a {\sl grouping-symbol\/}-delineated insertion of a table
+with a different set of tab settings). This makes it possible to have
+several different tables, on the same page or even on different pages,
+that are similar in their columnar alignments.  The disadvantage is that
+you must specify where these tab settings are to be, either by giving the
+number of columns, assuming that they are to be evenly spaced, or by
+supplying a set of sample entries made up of the largest entry for each
+individual column.  This works well for numerical tables but it
+can be a bit difficult to do if the table contains a mixture of fonts and
+if the characters used are of varying widths.
+
+The more general method, which we will consider first, gives \TeX\ the
+task of setting the tab positions for each column to meet the possibly
+varying maximum widths of the material that goes into these different
+columns.  This {\tt \\halign}\ method allows you to achieve an optimum
+design for each table, but with a possible lack of uniformity
+between different tables. Most of the tables in this
+manual were made using this method. Having made these tables,
+were I to find it necessary to replace an entry or even to add another column,
+I could depend upon \TeX\ to make the necessary adjustments.  This method
+should not be used for large tables that span many pages, as \TeX\ must read the entire table in
+order to determine the column widths.
+
+{\bf The `\\halign' Alignment Method}
+
+The table near the bottom of page~4 will be used as an example. 
+This was typed as:
+
+\vskip 10pt
+\vbox{\tt \halign{#\hfil\cr
+\$\$\\vbox \lbr\\tt \\halign \lbr\\hfil \#\\hfil \&\& \\quad \\hfil \#\\hfil \\cr\cr
+\\\\rm\& \\\\sl\& \\\\it\& \\\\tt\& \\\\bf\\cr\cr % \\\\produces a backslash
+\\rm Roman\& \\sl Slanted\& \\it Italic\& \\tt Typewriter\& \\bf Boldface\\cr\cr
+\rrbr\$\$ \cr}}
+
+Note that the first line and the last line are concerned with setting up
+the table, while the material that actually goes into the table appears in
+the second and third lines only.  Had there been more lines to the table,
+this portion would be have been expanded accordingly.
+
+The `{\tt \$\$}' at the start and end of this input-text sample is used
+here to center the table and to introduce some space above and below it.
+As explained earlier, the use of the double-dollar-sign construct normally
+causes \TeX\ to enter the {\sl displayed math} mode.  By following the
+`{\tt \$\$}' with the {\tt \\vbox} control sequence, the other math-mode
+effects are temporarily suspended so that the table will appear in normal
+non-math characters.  The {\tt \\vbox} has the additional effect of
+preventing \TeX\ from splitting the table between pages.  The `{\tt
+\lbr}', that follows, and the very last `{\tt \rbr}' on the last line are
+the {\sl grouping} symbols that define the material that is to be put in
+the {\sl vbox}.  Since much of the material is to be in `{\tt typewriter}'
+type, we start with the `{\tt \\tt}' \cs, and then comes the `{\tt
+\\halign}' control sequence that requires a second set of matching braces
+to define the scope of the table. After the opening brace there follows a
+series of statements, each ending with the \cs\ `{\tt \\cr}'.
+
+The rest of the first line contains the first statement, sometimes called
+the {\sl preamble}. This is a {\sl template} that specifies how the
+different columns of the table are to be treated. It does this by
+referring to the material that is to go into any specific column by the
+parameter symbol `{\tt \#}', while the different columns are separated by
+the symbol `{\tt \&}'.  
+
+After the {\tt \\halign \lbr} and before the first {\tt \&} we find {\tt
+\\hfil \#\\hfil}, which tells \TeX\ that the material in the first
+column is to be centered (by putting the same amount of stretchable
+glue on each side).
+Normally, this would be followed by a
+single {\tt \&} symbol, then another column specification and so on for
+as many columns as desired, each of which could differ in some way from
+the other columns, finally terminating with a {\tt \\cr}.  In this case,
+all of the subsequent columns are to be treated the
+same and \TeX\ provides a shortcut, this being the use of two adjacent {\tt
+\&} symbols to tell \TeX\ to use as many columns as are later supplied, using
+the same pattern that appears between the {\tt \&\&} and the terminating {\tt \\cr}.
+A {\tt \\quad} of extra space is put before the second and subsequent
+columns, to keep the columns separate.
+Incidentally, the {\tt \&} symbol
+has the useful property of ignoring any extra spaces that immediately
+follow it, so I have added spaces after these symbols (as well as after
+the \css\/) to make the example easier to read.
+
+After the {\sl preamble} there follow the two lines of data (each ending with a
+{\tt \\cr}) for the two lines of the resulting table. There is nothing
+unusual about the first text line except for the use of backslashes in
+pairs to tell \TeX\ that the backslashes are to be printed
+(after defining `{\tt\\\\}' to mean {\tt\$\\backslash\$}). The
+second line is a bit unusual since each column is to be printed in a
+different font.  You will note that we have not had to use braces to
+delimit the range of action of the font-specifying control sequences. This
+is because the {\tt \\halign} control sequence automatically limits the
+range of action of control sequences to the individual table entries where
+they are used.  If no font specification appears for any specific entry,
+then the default font is used. This table has but two lines, but for
+longer tables one simply adds as many lines as desired, always ending each
+line with a {\tt \\cr}.
+
+A slightly more complicated situation is illustrated by the table near the
+bottom of page~2. Here, the amount of material to go on each line is such
+that it is difficult to decide how much space to leave between the
+different columns.  So we leave this decision to \TeX\ by removing the
+{\tt \\quad} command from the {\sl preamble} and by specifying a value for the
+stretchable glue that is to be put between columns (and at the left and
+right) by a {\tt \\tabskip} \cs.  The table
+specification (which follows the usual `{\tt \$\$\\vbox\lbr}') then becomes:
+\smallskip {\tt \obeylines \parskip 0pt 
+\\tabskip 1em plus 2em minus .5em 
+\\halign to \\hsize \lbr\\hfil \#\\hfil \&\& \\hfil \#\\hfil \\cr}
+\smallskip
+The specification {\tt \\halign to \\hsize} tells \TeX\ to use the 
+stretchability and shrinkability of {\tt \\tabskip} so that the width of
+the line is the value of {\tt \\hsize}.
+
+We will not be concerned with the details of typing the text material itself but
+one additional feature is worth  noting.  Extra vertical space has been inserted
+between the different sections of the table by extra lines in the source file
+that read `{\tt \\noalign~\lbr\\bigskip\rbr}', where `{\tt \\bigskip}'
+\ is defined below.  In general any desired extra (vertical mode) material
+may be so introduced, including one or more lines of text.  {\tt
+PLAIN.TEX} defines three convenient vertical skip instructions and it is
+usually better to use these, for reasons of uniformity, than to specify any
+specific {\tt \\vskip}. These control sequences are:
+$$\vbox{\halign{#\quad\hfil&#\hfil\cr
+\quad Macro&\qquad \qquad Equivalent to\cr
+\noalign{\smallskip}
+\tt \\smallskip &\tt \\vskip 3pt plus 1pt minus 1pt\cr
+\tt \\medskip &\tt \\vskip 6pt plus 2pt minus 2pt\cr
+\tt \\bigskip &\tt \\vskip 12pt plus 4pt minus 4pt\cr}}$$
+The table on page~3 is an example of a still more
+complicated situation in which the material to
+go into one column is too long to be contained in one line.
+This requires several new features in the {\tt preamble} 
+(following `{\tt \$\$\\vbox\lbr\\halign\lbr}')
+which reads:
+\smallskip 
+{\tt \obeylines \parskip 0pt 
+\\tt \\hfil \#\\hfil \\quad \& \\tt \\hfil \#\\hfil \\quad \&
+\\vtop \lbr\\hsize=26em \\strut \#\\strut\rbr\\cr}
+\smallskip
+The first thing to note is the use of a {\tt \\vbox}, this time a special
+one called {\tt \\vtop}, to contain the text for the last column.  The
+{\tt \\vtop} differs from a {\tt \\vbox} in that it is aligned at the
+baseline of its top line.
+The width of this box is defined by {\tt \\hsize=26em}, a figure that was
+determined by cut and try.
+The {\tt \\struts} were introduced to make sure that
+the space allowed for the {\tt \\vtop} would not be adversely affected if
+the first line of text in the box had no tall letters, or if
+the last line of text happened to have no descenders,
+since {\tt \\vbox}es are normally made only high enough to enclose the material
+that they contain.  A {\tt \\strut} produces a zero-width invisible box of
+the correct height and depth for the font being used. Incidentally, a
+character can be assigned a zero width and still not be invisible. It
+would still print, but then it would be over-printed by the next character.
+
+If you want to make tables that are significantly more complicated than
+those used so far, you need to be an expert, so you will have to study
+The \TeX book. The following example illustrates still other features.
+This example is taken from The \TeX
+book and attributed to Michael Lesk as published in the Bell
+Laboratories Computing Science Technical Report {\bf 49} (1976).
+$$\vbox{\tabskip=0pt \offinterlineskip
+\def\tablerule{\noalign{\hrule}}
+\halign to150pt{\strut#&\vrule#\tabskip=1em plus2em&
+  \hfil#&\vrule#&\hfil#\hfil&\vrule#&
+  \hfil#&\vrule#\tabskip=0pt\cr\tablerule
+&&\multispan5\hfil AT\&T Common Stock\hfil&\cr\tablerule
+&&\omit\hidewidth Year\hidewidth&&
+ \omit\hidewidth Price\hidewidth&&
+ \omit\hidewidth Dividend\hidewidth&\cr\tablerule
+&&1971&&41--54&&\$2.60&\cr\tablerule
+&&   2&&41--54&&2.70&\cr\tablerule
+&&   3&&46--55&&2.87&\cr\tablerule
+&&   4&&40--53&&3.24&\cr\tablerule
+&&   5&&45--52&&3.40&\cr\tablerule
+&&   6&&51--59&&.95\rlap*&\cr\tablerule
+\noalign{\smallskip}
+&\multispan7* (first quarter only)\hfil\cr}}$$
+This table was produced by typing:
+\medskip
+\vbox{\tt \halign{#\hfil\cr
+\$\$\\vbox\lbr\\tabskip=0pt \\offinterlineskip\cr
+\\halign to150pt\lbr\\strut\#\& \\vrule\#\\tabskip=1em plus2em\& \\hfil\#\& \\vrule\#\& \cr
+\\hfil\#\\hfil\& \\vrule\#\& \\hfil\#\& \\vrule\#\\tabskip=0pt\\cr \\noalign\lbr\\hrule\rbr\cr
+\& \& \\multispan5\\hfil AT\\\&T Common Stock\\hfil\& \\cr \\noalign\lbr\\hrule\rbr\cr
+\& \& \\omit\\hidewidth Year\\hidewidth\& \& \\omit\\hidewidth Price\\hidewidth\& \& \cr
+ \\omit\\hidewidth Dividend\\hidewidth\& \\cr \\noalign\lbr\\hrule\rbr\cr
+\& \& 1971\& \& 41--54\& \& \\\$2.60\& \\cr \\noalign\lbr\\hrule\rbr\cr
+\& \&    2\& \& 41--54\& \& 2.70\& \\cr \\noalign\lbr\\hrule\rbr\cr
+\& \&    3\& \& 46--55\& \& 2.87\& \\cr \\noalign\lbr\\hrule\rbr\cr
+\& \&    4\& \& 40--53\& \& 3.24\& \\cr \\noalign\lbr\\hrule\rbr\cr
+\& \&    5\& \& 45--52\& \& 3.40\& \\cr \\noalign\lbr\\hrule\rbr\cr
+\& \&    6\& \& 51--59\& \& .95\\rlap*\& \\cr \\noalign\lbr\\hrule\rbr\cr
+\\noalign\lbr\\smallskip\rbr\cr
+\& \\multispan7* (first quarter only)\\hfil\\cr\rrbr\$\$\cr}}
+
+The most obvious difference, between this table and the ones discussed so far,
+is the use of so-called `{\sl rules}', to enclose and separate the entries.
+You will also note that one entry extends over several columns within the
+area defined by the outside {\sl rules\/} and the last entry also extends
+over several columns.  Finally, while the numerical items in the Year
+column and in the Dividend column seem to be `{\sl flush right}', the
+words `Year' and `Dividend' and entry `.95*' are certainly not.
+
+Referring to the listing, we first reset some parameters.  Setting {\tt
+\\tabskip=0pt}\ may not be needed since {\sl \\tabskip\/} is usually set
+to zero, but this is a precaution.  \TeX\ normally puts some {\sl
+tabskip\/} glue before the first column, between columns, and after the
+last column in each line of an alignment (if {\sl \\tabskip\/} is not
+zero), and we will want to take advantage of this feature later to help
+center the entries.
+
+The {\tt \\offinterlineskip} \cs\/\ is used to set the usual interline
+spacing to zero.  \ This prevents \TeX\ from interposing glue between the
+the individual {\tt \\vrule} segments, glue that would prevent them from
+abutting each other properly. Having done this, we must 
+then specify the vertical space assigned to these {\tt \\vrule}s (and to
+the text as well) by using a {\tt \\strut}.  As explained earlier, this
+produces a zero-width invisible box of the correct height for the font
+being used and the {\tt \\vrule}s are, of course, produced to this height.
+
+The {\tt \\halign to <dimen>} comes next, then the {\sl preamble}.  The
+first thing to note about the {\sl preamble} is that
+eight columns are specified, not just the three that contain the data.
+A template is specified for each column. The first template
+contains  {\tt \\strut\#}, but no values are
+specified to match the {\tt \#} sign so only the {\tt \\strut} is ever put in
+this column, but this does fix the vertical space allowed for the {\tt
+\\vrule} segments and for the text.  The initial {\tt \&} in the listings
+of the row data that follow the {\sl preamble} is all that is necessary to
+cause the {\tt \\strut} to apply to the entries in each row.  The four
+{\tt \\vrule} segments in each row after the first are similarly called
+into action by the second, fourth, and sixth {\tt \&} symbol in
+the row specification and by the final {\tt \\cr}.
+
+The first row of data containing `AT\&T Common Stock' is an
+exception to the general rule, in that this caption spans five columns as
+signalled by the \cs\/\ {\tt \\multispan 5}.  The next row also
+illustrates how you {\sl omit} the application of the formatting rules
+specified in the {\sl preamble} by using {\tt \\omit} \cs\/\ and how you
+prevent the widths of the entries from being used to determine column
+width by the {\tt \\hidewidth} \css.  Finally, the {\tt \\rlap} command is
+used to overlap the * symbol in one entry so that its width is not
+considered in making the alignment.  One final detail: note the {\tt
+\\noalign\lbr\\hrule\rbr} statements that define the horizontal {\sl
+rules}.
+{\bf The Fixed-Column-Width `\\settabs' Method}
+
+The fixed-column-width {\tt \\settabs} method can be used in simple cases
+when the fixed width restriction is of no consequence. It also
+functions best where the entries can all be left aligned.  The table on
+page 4 does not meet these restrictions but it will reveal most of the
+complications that you are apt to encounter. So you type the following,
+noting the use of the `{\tt \\+}' \cs\/\ to start each row and the `{\tt
+\\cr}' \cs\/\ to end it:
+\medskip
+\vbox{\tt \settabs 1 \columns
+\+\$\$\\vbox\lbr\\tt \\settabs 5 \\columns\cr
+\+\\+\\\\rm\& \\\\sl\& \\\\it\& \\\\tt\& \\\\bf\\cr\cr
+\+\\+\\rm Roman\& \\sl Slanted\& \\it Italic\& \\tt Typewriter\& \\bf Boldface\\cr\cr
+\+\rbr\$\$\cr}
+
+You get five columns, each flush left:
+$$\vbox{\tt \settabs 5 \columns
+\+\\rm& \\sl& \\it& \\tt& \\bf\cr
+\+\rm Roman& \sl Slanted& \it Italic& \tt Typewriter& \bf Boldface\cr
+}$$
+You can make the columns narrower by calling for an extra unused column.
+You can center the text in the columns by introducing `{\tt \\hfill}'
+\css\/\ both before and after each entry (using `{\tt \\hfil}' \css\/\
+will not work) and by adding an extra `{\tt \&}' symbol after the last
+entries (to force \TeX\ to handle the last column like all of the rest).
+All of this gets to be more trouble than to use the `{\tt \\halign}'\ 
+method but you can type:
+
+\vbox{\tt \settabs 1 \columns
+\+\$\$\\vbox\lbr\\tt \\settabs 6 \\columns\cr
+\+\\+\\hfill\\\\rm\\hfill\&\\hfill\\\\sl\\hfill\&\cr
+\+\\hfill\\\\it\\hfill\&\\hfill\\\\tt\\hfill\&\\hfill\\\\bf\\hfill\&\\cr\cr
+\+\\+\\rm\\hfill Roman\\hfill\&\\sl\\hfill Slanted\\hfill\&\\it\\hfill\cr
+\+Italic\\hfill\&\\tt\\hfill Typewriter\\hfill\&\\bf\\hfill Boldface\\hfill\&\\cr\rbr\$\$\cr}
+
+{\bf The Variable-Column-Width `\\settabs' Method}
+
+The variable-column-width method line does a somewhat better job.  This
+method requires you to supply a sample row for the table, which you type in place
+of the `{\tt 5 \\columns}' on the first line (this sample is used for
+dimensions only and is not printed). You use the largest entry taken from
+each column and you add some desired amount of space between entries.
+In this case the sample line will have all of its entries taken from the
+second row of the table, which is a bit tricky, since these entries are all
+in different typefaces.
+
+Here you type:
+\medskip
+\vskip 10pt
+\vbox{\tt \settabs 1 \columns
+\+\$\$\\vbox\lbr\\tt\\settabs\\+\\rm Roman\&\\quad\\sl Slanted\&\cr
+\+\\quad\\it Italic\&\\quad\\tt Typewriter\&\\quad\\bf Boldface\&\\cr\cr
+\+\\+\\hfill\\\\rm\\hfill\&\\hfill\\\\sl\\hfill\&\cr
+\+\\hfill\\\\it\\hfill\&\\hfill\\\\tt\\hfill\&\\hfill\\\\bf\\hfill\&\\cr\cr
+\+\\+\\rm\\hfill Roman\\hfill\&\\sl\\hfill Slanted\\hfill\&\\it\\hfill\cr
+\+Italic\\hfill\&\\tt\\hfill Typewriter\\hfill\&\\bf\\hfill Boldface\\hfill\&\\cr\rbr\$\$\cr}
+
+to get a table similar to the one on page~4 except for
+a slight difference in centering.
+
+{\bf Typing Mathematical Formulas}
+
+Math formulas are, by tradition, printed using different conventions from
+those used for printing ordinary text. Some of these differences may seem
+quite trivial but they contribute greatly to the legibility and yes even
+to the beauty of well-printed mathematical texts.  Fortunately, \TeX\
+knows about these math conventions and can usually be trusted to follow
+them.
+
+Some of these conventions are:
+1) Alphabetic characters are
+printed in $math$ $italics$ rather than in a more normal font and
+$math$ $italics$ differs in minor detail from normal {\it italics}.  2)
+Many special symbols are used that are not available in the normal text mode,
+such as Greek letters and conventional
+mathematical symbols, $\ge$, $\le$, $\ne$, $\approx$, etc. 3) The
+spacing conventions are different from those used in ordinary text. In fact,
+\TeX\ completely ignores the spaces that you use in typing
+formulas and applies its own spacing rules (e.g.,  $x+y$ instead of
+$x$ + $y$ or $x$+$y$). 4) The alignment rules are also quite special as you will
+observe in later examples, and many symbols are frequently printed in enlarged forms.
+5) Superscripts and subscripts are used
+and these are normally automatically reduced in size, such
+as in $x^{a^b}$ (typed as {\tt \$x\^{}\lbr a\^{}b\rbr\$}) or
+as in $x_{a_b}$ (typed as {\tt \$x\und{}\lbr a\und{}b\rbr\$}).\quad
+6) It is also customary to use a somewhat different style for printing formulas
+that are displayed on separate lines from the style used for formulas within text.
+
+A {\sl math mode} formula is enclosed within either single dollar signs
+`{\tt \$$\ldots$\$}', if the formula is to appear in a line with ordinary
+text, or within double dollar signs `{\tt \$\$$\ldots$\$\$}', if the
+formula is to be typed on a separate line, in so-called {\sl display math
+mode}.
+
+Eight different styles of math typesetting 
+are used,
+four regular styles and four ``cramped'' variations.  The letters and numbers
+are typeset in three different sizes, these being 
+text size
+(\hbox{$x+y-z$}), script size {$\scriptstyle (x+y-z)$}, and scriptscript size
+{$\scriptscriptstyle (x+y-z)$}.  If you want to enforce a
+size that \TeX\ might not otherwise use, as was just done, you use the
+control sequences {\tt~\\scriptstyle} and {\tt~\\scriptscriptstyle}.  The
+display style and the text style use the same
+size letters and numbers
+but differ in the sizes used for {\sl large operators}, 
+in the positioning of exponents and in the way they handle fractions.
+Should you want to enforce the use
+of either the text style or the display style,
+ you can use the control sequences
+{\tt \\textstyle} or {\tt \\displaystyle}. A discussion of how these styles are
+used in fractions will be deferred until later.
+
+Symbols classed as {\sl large operators} (including the `summation'
+and `integration' signs $\sum$ and $\int$)  are printed in a larger
+size when in display math mode from the way they appear in normal math
+mode.
+If you type {\tt \$\\sum\und{}\lbr n=1\rbr\^{}m\$} you get $\sum_{n=1}^m$ and
+if you type {\tt \$\\int\und{}\lbr -\\infty\rbr\^{}\lbr +\\infty\rbr\$}
+ you get $\int_{-\infty}^{+\infty}$.  On the
+other hand, these same expressions typed as display formulas yield:
+$$\hbox
+{{$\displaystyle\sum_{n=1}^m$} \quad
+  and \quad {$\displaystyle\int_{-\infty}^{+\infty}$}}$$
+The  control sequence {\tt \\nolimits} will cause the summation sign to have
+subscripts and superscripts just as in the text mode, and the
+control sequence {\tt \\limits}, if typed after the \\int will cause
+the integration limits to appear above and below the integral sign thus:
+$$\hbox
+{{$\displaystyle\sum\nolimits_{n=1}^m$} \quad
+  and \quad {$\displaystyle\int\limits_{-\infty}^{+\infty}$}}$$
+The following example illustrates the way in which \TeX\ will increase
+the size of certain symbols and will make the horizontal lines long enough
+to extend over the subformula to which they apply and high enough or low
+enough not to bump into it. Typing:
+{\tt \$\$\\sqrt\lbr 1+\\sqrt\lbr 1+\\sqrt\lbr 1+%
+\\sqrt\lbr 1+\\sqrt\lbr 1+\\sqrt\lbr 1+x\rbr\rbr\rbr\rbr\rbr\rbr\$\$} \quad produces:
+$$\sqrt{1+\sqrt{1+\sqrt{1+\sqrt{1+\sqrt{1+\sqrt{1+x}}}}}}$$
+The \cs\/ `{\tt \\over}' is used to specify fractions, and the fraction line
+is made as long as needed. \TeX\ assumes that
+everything within the same sub-formula grouping before the
+`{\tt \\over}' \cs\/\ is to go above the
+line and everything that follows,
+ again within the same sub-formula grouping, is
+to go below the line that `{\tt \\over}' \ generates.
+A variant, called
+`{\tt \\above}', allows you to specify the weight of the line, thus:\goodbreak
+$$\hbox{{\tt \$\$\lbr a\\over 1+b\rbr+c\$\$}\quad yields\quad}
+{a\over1+b}+c \hbox{\quad
+and\quad {\tt \$\$\lbr a\\above2pt1+b\rbr\$\$}\quad yields\quad}{a\above2pt1+b}$$
+As an aside, there are four related control sequences (while in display math mode):
+$$\vbox{\halign{\hfil#\hfil&&\quad \hfil#\hfil\cr
+{\tt \lbr a\\atop 1+b\rbr}&
+{\tt \lbr n+1\\choose k\rbr}&
+{\tt \lbr m\\brack n\rbr}&
+{\tt \lbr m\\brace n-1\rbr}&\ that yield:\cr
+\noalign{\smallskip}
+{$\displaystyle{a\atop 1+b}$}&
+{$\displaystyle{n+1\choose k}$}&
+{$\displaystyle{m\brack n}$}&
+{$\displaystyle{m\brace n-1}$}\cr}}$$
+\TeX\ provides a somewhat similar extendability with respect to parentheses and
+other {\sl delimiters}, this time to extend them vertically as required.
+By using the \css\/ `{\tt \\left}'\ before a left
+delimiter and `{\tt \\right}' \ before the corresponding right delimiter,
+you can let \TeX\ decide as to the correct size of delimiter to use.  The
+`{\tt \\left}' \ and `{\tt \\right}' \ \css\/ have an auxiliary function
+in that they also act as {\sl grouping} symbols so it is not necessary to
+use the `{\tt \lbr}' \ and `{\tt \rbr}' \ symbols with them (unless, of course,
+these are the delimiters to be printed, and then they must be typed
+as {\tt \\\lbr} and {\tt \\\rbr}).
+It {\bf is} necessary to use the {\tt \\left} and {\tt \\right} \css\/\ 
+in matching pairs (although the delimiters themselves need not match).
+
+The following example illustrates these features:
+$$\hbox{You type \qquad
+{\tt \$\$1+\\left(1\\over 1-x{}\^{}2\\right)\^{}3\$\$\qquad}to get}\qquad
+1+\left(1\over1-x^2\right)^3$$
+This example introduces yet another feature, namely the handling of
+exponents, which was alluded to briefly once before.
+The `{\tt
+\^{}}' is used to indicate a superscript and its companion the `{\tt
+\und}' is used to indicate a subscript. Both normally apply only to the
+next character so you must use {\sl grouping\/} symbols for those cases
+where a multi-character superscript or subscript is to be shown. Thus if
+you type:
+$$\hbox
+{{\tt \$\$1+\\left(1\\over 
+1-x\^{}\lbr 21\rbr\und{}3\\right)\^{}\lbr 32\rbr\$\$}\qquad
+you get}\qquad 1+\left(1\over1-x^{21}\right)^{32}$$ 
+A series of \css\/ for specifying delimiter sizes are available
+for use in situations where \TeX\ may not make the desired choice.
+For opening delimiters these are, in order of increasing
+size:  {\tt \\bigl}, {\tt \\Bigl}, {\tt \\biggl}, and {\tt \\Biggl} and
+for closing delimiters they are {\tt \\bigr}, {\tt \\Bigr}, {\tt \\biggr},
+and {\tt \\Biggr}. It should be noted that the {\tt \\bigl} and {\tt
+\\bigr} delimiters are larger than ordinary ones so that the
+difference can be perceived, yet small enough to be used within the text of a
+paragraph.  Even larger delimiters than those named can be made by
+using the {\tt \\left} and the {\tt \\right} conventions and by adding an
+empty {\tt \\vbox} of the appropriate size within the field when
+necessary. For example, you can type:
+$$\vbox{\tt \halign{#\hfil&#\cr
+\$\$\\left(\\vbox to 27pt\lbr\rbr\\left(\\vbox to 24pt\lbr\rbr\\left(\\vbox to 21pt\lbr\rbr\cr
+\\Biggl(\\biggl(\\Bigl(\\bigl((\lbr\\scriptstyle(\lbr\\scriptscriptstyle\cr
+(\\hskip3pt)\rbr)\rbr)\\bigr)\\Bigr)\\biggr)\\Biggr)\\right)\\right)\\right)\cr
+\qquad{\rm (With sets of three similar lines added for brackets and for braces)}\$\$\cr}}$$
+to get
+$$\left(\vbox to 27pt{}\left(\vbox to 24pt{}\left(\vbox to 21pt{}
+\Biggl(\biggl(\Bigl(\bigl(({\scriptstyle({\scriptscriptstyle(\hskip3pt
+)})})\bigr)\Bigr)\biggr)\Biggr)\right)\right)\right)
+\left[\vbox to 27pt{}\left[\vbox to 24pt{}\left[\vbox to 21pt{}
+\Biggl[\biggl[\Bigl[\bigl[[{\scriptstyle[{\scriptscriptstyle[\hskip3pt
+]}]}]\bigr]\Bigr]\biggr]\Biggr]\right]\right]\right]
+\left\{\vbox to 27pt{}\left\{\vbox to 24pt{}\left\{\vbox to 21pt{}
+\Biggl\{\biggl\{\Bigl\{\bigl\{\{{\scriptstyle\{{\scriptscriptstyle\{\hskip3pt
+\}}\}}\}\bigr\}\Bigr\}\biggr\}\Biggr\}\right\}\right\}\right\}$$
+
+\TeX\ recognizes 16 other basic
+delimiters that can be obtained in different sizes, either by using the {\tt
+\\left} and {\tt \\right} technique or by specifying their size as
+illustrated above for parentheses, brackets, and braces.
+There are restrictions as to the sizes available for {\tt \\langle}, {\tt
+\\rangle}, {\tt /}, and {\tt \\backslash}, but not for the other extendable
+delimiters.
+$$\vbox{\halign{\hfil$#$\hfil\quad&\tt #\hfil\qquad\quad&
+\hfil$#$\hfil\quad&\tt #\hfil\qquad&
+\hfil$#$\hfil\quad&\tt #\hfil\qquad\quad&
+\hfil$#$\hfil\quad&\tt #\hfil\cr
+\noalign{\centerline{Additional extendable delimiters for use in {\sl Display Math} mode:}}
+\noalign{\vskip3pt}
+\hbox{For}&\hbox{You type}&\hbox{For}&\hbox{You type}&
+\hbox{For}&\hbox{You type}&\hbox{For}&\hbox{You type}\cr
+\noalign{\vskip3pt}
+\lfloor&\\lfloor& \langle&\\langle& \vert&\\vert& \downarrow&\\downarrow\cr
+\rfloor&\\rfloor& \rangle&\\rangle& \Vert&\\Vert& \Downarrow&\\Downarrow\cr
+\lceil&\\lceil& /&/& \uparrow&\\uparrow& \updownarrow&\\updownarrow\cr
+\rceil&\\rceil& \\&\\backslash& \Uparrow&\\Uparrow& \Updownarrow&\\Updownarrow\cr
+}}$$
+
+
+Before considering matrices and other uses of large delimiters, let us
+dispose of the matter of fractions. It is usually wise to avoid the use of
+more than one {\tt \\over} in an equation and
+remember that there cannot be more than one {\tt \\over} in any one
+subexpression. In fact, it is often preferable to use the ``slashed'' fraction
+form, particularly for mathematical expressions that are not printed as separate displays.
+
+When you do use more than one {\tt \\over},
+you probably should introduce our old
+friends {\tt \\strut} and {\tt \\displaystyle} to keep the spacings
+and character sizes from shrinking alarmingly. Certainly,
+
+$$a_0+{ a\over\displaystyle a_1+
+{\strut 1\over\displaystyle a_2+
+{\strut 1\over\displaystyle a_3+
+{\strut 1\over\displaystyle a_4}}}}
+\hbox{\quad typed as\quad}\vtop{\tt \halign{#\hfil\cr
+\$\$a\und{}0+\lbr  a\\over\\displaystyle a\und{}1+\cr
+\lbr\\strut 1\\over\\displaystyle a\und{}2+\cr
+\lbr\\strut 1\\over\\displaystyle a\und{}3+\cr
+\lbr\\strut 1\\over\\displaystyle a\und{}4\rbr\rbr\rbr\$\$\cr}}$$
+looks better than
+$$a_0+{a\over a_1+{ 1\over a_2+{ 1\over a_3+{ 1\over a_4}}}}$$
+
+which is what you get without {\tt \\strut} and {\tt \\displaystyle}.
+
+As an exercise, you might reproduce this example and make several copies,
+one without using {\tt \\strut} and another without {\tt \\displaystyle}, to reveal the
+exact effect of these refinements. \goodbreak
+
+Perhaps the most common use of large delimiters is in printing matrices,
+where the {\tt \\matrix} macro can be used. This macro is similar in many
+respects to the {\tt \\halign} macro that was discussed starting on page~12 except
+that {\tt \\matrix} only works in math mode, and no template need be supplied.
+To get:
+$$A=\left(\matrix{x-\lambda&1&0\cr
+ 0&x-\lambda&1\cr
+ 0&0&x-\lambda\cr}\right)
+\hbox{\quad you type \quad}\vcenter
+{\halign{\tt #\cr
+\$\$A=\\left(\\matrix\lbr  x-\\lambda\&1\&0\\cr\cr
+0\&x-\\lambda\&1\\cr\cr
+0\&0\&x-\\lambda\\cr\rbr\\right)\$\$\cr}}
+$$
+It helps in typing a matrix such as this if you line up the columns,
+which you can do since \TeX\ pays no attention to the spaces that you leave.
+So you might type:
+
+\smallskip
+{\tt \parskip=0pt\obeylines \obeyspaces
+{\$\$A=\\left|\\matrix\lbr 
+x-\\mu \& 1     \& 0     \\cr
+0     \& x-\\mu \& 1     \\cr
+0     \& 0     \& x-\\mu \\cr
+\rbr\\right|\$\$}}\qquad This, of course, produces:
+$$A=\left|\matrix{x-\mu&1&0\cr
+ 0&x-\mu&1\cr
+ 0&0&x-\mu\cr}\right|$$
+since I used vertical bars instead of parentheses, and I substituted {\tt \\mu}
+for {\tt \\lambda} just to be different.
+If you are wondering how I was able to preserve the spacings
+in showing you what I typed,
+I used plain \TeX's macros, {\tt \\parskip=0pt \\obeylines \\obeyspaces}.
+
+Ellipses (i.e., dots) are used in many places but they appear to good
+advantage in matrices where you might type:
+$$\vcenter{\openup 2pt
+\halign{\tt #\cr
+\$\$A=\\pmatrix\lbr\cr
+ a\und{}\lbr11\rbr\&a\und{}\lbr 12\rbr\&\\ldots\&a\und{}\lbr 1n\rbr\\cr\cr
+ a\und{}\lbr 21\rbr\&a\und{}\lbr 22\rbr\&\\ldots\&a\und{}\lbr 2n\rbr\\cr\cr
+\\vdots\&\\vdots\&\\ddots\&\\vdots\\cr\cr
+ a\und{}\lbr m1\rbr\&a\und{}\lbr m2\rbr\&\\ldots\&a\und{}\lbr mn\rbr\\cr\rbr\$\$\cr
+\strut\cr
+}}
+\hbox{\qquad to get\qquad} 
+A=\pmatrix{
+a_{11}&a_{12}&\ldots&a_{1n}\cr
+a_{21}&a_{22}&\ldots&a_{2n}\cr
+\vdots&\vdots&\ddots&\vdots\cr
+a_{m1}&a_{m2}&\ldots&a_{mn}\cr}$$ \vskip-28pt
+Here {\tt \\pmatrix} is like {\tt \\matrix}, but it puts parentheses in for you.
+
+The {\tt \\ldots} \cs\ (as in the above matrix) is used between letters
+and commas while another \cs\/,
+`{\tt \\cdots}', is used between signs and similar operators as
+ in  $a+b+\cdots+z$.
+Incidentally, a single centered dot is a {\tt \\cdot}.
+  Still another \cs, 
+`{\tt \\dots}', is used for ellipses in non-math text \dots,
+when needed.
+
+Single braces are often used in referring to different cases and plain
+\TeX\ provides a convenient macro, you guessed it, called {\tt \\cases}.
+This bears a remarkable resemblance to {\tt \\pmatrix} except that, 1)~only
+one delimiter, a brace, is printed, 2)~the entries are adjusted flush left
+in each of two columns, and
+3)~the material that appears after the `{\tt \&}' symbol is not in math mode
+unless specifically surrounded with `{\tt \$}' symbols. For example, to get:
+$$|x|=\cases{x,&if $x\ge0$;\cr -x,&otherwise.\cr}$$
+you type
+$$\vbox{\tt
+\$\$|x|=\\cases \lbr x,\&if \$x\\ge0\$;\\cr -x,\&otherwise.\\cr\rbr\$\$
+}$$
+If a `{\tt \\left}'-specified left delimiter
+without a matching right delimiter is needed elsewhere,
+you can use `{\tt \\right.}' as a null right delimiter,
+where the period is not printed but acts to terminate the
+extent of the grouping (as it affects the size of the beginning delimiter).
+Similarly, `{\tt left.}' may be used to specify a null left delimiter.
+
+Roman characters and words may be printed within mathematical
+formulas using three quite different mechanisms. For only an occasional
+letter or word, you can switch to roman and type:
+$$\hbox{{\tt
+\$\\exp(x+\lbr \\rm constant\rbr)\$}\qquad to get \qquad }\exp(x+{\rm constant})$$
+This will still work for several words but, since spaces are ignored,
+you have to use the control sequence `{\tt \\ }' to preserve the spacings
+between words. 
+
+The second way is to use a {\tt \\hbox}. Thus  to get:
+$$x^3+\hbox{lower order terms \qquad you type \qquad {\tt 
+\$x\^{}3+\\hbox\lbr lower order terms\rbr\$}}$$
+This scheme was used to type this very example and it
+has been used extensively throughout this manual.  It has two obvious
+disadvantages, 1) the current (text) font will be used, and it may not be the
+font you want (but this can be fixed) and 2) the content of the box will
+always be in the same size unless extra precautions are taken when the
+words are wanted in a different size, perhaps for use in a superscript or
+subscript.
+
+Finally, if you plan to use a word or a fixed sequence of roman typed words
+frequently in different mathematical formulas, for example the sequence just
+used, then you can assign a name to it as one of your own macros thus:
+$$\hbox{\tt \\def\\loterms\lbr \\hbox\lbr \\rm lower order terms\rrbr.}$$
+Thereafter when you want the sequence `lower order terms' you simply type
+{\tt \\loterms}. The above example would then be typed as \quad
+`{\tt \$x\^{}3+\\loterms\$}'.
+
+Since the names of the common mathematical function are always set in
+roman type, the following control sequences have been predefined in plain
+\TeX:
+$$\vbox{\tt \halign{#\hfil\quad&&#\hfil\quad\cr
+\\arccos  &\\cos   &\\csc   &\\exp   &\\ker     &\\limsup  &\\min  &\\sinh\cr
+\\arcsin  &\\cosh  &\\deg   &\\gcd   &\\lg      &\\ln      &\\Pr   &\\sup\cr
+\\arctan  &\\cot   &\\det   &\\hom   &\\lim     &\\log     &\\sec  &\\tan\cr
+\\arg     &\\coth  &\\dim   &\\inf   &\\liminf  &\\max     &\\sin  &\\tanh\cr
+}}$$
+These \css\/ lead to roman type with appropriate spacing.
+Certain of these are treated as {\sl large operators} (just like {\tt \\sum}), to wit:
+{\tt \\det}, {\tt \\gcd}, {tt \\inf},  {\tt \\lim}, {\tt \\liminf}, 
+{\tt \\limsup}, {\tt \\max}, {\tt \\min}, {\tt \\Pr}, and {\tt \\sup}.  The following
+examples are taken from The \TeX book but rearranged to use the {\tt \\cases}
+{\sl control sequence}, to demonstrate that {\tt \\cases} will work for a larger 
+array than previously shown.
+$$\cases{\rm To\ get&You type (while in math mode)\cr 
+\noalign{\vskip2pt}
+\sin2\theta=2\sin\theta\cos\theta&\tt \\sin2\\theta=2\\sin\\theta\\cos\\theta\cr
+\noalign{\vskip2pt}
+O(n\log n\log\log n)&\tt O(n\\log n\\log\\log n)\cr
+\noalign{\vskip2pt}
+\Pr(X>x)=\exp(-x/\mu)&\tt \\Pr(X>x)=\\exp(-x/\\mu)\cr
+\noalign{\vskip2pt}
+\displaystyle{\max_{1\le n\le m}\log_2P_n}&\tt 
+\\displaystyle\\max\und{}\lbr 1\\le n\\le m\rbr\\log\und{}2P\und{}n\cr
+\noalign{\vskip2pt}
+\displaystyle{\lim_{x\to0}{\sin x\over x}=1}&\tt 
+\\displaystyle\\lim\und{}\lbr x\\to0\rbr\lbr\\sin x\\over x\rbr=1\cr
+}$$
+Incidentally, I wanted these examples to be spaced a little farther apart
+than they would be with the spacing set by {\tt \\cases}. So I inserted
+{\tt \\noalign\lbr \\vskip2pt\rbr} after every {\tt \\cr} (except the last one).
+
+Punctuation should be used with caution.  When a formula is followed by
+punctuation, such as a period or a comma, put the punctuation after the
+terminating {\tt \$} sign when the formula is in text (even in the extreme case
+when you type something like {\tt `\$x=a\$, \$b\$, or \$c\$.'}); but put the
+punctuation before
+the terminating {\tt \$\$} when the formula is displayed.  Note: Punctuation
+symbols have been omitted from the display equations used so far in this
+manual (so as not to confuse you), but I will start using them now.
+
+Numbering isolated display formulas poses no special 
+problem as plain \TeX\ provides two control sequences, {\tt \\eqno} for numbers
+that are to go on the right, and {\tt \\leqno} for numbers that are to go on the 
+left. In both cases, these control sequences go after the formula to be numbered.
+They act much like our old friend {\tt \&} in that they separate two fields;
+everything to the left is part of the formula and
+everything to the right up to the
+terminating {\tt \$\$} will appear as the equation number. 
+
+Thus, {\tt \$\$(x+y)(x-y)=x\^{}2-y\^{}2.\\eqno(21)\$\$}  will produce:
+$$(x+y)(x-y)=x^2-y^2.\eqno(21)$$
+If you type,
+{\tt \$\$(x+y)(x-y)=x\^{}2-y\^{}2.\\leqno[21a]\$\$} \ you will get:
+$$(x+y)(x-y)=x^2-y^2.\leqno[21a]$$
+The formulas are centered in both cases (without
+regard for the presence of the formula numbers), and the formula numbers are in
+math style unless you specify otherwise.
+
+Several display formulas, appearing together, can be aligned at any desired
+location (on an equal sign perhaps) by using the control sequence 
+{\tt \\eqalign}, which works with {\tt \&} and {\tt \\cr}
+in a manner somewhat similar to the use of these markers in {\tt \\matrix} and
+{\tt \\cases}. For example, if you type:
+
+{\tt \$\$\\eqalign\lbr ax\^{}2+bx+c\&=0\\cr
+x\&=\lbr -b\\pm\\sqrt\lbr b\^{}2-4ac\rbr\\over2a\rbr.\\cr\rbr\$\$}
+
+you get
+$$\eqalign{ax^2+bx+c&=0\cr
+x&={-b\pm\sqrt{b^2-4ac}\over2a}.\cr}$$
+
+If you want the equations individually numbered, you use {\tt \\eqalignno}
+and add a second {\tt \&} with the number added as usual for each
+equation that is to be numbered.
+  Typing:
+\smallskip {\tt \obeylines \parskip 0pt 
+{\$\$\\eqalignno\lbr ax\^{}2+bx+c\&=0\&(1)\\cr
+x\&=\lbr -b\\pm\\sqrt\lbr b\^{}2-4ac\rbr\\over2a\rbr.\&(2)\\cr\rbr\$\$}}
+\ \ produces
+$$\eqalignno{ax^2+bx+c&=0&(1)\cr
+x&={-b\pm \sqrt {b^2-4ac}\over 2a}.&(2)\cr }$$
+
+Using {\tt \\eqalign} (not {\tt \\eqalignno}) and adding {\tt \\eqno(3)},
+for example, will cause the set of formulas to be
+numbered as a group, with the number centered vertically
+with respect to the group, producing:
+$$\eqalign{ax^2+bx+c&=0\cr
+x&={-b\pm\sqrt{b^2-4ac}\over2a}.\cr}\eqno(3)$$
+It is also possible to introduce extra text lines between the different
+formula lines without disturbing the alignment, for example by including
+{\tt \\noalign\lbr \\hbox\lbr This is the text to be introduced\rrbr}.
+Finally, using {\tt \\leqno} and {\tt \\leqalignno}, with an initial
+letter `{\tt l}' and with no other changes, will cause the formula numbers
+to be placed at the left.
+
+Some fundamental differences between {\tt \\eqalign} and {\tt \\eqalignno}
+should be noted.
+
+{\tt \\eqalign} makes a single vertically-centered vbox that is no wider
+than necessary, that cannot be broken between pages, and that can only
+take a single vertically-centered equation number.  More than one {\tt
+\\eqalign} can be put on a line (if space permits).
+
+{\tt \\eqalignno} generates full-width lines.  These lines can be broken
+between pages and the individual lines can take individual line numbers.
+{\tt \\eqno} cannot be used with {\tt \\eqalignno} to assign a group
+equation number.  Lines of normal text can, however, be placed between the
+{\tt\\eqalignno} equation lines by using the {\tt
+\\noalign\lbr \\hbox\lbr\ \dots\rbr\rbr} construction.
+
+Long equations pose a difficult problem, particularly if they must still
+be aligned in some way with other equations in a group, and you may have
+to help \TeX\ to do a satisfactory job.  One solution is illustrated
+below.  
+$$\eqalignno{x_nu_1+\cdots+x_{n+t-1}u_t
+&=x_nu_1+(ax_n+c)u_2+\cdots\cr
+&\phantom{=x_nu_1}\;+\bigl(a^{t-1}x_n+c(a^{t-2}+\cdots+1)\bigr)u_t\cr
+&=(u_1+au_2+\cdots+a^{t-1}u_t)x_n+h(u_1,\ldots,u_t).  \quad&(47)\cr}$$
+The first and third lines were aligned on the $=$ signs as usual but then
+we wanted the second line to be aligned with the $+$ sign as shown, and
+the \\eqalignno control sequence makes no provision for secondary
+alignments.  The solution is to use the control sequence {\tt
+\\phantom$\{\ldots\}$} which causes \TeX\ to leave the same amount of
+space that would be taken by the indicated text without printing it.
+So we put a {\tt \\phantom\lbr =x\_{}nu\_{}1\rbr} in front of the second
+line and align it with the other two lines on the $=$ sign.  This
+does not work perfectly because the {\tt \\phantom} command creates an empty box
+of the size necessary to contain the indicated characters without regard for
+their surroundings and the space allowed before the $=$ and $+$ signs depends
+on the context.  The net result is that
+we have to add a bit of space defined by `{\tt \\;}'. So what
+we type is:  
+$$\vbox{\tt \halign{#\hfill\cr
+$$\\eqalignno\lbr x\und{}nu\und{}1+\\cdots+x\und{}\lbr n+t-1\rbr u\und{}t\cr
+\&=x\und{}nu\und{}1+(ax\und{}n+c)u\und{}2+\\cdots\\cr\cr
+\&\\phantom\lbr =x\und{}nu\und{}1\rbr\\;+\\bigl(a\^{}\lbr t-1\rbr
+x\und{}n+c(a\^{}\lbr t-2\rbr +\\cdots+1)\\bigr)u\und{}t\\cr\cr
+\&=(u\und{}1+au\und{}2+\\cdots+a\^{}\lbr t-1\rbr u\und{}t)x\und{}n+h(u\und{}1,\\ldots,u\und{}t)\.\quad\&(47)\\cr\rbr$$\cr
+}}.$$
+Normally, you can depend on \TeX\ to space things correctly, but when \TeX\ needs
+your help while in math mode, you can use the following:
+\thinspace
+$$\vbox{\halign{\hfil#\hfil\quad&&\hfil#\hfil\quad\cr
+You type&\tt \\!&\tt \\,&\tt \\>&\tt \\;\cr
+To get&$-1/6$ quad&\ $1/6$ quad&\ $2/9$ quad&$5/18$ quad\cr
+}}$$
+
+Some other math features, not yet covered, are the use of {\tt \\prime} to produce
+prime superscripts and subscripts where you type:
+$$\hbox{{\tt\$\ y\und{}1\^{}\\prime+y\und{}2\^{}\lbr\\prime\\prime\rbr+y\und{}3\^{}\lbr
+\\prime\\prime\\prime\rbr\$} \ to get \ }
+y_1^\prime+y_2^{\prime\prime}+y_3^{\prime\prime\prime},$$
+\leftline{the use of {\tt \\root} where,\quad
+{\tt \$\\root 3 \\of \lbr x\^{}2+y\^{}2\rbr}\quad produces \quad $\root 3 \of {x^2+y^2}\,$,}
+\smallskip
+and the use of {\tt \\mathstrut} to enforce uniformity in the positioning,
+say, of the square root signs by typing
+{\tt \$\\sqrt\lbr\\mathstrut a\rbr+\\sqrt\lbr\\mathstrut d\rbr+\\sqrt\lbr\\mathstrut y\rbr\$} to
+get $\sqrt{\mathstrut a}+\sqrt{\mathstrut d}+\sqrt{\mathstrut y}$
+instead of $\sqrt a+\sqrt d+\sqrt y\,$.
+
+There are, also, two variations on {\tt \\phantom} that you will find
+useful, {\tt \\vphantom} with zero width and {\tt \\hphantom} with zero
+height and depth, and there is {\tt \\smash} which tells \TeX\ to print 
+a subexpression but to assume that it has zero height and depth.
+
+{\bf Some Odds and Ends}
+
+\nobreak
+You are about ready to undertake ordinary typing on your own but you still
+do not know how to produce footnotes,\footnote{*}{Like this, which was
+produced by typing `{\tt \\footnote\lbr *$\rbr\lbr$Like this, which was produced by
+typing
+\dots \rbr'} right along following the macro itself.
+ \TeX\ will usually do the right thing
+like putting the indicated mark (which is typed in the first set of braces)
+in the text where the macro {\tt \\footnote} appears and putting the footnote
+itself (which was typed in a second pair of braces) at the bottom of the
+same page and even dividing an extra long footnote between pages.}
+how to allow for insertions, and how to change the page format if you do not 
+want the pages numbered at the bottom.
+
+\goodbreak
+\newcount\notenumber
+\def\clearnotenumber{\notenumber=0}
+\def\note{\advance\notenumber by1 \footnote{$^{\the\notenumber}$}}
+\clearnotenumber
+If you should like your footnotes to be numbered automatically, even this
+can be done by defining a new control sequence which might be called
+{\tt\\note}.\note{This should be footnote number 1.} Before the first footnote\note{You can
+also number equations automatically (but that's a different story).}  to
+be so numbered you write (as I have done):
+$$\vbox{\tt \halign{#\hfil\cr
+\\newcount\\notenumber\cr
+\\def\\clearnotenumber\lbr\\notenumber=0\rbr\cr
+\\def\\note\lbr\\advance\\notenumber by1 \\footnote\lbr\$\^\lbr\\the\\notenumber\rbr\$\rbr\rbr\cr
+\\clearnotenumber\cr
+}}$$
+There is an art to inserting illustrations or other independently derived
+material into a text.  A number of people are working on supplements to
+\TeX\ to allow for the direct introduction of computer derived graphics
+into \TeX\ output, but I will assume that you will be content to add
+photographs and graphical material manually.
+
+Plain \TeX\ provides for three basic types of insertions, {\tt
+\\topinsert}, {\tt \\midinsert}, and {\tt \\pageinsert}. These can only be
+given between paragraphs and not inside boxes or other insertions. The
+general form for these is:
+{\tt \\topinsert <vertical mode material that can have embedded paragraphs>
+\\endinsert.}
+
+\TeX\ tries to put a {\tt \\topinsert} at the top of the current page, if
+there is still room when the {\tt \\topinsert} is encountered, otherwise
+it will be put at the top of the next page.  If several {\tt \\topinsert}
+commands are given close together, some may be carried to still later
+pages.  The {\tt \\midinsert} is put on the page in the position where it
+appears,
+if this is possible, otherwise it is handled as a {\tt \\topinsert}. A {\tt
+\\pageinsert} is automatically expanded to fill an entire page and put on
+the next page.
+Complications requiring human intervention
+may arise if \TeX\ is asked to put
+pageinserts and footnotes on the same page and if both
+topinserts and footnote extensions are carried over to a following page.
+
+I will now type a {\tt \\topinsert}, which, as you can see, appears at the top
+of the next page. Perhaps you should read it now, if you have not already done so.
+\newdimen\varunit
+\varunit=\hsize \advance\varunit by-2\parindent
+\divide\varunit by 58 % illustrations in Chapter 12
+\def\sampleglue#1#2{% #1=width, #2=text
+  \vtop{\hbox to #1{\xleaders\hbox to .5\varunit{\hss\copy\smalldot\hss}\hfil}
+    \kern3pt
+    \tabskip \z@ plus 1fil
+    \halign to #1{\hfil##\cr#2\cr}}}
+\varunit=2.9pt % getting ready to make semicircular insert
+\setbox0=\vtop{\null
+\baselineskip3.8\varunit
+\parfillskip0pt
+\parshape 10
+-18.25\varunit 36.50\varunit
+-30.74\varunit 61.48\varunit
+-38.54\varunit 77.07\varunit
+-44.19\varunit 88.39\varunit
+-48.47\varunit 96.93\varunit
+-51.70\varunit 103.40\varunit
+-54.08\varunit 108.17\varunit
+-55.72\varunit 111.45\varunit
+-56.68\varunit 113.37\varunit
+-57.00\varunit 114.00\varunit
+\ninerm
+\noindent
+\hbadness 6000
+\tolerance 9999
+\pretolerance 0
+This is a {\ttt \\topinsert}.  This text is printed in this shape both to
+set it apart from the rest of the text, as befitting a {\ttt \\topinsert},
+and to demonstrate that it is possible to specify an essentially
+arbitrary paragraph shape by saying {\ttt \\parshape=n}, where n is the
+number of lines, and by following this with the n sets of dimensions for
+these lines, each specified as one number for the indentation and a second
+number for the length of the line.  For a more detailed explanation, see
+The \TeX book, chap.~14, page 101.  In this case, these lines, so
+specified, were put into a box and this box was used as a \hbox{\ttt
+\\topinsert}.
+}
+\topinsert 
+\moveright 16.3pc\box0
+\vskip 10pt
+\centerline{\bf Fig. E. This is a \\topinsert}\endinsert
+
+This example may be a bit too complicated to explain in detail but in
+essence it involved the creation of a box by the command {\tt
+\\setbox0=\\vtop\lbr\ \dots\rbr}, where the dots stand for the command {\tt
+\\parshape 10} followed by the specification of the line indentations
+and lengths and then by the text itself.
+Having defined such a box it was then only necessary to give the commands:
+\medskip
+{\obeylines \tt \parskip=0pt
+\\topinsert
+\\box0
+\\vskip10pt
+\\centerline\lbr \\bf Fig. E. This is a \\\\topinsert\rbr
+\\endinsert
+\medskip
+\rm to tell \TeX\ to generate the {\tt\\topinsert}.}
+
+If there is any danger of an insertion that does not get made before the end of the
+appropriate section, you can force its printing by typing  {\tt \\vfill\\supereject}.
+
+\def\leaderfill{\leaders\hbox to 1em{\hss.\hss}\hfill}
+You should also know how to produce so-called {\sl leaders}, such as these,
+which are often used in Tables of Contents.
+\smallskip
+\nobreak\penalty10000
+\line{\qquad\qquad Introduction\leaderfill 1\qquad\qquad}
+\line{\qquad\qquad Toward Book Quality\leaderfill 2\qquad\qquad}
+\smallskip\goodbreak
+The examples shown here were typed as:
+$$\vbox{\tt \halign{#\hfill\cr
+\\def\\leaderfill\lbr \\leaders\\hbox to 1em\lbr \\hss.\\hss\rbr\\hfill\rbr\cr
+\\line\lbr\\qquad\\qquad Introduction\\leaderfill 1\\qquad\\qquad\rbr\cr
+\\line\lbr\\qquad\\qquad Toward Book Quality\\leaderfill 2\\qquad\\qquad\rbr\cr
+}}$$
+{\parindent=35pt
+\narrower
+Still another feature,
+with {\tt\\parindent} set to some non-zero amount (it is set to 20pt in plain
+\TeX\ and to 35pt for this example), the control sequence {\tt \\narrower}
+followed by \lbr\ the desired contents of the paragraph ending with a {\tt
+\\smallskip} (also within the enclosing braces) \rbr, will cause a paragraph, such as this one, to be narrowed
+by the {\tt\\parindent} amount.  \smallskip} \goodbreak
+
+{\bf Output Routines}\nobreak
+
+Defining variant forms of output routines is properly in the domain of
+the \TeX pert, but you may like to have a choice of at least one other format
+which I am now using, starting with this page. This change was introduced by
+typing:
+$$\vbox{\tt {\halign{#\hfil\cr
+\\nopagenumbers \% suppress footlines\cr
+\\headline=\lbr\\ifodd\\pageno\\rightheadline \\else\\leftheadline\\fi\rbr\cr
+\\def\\rightheadline\lbr\\tenrm\\hfil A Beginner's \\TeX\\ Manual\\hfil\\folio\rbr\cr
+\\def\\leftheadline\lbr\\tenrm\\folio\\hfil First Grade \\TeX \\hfil\rbr\cr
+}}}$$
+Of course, if you want to get fancy, you can have \TeX\ automatically use your
+current chapter or section headings as running heads, but this may be too much
+for the beginner.
+\nopagenumbers % suppress footlines
+\headline={\ifodd\pageno\rightheadline \else\leftheadline\fi}
+\def\rightheadline{\tenrm\hfil A Beginner's \TeX\ Manual\hfil\folio}
+\def\leftheadline{\tenrm\folio\hfil First Grade \TeX \hfil}
+
+{\bf Defining Macros}
+
+Several macros have been defined and used in this manual, a typical one being:
+\medskip
+\centerline{\tt \\def\\loterms\lbr \\hbox\lbr \\rm lower order terms\rrbr.}
+\smallskip
+Such macros all
+begin with the control sequence
+`{\tt \\def}' followed by the new name and then the meaning to be assigned to
+this new name (enclosed in braces that are not a part of the definition).
+If braces are wanted as a part of the definition they must be added.
+
+As useful as these simple macros are, you will come across numerous
+situations where you will want to define a macro that can take parameters that
+are to be defined at the time the macro is used. You have already been introduced
+to control sequences of this sort that were defined in {\tt PLAIN.TEX}, and that you
+have learned to use.
+
+One such definition is:\quad
+{\tt\\def\\centerline\#1\lbr \\line\lbr \\hss\#1\\hss\rrbr.}
+
+This says that if \TeX\ encounters the command {\tt \\centerline}, it is
+next to look for a parameter that is here designated as {\tt \#1} which you
+should have typed in braces following the {\tt \\centerline} command.
+\TeX\ is then to apply the control sequence {\tt \\line\/} to the braced
+expression {\tt \\hss\#1\\hss}, where 
+{\tt\\line\/} is itself a derived control
+sequence defined as \quad  {\tt\\def\\line\lbr \\hbox to\\hsize\rbr}.
+In other words---{\bf Center It on a Line!}
+
+Two things are to be noted: 1) It is possible to use other control
+sequences within definitions and 2) The symbol {\tt\#1} is used to
+designate a parameter that is given to \TeX\ at the time that the control
+sequence is invoked.  Actually, up to 9 parameters can be so specified.
+The definition might then take the form \quad {\tt\\def\\zzz\#1\#2\#3}\lbr a
+complex expression in which {\tt\#1}, {\tt\#2}, and {\tt\#3} can be used in any order and
+repeatedly if needed\rbr. The parameters, as listed following the name of
+the control sequence, must, however, be in serial order.
+
+It is also possible to write macros that are conditional.  A
+simple example of a conditional macro was used to define the current page
+format, as explained earlier on this page,
+when we typed:
+{\tt \\headline=\lbr\\ifodd\\pageno\\rightheadline\\else\\leftheadline\\fi\rbr}.
+Note particularly the use of {\tt \\fi} ({\tt if} spelled backward) to end the conditional.
+
+To round out our discussion of {\tt \\def}, we will note that
+there exists a {\tt \\let} primitive that is somewhat
+analogous to {\tt \\def} but differs from it in the timing of its
+execution. The difference can most easily be explained by noting that the expression
+{\tt \\let\\b=\\a} sets the value of {\tt \\b} to the value of {\tt \\a} at the
+time when this expression is read by \TeX, while {\tt \\def\\b\lbr \\a\rbr}
+does not set the value of {\tt \\b} to the value of {\tt \\a} until this
+macro is executed.
+
+Before naming a new macro, it is always wise to make sure that the
+proposed name is not already in use either by \TeX\ itself or by the macro
+package that you intend to use. You can do this by interrogating \TeX\
+directly. Simply run \TeX82 without specifying a file name and
+in response to the asterisk prompt type {\tt \\show} followed by the
+proposed name. If your macro package is not preloaded, you will want to load it
+before typing the {\tt \\show}. 
+$$\vbox{\halign{#\hfil\quad&\tt #\hfil\qquad&\tt #\hfil\qquad&\tt #\hfil\cr
+For&\rm A Macro&\rm A Primitive&\rm An undefined name\cr
+\noalign {\vskip 3pt}
+Typing&\\show\\centerline&\\show\\hbox&\\show\\zzzz\cr
+Shows&> \\centerline=macro:&> \\hbox=\\hbox.&> \\zzzz=undefined.\cr
+&\#1->\\line\lbr \\hss\#1\\hss\rbr.&<*> \\show\\hbox&<*> \\show\\zzzz\cr
+&<*> \\show\\centerline&?&?\cr
+&?\cr
+}}$$
+The line beginning with {\tt \#1->} for the {\tt \\centerline} case, shows that the
+macro expects one parameter and this parameter is then used in the
+topression that follows.  The next to last line is to show you what
+\TeX\ has read and the last line is asking you what you want to do about
+it. A carriage return will restore the asterisk prompt,
+and you can then type another {\tt \\show}, or give a {\tt \\input} command.
+
+By way of summary, there are several ways to assign meaning to a control 
+sequence:
+\vskip 6pt
+\halign{\qquad#\hfil\quad& #\hfil\quad& \hfil #\quad& #\hfil\cr
+Typing&\tt \\font\\cs=\\<font name>& makes {\tt \\cs}& a font identifier\cr
+& \tt \\chardef\\cs=\\<num.>& & a character code\cr
+& \tt \\countdef\\cs=<num.>& & a {\tt\\count} register\cr
+&  \tt \\def\\cs\dots\lbr \dots\rbr& & a macro.\cr
+Typing&\tt \\let\\cs=<token>& gives {\tt \\cs}&the token's current meaning.\cr}
+
+You will need to know quite a bit more before you can be an efficient
+macro designer. The whole story appears in Chapter 20 of The \TeX book.
+
+Two special macro packages are soon to
+be available.  \La\TeX\ by Leslie Lamport probably will appeal to the
+computer programmer, while AMS-\TeX\ by Michael Spivak probably will
+appeal to the mathematician. Both packages allow the user to
+specify one of several formatting styles by name and in so doing they
+greatly simplify the task of using \TeX.  F\'acil \TeX\ by Max D\'\i az is also
+a contender but no date is available for its conversion to \TeX82.
+
+\vfill\eject
+\headline={\hfil} % headline is normally blank
+\footline={\hss\tenrm\folio\hss}
+\vsize=9.0 truein
+\null \vskip-50pt
+\centerline {\bf Appendix}
+%\input manmac.tex[tex,dek]
+\def\sep{\medskip\hrule width\hsize\medskip}
+\def \dsep{\vskip-3pt\line{\dotfill}\smallskip}
+%\medskip\smallskip
+%\hrule height .61803pt
+%\kern 1pt
+%\hrule
+%medskip
+\vfill
+\line{\strut Characters that are reserved for special purposes:\hfil\tt
+  \\ \hfil \lbr  \hfil \rbr \hfil \$ \hfil \& \hfil \# \hfil \% \hfil \^ \hfil \_{} \hfil \~{} }
+\sep
+\vbox{\halign {\hfil #\hfil\hskip7.5pt &&\hfil #\hfil\hskip7.5pt \cr
+To print&-&--&---&$-$&``text''&?`&!`&\$&\#&\&&\%&\ae&\AE&\oe&\OE&\aa\cr
+You type&\tt -&\tt -{}-&\tt -{}-{}-{}&$\$${\tt -}$\$$&\tt `{}`text'{}'&
+\tt ?{}`&\tt !{}`&\tt \\\$&\tt \\\#&\tt \\\&&\tt \\\%&
+\tt \\ae&\tt \\AE&\tt \\oe&\tt \\OE&\tt \\aa\cr
+}}
+\dsep
+\vbox{\halign {\hfil #\hfil\hskip7.8pt &&\hfil #\hfil\hskip7.8pt \cr
+\AA&\ss&\o&\O&
+\`a&\'e&\^o&\"u&\=y&\~n&\.p&\u\i&\v s&\H\j&\t\i u&\b k\cr
+\tt \\AA&\tt \\ss&\tt \\o&\tt \\O&
+\tt \\\`{}a&\tt \\\'{}e&\tt \\\^{}o&\tt \\\"{}u&\tt \\={}y&\tt \\\~{}n&
+\tt \\.p&\tt \\\u\\i&\tt \\v{}s&\tt \\H\\j&\tt \\t\\i u&\tt \\b k\cr
+}}
+\dsep
+\vbox{\halign {\hfil #\hfil\hskip7.2pt &&\hfil #\hfil\hskip7.2pt \cr
+\c c&\d h&\l&\L&\dag&\ddag&\S&\P&
+\rlap/c&\it \$&\it \& &\copyright&\dots\cr
+\tt \\c c&\tt \\d h&\tt \\l&\tt \\L&\tt \\dag&\tt \\ddag&\tt \\S&\tt \\P&
+\tt \\rlap/c&\tt \\it\\\$ &\tt \\it\\\&&\tt \\copyright&\tt \\dots\cr}}
+\sep
+\def\]{\leavevmode\hbox{\tt\char`\ }} % visible space
+\line{\strut Line break controls:\hfil
+\tt \\break\hfil\\allowbreak\hfil\\nobreak\hfil\\hbox\lbr unbreakable\rbr}
+\line{\strut \tt dis\\-cre\\-tion\\-ary hy\\-phens \hfil
+{\rm virgule\slash  breakpoint:}\ \ \\slash}
+\dsep
+\settabs 2\columns
+\+\strut Breakable horizontal spaces:& Unbreakable horizontal spaces:\cr
+\+{\tt \\\]} \ normal interword space& {\tt \~{}} \ normal interword space\cr
+\+{\tt \\enskip} \ this\enskip much& {\tt \\enspace} \ this\enspace much\cr
+\+{\tt \\quad} \ this\quad much& {\tt \\thinspace} \ this\thinspace much\cr
+\+{\tt \\qquad} \ this\qquad much& {\tt \\negthinspace} \ this\negthinspace much\cr
+\+\strut{\tt \\hskip \ <arbitrary dimen>}& {\tt \\kern \ <arbitrary dimen>}\cr
+\sep
+\+\strut Vertical spaces:\hfill
+{\tt \\smallskip} $\vcenter{\hrule width2em\smallskip\hrule}$\hfill&
+\\medskip $\vcenter{\hrule width3em\medskip\hrule}$\hfill
+\\bigskip $\vcenter{\hrule width4em\bigskip\hrule}$&\cr
+\dsep
+\line{Page break controls:\hfill {\tt \\eject \hfill\\supereject\hfill
+\\nobreak\hfill\\goodbreak\hfill\\filbreak}}
+\+\strut Vertical spaces and good breakpoints:&
+{\tt \\smallbreak\hfill\\medbreak\hfill\\bigbreak}&\cr
+\line{\downbracefill}
+\line{\tt \\line\lbr \\downbracefill\rbr\quad
+\\hrulefill \hrulefill\quad\\dotfill \dotfill\quad
+\\line\lbr \\upbracefill\rbr~}
+\vskip-5pt
+\line{\upbracefill}\smallskip
+\medskip
+\line{\hfill{\tt \\rm} {\rm Roman}\hfill
+{\tt \\sl} {\sl Slant}\hfill
+{\tt \\it} {\it Italic\/}\hfill
+{\tt \\tt} {\tt Typewriter}\hfill
+{\tt \\bf} {\bf Boldface}\hfill}
+%\smallskip
+Typical font table ({\tt \\rm} for amr10). If necessary, one can type
+ {\tt \\char'10} to get \char'10, etc.
+\medskip
+\vbox{\rm \halign{\hfil#\hfil\kern3.7pt&&\hfil#\hfil\kern3.7pt\cr
+\char'000&\char'001&\char'002&\char'003&\char'004&\char'005&\char'006&\char'007&&&
+\char'010&\char'011&\char'012&\char'013&\char'014&\char'015&\char'016&\char'017&&&
+\char'020&\char'021&\char'022&\char'023&\char'024&\char'025&\char'026&\char'027&&&
+\char'030&\char'031&\char'032&\char'033&\char'034&\char'035&\char'036&\char'037\cr
+\char'040&\char'041&\char'042&\char'043&\char'044&\char'045&\char'046&\char'047&&&
+\char'050&\char'051&\char'052&\char'053&\char'054&\char'055&\char'056&\char'057&&&
+\char'060&\char'061&\char'062&\char'063&\char'064&\char'065&\char'066&\char'067&&&
+\char'070&\char'071&\char'072&\char'073&\char'074&\char'075&\char'076&\char'077\cr
+\char'100&\char'101&\char'102&\char'103&\char'104&\char'105&\char'106&\char'107&&&
+\char'110&\char'111&\char'112&\char'113&\char'114&\char'115&\char'116&\char'117&&&
+\char'120&\char'121&\char'122&\char'123&\char'124&\char'125&\char'126&\char'127&&&
+\char'130&\char'131&\char'132&\char'133&\char'134&\char'135&\char'136&\char'137\cr
+\char'140&\char'141&\char'142&\char'143&\char'144&\char'145&\char'146&\char'147&&&
+\char'150&\char'151&\char'152&\char'153&\char'154&\char'155&\char'156&\char'157&&&
+\char'160&\char'161&\char'162&\char'163&\char'164&\char'165&\char'166&\char'167&&&
+\char'170&\char'171&\char'172&\char'173&\char'174&\char'175&\char'176&\char'177\cr}}
+Greek Letters, in Math mode ({\tt \$\\gamma\$}, or {\tt \$\\Gamma\$} for upper case where shown)
+\smallskip
+\vbox{\halign{\hfil#\hfil\quad&\hfil#\hfil\quad&\tt #\hfil\qquad\qquad&
+        \hfil#\hfil\quad&\hfil#\hfil\quad&\tt #\hfil\qquad\qquad&
+        \hfil#\hfil\quad&\hfil#\hfil\quad&\tt #\hfil\cr
+&$\alpha$&\\alpha&&$\iota$&\\iota&&$\varrho$&\\varrho\cr
+&$\beta$&\\beta&&$\kappa$&\\kappa&$\Sigma$&$\sigma$&\\sigma\cr
+$\Gamma$&$\gamma$&\\gamma&$\Lambda$&$\lambda$&\\lambda&&$\varsigma$&\\varsigma\cr
+$\Delta$&$\delta$&\\delta&&$\mu$&\\mu&&$\tau$&\\tau\cr
+&$\epsilon$&\\epsilon&&$\nu$&\\nu&$\Upsilon$&$\upsilon$&\\upsilon\cr
+&$\varepsilon$&\\varepsilon&$\Xi$&$\xi$&\\xi&$\Phi$&$\phi$&\\phi\cr
+&$\zeta$&\\zeta&&$o$&o&&$\varphi$&\\varphi\cr
+&$\eta$&\\eta&$\Pi$&$\pi$&\\pi&&$\chi$&\\chi\cr
+$\Theta$&$\theta$&\\theta&&$\varpi$&\\varpi&$\Psi$&$\psi$&\\psi\cr
+&$\vartheta$&\\vartheta&&$\rho$&\\rho&$\Omega$&$\omega$&\\omega\cr
+}}
+
+\eject
+\def\smallerskip{\vskip 2pt plus 1pt minus 1pt}
+\null\vskip-30pt
+%\vsize=9.2 truein
+Miscellaneous special symbols, available in Math mode
+\smallerskip
+\halign{\hfil#\hfil\quad&\tt #\hfil\qquad\qquad&
+        \hfil#\hfil\quad&\tt #\hfil\qquad\qquad&
+        \hfil#\hfil\quad&\tt #\hfil\cr
+$\aleph$&{\tt \\aleph}&$\prime$&{\tt \\prime}&$\forall$&{\tt \\forall}\cr
+$\hbar$&{\tt \\hbar}&$\emptyset$&{\tt \\emptyset}&$\exists$&{\tt \\exists}\cr
+$\imath$&{\tt \\imath}&$\nabla$&{\tt \\nabla}&$\neg$&{\tt \\neg}\cr
+$\jmath$&{\tt \\jmath}&$\surd$&{\tt \\surd}&$\flat$&{\tt \\flat}\cr
+$\ell$&{\tt \\ell}&$\top$&{\tt \\top}&$\natural$&{\tt \\natural}\cr
+$\wp$&{\tt \\wp}&$\bot$&{\tt \\bot}&$\sharp$&{\tt \\sharp}\cr
+$\Re$&{\tt \\Re}&$\Vert$&{\tt \\Vert}&$\clubsuit$&{\tt \\clubsuit}\cr
+$\Im$&{\tt \\Im}&$\angle$&{\tt \\angle}&$\diamondsuit$&{\tt \\diamondsuit}\cr
+$\partial$&{\tt \\partial}&$\triangle$&{\tt \\triangle}&$\heartsuit$&{\tt \\heartsuit}\cr
+$\infty$&{\tt \\infty}&$\backslash$&{\tt \\backslash}&$\spadesuit$&{\tt \\spadesuit}\cr
+\noalign{\vskip -2pt}
+%\noalign{\smallerskip}
+\noalign{Binary operators (in addition to $+$, $-$, and $*$) available in Math mode}
+\noalign{\smallerskip}
+$\pm$&{\tt \\pm}&$\cap$&{\tt \\cap}&$\vee$&{\tt \\vee}\cr
+$\mp$&{\tt \\mp}&$\cup$&{\tt \\cup}&$\wedge$&{\tt \\wedge}\cr
+$\setminus$&{\tt \\setminus}&$\uplus$&{\tt \\uplus}&$\oplus$&{\tt \\oplus}\cr
+$\cdot$&{\tt \\cdot}&$\sqcap$&{\tt \\sqcap}&$\ominus$&{\tt \\ominus}\cr
+$\times$&{\tt \\times}&$\sqcup$&{\tt \\sqcup}&$\otimes$&{\tt \\otimes}\cr
+$\ast$&{\tt \\ast}&$\triangleleft$&{\tt \\triangleleft}&$\oslash$&{\tt \\oslash}\cr
+$\star$&{\tt \\star}&$\triangleright$&{\tt \\triangleright}&$\odot$&{\tt \\odot}\cr
+$\diamond$&{\tt \\diamond}&$\wr$&{\tt \\wr}&$\dagger$&{\tt \\dagger}\cr
+$\circ$&{\tt \\circ}&$\bigcirc$&{\tt \\bigcirc}&$\ddagger$&{\tt \\ddagger}\cr
+$\bullet$&{\tt \\bullet}&$\bigtriangleup$&{\tt \\bigtriangleup}&$\amalg$&{\tt \\amalg}\cr
+$\div$&{\tt \\div}&$\bigtriangledown$&{\tt \\bigtriangledown}\cr
+\noalign{\vskip -2pt}
+\noalign{Relations (in addition to $<$, $>$, and $=$), available in Math mode}
+\noalign{\smallerskip}
+$\leq$&{\tt \\leq}&$\geq$&{\tt \\geq}&$\equiv$&{\tt \\equiv}\cr
+$\prec$&{\tt \\prec}&$\succ$&{\tt \\succ}&$\sim$&{\tt \\sim}\cr
+$\preceq$&{\tt \\preceq}&$\succeq$&{\tt \\succeq}&$\simeq$&{\tt \\simeq}\cr
+$\ll$&{\tt \\ll}&$\gg$&{\tt \\gg}&$\asymp$&{\tt \\asymp}\cr
+$\subset$&{\tt \\subset}&$\supset$&{\tt \\supset}&$\approx$&{\tt \\approx}\cr
+$\subseteq$&{\tt \\subseteq}&$\supseteq$&{\tt \\supseteq}&$\cong$&{\tt \\cong}\cr
+$\sqsubseteq$&{\tt \\sqsubseteq}&$\sqsupseteq$&{\tt \\sqsupseteq}&$\bowtie$&{\tt \\bowtie}\cr
+$\in$&{\tt \\in}&$\ni$&{\tt \\ni}&$\propto$&{\tt \\propto}\cr
+$\vdash$&{\tt \\vdash}&$\dashv$&{\tt \\dashv}&$\models$&{\tt \\models}\cr
+$\smile$&{\tt \\smile}&$\mid$&{\tt \\mid}&$\doteq$&{\tt \\doteq}\cr
+$\frown$&{\tt \\frown}&$\parallel$&{\tt \\parallel}&$\perp$&{\tt \\perp}\cr
+\noalign{\vskip -2pt}
+%\noalign{\smallerskip}
+\noalign{Negated relations (the {\tt\\not} symbol is considered to have zero width)}
+\noalign{\smallerskip}
+$\not<$&{\tt \\not<}&$\not>$&{\tt \\not>}&$\not=$&{\tt \\not=}\cr
+$\not\leq$&{\tt \\not\\leq}&$\not\geq$&{\tt \\not\\geq}&
+  $\not\equiv$&{\tt \\not\\equiv}\cr
+$\not\prec$&{\tt \\not\\prec}&$\not\succ$&{\tt \\not\\succ}&
+  $\not\sim$&{\tt \\not\\sim}\cr
+$\not\preceq$&{\tt \\not\\preceq}&$\not\succeq$&{\tt \\not\\succeq}&
+  $\not\simeq$&{\tt \\not\\simeq}\cr
+$\not\subset$&{\tt \\not\\subset}&$\not\supset$&{\tt \\not\\supset}&
+  $\not\approx$&{\tt \\not\\approx}\cr
+$\not\subseteq$&{\tt \\not\\subseteq}&$\not\supseteq$&{\tt \\not\\supseteq}&
+  $\not\cong$&{\tt \\not\\cong}\cr
+$\not\sqsubseteq$&{\tt \\not\\sqsubseteq}&$\not\sqsupseteq$&{\tt \\not\\sqsupseteq}&
+  $\not\asymp$&{\tt \\not\\asymp}\cr}
+\eject
+Arrows for use in Math mode
+\smallskip
+\halign{\hfil#\hfil\quad&\tt #\hfil\quad&
+        \hfil#\hfil\quad&\tt #\hfil\qquad&
+        \hfil#\hfil\quad&\tt #\hfil\cr
+$\leftarrow$&{\tt \\leftarrow}&$\longleftarrow$&{\tt \\longleftarrow}&
+  $\uparrow$&{\tt \\uparrow}\cr
+$\Leftarrow$&{\tt \\Leftarrow}&$\Longleftarrow$&{\tt \\Longleftarrow}&
+  $\Uparrow$&{\tt \\Uparrow}\cr
+$\rightarrow$&{\tt \\rightarrow}&$\longrightarrow$&{\tt \\longrightarrow}&
+  $\downarrow$&{\tt \\downarrow}\cr
+$\Rightarrow$&{\tt \\Rightarrow}&$\Longrightarrow$&{\tt \\Longrightarrow}&
+  $\Downarrow$&{\tt \\Downarrow}\cr
+$\leftrightarrow$&{\tt \\leftrightarrow}&$\longleftrightarrow$&{\tt \\longleftrightarrow}&
+  $\updownarrow$&{\tt \\updownarrow}\cr
+$\Leftrightarrow$&{\tt \\Leftrightarrow}&$\Longleftrightarrow$&{\tt \\Longleftrightarrow}&
+  $\Updownarrow$&{\tt \\Updownarrow}\cr
+$\mapsto$&{\tt \\mapsto}&$\longmapsto$&{\tt \\longmapsto}&
+  $\nearrow$&{\tt \\nearrow}\cr
+ $\searrow$&{\tt \\searrow}&$\swarrow$&{\tt \\swarrow}&$\nwarrow$&{\tt \\nwarrow}\cr
+$\hookleftarrow$&{\tt \\hookleftarrow}&$\hookrightarrow$&{\tt \\hookrightarrow}\cr}
+%$\lefttophalfarrow$&{\tt \\lefttophalfarrow}&$\righttophalfarrow$&{\tt \\righttophalfarrow}&
+%$\leftbothalfarrow$&{\tt \\leftbothalfarrow}&$\rightbothalfarrow$&{\tt \\rightbothalfarrow}&
+%$\rightlefthalfarrows$&{\tt \\rightlefthalfarrows}\cr}
+%smallskip
+Some alternate names used in Math mode
+\smallskip
+\halign{\hfil#\hfil\quad&#\hfil\qquad\qquad&&
+	\hfil#\hfil\quad&#\hfil\qquad\qquad\cr
+$\ne$&{\tt \\ne}&\lbr &{\tt \\\lbr }&$\land$&{\tt \\land}&
+$\to$&{\tt \\to}&$\vert$&{\tt \\vert}\cr
+$\le$&{\tt \\le}&\rbr&{\tt \\\rbr}&$\lor$&{\tt \\lor}&
+$\gets$&{\tt \\gets}&$\Vert$&{\tt \\Vert}\cr
+$\ge$&{\tt \\ge}&$\owns $&{\tt \\owns}&$\lnot$&{\tt \\lnot}\cr}
+
+%smallskip
+Large operators as used in Math ({\tt\$}\dots{\tt\$})
+and in Math Display ({\tt\$\$} \dots{\tt\$\$}) modes
+\smallskip
+{\displayindent=16pt \openup3pt
+\halign{&\qquad\hbox to10pt{\hss$#$\hss}\quad&
+  \hbox to10pt{\hss$\displaystyle#$\hss}\quad&
+  \hbox to65pt{#\hss}\cr
+\sum&\sum&{\tt \\sum}&\bigcap&\bigcap&{\tt \\bigcap}&
+  \bigodot&\bigodot&{\tt \\bigodot}\cr
+\prod&\prod&{\tt \\prod}&\bigcup&\bigcup&{\tt \\bigcup}&
+  \bigotimes&\bigotimes&{\tt \\bigotimes}\cr
+\coprod&\coprod&{\tt \\coprod}&\bigsqcup&\bigsqcup&{\tt \\bigsqcup}&
+  \bigoplus&\bigoplus&{\tt \\bigoplus}\cr
+\int&\int&{\tt \\int}&\bigvee&\bigvee&{\tt \\bigvee}&
+  \biguplus&\biguplus&{\tt \\biguplus}\cr
+\oint&\oint&{\tt \\oint}&\bigwedge&\bigwedge&{\tt \\bigwedge}\cr
+}}
+%\smallskip
+Extendable delimiters, in addition to ( \ ) \ $\{$  \ $\}$ \ [ \ and ], used in Display Math mode
+\smallskip
+{\halign{\hfil$#$\hfil\quad&\tt #\hfil\qquad\quad&
+\hfil$#$\hfil\quad&\tt #\hfil\qquad&
+\hfil$#$\hfil\quad&\tt #\hfil\qquad\quad&
+\hfil$#$\hfil\quad&\tt #\hfil\cr
+\lfloor&\\lfloor& \langle&\\langle& \vert&\\vert& \downarrow&\\downarrow\cr
+\rfloor&\\rfloor& \rangle&\\rangle& \Vert&\\Vert& \Downarrow&\\Downarrow\cr
+\lceil&\\lceil& /&/& \uparrow&\\uparrow& \updownarrow&\\updownarrow\cr
+\rceil&\\rceil& \\&\\backslash& \Uparrow&\\Uparrow& \Updownarrow&\\Updownarrow\cr
+}}
+%\smallskip
+Function names that print in roman type, for use when in Math mode
+\smallskip
+{\tt \halign{#\hfil\quad&&#\hfil\quad\cr
+\\arccos  &\\cos   &\\csc   &\\exp   &\\ker     &\\limsup  &\\min  &\\sinh\cr
+\\arcsin  &\\cosh  &\\deg   &\\gcd   &\\lg      &\\ln      &\\Pr   &\\sup\cr
+\\arctan  &\\cot   &\\det   &\\hom   &\\lim     &\\log     &\\sec  &\\tan\cr
+\\arg     &\\coth  &\\dim   &\\inf   &\\liminf  &\\max     &\\sin  &\\tanh\cr
+}}
+%\smallskip
+Dimensions, preset by {\tt PLAIN.TEX}, that you may want to change
+\smallskip
+{\ttt \halign{#\hfil\qquad&&#\hfil\qquad\cr
+\\hsize=6.5in&
+\\parindent=20pt&
+\\abovedisplayskip=12pt plus 3pt minus 9pt\cr
+\\vsize=8.9in&
+\\parskip=0pt plus 1pt&
+\\belowdisplayskip=12pt plus 3pt minus 9pt\cr}}
+\vfill
+\eject
+\leftline{Macros for setting ordinary text}
+\vskip-20pt
+$$\vbox{\halign{\ttt #\hfil\quad&&#\hfil\quad\cr
+\\frenchspacing&\\break&\\bigbreak&\\hidewidth&\\ttraggedright\cr
+\\nonfrenchspacing&\\nobreak&\\line&\\multispan\#1&\\leavevmode\cr
+\\normalbaselines&\\allowbreak&\\leftline\#1&\\cleartabs&\\hrulefill\cr
+\\null&\\filbreak&\\rightline\#1&\\hang&\\dotfill\cr
+\\obeyspaces&\\goodbreak&\\centerline\#1&\\textindent\#1&\\downbracefill\cr
+\\loop\#1\\repeat&\\eject&\\rlap\#1&\\item&\\upbracefill\cr
+\\iterate&\\supereject&\\llap\#1&\\itemitem\cr
+\\nointerlineskip&\\smallbreak&\\underbar\#1&\\narrower\cr
+\\offinterlineskip&\\medbreak&\\strut&\\raggedright\cr}}$$
+\leftline{Macros for setting math}
+$$\vbox{\ttt \halign{#\hfil\qquad&&#\hfil\qquad\cr
+\\joinrel&\\vphantom&\\openup&\\cases\#1&\\ldots\cr
+\\relbar&\\hphantom&\\eqalign\#1&\\matrix\#1&\\cdots\cr
+\\Relbar&\\phantom&\\displaylines\#1&\\pmatrix\#1&\\vdots\cr
+\\bowtie&\\mathstrut&\\eqalignno\#1&\\bordermatrix\#1&\\ddots\cr
+\\models&\\smash&\\leqalignno\#1\cr}}$$
+\leftline{Parameters preset by {\tt PLAIN.TEX} that may be reset, with caution}
+$$\vbox{\ttt \halign{#\hfil\qquad&&#\hfil\qquad\cr
+\\vbadness=1000&\\tracinglostchars=1&\\delimitershortfall=5pt\cr
+\\linepenalty=10&\\uchyph=1&\\nulldelimiterspace=1.2pt\cr
+\\hyphenpenalty=50&\\newlinechar=-1&\\scriptspace=0.5pt\cr
+\\exhyphenpenalty=50&\\delimiterfactor=901&\\parindent=20pt\cr
+\\binoppenalty=700&\\showboxbreadth=5&\\parskip=0pt plus 1pt\cr
+\\relpenalty=500&\\showboxdepth=3&\\parfillskip=0pt plus 1fil\cr
+\\hbadness=1000&\\adjdemerits=10000&\\topskip=10pt\cr
+\\clubpenalty=150&\\hfuzz=0.1pt&\\maxdepth=4pt\cr
+\\widowpenalty=150&\\vfuzz=0.1pt&\\normalbaselineskip=12pt\cr
+\\displaywidowpenalty=50&\\overfullrule=5pt&\\normallineskip=1pt\cr
+\\brokenpenalty=100&\\hsize=6.5in&\\jot=3pt\cr
+\\predisplaypenalty=10000&\\vsize=8.9in&\\tolerance=200\cr}}$$
+$$\vbox{\ttt \halign{#\hfil\quad&&#\hfil\quad\cr
+\\doublehyphendemerits=10000&\\belowdisplayskip=12pt plus 3pt minus 9pt\cr
+\\finalhyphendemerits=5000&\\belowdisplayshortskip=7pt plus 3pt minus 4pt\cr
+\\thinmuskip=3mu&\\smallskipamount=3pt plus 1pt minus 1pt\cr
+\\medmuskip=4mu plus 2mu minus 4mu&\\medskipamount=6pt plus 2pt minus 2pt\cr
+\\thickmuskip=5mu plus 5mu&\\bigskipamount=12pt plus 4pt minus 4pt\cr
+\\interdisplaylinepenalty=100&\\abovedisplayskip=12pt plus 3pt minus 9pt\cr
+\\interfootnotelinepenalty=100&\\abovedisplayshortskip=0pt plus 3pt\cr}}$$
+\leftline{Unassigned parameters, set to zero automatically}
+$$\vbox{\ttt \halign{#\hfil\qquad&&#\hfil\qquad\cr
+\\pausing&\\tracingparagraphs&\\tracingrestores&\\spaceskip\cr
+\\tracingonline&\\tracingpages&\\leftskip&\\hoffset\cr
+\\tracingmacros&\\tracingoutput&\\rightskip&\\voffset\cr
+\\tracingstats&\\tracingcommands&\\tabskip\cr}}$$
+
+\leftline{Fonts preloaded and named by {\tt PLAIN.TEX}.}
+\leftline{Can be magnified by $\sqrt{1.2}$, $1.2$,
+$(1.2)^2$, $(1.2)^3$, $(1.2)^4$, and $(1.2)^5$.}
+\vskip-20pt
+$$\vbox{\halign{#\hfil \qquad&#\hfil\enskip&#\hfil\qquad&
+#\hfil\enskip&#\hfil\qquad&#\hfil&\enskip#\hfil\cr
+\rm roman text&\\tenrm&amr10&\\sevenrm&amr7&\\fiverm&amr5\cr
+\bf boldface extended&\\tenbf&ambx10&\\sevenbf&ambx7&\\fivebf&ambx5\cr
+\teni math$\;$italic&\\teni&ammi10&\\seveni&ammi7&\\fivei&ammi5\cr
+math symbols&\\tensy&amsy10&\\sevensy&amsy7&\\fivesy&amsy5\cr
+math extension&\\tenex&amex10\cr
+\tt typewriter&\\tentt&amtt10\cr
+\sl slanted roman&\\tensl&amsl10\cr
+\it text italic&\\tenit&amti10\cr}}$$
+\leftline{Fonts preloaded by {\tt PLAIN.TEX} but un-named.}
+\leftline{Can be magnified by $\sqrt{1.2}$, $1.2$, and $(1.2)^2$
+(\\magstephalf, \\magstep1, and \\magstep2).}
+$$\vbox{\halign{#\hfil\qquad&#\hfil\enskip&#\hfil\enskip&#\hfil\qquad\enskip&
+#\hfil\qquad&#\hfil \enskip&#\hfil\cr
+roman text&amr9&amr8&amr6&sans serif&amss10&amssq8\cr
+math italic&ammi9&ammi8&ammi6&sans serif italic&amssi10&amssqi8\cr
+math symbols&amsy9&amsy8&amsy6&slanted roman&amsl9&amsl8\cr
+bold face&ambx9&ambx8&ambx6&typewriter&amtt9&amtt8\cr
+text italic&amti9&amti8&amti7&slanted typewriter&amsltt10 \cr}}$$
+$$\vbox{\halign{#\hfil\quad&#\hfil\qquad\quad&#\hfil\quad&#\hfil\cr
+unslanted text italic&amu10&Dunhill style&amdunh10\cr
+bold math italic&ambi10&
+sans serif bold extended&amssbx10\cr
+bold math symbols&ambsy10&
+caps and small caps&amcsc10\cr}}$$\medskip
+\leftline{Preloaded in magnified form for titles but un-named.}
+\vskip -20pt
+$$\vbox{\halign{#\hfil\qquad&#\hfil\qquad&#\hfil\cr
+amr7 scaled \\magstep4&
+amtt10 scaled \\magstep2&
+amssbx10 scaled \\magstep2\cr}}$$
+
+\vfill\eject
+\nopagenumbers
+\def\leaderfill{\leaders\hbox to 1em{\hss.\hss}\hfill}
+\null
+\vfill
+\centerline{\bf Table of Contents}
+\smallskip
+\line{\qquad\qquad Introduction\leaderfill 1\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Toward Book Quality\leaderfill 2\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Special Symbols\leaderfill 3\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Issuing Commands to \TeX\leaderfill 3\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Fonts\leaderfill 4\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Dimensions and Keywords\leaderfill 5\qquad\qquad}
+\smallskip
+\line{\qquad\qquad To Use \TeX \leaderfill 5\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Boxing with Glue\leaderfill 6\qquad\qquad}
+\smallskip
+\line{\qquad\qquad An Example\leaderfill 7\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Understanding Error Messages\leaderfill 10\qquad\qquad}
+\smallskip
+\line{\qquad\qquad The Six Modes\leaderfill 11\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Making Tables\leaderfill 12\qquad\qquad}
+\smallskip
+\line{\qquad\qquad The `\\halign' Alignment Method\leaderfill 12\qquad\qquad}
+\smallskip
+\line{\qquad\qquad The Fixed-Column-Width `\\settabs' Method\leaderfill 16\qquad\qquad}
+\smallskip
+\line{\qquad\qquad The Variable-Column-Width `\\settabs' Method\leaderfill 17\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Typing Mathematical Formulas\leaderfill 17\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Some Odds and Ends\leaderfill 26\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Output Routines\leaderfill 28\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Defining Macros\leaderfill 28\qquad\qquad}
+\smallskip
+\line{\qquad\qquad Appendix\leaderfill 30\qquad\qquad}
+
+\vfill
+\centerline{\bf Acknowledgements}
+\smallskip
+{\parindent=39pt
+\narrower
+It is impractical to mention all of the people who have
+proofread this manual and who have contributed many valuable
+suggestions.  The detailed contributions made by Don Knuth,
+Mrs.~Knuth, Dave Fuchs, Arthur Keller, Ron Bracewell, and Howard Trickey
+were particularly helpful. Needlessly to say, much of the basic material in this
+manual came directly or indirectly from The~\TeX book by Don Knuth. \smallskip}
+
+ \vfill \eject
+%This is the title page, put last so as to permit the \end termination.
+\vfill
+\eject
+\nopagenumbers
+\null\vskip-46pt
+\hbox to 6.5truein {November 1983\hfil Report No. STAN-CS-83-985}
+\vskip .1in
+\line{Stanford Department of Computer Science\hfil (Version 1.1)}
+\vfill
+\centerline{\bf First Grade \TEX}
+\vskip .1in
+\centerline{\bf A Beginner's \TEX\ Manual}
+\vskip .25in
+\centerline{by}
+\centerline{Arthur L. Samuel}
+\vfill
+This manual is based on the publications of Donald~E.~Knuth who originated
+the \TEX\ system and on the recent work of Professor Knuth and his many
+students and collaborators who have helped bring the \TEX82 system to its
+present advanced state of development. The \TEX\ logo that is used in this
+manual is a trademark of The American Mathematical Society. The preparation
+of this report was supported in part by National Science Foundation grant
+IST-820/926 and by the System Development Foundation.
+
+\eject\end

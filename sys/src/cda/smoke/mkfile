@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=smoke
+OFILES=smoke.$O\
+	network.$O\
+	pins.$O\
+	check.$O\
+
+HFILES=smoke.h\
+
+</sys/src/cmd/mkone
+CFLAGS=-DPLAN9

@@ -1,0 +1,39 @@
+.TH PREP 8
+.SH NAME
+disk/prep \- make disk partition table
+.SH SYNOPSIS
+.B disk/prep
+[
+.B -r
+]
+.I special
+.SH DESCRIPTION
+A partition table is stored on a disk to specify the division of
+the physical disk into a set of logical units.
+On Plan 9 the partition table is a list of triples: name, starting sector,
+and ending sector.
+The first two partitions must have the names
+.B disk
+and
+.BR partition ;
+the
+.B disk
+partition records the starting and ending sectors for the whole disk,
+and the
+.B partition
+partition, typically the last sector on the disk, holds the
+partition table itself.
+.PP
+.I Special
+is the maximal prefix of names of the logical units on the disk, for example
+.BR #w/hd0 .
+.I Prep
+reads and prints the associated partition table
+and then enters a simple interactive mode to control editing the table.
+.PP
+The single option
+.B -r
+(readonly) prohibits writing the table on disk.
+.SH SEE ALSO
+.IR floppy (3),
+.IR hard (3)

@@ -1,0 +1,21 @@
+.TH BASENAME 1 
+.SH NAME
+basename \- strip file name affixes
+.SH SYNOPSIS
+.B basename
+.I string
+[
+.I suffix
+]
+.SH DESCRIPTION
+.PP
+.I Basename
+deletes any prefix ending in 
+.L /
+and the
+.I suffix,
+if present in
+.I string,
+from
+.I string,
+and prints the result on the standard output.

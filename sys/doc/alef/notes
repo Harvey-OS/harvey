@@ -1,0 +1,39 @@
+
+Implementation Notes
+
+1. The compiler does not support long and ulong - wait for the R4000
+
+2. Processes created by par cannot use the blocking synchronisation operators:
+
+	Rendez.sleep
+	Qlock.lock
+
+3. Stack bounds checking is not implemented. Set ALEFstack to the amount of memory
+   required by each task or process. ALEFstack can be changed any time. It should
+   be declared as:
+
+	extern int ALEFstack;
+
+   doprint has a 1k automatic array so you probably don't want to set it less than
+   2k.
+
+4. The libraries, and in particular libA, only include routines I have had need of.
+
+The directory /sys/src/alef/test/Y contains a large example program.
+Y is a window system that uses only synchronous message passing to
+implement many clients sharing the same address space.
+
+Bugs
+
+   These will be fixed soon.
+
+1. If you do an exec from a proc the stack is not deallocated.
+
+2. Only recieving expressions work correctly in alt statements.
+
+Recent fixes
+
+1. -D & -I options added for preprocessor
+2. -D# option changed to -d#
+3. pointer - int type expressions fixed
+4. floating point fixed

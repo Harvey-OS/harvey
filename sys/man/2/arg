@@ -1,0 +1,107 @@
+.TH ARG 2
+.SH NAME
+ARG \(mi process option letters from argv
+.SH SYNOPSIS
+.nf
+.B #include <libc.h>
+.B ARGBEGIN {
+.B } ARGEND
+.B char *ARGF();
+.B char ARGC();
+.PP
+.B extern char *argv0;
+.fi
+.SH DESCRIPTION
+Command-line arguments to programs (see
+.IR exec (2))
+are conventionally arranged as a set of
+.I options
+\(em strings beginning with a
+.B -
+(minus sign)
+\(em followed by plain arguments such as file names.
+The
+.B ARG
+macros provide a convenient means for processing these options.
+Option characters appear in nonempty clusters preceded by 
+.BR - .
+After options processing is terminated
+(by an argument not starting with
+.BR - ,
+or by the argument
+.B --
+which is then skipped,
+or by the argument
+.BR - ),
+execution resumes after the
+.BR ARGEND .
+.PP
+The body of a
+.B switch
+statement should be put between
+.B ARGBEGIN{
+and
+.BR }ARGEND ;
+it is executed once for each option character
+(the character itself may be referenced by
+.BR ARGC() ).
+If an option takes a string argument
+(that is, the rest of the current option string or if that is empty,
+the next argument),
+it can be referenced by
+.BR ARGF() .
+After
+.BR ARGEND ,
+.I argv
+points at a zero-terminated list of the remaining
+.I argc
+arguments.
+.PP
+.B ARGBEGIN
+also sets up
+.I argv0
+to point at
+.B argv[0]
+(conventionally the name of the program).
+.PP
+.SH EXAMPLES
+This program processes arguments
+for a command that can take option
+.B b
+and option
+.BR f ,
+which requires an argument.
+.PP
+.EX
+.ta \w'12345678'u +\w'12345678'u +\w'12345678'u +\w'12345678'u +\w'12345678'u
+#include <u.h>
+#include <libc.h>
+
+main(int argc, char *argv[])
+{
+	char *f;
+
+	print("%s", argv[0]);
+	ARGBEGIN{
+	case 'b':	print(" -b"); break;
+	case 'f':	f = ARGF(); print(" -f(%s)", f?f:"no arg"); break;
+	default:	print(" badflag('%c')", ARGC()); break;
+	}ARGEND
+	print(" %d args:", argc);
+	while(*argv)
+		print(" '%s'", *argv++);
+	print("\en");
+	exits(0);
+}
+.EE
+When this program is run as
+.EX
+	prog -bffile1 -r -f file2 arg1 argn
+.EE
+it yields
+.EX
+	prog -b -f(file1) badflag('r') -f(file2) 2 args: 'arg1' 'argn'
+.EE
+.SH DIAGNOSTICS
+.B ARGF()
+returns 0 on error.

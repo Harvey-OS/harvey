@@ -1,0 +1,233 @@
+.TH STAT 2
+.SH NAME
+stat, fstat, wstat, fwstat, dirstat, dirfstat, dirwstat, dirfwstat \- get and put file status
+.SH SYNOPSIS
+.B
+int stat(char *name, char *edir)
+.PP
+.B
+int fstat(int fd, char *edir)
+.PP
+.B
+int wstat(char *name, char *edir)
+.PP
+.B
+int fwstat(int fd, char *edir)
+.PP
+.B
+int dirstat(char *name, Dir *dir)
+.PP
+.B
+int dirfstat(int fd, Dir *dir)
+.PP
+.B
+int dirwstat(char *name, Dir *dir)
+.PP
+.B
+int dirfwstat(int fd, Dir *dir)
+.SH DESCRIPTION
+Given a file's
+.IR name ,
+or an open file descriptor
+.IR fd ,
+these routines retrieve or modify file status information.
+.IR Stat ,
+.IR fstat ,
+.IR wstat ,
+and
+.I fwstat
+are the system calls; they deal with machine-independent
+.IR "directory entries" .
+Their format is defined by
+.IR stat (5).
+.I Stat
+and
+.I fstat
+retrieve information about
+.I name
+or
+.I fd
+into
+.IR edir ,
+a buffer of length
+.BR DIRLEN ,
+defined in
+.BR <libc.h> .
+.I Wstat
+and
+.I fwstat
+write information back, thus changing file attributes according to
+.IR edir .
+.PP
+.IR Dirstat ,
+.IR dirfstat ,
+.IR dirwstat ,
+and
+.I dirfwstat
+are the same as their counterparts, except that they
+operate on
+.I Dir
+structures:
+.IP
+.EX
+.ta 6n +\w'Length; 'u +\w'name[NAMELEN];   'u
+typedef
+struct Dir {
+	char	name[NAMELEN];	/* last element of path */
+	char	uid[NAMELEN];	/* owner name */
+	char	gid[NAMELEN];	/* group name */
+	Qid	qid;	/* unique id from server */
+	long	mode;	/* permissions */
+	long	atime;	/* last read time */
+	long	mtime;	/* last write time */
+	Length;		/* file length: see <u.h> */
+	short	type;	/* server type */
+	short	dev;	/* server subtype */
+} Dir;
+.EE
+.PP
+This structure,
+the
+.I Qid
+structure,
+.BR NAMELEN ,
+and
+.B DIRLEN
+are defined in
+.B <libc.h>.
+The
+.I Length
+structure is defined in
+.BR <u.h> .
+.I Length
+is an unnamed structure (see
+.IR 2c (1)),
+which means that its fields are directly
+accessible; if the length is known to fit in a
+.BR long ,
+then use
+.B length
+as a field name to retrieve it.
+If the file resides on permanent storage and is not a directory,
+the length returned by
+.I stat
+is the number of bytes in the file.
+For directories, the length returned is zero.
+For files that are streams (e.g., pipes and network connections),
+the length is the number of bytes that can be read without blocking.
+.PP
+Each file is the responsibility of some
+.IR server :
+it could be a file server, a kernel device, or a user process.
+.B Type
+identifies the server type, and
+.B dev
+says which of a group of servers of the same type is the one
+responsible for this file.
+.B Qid
+is a structure containing
+.I path
+and
+.I vers
+fields, each an
+.B unsigned
+.BR long :
+.I path
+is guaranteed to be
+unique among all path names currently on the file server, and
+.I vers
+changes each time the file is modified.
+Thus, if two files have the same
+.BR type ,
+.BR dev ,
+and
+.B qid
+they are the same file.
+.PP
+The bits in
+.B mode
+are defined by
+.PP
+.ta 6n +\w'\fL0x80000000   'u
+.nf
+\fL	0x80000000\fP	directory
+\fL	0x40000000\fP	append only
+\fL	0x20000000\fP	exclusive use (locked)
+
+\fL	      0400\fP	read permission by owner
+\fL	      0200\fP	write permission by owner
+\fL	      0100\fP	execute permission (search on directory) by owner
+\fL	      0070\fP	read, write, execute (search) by group
+\fL	      0007\fP	read, write, execute (search) by others
+.fi
+.PP
+There are constants defined in
+.B <libc.h>
+for these bits:
+.BR CHDIR ,
+.BR CHAPPEND ,
+and
+.B CHEXCL
+for the first three; and
+.BR CHREAD ,
+.BR CHWRITE ,
+and
+.B CHEXEC
+for the read, write, and execute bits for others.
+.PP
+The two time fields are measured in seconds since the epoch
+(Jan 1 00:00 1970 local time).
+.B Mtime
+is the time of the last change of content.
+Similarly,
+.B atime
+is set whenever the contents are accessed;
+also, it is set whenever
+.I mtime
+is set.
+.PP
+.B Uid
+and
+.B gid
+are the names of the owner and group of the file.
+Groups are also users, but each server is free to associate
+a list of users with any user name
+.IR g ,
+and that list is the
+set of users in the group
+.IR g .
+When an initial attachment is made to a server,
+the user string in the process group is communicated to the server.
+Thus, the server knows, for any given file access, whether the accessing
+process is the owner or in the group of the file.
+This selects which sets of three bits in
+.B mode
+is used to check permissions.
+.PP
+Only some of the fields may be changed with the
+.I wstat
+calls.
+The
+.I name
+can be changed by anyone with write permission in the parent directory.
+The
+.I mode
+can be changed by the owner or the group leader of the file's current
+group.
+The
+.I gid
+can be changed by the owner if he or she is a member of the new group.
+The
+.I gid
+can be changed by the group leader of the file's current group
+if he or she is the leader of the new group.
+(See
+.IR intro (5)
+for permission information, and
+.IR users (6)
+for user and group information).
+.SH SEE ALSO
+.IR intro (2),
+.IR fcall (2),
+.IR dirread (2),
+.IR stat (5)

@@ -1,0 +1,85 @@
+.TH PS 1
+.SH NAME
+ps, psu \- process status
+.SH SYNOPSIS
+.B ps
+.PP
+.B psu
+[
+.I user
+]
+.SH DESCRIPTION
+.I Ps
+prints information about processes.
+.I Psu
+prints only information about processes started by
+.I user
+(default
+.BR $user ).
+.PP
+For each process reported,
+the user,
+process id,
+user time,
+system time,
+size,
+state,
+and command name are printed.
+State is one of the following:
+.TP \w'\fLno\ \fIresource\ \ \ 'u
+.B Moribund
+Process has exited and is about to have its
+resources reclaimed.
+.TP
+.B Ready
+on the queue of processes ready to be run.
+.TP
+.B Scheding
+about to be run.
+.TP
+.B Running
+running.
+.TP
+.B Queueing
+waiting on a queue for a resource.
+.TP
+.B Wakeme
+waiting for I/O or some other kernel event to wake it up.
+.TP
+.B Broken
+dead of unnatural causes; lingering
+so that it can be examined.
+.TP
+.B Stopped
+stopped.
+.TP
+.B Stopwait
+waiting for another process to stop.
+.TP
+.B Fault
+servicing a page fault.
+.TP
+.B Idle
+waiting for something to do (kernel processes only).
+.TP
+.B New
+being created.
+.TP
+.B Pageout
+paging out some other process.
+.TP
+.I Syscall
+performing the named system call.
+.TP
+.BI "no " resource
+waiting for more of a critical
+.I resource.
+.PD
+.SH FILES
+.TF /proc/*/status
+.TP
+.B /proc/*/status
+.SH "SEE ALSO"
+.IR kill (1), 
+.IR db (1),
+.IR proc (3)

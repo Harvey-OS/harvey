@@ -1,0 +1,167 @@
+% FIXUP DOCUMENT STYLE OPTION
+%    for LaTeX Version 2.09 <25 Jan 1988>
+%        by John Hobby
+%
+% If the fleqn style option is also used, it should precede this one.
+
+
+\hyphenation{bi-dif-fer-en-tial buzz-word data-path equi-vari-ant gauss-ian
+	hexa-dec-i-mal le-gendre mass-a-chu-setts non-smooth
+	qua-si-smooth stand-alone time-stamp wave-guide white-space}
+
+
+
+
+% Fix Plain's \bigl, \Bigl, etc. macros so that they try to scale with
+% LaTeX size changes.  This uses the fact that \@setsize sets \ht\strutbox
+% to be 70% of the normal unstretched baselineskip.
+
+\def\big#1{{\hbox{$\left#1\vcenter to1.428\ht\strutbox{}\right.\n@space$}}}
+\def\Big#1{{\hbox{$\left#1\vcenter to2.142\ht\strutbox{}\right.\n@space$}}}
+\def\bigg#1{{\hbox{$\left#1\vcenter to2.857\ht\strutbox{}\right.\n@space$}}}
+\def\Bigg#1{{\hbox{$\left#1\vcenter to3.571\ht\strutbox{}\right.\n@space$}}}
+
+
+
+
+
+% Fix \sbox and \mbox so that they do not take the box contents as a parameter.
+% This makes environments that  depend on catcode changes work inside
+
+\def\sbox#1{\setbox#1\hbox}
+\def\mbox{\leavevmode\hbox}
+
+
+
+
+
+
+% Apply \addpenalty's trick for not confusing \addvspace so that the \write
+% from \addtocontents or \addcontentsline will not mess up vertical spacing
+
+\def\addvstuff#1{%
+    \ifvmode\ifdim\lastskip=\z@ #1%
+	    \else \@tempskipb\lastskip
+		  \vskip -\lastskip #1\vskip\@tempskipb
+	    \fi
+    \else #1\fi}
+
+\def\addpenalty#1{\ifvmode 
+   \if@minipage\else\if@nobreak\else
+      \addvstuff{\penalty#1}%
+      \fi\fi
+   \else\@noitemerr\fi}
+
+\long\def\addtocontents#1#2{%
+    \if@filesw \begingroup
+	\let\label\@gobble \let\index\@gobble
+	\def\protect##1{\string\string\string##1\string\space\space}%
+	\edef\@tempa{\write \@auxout {\string\@writefile{#1}{#2}}}%
+	\addvstuff{\@tempa \if@nobreak \ifvmode\nobreak\fi\fi}%
+    \endgroup\fi}
+
+\def\addcontentsline#1#2#3{%
+    \if@filesw \begingroup
+	\let\label\@gobble \let\index\@gobble
+	\def\protect##1{\string\string\string##1\string\space\space}%
+	\@temptokena{\thepage}%
+	\edef\@tempa{\write \@auxout{\string\@writefile{#1}%
+			{\protect\contentsline{#2}{#3}{\the\@temptokena}}}}%
+	\addvstuff{\@tempa \if@nobreak \ifvmode\nobreak\fi\fi}%
+    \endgroup\fi}
+
+
+
+
+% Make floats use the trick from the minipage environment to avoid extraneous
+% space at the top.  e.g., "\begin{figure} \begin{center}..."
+
+\def\@xfloat#1[#2]{\ifhmode \@bsphack\@floatpenalty -\@Mii\else
+   \@floatpenalty-\@Miii\fi\def\@captype{#1}\ifinner
+      \@parmoderr\@floatpenalty\z@
+    \else\@next\@currbox\@freelist{\@tempcnta\csname ftype@#1\endcsname
+       \multiply\@tempcnta\@xxxii\advance\@tempcnta\sixt@@n
+       \@tfor \@tempa :=#2\do
+                        {\if\@tempa h\advance\@tempcnta \@ne\fi
+                         \if\@tempa t\advance\@tempcnta \tw@\fi
+                         \if\@tempa b\advance\@tempcnta 4\relax\fi
+                         \if\@tempa p\advance\@tempcnta 8\relax\fi
+         }\global\count\@currbox\@tempcnta}\@fltovf\fi
+    \global\setbox\@currbox\vbox\bgroup 
+    \hsize\columnwidth \@parboxrestore
+    \@minipagetrue
+    \everypar{\global\@minipagefalse\everypar{}}}
+
+
+
+
+% We now redefine the eqnarray environment to correct the space around
+% the operator.  Since the fleqn document style option also redefines
+% this environment, we carefully check the previous definition before
+% making any changes.  Any changes to the definition in LaTeX itself
+% or in the fleqn document style option will cause the `Warning: unable...'
+% message to appear.  If this happens it will be necessary to update the
+% definitions of \@tempa and \@tempb below and incorperate the changes into
+% the new definitions of \eqnarray.
+
+
+% This is the current definition of \eqnarray for the fleqn document style
+% option:
+
+\def\@tempa{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\mathindent\let\\=\@eqncr
+\abovedisplayskip\topsep\ifvmode\advance\abovedisplayskip\partopsep\fi
+\belowdisplayskip\abovedisplayskip
+\belowdisplayshortskip\abovedisplayskip
+\abovedisplayshortskip\abovedisplayskip
+$$\halign to
+\linewidth\bgroup\@eqnsel\hskip\@centering$\displaystyle\tabskip\z@
+{##}$&\global\@eqcnt\@ne \hskip 2\arraycolsep \hfil${##}$\hfil
+&\global\@eqcnt\tw@ \hskip 2\arraycolsep $\displaystyle{##}$\hfil 
+\tabskip\@centering&\llap{##}\tabskip\z@\cr}
+
+
+% Here is the corresponding defintion from latex.tex:
+
+\def\@tempb{\stepcounter{equation}\let\@currentlabel=\theequation
+\global\@eqnswtrue
+\global\@eqcnt\z@\tabskip\@centering\let\\=\@eqncr
+$$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
+  $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne 
+  \hskip 2\arraycolsep \hfil${##}$\hfil
+  &\global\@eqcnt\tw@ \hskip 2\arraycolsep $\displaystyle\tabskip\z@{##}$\hfil 
+   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+
+
+\ifx\eqnarray\@tempa		% If the fleqn document style option is in effect
+
+	\def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+	\global\@eqnswtrue
+	\global\@eqcnt\z@\tabskip\mathindent\let\\=\@eqncr
+	\abovedisplayskip\topsep\ifvmode\advance\abovedisplayskip\partopsep\fi
+	\belowdisplayskip\abovedisplayskip
+	\belowdisplayshortskip\abovedisplayskip
+	\abovedisplayshortskip\abovedisplayskip
+	$$\halign to \linewidth\bgroup\hfil
+	  $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne
+	  \hfil$\displaystyle{{}##{}}$\hfil
+	  &\global\@eqcnt\tw@ $\displaystyle{##}$\hfil 
+	   \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+
+\else\ifx\eqnarray\@tempb	% Else try the default eqnarray environment
+
+	\def\eqnarray{\stepcounter{equation}\let\@currentlabel=\theequation
+	\global\@eqnswtrue
+	\global\@eqcnt\z@\tabskip\@centering\let\\=\@eqncr
+	$$\halign to \displaywidth\bgroup\hfil
+	  $\displaystyle\tabskip\z@{##}$&\global\@eqcnt\@ne 
+	  \hfil$\displaystyle{{}##{}}$\hfil
+	  &\global\@eqcnt\tw@ $\displaystyle{##}$\hfil 
+ 	  \tabskip\@centering&\llap{##}\tabskip\z@\cr}
+
+\else	\typeout{Warning: Unable to fix unknown version of \string\enarray.}
+\fi\fi
+
+\def\@tempa{}			% Free up TeX's memory
+\def\@tempb{}

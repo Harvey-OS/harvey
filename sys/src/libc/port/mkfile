@@ -1,0 +1,82 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+ALLOFILES=\
+	abs.$O\
+	announce.$O\
+	asin.$O\
+	atan.$O\
+	atan2.$O\
+	atexit.$O\
+	atnotify.$O\
+	atof.$O\
+	atol.$O\
+	charstod.$O\
+	crypt.$O\
+	ctype.$O\
+	dial.$O\
+	doprint.$O\
+	erf.$O\
+	execl.$O\
+	exp.$O\
+	fabs.$O\
+	floor.$O\
+	fmod.$O\
+	gamma.$O\
+	getfields.$O\
+	getuser.$O\
+	hangup.$O\
+	hypot.$O\
+	log.$O\
+	malloc.$O\
+	memccpy.$O\
+	memchr.$O\
+	memcmp.$O\
+	memmove.$O\
+	memset.$O\
+	mktemp.$O\
+	netcrypt.$O\
+	netmkaddr.$O\
+	perror.$O\
+	pow.$O\
+	pow10.$O\
+	print.$O\
+	profile.$O\
+	qsort.$O\
+	rand.$O\
+	rune.$O\
+	sin.$O\
+	sinh.$O\
+	sqrt.$O\
+	strcat.$O\
+	strchr.$O\
+	strcmp.$O\
+	strcpy.$O\
+	strcspn.$O\
+	strdup.$O\
+	strlen.$O\
+	strncat.$O\
+	strncmp.$O\
+	strncpy.$O\
+	strpbrk.$O\
+	strrchr.$O\
+	strspn.$O\
+	strstr.$O\
+	strtod.$O\
+	strtok.$O\
+	strtol.$O\
+	strtoul.$O\
+	tan.$O\
+	tanh.$O\
+	toupper.$O\
+	utflen.$O\
+	utfrune.$O\
+	utfrrune.$O\
+	utfutf.$O\
+
+# cull things in the per-machine directories from this list
+OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+
+HFILES=/sys/include/libc.h
+
+</sys/src/cmd/mksyslib

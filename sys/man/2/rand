@@ -1,0 +1,83 @@
+.TH RAND 2
+.SH NAME
+rand, lrand, frand, nrand, lnrand, srand \- random number generator
+.SH SYNOPSIS
+.ta \w'\fLdouble 'u
+.B
+int	rand(void)
+.PP
+.B
+long	lrand(void)
+.PP
+.B
+double	frand(void)
+.PP
+.B
+int	nrand(int val)
+.PP
+.B
+long	lnrand(long val)
+.PP
+.B
+void	srand(long seed)
+.SH DESCRIPTION
+.I Rand
+returns a uniform pseudo-random
+number
+.I x,
+.if t .RI 0\(<= x <2\u\s715\s10\d.
+.if n 0<=x<2^15.
+.PP
+.I Lrand
+returns a uniform
+.B long
+.I x,
+.if t .RI 0\(<= x <2\u\s731\s10\d.
+.if n 0<=x<2^31.
+.PP
+.I Frand
+returns a uniform
+.B double
+.I x,
+.if t .RI 0.0\(<= x <1.0,
+.if n 0.0<=x<1.0.
+This function calls
+.I lrand
+twice to generate a number with as many as 62 significant bits of mantissa.
+.PP
+.I Nrand
+returns a uniform integer
+.I x,
+.if t .RI 0\(<= x < val.
+.if n 0<=x<val.
+.I Lnrand
+is the same, but returns a
+.BR long .
+.PP
+The algorithm is additive feedback with:
+.IP
+x[n] = (x[n\(mi273] + x[n\(mi607]) mod
+.if t 2\u\s731\s0\d.
+.if n 2^31.
+.LP
+giving a period of
+.if t 2\u\s730\s10\d \(mu (2\u\s7607\s10\d \(mi 1).
+.if n 2^30 * (2^607 - 1).
+.PP
+The generators are initialized by calling
+.I srand
+with whatever you like as argument.
+To get a different starting value each time,
+.IP
+.L
+srand(time(0))
+.LP
+will work as long as it is not called more often
+than once per second.
+Calling
+.IP
+.L
+srand(1)
+.LP
+will initialize the generators to their
+starting state.

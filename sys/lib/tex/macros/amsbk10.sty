@@ -1,0 +1,84 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSBK10.STY						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%% This is file `tex_inputs:amsbk10.sty' generated
+%% on <1990/7/10> with the docstrip utility (v1.1j). 
+%% 
+%% The original source file was `tex_inputs:amsbk10.doc'.
+%% 
+\def\fileversion{v1.0b}
+\def\filedate{90/06/21}
+\def\docdate{90/06/21}
+
+%% \CheckSum{2006}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\textwidth=29pc      \textheight=49pc
+\def\@makechapterhead#1{\begingroup \topskip 12pc\relax
+  \defaultfont\bf\large \centering
+    \ifnum\c@secnumdepth>\m@ne
+      \leavevmode \hskip-\leftskip
+      \rlap{\vbox to\z@{\vss
+          \centerline{\mediumseries\@normalsize
+              \uppercase\expandafter{\chaptername}\enspace\thechapter}
+          \vskip 2pc}}\hskip\leftskip\fi
+     #1\par \endgroup
+  \skip@45\p@ \advance\skip@-\normalbaselineskip
+  \vskip\skip@ }
+
+\def\@makeschapterhead#1{\begingroup \topskip 12pc\relax
+  \defaultfont\bf\large \centering
+  #1\par \endgroup
+  \skip@45\p@ \advance\skip@-\normalbaselineskip
+  \vskip\skip@ }
+\def\@part[#1]#2{%
+  \ifnum \c@secnumdepth >-2\relax \refstepcounter{part}%
+    \addcontentsline{toc}{part}{\partname\ \thepart\penalty-\@M#1}%
+  \else
+    \addcontentsline{toc}{part}{#1}\fi
+  \begingroup\centering\defaultfont\bf\large
+  \ifnum \c@secnumdepth >-2\relax
+       \partname\ \thepart \vskip 20\p@ \fi
+  #1\vfil\vfil\endgroup \newpage}
+
+\def\@spart#1{\addcontentsline{toc}{part}{#1}%
+  \begingroup\defaultfont\centering\bf\large
+  #1\vfil\vfil\endgroup \newpage}
+\def\section{\@startsection{\@string\section}%
+        1\z@{9\p@\@plus12\p@}{6\p@}%
+        {\centering\defaultfont\bf}}
+\def\subsection{\@startsection{\@string\subsection}%
+        2\parindent{6\p@\@plus9\p@}{-.5em}%
+        {\defaultfont\bf}}
+
+\def\subsubsection{\@startsection{\@string\subsubsection}%
+        3\parindent{6\p@\@plus9\p@}{-.5em}%
+        \defaultfont\it}
+
+\def\paragraph{\@startsection{\@string\paragraph}%
+        4\parindent\z@{-\spaceskip}%
+        \defaultfont}
+
+\endinput
+%% 
+%% End of file `tex_inputs:amsbk10.sty'.

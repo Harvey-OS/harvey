@@ -1,0 +1,11 @@
+BUILTINS=
+</$objtype/mkfile
+
+$O.out:	conv.$O decode.$O
+	$LD conv.$O decode.$O
+
+%.$O:	%.c all.h
+	$CC -w $stem.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out conv

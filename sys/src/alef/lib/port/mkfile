@@ -1,0 +1,60 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/alef/libA.a
+
+OFILES=\
+	abs.$O\
+	atexit.$O\
+	atoi.$O\
+	doprint.$O\
+	floor.$O\
+	malloc.$O\
+	pow10.$O\
+	print.$O\
+	ref.$O\
+	rune.$O\
+	strdup.$O\
+	strlen.$O\
+	strncmp.$O\
+	strncpy.$O\
+	strrchr.$O\
+	strtoi.$O\
+	strtol.$O\
+	utflen.$O\
+	utfrrune.$O\
+	utfrune.$O\
+
+none:Q:
+	echo usage: mk entry/install/installall/entry.all
+
+%:	%.l
+	$ALEF -w $stem.l
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+%:	%.s
+	$AS $stem.s
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+install:V:	$OFILES
+	ar vu $LIB $OFILES
+	$RL $LIB
+	rm -f $OFILES
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+%.all:V:
+	for(objtype in $CPUS) mk $stem
+
+clean:V:
+	rm -f *.[$OS]
+
+%.$O:	%.l
+	$ALEF -w $stem.l
+
+%.$O:	%.s
+	$AS $stem.s

@@ -1,0 +1,172 @@
+.TH MPM 6
+.SH NAME
+mpm, mspe \- macros for page makeup
+.SH SYNOPSIS
+.B troff -mpm
+.I file ...
+.PP
+.B troff -mspe
+.I file ...
+.SH DESCRIPTION
+These
+.IR troff (1)
+macros, largely compatible with
+.IR ms (6),
+make better pages.
+They silently invoke and provide information to a
+postprocessor that moves floating figures, avoids widows, and justifies
+pages vertically by stretching vertical spaces that result from 
+.BR .PP ,
+.BR .LP ,
+.BR .IP ,
+.BR .QP ,
+.BR .SH ,
+.BR .NH ,
+.BR .DS / .DE ,
+.BR .EQ / .EN ,
+.BR .TS / .TE ,
+.BR .PS / .PE ,
+.BR .P1 / .P2 ,
+and
+.BR .QS / .QE .
+The packages support different styles:
+.TP
+-mpm
+generic 
+.TP
+.B -mspe
+.I Software\(emPractice and Experience
+.PP
+The following macros are different from or not part of
+.BR -ms .
+Values denoted
+.I n
+have default value
+.BR 1v .
+.TP
+.BR .BP
+Begin a new page.
+.PD 0
+.TP
+.B .FL
+Flush: force out previous keeps.
+.TP
+.B .FC
+Finish a two-column region and start a new one.
+.TP
+.BI .KF \ m
+Floating keep, with preferred center at vertical position
+.IR m .
+Special values
+.L top
+(default) and
+.L bottom
+are permitted.
+.TP
+.BI .NE \ n
+Start new page if remaining vertical space on this page
+is less than
+.I n .
+.TP
+.B .P1
+Begin a program display (Courier font).
+.TP
+.B .P2
+End a program display.
+.TP
+.BI .P3
+Insert optional break point in program display.
+.TP
+.BI .SP " n " exactly
+.br
+.ns
+.TP
+.BI .SP " n " 
+Insert vertical space of height
+.I n,
+stretchable unless
+.B exactly
+is present.
+.TP
+.BI .Tm " text"
+Place page number and
+.I text
+on the standard error output.
+.TP
+.BI .X " text"
+Present
+.I text
+to the hidden page-makeup program
+as part of a device-dependent output sequence
+.B x
+.B X
+.IR "text" .
+Equivalent to
+.BI \eX' text ' .
+.PD
+.PP
+Useful number registers:
+.PD 0
+.TP
+.B HM
+Header margin; default 1 inch.
+.TP
+.B FM
+Footer margin; default 1 inch.
+.TP
+.B FO
+Footer position; default 10 inches.
+.TP
+.B %#
+Page number of current page.
+.TP
+.BR dP , dV
+Shrinkage of point size and vertical spacing for
+.BR .P1 ,
+in points.
+.PD
+.PP
+Useful strings:
+.PD 0
+.TP
+.BR %e , %o
+Even and odd page title commands, as
+.BR .tl\ '''' .
+.PD
+.SH FILES
+.B /sys/lib/tmac/tmac.pm
+.br
+.B /$cputype/bin/aux/pm
+.SH "SEE ALSO"
+.IR ms (6), 
+.IR troff (1)
+.br
+B. W. Kernighan and C. J. Van Wyk,
+`The \-mpm Macro Package',
+UNIX Research System Programmer's Manual, Volume\ 2
+.SH BUGS
+These features of
+.B -ms
+are missing:
+.PD0
+.IP
+Document styles other than the default
+.BR .RP .
+.br
+Space between front matter and first paragraph.
+Recover it with
+.BR ".SP 2" .
+.br
+Separating rule above footnotes.
+.br
+Keeps assigned to a separate page.
+.br
+Pages with more than two columns.
+.LP
+.I Troff
+option
+.B -o
+doesn't work with
+.BR -mpm 
+because only the postprocessor knows the page numbers.
+.PD

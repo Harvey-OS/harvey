@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+TARG=art
+HFILES=	art.h proto.h
+CFILES=	alcmd.c align.c arc.c bezier.c box.c circle.c command.c curpt.c \
+	debug.c draw.c edit.c fileio.c geometry.c \
+	grid.c group.c  head.c input.c line.c main.c menubar.c msg.c \
+	output.c selection.c spline.c storage.c text.c walk.c
+OFILES=${CFILES:%.c=%.$O}
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=
+
+installall:V:
+	for (objtype in $CPUS) mk install
+	cp art2pic /rc/bin && chmod +x /rc/bin/art2pic
+
+listing:V:
+	pr mkfile $HFILES $CFILES|lp -du
+
+proto:V:
+	grep '^[a-zA-Z].*\){$' $CFILES |
+		sed 's/{$/;/;s/ \*/* /g' |
+		sort +1 |
+		sed 's/\* / */g;s@^(.*):(.*)$@\2	/* \1 */@' >proto.h

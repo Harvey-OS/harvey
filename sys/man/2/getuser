@@ -1,0 +1,17 @@
+.TH GETUSER 2
+.SH NAME
+getuser \- get user name
+.SH SYNOPSIS
+.B
+char*	getuser(void)
+.SH DESCRIPTION
+.I Getuser
+returns a pointer to static data which contains the name of the user who
+owns the current process.
+.I Getuser
+reads
+.B /dev/user
+to find the name.
+.SH SEE ALSO
+.IR intro (2),
+.IR cons (3)

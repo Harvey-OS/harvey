@@ -1,0 +1,119 @@
+.TH SRV 4 
+.SH NAME
+srv, 9fs, dk232, dkmodem  \- start network file service
+.SH SYNOPSIS
+.B srv
+[
+.B -m
+]
+.RI [ net !] system [! service ]
+[
+.I srvname
+[
+.I mtpt
+] ]
+.PP
+.B 9fs
+.RI [ net !] system
+.RI [ mountpoint ]
+.PP
+.B dk232
+.RI [ server ]
+.PP
+.B dkmodem
+.RI [ telno ]
+.SH DESCRIPTION
+.I Srv
+dials the given machine and initializes the connection to serve the
+9P protocol.
+It then creates in
+.B /srv
+a file named
+.IR srvname .
+Users can then
+.B mount
+(see
+.IR bind (1))
+the service, typically on a name in
+.BR /n ,
+to access the files provided by the remote machine.
+If
+.I srvname
+is omitted, the first argument to
+.B srv
+is used.
+Option
+.B m
+directs
+.I srv
+to mount the service on
+.BI /n/ system
+or onto
+.I mtpt
+if it is given.
+.PP
+The specified
+.I service
+must serve 9P.  Usually
+.I service
+can be omitted; when calling some
+non-Plan 9 systems, a
+.I service
+such as
+.B u9fs
+must be mentioned explicitly.
+.PP
+The
+.I 9fs
+command does the
+.I srv
+and the
+.I mount
+necessary to make available the files of
+.I system
+on network
+.I net.
+The files are mounted on
+.IR mountpoint ,
+if given;
+otherwise they are mounted on
+.BI /n/ system.
+If
+.I system
+contains
+.L /
+characters, only the last element of
+.I system
+is used in the
+.B /n
+name.
+.PP
+.I Dk232
+configures a serial line as a Datakit device and connects to a file server
+(default
+.BR bootes )
+using
+.BR 9fs .
+.PP
+.I Dkmodem
+dials a file server at telephone number
+.B telno
+and configures the line as a Datakit device using
+.BR 9fs .
+.SH EXAMPLES
+To see kremvax's and deepthought's files in
+.B /n/kremvax
+and
+.BR /n/deepthought :
+.IP
+.EX
+9fs kremvax
+9fs hhgttg/deepthought
+.SH NOTE
+The TCP port used for 9P is 564.
+.EE
+.SH "SEE ALSO"
+.IR bind (1),
+.IR dial (2),
+.IR srv (3),
+.IR dkconfig (8)

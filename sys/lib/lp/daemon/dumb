@@ -1,0 +1,3 @@
+#!/bin/rc
+
+generic 'cat $LPDEST/$FILE(1)>$OUTDEV' 'cat <{echo -d$LPDEST -pnoproc -M$SCHEDLINE(1) -u$SCHEDLINE(2)} $LPDEST/$FILE;sleep 5} | lpsend.rc $DEST_HOST' ''

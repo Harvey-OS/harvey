@@ -1,0 +1,25 @@
+.TH AHD 7
+.SH NAME
+ahd \- American Heritage Dictionary
+.SH SYNOPSIS
+.B ahd
+.RB [ -p ]
+.RI [ word... ]
+.SH DESCRIPTION
+Given one or more
+.I word
+arguments,
+.I ahd
+prints the matching dictionary entry or entries.  Otherwise, words
+to be looked up are taken from the standard input, one per line.
+Under the
+.B -p
+option, entries match if they have the specified word as a prefix.
+.SH FILES
+.TF /$cputype/bin/aux/ahddisplay
+.TP
+.B /lib/ahd/*
+dictionary files.
+.TP
+.B /$cputype/bin/aux/ahddisplay
+display program.

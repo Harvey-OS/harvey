@@ -1,0 +1,4 @@
+TEXT _SEGBRK(SB), $0
+MOVL $12, AX
+INT $64
+RET

@@ -1,0 +1,32 @@
+.TH POSTNOTE 2
+.SH NAME
+postnote \- send a note to a process or process group
+.SH SYNOPSIS
+.nf
+.B
+int	postnote(int pid, char *note)
+.fi
+.SH DESCRIPTION
+.I Postnote
+sends a note to a process or process group.
+If
+.I pid
+is positive,
+.I note
+is written to
+.BI /proc/ pid /note.
+If it is negative, the note is delivered to the
+process group by writing
+.I note
+to
+.BI /proc/ \-pid /notepg.
+.PP
+If the write is successful, zero is returned.
+Otherwise \-1 is returned.
+.SH "SEE ALSO"
+.IR notify (2),
+.IR intro (2),
+.IR proc (3)
+.SH DIAGNOSTICS
+Sets
+.I errstr.

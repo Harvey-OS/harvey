@@ -1,0 +1,7 @@
+#!/bin/sh
+# Convert TeXware programs to C.
+# 
+
+cat texware.define $1 \
+	| ../web2c/web2c -htexware.h -c`basename $1 .p` \
+	| ../web2c/fixwrites > $2

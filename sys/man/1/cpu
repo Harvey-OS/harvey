@@ -1,0 +1,92 @@
+.TH CPU 1
+.SH NAME
+cpu \- connection to cpu server
+.SH SYNOPSIS
+.B cpu
+[
+.B -h
+.I server
+]
+[
+.B -p
+]
+[
+.B -c
+.I cmd args ...
+]
+.SH DESCRIPTION
+.I Cpu
+starts an
+.IR rc (1)
+running on the
+.I server
+machine, or the machine named in the
+.B $cpu
+environment variable if there is no
+.B -h
+option.
+.IR Rc 's
+standard input, output, and error files will be
+.B /dev/cons
+in the name space where the
+.I cpu
+command was invoked.
+Normally,
+.I cpu
+is run in an
+.IR 8½ (1)
+window on a terminal, so
+.IR rc
+output goes to that window, and input comes from the keyboard
+when that window is current.
+.IR Rc 's
+current directory is
+the working directory of the
+.I cpu
+command itself.
+.PP
+The name space for the new
+.I rc
+is an analogue of the name space where the
+.I cpu
+command was invoked:
+it is the same except for architecture-dependent bindings such as
+.B /bin
+and the use of fast paths to file servers, if available.
+.PP
+If a
+.B -c
+argument is present, the remainder of the command line is executed by
+.I rc
+on the server, and then
+.I cpu
+exits.
+.PP
+The name space is built by running
+.B /usr/$user/lib/profile
+with the root of the invoking name space bound to
+.BR /mnt/term .
+The
+.B -p
+option prevents the execution of the remote profile.
+The
+.B service
+environment variable is set to
+.BR cpu ;
+the
+.B cputype
+and
+.B objtype
+environment variables reflect the server's architecture.
+.SH FILES
+The name space of the terminal side of the
+.B cpu
+command is mounted on the CPU side on directory
+.BR /mnt/term .
+.SH SEE ALSO
+.IR rc (1) ,
+.IR 8½ (1)
+.SH BUGS
+Binds and mounts done after the terminal
+.B lib/profile
+is run are not reflected in the new name space.

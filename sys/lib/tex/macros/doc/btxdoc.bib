@@ -1,0 +1,90 @@
+Copyright (C) 1988, all rights reserved.
+
+@COMMENT(You may put a comment in a `comment' command,
+        the way you would with SCRIBE.)
+
+Or you may dispense with the command and simply give the comment,
+as long as it's not within an entry.
+
+If you really want to put a comment inside an entry, simply
+make up a never-to-be-used field.
+
+@FAKE-ENTRY
+        {fake-database-key,
+        never-to-be-used-field = "Even if this were a real entry,
+                I could still have a comment inside an entry
+                by making up a fake field"
+        }
+
+@string (SCRIBE-NOTE = {Chapter twelve and appendices E8 through E10 deal
+                        with bibliographies})
+
+The next entry shows some of the syntactically legal things that
+those with the inclination may use.@
+
+MaNuAl  (scribe,
+        TITLE="Scribe Document Production System
+
+
+                                                        User Manual",
+        ORGANIZATION =  {Unilogic,}#" Ltd"# {.
+                        },
+        ADDRESS = "Pittsburgh",
+                                                MONTH
+=aPR
+        ,YEAR=1984,
+        note = scribe-note,
+)                               May the inclination not be with you.
+
+
+@MISC{prime-number-theorem,
+   author = "Charles Louis Xavier Joseph de la Vall{\'e}e Poussin",
+   note = "A strong form of the prime number theorem, 19th century" }
+
+@INBOOK{chicago,
+   title = "The Chicago Manual of Style",
+   publisher = "University of Chicago Press",
+   edition = "Thirteenth",
+   year = 1982,
+   pages = "400--401",
+   key = "Chicago" }
+
+@BOOK{texbook,
+   author = "Donald E. Knuth",
+   title= "The {{\TeX}book}",
+   publisher = "Addison-Wesley",
+   year = 1984 }
+
+@BOOK{latex,
+   author = "Leslie Lamport",
+   title = "{\LaTeX \rm:} {A} Document Preparation System",
+   publisher = "Addison-Wesley",
+   year = 1986 }
+
+@UNPUBLISHED{btxdoc,
+   author = "Oren Patashnik",
+   title = "{{\BibTeX ing}}",
+   note = "Documentation for general {\BibTeX} users",
+   month = "8~" # feb,
+   year = 1988 }
+
+@UNPUBLISHED{btxhak,
+   author = "Oren Patashnik",
+   title = "Designing {\BibTeX} Styles",
+   note = "The part of \BibTeX's documentation
+                                        that's not meant for general users",
+   month = "8~" # feb,
+   year = 1988 }
+
+@BOOK{strunk-and-white,
+   author = "Strunk, Jr., William and E. B. White",
+   title = "The Elements of Style",
+   publisher = "Macmillan",
+   edition = "Third",
+   year = 1979 }
+
+@BOOK{van-leunen,
+   title = "A Handbook for Scholars",
+   author = "Mary-Claire van Leunen",
+   publisher = "Knopf",
+   year = 1979 }

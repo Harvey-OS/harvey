@@ -1,0 +1,46 @@
+#  9b is the boot program
+#  9 is the kernel
+
+BUILTINS=
+
+objtype=386
+</$objtype/mkfile
+
+BUILTINS=
+
+BOBJ=\
+	l.$O\
+	alarm.$O\
+	clock.$O\
+	dosboot.$O\
+	hard.$O\
+	headland.$O\
+	floppy.$O\
+	kbd.$O\
+	lock.$O\
+	p9boot.$O\
+	bmain.$O\
+	qlock.$O\
+	queue.$O\
+	trap.$O\
+	screen.$O\
+
+
+install:V: b.com
+	cp b.com /386
+
+b.com:	$BOBJ
+	$LD -o $target -H3 -T0x80080100 -l $prereq -lgnot -lc
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	%.c
+	$CC $CFLAGS -I. -w $stem.c
+
+%.$O:	mem.h dat.h fns.h io.h
+
+trap.$O:	ureg.h
+
+clean:
+	rm *.$O b.com

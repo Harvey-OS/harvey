@@ -1,0 +1,80 @@
+</$objtype/mkfile
+
+TARG=`{ls *.[cy] | sed '/^init$/d; s/..$//'}
+OFILES=
+YFILES=bc.y
+BIN=/$objtype/bin
+</sys/src/cmd/mkmany
+
+NOTSYS=eqn|lp|map|pic|proof|tbl|tex|troff|weather
+BUGGERED=reduce|postscript|unix|psi
+NOMK=$NOTSYS|$BUGGERED
+
+DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
+
+clean:V:
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG [$OS].init init bc.c
+	for(i in $DIRS) @{
+		cd $i
+		echo mk $i
+		mk $MKFLAGS clean
+	}
+nuke:V:
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG [$OS].init init bc.c
+	for(i in $DIRS) @{
+		cd $i
+		echo mk $i
+		mk $MKFLAGS nuke
+	}
+
+%.installall:V:
+	for (objtype in $CPUS) {
+		rfork e
+		mk $stem.install &
+	}
+	wait
+
+install:V:
+	mk $MKFLAGS files
+	mk $MKFLAGS directories
+	mk $MKFLAGS clean
+
+files:V:
+	mk $MKFLAGS $TARG.install
+
+cleanfiles:V:
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG [$OS].init init bc.c
+
+directories:V:
+	for(i in $DIRS) @{
+		cd $i
+		echo mk $i
+		mk $MKFLAGS install
+	}
+
+bc.c:	y.tab.c
+	mv $prereq $target
+
+$O.%:	%.$O $OFILES $LIB
+	$LD $LDFLAGS -o $target $stem.$O
+	rm $stem.$O
+
+$BIN/%:	$O.%
+	mv $prereq $target
+
+$BIN/init:	$O.init
+	mv $prereq /$objtype/init
+
+$BIN/pull:	$O.pull
+	cp $prereq $BIN/pull
+	mv $prereq $BIN/Rpull
+
+$BIN/push:	$O.push
+	cp $prereq $BIN/push
+	mv $prereq $BIN/Rpush
+
+nm.$O:	nm.c /sys/src/libmach/obj.h
+	$CC $CFLAGS -I/sys/src/libmach nm.c
+
+rl.$O:	rl.c /sys/src/libmach/obj.h
+	$CC $CFLAGS -I/sys/src/libmach rl.c

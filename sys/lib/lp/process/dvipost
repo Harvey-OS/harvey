@@ -1,0 +1,70 @@
+#!/bin/rc
+# convert Tex dvi to PostScript
+PATCH=''
+for (i in `{echo $IBIN|awk -F, '{ n=split($0, a, ","); for (i=1;i<=n;i++) print a[i]; }'}) {
+	switch ($i) {
+	case man manual manualfeed;	PATCH=$PATCH'
+statusdict begin /manualfeed true def end'
+	case [0-9];	PATCH=$PATCH'
+statusdict begin '$i' setpapertray end'
+	case 11x17 ledger;	PATCH=$PATCH'
+statusdict begin '$i'tray end'
+	}
+}
+if (! ~ $#DUPLEX 0 && ~ $DUPLEX 1)
+	PATCH=$PATCH'
+statusdict /setduplexmode known {statusdict begin true setduplexmode end} if'
+if (! ~ $#LAND 0 && ~ $LAND 1)
+	LAND='-L'
+if (~ $LPCLASS *reverse*) {
+	switch ($REVERSE) {
+	case '';
+		REVFLAG=1
+	case 1;
+		REVFLAG=''
+	}
+}
+switch ($LPCLASS) {
+case *lino*;
+	TOPT='-Tlino'
+case *;
+	TOPT=''
+}
+if (! ~ $COPIES '' -c*) COPIES=-c^$COPIES
+if (! ~ $OLIST '' '='*) OLIST=`{echo $OLIST | sed 's/-o/=/' | sed 's/-/:/g' }
+if (! ~ $NPAG '' -A*) {
+	NPAG=-A$NPAG
+	if (~ $REVFLAG 1) {
+		echo 'page reversal turned off with -n option' >[1=2]
+		REVFLAG=''
+	}
+}
+switch ($REVFLAG) {
+case 1;
+	echo %!
+	echo $PATCH
+	switch ($OLIST) {
+	case '';
+		eval dvips -r $LAND $COPIES $NPAG $1
+	case *;
+		DVIFILE=/tmp/dv$pid.dvi
+		dviselect -s $OLIST $1 > $DVIFILE
+		eval dvips -r $LAND $TOPT $COPIES $NPAG $DVIFILE
+		rm -f $DVIFILE
+	}
+	$LPLIB/process/hpost </dev/null
+case '';
+	$LPLIB/process/hpost </dev/null
+	echo %!
+	echo $PATCH
+	switch ($OLIST) {
+	case '';
+		eval dvips -r0 $LAND $COPIES $NPAG $1
+	case *;
+		DVIFILE=/tmp/dv$pid.dvi
+		dviselect -s $OLIST $1 > $DVIFILE
+		eval dvips -r0 $LAND $TOPT $COPIES $NPAG $DVIFILE
+		rm -f $DVIFILE
+	}
+}
+exit

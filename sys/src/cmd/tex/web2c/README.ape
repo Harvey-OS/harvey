@@ -1,0 +1,54 @@
+Changes for ansi/ape (v10)
+
+Makefile: add #define _POSIX_SOURCE (and undef BSD, SYSV)
+change Makefiles to use CC=/usr/ape/apebin/pcc
+
+tex/extra.c mf/extra.c: define index, rindex, not sprintf
+	also, give implementations for putw, getw
+
+mf/MFwindow/x10.c: don't declare sprintf
+
+mfware/mfwarext.c: include string.h, don't declare sprintf
+
+fontutil/extra.c: define index, rindex
+
+bibtex can't be made with ANSI web2c, because it assumes that
+by declaring an arg to be pointer to int, and passing an int,
+the compiler will do the coersion.
+solution: change web2c/web2c.c to allow -a0 to turn OFF ansi
+mode, and add -a0 to web2c call in bibtex/convert
+
+Changes for bugs
+
+web2c/web2c.lex: change conditions for declaring unput, input to
+#ifndef unput
+static void unput(char);
+#endif
+#ifndef input
+static int input(void);
+#endif
+
+tex/extra.c: add SIGNAL_HANDLER_RETURN_TYPE to def of catchint
+
+texware/dvitype.ch: changed type of cur_name and real_name_of_file
+	from text_char to char
+texware/pooltype.ch: changed type of pool_name to char
+
+mfware/gftodvi.ch: changed UNIX_file_name, real_name_of_file to
+	packed char arrays
+mfware/mft.ch: changed mf_file_name (et al.) and real_name_of_file to
+	packed char arrays
+mfware/mfware.h: declare openf if ANSI
+
+Changes for local needs
+
+applied tex/bigtex.diff and mf/bigmf.diff patches
+
+mf/MFwindow/x11.c,x11-Xlib.c,x11-Xt.c: surround X includes
+	by undef of __STDC__ (a bug in need-prototypes?)
+
+
+FOR PLAN9:
+
+change */convert for sed change:
+	in patterns, ( -> \(, ) -> \(,  \( -> (, and \) -> )

@@ -1,0 +1,83 @@
+.TH MALLOC 2 
+.SH NAME
+malloc, free, realloc, calloc, mstats \- memory allocator
+.SH SYNOPSIS
+.ta \w'\fLvoid* 'u
+.B
+void*	malloc(long size)
+.PP
+.B
+void	free(void *ptr)
+.PP
+.B
+void*	realloc(void *ptr, long size)
+.PP
+.B
+void*	calloc(long nelem, long elsize)
+.SH DESCRIPTION
+.I Malloc
+and
+.I free
+provide a simple memory allocation package.
+.I Malloc
+returns a pointer to a new block of at least
+.I size
+bytes.
+The block is suitably aligned for storage of any type of object.
+No two active pointers from
+.I malloc
+will have the same value.
+.PP
+The argument to
+.I free
+is a pointer to a block previously allocated by
+.IR malloc ;
+this space is made available for further allocation.
+It is legal to free a null pointer; the effect is a no-op.
+.PP
+.I Realloc
+changes the size of the block pointed to by
+.I ptr
+to
+.I size
+bytes and returns a pointer to the (possibly moved)
+block.
+The contents will be unchanged up to the
+lesser of the new and old sizes.
+The call
+.B "realloc(0, size)
+means the same as
+.LR malloc(size) .
+.PP
+.I Calloc
+allocates space for
+an array of
+.I nelem
+elements of size
+.I elsize.
+The space is initialized to zeros.
+.I Free
+frees such a block.
+.SH SEE ALSO
+.IR brk (2)
+.SH DIAGNOSTICS
+.I Malloc, realloc
+and
+.I calloc
+return 0 if there is no available memory.
+.I Errstr
+is likely to be set.
+.SH BUGS
+The different specification of
+.I calloc
+is bizarre.
+.PP
+User errors can corrupt the storage arena.
+The most common gaffes are (1) freeing an already freed block,
+(2) storing beyond the bounds of an allocated block, and (3)
+freeing data that was not obtained from the allocator.
+When
+.I malloc
+and
+.I free
+detect such corruption, they abort.

@@ -1,0 +1,185 @@
+
+Path: rice!cs.utexas.edu!uwm.edu!srcsip!jhereg!com50!pai!erc
+From: erc@pai.UUCP (Eric Johnson)
+Newsgroups: comp.graphics
+Subject: Re: PCX's format
+Date: 8 Jun 90 14:28:12 GMT
+Organization: Boulware Technologies, Inc., Burnsville, MN
+
+
+A long while back, I wrote a screen-dump utility that output a MONOCHROME
+.PCX (PC-PaintBrush) file.  Contact Z-Soft, the makers of PC-PaintBrush for
+a full technical manual on the .PCX file format.  In '86, I had some problems
+with the manual (there seemed to be a few gaps), so enclosed below is part of
+a Boulware Technologies (the firm I work for) Tech Note I wrote on the subject.
+The note is old and if you find any errors, sorry.  Z-Soft is, of course,
+the primary source for information on this. I suggest you contact them.
+
+Since much of the note deals with how I allowed the user to map any of
+the 16 EGA colours to black or white dots (these screen dumps are for
+use by the documentation staff), I deleted the parts that won't be
+relevant for you.
+
+(.PCX files do allow colour and typically use four colour planes.  The data
+is then output one plane at a time in the file.  See the Z-Soft manual
+for more info.)
+
+-------
+
+PAWS Tech Note 29
+
+PC-Paintbrush Graphics Dumps
+
+4 March 88         E F Johnson
+
+A VERY technical tech note describing the new way of making PAWS
+screen dumps into the standard-format .PCX files.
+
+...
+
+[...PAWs-related stuff deleted. I really don't think you want information
+on our factory automation interface. If you do, send me email...]
+
+...
+
+3) To print out a .PCX file, use the PC-Paintbrush or Ventura Publisher
+packages for the PC.  No translation program is needed.
+
+
+
+4) A .PCX file has the following format:
+
+First, it has a 128-byte header, which looks like (in order in the file):
+
+
+       SIZE in BYTES       DECSRIPTION      DEFINITION
+       1                   Manufacturer     10 == PC-Paintbrush PCX
+       1                   Version          0 == 2.5
+                                            2 == 2.8 with palette info
+                                            3 == 2.8 without palette info
+                                            5 == 3.0 with palette info
+       1                   Encoding         1 == .PCX run-length encoding
+       1                   Bits per pixel   we use 1 for mono images
+       8                   WINDOW           (MinX, MinY)  (MaxX, MaxY)
+       2                   Horizontal Res   Horizontal Resolution
+       2                   Vertical   Res   Vertical   Resolution
+       48 ( 16 * 3 )       ColourMap         R, G, B for each of 16 colours
+                                            The colour Map used is:
+                                            0, 0, 0 
+                                            255, 255, 255
+                                            0, 170, 0   
+                                            0, 170, 170  
+                                            170, 0, 0
+                                            170, 0, 170
+                                            170, 170, 0
+                                            170, 170, 170
+                                            85,  85,  85 
+                                            85,  85,  255 
+                                            85, 255, 85
+                                            85, 255, 255
+                                            255,  85,  85
+                                            255,  85, 255 
+                                            255, 255,  85
+                                            255, 255, 255
+
+       1                   reserved        (this puts in a 0)
+       1                   Num Planes      Number of colour planes, this uses 1
+       2                   Bytes Per line  640 pixels/8 = 80 bytes per line
+
+       The rest of the 128-byte header is padded with zeroes.
+
+NOTE: integer values (2 bytes) are in PC byte-order in the Big-endian/
+Little-endian scheme.  The PAWS code uses a union of:
+union
+   {
+   char  cpart[ 2 ];
+   int   ipart;
+   } u;
+
+   to convert ints to two bytes in the header.
+
+                
+
+The data in the file comes after the header.  The data section contains
+a set of scan-lines, running by pixel from left-to-right, then top-to-bottom.
+
+Each scan-line contains bytes with 8 pixels each (since this is monochrome,
+each bit represents one pixel).  PC-Paintbrush uses an encoding scheme
+to conserve on file space.  Basically, the scheme compares adjacent bytes
+in one scan-line.  If the adjacent bytes are the same, it the writes out
+a flag ( 0xC0 ) with a count ( actually 0xC0 | count ).  The next byte is
+the data byte that is repeated.  For example, if five bytes are the same
+01 (in hex), 
+
+01 01 01 01 01
+
+the .PCX output is only two bytes
+
+C5 01
+
+where C5 means special flag (C) with a count of 5, and the 01 in the
+next position is the data byte.
+
+If there is no match in the next byte, .PCX files just use the plain data
+byte (implicit count of 1).  For example, if the byte stream is
+
+01 01 01 01 01 04 01 01 
+
+the .PCX output is
+
+C5 01 04 C2 01
+
+
+Note:  this .PCX format breaks down in two cases:
+
+i) If the byte value is >= 0xC0, (the flag code == top two bits are on),
+then the format must use a C1 (flag with count 1) 
+
+ii) If there are more than 15 bytes the same, the count makes the 0xC0 become
+0xD0 or higher.  This confuses the decoding software in PC-Paintbrush.  
+Instead, only use counts UNDER 15.  If there are 17 of the same bytes in 
+a row, use two count flags, e.g.,
+
+01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01
+
+becomes
+
+CE 01 C3 01
+
+
+
+
+More information on PC-Paintbrush file format can be found in the Z-Soft
+Technical Reference Manual, 1986 version.
+
+**
+**
+*/
+
+/* -- defines for PC Paint Header */
+
+#define     PCPAINT      10      /* -- .PCX file */
+#define     PCXVERSION   5       /* -- PCPaint 3.0 w/ palette info */
+#define     ENCODING     1       /* -- .PCX encoding */
+#define     BITSPERPIXEL 1       /* -- Monochrome */
+#define     NUMPLANES    1       /* -- Monochrome */
+#define     WIND_X1      0       /* -- Window Coords */
+#define     WIND_Y1      0       /* -- Window Coords */
+#define     WIND_X2      639     /* -- Window Coords */
+#define     WIND_Y2      349     /* -- Window Coords */
+#define     HRES         640     /* -- Horizontal Resolution  */
+#define     VRES         350     /* -- Vertical   Resolution  */
+#define     BYTESPERLINE 80      /* -- Bytes per scan line    */
+
+Hope this helps,
+-Eric
+
+
+
+-- 
+Eric F. Johnson, Boulware Technologies, Inc. 
+415 W. Travelers Trail, Burnsville, MN 55337 USA.  Phone: +1 612-894-0313. 
+erc@pai.mn.org    - or -   bungia!pai!erc
+"Things are more like they are now than they've ever been," US President Ford.
+
+

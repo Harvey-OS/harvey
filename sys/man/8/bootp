@@ -1,0 +1,91 @@
+.TH BOOTP 8
+.SH NAME
+bootp, rarpd, tftpd \- Internet booting
+.SH SYNOPSIS
+.PP
+.B ip/bootp
+.RB [ -d ]
+.PP
+.B ip/rarpd
+.RB [ -d ]
+.RB [ -e
+.IR etherdev ]
+.PP
+.B ip/tftpd
+.RB [ -d ]
+.RB [ -h
+.IR homedir ]
+.SH DESCRIPTION
+These programs support booting over the Internet.
+They should all be run on the same server to
+allow other systems to be booted.
+.I Rarpd
+and
+.I tftpd
+are used to boot Suns.
+.I Bootp
+and
+.I tftpd
+are used to boot everything else.
+.PP
+.I Bootp
+passes to Plan 9 systems their IP address, IP mask, default boot file, default
+file server, default authentication server, and default gateway.
+These come from the network database file attributes
+.IR ip ", " ipmask ", " bootf ", "
+.IR fs ", " auth ", "
+and
+.I ipgw
+attributes respectively
+(see
+.IR ndb (6)
+and
+.IR ndb (8)).
+The attributes come from the entry for the system, its subnet, and its network
+with the system entry having precedence, subnet next, and network last.
+The
+.B -d
+option causes debugging to be printed to standard out.
+.PP
+.I Rarpd
+performs the Internet reverse address resolution protocol, translating
+Ethernet addresses into Internet addresses.
+The options are:
+.TP
+.B d
+print debugging to standard output
+.TP
+.B e
+use the Ethernet mounted at
+.RI /net/ etherdev
+.PP
+.I Tftpd
+transfers files to systems that are booting.
+It runs as user
+.I none
+and can only access files with world read permission.
+The options are:
+.TP
+.B d
+print debugging to standard output
+.TP
+.B h
+change directory to
+.IR homedir .
+The default is
+.B /lib/tftpd.
+All requests for files with non-rooted file names are served starting at this
+directory with the exception of files of the form
+.B xxxxxxxx.SUN4C.
+These are Sparc kernel boot files where
+.B xxxxxxxx
+is the hex IP address of the machine requesting the kernel.
+.I Tftpd
+looks up the file in the network database using
+and responds with the bootfile specified for that particular
+machine.
+If no booftile is specified, the transfer fails.
+.I Tftpd
+supports only octet mode.
+.SH "SEE ALSO"
+.IR ndb (6)

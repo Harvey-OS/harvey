@@ -1,0 +1,122 @@
+.TH SMOKE 10.1
+.SH NAME
+smoke \- static circuit checks
+.SH SYNOPSIS
+.B cda/smoke
+[
+.B -l load
+]
+[
+.B -abcmnpsxL
+]
+.I files
+.SH DESCRIPTION
+.I Smoke
+reads and checks a circuit and reports simple
+errors like typechecking in C.
+.PP
+The circuit description language is 
+.IR cdl (10.6).
+The
+.I files
+are usually a circuit description file(s) made with
+.IR gnet (10.1)
+and/or
+.IR cdmglob (10.1)
+and the pins files with
+.B .tt
+lines like those given to
+.IR cdmglob (10.1).
+Files with net lists come first, pins files come second.
+.PP
+The
+.B .tt
+line contains one character per pin on the chip according to
+the following table:
+.sp
+.nf
+	\fL1\fP	open collector output
+	\fL2\fP	totem pole ttl output
+	\fL3\fP	3-state output
+	\fLi\fP	input
+	\fLp\fP	pull-up (for 1)
+	\fL0\fP	1 and p
+	\fL4\fP	3 and i
+	\fL5\fP	1 and i
+	\fL6\fP	1 and p and i
+	\fLj\fP	p and i
+	\fLk\fP	d and i
+	\fL9\fP	voltage source
+	\fLv\fP	vcc sink (.vb 1)
+	\fLw\fP	.vb 2 sink
+	\fLx\fP	.vb 3 sink
+	\fLy\fP	.vb 4 sink
+	\fLz\fP	.vb 5 sink
+	\fLg\fP	ground
+	\fLn\fP	no connect (use as tie point prohibited)
+	\fL8\fP	analog output
+	\fLa\fP	analog input
+	\fLA\fP	analog input/output pin
+	\fLs\fP	switch contact
+	\fLt\fP	terminator
+	\fLb\fP	PAL undeclared pin
+	\fLI\fP	current source (not supported)
+	\fLJ\fP	current sink (not supported)
+	\fLD\fP	+ driver
+	\fLd\fP	- driver
+	\fLR\fP	+ receiver
+	\fLr\fP	- receiver
+	\fLP\fP	pulldown
+	\fL.\fP	no type
+.fi
+.sp
+.PP
+The various options for
+.I smoke
+are
+.TP 7
+.B -a
+Don't print out errors on analog nets.
+.TP 7
+.B -b
+Don't print out errors on nets with bidirectional pins.
+.TP 7
+.B -c
+Print out the entire circuit with type declarations by each pin (but
+does
+.I not
+do any checking.
+.TP 7
+.B -l
+takes an optional loading count; only nets with more loads will be
+flagged for load complaints.
+.TP 7
+.B -m
+Don't complain about lone pins on macro signals.
+.TP 7
+.B -n
+Turn on `complete' nets; when errors occur, nets will be completely printed
+out (when used with
+.BR -x ).
+.TP 7
+.B -p
+Turn on paranoid mode;
+.I smoke
+normally doesn't complain if 
+there are any undeclared pins in a net.  Now it will.
+.TP 7
+.B -s
+Ignore multiple source messages.  Not recommended for general use.
+.TP 7
+.B -x
+Turn on extra (excessive) mode.  Offending nets will be printed out in
+gory detail; \fIvery\fP useful for debugging the nets it complains about.
+.TP 7
+.B \-L
+Ignore lonely pins with names beginning with
+.B $
+(local names).
+.SH BUGS
+In
+.I smoke,
+the last definition of the chip is the one that counts.

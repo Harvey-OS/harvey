@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=drawp
+OFILES=drawp.$O\
+	picmacros.$O\
+	trmacros.$O\
+
+</sys/src/cmd/mkone
+
+picmacros.c:	picmacros
+	carray $prereq <$prereq >$target
+
+trmacros.c:	trmacros
+	carray $prereq <$prereq >$target
+
+nuke:V:
+	mk clean
+	rm -f picmacros.c trmacros.c

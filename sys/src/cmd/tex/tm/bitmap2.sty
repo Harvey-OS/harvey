@@ -1,0 +1,61 @@
+\newcount\bmhpoz
+\newcount\bmwid
+\newif \ifbmblack
+\newdimen\bmrlen
+\newdimen\bmpsiz
+\catcode`,=\active
+\def\Bitmap#1#2{\vskip0pt % tla
+ \bgroup
+ \bmpsiz=#2
+ \baselineskip=\bmpsiz
+ \parskip=0pt % tla
+ \parindent=0pt
+ \bmrlen=0pt
+ \catcode`,=\active
+ \def,##10x##2##3{%
+  \HexFig{##3}\HexFig{##2}%
+  \advance\bmhpoz 8
+  \ifnum\bmhpoz>\bmwid
+  \0\hfil \vskip 0pt
+  \bmhpoz=1 \bmrlen=0pt
+  \fi}
+ \def\HexFig##1{%
+  \uppercase{\ifcase "##1}
+  \0\0\0\0\or
+  \1\0\0\0\or
+  \0\1\0\0\or
+  \1\1\0\0\or
+  \0\0\1\0\or
+  \1\0\1\0\or
+  \0\1\1\0\or
+  \1\1\1\0\or
+  \0\0\0\1\or
+  \1\0\0\1\or
+  \0\1\0\1\or
+  \1\1\0\1\or
+  \0\0\1\1\or
+  \1\0\1\1\or
+  \0\1\1\1\or
+  \1\1\1\1\fi
+ }
+ \def\0{\ifbmblack
+  \vrule width \bmrlen height \bmpsiz
+  \bmrlen=\bmpsiz \bmblackfalse
+  \else
+  \advance \bmrlen\bmpsiz
+  \fi}
+ \def\1{\ifbmblack
+  \advance \bmrlen\bmpsiz
+  \else
+  \vrule width \bmrlen height 0pt
+  \bmrlen=\bmpsiz \bmblacktrue
+  \fi}
+ \def\BmContent
+   ##1_width ##2 ##3[] ##4 ##5;{%
+  \bmwid=##2
+  \bmhpoz=1
+  ,##5
+  }% end of \BmContent
+ \expandafter\BmContent\@@input #1 
+\egroup}% end of \Bitmap
+\catcode`,=12 % other

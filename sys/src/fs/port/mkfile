@@ -1,0 +1,8 @@
+X=`{cd ../port;echo *.c | sed 's/fcall.c //'}
+PFILES=`{echo $X | sed 's/ /|/g' | sed 's/\.c//g'}
+
+^($PFILES).$O:R:	'../port/\1.c'
+	$CC $CFLAGS ../port/$stem1.c
+
+fcall.$O:R: ../port/fcall.c
+	$CC -w ../port/fcall.c

@@ -1,0 +1,8 @@
+.TH INTRO 8
+.SH NAME
+intro \- introduction to system administration
+.SH DESCRIPTION
+This manual section describes commands for system administration
+as well as various utility programs necessary for the system
+but not routinely invoked
+by a user.

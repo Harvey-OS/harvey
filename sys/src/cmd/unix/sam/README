@@ -1,0 +1,12 @@
+This directory contains a single useful file named sam.unix.
+It is a shar file containing an X-windows version of sam
+suitable for use on Unix systems.  Simply copy the file
+to a Unix system and run it through a Bourne shell to unpack
+it.  The README file in the root directory contains the
+collected wisdom of many installations.
+
+When you have sam running on your Unix system, it is possible
+to run the front end on a Plan 9 terminal and the back end
+on the Unix system, but not vice-versa; the Plan 9 authentication
+scheme does not honor remote execution requests from a non-Plan 9
+system.

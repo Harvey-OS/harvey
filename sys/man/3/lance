@@ -1,0 +1,69 @@
+.TH LANCE 3 
+.SH NAME
+lance \- LANCE Ethernet device
+.SH SYNOPSIS
+.nf
+.B bind -a #l /net
+
+.B #l/ether/clone
+.B #l/ether/[0-7]
+.B #l/ether/[0-7]/data
+.B #l/ether/[0-7]/ctl
+.B #l/ether/[0-7]/stats
+.B #l/ether/[0-7]/type
+.fi
+.SH DESCRIPTION
+The LANCE Ethernet interface is a directory
+containing 9 stream directories: one for each of 9 Ethernet packet types
+and a
+.B clone
+file.
+.PP
+Each stream directory contains files to control the stream,
+receive and send data,
+and supply statistics.
+Incoming Ethernet packets are demultiplexed by packet type and passed up
+the corresponding open stream.
+Reading from the
+.B data
+file reads packets at the head of the stream.
+A read will terminate at packet boundaries.
+Each write to the
+.B data
+file causes a packet to be sent.
+The Ethernet address of the interface is inserted into
+the packet header as the source address.
+.PP
+A stream is assigned a packet type by opening its
+.B ctl
+file and
+writing 
+.B connect
+.I n
+where
+.I n
+is a decimal integer constant identifying the Ethernet packet type.
+A value of -1 stands for all types.
+If multiple streams are assigned to a given packet type
+a copy of the packet is passed up each stream.
+.PP
+Reading the
+.B type
+file returns the decimal value of the assigned Ethernet packet type.
+Reading the stats
+file returns status information and the Ethernet address of the
+interface.
+.PP
+An interface normally receives only packets whose 
+destination address is that of the interface or is the
+broadcast address,
+.B ff:ff:ff:ff:ff:ff.
+The interface can be made to receive all packets on the
+network by writing the string 
+.B promiscuous
+to the
+.B ctl
+file. 
+The interface remains promiscuous until the control file is
+closed.
+The extra packets are passed up only streams of type \-1.

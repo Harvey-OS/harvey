@@ -1,0 +1,16 @@
+extern ushort tab01[];
+extern uchar tab10[];
+extern ulong tab03[];
+extern uchar tab30[];
+extern ulong tab13[];
+extern uchar tab31[];
+extern ulong tab02[];
+extern uchar tab20[];
+extern ushort tab12[];
+extern uchar tab21[];
+extern ushort tab23[];
+extern uchar tab32[];
+extern uchar tab01b[];
+extern uchar tab10b[];
+extern uchar tab03b[];
+extern uchar tab30b[];

@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+LIB=libString.a$O
+OFILES=	s_alloc.$O\
+	s_append.$O\
+	s_array.$O\
+	s_copy.$O\
+	s_getline.$O\
+	s_grow.$O\
+	s_nappend.$O\
+	s_parse.$O\
+	s_read.$O\
+	s_read_line.$O\
+	s_tolower.$O\
+
+
+</sys/src/cmd/mklib
+
+nuke:V:
+	mk clean
+	rm -f libcommon.a[$OS]

@@ -1,0 +1,30 @@
+.TH NETSTAT 1
+.SH NAME
+netstat \- summarize network connections
+.SH SYNOPSIS
+.B netstat
+.SH DESCRIPTION
+.I Netstat
+prints information about network connections. For
+.I Datakit
+connections
+.I netstat
+reports the connection number, the local user,
+the connection state, the service,
+and the address of the remote
+machine.
+For
+.I IP
+connections
+.I netstat
+reports the connection number, user,
+connection state, local port, remote port and
+remote address.
+.I Netstat
+looks up port numbers and addresses in the network databases
+to print symbolic names if possible.
+.SH FILES
+.B /net/*/*
+.SH "SEE ALSO"
+.IR dkconfig (8), 
+.IR ipconfig (8)

@@ -1,0 +1,40 @@
+APE=/sys/src/ape
+< $APE/config
+
+TARG=dviselect delatex
+
+OFILES=
+HFILES=
+YFILES=
+LFLAGS=-t
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkmany
+CFLAGS=-B -c
+
+compile:V: all
+
+dviselect:V:	$O.dviselect
+
+delatex:V:	$O.delatex
+
+%.c:	%.lex
+	$LEX $LFLAGS $stem.lex > $stem.c
+
+nuke:V:
+	mk clean
+	rm -f delatex.c
+
+install:VQ:		# only way to override mkmany.install
+		mk $BIN/dviselect $BIN/delatex
+
+$BIN/%:	$O.%
+	$INSTALL $prereq $target $INSOWNER $INSGROUP $INSMODE
+
+test:VE: all
+	dviselect -s 2-3 testdir/test1.dvi > t.dvi
+	if (! cmp testdir/test1-23.dvi t.dvi) echo bad dviselect
+	rm t.dvi
+	delatex testdir/test1.tex > t.out
+	if (! cmp testdir/delatex1.out t.out) echo bad delatex
+	rm t.out

@@ -1,0 +1,502 @@
+.TH PRINT 2
+.SH NAME
+print, fprint, sprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint, donprint \- print formatted output
+.SH SYNOPSIS
+.ta \w'\fLchar* 'u
+.B
+int	print(char *format, ...)
+.PP
+.B
+int	fprint(int fd, char *format, ...)
+.PP
+.B
+int	sprint(char *s, char *format, ...)
+.PP
+.B
+int	fmtinstall(char c, int (*f)(void*, int, int, int, int))
+.PP
+.B
+void	strconv(char *s, int f1, int f2, int f3)
+.PP
+.B
+void	Strconv(Rune *s, int f1, int f2, int f3)
+.PP
+.B
+int	numbconv(void *o, int f1, int f2, int f3, int chr)
+.PP
+.B
+int	fltconv(double f, int f1, int f2, int f3, int chr)
+.PP
+.B
+char*	doprint(char *s, char *es, char *format, void *argp)
+.PP
+.B
+extern int printcol;
+.SH DESCRIPTION
+.I Print
+writes text to the standard output.
+.I Fprint
+writes to the named output
+file descriptor;
+a buffered form
+is described in
+.IR bio (2).
+.I Sprint
+places text
+followed by the NUL character
+.RB ( \e0 )
+in consecutive bytes starting at
+.IR s ;
+it is the user's responsibility to ensure that
+enough storage is available.
+Each function returns the number of characters
+transmitted (not including the NUL
+in the case of
+.IR sprint ),
+or
+a negative value if an output error was encountered.
+.PP
+Each of these functions
+converts, formats, and prints its
+trailing arguments
+under control of a
+.IR format 
+string.
+The
+format
+contains two types of objects:
+plain characters, which are simply copied to the
+output stream,
+and conversion specifications,
+each of which results in fetching of
+zero or more
+arguments.
+The results are undefined if there are arguments of the
+wrong type or too few
+arguments for the format.
+If the format is exhausted while
+arguments remain, the excess
+is ignored.
+.PP
+Each conversion specification has the following format:
+.IP
+.B "% [flags] verb
+.PP
+The verb is a single character and each flag is a single character or a
+(decimal) numeric string.
+Up to two numeric strings may be used;
+the first is called
+.IR f1 ,
+the second
+.IR f2 .
+A period can be used to separate them, and if the period is
+present then
+.I f1
+and
+.I f2
+are taken to be zero if missing, otherwise they are `omitted'.
+Either or both of the numbers may be replaced with the character
+.BR * ,
+meaning that the actual number will be obtained from the argument list
+as an integer.
+The flags and numbers are arguments to
+the
+.I verb
+described below.
+.PP
+The numeric verbs
+.BR d ,
+.BR o ,
+.BR x ,
+and
+.B X
+format their arguments in decimal,
+octal, hexadecimal, and upper case hexadecimal.
+Each interprets the flags
+.BR h ,
+.BR l ,
+.BR u ,
+.BR # ,
+and
+.B \(mi
+to mean short, long, unsigned, alternate format, and left justified.
+If neither
+short nor long is specified,
+then the argument is an
+.BR int .
+If unsigned is specified,
+then the argument is interpreted as a
+positive number and no sign is output.
+If two
+.B l
+flags are given,
+then the argument is interpreted as a
+.B vlong
+(a 4-byte or sometimes 8-byte integer).
+If
+.I f2
+is not omitted, the number is padded on the left with zeros
+until at least
+.I f2
+digits appear.
+Then, if alternate format is specified,
+for
+.B o
+conversion, the number is preceded by a
+.B 0
+if it doesn't already begin with one;
+for
+.B x
+conversion, the number is preceded by
+.BR 0x ;
+for
+.B X
+conversion, the number is preceded by
+.BR 0X .
+Finally, if
+.I f1
+is not omitted, the number is padded on the left (or right, if
+left justification is specified) with enough blanks to
+make the field at least
+.I f1
+characters long.
+.PP
+The floating point verbs
+.BR f ,
+.BR e ,
+.BR E ,
+.BR g ,
+and
+.B G
+take a
+.B double
+argument.
+Each interprets the flags
+.BR + ,
+.BR - ,
+and
+.B #
+to mean
+always print a sign,
+left justified,
+and
+alternate format.
+.I F1
+is the minimum field width and,
+if the converted value takes up less than
+.I f1
+characters, it is padded on the left (or right, if `left justified')
+with spaces.
+.I F2
+is the number of digits that are converted after the decimal place for
+.BR e ,
+.BR E ,
+and
+.B f
+conversions,
+and
+.I f2
+is the maximum number of significant digits for
+.B g
+and
+.B G
+conversions.
+The 
+.B f
+verb produces output of the form
+.RB [ - ] digits [ .digits\fR].
+.B e
+conversion appends an exponent
+.BR e [ - ] digits ,
+and
+.B E
+conversion appends an exponent
+.BR E [ - ] digits .
+The
+.B g
+verb will output the argument in either
+.B e
+or
+.B f
+with the goal of producing the smallest output.
+Also, trailing zeros are omitted from the fraction part of
+the output, and a trailing decimal point appears only if it is followed
+by a digit.
+The
+.B G
+verb is similar, but uses
+.B E
+format instead of
+.BR e .
+When alternate format is specified, the result will always contain a decimal point,
+and for
+.B g
+and
+.B G
+conversions, trailing zeros are not removed.
+.PP
+The
+.B s
+verb copies a string
+(pointer to
+.BR char )
+to the output.
+The number of characters copied
+.RI ( n )
+is the minimum
+of the size of the string and
+.IR f2 .
+These
+.I n
+characters are justified within a field of
+.I f1
+characters as described above.
+The
+.B S
+verb is similar, but it interprets its pointer as an array
+of runes (see
+.IR utf (6));
+the runes are converted to
+.SM UTF
+before output.
+.PP
+The
+.B c
+verb copies a single
+.B char
+(promoted to
+.B int )
+justified within a field of
+.I f1
+characters as described above.
+The
+.B C
+verb is similar, but works on runes.
+.PP
+.I Fmtinstall
+is used to install custom verbs and flags.
+.I Fn
+should be declared as
+.IP
+.EX
+int	fn(void *o, int f1, int f2, int f3, int chr)
+.EE
+.PP
+.I Fn
+is passed a pointer
+.I o
+to whatever argument appears next in
+the list to
+.IR print .
+.I Chr
+is the flag or verb character to cause
+.I fn
+to be called; it must have value less than 512.
+In
+.I fn,
+.I f1
+and
+.I f2
+are the decoded flags in the conversion.
+A missing
+.I f1
+is denoted by the value zero.
+A missing
+.I f2
+is denoted by a negative number.
+.I F3
+is the bitwise OR of all the
+flags seen since the most recent
+.LR % .
+The standard flags values are: 1
+.RB ( + ),
+2
+.RB ( - ),
+4
+.RB ( # ),
+8
+.RB ( l ),
+16
+.RB ( h ),
+32
+.RB ( u ),
+and
+64
+.RB ( ll ).
+If
+.B chr
+is a verb,
+.I fn
+should return the size of the argument in bytes so
+.I print
+can skip over it.
+If
+.I chr
+is a flag,
+.I fn
+should return a negative value:
+the negation of one of the above flag values, or some otherwise unused power of two.
+All interpretation of
+.IR f1 ,
+.IR f2 ,
+and
+.I f3
+is left up to the conversion routine.
+.PP
+.I Sprint
+is reentrant; it may be called to
+help prepare output in custom conversion routines.
+.PP
+.I Strconv
+(with a lower-case s)
+formats a
+.SM UTF
+string.
+.I S
+is the string,
+.I f1
+and
+.I f2
+have the same meaning as above.
+The
+.I strconv
+routine interprets the
+.L -
+flag in f3 as left-justification.
+.I Strconv
+(with a capital S)
+is like
+.IR strconv ,
+but its input is a rune string, which is converted to
+.SM UTF
+on output.
+.PP
+.I Printcol
+indicates the position of the next output character.
+Tabs, backspaces and carriage returns are interpreted appropriately.
+.PP
+.I Numbconv
+is used to implement the integer verbs;
+its arguments are like those of the function argument to
+.IR fmtinstall .
+.I Fltconv
+is used to implement the floating verbs.
+Its arguments are like those of the function argument to
+.IR fmtinstall ,
+except that the first argument is the double itself rather than
+a pointer to it.
+Both
+.I numbconv
+and
+.I fltconv
+use
+.I strconv
+to put their results into the current print buffer.
+.PP
+One of
+.I strconv,
+.I Strconv,
+or
+.I numbconv
+must be called to produce output; no other routine puts characters
+in the output buffer.
+.PP
+.I Doprint
+formats the arguments starting at
+.I argp
+into the buffer starting at
+.IR s ,
+but it writes no characters after the address
+.IR es .
+It returns a pointer to the NUL
+terminating the
+formatted string.
+.SH EXAMPLES
+This function prints an error message with a variable
+number of arguments and then quits.
+.IP
+.EX
+.ta 6n +6n +6n
+void fatal(char *msg, ...)
+{
+	char buf[1024], *out;
+
+	out = doprint(buf, buf+sizeof(buf), "Fatal error: ");
+	out = doprint(out, buf+sizeof(buf), msg, (&msg+1));
+	write(2, buf, out-buf);
+	exits("fatal error");
+}
+.EE
+.PP
+This example adds a verb to print complex numbers.
+.IP
+.EX
+typedef
+struct {
+	double	r, i;
+} Complex;
+
+int
+Xconv(void *v, int f1, int f2, int f3, int chr)
+{
+	char str[50];
+	Complex *o;
+
+	o = v;
+	sprint(str, "(%g,%g)", o->r, o->i);
+	strconv(str, f1, f2, f3);
+	return(sizeof(Complex));
+}
+
+main(...)
+{
+	Complex x = (Complex){ 1.5, -2.3 };
+
+	fmtinstall('X', Xconv);
+	print("x = %X\en", x);
+}
+.EE
+.PP
+.SH SEE ALSO
+.IR fprintf (2),
+.IR utf (6),
+.IR errstr (2)
+.SH DIAGNOSTICS
+.I Print
+and
+.I fprint
+set
+.I errstr.
+.SH BUGS
+The formatting is close to that specified for ANSI
+.IR fprintf (2);
+the differences are:
+.IP
+the 
+.B -
+flag doesn't work
+.IP
+.B u
+is a flag here instead of a verb
+.IP
+.B X
+conversion doesn't use uppercase
+.BR A \- F
+for digits ten to fifteen
+.IP
+there are no
+.B 0
+or space flags here
+.IP
+there are no
+.B P
+or
+.B n
+verbs here
+.PP
+Also, and not a bug,
+.I print
+and friends generate
+.SM UTF
+rather than
+.SM ASCII.

@@ -1,0 +1,251 @@
+.TH AUTH 8
+.SH NAME
+adduser, changeuser, printnetkey, renameuser, removeuser, enable, disable, expire, status, convkeys, wrkey \- maintain authentication databases
+.SH SYNOPSIS
+.B auth/adduser
+.RB [ -hnp ]
+.I user
+.PP
+.B auth/changeuser
+.RB [ -hnp ]
+.I user
+.PP
+.B auth/printnetkey
+.I user
+.PP
+.B auth/renameuser
+.RB [ -np ]
+.I user
+.I newname
+.PP
+.B auth/removeuser
+.RB [ -np ]
+.I user
+.PP
+.B auth/enable
+.RB [ -np ]
+.I user
+.PP
+.B auth/disable
+.RB [ -np ]
+.I user
+.PP
+.B auth/expire
+.RB [ -np ]
+.I user
+.I date
+.PP
+.B auth/status
+.I user
+.PP
+.B auth/convkeys
+.RB [ -k
+.IR key ]
+.I keyfile
+.PP
+.B auth/wrkey
+.RB [ -k
+.IR key ]
+.SH DESCRIPTION
+These administrative commands run only on the authentication server.
+.IR Adduser ,
+.IR changeuser ,
+.IR renameuser ,
+.IR removeuser ,
+.IR enable ,
+.IR disable ,
+.IR expire ,
+and
+.I status
+manipulate an authentication database file system served by
+.IR keyfs (4)
+and used by file servers.
+There are two authentication databases,
+one holding information about Plan 9 accounts
+and one holding SecureNet keys.
+A
+.I user
+need not be installed in both databases
+but must be installed in the Plan 9 database to connect to a Plan 9 service.
+.PP
+.I Adduser
+installs
+.I user
+in an authentication database.
+.I User
+must not already exist in the database.
+It does not install a user on a Plan 9 file server.
+.PP
+Option
+.B -p
+installs
+.I user
+in the Plan 9 database.
+.I Adduser
+asks twice for a password for the new
+.I user.
+If the responses do not match
+or the password is too easy to guess
+the
+.I user
+is not installed.
+.PP
+Option
+.B -n
+installs
+.I user
+in the SecureNet database and prints out a key for the SecureNet box.
+The key is chosen by
+.IR adduser .
+.PP
+If neither option
+.B -p
+or option
+.B -n
+is given,
+.I adduser
+installs the
+.I user
+in the Plan 9 database.
+.PP
+Option
+.B -h
+makes
+.I user
+a host able to receive authenticated incoming network calls.
+All Plan 9 CPU servers must be installed as
+.I users
+with
+host permission in the Plan 9 authentication database.
+This option is significant only in the Plan 9 database.
+.PP
+.I Changeuser
+modifies information for
+.I users
+already installed.
+Its syntax is the same as
+.I adduser's.
+.PP
+.I Printnetkey
+prints
+.I user's
+SecureNet key without changing it.
+.PP
+.I Renameuser
+changes
+.I user's
+name
+to
+.I newname
+in both of the authentication databases.
+If
+.I newname
+is already known in either database,
+.I renameuser
+reports an error and makes no change.
+The options are the same as for
+.I adduser,
+except that if neither option
+.B -p
+nor option
+.B -n
+is given, the user is renamed in both databases.
+.PP
+.I Removeuser
+deletes
+.I user
+from both of the authentication databases.
+The options are the same as for
+.I renameuser.
+.PP
+.I Enable
+and
+.I disable
+change the status of
+.I user's
+accounts.
+The options are the same as for
+.I renameuser.
+.PP
+.I Expire
+changes the expiration date for
+.I user
+to
+.IR date ,
+which is either the string
+.L never
+or a date in the form
+.IR yyyymmdd ,
+where
+.I yyyy
+is the year,
+.I mm
+is the month, and
+.I dd
+is the day the account should expire.
+.PP
+Both
+.I enable
+and
+.I expire
+attempt to change both the Plan 9 and SecureNet databases.
+The options are the same as for
+.I renameuser.
+.PP
+.I Status
+prints the status and expiration date of
+.I user's
+Plan 9 and SecureNet accounts.
+.PP
+.I Convkeys
+re-encrypts the key file
+.I keyfile.
+Re-encryption is performed in place.
+Any file or authentication server using the key file must
+simultaneously have its key modified or it will be unable to decrypt
+.I keyfile.
+.I Convkeys
+uses the key stored in non-volatile RAM to decrypt the file,
+and encrypts it using the new key.
+By default, 
+.I convkeys
+prompts twice for the new password.
+Option
+.B -k
+instead takes
+.IR key ,
+which must be
+.B DESKEYLEN
+bytes long.
+Note that a key is not a password.
+The format of
+.I keyfile
+is described in
+.IR keyfs (4).
+.PP
+.I Wrkey
+sets the key used by the authentication server to decrypt key files.
+By default, it prompts twice for the password.
+Option
+.B -k
+is as in
+.I convkeys.
+Once the key is set,
+.I keyfs
+should be restarted
+so it serves the correct keys.
+.SH FILES
+.TP #r/nvram
+The non-volatile RAM on the server, which stores the key used
+to decrypt key files.
+.SH "SEE ALSO"
+.IR keyfs (4),
+.IR securenet (8)
+.SH BUGS
+After changing authentication information,
+it is necessary to issue the
+.B auth
+command on file servers
+that are doing their own authentication.
+See
+.IR fs (8).

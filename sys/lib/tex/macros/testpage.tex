@@ -1,0 +1,78 @@
+% testpage.tex - created 20 July 1987
+% Copyright (C) 1987 by Leslie Lamport
+%
+% Test of how accurately printer reproduces dimensions specified
+% by LaTeX output.
+%
+% Revised by Stephen Gildea to:
+% make 10 tic marks instead of 9
+% add a long rule through the tics to show the exact edge of the paper
+% short tics on right-hand ruler positioned correctly
+% some comments added
+
+\documentstyle{article}
+\pagestyle{empty}
+
+\oddsidemargin  0pt     
+\evensidemargin 0pt
+\marginparwidth 1in
+\marginparsep 0pt
+
+\topmargin 0pt
+\headheight 0pt
+\headsep 0pt
+\topskip 0pt        
+
+\footheight 0pt
+\footskip 0pt
+\textheight 9in
+\textwidth 6.5in
+\setlength{\unitlength}{1in}
+\newcounter{foo}
+\begin{document}
+\parindent 0pt
+\begin{picture}(0,0)
+\scriptsize
+\put(0,-9){\framebox(6.5,9){}}
+% left ruler
+\put(0,-4.5){\line(-1,0){2.5}}
+\multiput(-.1,-4.6)(-.1,0){10}{\line(0,1){.2}}
+\multiput(-.05,-4.55)(-.1,0){10}{\line(0,1){.1}}
+\setcounter{foo}{1}\multiput(-.1,-4.35)(-.1,0){9}{\makebox
+                                 (0,0){\arabic{foo}}\addtocounter{foo}{1}}
+% right ruler
+\put(6.5,-4.5){\line(1,0){2.5}}
+\multiput(6.6,-4.6)(.1,0){10}{\line(0,1){.2}}
+\multiput(6.55,-4.55)(.1,0){10}{\line(0,1){.1}} %fixed mit-erl!gildea 13Feb86
+%\multiput(6.55,-4.6)(.1,0){10}{\line(0,1){.1}}
+\setcounter{foo}{1}\multiput(6.6,-4.35)(.1,0){9}{\makebox
+                                 (0,0){\arabic{foo}}\addtocounter{foo}{1}}
+% top ruler
+\put(3.25,0){\line(0,1){2.5}}
+\multiput(3.15,.1)(0,.1){10}{\line(1,0){.2}}
+\multiput(3.2,.05)(0,.1){10}{\line(1,0){.1}}
+\setcounter{foo}{1}\multiput(3.4,.1)(0,.1){9}{\makebox
+                                 (0,0){\arabic{foo}}\addtocounter{foo}{1}}
+% bottom ruler
+\put(3.25,-9){\line(0,-1){2.5}}
+\multiput(3.15,-9.1)(0,-.1){10}{\line(1,0){.2}}
+\multiput(3.2,-9.05)(0,-.1){10}{\line(1,0){.1}}
+\setcounter{foo}{1}\multiput(3.4,-9.1)(0,-.1){9}{\makebox
+                                 (0,0){\arabic{foo}}\addtocounter{foo}{1}}
+\end{picture}
+\vfill
+\mbox{}\hfill
+\begin{minipage}{4in}
+The frame on this page should be $6\frac{1}{2}'' \times 9''$.  When
+printed on $8\frac{1}{2}'' \times 11''$ paper, the frame should be one
+inch from each edge of the paper.\\[10pt]
+The rulers at the four edges will indicate how much of the page is
+useable.  The large ticks are $.1''$ apart.
+\end{minipage}
+\hfill\mbox{}
+
+\vfill
+\mbox{}
+\end{document}
+
+

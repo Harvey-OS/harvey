@@ -1,0 +1,133 @@
+.TH TCS 1
+.SH NAME
+tcs \- translate character sets
+.SH SYNOPSIS
+.B tcs
+[
+.B -slcv
+]
+[
+.B -f
+.I ics
+]
+[
+.B -t
+.I ocs
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Tcs
+interprets the named
+.I file(s)
+(standard input default) as a stream of characters from the
+.I ics
+character set or format, converts them to runes,
+and then converts them into a stream of characters from the
+.I ocs
+character set or format on the standard output.
+The default value for
+.I ics
+and
+.I ocs
+is
+.BR utf ,
+the
+.SM UTF
+encoding described in
+.IR utf (6).
+The
+.B -l
+option lists the character sets known to
+.IR tcs .
+Processing continues in the face of conversion errors (the
+.B -s
+option prevents reporting of these errors);
+in this case,
+.B 0x80
+characters will be substituted for
+.SM UTF
+encoding errors and
+.B 0xFFFD
+characters will substituted for unknown characters unless the
+.B -c
+option is specified.
+.PP
+The
+.B -v
+option generates various diagnostic and summary information on standard error,
+or makes the
+.B -l
+output more verbose.
+.PP
+.I Tcs
+recognizes the following character sets:
+.TF Unicode
+.TP
+.B utf
+.SM UTF
+encoding from 10646
+.TP
+.B ascii
+7-bit ASCII
+.TP
+.B 8859-1
+Latin-1 (Central European)
+.TP
+.B latin1
+ISO 8859-1
+.TP
+.B 8859-2
+Latin-2 (Czech .. Slovak)
+.TP
+.B 8859-3
+Latin-3 (Dutch .. Turkish)
+.TP
+.B 8859-4
+Latin-4 (Scandinavian)
+.TP
+.B 8859-5
+Part 5 (Cyrillic)
+.TP
+.B 8859-6
+Part 6 (Arabic)
+.TP
+.B 8859-7
+Part 7 (Greek)
+.TP
+.B 8859-8
+Part 8 (Hebrew)
+.TP
+.B 8859-9
+Latin-5 (Finnish .. Portuguese)
+.TP
+.B kio8
+KIO-8 (recommended)
+.TP
+.B kio8x
+KIO-8 (alternate)
+.TP
+.B jis
+XJIS
+.TP
+.B unicode
+Unicode 1.0
+.SH EXAMPLES
+.TP
+.B tcs -f 8859-1
+Convert 8859-1 (Latin-1) characters into
+.SM UTF
+format.
+.TP
+.B tcs -s -f jis
+Convert characters encoded in one of several shift JIS encodings into
+.SM UTF
+format.
+Unknown Kanji will be converted into
+.B 0xFFFD
+characters.
+.SH SEE ALSO
+.IR ascii (1), 
+.IR rune (2), 
+.IR utf (6).

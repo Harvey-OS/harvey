@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+TARG=rexexec ftp telnetd rlogin
+OFILES=
+HFILES=
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkmany
+
+telnetd.$O:	../ip/telnet.h

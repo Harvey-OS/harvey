@@ -1,0 +1,143 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%% This file is part of the AMS-LaTeX Version 1.0 distribution       %% 
+%%    American Mathematical Society, Technical Support Group,        %% 
+%%    P. O. Box 6248, Providence, RI 02940                           %% 
+%%    800-321-4AMS (321-4267) or 401-455-4080                        %% 
+%%    Internet: Tech-Support@Math.AMS.com                            %% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%% This is file `AMSCD.STY',
+%% generated on August 29, 1990 from `amscd.doc'
+%% using the stripb utility (v0.9---derived from docstrip.tex).
+%% 
+\def\fileversion{v1.0a}
+\def\filedate{29-AUG-1990}
+\def\docdate{9-JUL-1990}
+
+%% \CheckSum{307}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\immediate\write\sixt@@n{Style Option: `amscd' \space\space\space
+ \fileversion\space     <\filedate>  (FMi and RmS)}
+\immediate\write\sixt@@n{English Documentation
+ \space\@spaces\@spaces  <\docdate>  (FMi and RmS)}
+\@ifundefined{setboxz@h}{%
+ \def\err@#1#2{\iffirstchoice@
+   \edef\@tempc{#2}\errhelp\expandafter{\@tempc}%
+   \typeout{^^JAmS-TeX error:}%
+   \errmessage{#1}\fi}
+ \def\Invalid@@{Invalid use of \string}
+ \def\Let@{\let\\\math@cr}
+\def\RIfM@{\relax\protect\ifmmode}
+\let\@tempa\fi\def\@tempa{}
+ \def\math@cr{{\ifnum0=`}\fi
+  \new@ifstar{\global\@eqpen\@M\math@cr@}%
+          {\global\@eqpen
+             \ifnum\dspbrk@lvl <\z@ \interdisplaylinepenalty
+              \else -\@getpen\dspbrk@lvl \fi
+           \math@cr@}}
+ \def\math@cr@{\new@ifnextchar[\math@cr@@{\math@cr@@[\z@]}}
+ \def\math@cr@@[#1]{\ifnum0=`{\fi}\math@cr@@@
+  \noalign{\vskip#1\relax}}
+ \def\restore@math@cr{\def\math@cr@@@{\cr}}
+ \restore@math@cr
+ \def\new@ifnextchar#1#2#3{%
+  \let\@tempe #1\def\@tempa{#2}\def\@tempb{#3}\futurelet
+    \@tempc\new@ifnch}
+ \def\new@ifnch{\ifx\@tempc \@tempe \let\@tempd\@tempa
+             \else\let\@tempd\@tempb\fi\@tempd}
+ \def\new@ifstar#1#2{\new@ifnextchar *{\def\@tempa*{#1}\@tempa}{#2}}
+ \newdimen\ex@
+ \def\DN@{\def\next@}
+ \def\atdef@#1{\expandafter\def\csname #1@at\endcsname}
+ \def\atdef@@#1{\expandafter\def\csname \string#1@@at\endcsname}
+ \def\setboxz@h{\setbox\z@\hbox}
+ \def\wdz@{\wd\z@}
+ \def\setbox@ne{\setbox\@ne}
+ \def\wd@ne{\wd\@ne}}
+{}
+\let\ampersand@\relax
+\@ifundefined{minaw@}{\newdimen\minaw@}{}
+\@ifundefined{bigaw@}{\newdimen\bigaw@}{}
+\minaw@11.11128\ex@
+\newdimen\minCDarrowwidth
+\minCDarrowwidth2.5pc
+\newif\ifCD@
+\def\CD{\catcode `\@=\active
+ \bgroup\relax\iffalse{\fi\let\ampersand@&\iffalse}\fi
+ \CD@true\vcenter\bgroup\Let@\tabskip\z@skip\baselineskip20\ex@
+ \lineskip3\ex@\lineskiplimit3\ex@\halign\bgroup
+ &\hfill$\m@th##$\hfill\crcr}
+\def\endCD{\crcr\egroup\egroup\egroup}
+\def\CD@check#1#2{\ifCD@\DN@{#2}\else
+  \let\next@\@empty\err@{@\string#1\space not
+    allowed outside of the CD environment!}\@eha
+  \fi\next@}
+\atdef@>#1>#2>{\ampersand@
+ \setboxz@h{$\m@th\scriptstyle\;{#1}\;\;$}%
+ \setbox@ne\hbox{$\m@th\scriptstyle\;{#2}\;\;$}%
+ \setbox\tw@\hbox{$\m@th#2$}%
+ \ifCD@\global\bigaw@\minCDarrowwidth\else\global\bigaw@\minaw@\fi
+ \ifdim\wdz@>\bigaw@\global\bigaw@\wdz@\fi
+ \ifdim\wd@ne>\bigaw@\global\bigaw@\wd@ne\fi
+ \ifCD@\hskip.5em\fi
+ \ifdim\wd\tw@>\z@
+  \mathrel{\mathop{\hbox to\bigaw@{\rightarrowfill}}%
+       \limits^{#1}_{#2}}%
+ \else\mathrel{\mathop{\hbox to\bigaw@{\rightarrowfill}}%
+       \limits^{#1}}\fi
+ \ifCD@\hskip.5em\fi
+ \ampersand@}
+
+\atdef@<#1<#2<{\ampersand@
+ \setboxz@h{$\m@th\scriptstyle\;\;{#1}\;$}%
+ \setbox@ne\hbox{$\m@th\scriptstyle\;\;{#2}\;$}%
+ \setbox\tw@\hbox{$\m@th#2$}%
+ \ifCD@\global\bigaw@\minCDarrowwidth\else\global\bigaw@\minaw@\fi
+ \ifdim\wdz@>\bigaw@\global\bigaw@\wdz@\fi
+ \ifdim\wd@ne>\bigaw@\global\bigaw@\wd@ne\fi
+ \ifCD@\hskip.5em\fi
+ \ifdim\wd\tw@>\z@
+  \mathrel{\mathop{\hbox to\bigaw@{\leftarrowfill}}%
+   \limits^{#1}_{#2}}\else
+  \mathrel{\mathop{\hbox to\bigaw@{\leftarrowfill}}\limits^{#1}}\fi
+ \ifCD@\hskip.5em\fi\ampersand@}
+\begingroup
+ \catcode`\~=\active \lccode`\~=`\@
+ \lowercase{%
+  \global\atdef@)#1)#2){~>#1>#2>}
+  \global\atdef@(#1(#2({~<#1<#2<}}
+\endgroup
+\atdef@ A#1A#2A{\CD@check{A..A..A}{\llap{$\m@th\vcenter{\hbox
+ {$\scriptstyle#1$}}$}\Big\uparrow
+ \rlap{$\m@th\vcenter{\hbox{$\scriptstyle#2$}}$}&&}}
+
+\atdef@ V#1V#2V{\CD@check{V..V..V}{\llap{$\m@th\vcenter{\hbox
+ {$\scriptstyle#1$}}$}\Big\downarrow
+ \rlap{$\m@th\vcenter{\hbox{$\scriptstyle#2$}}$}&&}}
+
+\atdef@={\CD@check={&\hskip.5em\mathrel
+ {\vbox{\hrule width\minCDarrowwidth\vskip3\ex@\hrule width
+ \minCDarrowwidth}}\hskip.5em&}}
+
+\atdef@|{\CD@check|{\Big\Vert&&}}
+
+\atdef@@\vert{\CD@check\vert{\Big\Vert&&}}
+
+\atdef@.{\CD@check.{&&}}
+\endinput
+%% 
+%% End of file `amscd.sty'.

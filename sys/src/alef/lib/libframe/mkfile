@@ -1,0 +1,39 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/alef/libframe.a
+
+OFILES=\
+	frbox.$O\
+	frdraw.$O\
+	frdelete.$O\
+	frinit.$O\
+	frinsert.$O\
+	frptofchar.$O\
+	frselect.$O\
+	frstr.$O\
+	frutil.$O\
+
+none:Q:
+	echo usage: mk entry
+
+%:	%.$O
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+%.$O:	%.l
+	$ALEF -w $stem.l
+
+install:V:	$OFILES
+	ar vu $LIB $OFILES
+	$RL $LIB
+	rm -f $OFILES
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+%.all:V:
+	for(objtype in $CPUS) mk $stem
+
+clean:V:
+	rm -f *.[$OS] [$OS].out

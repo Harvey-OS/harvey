@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+TARG=graph
+OFILES=graph.$O\
+	subr.$O\
+	whoami.$O\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=

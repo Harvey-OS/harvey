@@ -1,0 +1,84 @@
+.TH AUTH 5 
+.SH NAME
+auth \- file system authentication
+.SH SYNOPSIS
+.ta \w'\fLTauth 'u
+.B
+Tauth	
+.IR tag [2]
+.IR fid [2]
+.IR uid [28]
+.IR chal [36]
+.br
+.B
+Rauth	
+.IR tag [2]
+.IR fid [2]
+.IR chal [30]
+.SH DESCRIPTION
+The
+.B auth
+message is used to authorize a connection.
+It is issued before an
+.BR attach .
+.I Fid
+and
+.I uid
+are the same as for
+.BR attach .
+.PP
+The
+.I chal
+field of a
+.B Tauth
+message
+contains a 36-byte string
+encrypted with the client's authentication key.
+The (decrypted) string
+contains a byte with value 1,
+a seven byte client challenge, and the server's name NUL-padded to 28
+.RB ( NAMELEN )
+bytes.
+.PP
+The
+.I chal
+field of the
+.B Rauth
+reply message is also encrypted with the client's key.
+The decrypted string contains a byte with value 4,
+the client's challenge, a seven byte
+.I ticket key,
+and a fifteen byte
+.I ticket.
+The ticket is placed in the
+.I auth
+field of a subsequent
+.B attach
+message to validate a connection.
+.PP
+The ticket key is currently unused.
+It may one day be used to encrypt subsequent communication with the server.
+.PP
+These messages are also documented in the section of
+.IR auth (6)
+describing the
+.I fsauth
+protocol.
+.PP
+If a server does not perform authentication,
+it should return an
+.B Rerror
+when it receives an
+.BR auth .
+.SH ENTRY POINTS
+.I Mount
+(see
+.IR bind (2))
+generates an
+.B auth
+transaction to the remote file server.
+When the kernel boots, an
+.B auth
+is made to the requested file server machine.
+.SH "SEE ALSO"
+.IR auth (6)

@@ -1,0 +1,32 @@
+% ifthen.sty 16-Dec-86
+
+\long\def\ifthenelse#1#2#3{\setbox\@tempboxa
+ \vbox{\let\protect\noexpand
+ \let\or\@or \let\and\@and \let\not\@neg \let\(\@lparen \let\)\@rparen
+ {\let\if\relax\let\ifx\relax\let\ifnum\relax\let\fi\relax
+ \let\else\relax \xdef\@gtempa{#1}}\expandafter
+ \@eval \ifnum \@gtempa\relax \def\@term{T}\else \def\@term{F}\fi
+ \@endeval\global\let\@gtempa\@val}\if\@gtempa T#2\else#3\fi}
+\def\@eval{\def\@val{F}\def\@orop{T}\def\@negate{F}}
+\def\@endeval{\if\@negate T\def\@negate{F}\if\@term T\def\@term{F}\else 
+ \def\@term{T}\fi\fi
+ \if\@orop T\if\@val F\let\@val\@term\fi
+ \else \if\@val T\let\@val\@term\fi\fi}
+\def\@or{\relax\def\noexpand\@term{T}\else \def\noexpand\@term{F}\fi
+ \noexpand\@endeval \def\noexpand\@orop{T}\ifnum}
+\def\@and{\relax\def\noexpand\@term{T}\else \def\noexpand\@term{F}\fi
+ \noexpand\@endeval\def\noexpand\@orop{F}\ifnum}
+\def\@neg{1=1 \fi \def\noexpand\@negate{T}\ifnum}
+\def\@lparen{1=1 \fi \begingroup \noexpand\@eval \ifnum}
+\def\@rparen{\relax\def\noexpand\@term{T}\else \def\noexpand\@term{F}\fi 
+ \noexpand\@endeval \if\noexpand\@val T\gdef\noexpand\@gtempb{1=1}\else 
+ \gdef\noexpand\@gtempb{1=0}\fi
+ \endgroup \ifnum\noexpand\@gtempb}
+\def\equal#1#2{1=1 \fi \edef\noexpand\@tempa{#1}\edef\noexpand\@tempe{#2}\ifx
+ \noexpand\@tempa\noexpand\@tempe 
+ \def\noexpand\@tempa{1=1}\else
+ \def\noexpand\@tempa{1=0}\fi \ifnum \noexpand\@tempa}
+\long\def\whiledo#1#2{\ifthenelse{#1}{\@whiledotrue \@whilesw\if@whiledo
+ \fi{#2\ifthenelse{#1}{\@whiledotrue}{\@whiledofalse}}}{}}
+\newif\if@whiledo
+

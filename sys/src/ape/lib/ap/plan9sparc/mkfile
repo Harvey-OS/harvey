@@ -1,0 +1,17 @@
+BUILTINS=
+NPROC=1
+SYSH=/sys/src/libc/9syscall/sys.h
+
+all:V:
+	SYS=`{sed 's/#define.([A-Z0-9_]*).*/\1/' $SYSH}
+	for(I in $SYS) {
+		n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' $SYSH}
+		echo TEXT _$I'(SB)', 1, '$0' > _$I.s
+		echo MOVW R7, '0(FP)' >> _$I.s
+		echo MOVW '$'$n, R7 >> _$I.s
+		echo TA R0 >> _$I.s
+		echo RETURN >> _$I.s
+	}
+
+clean:V:
+	rm -f _*.s

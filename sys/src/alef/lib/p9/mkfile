@@ -1,0 +1,52 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/alef/libA.a
+
+OFILES=\
+	access.$O\
+	brk.$O\
+	convD2M.$O\
+	convM2D.$O\
+	convM2S.$O\
+	convS2M.$O\
+	dirfstat.$O\
+	execl.$O\
+	fcallconv.$O\
+	getpid.$O\
+	getuser.$O\
+	time.$O\
+
+none:Q:
+	echo usage: mk entry/install/installall/entry.all
+
+%:	%.l
+	$ALEF -w $stem.l
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+%:	%.s
+	$AS $stem.s
+	ar vu $LIB $stem.$O
+	$RL $LIB
+	rm -f $stem.$O
+
+install:V:	$OFILES
+	ar vu $LIB $OFILES
+	$RL $LIB
+	rm -f $OFILES
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+%.all:V:
+	for(objtype in $CPUS) mk $stem
+
+clean:V:
+	rm -f *.[$OS]
+
+%.$O:	%.l
+	$ALEF -w $stem.l
+
+%.$O:	%.s
+	$AS $stem.s

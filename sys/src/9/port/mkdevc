@@ -1,0 +1,58 @@
+#!/bin/rc
+
+if(! ~ $#* 1){
+	echo usage: mkdevc file >[1=2]
+	exit 1
+}
+
+cat <<'---'
+#include	"u.h"
+#include	"../port/lib.h"
+#include	"mem.h"
+#include	"dat.h"
+#include	"fns.h"
+#include	"../port/error.h"
+
+#include	"devtab.h"
+
+Dev	devtab[]={
+---
+
+../port/mkextract dev 0 $* | awk '{
+	print "	{ "  $1 "reset, "\
+	$1 "init, "\
+	$1 "attach, "\
+	$1 "clone, "\
+	$1 "walk, "\
+	$1 "stat, "\
+	$1 "open, "\
+	$1 "create,"
+	print "	  "\
+	$1 "close, "\
+	$1 "read, "\
+	$1 "write, "\
+	$1 "remove, "\
+	$1 "wstat, },"
+	}'
+echo '};'
+../port/mkextract dev 0 $* | awk '
+	BEGIN{
+		printf "char *devchar=\"" }
+	{	printf "%s", $2 }
+	END{	printf "\";\n"
+	 }
+	'
+
+../port/mkextract stream 0 $* | awk '
+	{	print "extern Qinfo\t" $1 "info;" }
+	'
+../port/mkextract stream 0 $* | awk '
+	BEGIN{	print "void streaminit(void){" }
+	{	print "\tnewqinfo(&" $1 "info);" }
+	END{	print "}" }
+	'
+
+../port/mkextract port 0 $*
+
+if(! grep conffile $* > /dev/null)echo 'char	*conffile = "'$1'";'
+echo 'ulong	kerndate = KERNDATE;'

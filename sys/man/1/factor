@@ -1,0 +1,82 @@
+.TH FACTOR 1 
+.CT 1 numbers
+.SH NAME
+factor, qfactor, primes \(mi factor a number, generate large primes
+.SH SYNOPSIS
+.B factor
+[
+.I number
+]
+.PP
+.B qfactor
+.PP
+.B primes
+[
+.I start
+[
+.I finish
+]
+]
+.SH DESCRIPTION
+.I Factor
+prints
+.I number
+and its prime factors,
+each repeated the proper number of times.
+The number must be positive and less than
+.if n 2**56
+.if t 2\u\s756\s0\d
+(about
+.if n 7.2e16)
+.if t 7.2\(mu10\u\s716\s0\d\|).
+.PP
+If no
+.I number 
+is given,
+.I factor
+reads a stream of numbers from the standard input and factors them.
+It exits on any input not a positive integer.
+Maximum running time is proportional to
+.if n sqrt(n).
+.if t .I \(sr\o'n\(rn'.
+.PP
+.ig
+.I Lfactor
+reads one number from the standard input and factors it.
+Worst-case running time is proportional to
+.if n .IR n **(1/5);
+.if t .IR n \u\s-21/5\s0\d;
+it beats
+.I factor
+for hard 12-digit problems and is workable to around
+.if n .IR n =10**30.
+.if t .IR n =10\u\s-230\s0\d.
+..
+.I Qfactor
+reads one number from the standard input and factors it.
+It will factor numbers
+up to about 40 digits.
+For large numbers it is much faster than
+.I factor.
+.PP
+.I Primes
+prints the prime numbers ranging from
+.I start
+to
+.I finish,
+where
+.I start
+and
+.I finish
+are positive numbers less than 
+.if n 2**56.
+.if t 2\u\s756\s0\d.
+If 
+.I finish
+is missing,
+.I primes
+prints without end;
+if
+.I start
+is missing, it reads the starting number from the
+standard input.

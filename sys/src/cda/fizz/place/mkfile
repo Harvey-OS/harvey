@@ -1,0 +1,14 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda/aux
+TARG=hplace
+OFILES=edit.$O\
+	file.$O\
+	hmain.$O\
+	himprove.$O\
+
+HFILES=host.h\
+	proto.h\
+
+</sys/src/cmd/mkone
+CFLAGS=

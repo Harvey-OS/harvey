@@ -1,0 +1,46 @@
+PROGS=${TARG:%=$O.%}
+CFLAGS=-w
+LDFLAGS=
+YFLAGS=-d
+
+none:VQ:
+	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
+
+all:V:	$PROGS
+
+$O.%:	%.$O $OFILES $LIB
+	$LD $LDFLAGS -o $target $prereq
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $prereq
+
+%.install:V:	$BIN/%
+
+$BIN/%:	$O.%
+	cp $O.$stem $BIN/$stem
+
+%.installall:V:
+	for (objtype in $CPUS)
+		mk $stem.install
+
+install:V:
+	for (i in $TARG)
+		mk $MKFLAGS $i.install
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+
+nuke:V:
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG
+
+clean:V:
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG

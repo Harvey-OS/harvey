@@ -1,0 +1,26 @@
+.TH PIC2PS 9.1
+.SH NAME
+pic2ps \- convert picture file into postscript language
+.SH SYNOPSIS
+.B fb/pic2ps
+[
+.B -h
+.I height
+] [
+.I input
+]
+.SH DESCRIPTION
+.I Pic2ps
+converts its input image (default standard input) into encapsulated Postscript, writing
+the result to standard output.  If the input image is full-color,
+its luminance is computed first.  Option
+.B -h
+sets the output image height in inches.  The default height is 3", to match
+the default height of the
+.B .BP
+macro in
+.BR "troff -mpictures" .
+.SH "SEE ALSO
+.IR picfile (9.6),
+.BR /sys/lib/tmac/tmac.pictures ,
+the troff Postscript inclusion macros.

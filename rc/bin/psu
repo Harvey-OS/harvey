@@ -1,0 +1,9 @@
+#!/bin/rc
+switch($#*){
+case 0
+	ps | grep '^'$user
+case 1
+	ps | grep '^'$1
+case *
+	echo Usage: psu [ user ]
+}

@@ -1,0 +1,233 @@
+.TH SORT 1 
+.SH NAME
+sort \- sort and/or merge files
+.SH SYNOPSIS
+.B sort
+[
+.BI -cmuMbdf\&inrt x
+]
+[
+.BI + pos1
+[
+.BI - pos2
+] ...
+]
+[
+.B -o
+.I output
+]
+[
+.I option ...
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Sort\^
+sorts
+lines of all the
+.I files
+together and writes the result on
+the standard output.
+If no input files are named, the standard input is sorted.
+.PP
+The default sort key is an entire line.
+Default ordering is
+lexicographic by bytes in machine
+collating sequence.
+The ordering is affected globally by the following options,
+one or more of which may appear.
+.TP
+.B -M
+Compare as months.
+The first three
+non-white space characters
+of the field
+are folded
+to lower case
+and compared
+so that
+.L jan
+precedes
+.LR feb ,
+etc.
+Invalid fields
+compare low to
+.LR jan .
+.TP
+.B -b
+Ignore leading white space (spaces and tabs) in field comparisons.
+.TP
+.B -d
+`Phone directory' order: only letters, digits and white space
+are significant in comparisons.
+.TP
+.B -f
+Fold upper case
+letters onto lower case.
+.TP
+.B -i
+Ignore characters outside the
+.SM ASCII
+range 040-0176
+in non-numeric comparisons.
+.TP
+.B -n
+An initial numeric string,
+consisting of optional white space, optional minus sign,
+and zero or more digits with optional decimal point,
+is sorted by arithmetic value.
+Option
+.B -n
+implies option
+.BR -b .
+.TP
+.B -g
+Numbers, like
+.B -n 
+but with optional 
+.BR e -style
+exponents, are sorted by value.
+.TP
+.B -r
+Reverse the sense of comparisons.
+.TP
+.BI -t x\^
+`Tab character' separating fields is
+.IR x .
+.PP
+The notation
+.BI + "pos1\| " - pos2\^
+restricts a sort key to a field beginning at
+.I pos1\^
+and ending just before
+.IR pos2 .
+.I Pos1\^
+and
+.I pos2\^
+each have the form
+.IB m . n ,
+optionally followed by one or more of the flags
+.BR Mbdfginr ,
+where
+.I m\^
+tells a number of fields to skip from the beginning of the line and
+.I n\^
+tells a number of characters to skip further.
+If any flags are present they override all the global
+ordering options for this key.
+A missing
+.BI \&. n\^
+means
+.B \&.0;
+a missing
+.BI - pos2\^
+means the end of the line.
+Under the
+.BI -t x\^
+option, fields are strings separated by
+.IR x ;
+otherwise fields are
+non-empty strings separated by white space.
+White space before a field
+is part of the field, except under option
+.BR -b .
+A
+.B b
+flag may be attached independently to
+.IR pos1
+and
+.IR pos2.
+.PP
+When there are multiple sort keys, later keys
+are compared only after all earlier keys
+compare equal.
+Lines that otherwise compare equal are ordered
+with all bytes significant.
+.PP
+These option arguments are also understood:
+.TP \w'\fL-z\fIrecsize\fLXX'u
+.B -c
+Check that the single input file is sorted according to the ordering rules;
+give no output unless the file is out of sort.
+.TP
+.B -m
+Merge; the input files are already sorted.
+.TP
+.B -u
+Suppress all but one in each
+set of equal lines.
+Ignored bytes
+and bytes outside keys
+do not participate in
+this comparison.
+.TP
+.B -o
+The next argument is the name of an output file
+to use instead of the standard output.
+This file may be the same as one of the inputs.
+.TP
+.BI -T dir
+Put temporary files in
+.I dir
+rather than in
+.BR /tmp .
+.TP
+.BI -y mem
+Suggests the use of the specified number of 
+bytes of internal store in hopes of tuning performance;
+0 is appropriate for very small files, a missing
+number for huge ones.
+.TP
+.BI -z recsize
+Provide for abnormally large records;
+useful only with
+.B -c
+and
+.B -m
+.ne 4
+.SH EXAMPLES
+.TP
+.L sort -u +0f +0 list
+Print in alphabetical order all the unique spellings
+in a list of words
+where capitalized words differ from uncapitalized.
+.TP
+.L sort -t: +1 /adm/users
+Print the users file
+sorted by user name
+(the second colon-separated field).
+.TP
+.L sort -umM dates
+Print the first instance of each month in an already sorted file.
+Options
+.B -um
+with just one input file make the choice of a
+unique representative from a set of equal lines predictable.
+.TP
+.L
+grep -n '^' input | sort -t: +1f +0n | sed 's/[0-9]*://'
+A stable sort: input lines that compare equal will 
+come out in their original order.
+.SH FILES
+.B /tmp/stm???
+.SH SEE ALSO
+.IR uniq (1),
+.IR look (1)
+.SH DIAGNOSTICS
+.I Sort
+comments and exits with non-null status for various trouble
+conditions and for disorder discovered under option
+.BR -c .
+.SH BUGS
+Some of the options, e.g.
+.B -I
+and
+.BR -M ,
+are hopelessly provincial.
+.br
+Option
+.B -g
+compares rounded floating binary values.
+.br
+Syntax needs overhauling.

@@ -1,0 +1,136 @@
+%% 
+%% This is file `preload.min' generated
+%% on <1990/6/30> with the docstrip utility (v1.1k). 
+%% 
+%% The original source file was `preload.doc'.
+%% Included modules: `min'.
+%% 
+%% 
+%% Copyright (C) 1989,1990 by Frank Mittelbach, Rainer Schoepf. 
+%% All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy this file 
+%% to a file with a different name and then change the copy. 
+%% 
+%% You are allowed to distribute this file under the condition that it is 
+%% distributed together with all files mentioned in readme.mz3. If you 
+%% receive only some of these files from someone, complain! 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT ALLOWED 
+%% to take money for the distribution or use of either this file or a 
+%% changed version, except for a nominal charge for copying etc. 
+%% 
+%% Error Reports in case of UNCHANGED versions to 
+%% 
+%% F. Mittelbach 
+%% Eichenweg 29 
+%% D-6500 Mainz 1 
+%% Federal Republic of Germany 
+%% Bitnet: <PZF5HZ@DRUEDS2> 
+%% 
+%% or: 
+%% R. Sch\"opf 
+%% Inst. f. Theor. Physik 
+%% der Universit\"at Heidelberg 
+%% Philosophenweg 16 
+%% D-6900 Heidelberg 
+%% Federal Republic of Germany 
+%% Bitnet: <BK4@DHDURZ1> 
+%% 
+%% 
+ 
+\def\fileversion{v1.0g}
+\def\filedate{90/04/22}
+\def\docdate {90/01/29}
+ 
+%% \CheckSum{52}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+ 
+%%
+%% This file preloads the absolute minimum of fonts (5) needed
+%% to successfully generate a format file for LaTeX.
+%%
+%% You should *not* change this file!  If you want to preload more
+%% or less fonts you should create a copy of it named `preload.tex'
+%% and edit this one according to your needs!
+%%
+%%
+\immediate\write\sixt@@n{File: `preload.%
+ min' \space
+ \fileversion\space <\filedate> (FMi and RmS)}
+\immediate\write\sixt@@n{English Documentation
+     \@spaces\space  <\docdate> (FMi and RmS)}
+\immediate\write\sixt@@n
+  {********************************************************************}
+\immediate\write\sixt@@n
+  {* Probably customized by YOU who forgot to change the lines above! *}
+\immediate\write\sixt@@n
+  {********************************************************************}
+%%
+%%    We begin by loading the math extension font (cmex10)
+%%    and the \LaTeX{} line and circle fonts.
+%%    It is necessary to do this explicitly since these are
+%%    used by {\tt lplain.tex} and {\tt latex.tex}.
+%%    Since the internal font name contains \verb+/+ characters
+%%    and digits we construct the name via \verb+\csname+.
+\expandafter\font\csname cmex/m/n/10\endcsname=cmex10
+\font\tenln  =line10   \font\tenlnw  =linew10
+\font\tencirc=lcircle10 \font\tencircw=lcirclew10
+ 
+%% The preloads below (with comment signs in front) will be loaded
+%% whenever standard \LaTeX{} is starting in 10pt size. So maybe you
+%% like to preload at least these 9 fonts or a similar set if you
+%% prefer documents in 11pt or 12pt size.
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%% cm roman fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ %% None preloaded
+ %% \preload@sizes{cmr}{m}{n}{5,7,10}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%% cm sans serif fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ %% None preloaded
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%% cm typewriter fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ %% None preloaded
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%% cm math fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ %% \preload@sizes{cmm}{m}{it}{5,7,10}
+ %% \preload@sizes{cmsy}{m}{n}{5,7,10}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LaTeX symbol fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ %% None preloaded
+ 
+ 
+\endinput
+%% 
+%% End of file `preload.min'.

@@ -1,0 +1,43 @@
+.TH SUM 1
+.SH NAME
+sum \- sum and count blocks in a file
+.SH SYNOPSIS
+.B sum
+[
+.B -5r
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+By default,
+.I sum
+calculates and prints a 32-bit hexadecimal checksum,
+a byte count
+and the name of
+each
+.IR file .
+The checksum is also a function of the input length.
+If no files are given,
+the standard input is
+summed.
+Other summing algorithms are available.
+The options are
+.TP
+.B -r
+Sum with the algorithm of System V's
+.B "sum -r"
+and print the length (in 1K blocks) of the input.
+.TP
+.B -5
+Sum with System V's default algorithm
+and print the length (in 512-byte blocks) of the input.
+.PP
+.I Sum
+is typically used to look for bad spots,
+to validate a file communicated over
+some transmission line or
+as a quick way to determine if two files on different machines might be the same.
+.SH "SEE ALSO"
+.IR cmp (1),
+.IR wc (1)

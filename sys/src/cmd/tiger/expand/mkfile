@@ -1,0 +1,14 @@
+BUILTINS=
+</$objtype/mkfile
+
+$O.out:	expand.$O name.$O
+	$LD $prereq
+
+%.$O:	%.c
+	$CC -w $stem.c
+
+name.$O:	../name.c
+	$CC -w ../name.c
+
+clean:V:
+	rm -f *.[$OS] [$OS].out expand

@@ -1,0 +1,25 @@
+objtype=mips
+</mips/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	main9.$O\
+	main9p.$O\
+	argv0.$O\
+	frexp.$O\
+	getfcr.$O\
+	memccpy.$O\
+	memchr.$O\
+	memcmp.$O\
+	memmove.$O\
+	memset.$O\
+	nan.$O\
+	notejmp.$O\
+	setjmp.$O\
+	strchr.$O\
+	strcmp.$O\
+	strcpy.$O\
+
+HFILES=/sys/include/libc.h
+
+</sys/src/cmd/mksyslib

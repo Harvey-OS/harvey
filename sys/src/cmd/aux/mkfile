@@ -1,0 +1,9 @@
+</$objtype/mkfile
+
+TARG=listen\
+	ms2\
+	netkey\
+	typepasswd\
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkmany

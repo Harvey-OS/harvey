@@ -1,0 +1,58 @@
+.TH CAT 1
+.SH NAME
+cat, read \- catenate files
+.SH SYNOPSIS
+.B cat
+[
+.I file ...
+]
+.br
+.B read
+[
+.I file
+]
+.SH DESCRIPTION
+.I Cat
+reads each
+.I file
+in sequence and writes it on the standard output.
+Thus
+.IP
+.L
+cat file
+.LP
+prints a file and
+.IP
+.L
+cat file1 file2 >file3
+.LP
+concatenates the first two files and places the result
+on the third.
+.PP
+If no
+.I file
+is given,
+.I cat 
+reads from the standard input.
+Output is buffered in blocks matching the input.
+.PP
+.I Read
+copies one line from the named file
+to standard output.
+It is useful in interactive
+.IR rc (1)
+scripts.
+.SH SEE ALSO
+.IR cp (1)
+.SH DIAGNOSTICS
+.I Read
+exits with status
+.B eof
+on end of file.
+.SH BUGS
+Beware of
+.L "cat a b >a"
+and
+.LR "cat a b >b" ,
+which
+destroy input files before reading them.

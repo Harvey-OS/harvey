@@ -1,0 +1,23 @@
+</$objtype/mkfile
+
+TARG=samterm
+OFILES=main.$O\
+	icons.$O\
+	menu.$O\
+	mesg.$O\
+	rasp.$O\
+	scroll.$O\
+	flayer.$O\
+	io.$O\
+	plan9.$O\
+
+HFILES=samterm.h\
+	flayer.h\
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkone
+
+mesg.$O:	../sam/mesg.h
+
+%.db:
+	$CC -s$stem main.c | dbfmt > $stem.db

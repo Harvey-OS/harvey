@@ -1,0 +1,32 @@
+#!/bin/rc
+# Convert Metafont to C.
+# 
+
+sed -e '
+	: again
+	/\.$/{
+		N
+		s/\.\n/\
+./
+		t again
+	}
+	s/\.hh/.hhfield/g
+	s/\.lh/.lhfield/g
+' mf.defines mf.p \
+	| ../web2c/$cpuobjtype.web2c -hmf.h -m \
+	| sed -e '
+    s/else write/else\
+    write/
+    s/  *([A-Za-z0-9]*) *= *(".*") *;/  (void) strcpy(\1 + 1, \2) ;/
+    s/  *nameoffile *= *poolname/  (void) strncpy(nameoffile+1, poolname, sizeof poolname)/
+    s/ maxcoef( *[^( ])/ lmaxcoef\1/g
+    s/ b1/ lb1/g
+    s/ b2/ lb2/g
+    s/ b3/ lb3/g
+    / *read/ s/read *\( *([a-z]*) *, *([a-z]*) *, *([a-z]*)/read (\1 , \2); read (\1, \3/g
+' \
+	| ../web2c/$cpuobjtype.fixwrites \
+	| ../web2c/$cpuobjtype.splitup mf
+
+cat coerce.h fixcoerce.h > xcoerce.h
+mv xcoerce.h coerce.h

@@ -1,0 +1,276 @@
+.TH PICOPEN 9.2
+.SH NAME
+picopen_r, picopen_w, picread, picwrite, picclose, rdpicfile, wrpicfile, picputprop, picgetprop, picunpack, picpack, picerror \- picture file I/O
+.SH SYNOPSIS
+.B
+#include <libg.h>
+.PP
+.B
+#include <fb.h>
+.PP
+.B
+PICFILE *picopen_r(char *name)
+.PP
+.B
+PICFILE *picopen_w(char *name, char *type, int x0, int y0, int w, int h, char *chan, char *argv[], char *cmap)
+.PP
+.B
+int picread(PICFILE *pf, char *buf)
+.PP
+.B
+int picwrite(PICFILE *pf, char *buf)
+.PP
+.B
+void picclose(PICFILE *pf)
+.PP
+.B
+Bitmap *rdpicfile(PICFILE *pf, int ldepth)
+.PP
+.B
+int wrpicfile(PICFILE *pf, Bitmap *b)
+.PP
+.B
+PICFILE *picputprop(PICFILE *pf, char *name, char *value)
+.PP
+.B
+char *picgetprop(PICFILE *pf, char *name)
+.PP
+.B
+void picunpack(PICFILE *pf, char *pix, char *fmt, ...)
+.PP
+.B
+void picpack(PICFILE *pf, char *pix, char *fmt, ...)
+.PP
+.B
+void picerror(char *string)
+.SH DESCRIPTION
+These functions read and write raster images in
+.IR picfile (9.6)
+format.
+They are loaded by option
+.B -lfb
+of
+.IR 2l (1)
+et al.
+Open picture files are referred to by pointers of type
+.BR PICFILE* .
+.PP
+.I Picopen_r
+opens the named picfile for reading and returns a pointer
+to the open file.
+If
+.I name
+is
+.L
+"IN"\fR,
+standard input is used.
+.PP
+.I Picopen_w
+similarly creates the named image file for writing.
+The name
+.L
+"OUT"
+refers to standard output.
+.I Type
+is a
+.B TYPE
+attribute, as described in
+.IR picfile (9.6);
+.I x0
+and
+.I y0
+are the upper left coordinates of the
+.BR WINDOW 
+attribute;
+.I w
+and
+.I h
+are the image width and height in pixels.
+.I Chan
+is a string specifying the order of channels for the
+.B CHAN
+attribute; the length of this string becomes the value of
+.BR NCHAN .
+.I Argv,
+if nonzero, is
+conventionally the second argument of the main program;
+see
+.IR exec (2).
+It becomes a 
+.B COMMAND
+attribute recording the provenance of the file.
+.PP
+The special call
+.B picopen_w(
+.IB name ,
+.BI PIC_SAMEARGS( pf ))
+creates a file with the same attributes as an already open
+picfile.
+.B PIC_SAMEARGS
+mentions
+.I argv
+by name, hence the name must be in scope at the point of call.
+.PP
+.I Picread
+and
+.I picwrite
+read or write a single row of pixels using the
+character array
+.I buf.
+The length of the row is determined from the file's
+.B WINDOW
+and
+.B NCHAN
+attributes.
+One-bit-per-pixel images (of type
+.B bitmap
+or
+.BR ccitt-g4 ,
+for example)
+are decoded to one byte per pixel, 0 for black, 255 for white, and
+are encoded as 1 for pixel values less than 128 and 0 otherwise.
+Files of type
+.B ccir601
+are decoded into conventional
+.B rgb
+channels.
+.PP
+.I Picclose
+closes a picfile and frees associated storage.
+.PP
+.I Wrpicfile
+copies a bitmap into a picture file.
+.I Rdpicfile
+allocates a
+.B Bitmap
+of given
+.I ldepth
+and reads picture file into it.  Since
+.B Bitmaps
+are usually monochrome and only one or two bits deep,
+.I rdpicfile
+computes the NTSC luminance of the input image and
+uses Floyd-Steinberg error-diffusion dither to hide
+quantization errors.
+.PP
+.I Picputprop
+called after 
+.I picopen_w
+but before
+.I picwrite
+adds header attributes, returning the revised
+.B PICFILE
+pointer.
+.PP
+.I Picgetprop
+returns a pointer to the value of the named attribute, or
+0 if the picfile does not have the attribute.
+In both
+.I Picputprop
+and
+.I picgetprop,
+with multiple appearances (e.g.
+.BR COMMAND )
+are expressed as a sequence of
+values separated by newlines.
+.PP
+The header file defines macros to extract commonly-used
+attributes:
+.IP
+.EX
+PIC_NCHAN(pf), PIC_WIDTH(pf), PIC_HEIGHT(pf),
+PIC_SAMEARGS(pf) \fR(see \fP\&picopen_w\fR)\fP
+.EE
+.PP
+.I Picunpack
+extracts the channels of pixel array
+.I pix
+into separate array
+.I args
+of types described by the
+.I fmt
+character string.
+Format characters are
+.BR c ,
+.BR s ,
+.BR l ,
+.BR f ,
+.BR d ,
+for arrays of types unsigned char, short, long,
+float, and double.
+Format character
+.B _
+designates a picfile channel to be skipped.
+.I Picpack
+reverses the process.
+These routines effect a standard machine-independent byte
+ordering.
+.PP
+.IR Picerror
+prints messages for errors resulting from calls to
+.I picfile
+routines.
+.RI ( Perror (3)
+cannot describe some error conditions,
+like malformed header lines.)
+.SH EXAMPLES
+Unpack the green and z channels from a file with channels
+.B rgbz...
+.br
+.ns
+.IP
+.EX
+PICFILE *pf = picopen_r("file");
+extern char pixels[], green[][1000];
+extern float zdepth[][1000];
+for(i=0; picread(pf, pixels); i)
+	picunpack(pf, pixels, "_c_f", green[i], zdepth[i]);
+.EE
+.PP
+Reflect a picture about its vertical midline.
+.br
+.ns
+.IP
+.EX
+PICFILE *in = picopen_r("picture");
+PICFILE *out = picopen_w("OUT", PIC_SAMEARGS(in));
+int w = PIC_WIDTH(in);
+int n = PIC_NCHAN(in);
+char *buffer = malloc(w*n), *temp = malloc(n);
+while (picread(in, buffer)) {
+	char *left = buffer;
+	char *right = buffer + n*(w - 1);
+	for( ; left<right; left+=n, right-=n) {
+		memmove(temp, left, n);
+		memmove(left, right, n);
+		memmove(right, temp, n);
+	}
+	picwrite(out, buffer);
+}
+.EE
+.SH SEE ALSO
+.IR picfile (9.6)
+.SH DIAGNOSTICS
+.I Picread
+returns 1 on success, 0 on end of file or error.
+.br
+.I Picopen_r
+and
+.I picopen_w
+return 0 for unopenable files.
+.SH BUGS
+.I Picpack
+and
+.I picunpack
+store and retrieve floating point channels (types
+.B f
+and
+.BR d )
+using native floating-point, rather than something
+transportable.
+.PP
+The code required to support
+.B TYPE=ccir601
+and the various
+.B ccitt
+fax compression types is missing!

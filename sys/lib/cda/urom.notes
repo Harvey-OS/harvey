@@ -1,0 +1,906 @@
+1	This device has initialization data which follows the Main
+	Array data in User Memory.
+
+2	This device is a microcontroller with security bit programming
+	capability. Security bit programming may be enabled in the 
+	Program Memory Device Options screen. 
+
+3	This device has initialization data which follows the Main
+	Array data in User Memory. It also has an asynchronous/synchronous
+	output enable bit which follows the initialize word data in User 
+	Memory. If the output enable bit is programmed to 1, the outputs 
+	are enabled synchronously.
+
+4	This device has initialization data at device address 2000 
+	hex, following the Main Array. It also has an architecture byte at 
+	device address 2001 hex. The following table shows the architecture 
+	data for the three modes of operation. 
+
+	Asynchronous operation		address 2001, value 00 hex
+	Synchronous operation		address 2001, value 01 hex
+	Initialize word operation	address 2001, value 02 hex
+
+5	This device is an EEPROM which has a software data write 
+	protection feature which is not currently supported.
+
+6	This device is a microcontroller with security bit programming
+	capability. Security bit programming may be enabled in the 
+	Program Memory Device Options screen; this overrides the Mask 
+	Option Register (MOR) security bit value in User Memory.
+	Note that there are two menu selections for the 68705S3:
+	mask set 1TJ6 identifies parts produced before 1987, and mask
+	set 0A20T identifies parts produced since January 1987.
+
+7	This device's memory map is offset to start at User Memory 
+	address 0000 hex. The EPROM memory block starts at User Memory 
+	0000 and is translated to device address F000 hex during a
+	program operation. A load operation will read device address
+	F000 hex and translate address 0000 to User Memory.
+
+8	This device's memory array begins at address 80 hex. The programmer 
+	will automatically transfer data from User Memory to the device by 
+	the required offset. If the data block begins at User Memory 0 hex, 
+	it will be translated to device address 80 hex during a program 
+	operation. Conversely a load operation will transfer 
+	the data block from device address 80 hex to User Memory address 0.
+
+9	This device automatically programs bits 1-3 of the Mask Option
+	Register to 1. This alters the device checksum after programming.
+
+10	The address block for this device is defined with the 
+	configuration byte at location 103F hex (low nibble only). The 
+	EEPROM is located at address B600 to B7FF hex. The two ROM blocks are 
+	at addresses BF40 to BFFF and E000 to FFFF hex.
+
+11	This device does not support block limits; the block size
+	is 64K. Memory locations not defined as EPROM or EEPROM are set 
+	to zero. The configuration byte, located at address 103F, 
+	specifies the starting address of the EEPROM memory and 
+	enables/disables the COP system watch dog timer. 
+
+	The upper nibble of the configuration byte defines the most
+	significant bit of the starting address of the EEPROM memory.
+	If the configuration byte is set to 3F hex, then the EEPROM
+	starting address is 3800 hex (3000 hex + 800 hex). Note that the 
+	upper nibble of the configuration byte cannot be set to B hex.
+
+	The lower nibble of the configuration byte defines the
+	enable/disable state of the COP system watch dog timer.
+	This nibble can only be set to F hex (disable) or B hex (enable).
+
+12	This device requires socket adapter H31VSA01A. It is available 
+	from the device manufacturer.
+
+13	This device requires socket adapter H67PWA01A. It is available 
+	from the device manufacturer.
+
+14	This device requires socket adapter H31YSA01A. It is available 
+	from the device manufacturer.
+
+15	This device requires socket adapter H35VSA01A. It is available 
+	from the device manufacturer.
+
+16	This device requires socket adapter HS35ZESF01H. It is available 
+	from the device manufacturer.
+
+17	This device requires socket adapter 87C452P. It is available 
+	from the device manufacturer.
+
+18	This device is a microcontroller with Security Data and User
+	Data features. Enable the security bit in the PROGRAM DEVICE 
+	Options screen by using the security bit option or by programming 
+	a 1 at address 800 hex. The User Data Bytes are at address 801 and 
+	802 hex. The Security Bit and User Data features must be enabled in 
+	the PROGRAM DEVICE Options screen.
+
+19	To use this device, early versions of UniSite must be modified 
+	to ensure that UniSite complies with programming specifications. 
+	Data I/O will modify UniSite model numbers 901-0058-001 through 
+	901-0058-006 free of charge. Contact Data I/O Customer Support 
+	for further information.
+
+20	This device uses the fuse map of the National 16P8 which
+	contains 2055 fuses. The additional fuse locations are 
+	initially set to all zeros and will not affect the device
+	checksum. JEDEC files that set the phantom locations in 
+	the fuse map will be calculated in the sumcheck but will not
+	affect program or verify operations. A Load operation
+	will reset the phantom locations to zero. The Main Array
+	for the 16P4 are fuses 512 through 1535, the polarity
+	fuses are 2053 and 2054. All other fuse locations
+	are phantom fuses.
+
+
+21	The window on these devices should be covered with an opaque
+	label during programming.
+
+22	Cross Programming support for GAL devices are listed in the
+	Cross Programming section of the Device List.
+
+
+23	This device contains two separate EPROM areas, one for
+	Instruction information and the other for Data. The 
+	Instruction memory space is address 0 to 7FF hex; the
+	instruction data consists of 4 bytes, three information           
+	bytes followed by a null byte.
+
+	The Data memory space is address 800 to BFF hex; data is 
+	oriented in reverse order with address BFF hex as the first           
+	byte and address 800 hex as the last address. This format is 
+	compatible with the NEC 77P20 assembler. See NEC's 77P20 
+	databook for more information.
+
+
+24	This device is a microcontroller with security bit programming
+	capability. Security bit programming may be enabled in the 
+	Program Memory Device Options screen. This device also has 
+	address locations in the programmable array area that are 
+	reserved for special functions and are not programmable. These 
+	locations are 9-B hex, D-F hex, 18-3F hex, and the most significant 
+	byte of C hex. These locations will always load as FFFF hex or 
+	FF hex for location 00C. If data is entered at these locations, a 
+	verify error occurs, but data will not be programmed 
+	into the device.
+
+	The least significant byte of location C hex is the Chip 
+	Configuration byte, which is programmable. The
+	two most significant bits of this location are the lock bits
+	which can only be programmed if the
+	Security Bit programming is enabled from the Program Device Options
+	screen. Consult the Manufacturer's specifications for further 
+	information. This device does not need to have the Byte
+	Swap Option enabled (in Unisite version 2.5 or later).
+
+25	This device is a microcontroller with two security options. 
+	Currently, only one of the two security options may be 
+	implemented per device.
+
+	The first security option protects against in-circuit reads.
+	This option is selected from the program screen. The second
+	security option is activated by programming device addresses
+	782 hex and 783 hex with data 20 hex and FE hex respectively. This
+	prevents the part from entering program mode.  
+
+	Addresses 782 hex and 783 hex may also be used for normal data, 
+	however, once data is programmed at these addresses, you must
+	erase the device before attempting another program operation.
+
+26	This device has special programmable registers that can be
+	programmed by entering data at locations following the Main
+	Array. The CLR register is located at device address 8000 hex.
+	The SFR register is located at device address 8001 hex. The
+	SFRLR register is located at device address 8002 hex. Refer to
+	the manufacturer's spec sheet for the correct data pattern
+	(leave all undefined bits as 1s).
+
+	If the EPROM array and the SFR registers are programmed to 
+	overlap, the programmer will fill the overlapped section in
+	RAM with zeros.
+
+27	This device has a data format very similar to that described
+	in footnote 23. The major difference is in the partitioning of 
+	the EPROM space. Instruction data memory space is at 0 to 1FFF hex.
+	Data memory space is at 2000 to 27FF hex with the first data word 
+	at address 2000 hex.
+
+
+28	This device does not support structured testing.
+
+29	Any of the three security options can be implemented for this
+	device (Encryption Array data, Security Bit 1 or Security Bit 2).
+	You can select the security options from the PROGRAM DEVICE Options 
+	screen, or from the Main Array. Once any of the security options 
+	have been programmed into the device, no further programming is allowed.
+
+	Illegal operations will generate one of these error messages:
+
+	A.	Encryption Array Already Programmed - A programming operation has
+	been attempted after the Encryption Array has been programmed.
+
+	B.	Security Fuse Programmed or Bad Device - A programming operation 
+	has been attempted after security bit 1 has been programmed.
+
+	C.	Security Fuse Violation - A programming operation has been 
+	attempted after security bit 2 has been programmed. This error will 
+	also be generated for a load or verify operation.
+
+	D.	Test Fuse Programming Error - This error will be displayed 
+	if there is a programming error in the Encryption Array.
+
+	Data in the programmer's User Memory is partitioned as follows:
+
+	MAIN ARRAY DATA          0 through 7FF hex
+	ENCRYPTION ARRAY DATA    800 through 80F hex
+	SECURITY BIT1 DATA       810 hex (bit D7)
+	SECURITY BIT2 DATA       810 hex (bit D6)
+
+	Enter Encryption Array data by editing the appropriate address in 
+	User Memory. Enter Security Bit data via the edit screen or the 
+	PROGRAM DEVICE Options screen.  
+
+	After the Encryption Array is programmed, device data will
+	no longer match data in User RAM. Encryption Array and 
+	Security Bit data cannot be read from the device. 
+
+
+30	This device is a microcontroller with security bit programming
+	capability. Security bit programming may be enabled in the 
+	PROGRAM MEMORY DEVICE Options screen. This device also has address 
+	locations in the programmable array area that are reserved for 
+	special functions and are not programmable. These addresses are
+	B, D-F, 20-3F hex, and the most significant bytes of A a
+	C hex. These addresses will always load as FFFF hex (FF hex for
+	addresses 00A and 00C). If data is entered at these
+	addresses, a verify error occurs, but the data will not be
+	programmed into the device. 
+
+	The least significant byte of address A hex is the PPW byte,
+	which is programmable. The least significant byte of address C hex
+	is the Chip Configuration byte, which is programmable. The two most
+	significant bits of this location are the lock bits which can only 
+	be programmed if the Security Bit programming is enabled from the 
+	Options screen. Consult the manufacturer's specifications for 
+	further information.
+
+31	This device does not support Illegal Bit Test or Blank Check. 
+	However, the programmer will not indicate that the tests are 
+	not supported.     
+
+32	This device contains a User Electronic Signature (UES) array.
+	Programming this array is optional. Two devices are available; one 
+	with the UES suffix and one without.
+
+	The device without the UES suffix programs the device but 
+	does not program the UES array. The device with the UES suffix 
+	programs all the arrays. 
+
+	When you download a JEDEC file, you will select the device compatible
+	with the JEDEC file. If the device is not compatible, one of the
+	following errors will be displayed: File not initialized or 
+	Incompatible User Data.
+
+33	This device contains extra fuses which are automatically
+	configured by the programmer. If these extra fuses fail to
+	program, an error occurs. However, since these fuses are
+	not part of the fuse map, an underblow/overblow operation will
+	not indicate their presence.
+
+34	This device is not supported on the HandlerSite.
+
+35	The memory map of this device is offset to start at User Memory 
+	address 0000 hex bytes. The location of the EPROM memory block 
+	starts at User Memory 0000 hex, and will be translated to device 
+	address 20 hex during a program operation. A load operation will 
+	read device address 20 hex and translate address 0000 to User Memory.
+
+36	This Device has a Software Data Protection option that can 
+	be enabled or disabled on the PROGRAM DEVICE Options screen.
+
+	(UniSite only)  This feature is only presented on the PROGRAM 
+	DEVICE screen for single device operations. When the Data 
+	Protection option is selected in the single device screen, it also
+	applies to the SetSite module operation for Gang programming.
+
+37	If you attempt to re-program this device after programming
+	the security fuse, a Device Over-Current Fault error may be 
+	generated and there is a potential that the device may be damaged.
+
+38	This device has initialization data that follows the Main 
+	Array located at device address 800 hex. The device also has an 
+	architecture byte located at 801 hex. The following table shows the 
+	architecture data for the four modes of operation.
+
+	Asynchronous Enable, Asynchronous Initialize 801 hex = FF hex
+	Synchronous Enable, Asynchronous Initialize  801 hex = FE hex
+	Asynchronous Enable, Synchronous Initialize  801 hex = FD hex
+	Synchronous Enable, Synchronous Initialize   801 hex = FC hex
+
+39	Actel's family of FPGAs are treated as memory devices for
+	programming operations. The fuse data is represented in a
+	binary format commonly used for memory devices. This requires
+	a data translation program that runs on the Action Logic
+	development system. This program will translate fuse
+	information on the Actel programming operations and file
+	transfers.  Block limits are not supported for the Actel 
+	FPGA's.  Do not change the user data size after downloading 
+	data.  Contact Data I/O Customer Support and request the 
+	Actel Programming Application Note.
+
+40	This device does not support Preload vectors.
+
+41	This device requires socket adapter AS-68-40-01P-6. It is 
+	available from Emulation Technology Inc. (408-982-0660).
+
+42	This device requires socket adapter AS-68-40-04P-6. It is
+	available from Emulation Technology Inc. (408-982-0660).
+
+43	Data for this device is organized into the User RAM as follows:
+	Main Array data, four words of User I.D. 
+	information, and a configuration word.
+
+	This device has a 12 bit data word which is represented as 16 
+	bit data for the programmer. Data Bits 12-15 throughout the Main
+	Array are not used. Bits 4-15 in the User I.D. and configuration 
+	words are not used. All unused bits will be loaded from the device 
+	to User RAM as zeros and are ignored during the verify operation. 
+	During programming, bits 4-11 of the User I.D. and configuration
+	word are automatically be programmed to zeros. The Security Bit 
+	can be programmed only by setting the data to a one and enabling the 
+	on the Programming Options screen. Oscillator selection bits cannot be 
+	reprogrammed if they were configured by the factory (OTP devices only).
+
+	When assembling your source file, use the output option that produces 
+	the merged 8 bit Itellec Hex object file (INHX8M). The object 
+	file that was created can then be downloaded to the programmer by 
+	selecting the Intel Intelec 8/MDS translator (code 83).
+
+44	(UniSite only) This device may require placing an LCC Spacer in 
+	the ChipSite socket to make good contact. Contact Data I/O Customer 
+	Support for information regarding the LCC Spacer Kit. 
+
+	A spacer is not necessary when using PinSite or the 2900.
+	There is a MatchBook for LCC devices. A device insertion
+	error occurs when the device makes poor contact with the socket.
+
+45	This device has a differential cell array where 
+	any programmed locations should not be re-programmed
+	unless erased. The Blank Check operation will display -
+	illegal bit - when trying to program any non-blank locations.
+
+46	Partial device operations are not allowed on this device. If
+	your data file is smaller than the device size, make sure that 
+	the extra locations in User RAM are filled with the blank state 
+	(FF hex).
+
+47	The data file used to program this device contains the security 
+	option data. The Security option will not be programmed into the 
+	device unless it is enabled from the Programming Options screen.
+
+48	This device has an asynchronous/synchronous output enable bit 
+	that follows the Main Array data in User Memory. The outputs are 
+	enabled synchronously when programmed to 1.
+
+49	This device contains an Electronic ID. If an ID error occurs, 
+	the wrong device is selected or the version of this device is 
+	not supported. A software update may be required. Contact Data I/O
+	Customer Support for more information.
+
+50	This device does not support the test code/checksum and test 
+	signature features.
+
+51	Any of the four security options can be implemented for this
+	device (Encryption Array data, Security Bits 1, 2 or 3). The 
+	security options can be selected from the PROGRAM DEVICE Options 
+	screen, or from the Main Array. Once any of the security options 
+	have been programmed into the device, no further programming is allowed.
+
+	Data in the Programmer's User Memory is partitioned as follows:
+
+	MAIN ARRAY DATA          0 through 7FFF hex
+	ENCRYPTION ARRAY DATA    8000 through 803F hex
+	SECURITY BIT1 DATA       8040 hex (bit D7)
+	SECURITY BIT2 DATA       8040 hex (bit D6)
+	SECURITY BIT3 DATA       8040 hex (bit D5)
+
+	Enter Encryption Array data by editing the appropriate address in 
+	User Memory. Enter Security Bit data via the edit screen or the 
+	PROGRAM DEVICE Options screen.  
+
+	After the Encryption Array is programmed, device data will
+	no longer match data in User RAM. Encryption Array and 
+	Security Bit data cannot be read from the device. 
+
+52	This device is a microcontroller with Security Bit programming
+	capability. Security Bit programming may be enabled in the 
+	Program Memory Device Options screen. (No Uprom bit programming in 
+	UniSite 3.0 or 2900 1.2.)
+
+	This device also has address locations in the programmable 
+	array area that are reserved for special functions and are 
+	not programmable. These addresses are B, D-F and 2F-3F hex.
+	These locations will always load as FFFF hex.  If data is 
+	entered in User RAM at these locations, a verify error 
+	occurs, but no data will be programmed at those locations.  
+
+	Address C hex is also reserved. The most significant byte of C
+	hex is always programmed to 20 hex.  If data other than 20 hex
+	is entered in User RAM at this location, a verify error occurs,
+	but data 20 hex will be programmed.
+
+	The least significant byte of address C hex is the Chip 
+	Configuration byte, which is programmable. The two most 
+	significant bits of this location are the lock bits, which
+	can be programmed only by selecting the Security Bit programming
+	option in the PROGRAM Options screen. Consult the 
+	Manufacturer's specifications for further information.
+
+53	This device contains a security fuse, however, the option is
+	currently not supported. If you attempt to program the security 
+	fuse manually, the part will secure. However, reprogramming will 
+	no longer be possible.
+
+54	This devices does not support upload, output to disk, fill RAM, 
+	or Edit data. Blank check is not supported on plastic devices (PLCC).
+
+	If you attempt to re-program, load, or verify this device after
+	you program the security fuse, a Device Over-Current Fault error 
+	may be generated and may potentially damage the device.
+
+55	Blank check is not supported on plastic devices (PLCCs). Upload,
+	Output to disk, Fill RAM, and Edit data are also not supported on
+	these devices.
+
+	POF files generated by the MAXPLUS (TM Altera) development
+	system must use UniSite software version 2.5, 2900 version
+	1.2 or later.
+
+	Some POF files contain "don't care" data that is calculated 
+	into the data checksum. If you perform a Load operation after
+	programming a downloaded file, the checksum may be slightly
+	different.
+
+56	This device has an architecture byte at address 8000 hex. 
+	Set the appropriate bits to 1 to program the desired features 
+	into the device. Set all unused bits in the architecture           
+	byte to 0.
+
+	ADDR      BIT       FUNCTION       DEVICES SUPPORTING FEATURE
+
+	8000 hex  2         ALE polarity   Cypress 7C277 and 7C279
+	8000 hex  1         ALE enable     Cypress 7C277 and 7C279
+	8000 hex  0 (lsb)   SYNC enable    Cypress 7C277
+
+57	The WSI-PSD301 Maple compiled data file may contain data at
+	locations that are not programmable. These locations will be
+	filled with zeros during any device related operation (program,
+	load, verify). This may result in an incorrect checksum if
+	you program a device immediately after downloading the PSD301 data
+	file to the programmer. To get the correct checksum, perform a 
+	load operation after programming the device. Any devices 
+	programmed after the first device will display the correct
+	checksum.
+
+	The PSD301 contains a Security Bit (SECA) which can be enabled
+	in the PROGRAM MEMORY DEVICE Options screen.
+
+58	This device has a programmable reset polarity bit. To program
+	this bit (reset low enable), fill locations 2000 - 2003 hex
+	with zeros. To leave this bit un-programmed (reset high
+	enable), fill locations 2000 - 2003 hex with the blank state
+	(FF hex).
+
+59	This device requires socket adapter HS538ESH01H. It is
+	available from the device manufacturer.
+
+60	This device requires socket adapter HS538ESG01H. It is
+	available from the device manufacturer.
+
+61	This device requires socket adapter HS338ESH01H. It is
+	available from the device manufacturer. Set device block size 
+	to 4000 hex.
+
+62	This device requires socket adapter HS18XESF01H. It is
+	available from the device manufacturer. Set device block size 
+	to 4000 hex.
+
+63	This device requires socket adapter HS460ESF01H. It is
+	available from the device manufacturer. Set device block size 
+	to 4000 hex. Data bits 5-7 should be set to ones at all address 
+	locations. Refer to the manufacturer's spec sheet for the correct 
+	data pattern.
+
+64	This device requires socket adapter HS470ESS11H. It is
+	available from the device manufacturer. Data bits 5-7 should be 
+	set to ones at all address locations. Refer to the manufacturer's 
+	spec sheet for the correct data pattern.
+
+65	This device requires socket adapter PCA4708. It is
+	available from the device manufacturer. Set device begin address 
+	and device block size to 4000 hex.
+
+66	This device requires socket adapter PCA4708. It is
+	available from the device manufacturer.
+
+67	This device requires socket adapter PCA4700G02. It is
+	available from the device manufacturer. Place jumper JP1 on 
+	adapter to 64. Set device begin address to 800 hex and device 
+	block size to 1800 hex.
+
+68	This device requires socket adapter PCA4701G02. It is
+	available from the device manufacturer. Place jumper JP1 on adapter 
+	to 64. Set device begin address to 800 hex and device block 
+	size to 1800 hex.
+
+69	This device requires socket adapter PCA4700G02. It is 
+	available from the device manufacturer. Place jumper JP1 on 
+	adapter to 64.
+
+70	This device requires socket adapter PCA4701G02. It is 
+	available from the device manufacturer. Place jumper JP1 on 
+	adapter to 64.
+
+71	This device requires socket adapter PCA4705. It is
+	available from the device manufacturer. Set device begin 
+	address to 1000 hex and device block size 3000 hex.
+
+72	This device requires socket adapter PCA4730. It is 
+	available from the device manufacturer. Set device begin 
+	address and device block size to 4000 hex.
+
+73	This device requires socket adapter PCA4731. It is
+	available from the device manufacturer. Set device begin 
+	address and device block size to 4000 hex.
+
+74	This device requires socket adapter PCA4719. It is 
+	available from the device manufacturer. Set device begin 
+	address and device block size to 4000 hex.
+
+75	This device requires socket adapter PCA4710. It is 
+	available from the device manufacturer. Set device begin 
+	address and device block size to 4000 hex.
+
+76	This device requires socket adapter PCA4791. It is 
+	available from the device manufacturer.
+
+77	This device requires socket adapter PCA4740. It is 
+	available from the device manufacturer. Set device block 
+	size to 1000 hex.
+
+78	This device requires socket adapter PCA4741. It is 
+	available from the device manufacturer.
+
+79	This device requires socket adapter HS338ESG01H. It is 
+	available from the device manufacturer. Set device block 
+	size to 4000 hex.
+
+80	This device requires socket adapter HS328ESS01H. It is
+	available from the device manufacturer.
+
+81	This device requires socket adapter HS81XESG01H. It is 
+	available from the device manufacturer. Set device block 
+	size to 4000 hex.
+
+82	This device requires socket adapter HS528ESS01H. It is 
+	available from the device manufacturer. Set device block 
+	size to 4000 hex.
+
+83	This device requires socket adapter HS409ESS11H. It is 
+	available from the device manufacturer. Data bits 5-7 should 
+	be set to ones at all address locations. Refer to the 
+	manufacturer's spec sheet for the correct data pattern.
+
+84	This device requires socket adapter PA-78CP14CW. It is 
+	available from the device manufacturer. Set device block 
+	size to 4000 hex.
+
+85	This device requires socket adapter PA-78P214CW. It is 
+	available from the device manufacturer.
+
+86	This device has phantom fuses in the JEDEC fuse map which are
+	ignored during program and verify operations. These fuses will
+	load as ones. This device must be erased before re-programming. 
+	An error will occur if the device is not erased before re-programming.
+
+87	This device requires socket adapter AD-3. It is 
+	available from the device manufacturer.
+
+88	This device requires socket adapter AD-4. It is 
+	available from the device manufacturer.
+
+89	This device requires socket adapter AD-10. It is 
+	available from the device manufacturer.
+
+90	This device requires socket adapter AD-12. It is 
+	available from the device manufacturer.
+
+91	This device requires socket adapter 98A-EAC-68. It is 
+	available from the device manufacturer.
+
+92	This device requires socket adapter MFT2A02-001. It is 
+	available from the device manufacturer.
+
+93	This device requires socket adapter MFT2A02-002. It is 
+	available from the device manufacturer.
+
+94	This device does not support Illegal Bit Test. However,
+	the programmer will not indicate that the test is not supported.            
+
+95	This device has one or more architecture bits contained
+	in one byte at address 10000 hex. Set the appropriate bits
+	to 1 to program the desired features into the device:
+
+	ADDR      BIT       FUNCTION       DEVICES SUPPORTING FEATURE
+
+	8000 hex  7(msb)    CS2 polarity   Cypress 7C289
+	8000 hex  6         CS1 polarity   Cypress 7C289
+	8000 hex  5         WAIT polarity  Cypress 7C289
+	8000 hex  4         WAIT timing    Cypress 7C289
+	8000 hex  3         ALE polarity   Cypress 7C289
+	8000 hex  2         ALE enable     Cypress 7C289
+	8000 hex  1         Address setup  Cypress 7C289
+	8000 hex  0(lsb)    SYNC enable    Cypress 7C289
+
+96	This device requires a socket adapter that interchanges 
+	pins 1 and 4 between the device and ZIF socket.
+
+97	This device does not support Blank Test. However,
+	the programmer does not indicate that the test is not supported.
+
+98	This device requires a socket adapter and additional 
+	operating instructions. Please contact Data I/O Customer
+	Support for further information.
+
+99	You must clear addresses 2000-2003 hex to zeros for programming 
+	the RST polarity. If you do not program the RST polarity, the 
+	locations must be set to FF hex.
+
+100	This device requires socket adapter PA-CP14GF. It is 
+	available from the device manufacturer. Set device size to 4000 hex.
+
+101	This device requires socket adapter PA-78P214L. It is 
+	available from the device manufacturer. Set device size to 4000 hex.
+
+102	This device requires socket adapter AD14. It is 
+	available from the device manufacturer.
+
+103	This device requires socket adapter HS470ESS11H. It is 
+	available from the device manufacturer. Data bits 5-7 should be 
+	set to ones at all address locations. Refer to the manufacturer's 
+	spec sheet for the correct data pattern.
+
+104	This device requires socket adapter HS460ESH01H. It is 
+	available from the device manufacturer. Set device size to 4000 hex.  
+	Data bits 5-7 should be set to ones at all address locations.  
+	Refer to the manufacturer's spec sheet for the correct data pattern.
+
+105	This device requires socket adapter HS328ESS01H. It is 
+	available from the device manufacturer.
+
+106	This device requires socket adapter HS528ESS01H. It is 
+	available from the device manufacturer. Set device size to 4000 hex.  
+
+107	Any of the four security options can be implemented for this
+	device (Encryption Array data, Security Bits 1, 2 or 3).
+	The security options can be selected from the PROGRAM
+	DEVICE Options screen, or from the Main Array. Once any of
+	the security options have been programmed into the device,
+	no further programming is allowed.
+
+	Data in the programmer's User Memory is partitioned
+	as follows:
+
+	MAIN ARRAY DATA          - 0 through 1FFF hex
+	ENCRYPTION ARRAY DATA    - 2000 through 203F hex
+	SECURITY BIT1 DATA       - 2040 hex  (bit D7)
+	SECURITY BIT2 DATA       - 2040 hex  (bit D6)
+	SECURITY BIT3 DATA       - 2040 hex  (bit D5)
+
+	Enter Encryption Array data by editing the appropriate address 
+	in User Memory. Enter Security Bit data via the edit screen or 
+	the PROGRAM DEVICE Options screen.
+
+	After the Encryption Array is programmed, device data
+	will no longer match data in User RAM. Encryption Array
+	and Security Bit data cannot be read from the device.      
+
+108	Block limits are not supported for this device. The 
+	entire memory array will be programmed or erased automatically.
+
+109	At address locations 0 to FFF hex, data bits 4-7 should
+	be set to ones. At address locations 1000 to 1FFF hex, data 
+	bits 5-7 should be set to ones. Refer to the manufacturer's spec
+	sheet for the correct data pattern.
+
+110	This device requires socket adapter PCA4710. It is available
+	from the device manufacturer.
+
+111	This device requires socket adapter PCA4711. It is available
+	from the device manufacturer.
+
+112	This device requires socket adapter PCA4709. It is available
+	from the device manufacturer. Set device begin address and
+	block size to 4000 hex.
+
+113	This device requires socket adapter PCA4709. It is available
+	from the device manufacturer.
+
+114	This device requires socket adapter MFT2A02-001. It is available 
+	from the device manufacturer. To program the first 128K, select 
+	bank 0. Maximum device size is 20000 hex. To program the last 64K, 
+	select bank 1. The maximum device size is 10000 hex.
+
+115	This device requires socket adapter PA-78P214GC. It is
+	available from the device manufacturer. Set device block size
+	to 4000 hex.
+
+116	(2900 only) To insert the socket adapter, push down on the
+	ZIF socket handle.
+
+117	This device requires socket adapter MB98A-0AC-68. It is 
+	available from the device manufacturer.
+
+118	This device uses 3.0 volts on VCC for load, program, and
+	verify operations. The VCC voltages applied during a two-pass
+	verify operation are 3.0 volts and 3.5 volts.
+
+119	Structured testing is not supported for this device on the
+	ChipSite module.
+
+120	This device has address locations in the programmable 
+	array area that are reserved for special functions and are 
+	not programmable. These addresses are A, B, 2F-3F hex,
+	and the least significant bytes of E hex and F hex.  
+	Fill these locations in User RAM with FF hex.
+
+	Fill the most significant bytes of C, D, E and F hex
+	in User RAM with 20 hex.  
+
+	The least significant byte of C hex (CCB byte) is programmable. The 
+	two most significant bits of this location are programmable 
+	lock bits, which can be programmed only by selecting the 
+	Security Bit programmig option in the PROGRAM Options screen.
+
+	To program the CCB1 and Security Key bytes (the least significant
+	byte of D hex and all bytes of address 10-17 hex) consult the
+	manufacturer's specifications. 
+
+
+121	!!!!USE ONLY FOR FX-CORE DEVICES!!!! FX core devices can be
+	distinguish from older 87C51/87C51FA/87C51FB devices via the
+	topside tracking number (FPO number)marked on the part. The
+	topside tracking number on FX core devices will end with a 
+	letter 'A'. For more information call INTEL.
+
+	Any of the four security options can be implemented for this
+	device (Encryption Array data, Security Bits 1, 2 or 3). The 
+	security options can be selected from the PROGRAM DEVICE Options 
+	screen. 
+	Data in the Programmer's User Memory is partitioned as follows:
+
+	DEVICE		 87C51 (FX)	 87C51FA (FX)	 87C51FB (FX)
+	------------	------------	-------------	-------------
+	MAIN ARRAY      0 - 0FFFh	0 - 1FFFh	0 - 3FFFh
+	ENCRYPT. ARRAY  1000 - 103Fh	2000h - 203Fh	4000h - 403Fh
+	SECUR. BIT1     1040h (bit 7)	2040h (bit 7)	4040h (bit 7)
+	SECUR. BIT2     1040h (bit 6)	2040h (bit 6)	4040h (bit 6)  
+	SECUR. BIT3     1040h (bit 5)	2040h (bit 5)	4040h (bit 5)
+
+	Enter Encryption Array data by editing the appropriate address in 
+	User Memory. Enter Security Bit data via the edit screen or the 
+	PROGRAM DEVICE Options screen.  
+
+	After the Encryption Array is programmed, device data will
+	no longer match data in User RAM. Encryption Array and 
+	Security Bit data cannot be read from the device. 
+
+122	This device requires an adapter that converts the pinout to
+	a standard DIP socket, for use with Site40 or Site48.  The 
+	adapter is available from:
+	Emulation Technology			(408) 962-0660
+	or	California Integration Coordinators	(916) 626-6168
+
+123	This device requires the use of the .300 SOIC Matchbook with
+	PinSite and the Model 2900.
+
+124	This device requires the use of the .150 SOIC Matchbook with
+	PinSite and the Model 2900.
+
+125	For this device, partial programming will function properly
+	only if the Device Begin Address is set to 0.
+
+126	For this device, partial programming will function properly
+	only if the Device Begin Address is set to 0 and the Device 
+	Block Size is set to an even number.
+
+127	This device requires the Fujitsu MB98A-EAC-68 card adapter. The least
+	significant address line on the card is controlled by a dip switch on
+	the adapter, so the following procedure must be followed to program
+	adjacent bytes as the least significant and most significant byte of a
+	word:
+
+	1) Set data word width to 16.
+
+	2) Set auto increment to Y.
+
+	3) Program even bytes. When this operation is complete, the 
+	next device field in the programming menu will change from 
+	1 to 2. 
+
+	4) Toggle dip switch 1 and program odd bytes.
+
+128	This device requires socket adapter AS-84-40-01P-6YAM. It is 
+	available from Emulation Technology Inc. (408-982-0660).
+
+129	Some devices may generate intermittent programming errors
+	(low yields).  If this occurs, repeat the program operation.
+	Data I/O is currently working with the semiconductor
+	manufacturer to improve yields.
+
+170	2 1 44 
+
+171	3 1 44 45 
+
+172	2 2 44 
+
+173	3 2 21 35 
+
+174	2 3 19 
+
+175	3 3 19 44 
+
+176	2 3 44 
+
+177	2 3 45 
+
+178	3 6 8 21 
+
+179	2 7 21 
+
+180	2 8 21 
+
+181	3 8 21 25 
+
+182	2 18 50 
+
+183	2 19 20 
+
+184	2 19 34 
+
+185	2 22 98 
+
+186	2 22 49 
+
+187	2 24 44 
+
+188	2 30 44 
+
+189	2 32 49 
+
+190	2 33 49 
+
+191	2 34 37 
+
+192	2 42 44 
+
+193	2 44 47 
+
+194	2 1 45 
+
+195	2 49 86 
+
+196	2 44 45 
+
+197	3 3 44 45 
+
+198	2 19 44 
+
+199	2 36 44 
+
+200	2 28 44 
+
+201	2 55 94 
+
+202	2 46 99 
+
+203	3 77 109 #footnote 
+
+204	2 78 109 
+
+205	2 92 114 
+
+206	2 102 116 
+
+207	2 115 116 
+
+208	2 85 116 
+
+209	2 49 123 
+
+210	3 3 45 123 
+
+211	2 43 123 
+
+212	3 22 98 123 
+
+213	3 22 49 123 
+

@@ -1,0 +1,448 @@
+.TH GRAPHICS 2G
+.SH NAME
+Point, Rectangle, Bitmap, Cursor, binit, bclose, berror, bscreenrect, bneed, bflush, bwrite, bexit, clipr, cursorswitch, cursorset, rdfontfile, ffree, charwidth, Pconv, Rconv \- graphics
+.SH SYNOPSIS
+.nf
+.PP
+.ft L
+#include <u.h>
+#include <libc.h>
+#include <libg.h>
+.ft P
+.PP
+.ta \w'\fLRectangle 'u
+.B
+void	binit(void (*errfun)(char *), char *font, char *label)
+.PP
+.B
+void	bclose(void)
+.PP
+.B
+void	bexit(void)
+.PP
+.B
+void	berror(char *msg)
+.PP
+.B
+Rectangle	bscreenrect(Rectangle *clipr)
+.PP
+.B
+uchar*	bneed(int n)
+.PP
+.B
+void	bflush(void)
+.PP
+.B
+int	bwrite(void)
+.PP
+.B
+int	clipr(Bitmap *b, Rectangle cr)
+.PP
+.B
+void	cursorswitch(Cursor *curs)
+.PP
+.B
+void	cursorset(Point p)
+.PP
+.B
+Font*	rdfontfile(char *name, int ldepth)
+.PP
+.B
+void	ffree(Font *f)
+.PP
+.B
+int	charwidth(Font *f, Rune r)
+.PP
+.B
+int	Pconv(void *arg, int f1, int f2, int f3, int chr)
+.PP
+.B
+int	Rconv(void *arg, int f1, int f2, int f3, int chr)
+.PP
+.B
+extern Bitmap    screen
+.PP
+.B
+extern Font      *font
+.fi
+.SH DESCRIPTION
+A
+.B Point
+is a location in a bitmap
+(see below),
+such as the screen, and is defined as:
+.IP
+.EX
+.ta 6n
+typedef
+struct Point {
+	int x;
+	int y;
+} Point;
+.EE
+.PP
+The coordinate system has
+.I x
+increasing to the right and
+.I y
+increasing down.
+.PP
+A
+.B Rectangle
+is a rectangular area in a bitmap.
+.IP
+.EX
+.ta 6n
+typedef
+struct Rectangle {
+	Point min;      /* upper left */
+	Point max;      /* lower right */
+} Rectangle;
+.EE
+.PP
+By definition,
+.B min.x <= max.x
+and
+.BR "min.y <= max.y" .
+By convention, the right (maximum
+.IR x )
+and bottom (maximum
+.IR y )
+edges are
+excluded from the represented rectangle, so abutting rectangles have no
+points in common.
+Thus,
+.B max
+contains the coordinates of the first point beyond the rectangle.
+.PP
+A 
+.B Bitmap
+holds a rectangular image.
+.IP
+.EX
+.ta 6n +\w'Rectangle 'u +\w'ldepth;  'u
+typedef
+struct Bitmap {
+	Rectangle	r;	/* rectangle in data area, local coords */
+	Rectangle	clipr;	/* clipping region */
+	int	ldepth;	/* log base 2 of number of bits per pixel */
+	int	id;	/* id as known in /dev/bitblt */
+	Bitmap*	cache;	/* zero; distinguishes bitmap from layer */
+} Bitmap;
+.EE
+.PP
+.B R.min
+is the location in the bitmap
+of the upper-leftmost point in the image.
+There are
+.if t .I 2\u\s8ldepth\s10\d
+.if n 2^ldepth
+contiguous bits for each pixel of the image;
+the bits form a binary number giving the pixel value.
+.L Clipr
+is the clipping rectangle; typically it is the same as
+.B r
+except in a window, where it is inset by the width of
+the border.
+Graphical operations on the
+.B Bitmap
+will be confined to the clipping rectangle.
+The subroutine
+.I Clipr
+sets the clipping rectangle of
+.B b
+to the intersection of
+.B cr
+and
+.BR b->r .
+If
+.I cr
+does not intersect
+.BR b->r
+it does nothing.
+.I Clipr
+returns 1 if the clipping region was set,
+0 if it was not.
+.PP
+A
+.B Font
+is a set of character images, indexed by runes (see
+.IR utf (6)).
+The images are organized into
+.BR Subfont s,
+each containing the images for a small, contiguous set of runes.
+.B Font
+and
+.B Subfont
+structures contain two related fields:
+.LR ascent ,
+the distance from the top of the highest character
+(actually the top of the bitmap holding all the characters)
+to the baseline,
+and
+.LR height ,
+the distance from the top of the highest character to the bottom of
+the lowest character (and hence, the interline spacing).
+The width of any particular character
+.L r
+in a font is returned by
+.IR charwidth.
+The width is defined as the amount to add to the horizontal position
+after drawing the character.
+.B Charwidth
+calls the graphics error function if
+.B r
+is zero (NUL) because
+.B string
+(see
+.IR bitblt (2))
+cannot draw a NUL.
+The other fields are used internally by the text-drawing functions.
+See
+.IR cachechars (2)
+for a detailed description.
+.PP
+.I Rdfontfile
+reads the font description in file
+.I name
+and returns a pointer that can by used by
+.I string
+(see
+.IR bitblt (2))
+to draw characters from the font.
+The
+.I ldepth
+argument specifies how characters will be cached; it should usually
+be the ldepth of the bitmap that will most often be the target of
+.IR string .
+.I Ffree
+frees a font.
+The convention for naming font files is:
+.IP
+.B /lib/font/bit/\fIname\fP/\fIrange\fP.\fIsize\fP.font
+.PD
+.PP
+where
+.I size
+is approximately the height in pixels of the lower case letters
+(without ascenders or descenders).
+.I Range
+gives some indication of which characters will be available: for example
+.BR ascii ,
+.BR latin1 ,
+.BR euro ,
+or
+.BR unicode .
+.B Euro
+includes most European languages, punctuation marks, the International Phonetic
+Alphabet, etc., but no Oriental languages.
+.B Unicode
+includes every character for which images exist on the system.
+.PP
+A
+.I Cursor
+is defined:
+.IP
+.EX
+.ta 6n +\w'Point 'u
+typedef struct
+Cursor {
+	Point	offset;
+	uchar	clr[2*16];
+	uchar	set[2*16];
+} Cursor;
+.EE
+.PP
+The arrays are arranged in rows, two bytes per row, left to
+right in big-endian order to give 16 rows
+of 16 bits each.
+A cursor is displayed on the screen by adding
+.B offset
+to the current mouse position, using
+.B clr
+as a mask to zero the pixels where
+.B clr
+is 1, and then setting pixels to ones where
+.B set
+is one.
+.PP
+The function
+.I binit
+must be called before using any graphics operations.
+The
+.I errfun
+argument is a function to be called with an error message
+argument when the graphics functions detect a fatal error;
+such an error function must not return.
+A zero for the
+.I errfun
+specifies the default
+.IR berror ,
+which prints the message and exits.
+If
+.I label
+is non-null, it will be written to
+.BR /dev/label ,
+so that it can be used to identify the window when hidden (see
+.IR 8½ (1)).
+.B Binit
+sets up the global
+.I screen
+to be a bitmap describing the area of the screen that the program
+can use.
+This will be either the whole screen,
+or some portion of it if the program is running under a
+window system such as
+.IR 8½ (1).
+.B Binit
+also establishes a font by reading the named
+.I font
+file.  If
+.B font
+is null,
+.I binit
+reads the file named in the environment variable
+.BR $font ;
+if
+.B $font
+is not set, it imports the default (usually minimal)
+font from the operating system.
+The global
+.I font
+will be set to point to the resulting
+.B Font
+structure.
+Another effect of
+.I binit
+is that it installs
+.IR print (2)
+formats
+.I Pconv
+and
+.I Rconv
+as
+.L %P
+and
+.L %R
+for printing
+.B Points
+and
+.BR Rectangles .
+.PP
+.I Bclose
+closes the file descriptor connecting the application to the
+graphics server, typically for use by a child process that needs
+to disconnect from the graphics server.
+It does not automatically flush pending output (see
+.IR bflush ,
+below).
+.I Bclose
+is not needed by most programs.
+.I Bexit
+completes any pending graphics.
+It is called automatically by
+.IR exits (2).
+.PP
+The
+.IB screen .r
+field is not maintained across `reshape' events; use
+.I bscreenrect
+to discover the current size
+(see
+.IR event (2));
+a non-null
+.B cr
+will be filled in with the screen's clip rectangle.
+.PP
+The mouse cursor is always displayed.
+The initial cursor is an arrow.
+.I Cursorswitch
+causes the argument cursor to be displayed instead.
+A zero argument causes a switch back to the arrow cursor.
+.I Cursorset
+moves the mouse cursor to position
+.I p,
+provided (if in a window) that the requesting program is
+executing in the current window and the mouse is within
+the window boundaries; otherwise
+.I cursorset
+is a no-op.
+.PP
+The graphics functions described in
+.IR bitblt (2),
+.IR balloc (2),
+.IR cachechars (2),
+and
+.IR subfalloc (2)
+are implemented by writing commands to
+.B /dev/bitblt
+(see
+.IR bit (3));
+the writes are buffered, so the functions may not take effect immediately.
+.I Bflush
+flushes the buffer, doing all pending graphics operations.
+.I Binit
+arranges that
+.I bflush
+will be called on exit,
+and the following functions all cause a flush:
+.I balloc,
+.I bfree,
+.I bscreenrect,
+.I cursorset,
+.I cursorswitch,
+.I ecankbd,
+.I ecanmouse,
+.I ekbd,
+.I emouse,
+.I event,
+.I rdfontfile,
+.I subfalloc,
+.I ffree,
+.I rdbitmap,
+and
+.I wrbitmap.
+.PP
+The rare program that needs to implement the
+.B /dev/bitblt
+protocol directly can use
+.I bneed
+and
+.I bwrite.
+.I Bneed
+returns a pointer to a place in the write buffer, allocating
+space for
+.I n
+bytes.
+The buffer will be flushed first if
+.I n
+is zero, or the buffer is too full.
+After filling in bytes allocated with
+.IR bneed ,
+.I bwrite
+can be used to write everything in the buffer and reset the buffer pointer.
+Unlike
+.I bflush,
+.I bwrite
+does not call the registered error function and so can be used
+when an error is possible and the
+error function is inappropriate.
+.SH FILES
+.BR /lib/font/bit "    directory of bitmap fonts
+.SH "SEE ALSO"
+.IR add (2),
+.IR balloc (2),
+.IR cachechars (2),
+.IR subfalloc (2),
+.IR bitblt (2),
+.IR event (2),
+.IR frame (2),
+.IR print (2),
+.IR bit (3),
+.IR layer (2),
+.IR bitmap (6),
+.IR font (6)
+.SH DIAGNOSTICS
+An error function may call
+.IR errstr (2)
+for further diagnostics.

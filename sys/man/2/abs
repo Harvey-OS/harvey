@@ -1,0 +1,27 @@
+.TH ABS 2
+.SH NAME
+abs, labs \- integer absolute values
+.SH SYNOPSIS
+.B
+int	abs(int a)
+.PP
+.B
+long	labs(long a)
+.SH DESCRIPTION
+.I Abs
+returns
+the absolute value of integer
+.IR a ,
+and
+.I labs
+does the same for a long.
+.SH SEE ALSO
+.IR floor (2)
+for
+.I fabs
+.SH DIAGNOSTICS
+.I Abs
+and
+.I labs
+return
+the most negative integer or long when the true result is unrepresentable.

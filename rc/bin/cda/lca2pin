@@ -1,0 +1,33 @@
+#!/bin/rc
+/bin/awk '/^.t / {print $0}
+/^.tt / {
+	gottt = 1
+	tt = $2
+	l = length(tt)
+}
+/^Pin/ {
+	num[$2] = $3
+}
+/^Net/ {
+	$2 = toupper($2)
+	$3 = toupper($3)
+	pin[$2] = $3
+	io[$3] = $4
+}
+/^Nameblk/ {
+	a = $2
+	sig = $3
+	split(sig,x,"_")
+	if (x[2] == "")
+		sig = x[1]
+	p = pin[sig]
+	if (num[a] == "" || p == "")
+		next
+	print	".tp	"p"	"num[a]
+	n = num[a]
+	tt = substr(tt,1,n-1)""((io[p] == "I") ? "i" : "3")""substr(tt,n+1,l-n)
+}
+END {
+	if (gottt)
+		print ".tt "tt
+}' /fd/0 $* | sort

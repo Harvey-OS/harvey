@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+TARG=cfs
+COMMONOBJ=\
+	disk.$O\
+	bcache.$O\
+	inode.$O\
+	lru.$O\
+	file.$O\
+
+OFILES=cfs.$O $COMMONOBJ
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+all:V:	$O.cfsck
+
+$O.cfsck:	cfsck.$O $COMMONOBJ
+		$LD -o $target $prereq
+
+cfs.$O:		cformat.h inode.h bcache.h disk.h lru.h file.h
+cfsck.$O:	cformat.h inode.h bcache.h disk.h lru.h file.h
+file.$O:	cformat.h inode.h bcache.h disk.h lru.h file.h
+disk.$O:	cformat.h inode.h bcache.h disk.h lru.h
+bcache.$O:	cformat.h bcache.h lru.h
+main.$O:	cformat.h bcache.h disk.h lru.h
+inode.$O:	cformat.h inode.h bcache.h disk.h lru.h
+lru.$O:		lru.h
+
+clean:V:
+	rm -f *.[$OS] [$OS].* cfs cfsck

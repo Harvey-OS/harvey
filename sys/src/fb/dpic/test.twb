@@ -1,0 +1,42 @@
+.	\"	/*% twb %
+.de FT
+.ft \\$1
+.ta .3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i +.3i
+.ps 16
+.vs 18
+Font \\$1
+pack my box with five dozen liquor jugs.
+PACK MY BOX WITH FIVE DOZEN LIQUOR JUGS.
+	!	"	#	$	%	&	'	(	)	*	+	,	-	.	/	
+0	1	2	3	4	5	6	7	8	9	:	;	<	=	>	?
+@	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O
+P	Q	R	S	T	U	V	W	X	Y	Z	[	\e	]	^	_
+`	a	b	c	d	e	f	g	h	i	j	k	l	m	n	o
+p	q	r	s	t	u	v	w	x	y	z	{	|	}	~
+\'	\`	\(em	\-	\(hy	\-	\(bu	\(sq	\(ru	\(14	\(12	\(34	\(fi	\(fl	\(ff	\(Fi
+\(Fl	\(de	\(dg	\(fm	\(ct	\(rg	\(co	\(pl	\(mi	\(eq	\(**	\(sc	\(aa	\(ga	\(ul	\(sl
+\(*a	\(*b	\(*g	\(*d	\(*e	\(*z	\(*y	\(*h	\(*i	\(*k	\(*l	\(*m	\(*n	\(*c	\(*o	\(*p
+\(*r	\(*s	\(ts	\(*t	\(*u	\(*f	\(*x	\(*q	\(*w	\(*A	\(*B	\(*G	\(*D	\(*E	\(*Z	\(*Y
+\(*H	\(*I	\(*K	\(*L	\(*M	\(*N	\(*C	\(*O	\(*P	\(*R	\(*S	\(*T	\(*U	\(*F	\(*X	\(*Q
+\(*W	\(sr	\(rn	\(>=	\(<=	\(==	\(~=	\(ap	\(!=	\(->	\(<-	\(ua	\(da	\(mu	\(di	\(+-
+\(cu	\(ca	\(sb	\(sp	\(ib	\(ip	\(if	\(pd	\(gr	\(no	\(is	\(pt	\(es	\(mo	\(br	\(dd
+\(rh	\(lh	\(L1	\(or	\(ci	\(lt	\(lb	\(rt	\(rb	\(lk	\(rk	\(bv	\(lf	\(rf	\(lc	\(rc
+\(IE	\(pw
+..
+.FT R
+.SL
+.FT I
+.SL
+.FT B
+.SL
+.FT BI
+.SL
+.FT S
+.SL
+.FT SI
+.SL
+.FT SB
+.SL
+.FT SK
+.SL
+.FT CW

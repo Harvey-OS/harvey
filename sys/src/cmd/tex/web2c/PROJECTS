@@ -1,0 +1,35 @@
+Here are some ideas for ways to improve the current distribution:
+
+* Support the switch-to-editor feature.
+
+* Make web2c handle fields correctly, i.e., to put the field identifier
+in the symbol table of the type, instead of the global symbol table. 
+This would simplify the GFtoDVI change file a fair amount.
+
+* Make web2c handle variant records.  This would make the TeX, Metafont,
+and GFtoDVI change files all simpler.
+
+* Make DVItype output to stdout, and not do a dialog, a la GFtype.
+
+* Make the X11 support for Metafont more robust.  Communicate the sizes
+back and forth between Metafont and X.  Handle Expose events.  Use the
+toolkit, instead of Xlib.
+
+* When files aren't found, use perror, instead of just saying `not
+found'.  Some programs don't even say what file it is that wasn't found
+right now!
+
+* Handle filenames more consistently.  If all filenames were Pascal
+strings (i.e., with a leading blank, and terminated with a blank), it
+might easier to understand.
+
+* Rewrite test_access to take a string argument for the name of the
+file. (Done, in ./fontutils. Now, the other programs have to be changed
+to use it.)  Having it take it from a global (cur_name) is ugly.  Also,
+GFtoDVI has a variable named cur_name (which is something else), so the
+change file has to hack around that.
+
+* Put all the repeated code in the various extra files and combine it
+into one place.  Ditto for the .h files.  Ditto for the .defines files.
+This would be probably be the biggest boon to people working on this
+distribution in the future.

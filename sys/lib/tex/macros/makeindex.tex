@@ -1,0 +1,477 @@
+% makeindex.tex -- released 17  February 1987
+% Copyright(c) 1987 by Leslie Lamport
+%   for LaTeX version 2.09
+%
+\documentstyle[11pt]{article}
+
+%&v&\verb|#|&
+%&i&\verb|\index{#}|&
+%&t&{\tt #}&
+\newcommand{\MakeIndex}{{\it MakeIndex\/}}
+\newcommand{\fn}{}
+\newcommand{\ff}
+
+
+% Definition of the iexample environment and \sindex command.  
+% They are used as follows:
+%   \begin{iexample}
+%      Page 7   & \verb|\index{foo}|\\
+%      Page 22  & \verb|\index{bar}|
+%   \sindex
+%      bar, 22 \\
+%      foo, 7
+%   \end{iexample}
+\newenvironment{iexample}{\begin{quote}
+   \begin{tabular}[t]{@{}ll||@{\hspace{1em}}}}{\end{tabbing}\end{minipage}
+   \end{quote}}
+\newcommand{\sindex}{\end{tabular}\hspace{1em}\begin{minipage}[t]{\textwidth}
+   \begin{tabbing}}
+
+\newcommand{\sitem}{\hspace*{20pt}}
+\newcommand{\ssitem}{\hspace*{30pt}}
+
+
+\title{\MakeIndex: An Index Processor For \LaTeX}
+
+\author{Leslie Lamport}
+\date{17 February 1987}
+\begin{document}
+\maketitle
+
+\section{How to Use \MakeIndex}
+
+\MakeIndex\ is a program for
+making an index in a document generated with \LaTeX. The first step in
+producing the index is to put the necessary \verb|\index| commands in
+your document, as described in the next section.  Here, I describe how
+to generate the index after the \verb|\index| commands are in place.
+
+Let's suppose that the root file of your document is {\tt myfile.tex}.
+You must make the following changes to your document:
+\begin{itemize}
+
+\item Add the {\tt makeidx} document-style option to the list of
+options in the \verb|\documentstyle| command.  (See page 21 of the
+\LaTeX\ manual.)
+
+\item Put a \verb|\makeindex| command in the preamble (between the 
+  \linebreak%%%%%
+\verb|\documentstyle| and \verb|\begin{document}| commands).
+
+\item Put a \verb|\printindex| command where you want the index to
+appear---usually at the end, right before the \verb|\end{document}|
+command.
+\end{itemize}
+You then run \LaTeX\ on your entire document, causing it to
+generate the file {\tt myfile.idx}, which I will call the {\tt idx} file.
+Next, run the \MakeIndex\ program by
+typing the following Unix command:
+\begin{quote}
+    {\tt makeindex myfile.idx}
+\end{quote}
+This produces the file {\tt myfile.ind}, which I will call the {\tt
+ind} file.  If \MakeIndex\ generated no error messages, you can now rerun
+\LaTeX\ on your document and the index will appear.  (You can remove
+the \verb|\makeindex| command first so the {\tt idx} file is not
+regenerated.)  If there were error messages, see
+Section~\ref{sec:errors}.
+
+By reading the index, you may discover additional mistakes.  These should be
+corrected by changing the appropriate \verb|\index| commands in the
+document and regenerating the {\tt ind} file.  If there are
+problems that cannot be corrected in this way, you can always edit 
+the {\tt ind} file directly.  However, such editing is to be
+avoided because it must be repeated every time you generate a new
+version of the index.
+
+
+\section{How to Generate Index Entries}
+
+\subsection{When, Why, What, and How to Index}
+
+It's tempting to generate the index as you write the document.  Resist
+the temptation.  It is virtually impossible to obtain any consistency
+in an index that is  generated in this way.
+
+An index is there to help the reader find what he's looking for.  With
+this in mind, common sense can help in figuring out what should be in
+the index and how it should be organized.  Since it's often hard to
+distinguish common sense from equally common nonsense, professional
+advice is useful.  Many style guides discuss indexing; the pamphlet
+{\em Indexing Your Book\/} by Sina Spiker (The University of Wisconsin
+Press, 1954) is, according to its subtitle, ``A Practical
+Guide for Authors''.  
+
+Unfortunately, these guides to indexing seem to have been written when
+high tech meant using a ball-point pen instead of a quill, so their
+advice on the mechanics of creating an index revolve around how to
+stack your $3\times 5$ index cards.  You'll have to figure out your own
+method of using the computer to lighten the chore.  An alphabetical
+list of every word in your document, with duplicates removed, is not a
+bad place to start.  If your system has Howard Trickey's {\tt delatex}
+program, then the following Unix command generates such a list from the
+file {\tt myfile.tex} and puts it on the file {\tt foo}:
+\begin{quote}
+\tt delatex myfile.tex | sort -uf > foo
+\end{quote}
+
+The computer is only a tool; it can't write the index for you.  It may
+be easy to choose which words are important and mechanically generate
+an index citing every occurrence of those words, but the resulting
+index will not be as useful to the reader as one prepared with more
+care.
+
+
+
+
+\subsection{The Basics}
+
+Each \verb|\index| command causes \LaTeX\ to write an entry on the {\tt
+idx} file.  The following example shows some simple
+\verb|\index| commands and the index entries that they produce.  The
+page number refers to the page containing the text where the
+\verb|\index| command appears.\footnote{To avoid any ambiguity if a
+page break occurs right at an {\tt \symbol{'134}index} command, it's a
+good idea to attach the command to a word instead of putting it between
+words.}
+\begin{iexample}
+Page ii    & \verb|\index{Alpha}| \\
+Page viii: & \verb|\index{alpha}| \\
+Page ix:   & \verb|\index{alpha}| \\
+           & \verb|\index{Alphabet}| \\
+Page 22:   & \verb|\index{alpha}|    \\
+           & \verb|\index{alphas}| \\
+Page 23:   & \verb|\index{alphabet}| \\
+           & \verb|\index{alphabet}| \\
+Page 24:   & \verb|\index{alpha bet}|
+\sindex
+Alpha, ii \\
+alpha, viii, ix, 22 \\
+alpha bet, 24\\
+Alphabet, ix\\
+alphabet, 23\\
+alphas, 22
+\end{iexample}
+Note that the duplicate \verb|\index{alphabet}| commands on
+page 23 produce only one ``23'' in the index.
+
+
+To produce a subentry, the argument of the \verb|\index|
+command should contain both the main entry and the subentry, separated
+by a \verb|!| character.
+\begin{iexample}
+Page 7: & \verb|\index{gnat!size of}| \\
+Page 32: & \verb|\index{gnat}|         \\
+Page 35: & \verb|\index{gnat!anatomy}| \\
+         & \verb|\index{gnus!good}|    \\
+Page 38: & \verb|\index{gnus!bad}| \\
+ & 
+\sindex
+gnat, 32 \\
+\sitem anatomy, 35 \\
+\sitem size of, 7\\
+gnus \\
+\sitem bad, 38\\
+\sitem good, 35
+\end{iexample}
+You can also have subsubentries.
+\begin{iexample}
+Page 8: & \verb|\index{bites!animal!gnats}| \\
+Page 10: & \verb|\index{bites!animal!gnus}| \\
+Page 12 : & \verb|\index{bites!vegetable}| \\
+ & \\
+ & 
+\sindex
+bites              \\
+\sitem animal      \\
+\ssitem gnats, 8   \\
+\ssitem gnus, 10   \\
+\sitem vegetable, 12
+\end{iexample}
+\LaTeX\ and \MakeIndex\ support only three levels of indexing; you
+can't have subsubsubentries.
+
+
+To specify a page range, put an \verb/\index{...|(}/
+command at the beginning of the range and an \verb/\index{...|)}/
+command at the end of the range.
+\begin{iexample}
+Page vi: & \verb/\index{gnat|(}/ \\
+Page x:  & \verb/\index{gnat|)}/ \\
+Page 22: & \verb|\index{gnat}| \\
+         & \verb/\index{gnus!bad|(}/ \\
+         & \verb/\index{gnus!bad|)}/ \\
+Page 28: & \verb/\index{gnus!good|(}/ \\
+Page 30: & \verb|\index{gnus!good}| \\
+Page 32: & \verb/\index{gnus!good|)}/ 
+\sindex
+gnat, vi--x, 22 \\
+gnus \\
+\sitem bad, 22\\
+\sitem good, 28--32
+\end{iexample}
+Note that \MakeIndex\ does the right thing when both ends of the range
+fall on the same page.\footnote{The use of ``28ff.'' rather than
+``28--32'' is frowned upon by the experts.}
+
+Sometimes, you want to add a cross-reference with no page
+number.  This is done as follows;
+\begin{iexample}
+Page 2: & \verb|\index{at}| \\
+Page 2: & \verb/\index{at!bat|see{bat, at}}/
+\sindex
+at, 2 \\
+\sitem bat, {\em see\/} bat, at
+\end{iexample}
+Since the ``see'' entry does not print any page number, it doesn't
+matter where the \verb/\index{...|see{...}}/ command goes, so
+long as it follows the \verb|\begin{document}| command.  You
+might want to put all such cross-referencing commands in one place.
+
+
+If you specify an entry of the form $\sigma$\verb|@|$\tau$, the string
+$\sigma$ determines the alphabetical position of the entry, while the
+string $\tau$ produces the text of the entry.
+\begin{iexample}
+Page 44: & \verb|\index{twenty}| \\
+Page 46: & \verb|\index{twenty-one}| \\
+Page 55: & \verb|\index{twenty@xx}| 
+\sindex
+twenty, 44 \\
+xx, 55 \\
+twenty-one, 46
+\end{iexample}
+This feature is useful because the argument of the \verb|\index|
+command provides the actual input string that \LaTeX\ uses to generate
+the index entry.  In the following example, the input \verb|$\alpha$|
+produces the symbol $\alpha$,
+\begin{iexample}
+Page 12: & \verb|\index{alphas}| \\
+Page 13:  & \verb|\index{alpha}| \\
+Page 14: & \verb|\index{alpha@$\alpha$}| 
+\sindex
+alpha, 13 \\
+$\alpha$, 14 \\
+alphas, 12
+\end{iexample}
+Similarly, the command \verb|\index{gnu@{\bf gnu}}| produces
+a boldface {\bf gnu} index entry.
+
+In some indexes, certain page numbers are specially formatted---for
+example, an italic page number may indicate the primary reference, and
+an {\em n\/} after a page number may denote that the item appears in a
+footnote on that page.  \MakeIndex\ makes it easy to format an
+individual page number any way you want.  For any string of characters
+$\sigma$, the command \verb/\index{...|/$\sigma$\verb|}| produces a
+page number of the form \verb|\|$\sigma$\verb|{|$n$\verb|}|.
+Similarly, the command \verb/\index{...|(/$\sigma$\verb|}| may produce
+a page number of the form \verb|\|$\sigma$\verb|{|$n$--$m$\verb|}|.
+Thus, suppose the document contains the following command definitions:
+\begin{quote}
+\verb|\newcommand{\ii}[1]{{\it #1}}| \\
+\verb|\newcommand{\nn}[1]{#1n}| 
+\end{quote}
+We could then have:
+\begin{iexample}
+Page 3: & \verb/\index{gnat|ii}/ \\
+Page 4: & \verb/\index{gnat|nn}/ \\
+Page 5: & \verb/\index{gnu}/   \\
+Page 44: & \verb/\index{gnu|(ii}/  \\
+Page 46: & \verb/\index{gnu|)}/  
+\sindex
+gnat, {\em 3}, 4n \\
+gnu, 5, {\em 44--46}
+\end{iexample}
+The ``see'' option is a special case of this facility, where the
+\verb|\see| command is predefined by the {\tt makeidx} document-style
+option.
+
+
+\subsection{The Fine Print}
+
+Commands in an index entry are expanded when the index is typeset,
+not when the {\tt idx} file is written.  Hence, the command
+\verb|\index{\gnu}| produces an entry that is alphabetized by
+\verb|\gnu|, regardless of how the \verb|\gnu| command is defined.
+
+Recall that special characters like \verb|\| may appear in the argument
+of an \verb|\index| command only if that command is not itself
+contained in the argument of another command.  This is most likely to
+be a problem when indexing items in a footnote.  Even in this case,
+robust commands can be placed in the ``\verb|@|'' part of an entry, as
+in \verb|\index{gnu@{\it gnu}}|, and fragile commands can be used
+if protected with the \verb|\protect| command.\footnote{In
+versions of \LaTeX\ released before 3 February 1987, you must
+use the {\tt\symbol{'134}string} command instead of
+{\tt\symbol{'134}protect}.}
+
+Remember that the argument of an \verb|\index| command must always have
+matching braces, where the brace in a \verb|\{| or \verb|\}| command
+counts.
+
+\MakeIndex\ assumes that all page numbers are either arabic or lower-case
+roman numerals; it assumes that pages numbered with roman numerals
+precede those numbered with arabic numerals.
+
+To put a \verb|!|, \verb|@|, or \verb/|/ character in an index entry,
+{\em quote\/} it by preceding the character with a \verb|"|.  More
+precisely, any a character is said to be quoted if it follows an
+unquoted \verb|"| that is not part of a \verb|\"| command.  A quoted
+\verb|!|, \verb|@|, or \verb/|/ character is treated like an 
+ordinary character rather than having its usual meaning.   The
+\verb|"| preceding a quoted character is deleted before the
+entries are alphabetized.
+\begin{iexample}
+Page 2: & \verb|\index{exclaim ("!)}| \\
+Page 3: & \verb|\index{exclaim ("!)!loudly}| \\
+Page 4: & \verb|\index{fur@f\"{u}r}| \\
+Page 5: & \verb|\index{quote (\verb+""+)}|
+\sindex
+exclaim (!), 2 \\
+\sitem loudly, 3\\
+f\"{u}r, 4\\
+quote (\verb+""+), 5
+\end{iexample}
+
+
+\MakeIndex\ regards spaces as ordinary characters when alphabetizing the
+entries and deciding whether two entries are the same.  Thus, letting
+``\verb*| |'' denote a space character, the commands
+\verb*|\index{gnu}|, \verb*|\index{ gnu}|, and \verb*|\index{gnu }|
+produce three separate entries, the first appearing near the beginning
+of the index, since \verb*| | comes before any letter in \MakeIndex's
+``alphabetical'' order.  All three entries look the same when
+printed, since \LaTeX\ ignores extra spaces in the input.  Similarly,
+ \verb*|\index{a space}| and \verb*|\index{a  space}| produce two
+different entries that look the same when printed.  Do not
+split the argument of an \verb|\index| command across lines in the
+input file.
+
+
+
+\section{Error Messages} \label{sec:errors}
+
+\MakeIndex\ types out on the terminal the number of lines read and
+written and how many errors were found.  Message to identify the error
+are written on a file with extension {\tt ilg}.  There are two phases
+in which \MakeIndex\ can produce error messages: when it is reading the
+{\tt idx} file, and when it is writing the {\tt ind} file.  Each error
+message prints the nature of the error followed by a line number,
+identifying where in the file the error occurs.  In the reading phase,
+the line number refers to the {\tt idx} file; in the writing phase, it
+refers to the {\tt ind} file.
+
+\subsection{Errors in Reading Phase}
+
+\subsubsection*{\tt Extra `!' at position ...}
+
+The \verb|\index| command's argument has more than two unquoted
+\verb|!| characters.  Perhaps some of them should be quoted.
+
+\subsubsection*{\tt Extra `@' at position ...}
+
+The \verb|\index| command argument has two or more unquoted \verb|@|
+characters with no intervening \verb|!|.  Perhaps one of the \verb|@|
+characters should be quoted.
+
+\subsubsection*{\tt Extra `|' at position ...}
+
+The \verb|\index| command's argument has more than one unquoted \verb|!|
+characters.  Perhaps the extras should be quoted.
+
+\subsubsection*{\tt Illegal null field}
+
+The \verb|\index| command argument doesn't make sense because some
+string is null that shouldn't be.  The command \verb|\index{!big}| will
+produce this error, since it specifies a subentry ``big'' with no
+entry.  Similarly, the command \verb|\index{@big}| is incorrect because
+it specifies a null string for alphabetizing.
+
+%\subsubsection*{\tt No \symbol{'134}indexentry}
+%
+%Each line of an {\tt idx} file written by \LaTeX\ should contain an
+%\verb|\indexentry| command.  \MakeIndex\ has found a line in the {\tt idx}
+%file that does not contain an \verb|\indexentry| command.  The {\tt
+%idx} file has probably been corrupted.
+%
+%\subsubsection*{\tt Missing \symbol{'173}}
+%
+%\MakeIndex\ believes that the braces in the argument of the \verb|\index|
+%command are not properly matched.  Since \LaTeX\ must
+%have thought that the braces were properly matched, the problem 
+%is probably due to a corrupted {\tt idx} file.
+%
+%\subsubsection*{\tt Missing \symbol{'175}}
+%
+%See ``{\tt Missing \symbol{'173}}'' error.
+
+\subsubsection*{\tt Argument ... too long (max 1024).}
+
+Your document contained an \verb|\index| command with a very long
+argument.  You probably forgot the right brace that was supposed
+to delimit the argument.
+
+\subsubsection*{Other errors}
+
+\MakeIndex\ can produce a variety of other error messages indicating
+that something is seriously wrong with the {\tt idx} file.  If you
+get one, it probably means that the {\tt idx} file was corrupted in
+some way.  If \LaTeX\ did not generate any errors when it created
+the {\tt idx} file, then it is highly unlikely to have produced
+a bad {\tt idx} file.  If it did, you'll have to examine the
+{\tt idx} file to figure out what went wrong.
+
+
+\subsection{Errors in Writing Phase}
+
+\subsubsection*{\tt Unmatched range opening operator}
+
+An \verb/\index{...|(}/ command was not followed by a matching
+  \linebreak%%%%%
+\verb/\index{...|)}/ command.  The ``\verb|...|'' in the two
+commands must be completely identical.
+
+
+\subsubsection*{\tt Unmatched range closing operator }
+
+An \verb/\index{...|(}/ command was not preceded by a matching
+  \linebreak%%%%%
+\verb/\index{...|)}/ command. 
+
+\subsubsection*{\tt Extra range opening operator }
+
+Two \verb/\index{...|(}/ commands appear in the document with no intervening
+\verb/\index{...|)}/ command.
+
+
+
+\subsubsection*{\tt Inconsistent page encapsulator ... within range}
+
+\MakeIndex\ has been instructed to include a page range for an entry
+and a single page number within that range that is formatted
+differently---for example, by having a 
+\verb+\index{gnu|ii}+ command between a \verb+\index{gnu|(}+
+and a \verb+\index{gnu|)}+ command.
+
+
+\subsubsection*{\tt Conflicting entries}
+
+\MakeIndex\ thinks it has been instructed to print the same page number
+twice in two different ways---for example, by the commands
+\verb|\index{gnu}| and \verb/\index{gnu|(see{...}}/ appearing on the
+same page.
+
+
+
+\section*{Acknowledgements}
+
+\MakeIndex\ is a C program written by Peehong Chen, with a little
+advice from me.  It was inspired by a program written by Mike Urban,
+which was based on a program written by Marshall Rose.  Perhaps someday
+someone will rewrite \MakeIndex\ in Web, making it available to all
+\LaTeX\ users.
+
+\end{document}
+
+Peehong Chen's net address:
+phc@renoir.Berkeley.EDU

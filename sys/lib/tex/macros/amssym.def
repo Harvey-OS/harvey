@@ -1,0 +1,93 @@
+%  AMSSYM.DEF                                           September 1990
+\def\fileversion{v1.0b}
+
+%  This file contains definitions that perform the same functions as similar
+%  ones in AMS-TeX, so that the file AMSSYM.TEX can be used outside of AMS-TeX.
+%
+%  American Mathematical Society, Technical Support Group, P. O. Box 6248,
+%        Providence, RI 02940
+%  800-321-4AMS or 401-455-4080;  Internet: Tech-Support@Math.AMS.com
+%
+%  Copyright (C) 1990, American Mathematical Society.
+%  All rights reserved.  Copying of this file is authorized only if either:
+%       (1) you make absolutely no changes to your copy including name; OR
+%       (2) if you do make changes, you first rename it to some other name.
+%
+%  Instructions for using this file and the AMS symbol fonts are included in
+%  the AMSFonts 2.0 User's Guide.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%  Store the catcode of the @ in the csname so that it can be restored later.
+\expandafter\chardef\csname pre amssym.def at\endcsname=\the\catcode`\@
+%  Set the catcode to 11 for use in private control sequence names.
+\catcode`\@=11
+
+%  Include all definitions related to the fonts msam, msbm and eufm, so that
+%  when this file is used by itself, the results with respect to those fonts
+%  are equivalent to what they would have been using AMS-TeX.
+%  Most symbols in fonts msam and msbm are defined using \newsymbol;
+%  however, a few symbols that replace composites defined in plain must be
+%  defined with \mathchardef.
+
+\def\undefine#1{\let#1\undefined}
+\def\newsymbol#1#2#3#4#5{\let\next@\relax
+ \ifnum#2=\@ne\let\next@\msafam@\else
+ \ifnum#2=\tw@\let\next@\msbfam@\fi\fi
+ \mathchardef#1="#3\next@#4#5}
+\def\mathhexbox@#1#2#3{\relax
+ \ifmmode\mathpalette{}{\m@th\mathchar"#1#2#3}%
+ \else\leavevmode\hbox{$\m@th\mathchar"#1#2#3$}\fi}
+\def\hexnumber@#1{\ifcase#1 0\or 1\or 2\or 3\or 4\or 5\or 6\or 7\or 8\or
+ 9\or A\or B\or C\or D\or E\or F\fi}
+
+\font\tenmsa=msam10
+\font\sevenmsa=msam7
+\font\fivemsa=msam5
+\newfam\msafam
+\textfont\msafam=\tenmsa
+\scriptfont\msafam=\sevenmsa
+\scriptscriptfont\msafam=\fivemsa
+\edef\msafam@{\hexnumber@\msafam}
+\mathchardef\dabar@"0\msafam@39
+\def\dashrightarrow{\mathrel{\dabar@\dabar@\mathchar"0\msafam@4B}}
+\def\dashleftarrow{\mathrel{\mathchar"0\msafam@4C\dabar@\dabar@}}
+\let\dasharrow\dashrightarrow
+\def\ulcorner{\delimiter"4\msafam@70\msafam@70 }
+\def\urcorner{\delimiter"5\msafam@71\msafam@71 }
+\def\llcorner{\delimiter"4\msafam@78\msafam@78 }
+\def\lrcorner{\delimiter"5\msafam@79\msafam@79 }
+\def\yen{{\mathhexbox@\msafam@55 }}
+\def\checkmark{{\mathhexbox@\msafam@58 }}
+\def\circledR{{\mathhexbox@\msafam@72 }}
+\def\maltese{{\mathhexbox@\msafam@7A }}
+
+\font\tenmsb=msbm10
+\font\sevenmsb=msbm7
+\font\fivemsb=msbm5
+\newfam\msbfam
+\textfont\msbfam=\tenmsb
+\scriptfont\msbfam=\sevenmsb
+\scriptscriptfont\msbfam=\fivemsb
+\edef\msbfam@{\hexnumber@\msbfam}
+\def\Bbb#1{\fam\msbfam\relax#1}
+\def\widehat#1{\setbox\z@\hbox{$\m@th#1$}%
+ \ifdim\wd\z@>\tw@ em\mathaccent"0\msbfam@5B{#1}%
+ \else\mathaccent"0362{#1}\fi}
+\def\widetilde#1{\setbox\z@\hbox{$\m@th#1$}%
+ \ifdim\wd\z@>\tw@ em\mathaccent"0\msbfam@5D{#1}%
+ \else\mathaccent"0365{#1}\fi}
+\font\teneufm=eufm10
+\font\seveneufm=eufm7
+\font\fiveeufm=eufm5
+\newfam\eufmfam
+\textfont\eufmfam=\teneufm
+\scriptfont\eufmfam=\seveneufm
+\scriptscriptfont\eufmfam=\fiveeufm
+\def\frak#1{{\fam\eufmfam\relax#1}}
+\let\goth\frak
+
+%  Restore the catcode value for @ that was previously saved.
+\catcode`\@=\csname pre amssym.def at\endcsname
+
+\endinput

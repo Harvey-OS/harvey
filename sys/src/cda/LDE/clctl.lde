@@ -1,0 +1,12 @@
+.x
+	clctl	16L8
+.i
+selrdq-
+cas eop1 eop0-
+.io
+eop-
+.i
+selwrq- steq01
+.e
+eop- ~= eop- ^ ((!selrdq- & (cas ? (eop1 & !eop0-) : !eop-))
+		| (!selwrq- & (steq01? (eop1 & !eop0-) : !eop-)))

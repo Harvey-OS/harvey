@@ -1,0 +1,259 @@
+%% 
+%% This is file `array.sty' generated
+%% on <1990/6/27> with the docstrip utility (v1.1j). 
+%% 
+%% The original source file was `array.doc'.
+%% 
+%% 
+%% Copyright (C) 1989,1990 by Frank Mittelbach. All rights reserved. 
+%% 
+%% IMPORTANT NOTICE: 
+%% 
+%% You are not allowed to change this file. You may however copy this file 
+%% to a file with a different name and then change the copy. 
+%% 
+%% You are NOT ALLOWED to distribute this file alone. You are NOT ALLOWED 
+%% to take money for the distribution or use of this file (or a changed 
+%% version) except for a nominal charge for copying etc. 
+%% 
+%% You are allowed to distribute this file under the condition that it is 
+%% distributed together with all files mentioned in readme.mz5. 
+%% 
+%% If you receive only some of these files from someone, complain! 
+%% 
+%% However, if these files are distributed by established suppliers as part 
+%% of a complete TeX distribution, and the structure of the distribution 
+%% would make it difficult to distribute the whole set of files, *those 
+%% parties* are allowed to distribute only some of the files provided that 
+%% it is made clear that the user will get a complete distribution-set upon 
+%% request to that supplier (not me). 
+%% Notice that this permission is not granted to the end user. 
+%% 
+%% Error Reports in case of UNCHANGED versions to 
+%% 
+%% F. Mittelbach 
+%% Eichenweg 29 
+%% D-6500 Mainz 1 
+%% Federal Republic of Germany 
+%% Bitnet: <PZF5HZ@DRUEDS2> 
+%% 
+
+\def\fileversion{v2.0b}
+\def\filedate{89/05/17}
+\def\docdate {89/05/12}
+
+%% \CheckSum{682}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\@ifundefined{d@llar}{}{\endinput}
+\typeout{Style-Option: `array' \fileversion
+         \space\space <\filedate> (F.M.)}
+\typeout{English documentation dated \space <\docdate> (F.M.)}
+\def\@addtopreamble#1{\xdef\@preamble{\@preamble #1}}
+\def\@testpach#1{\@chclass
+ \ifnum \@lastchclass=6 \@ne \@chnum \@ne \else
+  \ifnum \@lastchclass=7 5 \else
+   \ifnum \@lastchclass=8 \tw@ \else
+    \ifnum \@lastchclass=9 \thr@@
+   \else \z@
+   \ifnum \@lastchclass = 10 \else
+   \@chnum
+   \if #1c\z@ \else
+    \if #1l\@ne \else
+     \if #1r\tw@ \else
+   \z@ \@chclass
+   \if#1|\@ne \else
+    \if #1!6 \else
+     \if #1@7 \else
+      \if #1<8 \else
+       \if #1>9 \else
+  10
+  \@chnum
+  \if #1m\thr@@\else
+   \if #1p4 \else
+    \if #1b5 \else
+   \z@ \@chclass \z@ \@preamerr \z@ \fi \fi \fi \fi
+   \fi \fi  \fi  \fi  \fi  \fi  \fi \fi \fi \fi \fi \fi}
+\def\@xexpast#1*#2#3#4\@@{%
+   \@tempcnta #2
+   \toks@={#1}\@temptokena={#3}%
+   \let\the@toksz\relax \let\the@toks\relax
+   \def\@tempa{\the@toksz}%
+   \ifnum\@tempcnta >0 \@whilenum\@tempcnta >0\do
+     {\edef\@tempa{\@tempa\the@toks}\advance \@tempcnta \m@ne}%
+       \let \@tempb \@xexpast \else
+       \let \@tempb \@xexnoop \fi
+   \def\the@toksz{\the\toks@}\def\the@toks{\the\@temptokena}%
+   \edef\@tempa{\@tempa}%
+   \expandafter \@tempb \@tempa #4\@@}
+\def\prepnext@tok{\advance \count@ \@ne
+   \toks\count@={}}
+\def\save@decl{\toks \count@ = \expandafter
+      {\expandafter \relax \@nextchar}}
+\def\insert@column{%
+   \the@toks \the \@tempcnta
+   \ignorespaces \@sharp \unskip
+   \the@toks \the \count@}
+\newdimen\col@sep
+\def\@acol{\@addtopreamble{\hskip\col@sep}}
+\def\@mkpream#1{\gdef\@preamble{}\@lastchclass 4 \@firstamptrue
+   \let\@sharp\relax \let\@startpbox\relax \let\@endpbox\relax
+   \@xexpast #1*0x\@@
+   \count@\m@ne
+   \let\the@toks\relax
+   \prepnext@tok
+   \expandafter \@tfor \expandafter \@nextchar
+    \expandafter :\expandafter =\@tempa \do
+   {\@testpach\@nextchar
+   \ifcase \@chclass \@classz \or \@classi \or \@classii
+     \or \save@decl \or \or \@classv \or \@classvi
+     \or \@classvii \or \@classviii  \or \@classix
+     \or \@classx \fi
+   \@lastchclass\@chclass}%
+   \ifcase\@lastchclass
+   \@acol \or
+   \or
+   \@acol \or
+   \@preamerr \thr@@ \or
+   \@preamerr \tw@ \@addtopreamble\@sharp \or
+   \or
+   \else  \@preamerr \@ne \fi
+   \def\the@toks{\the\toks}}
+\def\@classx{%
+  \ifcase \@lastchclass
+  \@acolampacol \or
+  \@addamp \@acol \or
+  \@acolampacol \or
+  \or
+  \@acol \@firstampfalse \or
+  \@addamp
+  \fi}
+\def\@classz{\@classx
+   \@tempcnta \count@
+   \prepnext@tok
+   \@addtopreamble{\ifcase \@chnum
+      \hfil
+      \d@llar
+      \insert@column
+      \d@llar \hfil \or
+      \d@llar \insert@column \d@llar \hfil \or
+      \hfil\kern\z@ \d@llar \insert@column \d@llar \or
+   $\vcenter
+   \@startpbox{\@nextchar}\insert@column \@endpbox $\or
+   \vtop \@startpbox{\@nextchar}\insert@column \@endpbox \or
+   \vbox \@startpbox{\@nextchar}\insert@column \@endpbox
+  \fi}\prepnext@tok}
+\def\@classix{\ifnum \@lastchclass = \thr@@
+       \@preamerr \thr@@ \fi
+       \@classx}
+\def\@classviii{\ifnum \@lastchclass >\z@
+      \@preamerr 4\@chclass 6 \@classvi \fi}
+\def\@arrayrule{\@addtopreamble \vline}
+\def\@classvii{\ifnum \@lastchclass = \thr@@
+   \@preamerr \thr@@ \fi}
+\def\@classvi{\ifcase \@lastchclass
+      \@acol \or
+      \@addtopreamble{\hskip \doublerulesep}\or
+      \@acol \or
+      \@classvii
+      \fi}
+\def\@classii{\advance \count@ \m@ne
+   \save@decl\prepnext@tok}
+\def\@classv{\save@decl
+   \@addtopreamble{\d@llar\the@toks\the\count@\d@llar}%
+   \prepnext@tok}
+\def\@classi{\@classvi
+   \ifcase \@chnum \@arrayrule \or
+      \@classv \fi}
+\def\@startpbox#1{\bgroup
+  \hsize #1 \@arrayparboxrestore
+   \vrule \@height \ht\@arstrutbox \@width \z@}
+\def\@endpbox{\vrule \@width \z@ \@depth \dp \@arstrutbox \egroup}
+\def\@array[#1]#2{%
+  \@tempdima \ht \strutbox
+  \advance \@tempdima by\extrarowheight
+  \setbox \@arstrutbox \hbox{\vrule
+             \@height \arraystretch \@tempdima
+             \@depth \arraystretch \dp \strutbox
+             \@width \z@}%
+  \begingroup
+  \@mkpream{#2}%
+  \xdef\@preamble{\ialign \@halignto
+                  \bgroup \@arstrut \@preamble
+                          \tabskip \z@ \cr}%
+  \endgroup
+  \if #1t\vtop \else \if#1b\vbox \else \vcenter \fi \fi
+  \bgroup
+  \let \@sharp ##\let \protect \relax
+  \lineskip \z@
+  \baselineskip \z@
+  \m@th
+  \let\\ \@arraycr  \let\par\@empty \@preamble}
+\newdimen \extrarowheight
+\extrarowheight=0pt
+\def\@arstrut{\unhcopy\@arstrutbox}
+\def\@arraycr{{\ifnum 0=`}\fi
+  \@ifstar \@xarraycr \@xarraycr}
+\def\@xarraycr{\@ifnextchar [%
+  \@argarraycr {\ifnum 0=`{\fi}\cr}}
+\def\@argarraycr[#1]{\ifnum0=`{\fi}\ifdim #1>\z@
+  \@xargarraycr{#1}\else \@yargarraycr{#1}\fi}
+\def\@xargarraycr#1{\unskip
+  \@tempdima #1\advance\@tempdima \dp\@arstrutbox
+  \vrule \@depth\@tempdima \@width\z@ \cr}
+\def\@yargarraycr#1{\cr\noalign{\vskip #1}}
+\def\multicolumn#1#2#3{%
+   \multispan{#1}\begingroup
+   \def\@addamp{\if@firstamp \@firstampfalse \else
+                \@preamerr 5\fi}%
+   \@mkpream{#2}\@addtopreamble\@empty
+   \endgroup
+   \def\@sharp{#3}%
+   \@arstrut \@preamble \ignorespaces}
+\def\array{\col@sep\arraycolsep
+  \gdef\d@llar{$}\gdef\@halignto{}%
+  \@tabarray}
+\def\@tabarray{\@ifnextchar[{\@array}{\@array[c]}}
+\def\tabular{\gdef\@halignto{}\@tabular}
+\expandafter\def\csname tabular*\endcsname#1{%
+      \gdef\@halignto{to#1}\@tabular}
+\def\@tabular{%
+  \leavevmode
+  \hbox \bgroup $\col@sep\tabcolsep \gdef\d@llar{}%
+  \@tabarray}
+\def\endarray{\crcr \egroup \egroup \gdef\@preamble{}}
+\def\endtabular{\endarray $\egroup}
+\expandafter\let\csname endtabular*\endcsname=\endtabular
+\let\@ampacol=\relax        \let\@expast=\relax
+\let\@arrayclassiv=\relax   \let\@arrayclassz=\relax
+\let\@tabclassiv=\relax     \let\@tabclassz=\relax
+\let\@arrayacol=\relax      \let\@tabacol=\relax
+\let\@tabularcr=\relax      \let\@@endpbox=\relax
+\let\@argtabularcr=\relax   \let\@xtabularcr=\relax
+\def\@preamerr#1{\def\@tempd{{..} at wrong position: }%
+   \@latexerr{%
+   \ifcase #1 Illegal pream-token (\@nextchar): `c' used\or %0
+    Missing arg: token ignored\or                           %1
+    Empty preamble: `l' used\or                             %2
+    >\@tempd token ignored\or                               %3
+    <\@tempd changed to !{..}\or                            %4
+    Only one colum-spec. allowed.\fi}\@ehc}                 %5
+\def\@tfor#1:=#2\do#3{\def\@fortmp{#2}\ifx\@fortmp\@empty
+      \else\@tforloop#2\@nil\@nil\@@#1{#3}\fi}
+\endinput
+%% 
+%% End of file `array.sty'.

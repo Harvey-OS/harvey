@@ -1,0 +1,68 @@
+
+
+>>I am looking for information on or pointers to info on an
+>>image file format, ACR/NEMA. Specification, "standardness",
+>>areas of use, software processing sources, etc.
+>>
+>>ACR from American College of Radiologists?
+>>NEMA from National Electrical Manufacturers Assn?
+>
+
+
+The ACR-NEMA standard was created to provide a standard way of shipping
+medical images between different manufacturers equipment.  It covers
+CT, MR, ultrasound, PET images, etc.  Currently it supports sequences
+of 2D images, but not 3D images.
+
+The standard specifies everything from the connector to be used,
+to the communications protocol, to the contents of data fields
+in the images.  You can, of course, read the data without worrying
+about the hardware or network protocols, if you get someone to ship
+you an image on tape, disk, etc.
+
+Most of the data (in terms of number of fields, not number of bits)
+has to do with how the image was aquired, who the patient is, relationship
+between images, etc).  The image data per se is relatively primitive
+(bit map, no compression).  The intent was to make it simple and standard,
+rather than technically sophisticated.
+
+The standard is ACR-NEMA Standards Publication No 300-1988.  Note the "1988".
+This is the second version of the standard (published in 1989, of course :-)
+
+It is published by
+
+	National Electrical Manufacturers Association
+	2101 L Streeet, N.W.
+	Washington, DC 20037
+	USA
+
+Afraid I don't know the price.
+
+
+-- 
+Ted Richards          ...uunet!utai!lsuc!isgtec!ted         ted@isgtec.UUCP
+ISG Technologies Inc.   3030 Orlando Dr. Mississauga  Ont.  Canada   L4V 1S8
+
+
+
+
+
+Look in:
+   -- ACR-NEMA Standard Publication for Digital Imaging and
+      Communications.  Washington, DC, NEMA Publication no. 300, 1985.
+
+this is the complete description of the standard,  how to transmit an
+image across an interface.  It also describes the "commmon image data
+format" which required...  for a short description see:
+
+   -- Chris Spilker, The ACR-NEMA Digital Imaging and Communications Standard:
+      A Nontechnical Description.  Journal of Digital Imaging, Vol 2,
+      No. 3 (August), 1988:pp 127-131.
+
+hope this helps....
+
+
+  --mohamad
+    ijadi@dinorah.wustl.edu
+
+

@@ -1,0 +1,115 @@
+\def\mpversiondate{1990-Nov-05}
+\typeout{Document Style `manpage' (Technical Memorandum).  
+Release \mpversiondate .}
+%
+% Changes:
+%
+%	90-Oct-22	start
+%       90-Oct-25       complete first full version
+%
+\def\blankpage{\begin{titlepage}\ \vfill\centerline{This page left
+    blank}\vfill\end{titlepage}}%
+\def\ps@manpagestyle{\let\@mkboth\@gobbletwo%
+  \def\@oddhead{\rightmark}%
+  \def\@oddfoot{\hbox{}%
+    \hfill Last change: \mp@update\hfill\llap{\rm\thepage}}%
+  \def\@evenhead{\rightmark}%
+  \def\@evenfoot{\hbox{}\rlap{\rm\thepage}%
+    \hfill Last change: \mp@update\hfill}%
+  \def\sectionmark##1{}\def\subsectionmark##1{}%
+  }%
+\def\arg#1#2{{\bf#1}\if\relax#2\ \else{\it#2}\fi}%
+% Note that most macros are defined only inside the manpage
+% environment so that their names and effects do not conflict with
+% macros in the documentstyle.
+%
+\def\manpage{\begingroup\newpage%
+  \itemindent=0pt%
+  \newdimen\blockindent\blockindent0.5in%
+  \def\mp@NAME{}\def\mp@section{}%
+  \def\mp@chapter{}\def\mp@update{}%
+  \def\NAME##1{\def\mp@NAME{##1}}%
+  \def\section##1{\def\mp@section{##1}}%
+  \def\chapter##1{\def\mp@chapter{##1}}%
+  \def\title##1{\def\mp@NAME{##1}}% alternate name for NAME
+  \def\update##1{\def\mp@update{##1}}%
+  %
+  %  new list environments
+  %
+  %    list indent dimensions
+  %
+  \newdimen\optionindent\optionindent=0.5in%
+  \newdimen\parameterindent\parameterindent=\optionindent%
+  \newdimen\fileindent\fileindent=2in%
+  \newdimen\environmentindent\environmentindent=1in%
+  \newdimen\listup\listup=-\topsep\multiply\listup by 2%
+%
+  %    list label styles
+  %
+  \def\labeledlabel##1{{\bf##1}\hfil}% options, parameters and environments
+  \def\filelistlabel##1{{##1}\hfil}%
+  %
+  %    lists
+  %
+  \def\optionlist{\labeled{\optionindent}\vspace{\listup}\sloppy}%
+  \let\endoptionlist=\endlist%
+  \def\parameterlist{\labeled{\parameterindent}\vspace{\listup}}%
+  \let\endparameterlist=\endlist%
+  \def\filelist{\list{}{\leftmargin\fileindent\vspace{\listup}%
+    \labelwidth\leftmargin\advance\labelwidth-\labelsep%
+    \let\makelabel\filelistlabel}}%
+  \let\endfilelist=\endlist%
+  \def\environmentlist{\labeled{\environmentindent}\vspace{\listup}}%
+  \let\endenvironmentlist=\endlist%
+  %
+  % Section Environments
+  %
+  %   general environment: manblock
+  %
+  \def\manblock##1{\list{}{\leftmargin\blockindent\rightmargin0pt%
+    \parsep 6pt plus 1pt\labelwidth\z@ \itemindent-\leftmargin%
+    \let\makelabel\descriptionlabel}\item[{\bf ##1}]\ \\}%
+  \let\endmanblock=\endlist%
+  %
+  %   specific envirnoments
+  %
+  \def\name{\markright{\rlap{\strut\mp@NAME(\mp@section)}\hfill\mp@chapter\hfill%
+    \llap{\mp@NAME(\mp@section)}}%
+    \vspace*{-44.5pt}\hbox to\hsize{\strut\rlap{\mp@NAME(\mp@section)}\hfill\mp@chapter\hfill%
+    \llap{\mp@NAME(\mp@section)}}%
+    \manblock{NAME}}%
+  \let\endname=\endlist%
+  \def\synopsis{\manblock{SYNOPSIS}}%
+  \let\endsynopsis=\endlist%
+  \def\description{\manblock{DESCRIPTION}}%
+  \let\enddescription=\endlist%
+  \def\parameters{\manblock{PARAMETERS}}%
+  \let\endparameters\=\endlist%
+  \def\options{\manblock{OPTIONS}}%
+  \let\endoptons=\endlist%
+  \def\examples{\manblock{EXAMPLES}}%
+  \let\endexamples=\endlist%
+  \def\files{\manblock{FILES}}%
+  \let\endfiles=\endlist%
+  \def\seealso{\manblock{SEE ALSO}}%
+  \let\endseealso=\endlist%
+  \def\environment{\manblock{ENVIRONMENT}}%
+  \let\endenvironment=\endlist%
+  \def\caveats{\manblock{CAVEATS}}%
+  \let\endcaveats=\endlist%
+  \def\diagnostics{\manblock{DIAGNOSTICS}}%
+  \let\enddiagnostics=\endlist%
+  \def\bugs{\manblock{BUGS}}%
+  \let\endbugs=\endlist%
+  \def\exitcodes{\manblock{EXIT CODES}}%
+  \let\endexitcodes=\endlist%
+  \def\restrictions{\manblock{RESTRICTIONS}}%
+  \let\endrestrictions=\endlist%
+  \def\extendeddescription{\manblock{EXTENDED DESCRIPTION}}%
+  \let\endextendeddescription=\endlist%
+  \def\references{\manblock{REFERENCES}}%
+  \let\endreferences=\endlist%
+  \pagestyle{manpagestyle}%
+}%
+\def\endmanpage{\clearpage%
+  \markright{}\endgroup}%

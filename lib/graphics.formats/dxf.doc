@@ -1,0 +1,2318 @@
+
+Here is the Autodesk spec, and a C program that reads DXF:
+
+[ This file is an excerpt from the AutoCAD Release 10 Reference Manual.
+  Copyright (C) 1988 Autodesk, Inc.  All rights reserved. ]
+
+                               Appendix C
+                   Drawing Interchange and File Formats
+
+
+AutoCAD can be used by itself as a complete drawing editor.  In some appli-
+cations, however, other programs must examine drawings created by AutoCAD
+or generate drawings to be viewed, modified, or plotted with AutoCAD.
+
+For example, if you've made an architectural drawing with AutoCAD, using
+INSERTed parts to represent windows, doors, and so on, you can process the
+drawing file and produce a bill of materials of all the items used in the
+drawing, or even make energy use calculations based on the area and the
+number and type of windows used.  Another possible application is to use
+AutoCAD to describe structures that are then sent to a large computer for
+finite element structural analysis.  You can compute stresses and displace-
+ments and send back information to display the deformed structure as an
+AutoCAD drawing.
+
+Since the AutoCAD drawing database (.dwg file) is written in a very compact
+format that changes significantly from time to time as new features are
+added, we do not document its format and do not recommend that you attempt
+to write programs to read it directly.  To assist in interchanging drawings
+between AutoCAD and other programs, a "Drawing Interchange" file format
+(DXF(tm)) has been defined.  All implementations of AutoCAD accept this
+format and are able to convert it to and from their internal drawing file
+representation.
+
+AutoCAD also supports the Initial Graphics Exchange Standard (IGES) file
+format.  The information comprising an AutoCAD drawing can be written out
+in IGES format, and IGES files can be read and converted to AutoCAD's
+internal format.
+
+
+C.1  ASCII Drawing Interchange (DXF) Files
+
+This section describes AutoCAD's DXF (drawing interchange) file format and
+the commands provided to read and write these files.  DXF files are stan-
+dard ASCII text files.  They can easily be translated to the formats of
+other CAD systems, or submitted to other programs for specialized analysis.
+
+
+C.1.1  DXFOUT Command - Writing a DXF File
+
+You can generate a drawing interchange file from an existing drawing by
+means of the Drawing Editor's DXFOUT command.  The command format is:
+
+    Command:  DXFOUT   File name <default>:  (name or RETURN)
+
+The default name for the output file is the same as that of the current
+drawing, but with a file type of ".dxf".  If you specify an explicit file
+name, do not include a file type; ".dxf" is assumed.  If a file with the
+same name already exists, it is deleted.  Next, DXFOUT asks what precision
+
+                                                                          1
+AutoCAD Reference Manual
+
+you want for floating-point numbers and permits output of a partial DXF
+file containing only selected objects.
+
+    Enter decimal places of accuracy (0 to 16)/Entities/Binary <6>:
+
+The "Binary" option is described later in this appendix. If you respond
+with "Entities" (or just "E"), DXFOUT will ask you to select the objects
+you want written to the DXF file.  Only the objects you select will be
+included in the output file - symbol tables (including Block Definitions)
+will not be included.  Once you've selected the desired objects, AutoCAD
+will prompt again for the numeric precision:
+
+    Enter decimal places of accuracy (0 to 16)/Binary <6>:
+
+
+C.1.2  DXFIN Command - Loading a DXF File
+
+A drawing interchange file can be converted into an AutoCAD drawing by
+means of the DXFIN command.  First enter the Drawing Editor using the
+"Create new drawing" task from the Main Menu.  Then issue the DXFIN com-
+mand.
+
+    Command:  DXFIN   File name:  (name)
+
+Enter the name of the drawing interchange file to be loaded.
+
+
+Full DXFIN
+
+To load a complete DXF file, you must use DXFIN in an empty drawing, before
+any entities have been drawn and before any additional Block definitions,
+layers, linetypes, text styles, named views, named coordinate systems, or
+named viewport configurations have been created.  (If your prototype draw-
+ing contains any such items, use Main Menu Task 1's "name=" technique to
+create a new drawing without a prototype.)
+
+If any errors are detected during the input, the new drawing is discarded.
+Otherwise, an automatic "ZOOM All" is performed to set the drawing extents.
+
+
+Partial DXFIN
+
+If the current drawing is not empty, DXFIN loads only the ENTITIES section
+of the DXF file, adding the entities found there to the current drawing.
+In this case, DXFIN displays the message:
+
+    Not a new drawing -- only ENTITIES section will be input.
+
+If errors are detected during such partial DXF input, the drawing is
+returned to the state it was in before the DXFIN command.  Otherwise, the
+newly added entities are drawn.
+
+
+
+2
+                                   (C) Drawing Interchange and File Formats
+
+C.1.3  DXF File Format
+
+This section describes the format of a DXF file in detail.  It contains a
+great deal of technical information that you need only if you're writing
+your own program to process DXF files.  Otherwise, you can skip this sec-
+tion.
+
+It would probably be helpful to produce a DXF file from a small drawing,
+print it out, and refer to it occasionally while reading the information
+presented below.
+
+
+C.1.3.1  General File Structure
+
+A Drawing Interchange File is simply an ASCII text file with a file type of
+".dxf" and specially-formatted text.  The overall organization of a DXF
+file is as follows:
+
+  1. HEADER section - General information about the drawing is found in
+     this section of the DXF file.  Each parameter has a variable name
+     and an associated value.
+
+  2. TABLES section -- This section contains definitions of named
+     items.
+
+       o  Linetype (LTYPE) table
+       o  Layer table
+       o  Text style (STYLE) table
+       o  View table
+       o  User Coordinate System (UCS) table
+       o  Viewport configuration (VPORT) table
+       o  Drawing manager (DWGMGR) table (for future use)
+
+  3. BLOCKS section - This section contains Block Definition entities
+     describing the entities comprising each Block in the drawing.
+
+  4. ENTITIES section - This section contains the drawing entities,
+     including any Block References.
+
+  5. END OF FILE
+
+If you use DXFOUT's "Entities" option, the resulting DXF file will contain
+only the ENTITIES and END OF FILE sections, and the ENTITIES section will
+reflect only the objects you select for output.
+
+A DXF file is composed of a multiplicity of groups, each of which occupies
+two lines in the DXF file.  The first line of a group is a group code,
+which is a positive nonzero integer output in FORTRAN "I3" format (that is,
+right justified and blank filled in a three character field).  The second
+line of the group is the group value, in a format which depends on the type
+of the group as specified by the group code.
+
+
+
+                                                                          3
+AutoCAD Reference Manual
+
+The specific assignment of group codes depends upon the item being
+described in the file.  However, the type of the value this group supplies
+is derived from the group code in the following way:
+
+                    Group code range   Following value
+                          0 - 9       String
+                         10 - 59      Floating-point
+                         60 - 79      Integer
+                        210 - 239     Floating-point
+                           999        Comment (string)
+
+Thus a program can easily read the value following a group code without
+knowing the particular use of this group in an item in the file.  The
+appearance of values in the DXF file is not affected by the setting of the
+UNITS command: coordinates are always represented as decimal (or possibly
+scientific notation if very large) numbers, and angles are always repre-
+sented in decimal degrees with zero degrees to the east of origin.
+
+Variables, table entries, and entities are described by a group that intro-
+duces the item, giving its type and/or name, followed by multiple groups
+that supply the values associated with the item.  In addition, special
+groups are used for file separators such as markers for the beginning and
+end of sections, tables, and the file itself.
+
+Entities, table entries, and file separators are always introduced with a 0
+group code that is followed by a name describing the item.
+
+
+C.1.3.2  Group Codes
+
+Group codes are used both to indicate the type of the value of the group,
+as explained above, and to indicate the general use of the group.  The spe-
+cific function of the group code depends on the actual variable, table
+item, or entity description.  This section indicates the general use of
+groups, noting as "(fixed)" any that always have the same function.
+
+   Group code                           Value type
+       0        Identifies the start of an entity, table entry, or file
+                separator.  The text value that follows indicates which.
+       1        The primary text value for an entity.
+       2        A name; Attribute tag, Block name, etc.
+      3-4       Other textual or name values.
+       5        Entity handle expressed as a hexadecimal string.
+       6        Line type name (fixed).
+       7        Text style name (fixed).
+       8        Layer name (fixed).
+       9        Variable name identifier (used only in HEADER section of
+                the DXF file).
+       10       Primary X coordinate (start point of a Line or Text
+                entity, center of a Circle, etc.).
+     11-18      Other X coordinates.
+                                                             continued ...
+
+
+4
+                                   (C) Drawing Interchange and File Formats
+
+   Group code                           Value type
+       20       Primary Y coordinate.  2n values always correspond to 1n
+                values and immediately follow them in the file.
+     21-28      Other Y coordinates.
+       30       Primary Z coordinate.  3n values always correspond to 1n
+                and 2n values and immediately follow them in the file.
+     31-37      Other Z coordinates.
+       38       This entity's elevation if nonzero (fixed).  Output only
+                if system variable FLATLAND is set to 1.
+       39       This entity's thickness if nonzero (fixed).
+     40-48      Floating-point values (text height, scale factors, etc.).
+       49       Repeated value - multiple 49 groups may appear in one
+                entity for variable length tables (such as the dash
+                lengths in the LTYPE table).  A 7x group always appears
+                before the first 49 group to specify the table length.
+     50-58      Angles.
+       62       Color number (fixed).
+       66       "Entities follow" flag (fixed).
+     70-78      Integer values, such as repeat counts, flag bits, or
+                modes.
+ 210, 220, 230  X, Y, and Z components of extrusion direction.
+      999       Comments
+
+
+C.1.4  Comments
+
+The 999 group code indicates that the following line is a comment string.
+DXFOUT does not currently include such groups in its output file, but DXFIN
+honors them and ignores the comments.  Thus, you can use the 999 group to
+include comments in a DXF file you've edited.  For example:
+
+    999
+    This is a comment.
+    999
+    This is another comment.
+
+
+C.1.5  File Sections
+
+The DXF file is subdivided into four sections.  File separator groups are
+used to delimit these file sections.  The following is an example of a void
+DXF file with only the section markers and table headers present.
+
+      0                           (Begin HEADER section)
+    SECTION
+      2
+    HEADER
+        <<<<Header variable items go here>>>>
+      0
+    ENDSEC                        (End HEADER section)
+      0                           (Begin TABLES section)
+    SECTION
+      2
+
+                                                                          5
+AutoCAD Reference Manual
+
+    TABLES
+      0
+    TABLE
+      2
+    VPORT
+     70
+    (viewport table maximum item count)
+        <<<<viewport table items go here>>>>
+      0
+    ENDTAB
+      0
+    TABLE
+      2
+    LTYPE, LAYER, STYLE, VIEW, UCS, or DWGMGR
+     70
+    (Table maximum item count)
+        <<<<Table items go here>>>>
+      0
+    ENDTAB
+      0
+    ENDSEC                        (End TABLES section)
+      0                           (Begin BLOCKS section)
+    SECTION
+      2
+    BLOCKS
+        <<<<Block definition entities go here>>>>
+      0
+    ENDSEC                        (End BLOCKS section)
+      0                           (Begin ENTITIES section)
+    SECTION
+      2
+    ENTITIES
+        <<<<Drawing entities go here>>>>
+      0
+    ENDSEC                        (End ENTITIES section)
+      0
+    EOF                           (End of file)
+
+
+C.1.5.1  HEADER Section
+
+The HEADER section of the DXF file contains settings of variables
+associated with the drawing.  These variables are set with various commands
+and are the type of information displayed by the STATUS command.  Each
+variable is specified in the header section by a 9 group giving its name,
+followed by groups that supply its value.  The header variables, the groups
+that follow, and their meanings are listed below.
+
+Although this list is very similar to the list of system variables in
+Appendix A, the two lists are not identical.  Be sure you're referring to
+the proper list.
+
+
+
+6
+                                   (C) Drawing Interchange and File Formats
+
+  $ACADVER       1     the AutoCAD drawing database version number.
+  $ANGBASE      50     Angle 0 direction.
+  $ANGDIR       70     1=clockwise angles, 0=counterclockwise.
+  $ATTDIA       70     Attribute entry dialogues, 1 = on, 0 = off
+  $ATTMODE      70     Attribute visibility: 0=none, 1=normal, 2=all.
+  $ATTREQ       70     Attribute prompting during INSERT, 1 = on, 0 = off
+  $AUNITS       70     UNITS format for angles.
+  $AUPREC       70     UNITS precision for angles.
+  $AXISMODE     70     axis on if nonzero.
+  $AXISUNIT   10,20    axis X and Y tick spacing.
+  $BLIPMODE     70     blip mode on if nonzero.
+  $CECOLOR      62     entity color number; 0 = BYBLOCK, 256 = BYLAYER.
+  $CELTYPE       6     entity linetype name, or BYBLOCK or BYLAYER.
+  $CHAMFERA     40     first chamfer distance.
+  $CHAMFERB     40     second chamfer distance.
+  $CLAYER        8     current layer name.
+  $COORDS       70     0=static coordinate display, 1=continuous update,
+                       2="d<a" format.
+  $DIMALT       70     alternate unit dimensioning performed if nonzero.
+  $DIMALTD      70     alternate unit decimal places.
+  $DIMALTF      40     alternate unit scale factor.
+  $DIMAPOST      1     alternate dimensioning suffix
+  $DIMASO       70     1=create associative dimensioning, 0=draw
+                       individual entities.
+  $DIMASZ       40     dimensioning arrow size.
+  $DIMBLK        2     arrow block name.
+  $DIMBLK1       1     first arrow block name.
+  $DIMBLK2       1     second arrow block name.
+  $DIMCEN       40     size of center mark/lines.
+  $DIMDLE       40     dimension line extension.
+  $DIMDLI       40     dimension line increment.
+  $DIMEXE       40     extension line extension.
+  $DIMEXO       40     extension line offset.
+  $DIMLFAC      40     linear measurements scale factor.
+  $DIMLIM       70     dimension limits generated if nonzero.
+  $DIMPOST       1     general dimensioning suffix
+  $DIMRND       40     rounding value for dimension distances.
+  $DIMSAH       70     use separate arrow blocks if nonzero.
+  $DIMSCALE     40     overall dimensioning scale factor.
+  $DIMSE1       70     first extension line suppressed if nonzero.
+  $DIMSE2       70     second extension line suppressed if nonzero.
+  $DIMSHO       70     1=Recompute dimensions while dragging,
+                       0=drag original image.
+  $DIMSOXD      70     suppress outside-extensions dimension lines
+                       if nonzero.
+  $DIMTAD       70     text above dimension line if nonzero.
+  $DIMTIH       70     text inside horizontal if nonzero.
+  $DIMTIX       70     force text inside extensions if nonzero.
+  $DIMTM        40     minus tolerance.
+  $DIMTOFL      70     if text outside extensions, force line between
+                       extensions if nonzero.
+  $DIMTOH       70     text outside horizontal if nonzero.
+
+
+                                                                          7
+AutoCAD Reference Manual
+
+  $DIMTOL       70     dimension tolerances generated if nonzero.
+  $DIMTP        40     plus tolerance.
+  $DIMTSZ       40     dimensioning tick size: 0=no ticks.
+  $DIMTVP       40     text vertical position.
+  $DIMTXT       40     dimensioning text height.
+  $DIMZIN       70     zero suppression for "feet & inch" dimensions.
+  $DRAGMODE     70     0=off, 1=on, 2=auto.
+  $ELEVATION    40     current elevation set by ELEV command.
+  $EXTMAX    10,20,30  XY drawing extents upper right corner (in WCS).
+  $EXTMIN    10,20,30  XY drawing extents lower left corner (in WCS).
+  $FILLETRAD    40     fillet radius.
+  $FILLMODE     70     FILL mode on if nonzero.
+  $FLATLAND     70     force compatibility with older versions if nonzero.
+  $HANDLING     70     handles enabled if nonzero.
+  $HANDSEED      5     next available handle.
+  $INSBASE   10,20,30  insertion base set by BASE command (in WCS).
+  $LIMCHECK     70     nonzero if limits checking is on.
+  $LIMMAX     10,20    XY drawing limits upper right corner (in WCS).
+  $LIMMIN     10,20    XY drawing limits lower left corner (in WCS).
+  $LTSCALE      40     global linetype scale.
+  $LUNITS       70     UNITS format for coordinates and distances.
+  $LUPREC       70     UNITS precision for coordinates and distances.
+  $MENU          1     name of menu file.
+  $MIRRTEXT     70     MIRROR text if nonzero.
+  $ORTHOMODE    70     ORTHO mode on if nonzero.
+  $OSMODE       70     running object snap modes.
+  $PDMODE       70     point display mode.
+  $PDSIZE       40     point display size.
+  $PLINEWID     40     default Polyline width.
+  $QTEXTMODE    70     quick text mode on if nonzero.
+  $REGENMODE    70     REGENAUTO mode on if nonzero.
+  $SKETCHINC    40     sketch record increment.
+  $SKPOLY       70     0=sketch lines, 1=sketch polylines.
+  $SPLFRAME     70     spline control polygon display, 1 = on, 0 = off.
+  $SPLINESEGS   70     number of line segments per spline patch.
+  $SPLINETYPE   70     spline curve type for "PEDIT Spline"
+                       (see Appendix A).
+  $SURFTAB1     70     number of mesh tabulations in first direction.
+  $SURFTAB2     70     number of mesh tabulations in second direction.
+  $SURFTYPE     70     surface type for "PEDIT Smooth" (see Appendix A).
+  $SURFU        70     surface density (for "PEDIT Smooth") in M direction.
+  $SURFV        70     surface density (for "PEDIT Smooth") in N direction.
+  $TDCREATE     40     date/time of drawing creation.
+  $TDINDWG      40     cumulative editing time for this drawing.
+  $TDUPDATE     40     date/time of last drawing update.
+  $TDUSRTIMER   40     user elapsed timer.
+  $TEXTSIZE     40     default text height.
+  $TEXTSTYLE     7     current text style name.
+  $THICKNESS    40     current thickness set by ELEV command.
+  $TRACEWID     40     default Trace width.
+  $UCSNAME       1     Name of current UCS.
+  $UCSORG    10,20,30  origin of current UCS (in WCS).
+
+
+8
+                                   (C) Drawing Interchange and File Formats
+
+  $UCSXDIR   10,20,30  direction of current UCS's X axis
+                       (in World coordinates).
+  $UCSYDIR   10,20,30  direction of current UCS's Y axis
+                       (in World coordinates).
+  $USERI1 - 5   70     Five integer variables intended for use by
+                       third-party developers.
+  $USERR1 - 5   40     Five real variables intended for use by
+                       third-party developers.
+  $USRTIMER     70     0=timer off, 1=timer on.
+  $WORLDVIEW    70     1=set UCS to WCS during DVIEW/VPOINT,
+                       0=don't change UCS
+
+The header variables listed below existed prior to AutoCAD Release 10 but
+now have independent settings for each active viewport.  They are not
+output by DXFOUT unless system variable FLATLAND is set to 1.  DXFIN honors
+these variables when read from DXF files, but if a VPORT symbol table with
+"*ACTIVE" entries is present (as is true for any DXF file produced by
+Release 10 or higher), the values in the VPORT table entries will override
+the values of these header variables.
+
+  $FASTZOOM     70     fast zoom enabled if nonzero.
+  $GRIDMODE     70     grid mode on if nonzero.
+  $GRIDUNIT   10,20    grid X and Y spacing.
+  $SNAPANG      50     snap grid rotation angle.
+  $SNAPBASE   10,20    snap/grid base point (in UCS).
+  $SNAPISOPAIR  70     isometric plane: 0=left, 1=top, 2=right.
+  $SNAPMODE     70     snap mode on if nonzero.
+  $SNAPSTYLE    70     snap style: 0=standard, 1=isometric.
+  $SNAPUNIT   10,20    snap grid X and Y spacing.
+  $VIEWCTR    10,20    XY center of current view on screen.
+  $VIEWDIR   10,20,30  viewing direction (direction from target, in WCS).
+  $VIEWSIZE     40     height of view.
+
+The date/time variables ($TDCREATE and $TDUPDATE) are output as real num-
+bers in the format:
+
+    <Julian date>.<Fraction>
+
+The elapsed time variables ($TDINDWG and $TDUSRTIMER) have a similar
+format:
+
+    <Number of days>.<Fraction>
+
+
+C.1.5.2  TABLES Section
+
+The TABLES section contains several tables, each of which in turn contains
+a variable number of table entries. The order of the tables may change, but
+the LTYPE table will always precede the LAYER table.  Each table is intro-
+duced with a 0 group with the label "TABLE".  This is followed by a 2 group
+identifying the particular table (VPORT, LTYPE, LAYER, STYLE, VIEW, UCS, or
+DWGMGR) and a 70 group that specifies the maximum number of table entries
+
+                                                                          9
+AutoCAD Reference Manual
+
+that may follow. The tables in a drawing may contain deleted items, but
+these are not written to the DXF file.  Thus, fewer table entries may
+follow the table header than are indicated by the 70 group, so don't use
+the count in the 70 group as an index to read in the table.  It is provided
+so that your program to read DXF files can allocate an array in advance
+large enough to hold all the table entries that follow.
+
+Following this header for each table are the table entries.  Each table
+item consists of a 0 group identifying the item type (same as table name,
+e.g., "LTYPE" or "LAYER"), a 2 group giving the name of the table entry, a
+70 group specifying flags relevant to the table entry (defined for each
+table below), and additional groups that give the value of the table entry.
+The end of each table is indicated by a 0 group with the value "ENDTAB".
+
+If any table entry has bit value 64 set in its group 70 flags, the table
+entry was referenced by at least one entity in the drawing the last time
+the drawing editor was entered to edit this drawing.  This "referenced"
+flag is for the benefit of the PURGE command; it can be ignored by most
+programs that read DXF files, and need not be set by programs that write
+DXF files.
+
+The following are the groups used for each type of table item.  All groups
+are present for each table item.
+
+  LTYPE    3 (descriptive text for linetype), 72 (alignment code), 73
+           (number of dash length items), 40 (total pattern length), 49
+           (dash length 1), 49 (dash length 2), . . .
+
+  LAYER    62 (color number, negative if layer is off), 6 (linetype
+           name).  The 1 bit is set in the 70 group flags if the layer is
+           frozen.
+
+  STYLE    40 (fixed text height; 0 if not fixed), 41 (width factor), 50
+           (obliquing angle), 71 (text generation flags), 42 (last height
+           used), 3 (primary font file name), 4 ("bigfont" file name;
+           blank if none).  If the third bit (4) is set in the 70 group
+           flags, this is a vertically-oriented text style.
+
+           A STYLE table item is used to record shape file LOAD requests
+           also.  In this case the first bit (1) is set in the 70 group
+           flags and only the 3 group (shape file name) is meaningful
+           (all the other groups are output, however).
+
+           The "text generation flags" are a bit-coded field with the
+           following bit meanings:
+
+                Flag bit value                Meaning
+                       2        Text is backwards (mirrored in X)
+                       4        Text is upside down (mirrored in Y)
+
+
+
+
+
+10
+                                   (C) Drawing Interchange and File Formats
+
+  VIEW     40 and 41 (view height and width), 10 and 20 (view center
+           point), 11, 21, 31 (view direction from target, in WCS), 12,
+           22, 32 (target point, in WCS), 42 (lens length), 43 and 44
+           (front and back clipping planes-offsets from target point), 50
+           (twist angle), 71 view mode (see VIEWMODE system variable
+           Appendix A).
+
+  UCS      10, 20, 30 (origin), 11, 21, 31 (X axis direction), 12, 22, 32
+           (Y axis direction).  All in World coordinates.
+
+  VPORT    10 and 20 (lower left corner of viewport; 0.0 to 1.0), 11 and
+           21 (upper right corner), 12 and 22 (view center point), 13 and
+           23 (snap base point), 14 and 24 (snap spacing, X and Y), 15
+           and 25 (grid spacing, X and Y), 16, 26, 36 (view direction
+           from target point), 17, 27, 37 (view target point), 40 (view
+           height), 41 (viewport aspect ratio), 42 (lens length), 43 and
+           44 (front and back clipping planes; offsets from target
+           point), 50 (snap rotation angle), 51 (view twist angle), 71
+           (view mode; see VIEWMODE system variable in Appendix A), 72
+           (circle zoom percent), 73 (fast zoom setting), 74 (UCSICON
+           setting), 75 (snap on/off), 76 (grid on/off), 77 (snap style),
+           78 (snap isopair).
+
+           The VPORT table is unique in that it may contain several
+           entries with the same name (indicating a multiple-viewport
+           configuration).  The entries corresponding to the active view-
+           port configuration all have the name "*ACTIVE".  The first
+           such entry describes the current viewport.
+
+  DWGMGR   For future use.  Fields not yet defined.
+
+
+C.1.5.3  BLOCKS Section
+
+The BLOCKS section of the DXF file contains all the Block Definitions.
+This section contains the entities that make up the Blocks used in the
+drawing, including "anonymous" Blocks generated by the HATCH command and by
+associative dimensioning.  The format of the entities in this section is
+identical to those in the ENTITIES section described below, so refer to
+that section for details.  All entities in the BLOCKS section appear
+between BLOCK and ENDBLK entities.  BLOCK and ENDBLK entities appear only
+in the BLOCKS section.  Block definitions are never nested (that is, no
+BLOCK or ENDBLK entity ever appears within another BLOCK-ENDBLK pair).
+
+
+C.1.5.4  ENTITIES Section
+
+Entity items appear in both the BLOCK and ENTITIES sections of the DXF
+file.  The appearance of entities in the two sections is identical, with
+the exception that entities in the BLOCK section never have handles. The
+following gives the format of each entity as it appears in the file.  Some
+groups that define an entity always appear, and some are optional and
+appear only if they differ from their default values.  In the following
+
+                                                                         11
+AutoCAD Reference Manual
+
+discussion, groups that always occur are given by their group number and
+function, while optional groups are indicated by "-optional N" following
+the group description.  "N" is the default value if the group is omitted.
+
+Programs that read DXF files should not assume that the groups describing
+an entity occur in the order given here.  The end of the groups that make
+up an entity is indicated by the next 0 group, beginning the next entity or
+indicating the end of the section.
+
+Remember that a DXF file is a complete representation of the drawing data-
+base, and that as AutoCAD is further enhanced, new groups will be added to
+entities to accommodate additional features.  Writing your DXF processing
+program in a table-driven way, making no assumptions about the order of
+groups in an entity, and ignoring any groups not presently defined, will
+make it much easier to accommodate DXF files from future releases of
+AutoCAD.
+
+Each entity begins with a 0 group identifying the entity type.  The names
+used for the entities are given in the table that follows.  Every entity
+contains an 8 group that gives the name of the layer on which the entity
+resides.  Each entity may have elevation, thickness, linetype, or color
+information associated with it. If handles are enabled, every entity has a
+5 group containing its handle (as a string representing a hexadecimal
+number). The following groups are included only if the entity has nonde-
+fault values for these properties.
+
+  Group code                         Meaning
+       6      Linetype name (if not "BYLAYER").  The special name "BYBLOCK"
+              indicates a floating linetype.
+
+      38      Elevation (if nonzero).  Output only if system variable
+              FLATLAND is 1.  Otherwise, Z coordinates are supplied as
+              3x-groups as part of each of the entity's defining points.
+
+      39      Thickness (if nonzero).
+
+      62      Color number (if not "BYLAYER").  Zero indicates the
+              "BYBLOCK" (floating) color.
+
+     210,     These groups are included for each Line, Point, Circle, Shape,
+     220,     Text, Arc, Trace, Solid, Block Reference, Polyline, Dimension,
+     230      Attribute, and Attribute Definition entity if its extrusion
+              direction is not parallel to the World Z axis.  The indicate
+              the X, Y, and Z components of the entity's extrusion direction.
+
+The rest of the groups that make up an entity item are described below.
+Many of the entities include "flag" groups.  These are integer codes (6x or
+7x groups) that encode various pieces of information regarding the entity,
+and are specific to the particular entity type.  In the following descrip-
+tions, the term "bit-coded" means that the flag contains various true/false
+values coded as the sum of the bit values given.  Any bits not defined in
+the following section should be ignored in these fields and set to zero
+when constructing a DXF file.
+
+12
+                                   (C) Drawing Interchange and File Formats
+
+  LINE      10, 20, 30 (start point), 11, 21, 31 (end point).
+
+  POINT     10, 20, 30 (point), 50 (angle of X axis for the UCS in effect
+            when the Point was drawn -optional 0, for use when PDMODE is
+            nonzero).
+
+  CIRCLE    10, 20, 30 (center), 40 (radius).
+
+  ARC       10, 20, 30 (center), 40 (radius), 50 (start angle), 51 (end
+            angle).
+
+  TRACE     Four points defining the corners of the trace: (10, 20, 30),
+            (11, 21, 31), (12, 22, 32), and (13, 23, 33).
+
+  SOLID     Four points defining the corners of the solid: (10, 20, 30),
+            (11, 21, 31), (12, 22, 32), and (13, 23, 33).  If only three
+            points were entered (forming a triangular solid), the third
+            and fourth points will be the same.
+
+  TEXT      10, 20, 30 (insertion point), 40 (height), 1 (text value), 50
+            (rotation angle -optional 0), 41 (relative X scale factor
+            -optional 1), 51 (obliquing angle -optional 0), 7 (text style
+            name -optional "STANDARD"), 71 (text generation flags
+            -optional 0), 72 (justification type -optional 0), 11, 21, 31
+            (alignment point -optional, appears only if 72 group is
+            present and nonzero).
+
+            The "text generation flags" are a bit-coded field with mean-
+            ings as follows:
+
+                 Flag bit value                Meaning
+                       2         Text is backwards (mirrored in X)
+                       4         Text is upside down (mirrored in Y)
+
+            The "justification type" value (not bit-coded) indicates the
+            text justification style used on this entity, as shown in the
+            following table.
+
+              Value                       Meaning
+                0    Text is left justified
+                1    Text is centered along its baseline
+                2    Text is right justified
+                3    Text is aligned between two points (height varies)
+                4    Text is "middle" (fully) centered
+                5    Text is fit between two points (width varies)
+
+            If the justification is anything other than 0 (left justi-
+            fied), 11, 21, and 31 groups will also appear in the entity
+            to specify the alignment point of the text (center, right-
+            most, or second alignment point).
+
+            DXFOUT handles ASCII control characters in text strings by
+            expanding the character into a "^" (caret) followed by the
+
+                                                                         13
+AutoCAD Reference Manual
+
+            appropriate letter.  For example, an ASCII Control-G (BEL,
+            decimal code 7) is output as "^G".  If the text itself con-
+            tains a caret character, it is expanded to "^ " (caret,
+            space).  DXFIN performs the complementary conversion.
+
+  SHAPE     10, 20, 30 (insertion point), 40 (size), 2 (shape name), 50
+            (rotation angle -optional 0), 41 (relative X scale factor
+            -optional 1), 51 (obliquing angle -optional 0).
+
+  BLOCK     2 (Block name), 70 (Block type flags), 10, 20, 30 (Block base
+            point).  Appears only in BLOCKS section.  The "Block type
+            flags" are bit-coded, with the following bit meanings:
+
+              Flag bit value                   Meaning
+                    1         This is an "anonymous" Block generated by
+                              hatching, associative dimensioning, or
+                              other internal operations.
+                    2         This Block has Attributes.
+
+  ENDBLK    No groups.  Appears only in BLOCKS section.
+
+  INSERT    66 ("Attributes follow" flag -optional 0), 2 (Block name),
+            10, 20, 30 (insertion point), 41 (X scale factor -optional
+            1), 42 (Y scale factor -optional 1), 43 (Z scale factor
+            -optional 1), 50 (rotation angle -optional 0), 70 and 71
+            (column and row counts -optional 1), 44 and 45 (column and
+            row spacing -optional 0).
+
+            If the value of the "Attributes follow" flag is 1, a series
+            of Attribute (ATTRIB) entities is expected to follow the
+            INSERT, terminated by a sequence end (SEQEND) entity.
+
+  ATTDEF    10, 20, 30 (text start), 40 (text height), 1 (default value,
+            see TEXT above for handling of ASCII control characters), 3
+            (prompt string), 2 (tag string), 70 (Attribute flags), 73
+            (field length -optional 0), 50 (text rotation -optional 0),
+            41 (relative X scale factor -optional 1), 51 (obliquing angle
+            -optional 0), 7 (text style name -optional "STANDARD"), 71
+            (text generation flags -optional 0, see TEXT above), 72 (text
+            justification type -optional 0, see TEXT above)), 11, 21, 31
+            (alignment point -optional, appears only if 72 group is
+            present and nonzero).
+
+            The "Attribute flags" are a bit-coded field in which the bits
+            have the following meanings:
+
+              Flag bit value                   Meaning
+                    1         Attribute is invisible (does not display)
+                    2         This is a constant Attribute
+                    4         Verification is required on input of this
+                              Attribute.
+                    8         Attribute is preset (no prompt during
+                              insertion)
+
+14
+                                   (C) Drawing Interchange and File Formats
+
+  ATTRIB    10, 20, 30 (text start), 40 (text height), 1 (value, see TEXT
+            above for handling of ASCII control characters), 2 (Attribute
+            tag), 70 (Attribute flags; see ATTDEF above), 73 (field
+            length -optional 0), 50 (text rotation -optional 0), 41 (rel-
+            ative X scale factor -optional 1), 51 (obliquing angle
+            -optional 0), 7 (text style name -optional "STANDARD"), 71
+            (text generation flags -optional 0, see TEXT above), 72 (text
+            justification type -optional 0, see TEXT above), 11, 21, 31
+            (alignment point -optional, appears only if 72 group is
+            present and nonzero).
+
+  POLYLINE  66 ("vertices follow flag"), 70 (Polyline flags), 40 (default
+            starting width), 41 (default ending width), 71 and 72 (poly-
+            gon mesh M and N vertex counts -optional 0), 73 and 74
+            (smooth surface M and N densities -optional 0), 75 (smooth
+            surface type -optional 0).  The default widths apply to any
+            vertex that doesn't supply widths (see below).
+
+            The "vertices follow" flag is always 1, indicating that a
+            series of VERTEX entities is expected to follow the POLYLINE,
+            terminated by a sequence end (SEQEND) entity.  The "polyline
+            flags" group is a bit-coded field with bits defined as fol-
+            lows:
+
+             Flag bit value                    Meaning
+                    1        This is a closed Polyline (or a polygon
+                             mesh closed in the M direction)
+                    2        Curve-fit vertices have been added
+                    4        Spline-fit vertices have been added
+                    8        This is a 3D Polyline
+                   16        This is a 3D polygon mesh.  Group 75 indi-
+                             cates the smooth surface type, as follows:
+
+                               0 = no smooth surface fitted
+                               5 = quadratic B-spline surface
+                               6 = cubic B-spline surface
+                               8 = Bezier surface
+
+                   32        The polygon mesh is closed in the N direc-
+                             tion
+
+  VERTEX    10, 20, 30 (location), 40 (starting width -optional, see
+            above), 41 (ending width -optional, see above), 42 (bulge),
+            70 (vertex flags), 50 (curve fit tangent direction
+            -optional).  The bulge is the tangent of 1/4 the included
+            angle for an arc segment, made negative if the arc goes
+            clockwise from the start point to the end point; a bulge of 0
+            indicates a straight segment, and a bulge of 1 is a semicir-
+            cle.  The meanings of the bit-coded "vertex flags" are shown
+            in the following table.
+
+
+
+
+                                                                         15
+AutoCAD Reference Manual
+
+             Flag bit value                    Meaning
+                   1         Extra vertex created by curve fitting
+                   2         Curve fit tangent defined for this vertex.
+                             A curve fit tangent direction of 0 may be
+                             omitted from the DXF output, but is signif-
+                             icant if this bit is set.
+                   4         Unused (never set in DXF files)
+                   8         Spline vertex created by spline fitting
+                   16        Spline frame control point
+                   32        3D Polyline vertex
+                   64        3D polygon mesh vertex
+
+  SEQEND    No fields.  This entity marks the end of vertices (VERTEX
+            type name) for a Polyline, or the end of Attribute entities
+            (ATTRIB type name) for an INSERT entity that has Attributes
+            (indicated by 66 group present and nonzero in INSERT entity).
+
+  3DLINE    10, 20, 30 (start point), 11, 21, 31 (end point).
+
+  3DFACE    Four points defining the corners of the face: (10, 20, 30),
+            (11, 21, 31), (12, 22, 32), and (13, 23, 33).  70 (invisible
+            edge flags -optional 0).  If only three points were entered
+            (forming a triangular face), the third and fourth points will
+            be the same.  The meanings of the bit-coded "invisible edge
+            flags" are shown in the following table.
+
+                      Flag bit value           Meaning
+                             1        First edge is invisible
+                             2        Second edge is invisible
+                             4        Third edge is invisible
+                             8        Fourth edge is invisible
+
+  DIMENSION 2 (name of pseudo-Block containing the current dimension pic-
+            ture), 10, 20, 30 (definition point for all dimension types),
+            11, 21, 31 (middle point of dimension text), 12, 22, 32
+            (insertion point for clones of a dimension (for BASELINE and
+            CONTINUE), 70 (Dimension type; 0=rotated, horizontal, or ver-
+            tical; 1=aligned; 2=angular; 3=diameter; 4=radius - the value
+            128 is added to this field if the dimension text has been
+            positioned at a user-defined location rather than at the
+            default location), 1 (dimension text explicitly entered by
+            the user.  If null, the dimension measurement is drawn as the
+            text.  Otherwise, this text is drawn (but if it includes the
+            sequence "<>", the dimension measurement is drawn in place of
+            the "<>")), 13, 23, 33 (definition point for linear and angu-
+            lar dimensions), 14, 24, 34 (definition point for linear and
+            angular dimensions), 15, 25, 35 (definition point for diame-
+            ter, radius, and angular dimensions), 16, 26, 36 (point
+            defining dimension arc for angular dimensions), 40 (leader
+            length for radius and diameter dimensions), 50 (angle of
+            rotated, horizontal, or vertical linear dimensions).
+
+
+
+16
+                                   (C) Drawing Interchange and File Formats
+
+            In addition, all dimension types have an optional group (code
+            51) that indicates the "horizontal" direction for the Dimen-
+            sion entity.  This determines the orientation of dimension
+            text and dimension lines for horizontal, vertical and rotated
+            linear dimensions.  The group value is the negative of the
+            ECS angle of the UCS X axis in effect when the Dimension was
+            drawn.  In other words, the X axis of the UCS in effect when
+            the Dimension was drawn is always parallel to the XY plane
+            for the Dimension's ECS, and the angle between the UCS X axis
+            and the ECS X axis is a single 2D angle.  The value in group
+            51 is the angle from "horizontal" (the effective X axis) to
+            the ECS X axis.  Entity Coordinate Systems (ECS) are
+            described later in this section.
+
+            For all dimension types, the following groups represent 3D
+            WCS points, regardless of the FLATLAND setting.
+
+                10, 20, 30
+                13, 23, 33
+                14, 24, 34
+                15, 25, 35
+
+            For all dimension types, the following groups represent ECS
+            points, and are 2D or 3D depending on the FLATLAND setting.
+
+                11, 21(, 31)
+                12, 22(, 32)
+                16, 26(, 36)
+
+  Linear    (13,23,33)   The point used to specify the first extension line.
+            (14,24,34)   The point used to specify the second extension line.
+            (10,20,30)   The point used to specify the dimension line.
+
+  Angular   (13,23,33) and (14,24,34)  The endpoints of the first line
+            (10,20,30) and (15,25,35)  The endpoints of the second line
+            (16,26,36)                 The point used to specify the dimen-
+                                       sion line arc
+
+  Diameter  (15,25,35)   The point used to pick the circle/arc to dimension
+            (10,20,30)   The point on that circle directly across from the
+                         pick point.
+
+  Radius    (15,25,35)   The point used to pick the circle/arc to dimension
+            (10,20,30)   The center of that circle.
+
+
+
+
+
+
+
+
+
+
+                                                                         17
+AutoCAD Reference Manual
+
+Entity Coordinate Systems (ECS)
+
+To save space in the drawing database (and in the DXF file), the points
+associated with each entity are expressed in terms of its own Entity Coor-
+dinate System (ECS).  The Entity Coordinate System allows AutoCAD to use a
+much more compact means of representation for entities.  With ECS, the only
+additional information needed to describe its position in 3D space is the
+3D vector describing the Z axis of the ECS, and the elevation value.
+
+For a given Z axis (or extrusion) direction, there is an infinite number of
+coordinate systems, defined by translating the origin in 3D space and by
+rotating the X and Y axes around the Z axis.  However, for the same Z axis
+direction, there is only one Entity Coordinate System.  It has the follow-
+ing properties:
+
+  o  Its origin coincides with the WCS origin.
+  o  The orientation of the X and Y axes within the XY plane are calcu-
+     lated in an arbitrary, but consistent manner.  AutoCAD performs
+     this calculation using the "arbitrary axis" algorithm described
+     below.
+
+For some entities, the ECS is equivalent to the World Coordinate System and
+all points (DXF groups 10-37) are expressed in World coordinates.  See the
+following table.
+
+                  Entities                        Notes
+        LINE, POINT, 3DFACE, 3D       These entities do not lie in
+        Polyline, 3D Vertex, 3D       a particular plane.  All
+        Mesh, 3D Mesh vertex          points are expressed in
+                                      World coordinates.  Of these
+                                      entities, only Lines and
+                                      Points can be extruded;
+                                      their extrusion direction can
+                                      differ from the World Z axis.
+
+        CIRCLE, ARC, SOLID, TRACE,    These entities are planar in
+        TEXT, ATTRIB, ATTDEF, SHAPE,  nature.  All points are
+        INSERT, 2D Polyline, 2D       expressed in Entity coordi-
+        Vertex                        nates.  All these entities
+                                      can be extruded; their
+                                      extrusion direction can
+                                      differ from the World Z axis.
+
+        DIMENSION                     Some of a Dimension's points are
+                                      expressed in WCS, and some in ECS.
+
+        Others                        The remaining entities have
+                                      no point data and their
+                                      coordinate systems are
+                                      therefore irrelevant.
+
+Once AutoCAD has established the ECS for a given entity, here's how it
+works:
+
+18
+                                   (C) Drawing Interchange and File Formats
+
+  o  The elevation value stored with an entity indicates how far along
+     the Z axis to shift the XY plane from the WCS origin to make it
+     coincide with the plane that the entity is in.  How much of this
+     is the user-defined elevation is unimportant.
+  o  Any 2D points describing the entity that were entered through the
+     UCS are transformed into the corresponding 2D points in the ECS,
+     which (more often than not) is shifted and rotated with respect to
+     the UCS.
+
+A few ramifications of this process are:
+
+  o  You can not reliably find out what UCS was in effect when an
+     entity was acquired.  You can only find out where the entity is in
+     the current UCS if the current UCS has the same Z axis direction
+     as the original UCS (i.e., they both reduce to the same ECS).
+  o  When you enter the XY coordinates of an entity in a given UCS and
+     then do a DXFOUT, you probably won't recognize those XY coordi-
+     nates in the DXF file.  You'll have to know the method by which
+     AutoCAD calculates the X and Y axes in order to work with these
+     values.
+  o  The elevation value stored with an entity and output in DXF files
+     will be a sum of the Z coordinate difference between the UCS XY
+     plane and the ECS XY plane, and the elevation value that the user
+     specified at the time the entity was drawn.
+
+
+Arbitrary Axis Algorithm
+
+The arbitrary axis algorithm is used by AutoCAD internally to implement the
+"arbitrary but consistent" generation of Entity Coordinate Systems for all
+entities except Lines, Points, 3D Faces, and 3D Polylines, which contain
+points in World coordinates.
+
+Given a unit-length vector to be used as the Z axis of a coordinate system,
+the arbitrary axis algorithm generates a corresponding X axis for the coor-
+dinate system.  The Y axis follows by application of the right hand rule.
+
+The method is to examine the given Z axis (also called the normal vector)
+and see if it is close to the positive or negative World Z axis.  If it is,
+cross the World Y axis with the given Z axis to arrive at the arbitrary X
+axis.  If not, cross the World Z axis with the given Z axis to arrive at
+the arbitrary X axis.  The boundary at which the decision is made was
+chosen to be both inexpensive to calculate and completely portable across
+machines.  This is achieved by having a sort of "square" polar cap, the
+bounds of which is 1/64, which is precisely specifiable in 6 decimal frac-
+tion digits and in 6 binary fraction bits.
+
+In mathematical terms, the algorithm does the following (all "vectors" are
+assumed to be in 3D space, specified in the World Coordinate System).
+
+    Let the given normal vector be called N.
+    Let the World Y axis be called Wy, which is always (0,1,0).
+    Let the World Z axis be called Wz, which is always (0,0,1).
+
+                                                                         19
+AutoCAD Reference Manual
+
+We are looking for the arbitrary X and Y axes to go with the normal N.
+They'll be called Ax and Ay.  N could also be called Az (the arbitrary Z
+axis).
+
+    If (Nx < 1/64) and (Ny < 1/64) then
+       Ax = Wy * N      (where "*" is the cross-product operator).
+    Otherwise,
+       Ax = Wz * N.
+    Scale Ax to unit length.
+
+The method of getting the Ay vector would be:
+
+    Ay = N * Ax.
+    Scale Ay to unit length.
+
+
+C.1.6  Writing DXF Interface Programs
+
+Writing a program that communicates with AutoCAD via the DXF mechanism
+often appears far more difficult than it really is.  The DXF file contains
+a seemingly overwhelming amount of information, and examining a DXF file
+manually may lead to the conclusion that the task is hopeless.
+
+However, the DXF file has been designed to be easy to process by program,
+not manually.  The format was constructed with the deliberate intention of
+making it easy to ignore information you don't care about while easily
+reading the information you need.  Just remember to handle the groups in
+any order and ignore any group you don't care about, and you'll be home
+free.
+
+As an example, the following is a Microsoft BASIC program that reads a DXF
+file and extracts all the LINE entities from the drawing (ignoring lines
+that appear inside Blocks).  It prints the endpoints of these lines on the
+screen.  As an exercise you might try entering this program into your com-
+puter, running it on a DXF file from one of your drawings, then enhancing
+it to print the center point and radius of any circles it encounters.  This
+program is not put forward as an example of clean programming technique nor
+the way a general DXF processor should be written; it is presented as an
+example of just how simple a DXF-reading program can be.
+
+    1000 REM
+    1010 REM Extract lines from DXF file
+    1020 REM
+    1030 G1% = 0
+    1040 LINE INPUT "DXF file name: "; A$
+    1050 OPEN "i", 1, A$ + ".dxf"
+    1060 REM
+    1070 REM Ignore until section start encountered
+    1080 REM
+    1090 GOSUB 2000
+    1100 IF G% <> 0 THEN 1090
+    1110 IF S$ <> "SECTION" THEN 1090
+
+
+20
+                                   (C) Drawing Interchange and File Formats
+
+    1120 GOSUB 2000
+    1130 REM
+    1140 REM Skip unless ENTITIES section
+    1150 REM
+    1160 IF S$ <> "ENTITIES" THEN 1090
+    1170 REM
+    1180 REM Scan until end of section, processing LINEs
+    1190 REM
+    1200 GOSUB 2000
+    1210 IF G% = 0 AND S$ = "ENDSEC" THEN 2200
+    1220 IF G% = 0 AND S$ = "LINE" THEN GOSUB 1400 : GOTO 1210
+    1230 GOTO 1200
+    1400 REM
+    1410 REM Accumulate LINE entity groups
+    1420 REM
+    1430 GOSUB 2000
+    1440 IF G% = 10 THEN X1 = X : Y1 = Y : Z1 = Z
+    1450 IF G% = 11 THEN X2 = X : Y2 = Y : Z2 = Z
+    1460 IF G% = 0 THEN PRINT "Line from (";X1;",";Y1;",";Z1;") to (";X2;
+                              ",";Y2;",";Z2;")
+    1470 GOTO 1430
+    2000 REM
+    2010 REM Read group code and following value
+    2020 REM For X coordinates, read Y and possibly Z also
+    2030 REM
+    2040 IF G1% < 0 THEN G% = -G1% : G1% = 0 ELSE INPUT #1, G%
+    2050 IF G% <   10 OR  G% =  999 THEN LINE INPUT #1, S$ : RETURN
+    2060 IF G% >=  38 AND G% <=  49 THEN INPUT #1, V : RETURN
+    2080 IF G% >=  50 AND G% <=  59 THEN INPUT #1, A : RETURN
+    2090 IF G% >=  60 AND G% <=  69 THEN INPUT #1, P% : RETURN
+    2100 IF G% >=  70 AND G% <=  79 THEN INPUT #1, F% : RETURN
+    2110 IF G% >= 210 AND G% <= 219 THEN 2130
+    2120 IF G% >=  20 THEN PRINT "Invalid group code";G% : STOP
+    2130 INPUT #1, X
+    2140 INPUT #1, G1%
+    2150 IF G1% <> (G%+10) THEN PRINT "Invalid Y coord code";G1% : STOP
+    2160 INPUT #1, Y
+    2170 INPUT #1, G1%
+    2180 IF G1% <> (G%+20) THEN G1% = -G1% ELSE INPUT #1, Z
+    2190 RETURN
+    2200 CLOSE 1
+
+Writing a program that constructs a DXF file is more difficult, because you
+must maintain consistency within the drawing in order for AutoCAD to find
+it acceptable.  AutoCAD allows you to omit many items in a DXF file and
+still obtain a usable drawing.  The entire HEADER section can be omitted if
+you don't need to set any header variables.  Any of the tables in the
+TABLES section can be omitted if you don't need to make any entries, and in
+fact the entire TABLES section can be dropped if nothing in it is required.
+If you define any linetypes in the LTYPE table, this table must appear
+before the LAYER table.  If no Block Definitions are used in the drawing,
+the BLOCKS section can be omitted.  If present, however, it must appear
+before the ENTITIES section.  Within the ENTITIES section, you can refer-
+ence layer names even though you haven't defined them in the LAYER table.
+
+                                                                         21
+AutoCAD Reference Manual
+
+Such layers will be automatically created with color 7 and the CONTINUOUS
+linetype.  The EOF item must be present at the end of file.
+
+The following Microsoft BASIC program constructs a DXF file representing a
+polygon with a specified number of sides, leftmost origin point, and side
+length.  This program supplies only the ENTITIES section of the DXF file,
+and places all entities generated on the default layer "0".  This may be
+taken as an example of a minimum DXF generation program.  Since this pro-
+gram doesn't create the drawing header, the drawing limits, extents, and
+current view will be invalid after performing a DXFIN on the drawing gener-
+ated by this program.  You can do a "ZOOM E" to fill the screen with the
+drawing generated.  Then adjust the limits manually.
+
+    1000 REM
+    1010 REM Polygon generator
+    1020 REM
+    1030 LINE INPUT "Drawing (DXF) file name: "; A$
+    1040 OPEN "o", 1, A$ + ".dxf"
+    1050 PRINT #1, 0
+    1060 PRINT #1, "SECTION"
+    1070 PRINT #1, 2
+    1080 PRINT #1, "ENTITIES"
+    1090 PI = ATN(1) * 4
+    1100 INPUT "Number of sides for polygon: "; S%
+    1110 INPUT "Starting point (X,Y): "; X, Y
+    1120 INPUT "Polygon side: "; D
+    1130 A1 = (2 * PI) / S%
+    1140 A = PI / 2
+    1150 FOR I% = 1 TO S%
+    1160 PRINT #1, 0
+    1170 PRINT #1, "LINE"
+    1180 PRINT #1, 8
+    1190 PRINT #1, "0"
+    1200 PRINT #1, 10
+    1210 PRINT #1, X
+    1220 PRINT #1, 20
+    1230 PRINT #1, Y
+    1240 PRINT #1, 30
+    1250 PRINT #1, 0.0
+    1260 NX = D * COS(A) + X
+    1270 NY = D * SIN(A) + Y
+    1280 PRINT #1, 11
+    1290 PRINT #1, NX
+    1300 PRINT #1, 21
+    1310 PRINT #1, NY
+    1320 PRINT #1, 31
+    1330 PRINT #1, 0.0
+    1340 X = NX
+    1350 Y = NY
+    1360 A = A + A1
+    1370 NEXT I%
+    1380 PRINT #1, 0
+    1390 PRINT #1, "ENDSEC"
+
+22
+                                   (C) Drawing Interchange and File Formats
+
+    1400 PRINT #1, 0
+    1410 PRINT #1, "EOF"
+    1420 CLOSE 1
+
+The DXFIN command is relatively forgiving with respect to the format of
+data items.  As long as a properly formatted item appears on the line on
+which the data is expected, DXFIN will accept it (of course, string items
+should not have leading spaces unless these are intended to be part of the
+string).  The above program takes advantage of this flexibility in input
+format, and does not go to great effort to generate a file appearing
+exactly like one generated by AutoCAD.
+
+In the case of error loading a DXF file using DXFIN, AutoCAD reports the
+error with a message indicating the nature of the error detected and the
+last line processed in the DXF file before the error was detected.  This
+may not be the line on which the error occurred, especially in the case of
+such errors as omission of required groups.
+
+
+
+C.2  Binary Drawing Interchange Files
+
+The ASCII DXF file format described in the preceding sections of this
+appendix is a complete representation of an AutoCAD drawing in an ASCII
+text form easily processed by other programs.  In addition, AutoCAD can
+produce or read a binary form of the full DXF file, and accepts limited
+input in another binary file format.  These binary files are described in
+the following sections.
+
+
+C.2.1  Binary DXF Files
+
+The DXFOUT command provides a "Binary" option that writes binary DXF files.
+Such a file contains all of the information present in an ASCII DXF file,
+but in a much more compact form that takes, typically, 25% less file space
+and can be read and written more quickly (typically 5 times faster) by
+AutoCAD.  Unlike ASCII DXF files, which entail a trade-off between size and
+floating-point accuracy, binary DXF files preserve all of the accuracy in
+the drawing database.  AutoCAD Release 10 is the first version to support
+this form of DXF file; it cannot be read by older versions.
+
+A binary DXF file begins with a 22-byte sentinel consisting of:
+
+    "AutoCAD Binary DXF<CR><LF><SUB><NUL>"
+
+Following the sentinel are (group,value) pairs as in an ASCII DXF file, but
+represented in binary form.  The group code is a single-byte binary value,
+and the value that follows is one of the following:
+
+  o  a two-byte integer with the least significant byte first and the
+     most significant byte last,
+
+
+
+                                                                         23
+AutoCAD Reference Manual
+
+  o  an eight-byte IEEE double precision floating-point number stored
+     with the least significant byte first and the most significant
+     byte last, or
+
+  o  an ASCII string terminated by a zero (NUL) byte.
+
+The type of the datum following a group is determined from the group code
+according to the same rules used in decoding ASCII DXF files.  Translation
+of angles to degrees, and dates to fractional Julian date representation,
+is performed for binary files as well as for ASCII DXF files.  The comment
+group, 999, is not used in binary DXF files.
+
+DXFOUT writes binary DXF files with the same file type (".dxf") as for
+ASCII DXF files.  The DXFIN command automatically recognizes a binary file
+(by means of its sentinel string) and loads it.  There is no need for you
+to identify it as a binary file.
+
+If DXFIN encounters an error in a binary DXF file, it reports the byte
+address within the file where the error was detected.
+
+
+C.3  Binary Drawing Interchange (DXB) Files
+
+The DXF file formats described earlier in this appendix are complete repre-
+sentations of an AutoCAD drawing that can be written and read by AutoCAD
+and other programs.  However, AutoShade(tm) and programs executed via the
+"external commands" facility (Appendix B) often have a need to supply
+simple geometric input to AutoCAD.  For these purposes, another file format
+even more compact than the binary DXF format is supported.  This format,
+called DXB (for "drawing interchange binary") is limited in the entities it
+can represent.  Furthermore, AutoCAD has a command to read such files, but
+no direct method of writing them.  (The ADI plotter driver can plot to a
+file in DXB format.)
+
+
+C.3.1  DXBIN Command
+
+To load a DXB file produced by a program such as AutoShade, enter the DXBIN
+command:
+
+    Command:  DXBIN
+    DXB file:
+
+enter the name of the file you wish to load.  Don't include a file type;
+".dxb" is assumed.
+
+
+
+
+
+
+
+
+
+24
+                                   (C) Drawing Interchange and File Formats
+
+C.3.2  DXB File Format
+
+This information is for experienced programmers, and is subject to change
+without notice.
+
+The format of a DXB file is as follows:
+
+    Header:      "AutoCAD DXB 1.0" CR LF ^Z NUL       (19 bytes)
+    Data:      . . . Zero or more data records . . .
+    Terminator:  NUL                                  (1 byte)
+
+Each data record begins with a single byte giving its type, followed by
+data items.  The data items have various forms of representation and encod-
+ing.  In the descriptions below, each data item is prefixed with a letter
+and a hyphen.  The meaning of the letter codes is as follows:
+
+  w-  16-bit integer, byte reversed in the standard 8086 style (least
+      significant byte first, most significant byte second).
+
+  f-  IEEE 64-bit floating-point value stored with lsb first, msb last
+      (as stored by an 8087).
+
+  l-  32-bit integer with the bytes reversed 8086-style.
+
+  n-  Number which may be either a 16-bit integer or a floating-point
+      number depending on the most recent setting of the "number mode"
+      data item.  The number mode defaults to 0, signifying integers.  If
+      set to 1, all n- items will be read as floating-point.
+
+  u-  Item which is either a 32-bit integer or a floating-point number
+      depending on the most recent number mode setting.  If a 32-bit
+      integer, the value is scaled by multiplying it by 65536 (2^16).  If
+      a floating-point value, no scaling is applied.
+
+  a-  Item representing an angle.  If number mode is integer, this is a
+      32-bit integer representing an angle in units of millionths of a
+      degree (range 0 to 360,000,000).  If a floating-point number, rep-
+      resents degrees.
+
+In the following table, the lengths include the item-type byte and assume
+the number mode is set to zero (integer mode).  If number mode is floating-
+point, add 6 bytes to the length for each n- item present and 4 bytes for
+each a-, or u- item present.
+
+        Item type        Code           Data items           Length
+                       (decimal)                             (bytes)
+     LINE                  1      n-fromx n-fromy               9
+                                  n-tox n-toy
+     POINT                 2      n-x n-y                       5
+     CIRCLE                3      n-ctrx n-ctry n-rad           7
+     ARC                   8      n-ctrx n-ctry n-rad          19
+                                  a-starta a-enda
+                                                      continued ...
+
+                                                                         25
+AutoCAD Reference Manual
+
+        Item type        Code           Data items           Length
+                       (decimal)                             (bytes)
+     TRACE                 9      n-x1 n-y1 n-x2 n-y2          17
+                                  n-x3 n-y3 n-x4 n-y4
+     SOLID                11      n-x1 n-y1 n-x2 n-y2          17
+                                  n-x3 n-y3 n-x4 n-y4
+     SEQEND               17      (none)                        1
+     POLYLINE             19      w-closureflag                 3
+     VERTEX               20      n-x n-y                       5
+     3DLINE               21      n-fromx n-fromy n-fromz      13
+                                  n-tox n-toy n-toz
+     3DFACE               22      n-x1 n-y1 n-z1               25
+                                  n-x2 n-y2 n-x2
+                                  n-x3 n-y3 n-z3
+                                  n-x4 n-y4 n-z4
+     SCALE FACTOR         128     f-scalefac                    9
+     NEW LAYER            129     "layername" NUL          "layername"
+                                                           length + 2
+     LINE EXTENSION       130     n-tox n-toy                   5
+     TRACE EXTENSION      131     n-x3 n-y3 n-x4 n-y4           9
+     BLOCK BASE           132     n-bx n-by                     5
+     BULGE                133     u-2h/d                        5
+     WIDTH                134     n-startw n-endw               5
+     NUMBER MODE          135     w-mode                        3
+     NEW COLOR            136     w-colornum                    3
+     3DLINE EXTENSION     137     n-tox n-toy n-toz             7
+
+The LINE EXTENSION item extends the last line or line extension from its
+"to" point to a new "to point".  The trace extension item similarly extends
+the last trace solid, or trace extension from its x3,y3-x4,y4 ending line
+to a new x3,y3-x4,y4 line.
+
+The SCALE FACTOR is a floating-point value by which all integer coordinates
+are multiplied to obtain the floating-point coordinates used by the actual
+entities.  The initial scale factor when a file is read is 1.0.  The NEW
+LAYER item will create a layer if none exists, giving it the same defaults
+as the "LAYER NEW" command, and will set that layer as the current layer
+for subsequent entities.  At the end of the DXB file load, the layer in
+effect before the command will be restored.
+
+The BLOCK BASE item specifies the base (origin) point of a Block being cre-
+ated.  The Block base must be defined before the first entity record is
+encountered.  If DXB is not defining a Block, this specification will be
+ignored.
+
+A Polyline consists of straight segments of fixed width connecting the ver-
+tices, except as overridden by the BULGE and WIDTH items described below.
+The closure flag should be 0 or 1; if it is 1, then there is an implicit
+segment from the last vertex (immediately before the SEQEND) to the first
+vertex.
+
+A BULGE item, encountered between two VERTEX items (or after the last
+VERTEX of a closed Polyline), indicates that the two vertices are connected
+
+26
+                                   (C) Drawing Interchange and File Formats
+
+by an arc rather than a straight segment.  If the line segment connecting
+the vertices would have length d, and the perpendicular distance from the
+midpoint of that segment to the arc is h, then the magnitude of the BULGE
+is (2 * h / d).  The sign is negative if the arc from the first vertex to
+the second is clockwise.  A semicircle thus has a bulge of 1 (or -1).  If
+the number mode is 0 (integer), BULGE items are scaled by 216.  If the
+number mode has been set to floating-point, then the floating-point value
+supplied is just 2*h/d (not scaled).
+
+The WIDTH item indicates the starting and ending widths of the segment
+(straight or curved) connecting two vertices.  This width stays in effect
+until the next width item or the SEQEND.  If there is a WIDTH item between
+the POLYLINE item and the first VERTEX, it is stored as a default width for
+the Polyline; this will save considerable database space if the Polyline
+has several segments of this width.
+
+The NUMBER MODE item controls the mode of items with types given in the
+table above as n-, a-, or u-.  If the value supplied is zero, these values
+will be integers, otherwise floating-point.  The storage and implicit scal-
+ing conventions for these values in both modes are described above.
+
+LINEs and 3DLINEs share the same cells to remember the last to-point, so
+you shouldn't mix extension groups for the two entities without an initial
+group before the extension.  There is no "extension" group for 3DFACEs, as
+there's no obvious edge to extend from.
+
+The "NEW COLOR" group specifies the color for subsequent entities in the
+DXB file.  The "w-colornum" word argument is in the range from 0 to 256.  0
+means color by block, 1-255 are the standard AutoCAD colors, and 256 means
+color by layer.  A color outside the range from 0 to 256 sets the color
+back to the current entity color (you can do this deliberately, and it can
+be quite handy).  The initial entity color of material added by DXBIN is
+the current entity color.
+
+All points specified in the DXB file are interpreted in terms of the cur-
+rent UCS at the time the DXBIN command is executed.
+
+
+C.3.3  Writing DXB Files
+
+There is no direct AutoCAD command to write a DXB file, but the special
+"ADI" plotter driver can write such a file.  If you want to create a DXB
+file from an AutoCAD drawing, configure the "ADI" plotter and select its
+DXB file output option.
+
+
+
+
+
+
+
+
+
+
+                                                                         27
+AutoCAD Reference Manual
+
+C.4  Initial Graphics Exchange Standard (IGES) Files
+
+Using the commands described in this section, you can instruct AutoCAD to
+read and write IGES format interchange files.
+
+NOTE:  The format of IGES files and the mapping performed to translate
+between AutoCAD drawing information and IGES are described in the separate
+AutoCAD / IGES Interface Specifications document (one of the items supplied
+when you return your AutoCAD license registration card).
+
+
+C.4.1  IGESOUT Command
+
+You can generate an Initial Graphics Exchange Standard (IGES) interchange
+file from an existing AutoCAD drawing by means of the Drawing Editor's
+IGESOUT command.  The command format is:
+
+    Command:  IGESOUT   File name:  (name or RETURN)
+
+The default name for the output file is the same as that of the current
+drawing, but with a file type of ".igs".  If you specify an explicit file
+name without including a file type, ".igs" is assumed. If a file with the
+same name already exists, it is deleted.
+
+
+C.4.2  IGESIN Command
+
+An IGES interchange file can be converted into an AutoCAD drawing by means
+of the IGESIN command.  First enter the Drawing Editor using the "Create
+new drawing" task from the Main Menu.  Then issue the IGESIN command.
+
+    Command:  IGESIN   File name:  (name)
+
+Enter the name of the IGES file to be loaded.
+
+If a serious error is encountered, the input process is halted and an error
+message is displayed reporting where the error was found.  The partial
+drawing is not discarded.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+28
+                                   (C) Drawing Interchange and File Formats
+
+C.5  Slide File Format
+
+AutoCAD slide files are screen images written by the MSLIDE command and
+read by the VSLIDE command.  This section describes the format of slide
+files, for the benefit of developers who wish to incorporate support for
+AutoCAD slides into their programs.
+
+This information is for experienced programmers, and is subject to change
+without notice.
+
+The general format of a slide file is:
+
+   1.  Header (31 bytes)
+   2.  One or more data records (variable length)
+
+All coordinates and sizes written to the slide file reflect the graphics
+area of the display device from which the slide was created, with point
+(0,0) located at the lower left corner of the graphics area.  For AutoCAD
+Release 9 and later, the slide file header consists of the following
+fields:
+
+      Field       Bytes                     Description
+ Id string          17   "AutoCAD Slide" CR LF ^Z NUL
+
+ Type indicator     1    Currently set to 86 (decimal).
+
+ Level indicator    1    Currently set to 2.
+
+ High X dot         2    Width of the graphics area - 1, in pixels.
+
+ High Y dot         2    Height of the graphics area - 1, in pixels.
+
+ Aspect ratio       4    Aspect ratio (horizontal size / vertical size in
+                         inches) of the graphics area, scaled by
+                         10,000,000.  This value is always written with
+                         the least significant byte first.
+
+ Hardware fill      2    Either 0 or 2 (value is unimportant).
+
+ Test number        2    A number (1234 hex) used to determine whether
+                         all 2-byte values in this slide file were writ-
+                         ten with the high byte first (as by Intel
+                         8086-family CPUs) or the low byte first (as by
+                         Motorola 68000-family CPUs).
+
+Data records follow the header.  Each data record begins with a 2-byte
+field whose high-order byte is the record type.  The remainder of the
+record may be composed of 1-byte or 2-byte fields, as described in the fol-
+lowing table.  To determine whether the 2-byte fields are written with the
+high byte first or the low byte first, examine the Test number field of the
+header, described above.
+
+
+
+                                                                         29
+AutoCAD Reference Manual
+
+     Record    Length      Meaning                Description
+   type (hex)  (bytes)
+    00 - 7F       8        Vector      The from-X coordinate for an
+                                       ordinary vector.  From-Y, to-X,
+                                       and to-Y follow in that order, as
+                                       2-byte values.  The from point is
+                                       saved as the last point.
+    80 - FA       -       Undefined    Reserved for future use.
+       FB         5     Offset vector  The low-order byte and the fol-
+                                       lowing three bytes specify the
+                                       endpoints (from-X, from-Y, to-X,
+                                       to-Y) of a vector, in terms of
+                                       offsets (-128 to +127) from the
+                                       saved last point.  The adjusted
+                                       from point is saved as the last
+                                       point for use by subsequent vec-
+                                       tors.
+       FC         2      End of file   The low-order byte is 00.
+       FD         6      Solid fill    The low-order byte is always
+                                       zero.  The following two 2-byte
+                                       values specify the X and Y coor-
+                                       dinates of one vertex of a poly-
+                                       gon to be solid-filled.  3 to 10
+                                       such records occur in sequence.
+                                       A Solid fill record with a nega-
+                                       tive Y coordinate indicates the
+                                       start or end of such a flood
+                                       sequence.  In the start record,
+                                       the X coordinate indicates the
+                                       number of vertex records to
+                                       follow.
+       FE         3        Common      This is a vector starting at the
+                          endpoint     last point.  The low-order byte
+                           vector      and the following byte specify
+                                       to-X and to-Y in terms of offsets
+                                       (-128 to +127) from the saved
+                                       last point.  The adjusted to
+                                       point is saved as the last point
+                                       for use by subsequent vectors.
+       FF         2       New color    Subsequent vectors are to be
+                                       drawn using the color number
+                                       indicated by the low-order byte.
+
+If a slide contains any vectors at all, a New color record will be the
+first data record.  The order of the vectors in a slide, and the order of
+the endpoints of those vectors, may vary.
+
+For example, the following is an annotated hex dump of a simple slide file
+created on an IBM PC/AT with an IBM Enhanced Graphics Adapter.  The slide
+consists of a white diagonal line from the lower left corner to the upper
+right corner of the graphics area, a green vertical line near the lower
+left corner, and a small red rectangle at the lower left corner.
+
+
+30
+                                   (C) Drawing Interchange and File Formats
+
+  41 75 74 6F 43 41        Id string ("AutoCAD Slide" CR LF ^Z NUL)
+  44 20 53 6C 69 64
+  65 0D 0A 1A 00
+  56                       Type indicator (86)
+  02                       Level indicator (2)
+  3C 02                    High X dot (572)
+  24 01                    High Y dot (292)
+  0B 80 DF 00              Aspect ratio (14,647,307 / 10,000,000 = 1.46)
+  02 00                    Hardware fill (2)
+  34 12                    Test number (1234 hex)
+  07 FF                    New color (7 = white)
+  3C 02 24 01 00 00 00 00  Vector from 572,292 to 0,0.  572,292 becomes
+                           "last" point
+  03 FF                    New color (3 = green)
+  0F 00 32 00 0F 00 13 00  Vector from 15,50 to 15,19.  15,50 becomes
+                           "last" point
+  01 FF                    New color (1 = red)
+  12 FB E7 12 CE           Offset vector from 15+18,50-25 (33,25) to
+                           15+18,50-50 (33,0).  33,25 becomes "last" point
+  DF FE 00                 Common-endpoint vector from 33,25 to
+                           33-33,25+0 (0,25).  0,25 becomes "last" point
+  00 FE E7                 Common-endpoint vector from (0,25) to
+                           0+0,25-25 (0,0).  0,0 becomes "last" point
+  21 FE 00                 Common-endpoint vector from (0,0) to
+                           0+33,0+0 (33,0).  33,0 becomes "last" point
+  00 FC                    End of file
+
+
+Old Slide Header
+
+The slide format described above is that produced by AutoCAD Release 9 and
+later, and is portable among all computers running AutoCAD Release 9 or
+later.  Previous versions of AutoCAD (as well as AutoShade 1.0 and
+AutoSketch 1.02) produce slides with a somewhat different header, as shown
+below.
+
+      Field       Bytes                     Description
+ Id string          17   "AutoCAD Slide" CR LF ^Z NUL
+ Type indicator     1    86 (decimal).
+ Level indicator    1    1 (old format).
+ High X dot         2    Width of the graphics area - 1, in pixels.
+ High Y dot         2    Height of the graphics area - 1, in pixels.
+ Aspect ratio       8    Aspect ratio (horizontal size / vertical size in
+                         inches) of the graphics area, written as a
+                         floating-point number.
+ Hardware fill      2    Either 0 or 2 (value is unimportant).
+ Filler byte        1    Unused
+
+Note that the old-format header does not contain a Test number field.  The
+floating-point aspect ratio value and all two-byte integers are written in
+the native format of the CPU used to create the file (for 8086-family CPUs,
+IEEE double-precision and low byte first).  Old-format slide files are not
+portable across machine types, but they can be read by any version of AutoCAD
+running on the same CPU type as the CPU with which the slide was created.
+
+                                                                         31
+AutoCAD Reference Manual
+
+C.6  Slide Library File Format
+
+This section describes the format of AutoCAD slide libraries (Release 9 and
+later), for the benefit of developers who wish to incorporate support for
+slide libraries into their programs.
+
+This information is for experienced programmers, and is subject to change
+without notice.
+
+The general format of a slide library is:
+
+  1.  Header (32 bytes)
+      "AutoCAD Slide Library 1.0" CR LF ^Z NUL NUL NUL NUL
+  2.  One or more slide directory entries (36 bytes each)
+  3.  One or more slides (variable length)
+
+Slide directory entries have the following format:
+
+  1.  Slide name (NUL terminated) (32 bytes)
+  2.  Address of slide within library file (4 bytes)
+
+The slide address is always written with the low byte first.  Each slide to
+which the directory points is a complete slide file as described in the
+previous section.  The end of the slide directory is signified by an entry
+with a null slide name (first byte is NUL).  A slide library may contain a
+mixture of old-format and new-format slides.
+
+
+<end of document>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+32
+
+dxf/dxf.doc: 1825 lines
+(continue editing letter)
+/* AutoCAD DXF file to DKB Data File Converter */
+/* Version 1.0 By Aaron A. Collins.  Written 8/13/90 */
+/* This program is released to the public domain. */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFSIZE	2048
+#define FABS(x) ((x<0.0)?-x:x)
+
+int getline (void);
+void writeobj (void);
+void finishobj (int color);
+void lookupcolor (int color, float *red, float *green, float *blue);
+int checkdegen(int a, int b, int c);
+
+int groupcode;
+char inname[80], outname[80];
+char linbuf[BUFSIZE];
+FILE *infile, *outfile;
+long primitives = 0L, degenerates = 0L;
+char curobj[80];
+int curcolor;
+float curthick;
+float xcoords[10];
+float ycoords[10];
+float zcoords[10];
+float floats[10];
+float angles[10];
+int ints[10];
+float max_x, max_y, max_z, min_x, min_y, min_z;
+
+main(argc, argv)
+int argc;
+char *argv[];
+{
+	char *index;
+
+	printf("\n\nAutoCad DXF to DKB .Data file Translator\n");
+	printf("Version 1.0 Written By Aaron A. Collins, 8/13/90\n");
+	printf("This program is released to the public domain.\n\n");
+	if (argc < 2 || argc > 3)
+	{
+		printf("Usage:  %s infile[.DXF] [outfile[.DAT]]\n", argv[0]);
+		exit(1);
+	}
+	strcpy(inname, argv[1]);	/* make copy we can mess with */
+	if (!strchr(inname, '.'))	/* no dot present in filename? */
+		strcat(inname, ".DXF");
+	if (!(infile = fopen(inname, "r")))
+	{
+		printf("Cannot open input file %s!\n", inname);
+		exit(1);
+	}
+	if (argc < 3)			/* i.e. no 2nd name supplied... */
+	{
+		strcpy(outname, inname);
+		index = strchr(outname, '.');	/* find the dot */
+		strcpy(index, ".DAT");		/* make new ext. .DAT... */
+	}
+	else
+	{
+		strcpy(outname, argv[2]);
+		if (!strchr(inname, '.'))	/* no dot in filename? */
+			strcat(inname, ".DAT");	/* add .DAT extension */
+	}
+	if (!(outfile = fopen(outname, "w")))
+	{
+		printf("Cannot create output file %s!\n", outname);
+		fclose(infile);
+		exit(1);
+	}
+
+	printf("\nPlease wait; Processing...");
+	
+	fprintf(outfile, "{ %s: Converted from AutoCad DXF File: %s }\n\n", outname, inname);
+	fprintf(outfile, "INCLUDE \"basicshapes.data\"\n\n");
+	fprintf(outfile, "{ Put a VIEW_POINT here... }\n\n");
+	fprintf(outfile, "{ Put a LIGHT_SOURCE here... }\n\n");
+	fprintf(outfile, "COMPOSITE\n");
+
+	curobj[0] = '\0';	/* not working on any object currently */
+	curcolor = 7;		/* and it also doesn't have a color yet... */
+	max_x = max_y = max_z = -10000000.0;	/* init bounding limits */
+	min_x = min_y = min_z =  10000000.0;
+
+find:	while (!feof(infile))	/* run file up to the "ENTITIES" section */
+	{
+		if (getline())		/* get a group code and a line */
+			goto stopit;
+		if (groupcode == 0)	/* file section mark */
+		{
+			if (strstr(linbuf, "EOF"))
+				goto stopit;
+			if (strstr(linbuf, "SECTION"))
+			{
+				if (getline())
+					goto stopit;
+				if (groupcode != 2)
+					continue;
+				if (strstr(linbuf, "ENTITIES"))
+					break;
+			}
+		}
+	}
+	while (!feof(infile))		/* scan ENTITIES section */
+	{
+		if (getline())		/* get a group code and a line */
+			break;
+		if (groupcode < 10)	/* cardinal group codes */
+		{
+			switch(groupcode)
+			{
+				case 0: /* start of entity, table, file sep */
+					if (strstr(linbuf, "EOF"))
+					{
+						writeobj(); /* dump object */
+						goto stopit;
+					}
+					if (strstr(linbuf, "ENDSEC"))
+					{
+						writeobj(); /* dump object */
+						goto find;
+					}
+					writeobj();	/* dump old object */
+					curobj[0] = '\0'; /* reset object */
+					curcolor = 7;
+					strcpy(curobj, linbuf);	/* get new */
+					break;
+				case 1:	/* primary text value for entity (?)*/
+					break;
+				case 2: /* block name, attribute tag, etc */
+				case 3:	/* other names */
+				case 4:
+					break;
+				case 5:	/* entity handle (hex string) */
+					break;
+				case 6: /* line type name */
+					break;
+				case 7: /* text style name */
+					break;
+				case 8: /* layer name */
+					break;
+				case 9: /* variable name ID (only in header)*/
+					break;
+			}
+		}
+		else if (groupcode >= 10 && groupcode < 19) /* Some X coord */
+		{
+			sscanf(linbuf, "%f", &(xcoords[groupcode-10]));
+			if (xcoords[groupcode-10] > max_x)
+				max_x = xcoords[groupcode-10];
+			if (xcoords[groupcode-10] < min_x)
+				min_x = xcoords[groupcode-10];
+		}
+		else if (groupcode >= 20 && groupcode < 29) /* Some Y coord */
+		{
+			sscanf(linbuf, "%f", &(ycoords[groupcode-20]));
+			if (ycoords[groupcode-20] > max_y)
+				max_y = ycoords[groupcode-20];
+			if (ycoords[groupcode-20] < min_y)
+				min_y = ycoords[groupcode-20];
+		}
+		else if (groupcode >= 30 && groupcode < 38) /* Some Z coord */
+		{
+			sscanf(linbuf, "%f", &(zcoords[groupcode-30]));
+			if (zcoords[groupcode-30] > max_z)
+				max_z = zcoords[groupcode-30];
+			if (zcoords[groupcode-30] < min_z)
+				min_z = zcoords[groupcode-30];
+		}
+		else if (groupcode == 38) /* entity elevation if nonzero */
+		{
+		}
+		else if (groupcode == 39) /* entity thickness if nonzero */
+		{
+		}
+		else if (groupcode >= 40 && groupcode < 49) /* misc floats */
+		{
+			sscanf(linbuf, "%f", &(floats[groupcode-40]));
+		}
+		else if (groupcode == 49) /* repeated value groups */
+		{
+		}
+		else if (groupcode >= 50 && groupcode < 59) /* misc angles */
+		{
+			sscanf(linbuf, "%f", &(angles[groupcode-50]));
+		}
+		else if (groupcode == 62) /* Color number */
+		{
+			sscanf(linbuf, "%6d", &curcolor);
+		}
+		else if (groupcode == 66) /* "entities follow" flag */
+		{
+		}
+		else if (groupcode >= 70 && groupcode < 79) /* misc ints */
+		{
+			sscanf(linbuf, "%f", &(ints[groupcode-70]));
+		}
+		else if (groupcode == 210 || groupcode == 220 || groupcode == 230)
+		{	/* X, Y, Z components of extrusion direction */
+		}
+	}
+stopit: fprintf(outfile, "  BOUNDED_BY\n    INTERSECTION\n");
+	fprintf(outfile, "      PLANE <1.0  0.0  0.0> %1.04f END_PLANE\n", FABS(max_x) * 1.01);
+	fprintf(outfile, "      PLANE <-1.0 0.0  0.0> %1.04f END_PLANE\n", FABS(min_x) * 1.01);
+	fprintf(outfile, "      PLANE <0.0  1.0  0.0> %1.04f END_PLANE\n", FABS(max_y) * 1.01);
+	fprintf(outfile, "      PLANE <0.0 -1.0  0.0> %1.04f END_PLANE\n", FABS(min_y) * 1.01);
+	fprintf(outfile, "      PLANE <0.0  0.0  1.0> %1.04f END_PLANE\n", FABS(max_z) * 1.01);
+	fprintf(outfile, "      PLANE <0.0  0.0 -1.0> %1.04f END_PLANE\n", FABS(min_z) * 1.01);
+	fprintf(outfile, "    END_INTERSECTION\n  END_BOUND\n   \nEND_COMPOSITE\n");
+	fclose(infile);
+	fflush(outfile);
+	fclose(outfile);
+	printf("Finished.\n\nTotal objects written to output file: %ld\n\n", primitives);
+	printf("Total degenerate triangles removed from scene: %ld\n\n", degenerates);
+	printf ("X bounding values range from %f to %f\n", min_x, max_x);
+	printf ("Y bounding values range from %f to %f\n", min_y, max_y);
+	printf ("Z bounding values range from %f to %f\n", min_z, max_z);
+	exit(0);
+}
+
+
+int getline()		/* read a group code and the next line from infile */
+{
+	fgets(linbuf, BUFSIZE, infile);	/* get a line from .DXF */
+	if (feof(infile))
+		return(1);
+	sscanf(linbuf, "%3d", &groupcode);  /* scan out group code */
+	fgets(linbuf, BUFSIZE, infile);	/* get a line from .DXF */
+	if (feof(infile))
+		return(1);
+	return(0);
+}
+
+void writeobj()	/* dump out current object we should have all info on */
+{
+	if (strstr(curobj, "LINE"))		/* a VERY skinny triangle! */
+	{
+		if (xcoords[0] == xcoords[1] && ycoords[0] == ycoords[1] && zcoords[0] == zcoords[1])
+		{
+			degenerates++;
+			return;
+		}
+
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  TRIANGLE <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> END_TRIANGLE\n", xcoords[0], ycoords[0], zcoords[0], xcoords[1], ycoords[1], zcoords[1], xcoords[1]+0.01, ycoords[1], zcoords[1]);
+		finishobj(curcolor);
+
+		return;
+	}
+	else if (strstr(curobj, "POINT"))	/* an itty, bitty sphere! */
+	{
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  SPHERE <%1.06f %1.06f %1.06f> 0.1 END_SPHERE\n", xcoords[0], ycoords[0], zcoords[0]);
+		finishobj(curcolor);
+		return;
+	}
+	else if (strstr(curobj, "CIRCLE"))	/* a VERY short cylinder! */
+	{
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  INTERSECTION\n");
+		fprintf(outfile, "    QUADRIC Cylinder_Z SCALE <%1.06f %1.06f %1.06f> END_QUADRIC\n", floats[0], floats[0], floats[0]);
+		fprintf(outfile, "    PLANE <0.0 0.0 1.0>  0.1 END_PLANE\n");
+		fprintf(outfile, "    PLANE <0.0 0.0 -1.0> 0.1 END_PLANE\n");
+		fprintf(outfile, "  END_INTERSECTION\n");
+		fprintf(outfile, "  TRANSLATE <%1.06f %1.06f %1.06f>\n", xcoords[0], ycoords[0], zcoords[0]);
+		finishobj(curcolor);
+		return;
+	}
+	else if (strstr(curobj, "ARC"))		/* not implemented for now */
+	{
+		return;
+	}
+	else if (strstr(curobj, "TRACE"))	/* 2 back-to-back triangles */
+	{
+		if (checkdegen(0, 1, 2))
+		{
+			degenerates++;
+			return;
+		}
+
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  TRIANGLE <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> END_TRIANGLE\n", xcoords[0], ycoords[0], zcoords[0], xcoords[1], ycoords[1], zcoords[1], xcoords[2], ycoords[2], zcoords[2]);
+		finishobj(curcolor);
+
+		if (checkdegen(0, 3, 2))
+		{
+			degenerates++;
+			return;
+		}
+
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  TRIANGLE <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> END_TRIANGLE\n", xcoords[0], ycoords[0], zcoords[0], xcoords[3], ycoords[3], zcoords[3], xcoords[2], ycoords[2], zcoords[2]);
+		finishobj(curcolor);
+
+		return;
+	}
+	else if (strstr(curobj, "SOLID"))	/* 1 or 2 triangles */
+	{
+		if (checkdegen(0, 1, 2))
+		{
+			degenerates++;
+			return;
+		}
+
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  TRIANGLE <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> END_TRIANGLE\n", xcoords[0], ycoords[0], zcoords[0], xcoords[1], ycoords[1], zcoords[1], xcoords[2], ycoords[2], zcoords[2]);
+		finishobj(curcolor);
+
+		if (xcoords[2] == xcoords[3] && ycoords[2] == ycoords[3] && zcoords[2] == zcoords[3])
+			return;	/* one triangle was enough... */
+
+		if (checkdegen(0, 3, 2))
+		{
+			degenerates++;
+			return;
+		}
+
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  TRIANGLE <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> END_TRIANGLE\n", xcoords[0], ycoords[0], zcoords[0], xcoords[3], ycoords[3], zcoords[3], xcoords[2], ycoords[2], zcoords[2]);
+		finishobj(curcolor);
+		return;
+	}
+	else if (strstr(curobj, "TEXT"))	/* not implemented for now */
+	{
+		return;
+	}
+	else if (strstr(curobj, "SHAPE"))	/* these look very hard */
+	{
+		return;
+	}
+	else if (strstr(curobj, "BLOCK"))	/* these look very hard */
+	{
+		return;
+	}
+	else if (strstr(curobj, "ENDBLK"))	/* these look very hard */
+	{
+		return;
+	}
+	else if (strstr(curobj, "INSERT"))	/* these look very hard */
+	{
+		return;
+	}
+	else if (strstr(curobj, "ATTDEF"))	/* not implemented for now */
+	{
+		return;
+	}
+	else if (strstr(curobj, "ATTRIB"))	/* not implemented for now */
+	{
+		return;
+	}
+	else if (strstr(curobj, "POLYLINE"))	/* these look fairly hard */
+	{
+		return;
+	}
+	else if (strstr(curobj, "VERTEX"))	/* these look fairly hard */
+	{
+		return;
+	}
+	else if (strstr(curobj, "SEQEND"))	/* these look fairly hard */
+	{
+		return;
+	}
+	else if (strstr(curobj, "3DLINE"))	/* a VERY skinny triangle! */
+	{
+		if (xcoords[0] == xcoords[1] && ycoords[0] == ycoords[1] && zcoords[0] == zcoords[1])
+		{
+			degenerates++;
+			return;
+		}
+
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  TRIANGLE <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> END_TRIANGLE\n", xcoords[0], ycoords[0], zcoords[0], xcoords[1], ycoords[1], zcoords[1], xcoords[1]+0.1, ycoords[1], zcoords[1]);
+		finishobj(curcolor);
+
+		return;
+	}
+	else if (strstr(curobj, "3DFACE"))	/* 1 or 2 triangles */
+	{
+		if (checkdegen(0, 1, 2))
+		{
+			degenerates++;
+			return;
+		}
+
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  TRIANGLE <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> END_TRIANGLE\n", xcoords[0], ycoords[0], zcoords[0], xcoords[1], ycoords[1], zcoords[1], xcoords[2], ycoords[2], zcoords[2]);
+		finishobj(curcolor);
+
+		if (xcoords[2] == xcoords[3] && ycoords[2] == ycoords[3] && zcoords[2] == zcoords[3])
+			return;	/* one triangle was enough... */
+
+		if (checkdegen(0, 3, 2))
+		{
+			degenerates++;
+			return;
+		}
+
+		fprintf(outfile, "OBJECT\n");
+		fprintf(outfile, "  TRIANGLE <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> <%1.06f %1.06f %1.06f> END_TRIANGLE\n", xcoords[0], ycoords[0], zcoords[0], xcoords[3], ycoords[3], zcoords[3], xcoords[2], ycoords[2], zcoords[2]);
+		finishobj(curcolor);
+		return;
+	}
+	else if (strstr(curobj, "DIMENSION"))	/* not implemented for now */
+	{
+		return;
+	}
+	return;	/* no current object defined... */
+}
+
+void finishobj(color)	/* conclude a DKB-style object definition */
+int color;
+{
+	float red, green, blue;
+
+	lookupcolor(color, &red, &green, &blue);
+	fprintf(outfile, "\n  COLOR RED %1.06f GREEN %1.06f BLUE %1.06f\n", red, green, blue);
+	fprintf(outfile, "  TEXTURE Dull END_TEXTURE\n");  /* default surf. */
+	fprintf(outfile, "END_OBJECT\n\n");
+	printf(".");		/* activity echo (happy dots) */
+	primitives++;		/* count another output file primitive */
+}
+
+void lookupcolor(color, red, green, blue) /* basic AutoCAD 9-color pallette */
+int color;
+float *red, *green, *blue;
+{
+	switch (color)
+	{
+		case 0:	/* black */
+			*red = *green = *blue = 0.0;
+			break;
+		case 1: /* red */
+			*red = 1.0;
+			*blue = *green = 0.0;
+			break;
+		case 2: /* yellow */
+			*red = *green = 1.0;
+			*blue = 0.0;
+			break;
+		case 3:	/* green */
+			*green = 1.0;
+			*red = *blue = 0.0;
+			break;
+		case 4: /* cyan */
+			*blue = *green = 1.0;
+			*red = 0.0;
+			break;
+		case 5: /* blue */
+			*blue = 1.0;
+			*red = *green = 0.0;
+			break;
+		case 6: /* magenta */
+			*blue = *red = 1.0;
+			*green = 0.0;
+			break;
+		case 8:	/* dk. grey */
+			*red = *green = *blue = 0.5;
+			break;
+		case 9: /* lt. grey */
+			*red = *green = *blue = 0.75;
+			break;
+		case 7: /* white */
+		default: /* make anything else white (?) */
+			*red = *green = *blue = 1.0;
+	}
+	return;
+}
+
+int checkdegen(a, b, c)		/* check for degenerate triangle structure */
+int a, b, c;
+{
+	if (
+	(xcoords[a] == xcoords[b] &&
+	 ycoords[a] == ycoords[b] &&
+	 zcoords[a] == zcoords[b]) || 
+	(xcoords[b] == xcoords[c] &&
+	 ycoords[b] == ycoords[c] &&
+	 zcoords[b] == zcoords[c]) || 
+	(xcoords[a] == xcoords[c] &&
+	 ycoords[a] == ycoords[c] &&
+	 zcoords[a] == zcoords[c]))
+		return(1);
+	return(0);
+}
+

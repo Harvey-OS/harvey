@@ -1,0 +1,23 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=cdmglob
+OFILES=Gmatch.$O\
+	alloc.$O\
+	call.$O\
+	error.$O\
+	expand.$O\
+	lsl.$O\
+	macro.$O\
+	main.$O\
+	pin.$O\
+	scan.$O\
+	sig.$O\
+	w.$O\
+
+HFILES=cdmglob.h\
+	template.h\
+
+</sys/src/cmd/mkone
+CFLAGS=-DPLAN9 -Djhc
+

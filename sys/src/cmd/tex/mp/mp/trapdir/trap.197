@@ -1,0 +1,14 @@
+%!PS-Adobe-2.0
+%%BoundingBox: -1.99254 -3.98508 7.97011 3.98506 
+%%Creator: MetaPost
+%%CreationDate: 1990.08.28:1027
+%%Pages: 1
+%%DocumentFonts: trapf
+ /trapf /trapf def
+/fshow {exch findfont exch scalefont setfont show}bind def
+%%EndProlog
+%%Page: 1 1
+gsave [0 -0.9428 0.9428 0.4714 0 0 ] concat 0 0 moveto
+(curb) trapf 10.56706 fshow grestore
+showpage
+%%Trailer

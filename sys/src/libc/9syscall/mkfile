@@ -1,0 +1,48 @@
+NPROC=1
+</$objtype/mkfile
+
+all install:V:
+	SYS=`{sed '/^#define._X[123]/d; s/#define.([A-Z0-9_]*).*/\1/' sys.h}
+	for(I in $SYS) {
+		i=`{echo $I|tr A-Z a-z}
+		n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' sys.h}
+		if(~ $i exits) i=_exits
+		{switch($objtype){
+		case 68020
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVL '$'$n, R0
+			echo TRAP '$0'
+			echo RTS
+		case mips
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R1, '0(FP)'
+			echo MOVW '$'$n, R1
+			echo SYSCALL
+			echo RET
+		case 386
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVL '$'$n, AX
+			echo INT '$'64
+			echo RET
+		case sparc
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R7, '0(FP)'
+			echo MOVW '$'$n, R7
+			echo TA R0
+			echo RETURN
+		case hobbit
+			echo TEXT $i'(SB)', '$0'
+			echo KCALL '$'$n
+			echo RETURN
+		}} > $i.s
+		$AS $i.s
+	}
+	ar vu /$objtype/lib/libc.a *.$O
+	$RL /$objtype/lib/libc.a
+	rm -f *.$O *.s
+
+nuke clean:V:
+	rm -f *.[$OS]
+
+installall:V:
+	for(objtype in $CPUS) mk install

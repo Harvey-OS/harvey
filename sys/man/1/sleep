@@ -1,0 +1,29 @@
+.TH SLEEP 1
+.SH NAME
+sleep \- suspend execution for an interval
+.SH SYNOPSIS
+.B sleep
+.I time
+.SH DESCRIPTION
+.I Sleep
+suspends execution for
+.I time
+seconds.
+.SH EXAMPLES
+Execute a command
+100 seconds hence.
+.IP
+.EX
+{sleep 100; command}&
+.EE
+.PP
+Repeat a command every 30 seconds.
+.IP
+.EX
+while (~ 1 1){
+	command
+	sleep 30
+}
+.EE
+.SH "SEE ALSO"
+.IR sleep (2)

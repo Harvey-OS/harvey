@@ -1,0 +1,491 @@
+% More bugs (sigh) in The TeXbook
+
+\input manmac
+\proofmodefalse
+\raggedbottom
+\output{\onepageout{\unvbox255\kern-\dimen@ \vfil}}
+
+\def\rhead{Bugs in {\tensl The \TeX book}, second printing}
+\def\bugonpage#1(#2) \par{\bigbreak\tenpoint
+  \hrule\line{\lower3.5pt\vbox to13pt{}Page #1\hfil(#2)}\hrule\nobreak\medskip}
+
+\noindent This is a list of all corrections made to {\sl The \TeX book\/}
+since the second printing. If your copy doesn't say `{\sl\kern-1pt Second
+printing (October 1984)\/}' on the copyright page, you should also look at
+the previous bug list. In fact, the most important corrections to the
+first printing were discovered first, so they've already been~made.
+
+\bugonpage 23, line 16 (10/13/84)
+
+\tenpoint\indent
+|This is TeX, Version 1.0 (preloaded format=plain 83.7.15)|
+
+\bugonpage 33, line 32 (10/21/84)
+
+The bottom line shows how far \TeX\ has gotten until now in the
+|story|{\parfillskip=0pt\par}
+
+\bugonpage 41, lines 7 and 8 (10/8/85)
+
+\ddanger The twin operations ^|\uppercase||{|\<token list>|}| and
+^|\lowercase||{|\<token list>|}| go through a given token list and convert
+all of the character tokens to their\parfillskip=0pt\enddanger
+
+\bugonpage 57, line 17 (1/6/86)
+
+|dd|\quad didot point ($\rm1157\,dd=1238\,pt$)
+
+\bugonpage 61, lines 17--19 (12/18/85)
+
+\ninepoint\noindent
+|depth|, |em|, |ex|,
+|fil|, |height|, |in|, |l|, |minus|, |mm|, |mu|, |pc|, |plus|,
+|pt|, |scaled|, |sp|, |spread|, |to|, |true|, |width|. ^^{reserved words}
+\ (See Appendix~I for references to the contexts in which each of these is
+recognized as a keyword.)
+
+\bugonpage 67, append a new exercise (1/19/85)
+
+\exno=5 \def\chapno{11}
+\gdef\frac#1/#2{\leavevmode\kern.1em
+  \raise.5ex\hbox{\the\scriptfont0 #1}\kern-.1em
+  /\kern-.15em\lower.25ex\hbox{\the\scriptfont0 #2}}
+
+\ddangerexercise Construct a |\frac| macro such that `|\frac1/2|' yields
+`\frac1/2'.
+
+\bugonpage 130, line 15 (4/17/85)
+
+\beginmathdemo
+|$y'''_3+g'^2$|&y'''_3+g'{}^2\cr
+\endmathdemo
+
+\bugonpage 170, line 5 (5/28/85)
+
+\ninepoint
+\line{tall, unslanted
+letter; and so on. But two of the examples involve corrections that were}
+
+\bugonpage 194, lines 13--15 should be centered better (10/22/84)
+
+\ninepoint
+$$\displaylines{\hfill x\equiv x;\hfill\llap{(1)}\cr
+   \hfill\hbox{if}\quad x\equiv y\quad\hbox{then}\quad
+      y\equiv x;\hfill\llap{(2)}\cr
+   \hfill\hbox{if}\quad x\equiv y\quad\hbox{and}\quad
+      y\equiv z\quad\hbox{then}\quad
+      x\equiv z.\hfill\llap{(3)}\cr}$$
+
+\bugonpage 215, lines 9 and 10 from the bottom (12/23/84)
+
+\ninepoint\noindent
+general format
+is the same as for |\def| and |\gdef|, but \TeX\ blindly expands the tokens
+of the replacement text according to the expansion rules above. For
+example, consider
+
+\bugonpage 233, lines 15--19 (1/19/85)
+
+\medskip
+\settabs\+\indent&10\frac1/2 lbs.\qquad&\it Servings\qquad&\cr
+\+&\negthinspace\it Weight&\it Servings&
+  {\it Approximate Cooking Time\/}*\cr
+\smallskip
+\+&8 lbs.&6&1 hour and 50 to 55 minutes\cr
+\+&9 lbs.&7 to 8&About 2 hours\cr
+\+&9\frac1/2 lbs.&8 to 9&2 hours and 10 to 15 minutes\cr
+\+&10\frac1/2 lbs.&9 to 10&2 hours and 15 to 20 minutes\cr
+
+\bugonpage 236, lines 18--21 (1/19/85)
+
+\ninepoint
+$$\vbox{\openup2pt
+\halign{\hfil\bf#&\quad\hfil\it#\hfil&\quad\hfil#\hfil&
+           \quad\hfil#\hfil&\quad#\hfil\cr
+Squab&Poussin&2&\frac3/4 to 1&Broil, Grill, Roast\cr
+Broiler&Poulet Nouveau&2 to 3&1\frac1/2 to 2\frac1/2&Broil, Grill, Roast\cr
+Fryer&Poulet Reine&3 to 5&2 to 3&Fry, Saut\'e, Roast\cr
+Roaster&Poularde&5\frac1/2 to 9&Over 3&Roast, Poach, Fricassee\cr}}$$
+[This change should also be made at the bottom of page 237.]
+
+\bugonpage 236, fifth-last line (1/19/85)
+
+\ninepoint
+| Squab&Poussin&2&\frac3/4 to 1&Broil, Grill, Roast\cr|
+
+\bugonpage 237, line 25 (10/10/84)
+
+\ninepoint\noindent
+saying `^|\tabskip||=|\<glue>'. For example,
+let's do the poultry table again, but with the{\parfillskip=0pt\par}
+
+\bugonpage 265, bottom line (11/6/85)
+
+[insert a comma after `{\eightss LEONTIEF}'.]
+
+\bugonpage 271, line 8 (11/12/85)
+
+\ninepoint
+\beginsyntax
+<fil unit>\is[fil]\alt<fil unit>[l]
+\endsyntax
+
+\bugonpage 280, lines 7 and 8 (1/8/85)
+
+\ninepoint\noindent
+\<4-bit number>.\enskip
+The specified output stream is opened or closed, for use in |\write|
+commands, as explained in Chapter~21.
+
+\bugonpage 300, lines 5--10 [changed for version 1.3] (11/25/84)
+
+\ninepoint\noindent
+what part of \TeX's memory has become overloaded;
+one of the following fourteen things will be mentioned:
+\begindisplay
+|number of strings|\qquad(names of control sequences and files)\cr
+|pool size|\qquad(the characters in such names)\cr
+|main memory size|\qquad(boxes, glue, breakpoints, token lists,
+  characters, etc.)\cr
+\enddisplay
+
+\bugonpage 300, lines 23--29 [changed for version 1.3] (11/25/84)
+
+\danger If you have a job that doesn't overflow \TeX's capacity, yet
+you want to see just how closely you have approached the limits,
+just set ^|\tracingstats| to a positive value before the end of your
+job. The log file will then conclude with a report on your actual
+usage of the first eleven things named above (i.e., the number of strings,
+\dots, the save size), in that order. ^^{stack positions}
+Furthermore, if you set |\tracingstats| equal to 2~or~more, \TeX\
+will show its current memory usage whenever it
+does a ^|\shipout| command. Such statistics are broken into two
+parts; `|490&5950|' means, for example, that 490 words are being used
+for ``large'' things like boxes, glue, and
+breakpoints, while 5950 words are being used for ``small'' things like
+tokens and characters.
+
+\bugonpage 302, line 14 (10/8/85)
+
+\begintt
+.\tenrm || (ligature ---)
+\endtt
+
+\bugonpage 305, line 26 (12/24/84)
+
+\ninepoint\noindent
+sentable as |^^M|. Asking \TeX\ to |\show\^^M|
+\looseness-1
+produces the response `|>| |\^^M=macro:->\|\]|.|'.
+
+\bugonpage 306, line 10 (7/1/85)
+
+\ninepoint\noindent
+no ``^{explicit kerns},'' and an italic correction is an
+explicit kern.) \ But the italic correction may be too much (especially in an
+italic font); |shelf{|^|\kern||0pt}ful| is often best.
+
+\bugonpage 308, line 25 (3/25/85)
+
+\ninepoint\indent
+|\def\appendroman#1#2#3{\edef#1{\def\noexpand#1{\csname|
+
+\bugonpage 311, insert a new answer (1/19/85)
+
+\ninepoint
+\ansno11.6:
+ |\def\frac#1/#2{\leavevmode\kern.1em|\parbreak
+|\raise.5ex\hbox{\the\scriptfont0 #1}\kern-.1em|\parbreak
+|/\kern-.15em\lower.25ex\hbox{\the\scriptfont0 #2}}|
+
+\smallskip\noindent[This causes answer 12.8 to move to page 312;
+answer 12.16 also moves to page 313.]
+
+\bugonpage 320, lines 17--20 (8/10/85)
+
+\ninepoint
+\ansno17.16:
+ |\def\sqr#1#2{{\vcenter{\vbox{\hrule height.#2pt|\parbreak
+        |        \hbox{\vrule width.#2pt height#1pt \kern#1pt|\parbreak
+        |           \vrule width.#2pt}|\parbreak
+        |        \hrule height.#2pt}}}}|
+
+\bugonpage 327, lines 26--33 (10/22/84)
+
+\ninepoint
+\ansno19.16:
+  |$$\displaylines{\hfill x\equiv x;\hfill\llap{(1)}\cr|\parbreak
+        |   \hfill\hbox{if}\quad x\equiv y\quad\hbox{then}\quad|\parbreak
+        |      y\equiv x;\hfill\llap{(2)}\cr|\parbreak
+        |   \hfill\hbox{if}\quad x\equiv y\quad\hbox{and}\quad|\parbreak
+        |      y\equiv z\quad\hbox{then}\quad|\parbreak
+        |      x\equiv z.\hfill\llap{(3)}\cr}$$|\par\medskip\noindent
+There's also a trickier solution, which begins with
+\begintt
+$$\displaylines{x\equiv x;\hfil\llap{(1)}\hfilneg\cr
+\endtt
+
+\bugonpage 330, line 29 (11/15/85)
+
+\ninepoint\indent
+|\edef\next#1#2{\def#1{\b#2\d}} \next\a\c|
+
+\bugonpage 332, lines 17--24 (1/19/85)
+
+\ninepoint
+\begintt
+\settabs\+\indent&10\frac1/2 lbs.\qquad&\it Servings\qquad&\cr
+\+&\negthinspace\it Weight&\it Servings&
+  {\it Approximate Cooking Time\/}*\cr
+\smallskip
+\+&8 lbs.&6&1 hour and 50 to 55 minutes\cr
+\+&9 lbs.&7 to 8&About 2 hours\cr
+\+&9\frac1/2 lbs.&8 to 9&2 hours and 10 to 15 minutes\cr
+\+&10\frac1/2 lbs.&9 to 10&2 hours and 15 to 20 minutes\cr
+\endtt
+
+\bugonpage 332, lines 33--35 (1/19/85)
+
+\ninepoint\noindent
+proofs. \ (You weren't supposed to think of this,
+but it has to be mentioned.) \ See exercise 11.\fracexno\ for the `|\frac|'
+macro; it's better to say `\frac1/2' than `$1\over2$', in a cookbook.\par
+Another way to treat this table would be to display it in a vbox, instead
+of including a first column whose sole purpose is to specify indentation.
+
+\bugonpage 337, line 28 (11/12/85)
+
+\ninepoint\noindent |\nextnumber|. Quick should put `|\relax|'
+at the end of his macro. \ (The {keywords} |l|,{\parfillskip=0pt\par}
+
+\bugonpage 357, lines 35 and 36 (1/8/85)
+
+\ninepoint\noindent
+|\def\*{\discretionary{\thinspace\the\textfont2\char2}{}{}}|
+
+\bugonpage 357, last two lines (4/17/85)
+
+\ninepoint\noindent
+|\def\pr@m@s{\ifx'\next\let\next\pr@@@s|%
+  | \else\ifx^\next\let\next\pr@@@t|\par\noindent
+|  \else\let\next\egroup\fi\fi \next}|\par\noindent
+|\def\pr@@@s#1{\prim@s} \def\pr@@@t#1#2{#2\egroup}|
+
+\bugonpage 358, lines 8--12 (1/23/85)
+
+\ninepoint\noindent
+|\def\hbar{{\mathchar'26\mkern-9muh}}|\hfil\break\null
+|\def\surd{{\mathchar"1270}}|\hfil\break\null
+|\def\angle{{\vbox{\ialign{$\m@th\scriptstyle##$\crcr|\hfil\break\null
+|      \not\mathrel{\mkern14mu}\crcr \noalign{\nointerlineskip}|\hfil\break\null
+|      \mkern2.5mu\leaders\hrule height.34pt\hfill\mkern2.5mu\crcr}}}}|
+
+\bugonpage 359, lines 7--8 (1/22/85)
+
+\ninepoint\noindent
+|\def\ddots{\mathinner{\mkern1mu\raise7pt\vbox{\kern7pt\hbox{.}}\mkern2mu|%
+\hfil\break\null
+|    \raise4pt\hbox{.}\mkern2mu\raise1pt\hbox{.}\mkern1mu}}|
+
+\bugonpage 360, line 22 (1/22/85)
+
+\ninepoint\noindent
+|  \mkern5mu \raise.6\dimen@\copy\rootbox \mkern-10mu \box0}|
+
+\bugonpage 361, line 3 (3/27/85)
+
+\ninepoint\noindent
+|\def\buildrel#1\over#2{\mathrel{\mathop{\kern0pt #2}\limits^{#1}}}|
+
+\bugonpage 361, lines 19--20 (1/22/85)
+
+\ninepoint\noindent
+|\def\bmod{\mskip-\medmuskip \mkern5mu|\hfil\break\null
+|  \mathbin{\rm mod} \penalty900 \mkern5mu \mskip-\medmuskip}|
+
+\bugonpage 361, line 27 (5/1/85)
+
+\ninepoint\noindent
+|\def\matrix#1{\null\,\vcenter{\normalbaselines\m@th|
+
+\bugonpage 361, bottom line (5/1/85)
+
+\ninepoint\noindent
+|  \null\;\vbox{\kern\ht1\box2}\endgroup}|
+
+\bugonpage 362, line 9 (5/1/85)
+
+\ninepoint\noindent
+|\def\eqalign#1{\null\,\vcenter{\openup1\jot \m@th|
+
+\bugonpage 362, lines 17--29 (8/10/85)
+
+{\parindent=0pt\ninepoint
+|\def\@lign{\tabskip=0pt\everycr={}} % restore inside \displ@y|\par
+|\def|^|\displaylines||#1{\displ@y|\parbreak%
+|  \halign{\hbox to\displaywidth{|%
+ |$\hfil\@lign\displaystyle##\hfil$}\crcr|\parbreak%
+|    #1\crcr}}|
+\smallbreak
+|\def|^|\eqalignno||#1{\displ@y \tabskip=|^|\centering|\parbreak%
+|  \halign to\displaywidth{\hfil$\@lign\displaystyle{##}$\tabskip=0pt|\parbreak%
+|    &$\@lign\displaystyle{{}##}$\hfil\tabskip=\centering|\parbreak%
+|    &\llap{$\@lign##$}\tabskip=0pt\crcr|\parbreak%
+|    #1\crcr}}|\par
+|\def|^|\leqalignno||#1{\displ@y \tabskip=\centering|\parbreak%
+|  \halign to\displaywidth{\hfil$\@lign\displaystyle{##}$\tabskip=0pt|\parbreak%
+|    &$\@lign\displaystyle{{}##}$\hfil\tabskip=\centering|\parbreak%
+|    &\kern-\displaywidth\rlap{$\@lign##$}\tabskip=\displaywidth\crcr|\parbreak%
+|    #1\crcr}}|
+\par}
+
+\bugonpage 363, line 9 (5/12/85)
+
+\ninepoint\noindent
+|\def\footnote#1{\let\@sf=\empty % parameter #2 (the text) is read later|
+
+\bugonpage 364, line 3 (3/23/85)
+
+\ninepoint\noindent
+|\def\plainoutput{\shipout\vbox{\makeheadline\pagebody\makefootline}%|
+
+\bugonpage 364, fifth-last line (9/15/85)
+
+\ninepoint\noindent
+|\def\fmtname{plain}\def\fmtversion{2.0} % identifies the current format|
+
+\bugonpage 399, eighth-last line (2/11/85)
+
+\ninepoint\noindent
+|  \baselineskip=\footnotebaselineskip\noindent\unhbox0\par}|
+
+\bugonpage 401, line 5 (1/29/85)
+
+\ninepoint\noindent
+{|\fontdimen| parameters to qualify as a math symbol font).
+(2)~Set all the font identifiers\parfillskip=0pt\par}
+
+\bugonpage 414, line 10 (12/17/84)
+
+\ninepoint\noindent
+|\font\titlefont=cmssdc40           % titles in chapter openings|
+
+%\bugonpage 420, line 9 (10/3/85)
+%
+%\ninepoint\noindent
+%|\def\AmSTeX{$\cal A\kern-.1667em\lower.5ex\hbox{$\cal M$}\kern-.075em|
+% that change comes under `font data', explained away below
+
+\bugonpage 444, bottom line (1/10/85)
+
+\ninepoint\noindent
+depth $d(z)+v$, consisting
+of box~$x$ followed by an appropriate kern followed by box~$z$.
+
+\bugonpage 461, entry for character codes (11/6/85)
+
+\eightpoint
+Add `{\sl see also\/} category codes'.
+
+\bugonpage 463, entries for {\tt dd}, Didot, and didot (1/6/86)
+
+\eightpoint
+Remove the circumflex accents.
+
+\bugonpage 466, left column (1/19/85)
+
+\eightpoint
+fractions, 67, 139--143, 152, 170, 179,\par
+\qquad 186, 444--445.\par
+\quad huge, 196.\par
+\quad slashed form, 67, 139--140, 233, 236.
+
+\bugonpage 467, index entry for {\tt\char`\\hsize} (6/14/85)
+
+\eightpoint
+Add a reference to page {\it 60}.
+
+\bugonpage 469, index entry for {\tt\char`\\kern} (7/1/85)
+
+\eightpoint
+Add a reference to page {\it 306}.
+
+\bugonpage 469, index entry for kerns (7/1/85)
+
+\eightpoint
+Add a reference to page 306.
+
+\bugonpage 469, new entry (11/12/85)
+
+\eightpoint
+|l| after |fil|, $\underline{271}$, 337.
+
+\bugonpage 469, second line on the right (9/13/85)
+
+\eightpoint
+%\def\LaTeX{L\kern-.25em\raise.7ex\hbox{a}\kern-.05em\TeX} % old style
+{L\kern -.36em\raise.6ex\hbox{\sixrm A}\kern-.15em\TeX}, 137.
+
+\bugonpage 470, index entries for {\tt\char`\\longleftarrow}
+      thru {\tt\char`\\Longrightarrow} (10/5/84)
+
+\eightpoint
+The references to page 358 should be underlined (seven times).
+
+\bugonpage 475, index entry for punctuation in formulas (4/29/85)
+
+\eightpoint
+Add a reference to page 161.
+
+\bugonpage 476, index entry for {\tt\char`\\scriptspace} (8/10/85)
+
+\eightpoint
+Change `445' to `445--446'.
+
+\bugonpage 478, first and last lines (10/11/84)
+
+\noindent Delete the last line in the right-hand column
+(since it appears on page 479), and add the following line
+at the top of the left-hand column (since it was dropped by mistake
+from the second printing):
+
+\smallskip
+\eightpoint styles of math formatting, 140--141, 441--447.
+
+\bugonpage 478, new entry after tabbing (5/28/85)
+
+\eightpoint
+tables, {\sl see\/} alignments, tabbing.
+
+\bugonpage 478, tabskip entries (3/25/85)
+
+\eightpoint\noindent Instead of `237--239' and `237--238' it should say
+`$\underline{237}$--$\underline{239}$' twice.
+
+\bugonpage 481, the entry for {\tt\char`\\widetilde} (9/23/85)
+
+\eightpoint
+Page 359 should be underlined.
+
+\bugonpage 483, lines 16--17 (1/19/85)
+
+|P.O. Box 9506|\parbreak
+|Providence RI 02940-9506, USA.|
+
+\bugonpage 483, lines 22--23 (1/19/85)
+
+P.O. Box 9506\par
+Providence RI 02940-9506, USA.
+
+\bigskip
+\hrule
+\bigskip\noindent\tenrm
+Note: The next printing will use the ``real'' Computer Modern fonts
+instead of the ``almost'' Computer Modern fonts. Therefore many of
+the line breaks will be slightly different. Also, the font-related
+numerical data on pages 27, 29, 66, 75, 76, 79, 88, 98, 99, 112, 113, 310,
+314, 396, 399, 409, 420, and 459 will be different. However, these
+differences need not be listed here, because the old book was correct with
+respect to the old fonts.
+
+\bye

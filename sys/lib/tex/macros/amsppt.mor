@@ -1,0 +1,94 @@
+%%%%%%%%%%                      amsppt.mor                      %%%%%%%%%%
+%%%%%%%%%%                                      last modified:  11 Aug 87
+
+\catcode`\@=11
+
+%  Switches to determine whether or not page numbers are wanted.
+
+\newif\ifP@geNumbers    \P@geNumberstrue
+\def\nopagenumbers{\global\P@geNumbersfalse}
+
+%  Switches to determine if running heads are to be used.
+%  To select a style with running heads, include the command
+%  \userunningheads  in the input file.
+
+\newif\ifR@nHeads       \R@nHeadsfalse
+\def\userunningheads{\global\R@nHeadstrue \nopagenumbers}
+
+
+%  Define an appropriate headline, to be read by PLAIN's \makeheadline .
+%  This is based on the headline example in the TeXbook, page 252.
+%  Center the headline text and put page numbers at the outside corners.
+
+\headline={\headlinefont\ifodd\pageno\rightheadline \else\leftheadline\fi}
+\def\foliofont{\eightrm}
+\def\headlinefont{\eightpoint}
+\def\leftheadline{\rlap{\foliofont\folio}\hfill\leftheadtext\hfill}
+\def\rightheadline{\hfill\rightheadtext\hfill \llap{\foliofont\folio}}
+\def\leftheadtext{LEFT RUNNING HEAD}
+\def\rightheadtext{RIGHT RUNNING HEAD}
+
+
+%  Modify the AMSPPT output routine to include (optional) running heads and
+%  (optionally) exclude page numbers at the bottom.  Provide and initialize
+%  switch, instead of testing for \pageno=1, to determine first page of
+%  document, to permit the starting page number to vary.
+
+\newif\ifThisIsFirstPage        \ThisIsFirstPagetrue
+\def\output@{%
+ \ifThisIsFirstPage\global\ThisIsFirstPagefalse\shipout\vbox{\vbox to\vsize
+  {\boxmaxdepth\maxdepth\pagecontents}\baselineskip2pc
+  \iflogo@\hbox to\hsize{\hfil\eightpoint Typeset by \AmSTeX}\fi}\else
+ \shipout\vbox{\ifR@nHeads\makeheadline\fi \vbox to\vsize
+  {\boxmaxdepth\maxdepth\pagecontents}\baselineskip2pc
+  \hbox to\hsize{\hfil\ifP@geNumbers\tenpoint\number\pageno\fi\hfil}}%
+ \fi
+ \global\advance\pageno\@ne
+ \ifnum\outputpenalty>-\@MM\else\dosupereject\fi}
+
+
+\catcode`\@=13
+
+\endinput
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The TeX code defined here will modify the AMS-TeX preprint style to
+permit use of running heads and suppression of page numbers from the
+bottoms of pages.  This modification will not set a running head on
+the first page of an article, only on pages following the first.
+
+
+Instructions:
+
+  1. Create a file named  amsppt.mor  containing the data in the lines
+     from  %%% amsppt.mor %%%  through  \endinput .  Install the file
+     in the same directory as amsppt.sty .
+
+  2. In a data file, after the  \documentstyle{amsppt}  command,
+     include a line  \input amsppt.mor
+
+  3. To suppress bottom page numbers, type  \nopagenumbers .
+
+  4. To specify running heads, type  \userunningheads  after amsppt.mor
+     has been input; this will automatically suppress bottom page numbers.
+     (No running heads is the default style.)
+
+  5. To provide running head data, type two lines specifying the desired
+     text, as follows.
+        \def\leftheadtext{ ... }
+        \def\rightheadtext{ ... }
+
+  6. To change the font used in the running head (\eightpoint is used
+     here, with \rm assumed), modify the definition of \headlinefont .
+     The font for the page number must be changed separately (the
+     default is \eightrm); modify the definition of \foliofont .
+
+  7. If the vertical space between the running head and the text needs
+     to be changed, the definition of \makeheadline (in PLAIN.TeX)
+     should be copied into amsppt.mor and modified appropriately.
+
+
+                                                        [bnb, 6 Jul 87]
+

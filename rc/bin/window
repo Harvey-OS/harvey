@@ -1,0 +1,14 @@
+#!/bin/rc
+switch($#*){
+case 0 1
+	echo usage: window '''minx miny maxx maxy''' cmd args ...
+	exit usage
+}
+
+rfork nes
+if(mount $8½srv /mnt/8½ N$pid' '$1){
+	shift
+	bind -b /mnt/8½ /dev
+	echo -n `{basename $1} > /dev/label >[2] /dev/null
+	$* < /dev/cons > /dev/cons >[2] /dev/cons &
+}

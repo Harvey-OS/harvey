@@ -1,0 +1,6 @@
+vardef C.bx(expr n) =
+ save p; picture p;
+ p=nullpicture;
+ addto p contour ((0,0)--(1,0)--(1,1)--(0,1)--cycle)
+  scaled (fontsize n/2);
+ p enddef;

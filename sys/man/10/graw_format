@@ -1,0 +1,79 @@
+.TH GRAW_FORMAT 10.6
+.SH NAME
+graw \- graw file format
+.SH DESCRIPTION
+.I Graw_format
+files are simple.
+There is one primitive per line, each primitive indicated
+by a single-character identifier.
+All strings are enclosed in double quotes.
+Definition
+need not precede use, though in practice
+.B graw
+produces
+.I ref
+primitives first, and master definitions are seldom found outside libraries.
+.PP
+The argument to a
+.I ref
+(or include) command is searched for in the current directory and then in
+.BR /lib/graw .
+.PP
+Syntax:
+.PP
+body:	prim | body prim 
+.br
+prim:	line | box | string | dots | macro | inst | ref | master
+.br
+line:	\fLl\fR point point
+.br
+box:	\fLb\fR rect
+.br
+string:	\fLs\fR chars disp point
+.br
+dots:	\fLd\fR rect
+.br
+macro:	\fLz\fR rect
+.br
+inst:	\fLi\fR chars point
+.br
+ref:	\fLr\fR filename
+.br
+master:	mstart body mend
+.br
+mstart:	\fLm\fR chars
+.br
+mend:	\fLe\fR
+.br
+rect:	point point
+.br
+point:	INT INT
+.br
+disp:	INT
+.br
+chars:	\fB"\fR STRING \fB"\fR
+.PP
+.I Graw
+string displacements are specified by five bit codes defined below:
+.EX
+/* string placement displacements */
+#define	HALFX	1
+#define	FULLX	2
+#define	HALFY	4
+#define	FULLY	8
+#define	INVIS	16
+.EE
+.PP
+Invisible
+.I string\fRs
+are typically defined for masters with connection points.
+Though the text is usually not displayed or printed, the
+remaining four bits should nonetheless specify a proper
+displacement for the sake of back-annotation.
+.SH FILES
+.TF /lib/graw/gates.g
+.TP
+.B /lib/graw/gates.g
+the standard gate file
+.SH SEE ALSO
+.IR graw (10.1)

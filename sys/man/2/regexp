@@ -1,0 +1,197 @@
+.TH REGEXP 2X
+.SH NAME
+regcomp, regcomplit, regcompnl, regexec, regsub, rregexec, rregsub, regerror \- regular expression
+.SH SYNOPSIS
+.B #include <regexp.h>
+.PP
+.ta \w'\fLRegprog 'u
+.B
+Reprog	*regcomp(char *exp)
+.PP
+.B
+Reprog	*regcomplit(char *exp)
+.PP
+.B
+Reprog	*regcompnl(char *exp)
+.PP
+.PP
+.B
+int	regexec(Reprog *prog, char *string, Resub *match, int msize)
+.PP
+.B
+void	regsub(char *source, char *dest, Resub *match, int msize)
+.PP
+.B
+int	rregexec(Reprog *prog, Rune *string, Resub *match, int msize)
+.PP
+.B
+void	rregsub(Rune *source, Rune *dest, Resub *match, int msize)
+.PP
+.B
+void	regerror(char *msg)
+.SH DESCRIPTION
+.I Regcomp
+compiles a
+regular expression and returns
+a pointer to the generated description.
+The space is allocated by
+.IR malloc (2)
+and may be released by
+.I free.
+Regular expressions are exactly as in
+.IR regexp (6).
+.PP
+.I Regcomplit
+is like
+.I regcomp
+except that all characters are treated literally.
+.I Regcompnl
+is like
+.I regcomp
+except that the
+.B .
+metacharacter matches all characters, including newlines.
+.PP
+.I Regexec
+matches a null-terminated
+.I string
+against the compiled regular expression in
+.I prog.
+If it matches,
+.I regexec
+returns
+.B 1
+and fills in the array
+.I match
+with character pointers to the substrings of
+.I string
+that correspond to the
+parenthesized subexpressions of 
+.IR exp :
+.BI match[ i ].sp
+points to the beginning and
+.BI match[ i ].ep
+points just beyond
+the end of the
+.IR i th
+substring.
+(Subexpression
+.I i
+begins at the
+.IR i th
+left parenthesis, counting from 1.)
+Pointers in
+.B match[0]
+pick out the substring that corresponds to
+the whole regular expression.
+Unused elements of
+.I match
+are filled with zeros.
+Matches involving
+.LR * ,
+.LR + ,
+and 
+.L ?
+are extended as far as possible.
+The number of array elements in 
+.I match
+is given by
+.I msize.
+The structure of elements of
+.I match 
+is:
+.IP
+.EX
+typedef struct {
+	union {
+	   char *sp;
+	   Rune *rsp;
+	};
+	union {
+	   char *ep;
+	   Rune *rep;
+	};
+} Resub;
+.EE
+.LP
+If
+.B match[0].sp
+is nonzero on entry,
+.I regexec
+starts matching at that point within
+.IR string .
+If
+.B match[0].ep
+is nonzero on entry,
+the last character matched is the one
+preceding that point.
+.PP
+.I Regsub
+places in
+.I dest
+a substitution instance of
+.I source
+in the context of the last
+.I regexec
+performed using
+.I match.
+Each instance of
+.BI \e n ,
+where
+.I n
+is a digit, is replaced by the
+string delimited by
+.BI match[ n ].sp
+and
+.BI match[ n ].ep .
+Each instance of 
+.L &
+is replaced by the string delimited by
+.B match[0].sp
+and
+.BR match[0].ep .
+.LP
+.I Regerror,
+called whenever an error is detected in
+.I regcomp,
+.I regexec,
+or
+.I regsub,
+writes the string
+.I msg
+on the standard error file and exits.
+.I Regerror
+can be replaced to perform
+special error processing.
+.PP
+.I Rregexp
+and
+.I rregsub
+are variants of 
+.I regexec
+and
+.I regsub
+that use strings of
+.B Runes
+instead of strings of
+.BR chars .
+With these routines, the 
+.I rsp
+and
+.I rep
+fields of the
+.I match
+array elements should be used.
+.SH "SEE ALSO"
+.IR grep (1)
+.SH DIAGNOSTICS
+.I Regcomp
+returns 
+.B 0
+for an illegal expression
+or other failure.
+.I Regexec
+returns 0
+if
+.I string
+is not matched.

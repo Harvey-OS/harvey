@@ -1,0 +1,11 @@
+font_identifier "LINEW"; font_size 10pt#;
+font_coding_scheme:="LATEX LINE";
+mode_setup;
+
+qqs#=.8pt#;   %width of lines
+qqh#=10pt#;  %height of vertical stroke.
+qqw#=10pt#;  %length of horizontal stroke.
+
+%arrow dimensions:
+arrowlen#=.6*qqw#; arrowht#=.22*qqw#; arrowcurve#=.1*arrowht#;
+input line;

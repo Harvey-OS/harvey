@@ -1,0 +1,19 @@
+%!
+% Define tfm-name to be a dictionary of included fonts indexed by size:
+% /tfm-name  scaled-size1 /font-select1 ... scsize_k /fselect_k  k  fstore  -
+/fstore
+{
+   dup dict exch
+   {dup 4 2 roll put} repeat
+   def
+} bind def
+
+/fshow			% (text to show)  tfm_name  scaled-size  fshow  -
+{
+   gsave
+   72 TeXDict /Resolution get div
+   -72 TeXDict /VResolution get div scale
+   get cvx exec
+   show
+   grestore
+}bind def

@@ -1,0 +1,23 @@
+.TH FILE 1
+.SH NAME
+file \- determine file type
+.SH SYNOPSIS
+.B file
+[
+.I file
+\&...
+]
+.SH DESCRIPTION
+.I File
+performs a series of tests on its argument
+.I files
+in an attempt to classify their contents by language or purpose.
+If no arguments are given, the classification is performed
+on standard input.
+.SH BUGS
+It can make mistakes, for example classifying a file of decimal data,
+.LR .01 ,
+.LR .02 ,
+etc. as
+.IR troff (1)
+input.

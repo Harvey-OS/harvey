@@ -1,0 +1,81 @@
+.TH CPP 1
+.SH NAME
+cpp \- C language preprocessor
+.SH SYNOPSIS
+.B cpp
+[
+.I option ...
+]
+[
+.I ifile
+[
+.I ofile
+]
+]
+.SH DESCRIPTION
+.I Cpp\^
+interprets ANSI C preprocessor directives
+and does macro substitution.
+The input
+.I ifile
+and output
+.I ofile
+default to standard input and standard output respectively.
+.PP
+The options are:
+.TP
+.BI -U name\^
+.PD 0
+.TP
+.BI -D name\^
+.TP
+.BI -D name=def\^
+.TP
+.BI -I dir\^
+Same as in
+.IR 2c (1).
+.TP
+.B -N
+Turn off default include directories.  All must be
+specified with
+.BR -I .
+Without this option,
+.B /$objtype/include
+and
+.B /sys/include
+are used as the last two searched directories for include directives,
+where
+.B $objtype
+is read from the environment.
+.TP
+.B -V
+Print extra debugging information.
+.TP
+.B -+
+Understand C++ comments.
+.PD
+.PP
+The output file contains processed text sprinkled
+with lines that show the original input line numbering:
+.IP
+.B #line
+.I linenumber
+.L
+"\fIifile\fP"
+.PP
+The input language is as described in the ANSI C standard.
+The C compilers do not use
+.I cpp;
+they contain their own simple but adequate preprocessor, so
+.I cpp
+is usually superfluous.
+.SH FILES
+.TF /objtype/include
+.TP
+.B /sys/include
+directory for machine-independent include files
+.TP
+.B /$objtype/include
+directory for machine-dependent include files
+.SH SEE ALSO
+.IR 2c (1)

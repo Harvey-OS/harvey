@@ -1,0 +1,66 @@
+.TH IPCONFIG 8
+.SH NAME
+ipconfig, arpd \- Internet configuration
+.SH SYNOPSIS
+.B ip/ipconfig
+.RB [ -ap ]
+.RB [ -e
+.IR etherdev ]
+.RB [ -m
+.IR ip-mask ]
+.PP
+.B ip/arpd
+.RB [ -pd ]
+.RB [ -e
+.IR etherdev ]
+.RB [ -b
+.IR bcast-addr ]
+.SH DESCRIPTION
+.I Ipconfig
+configures an Internet connection on an Ethernet.
+The options are
+.TP
+.B a
+do not start 
+.I arpd
+.TP
+.B p
+start
+.I arpd
+in promiscuous mode (see below)
+.TP
+.B e
+use the Ethernet mounted at
+.RI /net/ etherdev
+.TP
+.B m
+set the network mask to
+.I ip-mask
+.PP
+.I Arpd
+performs the Internet Address Resolution Protocol, translating
+Internet addresses into Ethernet addresses.
+It is normally started by
+.IR ipconfig .
+The options are
+.TP
+.B d
+print debugging to standard output
+.TP
+.B p
+(promiscuous)
+answer ARP
+requests for any recognized machine.
+The default is to answer just for the machine running
+.I arpd.
+.TP
+.B e
+use the Ethernet mounted at
+.RI /net/ etherdev
+.TP
+.B b
+use the IP broadcast address
+.I bcast-addr
+instead of the correct one.
+.SH "SEE ALSO"
+.IR ndb (6)

@@ -1,0 +1,29 @@
+#!/bin/rc
+awk '
+func namestrip(s)
+{
+	return(substr(s, 2, length(s)-3));
+}
+	{ strippedname = namestrip($2);
+	  error = $0;
+	  command = $1;
+	  destination = substr($4, 1, length($4)-1);
+	  if ((strippedname != filename) || (destination < linenumber))
+		{
+		if (filename != "")
+			close(filename);
+		filename = strippedname;
+		linenumber = 0;
+		}
+	  while ((linenumber != destination) && ((getline < filename) == 1))
+	 	{
+		if ($1 == ".c")
+			{
+			chipname = $2;
+			chip = $3;
+			}
+		linenumber++;
+		}
+	  printf("%s (%s):%s\n", chip, chipname, substr(error, length(command)+1));
+	}
+' $*

@@ -1,0 +1,74 @@
+{The fields in gftodvi's memory_word structure, defined in memory.h.}
+@define @field qqqq;
+@define @field sc;
+
+{Defined in site.h.}
+@define const FILENAMESIZE;
+
+@define function abs();
+@define function chr();
+@define function eof();
+@define function eoln();
+@define function feof();
+@define function ftell();
+@define function getc();
+@define function inputint();
+@define function makefraction();
+@define function odd();
+@define function ord();
+@define function round();
+@define function takefraction();
+@define function testaccess();
+@define function testeof();
+@define function toint();
+@define function trunc();
+
+@define procedure argv();
+@define procedure calledit();
+@define procedure clearterminal();
+@define procedure close();
+@define procedure dateandtime();
+@define procedure decr();
+@define procedure exit();
+@define procedure fflush();
+@define procedure flush();
+@define procedure fwrite();
+@define procedure incr();
+@define procedure input3ints();
+@define procedure lineread();
+@define procedure printreal();
+@define procedure putbyte();
+@define procedure printstring();
+@define procedure read();
+@define procedure readln();
+@define procedure reset();
+@define procedure rewrite();
+@define procedure setpaths;
+@define procedure termflush();
+@define procedure uexit();
+@define	procedure vgetc();
+@define procedure vstrcpy();
+@define procedure wakeupterminal();
+@define procedure write();
+@define procedure writedvi();
+@define procedure writeln();
+@define procedure zfseek();
+
+@define type boolean = 0..1;
+@define type ccharpointer;
+@define type char = 0..255;
+@define type integer;
+@define type real;
+@define type text;
+@define type memoryword;
+
+@define var argc;
+@define var false;
+@define var fmtpathspec;
+@define var fontpathspec;
+@define var inputpathspec;
+@define var poolpathspec;
+@define var readpathspec;
+@define var stdin;
+@define var stdout;
+@define var true;

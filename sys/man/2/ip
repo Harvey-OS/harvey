@@ -1,0 +1,85 @@
+.TH IP 2X
+.SH NAME
+eipconv, parseip, parseether, myipaddr, myetheraddr, maskip, etherip, equivip \- Internet protocol
+.SH SYNOPSIS
+.B #include <ip.h>
+.PP
+.B
+int	eipconv(void *o, int f1, int f2, int f3, int chr)
+.PP
+.B
+int	parseip(uchar *ipaddr, char *str)
+.PP
+.B
+int	parseether(uchar *eaddr, char *str)
+.PP
+.B
+int	myipaddr(uchar *ipaddr, char *net)
+.PP
+.B
+int	myetheraddr(uchar *eaddr, char *net)
+.PP
+.B
+void	maskip(uchar *from, uchar *mask, uchar *to)
+.PP
+.B
+int	equivip(uchar *ipaddr1, uchar *ipaddr2)
+.SH DESCRIPTION
+These routines are used by Internet Protocol (IP) programs to
+manipulate IP and Ethernet addresses.
+IP addresses are stored as a string of 4
+.B unsigned
+.BR chars ,
+Ethernet
+addresses as 6
+.B unsigned
+.BR chars .
+The string representation of IP addresses is (up to) 4 decimal
+integers from 0 to 255
+separated by periods.
+The string representation of Ethernet addresses is exactly
+12 hexadecimal digits.
+.PP
+.I Eipconv
+is a
+.IR print (2)
+formatter for Ethernet (verb
+.BR I )
+and Internet protocol (verb
+.BR E )
+addresses.
+.PP
+.I Parseip
+converts a string pointed to by
+.I str
+to a 4-byte IP address starting at
+.I ipaddr.
+.I Myipaddr
+reads the IP address string from file
+.BI / net /1/local
+and parses it into
+.IR ipaddr .
+Both routines return a negative number on errors.
+.PP
+.I Parseether
+converts a string pointed to by
+.I str
+to a 6 byte Ethernet address starting at
+.I eaddr.
+.I Myetheraddr
+reads the Ethernet address string from file
+.IB net /1/stats
+and parses it into
+.IR eaddr .
+Both routines return a negative number on errors.
+.PP
+.I Maskip
+places the bit-wise AND of the IP addresses pointed
+to by its first two arguments into the buffer pointed
+to by the third.
+.PP
+.I Equivip
+returns non-zero if the IP addresses pointed to by its two
+arguments are equal.
+.SH SEE ALSO
+.IR print (2)

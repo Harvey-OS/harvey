@@ -1,0 +1,157 @@
+% mw10.sty 91-July-31
+%
+% font sizes available
+% name          size baselineskip
+% tiny            5   6
+% scriptsize      7   8
+% footnotesize    9  10
+% small           9  11
+% normalsize     10  12   \sf
+% large          11  13
+% Large          12  14
+% LARGE          14  18
+% Chaptersize    17  19   should be 16 on 18 when available
+% huge           20  25
+% Huge           25  30
+% chapnum        25       should be 115 when available
+
+\lineskip 1pt \normallineskip 1pt
+\def\baselinestretch{1}
+
+\def\@normalsize{\@setsize\normalsize{12pt}\xpt\@xpt\sf
+\abovedisplayskip 10pt plus2pt minus5pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus3pt\belowdisplayshortskip 6pt plus3pt
+minus3pt\let\@listi\@listI} 
+\def\small{\@setsize\small{11pt}\ixpt\@ixpt
+\abovedisplayskip 8.5pt plus 3pt minus 4pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus2pt\belowdisplayshortskip 4pt plus2pt minus 2pt
+\def\@listi{\leftmargin\leftmargini \topsep -6pt plus 2pt minus 2pt\parsep 2pt
+plus 1pt minus 1pt
+\itemsep \parsep}}
+\def\footnotesize{\@setsize\footnotesize{10pt}\ixpt\@ixpt
+\abovedisplayskip 6pt plus 2pt minus 4pt\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus 1pt\belowdisplayshortskip 3pt plus 1pt minus
+2pt
+\def\@listi{\leftmargin\leftmargini \topsep -6pt plus 1pt minus 1pt\parsep 6pt
+plus 1pt minus 1pt
+\itemsep \parsep}}
+\def\scriptsize{\@setsize\scriptsize{8pt}\viipt\@viipt}
+\def\tiny{\@setsize\tiny{6pt}\vpt\@vpt}
+\def\large{\@setsize\large{13pt}\xipt\@xipt}
+\def\chapterinlists{\@setsize\large{14pt}\xiipt\@xiipt}
+\def\Large{\@setsize\Large{14pt}\xiipt\@xiipt}
+\def\LARGE{\@setsize\LARGE{18pt}\xivpt\@xivpt}
+\def\Chaptersize{\@setsize\LARGE{19pt}\xviipt\@xviipt}
+\def\huge{\@setsize\huge{25pt}\xxpt\@xxpt}
+\def\Huge{\@setsize\Huge{30pt}\xxvpt\@xxvpt}
+\normalsize 
+
+\oddsidemargin 9pc \evensidemargin 4pc
+\marginparwidth .75in \marginparsep 7pt 
+ \topmargin -33pt \headheight 30pt \headsep 32pt \footskip 3.5pc 
+
+\textheight = 49.5pc
+\advance\textheight by \topskip
+\textwidth 30pc \columnsep 10pt \columnseprule 0pt 
+
+\footnotesep 12pt
+\skip\footins 2pc plus 4pt minus 2pt 
+\floatsep 12pt plus 2pt minus 2pt \textfloatsep 20pt plus 2pt minus 4pt
+\intextsep 12pt plus 2pt minus 2pt \@maxsep 20pt \dblfloatsep 12pt plus 2pt
+minus 2pt \dbltextfloatsep 20pt plus 2pt minus 4pt \@dblmaxsep 20pt 
+\@fptop 0pt plus 1fil \@fpsep 8pt plus 2fil \@fpbot 0pt plus 1fil 
+\@dblfptop 0pt plus 1fil \@dblfpsep 8pt plus 2fil \@dblfpbot 0pt plus 1fil
+\marginparpush 5pt 
+
+\parskip 12pt plus 1pt \parindent 0pt \partopsep 2pt plus 1pt minus 1pt 
+\@lowpenalty 51 \@medpenalty 151 \@highpenalty 301 
+\@beginparpenalty -\@lowpenalty \@endparpenalty -\@lowpenalty \@itempenalty
+-\@lowpenalty 
+
+%\font\chapnum=cmr10 scaled 2488
+\font\chapnum=cminch
+\def\@makechapterhead#1{\ \vskip-49pt\hbox{\hsize34pc\hskip-4pc%
+ \vtop{{\hrule width0pt height0pt depth0pt% hrules to set vtop 0 ht
+   \hsize20pc\parindent0pt\raggedright% 
+ \Chaptersize\bf #1\par\vfill}}
+ \hfill \vtop to 162pt{{\hrule width0pt height0pt depth0pt%
+   \hsize 14pc\hfill\chapnum\thechapter\vfill}}} 
+ \nobreak \chapterrule\vskip5pc}
+\def\@makeschapterhead#1{\vskip-30pt\hbox{\hskip-4pc%
+ \vbox to 162pt{\hsize 20pc{ 
+ \parindent 0pt\raggedright 
+ \Chaptersize\bf #1\par\vfill}}
+ \hfill\vbox to 162pt{\hsize 5pc\hfill\vfill}} 
+ \nobreak \chapterrule\vskip5pc}
+
+\def\chapter{\cleardoublepage \thispagestyle{chapter} \global\@topnum\z@
+\@afterindentfalse \secdef\@chapter\@schapter} 
+\def\@chapter[#1]#2{\ifnum \c@secnumdepth >\m@ne
+ \refstepcounter{chapter}
+ \typeout{\@chapapp\space\thechapter.}
+ \gdef\pageprefix{\thechapter-}\pagenumbering{arabic}
+ \addcontentsline{toc}{chapter}{\protect{\numberline{\thechapter}}#1}
+ \else
+ \addcontentsline{toc}{chapter}{#1}\gdef\pageprefix{}\fi
+ \chaptermark{#1}
+ \addcontentsline{lof}{condchapter}{\protect{\numberline{\thechapter}}#1}
+ \addcontentsline{lot}{condchapter}{\protect{\numberline{\thechapter}}#1}
+ %\addtocontents{lof}{\protect\addvspace{10pt}}
+ %\addtocontents{lot}{\protect\addvspace{10pt}} 
+ \if@twocolumn \@topnewpage[\@makechapterhead{#2}] 
+ \else \@makechapterhead{#2}
+ \@afterheading \fi} 
+\def\@schapter#1{\if@twocolumn \@topnewpage[\@makeschapterhead{#1}]
+ \else \@makeschapterhead{#1} 
+ \@afterheading\fi%\gdef\pageprefix{}\pagenumbering{arabic}
+ }
+
+\def\section{\@startsection{section}{1}{-4pc}{-12pt plus -5pt minus 
+-5pt}{1pt plus 5pt}{\LARGE\bf}}
+\def\subsection{\@startsection{subsection}{2}{-4pc}{-6pt plus -3pt minus 
+ -2pt}{1pt plus 4pt}{\large\bf}}
+\def\subsubsection{\@startsection{subsubsection}{3}{-4pc}{-1pt plus
+-2pt minus -1pt}{1pt plus 4pt}{\large\bf}}
+\def\paragraph{\@startsection
+ {paragraph}{4}{\z@}{-1pt plus -2pt minus -1pt}{1pt plus 3pt}{\large\bf}}
+\def\subparagraph{\@startsection
+ {subparagraph}{4}{\parindent}{-1pt plus -2pt minus-1pt}{-1em}{\normalsize\bf}}
+
+\def\chaptermark#1{}
+
+\setcounter{secnumdepth}{0}
+
+\def\appendix{\par
+ \setcounter{chapter}{0}
+ \setcounter{section}{0}
+ \def\@chapapp{Appendix}
+ \def\thechapter{\Alph{chapter}}}
+
+
+\leftmargini 2.5pc
+\leftmarginii 2.5pc \leftmarginiii 2.5pc \leftmarginiv 17pt \leftmarginv 10pt
+\leftmarginvi 10pt
+\leftmargin\leftmargini
+\labelsep 12.5pt
+\labelwidth\leftmargini\advance\labelwidth-\labelsep
+\def\@listI{\leftmargin\leftmargini \parsep 6pt plus 1pt minus 1pt\topsep -6pt
+plus 2pt minus 2pt\itemsep 0pt plus 1pt minus 1pt}
+\let\@listi\@listI
+\@listi 
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii\advance\labelwidth-\labelsep
+ \topsep -6pt plus 2pt minus 2pt
+ \parsep 6pt plus 1pt minus 1pt
+ \itemsep 0pt plus 1pt minus 1pt}
+\def\@listiii{\leftmargin\leftmarginiii
+ \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
+ \topsep -6pt plus 2pt minus 2pt 
+ \parsep 6pt plus 1pt minus 1pt
+ \itemsep 0pt plus 1pt minus 1pt}
+\def\@listiv{\leftmargin\leftmarginiv
+ \labelwidth\leftmarginiv\advance\labelwidth-\labelsep}
+\def\@listv{\leftmargin\leftmarginv
+ \labelwidth\leftmarginv\advance\labelwidth-\labelsep}
+\def\@listvi{\leftmargin\leftmarginvi
+ \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
+

@@ -1,0 +1,36 @@
+.TH SLEEP 2
+.SH NAME
+sleep, alarm \- delay, ask for delayed note
+.SH SYNOPSIS
+.B
+int sleep(long millisecs)
+.PP
+.B
+long alarm(unsigned long millisecs)
+.SH DESCRIPTION
+.I Sleep
+suspends the current process for the number
+of milliseconds specified by the argument.
+The actual suspension time may be a little more or less than
+the requested time. A sleep of 0 causes the process to
+give up the CPU if another process is ready to run.
+Sleep returns \-1 if interrupted, 0 otherwise.
+.PP
+.I Alarm
+causes an
+.B "alarm"
+note (see
+.IR notify (2))
+to be sent to the invoking process after the number of milliseconds
+given by the argument.
+Successive calls to
+.I alarm
+reset the alarm clock.
+A zero argument clears the alarm.
+The return value is the amount of time previously remaining in
+the alarm clock.
+.SH SEE ALSO
+.IR intro (2)
+.SH DIAGNOSTICS
+These functions set
+.I errstr.

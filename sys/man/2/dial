@@ -1,0 +1,249 @@
+.TH DIAL 2
+.SH NAME
+dial, hangup, announce, listen, accept, reject, netmkaddr \- make and break network connections
+.SH SYNOPSIS
+.B
+int	dial(char *addr, char *local, char *dir, int *cfdp)
+.PP
+.B
+int	hangup(int ctl)
+.PP
+.B
+int	announce(char *addr, char *dir)
+.PP
+.B
+int	listen(char *dir, char *dir)
+.PP
+.B
+int	accept(int ctl, char *dir)
+.PP
+.B
+int	reject(int ctl, char *dir, char *cause)
+.PP
+.B
+char*	netmkaddr(char *addr, char *defnet, char *defservice)
+.SH DESCRIPTION
+For these routines,
+.I addr
+is a network address of the form
+.IB network ! netaddr ! service,
+.IB network ! netaddr,
+or simply
+.I netaddr.
+.I Network
+is any directory listed in 
+.B /net
+or the special token,
+.BR net .
+.B Net
+is a free variable that stands for any network in common
+between the source and the host
+.IR netaddr .
+.I Netaddr
+can be a host name, a domain name, a network address,
+or a meta-name of the form
+.BI $ attribute.
+.BI $ attribute
+is replaced by
+.I value
+from the value-attribute pair
+.IB attribute = value
+most closely associated with the source host in the
+network data base (see
+.IR ndb (6)).
+.PP
+If a connection attempt is successful and
+.I dir
+is non-zero,
+the path name of a
+.I line directory
+that has files for accessing the connection
+is copied into
+.IR dir .
+The path name is guaranteed to be less than 40
+bytes long.
+One line directory exists for each possible connection.
+The
+.B data
+file in the line directory should be used to communicate with the destination.
+The
+.B ctl
+file in the line directory can be used to send commands to the line.
+See
+.IR dk (3)
+and
+.IR ip (3)
+for messages that can be written to the
+.B ctl
+file.
+The last close of the
+.B data
+or
+.B ctl
+file will close the connection.
+.PP
+.I Dial
+makes a call to destination
+.I addr
+on a multiplexed network.
+If the network in
+.I addr
+is
+.BR net ,
+.I dial
+will try in succession all
+networks in common between source and destination
+until a call succeeds.
+It returns a file descriptor open for reading and writing the
+.B data
+file in the line directory.
+The
+.B addr
+file in the line directory contains the address called.
+If the network allows the local address to be set,
+as is the case with UDP and TCP port numbers, and
+.IR local
+is non-zero, the local address will be set to
+.IR local .
+If
+.I cfdp
+is non-zero,
+.BI * cfdp
+is set to a file descriptor open for reading and
+writing the control file.
+.PP
+.I Hangup
+is a means of forcing a connection to hang up without
+closing the
+.B ctl
+and
+.B data
+files.
+.P
+.I Announce
+and
+.I listen
+are the complements of
+.I dial.
+.I Announce
+establishes a network
+name to which calls can be made.
+Like
+.IR dial ,
+.I announce
+returns an open
+.B ctl
+file.
+The
+.I listen
+routine takes as its first argument the
+.I dir
+of a previous
+.I announce.
+When a call is received,
+.I listen
+returns an open
+.B ctl
+file for the line the call was received on.
+It sets
+.I dir
+to the path name of the new line directory.
+.I Accept
+accepts a call received by
+.IR listen ,
+while
+.I reject
+refuses the call because of
+.IR cause .
+.I Accept
+returns a file descriptor for the data file opened
+.B ORDWR .
+.PP
+.I Netmkaddr
+make an address suitable for dialing or announcing.
+It takes an address along with a default network and service to use
+if they are not specified in the address.
+It returns a pointer to static data holding the actual address to use.
+.SH EXAMPLES
+Make a call and return an open file descriptor to
+use for communications:
+.IP
+.EX
+int callkremvax(void)
+{
+	return dial("kremvax", 0, 0, 0);
+}
+.EE
+.PP
+Call the local authentication server:
+.IP
+.EX
+int dialauth(char *service)
+{
+	return dial(netmkaddr("$auth", 0, service), 0, 0, 0);
+}
+.EE
+.PP
+Announce as
+.B kremvax
+on Datakit and
+loop forever receiving calls and echoing back
+to the caller anything sent:
+.IP
+.EX
+int
+bekremvax(void)
+{
+	int dfd, acfd, lcfd;
+	char adir[40], ldir[40];
+	int n;
+	char buf[256];
+
+	afd = announce("dk!kremvax", adir);
+	if(afd < 0)
+		return -1;
+
+	for(;;){
+		/* listen for a call */
+		lcfd = listen(adir, ldir);
+		if(lcfd < 0)
+			return -1;
+
+		/* fork a process to echo */
+		switch(fork()){
+		case -1:
+			perror("forking\n");
+			close(lcfd);
+			break;
+		case 0:
+			/* accept the call and open the data file */
+			dfd = accept(lcfd, ldir);
+			if(dfd < 0)
+				return -1;
+
+			/* echo until EOF */
+			while((n = read(dfd, buf, sizeof(buf))) > 0)
+				write(dfd, buf, n);
+			exits(0);
+		default:
+			close(lcfd);
+			break;
+		}
+
+	}
+}
+.EX
+.SH "SEE ALSO"
+.IR auth (2),
+.IR dk (3),
+.IR ip (3),
+.IR stream (3),
+.IR ndb (8)
+.SH DIAGNOSTICS
+.I Dial,
+.I announce,
+and
+.I listen
+return \(mi1 if they fail.
+.I Hangup
+returns nonzero if it fails.

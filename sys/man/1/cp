@@ -1,0 +1,87 @@
+.TH CP 1 
+.SH NAME
+cp, mv, rename  \- copy, move files
+.SH SYNOPSIS
+.B cp
+[
+.B -z
+[
+.I bufsize
+]
+]
+.I file1 file2
+.br
+.B cp
+[
+.B -z
+[
+.I bufsize
+]
+]
+.I file ... directory
+.PP
+.B mv
+.I file1 file2
+.br
+.B mv
+.I file ... directory
+.SH DESCRIPTION
+In the first form
+.I file1
+is any name and
+.I file2
+is any name except an existing directory.
+In the second form the commands
+copy or move one or more
+.I files
+into a
+.I directory
+under their original file names, as if by a sequence of 
+commands in the first form.
+Thus
+.L "cp f1 f2 dir
+is equivalent to
+.LR "cp f1 dir/f1; cp f2 dir/f2" .
+.PP
+.I Cp
+copies the contents of plain
+.I file1
+to
+.IR file2 .
+The mode and owner of  
+.I file2
+are preserved if it already
+exists; the mode of
+.I file1
+is used otherwise.
+The
+.B -z
+option says to preserve `holes'; see
+.IR seek (2).
+The reads and writes are done in hunks of size
+.IR bufsize .
+.PP
+.I Mv
+moves
+.I file1
+to
+.IR file2 .
+If the files are in the same directory, 
+.I file1
+is just renamed;
+otherwise
+.I mv
+behaves like
+.IR cp .
+.I Mv
+will rename directories,
+but it refuses to move a directory into another directory.
+.SH "SEE ALSO"
+.IR cat (1),
+.IR stat (2),
+.IR push (1)
+.SH DIAGNOSTICS
+.I Cp
+and
+.I mv
+refuse to copy or move files onto themselves.

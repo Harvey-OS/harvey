@@ -1,0 +1,72 @@
+.TH PUSH 1
+.SH NAME
+push, pull, Rpush, Rpull \- Datakit remote file copy
+.SH SYNOPSIS
+.B push
+[
+.B -v
+]
+.I machine file ... remotedir
+.PP
+.B pull
+[
+.B -v
+]
+.I machine file ... localdir
+.SH DESCRIPTION
+.I Push
+and
+.I pull
+copy files between machines over Datakit.
+.I Push
+copies
+.I files
+from the local machine
+to the directory
+.I remotedir
+on the named
+.IR machine .
+.I Pull
+copies
+.I files
+from the named
+.I machine
+to the directory
+.I localdir
+on the local machine.
+The last component of the name of a copy is the same
+as that of the original.
+If one of the
+.I files
+is a directory, a corresponding
+directory is created
+and the directory's files are copied, recursively.
+.PP
+Option
+.B -v
+announces each file as it is copied.
+.PP
+Pushing and pulling involve two programs running in
+different contexts on different machines.
+In particular, pulling
+to directory
+.L .
+puts files in the local current directory,
+but pushing to
+.L .
+puts files in the remote home directory.
+Shell metacharacters which are to be interpreted
+on the remote machine must be quoted.
+.PP
+.I Rpush
+and
+.I Rpull
+are the programs started by remote pushes and pulls.
+.SH SEE ALSO
+.IR con (1), 
+.IR cp (1) 
+.SH DIAGNOSTICS
+Messages marked
+.L (remote)
+are from the sister process running on the
+remote machine.

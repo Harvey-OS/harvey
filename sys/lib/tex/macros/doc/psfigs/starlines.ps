@@ -1,0 +1,33 @@
+%!
+%%BoundingBox: 300 400 410 420
+/Times-BoldItalic findfont
+27 scalefont setfont
+
+/rays { 
+	0 1.5 179
+	{ gsave
+		rotate
+		0 0 moveto
+		108 0 lineto
+		stroke
+		grestore
+	} for
+} def
+
+save
+
+300 400 translate
+.25 setlinewidth
+
+newpath 
+0 0 moveto
+(StarLines) true charpath clip
+
+newpath
+54 -15 translate
+rays
+
+showpage
+
+restore
+

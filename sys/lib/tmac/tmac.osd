@@ -1,0 +1,182 @@
+'''\"	OSDD document format (used with mm macros)
+'''\"	@(#)osdd.src	1.4
+.)K 
+.nr%y 2 
+.nrP 1 
+.nrCl 3 
+.nrCp 1 
+.nrCs 1 
+.nrFp 1 
+.nrNp 1 
+.nrOf 1 
+.nrOc 1 
+.tr~
+.tc~
+.hc^
+.ds<1 " (cont'd)
+.dsSc 
+.dsH1 AAA-BBBBB-CC
+.dsH2 n
+.dsH3 n
+.dsH4 (date)
+.dsH5 (rating)
+.HM 1 1 A 1 1
+.dsHF 3 1 2 2 1 2
+.dsLf FIGURES
+.nrHt 1
+.nrPt 0
+.nrHb 5
+.nrHs 5
+.nrDi 1 
+.EF "'Page \\\\nP'''"
+.OF "'''Page \\\\nP'"
+.am)h
+.BS 
+.BE
+..
+.deHX
+.if(\\$1=2):(\\$1=4):(\\$1=5) .ds }0
+..
+.deTP
+.if\\n(Cs=0 \{\
+.tl'BELL LABORATORIES''\\*(H1'
+.if\w'\\*(H2' .tl '''Section \\*(H2'
+.if\w'\\*(H3' .tl '''Issue \\*(H3'
+.if\\n(Di=0 \{\
+.tl'''\\*(H4'
+.tl'''\\*(H5' \}
+.tl''OPERATIONS SYSTEMS'' \}
+.if\\n(Cs=1 \{\
+.ie(\\nP%2)=0 \{\
+.tl'\\*(H1'''
+.tl'Section \\*(H2'''
+.tl'Issue \\*(H3''' \}
+.el\{\
+.tl'''\\*(H1'
+.tl'''Section \\*(H2'
+.tl'''Issue \\*(H3' \}
+.sp3v \}
+.if\\n(Cs=0 .nr Cs 1 
+..
+.deTY
+.nf
+.{a
+.sp3v
+.cu1
+.tl'CONTENTS''Page No.'
+.cu0
+.fi
+.BS
+.if\\n(Di=1 .nr %y 0
+.if\\n(%y=2 .[A
+.if\\n(%y=1 .[B
+.BE
+..
+.deTc
+.br
+.BS 1
+.if(\\n(%y)&(\\n(:E) .sp 2v
+.if\\n(%y=2 .[A
+.if\\n(%y=1 .[B
+.BE
+.di{a
+\!.ce 99
+.nf
+..
+.deTd
+\!.br
+\!.ce0
+.fi
+.br
+.di
+.nrCs 0
+.TC 7 1 7
+..
+.de[B
+.ce99
+PRIVATE
+.sp1v
+The information contained herein
+should not be disclosed to unauthorized
+persons.  It is meant solely for use by
+authorized Bell System employees.
+.ce0
+..
+.de[A
+.ce
+NOTICE
+.sp1v
+.ce2
+Not for use or disclosure outside the
+Bell System except under written agreement.
+..
+.de[F
+.SK
+.rs
+.sp30v-\\n(nlu
+.ce
+\\$5
+.ce0
+.BS
+.)F \\$3 \\$6 \\$4 "\\*(Tt\\*(<1" \\*(Sc
+.BE
+.nr%c \\$1+1
+.if\\$2-\\$1 .[F \\n(%c \\$2 \\$3 \\$4 "\\$5" \\$6
+..
+.deFg
+.SK
+.rs
+.sp30v-\\n(nlu
+.ce
+\\$3
+.ce0
+.br
+.dsSc \\$5
+.BS
+.FG "\\$2" \\*(Sc
+.BE
+.dsTt \\$2
+.ie(\\$1>1)&(\\n(Fp>0) .[F 2 \\$1 Figure \\n(Fg "\\$3" -1
+.el\{\
+.de[h
+.nrP +\\$1
+.rm[h
+\\..
+.if\\$1>1 \{\
+.nr%h (\\$1-1)
+.am)h
+.[h \\n(%h
+\\.. \} \}
+..
+.dePM
+.ie!\w'\\$1' .nr %y 0
+.el\{\
+.if'\\$1'N' .nr %y 2
+.if'\\$1'P' .nr %y 1 \}
+..
+.deBS
+.ev1
+.)R
+.ie0\\$1 \{.rn >D >K
+.da>K \}
+.el\{\
+.nr:E 0
+.di>K \}
+..
+.deBE
+.br
+.di
+.)R
+.ev
+.nr:U \\n(dnu+\\n(:Eu
+.nr:E \\n(dnu
+.if(\\n(:Uu+\\n(:Mu)>(\\n(.pu-\\n(nlu-.5v) .SK
+.ch)n -(\\n(:Mu+\\n(:Uu)
+.nr:o +(\\n(:Uu-\\n(:Tu)
+.nr:O +(\\n(:Uu-\\n(:Tu)
+.ch)f -\\n(:ou
+.nr:m \\n(:Mu+\\n(:Uu
+.rn>K >D
+.ch>B -(\\n(:Mu+\\n(:Uu-1v) 
+.nr:T \\n(:Uu
+..

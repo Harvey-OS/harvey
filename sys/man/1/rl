@@ -1,0 +1,28 @@
+.TH RL 1 
+.SH NAME
+rl \- put table of contents in libraries
+.SH SYNOPSIS
+.B rl
+[
+.I -v
+]
+[
+.I name ...
+]
+.SH DESCRIPTION
+.I rl
+add tables of contents to the named files, which should be archives of
+one type of object files.
+The loaders
+(see
+.IR 2l (1))
+need a table of contents in libraries.
+.PP
+The
+.B -v
+option prints debugging information (the names of the symbols,
+their type, and their offset in the archive).
+.SH "SEE ALSO"
+.IR ar (1),
+.IR 2l (1),
+.IR nm (1)

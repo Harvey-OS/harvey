@@ -1,0 +1,11 @@
+</$objtype/mkfile
+
+TARG=con\
+	xms\
+	xmr\
+	hayes\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkmany
+
+con.$O:	rustream.h ruttyio.h rusignal.h rufilio.h

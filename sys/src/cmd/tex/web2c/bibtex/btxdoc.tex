@@ -1,0 +1,1117 @@
+% Copyright (C) 1988, all rights reserved.
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\title{B\kern-.05em{\large I}\kern-.025em{\large B}\kern-.08em\TeX ing}
+\author{Oren Patashnik}
+\date{February 8, 1988}
+
+\documentstyle{article}
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+
+[This document will be expanded when \BibTeX\ version 1.00 comes out.
+Please report typos, omissions, inaccuracies,
+and especially unclear explanations
+to me ({\tt patashnik@SCORE.STANFORD.EDU}).
+Suggestions for improvements are wanted and welcome.]
+
+This documentation, for \BibTeX\ version 0.99b,
+is meant for general \BibTeX\ users;
+bibliography-style designers should read this document
+and then read ``Designing \BibTeX\ Styles''~\cite{btxhak},
+which is meant for just them.
+
+This document has three parts:
+Section~\ref{differences}
+describes the differences between versions 0.98i and 0.99b
+of \BibTeX\ and between the corresponding versions of the standard styles;
+Section~\ref{latex-appendix}
+updates Appendix~B.2 of the \LaTeX\ book~\cite{latex};
+and Section~\ref{odds-and-ends}
+gives some general and specific tips
+that aren't documented elsewhere.
+It's assumed throughout that you're familiar with
+the relevant sections of the \LaTeX\ book.
+
+This documentation also serves as sample input to help
+\BibTeX\ implementors get it running.
+For most documents, this one included, you produce the reference list by:
+running \LaTeX\ on the document (to produce the {\tt aux} file(s)),
+then running \BibTeX\ (to produce the {\tt bbl} file),
+then \LaTeX\ twice more (first to find the information in the {\tt bbl} file
+and then to get the forward references correct).
+In very rare circumstances you may need an extra \BibTeX/\LaTeX\ run.
+
+\BibTeX\ version 0.99b should be used with \LaTeX\ version 2.09,
+for which the closed bibliography format is the default;
+to get the open format, use the optional document style {\tt openbib}
+(in an open format there's a line break between major blocks of a
+reference-list entry; in a closed format the blocks run together).]
+
+Note: \BibTeX\ 0.99b is not compatible with the old style files;
+nor is \BibTeX\ 0.98i compatible with the new ones
+(the new \BibTeX, however, is compatible with old database files).
+
+Note for implementors: \BibTeX\ provides logical-area names
+\hbox{\tt TEXINPUTS:} for bibliography-style files and
+\hbox{\tt TEXBIB:} for database files it can't otherwise find.
+
+
+\section{Changes}
+\label{differences}
+
+This section describes the differences between
+\BibTeX\ versions 0.98i and 0.99b, and also between
+the corresponding standard styles.
+There were a lot of differences;
+there will be a lot fewer between 0.99 and 1.00.
+
+
+\subsection{New \BibTeX\ features}
+\label{features}
+
+The following list explains \BibTeX's new features and how to use them.
+\begin{enumerate}
+
+\item
+With the single command `\hbox{\verb|\nocite{*}|}'
+you can now include in the reference list
+every entry in the database files, without having to explicitly
+\verb|\cite| or \hbox{\verb|\nocite|} each entry.
+Giving this command, in essence,
+\hbox{\verb|\nocite|}s
+all the enties in the database, in database order,
+at the very spot in your document
+where you give the command.
+
+\item
+\label{concat}
+You can now have as a field value (or an {\tt @STRING} definition)
+the concatenation of several strings.
+For example if you've defined
+\begin{verbatim}
+    @STRING( WGA = " World Gnus Almanac" )
+\end{verbatim}
+then it's easy to produce nearly-identical
+{\tt title} fields for different entries:
+\begin{verbatim}
+  @BOOK(almanac-66,
+    title = 1966 # WGA,
+    .  .  .
+  @BOOK(almanac-67,
+    title = 1967 # WGA,
+\end{verbatim}
+and so on.  Or, you could have a field like
+\begin{verbatim}
+    month = "1~" # jan,
+\end{verbatim}
+which would come out something like
+`\hbox{\verb|1~January|}' or `\hbox{\verb|1~Jan.|}' in the {\tt bbl} file,
+depending on how your bibliography style defines
+the {\tt jan} abbreviation.
+You may concatenate as many strings as you like
+(except that there's a limit to the overall length
+of the resulting field);
+just be sure to put the concatenation character `{\tt\#}'$\!$,
+surrounded by optional spaces or newlines,
+between each successive pair of strings.
+
+\item
+\BibTeX\ has a new cross-referencing feature,
+explained by an example.
+Suppose you say \hbox{\verb|\cite{no-gnats}|} in your document,
+and suppose you have these two entries in your database file:
+\begin{verbatim}
+  @INPROCEEDINGS(no-gnats,
+    crossref = "gg-proceedings",
+    author = "Rocky Gneisser",
+    title = "No Gnats Are Taken for Granite",
+    pages = "133-139")
+  .  .  .
+  @PROCEEDINGS(gg-proceedings,
+    editor = "Gerald Ford and Jimmy Carter",
+    title = "The Gnats and Gnus 1988 Proceedings",
+    booktitle = "The Gnats and Gnus 1988 Proceedings")
+\end{verbatim}
+Two things happen.
+First, the special \hbox{\tt crossref} field tells \BibTeX\
+that the \hbox{\tt no-gnats} entry should inherit
+any fields it's missing from
+the entry it cross references, \hbox{\tt gg-proceedings}.
+In this case it in inherits the two fields
+\hbox{\tt editor} and \hbox{\tt booktitle}.
+Note that, in the standard styles at least,
+the \hbox{\tt booktitle} field is irrelevant
+for the \hbox{\tt PROCEEDINGS} entry type.
+The \hbox{\tt booktitle} field appears here
+in the \hbox{\tt gg-proceedings} entry
+only so that the entries that cross reference it
+may inherit the field.
+No matter how many papers from this meeting exist in the database,
+this \hbox{\tt booktitle} field need only appear once.
+
+The second thing that happens:
+\BibTeX\ automatically puts the entry \hbox{\tt gg-proceedings}
+into the reference list if it's cross
+referenced by two or more entries that you
+\verb|\cite| or \hbox{\verb|\nocite|},
+even if you don't \verb|\cite| or \hbox{\verb|\nocite|}
+the \hbox{\tt gg-proceedings} entry itself.
+So \hbox{\tt gg-proceedings} will automatically appear
+on the reference list if one other entry
+besides \hbox{\tt no-gnats} cross references it.
+
+To guarantee that this scheme works, however,
+a cross-referenced entry must occur later in the database files
+than every entry that cross-references it.
+Thus, putting all cross-referenced entries at the end makes sense.
+(Moreover, you may not reliably nest cross references;
+that is, a cross-referenced entry may
+not itself reliably cross reference an entry.
+This is almost certainly not something you'd
+want to do, though.)
+
+One final note:
+This cross-referencing feature is completely unrelated
+to the old \BibTeX's cross referencing,
+which is still allowed.
+Thus, having a field like
+\begin{verbatim}
+    note = "Jones \cite{jones-proof} improves the result"
+\end{verbatim}
+is not affected by the new feature.
+
+\item
+\BibTeX\ now handles accented characters.
+For example if you have an entry with the two fields
+\begin{verbatim}
+    author = "Kurt G{\"o}del",
+    year = 1931,
+\end{verbatim}
+and if you're using the \hbox{\tt alpha} bibliography style,
+then \BibTeX\ will construct the label
+\hbox{[G{\"o}d31]} for this entry, which is what you'd want.
+To get this feature to work you must place the entire accented
+character in braces;
+in this case either \hbox{\verb|{\"o}|}
+or \hbox{\verb|{\"{o}}|} will do.
+Furthermore these braces must not themselves be
+enclosed in braces (other than the ones that might delimit
+the entire field or the entire entry);
+and there must be a backslash
+as the very first character inside the braces.
+Thus neither \hbox{\verb|{G{\"{o}}del}|}
+nor \hbox{\verb|{G\"{o}del}|} will work for this example.
+
+This feature handles all the accented characters and
+all but the nonbackslashed foreign symbols found in Tables
+3.1 and~3.2 of the \LaTeX\ book.
+This feature behaves similarly for ``accents'' you might define;
+we'll see an example shortly.
+For the purposes of counting letters in labels,
+\BibTeX\ considers everything contained inside the braces
+as a single letter.
+
+\item
+\BibTeX\ also handles hyphenated names.
+For example if you have an entry with
+\begin{verbatim}
+    author = "Jean-Paul Sartre",
+\end{verbatim}
+and if you're using the \hbox{\tt abbrv} style,
+then the result is `J.-P. Sartre'$\!$.
+
+\item
+\label{preamble}
+There's now an \hbox{\verb|@PREAMBLE|} command
+for the database files.
+This command's syntax is just like \hbox{\verb|@STRING|}'s,
+except that there is no name or equals-sign, just the string.
+Here's an example:
+\begin{verbatim}
+    @PREAMBLE{ "\newcommand{\noopsort}[1]{} "
+             # "\newcommand{\singleletter}[1]{#1} " }
+\end{verbatim}
+(note the use of concatenation here, too).
+The standard styles output whatever information you give this command
+(\LaTeX\ macros most likely) directly to the {\tt bbl} file.
+We'll look at one possible use of this command,
+based on the \hbox{\verb|\noopsort|} command just defined.
+
+The issue here is sorting (alphabetizing).
+\BibTeX\ does a pretty good job,
+but occasionally weird circumstances conspire to confuse \BibTeX:
+Suppose that you have entries in your database for
+the two books in a two-volume set by the same author,
+and that you'd like volume~1 to appear
+just before volume~2 in your reference list.
+Further suppose that there's now a second edition of volume~1,
+which came out in 1973, say,
+but that there's still just one edition of volume~2,
+which came out in 1971.
+Since the {\tt plain} standard style
+sorts by author and then year,
+it will place volume~2 first
+(because its edition came out two years earlier)
+unless you help \BibTeX.
+You can do this by using the {\tt year} fields below
+for the two volumes:
+\begin{verbatim}
+    year = "{\noopsort{a}}1973"
+    .  .  .
+    year = "{\noopsort{b}}1971"
+\end{verbatim}
+According to the definition of \hbox{\verb|\noopsort|},
+\LaTeX\ will print nothing but the true year for these fields.
+But \BibTeX\ will be perfectly happy pretending that
+\hbox{\verb|\noopsort|} specifies some fancy accent
+that's supposed to adorn the `a' and the~`b';
+thus when \BibTeX\ sorts it will pretend that
+`a1973' and `b1971' are the real years,
+and since `a' comes before~`b'$\!$, it will place volume~1 before volume~2,
+just what you wanted.
+By the way, if this author has any other works included
+in your database, you'd probably want to use instead something like
+\hbox{\verb|{\noopsort{1968a}}1973|} and
+\hbox{\verb|{\noopsort{1968b}}1971|},
+so that these two books would come out in a reasonable spot
+relative to the author's other works
+(this assumes that 1968 results in a reasonable spot,
+say because that's when the first edition of volume~1 appeared).
+
+There is a limit to the number of \hbox{\verb|@PREAMBLE|} commands
+you may use, but you'll never exceed this limit if
+you restrict yourself to one per database file;
+this is not a serious restriction,
+given the concatenation feature (item~\ref{concat}).
+
+\item
+\BibTeX's sorting algorithm is now stable.
+This means that if two entries have identical sort keys,
+those two entries will appear in citation order.
+(The bibliography styles construct these sort keys---%
+usually the author information followed by the year and the title.)
+
+\item
+\BibTeX\ no longer does case conversion for file names;
+this will make \BibTeX\ easier to install on Unix systems, for example.
+
+\item
+It's now easier to add code for processing a
+command-line {\tt aux}-file name.
+
+\end{enumerate}
+
+
+\subsection{Changes to the standard styles}
+
+This section describes changes to the standard styles
+({\tt plain}, {\tt unsrt}, {\tt alpha}, {\tt abbrv})
+that affect ordinary users.
+Changes that affect style designers appear in
+the document ``Designing \BibTeX\ Styles''~\cite{btxhak}.
+\begin{enumerate}
+
+\item
+In general, sorting is now by ``author''$\!$, then year, then title---%
+the old versions didn't use the year field.
+(The {\tt alpha} style, however, sorts first by label,
+then ``author''$\!$, year, and title.)
+The quotes around author mean that some entry types
+might use something besides the author, like the editor or organization.
+
+\item
+Many unnecessary ties (\verb|~|) have been removed.
+\LaTeX\ thus will produce slightly fewer
+`\hbox{\tt Underfull} \verb|\hbox|' messages
+when it's formatting the reference list.
+
+\item
+Emphasizing (\hbox{\verb|{\em ...}|})
+has replaced italicizing (\hbox{\verb|{\it ...}|}).
+This will almost never result in a difference
+between the old output and the new.
+
+\item
+The {\tt alpha} style now uses a superscripted~`$^{+}$' instead of a~`*'
+to represent names omitted in constructing the label.
+If you really liked it the way it was, however,
+or if you want to omit the character entirely,
+you don't have to modify the style file---%
+you can override the~`$^{+}$' by
+redefining the \hbox{\verb|\etalchar|} command
+that the {\tt alpha} style writes onto the {\tt bbl} file
+(just preceding the \hbox{\verb|\thebibliography|} environment);
+use \LaTeX's \hbox{\verb|\renewcommand|} inside
+a database \hbox{\tt @PREAMBLE} command,
+described in the previous subsection's item~\ref{preamble}.
+
+\item
+The {\tt abbrv} style now uses `Mar.' and `Sept.'\
+for those months rather than `March' and `Sep.'
+
+\item
+The standard styles use \BibTeX's new cross-referencing feature
+by giving a \verb|\cite| of the cross-referenced entry and by
+omitting from the cross-referencing entry
+(most of the) information that appears
+in the cross-referenced entry.
+These styles do this when
+a titled thing (the cross-referencing entry)
+is part of a larger titled thing (the cross-referenced entry).
+There are five such situations:
+when (1)~an \hbox{\tt INPROCEEDINGS}
+(or \hbox{\tt CONFERENCE}, which is the same)
+cross references a \hbox{\tt PROCEEDINGS};
+when (2)~a {\tt BOOK}, (3)~an \hbox{\tt INBOOK},
+or (4)~an \hbox{\tt INCOLLECTION}
+cross references a {\tt BOOK}
+(in these cases, the cross-referencing entry is a single
+volume in a multi-volume work);
+and when (5)~an \hbox{\tt ARTICLE}
+cross references an \hbox{\tt ARTICLE}
+(in this case, the cross-referenced entry is really a journal,
+but there's no \hbox{\tt JOURNAL} entry type;
+this will result in warning messages about
+an empty \hbox{\tt author} and \hbox{\tt title} for the journal---%
+you should just ignore these warnings).
+
+\item
+The \hbox{\tt MASTERSTHESIS} and \hbox{\tt PHDTHESIS}
+entry types now take an optional {\tt type} field.
+For example you can get the standard styles to
+call your reference a `Ph.D.\ dissertation'
+instead of the default `PhD thesis' by including a
+\begin{verbatim}
+    type = "{Ph.D.} dissertation"
+\end{verbatim}
+in your database entry.
+
+\item
+Similarly, the \hbox{\tt INBOOK} and \hbox{\tt INCOLLECTION}
+entry types now take an optional {\tt type} field,
+allowing `section~1.2' instead of the default `chapter~1.2'$\!$.
+You get this by putting
+\begin{verbatim}
+    chapter = "1.2",
+    type = "Section"
+\end{verbatim}
+in your database entry.
+
+\item
+The \hbox{\tt BOOKLET}, \hbox{\tt MASTERSTHESIS},
+and \hbox{\tt TECHREPORT} entry types now format
+their \hbox{\tt title} fields as if they were
+\hbox{\tt ARTICLE} \hbox{\tt title}s
+rather than \hbox{\tt BOOK} \hbox{\tt title}s.
+
+\item
+The \hbox{\tt PROCEEDINGS} and \hbox{\tt INPROCEEDINGS}
+entry types now use the \hbox{\tt address} field
+to tell where a conference was held,
+rather than to give the address
+of the publisher or organization.
+If you want to include the
+publisher's or organization's address,
+put it in the \hbox{\tt publisher}
+or \hbox{\tt organization} field.
+
+\item
+The \hbox{\tt BOOK}, \hbox{\tt INBOOK}, \hbox{\tt INCOLLECTION},
+and \hbox{\tt PROCEEDINGS} entry types now allow either
+\hbox{\tt volume} or \hbox{\tt number} (but not both),
+rather than just \hbox{\tt volume}.
+
+\item
+The \hbox{\tt INCOLLECTION} entry type now allows
+a \hbox{\tt series} and an \hbox{\tt edition} field.
+
+\item
+The \hbox{\tt INPROCEEDINGS} and \hbox{\tt PROCEEDINGS}
+entry types now allow either a \hbox{\tt volume} or \hbox{\tt number},
+and also a \hbox{\tt series} field.
+
+\item
+The \hbox{\tt UNPUBLISHED} entry type now outputs,
+in one block, the \hbox{\tt note} field
+followed by the date information.
+
+\item
+The \hbox{\tt MANUAL} entry type now prints out
+the \hbox{\tt organization} in the first block
+if the \hbox{\tt author} field is empty.
+
+\item
+The {\tt MISC} entry type now issues a warning
+if all the optional fields are empty
+(that is, if the entire entry is empty).
+
+\end{enumerate}
+
+
+\section{The Entries}
+\label{latex-appendix}
+
+This section is simply a corrected version of
+Appendix~B.2 of the \LaTeX\ book~\cite{latex},
+\copyright~1986, by Addison-Wesley.
+The basic scheme is the same, only a few details have changed.
+
+
+\subsection{Entry Types}
+
+When entering a reference in the database, the first thing to decide
+is what type of entry it is.  No fixed classification scheme can be
+complete, but \BibTeX\ provides enough entry types to handle almost
+any reference reasonably well.
+
+References to different types of publications contain different
+information; a reference to a journal article might include the volume
+and number of the journal, which is usually not meaningful for a book.
+Therefore, database entries of different types have different fields.
+For each entry type, the fields are divided into three classes:
+\begin{description}
+
+\item[required]
+Omitting the field will produce a warning message
+and, rarely, a badly formatted bibliography entry.
+If the required information is not meaningful,
+you are using the wrong entry type.
+However, if the required information is meaningful
+but, say, already included is some other field,
+simply ignore the warning.
+
+\item[optional]
+The field's information will be used if present,
+but can be omitted without causing any formatting problems.
+You should include the optional field if it will help the reader.
+
+\item[ignored]
+The field is ignored.
+\BibTeX\ ignores any field that is not required or optional, so you can include
+any fields you want in a \hbox{\tt bib} file entry.  It's a good idea
+to put all relevant information about
+a reference in its \hbox{\tt bib} file entry---even information that
+may never appear in the bibliography.  For example, if you want to
+keep an abstract of a paper in a computer file, put it in an \hbox{\tt
+abstract} field in the paper's \hbox{\tt bib} file entry.  The
+\hbox{\tt bib} file is likely to be as good a place as any for the
+abstract, and it is possible to design a bibliography style for
+printing selected abstracts.
+Note: Misspelling a field name will
+result in its being ignored,
+so watch out for typos
+(especially for optional fields,
+since \BibTeX\ won't warn you when those are missing).
+
+\end{description}
+
+The following are the standard entry types, along with their required
+and optional fields, that are used by the standard bibliography styles.
+The fields within each class (required or optional)
+are listed in order of occurrence in the output,
+except that a few entry types may perturb the order slightly,
+depending on what fields are missing.
+These entry types are similar to those adapted by Brian Reid
+from the classification scheme of van~Leunen~\cite{van-leunen}
+for use in the {\em Scribe\/} system.
+The meanings of the individual fields are explained in the next section.
+Some nonstandard bibliography styles may ignore some optional fields
+in creating the reference.
+Remember that, when used in the \hbox{\tt bib}
+file, the entry-type name is preceded by an \hbox{\tt @} character.
+
+\begin{description}
+\sloppy
+
+\item[article\hfill] An article from a journal or magazine.
+Required fields: \hbox{\tt author}, \hbox{\tt title}, \hbox{\tt journal},
+\hbox{\tt year}.
+Optional fields: \hbox{\tt volume}, \hbox{\tt number},
+\hbox{\tt pages}, \hbox{\tt month}, \hbox{\tt note}.
+
+\item[book\hfill] A book with an explicit publisher.
+Required fields: \hbox{\tt author} or \hbox{\tt editor},
+\hbox{\tt title}, \hbox{\tt publisher}, \hbox{\tt year}.
+Optional fields: \hbox{\tt volume} or \hbox{\tt number}, \hbox{\tt series},
+\hbox{\tt address}, \hbox{\tt edition}, \hbox{\tt month},
+\hbox{\tt note}.
+
+\item[booklet\hfill] A work that is printed and bound,
+but without a named publisher or sponsoring institution.
+Required field: \hbox{\tt title}.
+Optional fields: \hbox{\tt author}, \hbox{\tt howpublished},
+\hbox{\tt address}, \hbox{\tt month}, \hbox{\tt year}, \hbox{\tt note}.
+
+\item[conference\hfill] The same as {\tt INPROCEEDINGS},
+included for {\em Scribe\/} compatibility.
+
+\item[inbook\hfill] A part of a book,
+which may be a chapter (or section or whatever) and/or a range of pages.
+Required fields: \hbox{\tt author} or \hbox{\tt editor}, \hbox{\tt title},
+\hbox{\tt chapter} and/or \hbox{\tt pages}, \hbox{\tt publisher},
+\hbox{\tt year}.
+Optional fields: \hbox{\tt volume} or \hbox{\tt number}, \hbox{\tt series},
+\hbox{\tt type}, \hbox{\tt address},
+\hbox{\tt edition}, \hbox{\tt month}, \hbox{\tt note}.
+
+\item[incollection\hfill] A part of a book having its own title.
+Required fields: \hbox{\tt author}, \hbox{\tt title}, \hbox{\tt booktitle},
+\hbox{\tt publisher}, \hbox{\tt year}.
+Optional fields: \hbox{\tt editor}, \hbox{\tt volume} or \hbox{\tt number},
+\hbox{\tt series}, \hbox{\tt type}, \hbox{\tt chapter}, \hbox{\tt pages},
+\hbox{\tt address}, \hbox{\tt edition}, \hbox{\tt month}, \hbox{\tt note}.
+
+\item[inproceedings\hfill] An article in a conference proceedings.
+Required fields: \hbox{\tt author}, \hbox{\tt title}, \hbox{\tt booktitle},
+\hbox{\tt year}.
+Optional fields: \hbox{\tt editor}, \hbox{\tt volume} or \hbox{\tt number},
+\hbox{\tt series}, \hbox{\tt pages}, \hbox{\tt address}, \hbox{\tt month},
+\hbox{\tt organization}, \hbox{\tt publisher}, \hbox{\tt note}.
+
+\item[manual\hfill] Technical documentation.  Required field: \hbox{\tt title}.
+Optional fields: \hbox{\tt author}, \hbox{\tt organization},
+\hbox{\tt address}, \hbox{\tt edition}, \hbox{\tt month}, \hbox{\tt year},
+\hbox{\tt note}.
+
+\item[mastersthesis\hfill] A Master's thesis.
+Required fields: \hbox{\tt author}, \hbox{\tt title}, \hbox{\tt school},
+\hbox{\tt year}.
+Optional fields: \hbox{\tt type}, \hbox{\tt address}, \hbox{\tt month},
+\hbox{\tt note}.
+
+\item[misc\hfill] Use this type when nothing else fits.
+Required fields: none.
+Optional fields: \hbox{\tt author}, \hbox{\tt title}, \hbox{\tt howpublished},
+\hbox{\tt month}, \hbox{\tt year}, \hbox{\tt note}.
+
+\item[phdthesis\hfill] A PhD thesis.
+Required fields: \hbox{\tt author}, \hbox{\tt title}, \hbox{\tt school},
+\hbox{\tt year}.
+Optional fields: \hbox{\tt type}, \hbox{\tt address}, \hbox{\tt month},
+\hbox{\tt note}.
+
+\item[proceedings\hfill] The proceedings of a conference.
+Required fields: \hbox{\tt title}, \hbox{\tt year}.
+Optional fields: \hbox{\tt editor}, \hbox{\tt volume} or \hbox{\tt number},
+\hbox{\tt series}, \hbox{\tt address}, \hbox{\tt month},
+\hbox{\tt organization}, \hbox{\tt publisher}, \hbox{\tt note}.
+
+
+\item[techreport\hfill] A report published by a school or other institution,
+usually numbered within a series.
+Required fields: \hbox{\tt author},
+\hbox{\tt title}, \hbox{\tt institution}, \hbox{\tt year}.
+Optional fields: \hbox{\tt type}, \hbox{\tt number}, \hbox{\tt address},
+\hbox{\tt month}, \hbox{\tt note}.
+
+\item[unpublished\hfill] A document having an author and title,
+but not formally published.
+Required fields: \hbox{\tt author}, \hbox{\tt title}, \hbox{\tt note}.
+Optional fields: \hbox{\tt month}, \hbox{\tt year}.
+
+\end{description}
+
+In addition to the fields listed above, each entry type also has an
+optional \hbox{\tt key} field, used in some styles
+for alphabetizing, for cross referencing,
+or for forming a \hbox{\verb|\bibitem|} label.
+You should include a \hbox{\tt key} field for any entry whose
+``author'' information is missing;
+the ``author'' information is usually the \hbox{\tt author} field,
+but for some entry types it can be the \hbox{\tt editor}
+or even the \hbox{\tt organization} field
+(Section~\ref{odds-and-ends} describes this in more detail).
+Do not confuse the \hbox{\tt key} field with the key that appears in the
+\hbox{\verb|\cite|} command and at the beginning of the database entry;
+this field is named ``key'' only for compatibility with {\it Scribe}.
+
+
+\subsection{Fields}
+
+Below is a description of all fields
+recognized by the standard bibliography styles.
+An entry can also contain other fields, which are ignored by those styles.
+\begin{description}
+
+\item[address\hfill]
+Usually the address of the \hbox{\tt publisher} or other type
+of institution.
+For major publishing houses,
+van~Leunen recommends omitting the information entirely.
+For small publishers, on the other hand, you can help the
+reader by giving the complete address.
+
+\item[annote\hfill]
+An annotation.
+It is not used by the standard bibliography styles,
+but may be used by others that produce an annotated bibliography.
+
+\item[author\hfill]
+The name(s) of the author(s),
+in the format described in the \LaTeX\ book.
+
+\item[booktitle\hfill]
+Title of a book, part of which is being cited.
+See the \LaTeX\ book for how to type titles.
+For book entries, use the \hbox{\tt title} field instead.
+
+\item[chapter\hfill]
+A chapter (or section or whatever) number.
+
+\item[crossref\hfill]
+The database key of the entry being cross referenced.
+
+\item[edition\hfill]
+The edition of a book---for example, ``Second''$\!$.
+This should be an ordinal, and
+should have the first letter capitalized, as shown here;
+the standard styles convert to lower case when necessary.
+
+\item[editor\hfill]
+Name(s) of editor(s), typed as indicated in the \LaTeX\ book.
+If there is also an \hbox{\tt author} field, then
+the \hbox{\tt editor} field gives the editor of the book or collection
+in which the reference appears.
+
+\item[howpublished\hfill]
+How something strange has been published.
+The first word should be capitalized.
+
+\item[institution\hfill]
+The sponsoring institution of a technical report.
+
+\item[journal\hfill]
+A journal name.
+Abbreviations are provided for many journals; see the {\it Local Guide}.
+
+\item[key\hfill]
+Used for alphabetizing, cross referencing, and creating a label when
+the ``author'' information
+(described in Section~\ref{odds-and-ends}) is missing.
+This field should not be confused with the key that appears in the
+\hbox{\verb|\cite|} command and at the beginning of the database entry.
+
+\item[month\hfill]
+The month in which the work was
+published or, for an unpublished work, in which it was written.
+You should use the standard three-letter abbreviation,
+as described in Appendix B.1.3 of the \LaTeX\ book.
+
+\item[note\hfill]
+Any additional information that can help the reader.
+The first word should be capitalized.
+
+\item[number\hfill]
+The number of a journal, magazine, technical report,
+or of a work in a series.
+An issue of a journal or magazine is usually
+identified by its volume and number;
+the organization that issues a
+technical report usually gives it a number;
+and sometimes books are given numbers in a named series.
+
+\item[organization\hfill]
+The organization that sponsors a conference or that publishes a \hbox{manual}.
+
+\item[pages\hfill]
+One or more page numbers or range of numbers,
+such as \hbox{\tt 42--111} or \hbox{\tt 7,41,73--97} or \hbox{\tt 43+}
+(the `{\tt +}' in this last example indicates pages following
+that don't form a simple range).
+To make it easier to maintain {\em Scribe\/}-compatible databases,
+the standard styles convert a single dash (as in \hbox{\tt 7-33})
+to the double dash used in \TeX\ to denote number ranges
+(as in \hbox{\tt 7--33}).
+
+\item[publisher\hfill]
+The publisher's name.
+
+\item[school\hfill]
+The name of the school where a thesis was written.
+
+\item[series\hfill]
+The name of a series or set of books.
+When citing an entire book, the the \hbox{\tt title} field
+gives its title and an optional \hbox{\tt series} field gives the
+name of a series or multi-volume set
+in which the book is published.
+
+\item[title\hfill]
+The work's title, typed as explained in the \LaTeX\ book.
+
+\item[type\hfill]
+The type of a technical report---for example,
+``Research Note''$\!$.
+
+\item[volume\hfill]
+The volume of a journal or multivolume book.
+
+\item[year\hfill]
+The year of publication or, for
+an unpublished work, the year it was written.
+Generally it should consist of four numerals, such as {\tt 1984},
+although the standard styles can handle any {\tt year} whose
+last four nonpunctuation characters are numerals,
+such as `\hbox{(about 1984)}'$\!$.
+
+\end{description}
+
+
+\section{Helpful Hints}
+\label{odds-and-ends}
+
+This section gives some random tips
+that aren't documented elsewhere,
+at least not in this detail.
+They are, roughly, in order
+of least esoteric to most.
+First, however, a brief spiel.
+
+I understand that there's often little choice in choosing
+a bibliography style---journal~$X$ says you must use style~$Y$
+and that's that.
+If you have a choice, however, I strongly recommend that you
+choose something like the {\tt plain} standard style.
+Such a style, van~Leunen~\cite{van-leunen} argues convincingly,
+encourages better writing than the alternatives---%
+more concrete, more vivid.
+
+{\em The Chicago Manual of Style\/}~\cite{chicago},
+on the other hand,
+espouse the author-date system,
+in which the citation might appear in the text as `(Jones, 1986)'$\!$.
+I argue that this system,
+besides cluttering up the
+text with information that may or may not be relevant,
+encourages the passive voice and vague writing.
+Furthermore the strongest arguments for
+using the author-date system---like ``it's the most practical''---%
+fall flat on their face with the advent
+of computer-typesetting technology.
+For instance the {\em Chicago Manual\/} contains,
+right in the middle of page~401, this anachronism:
+``The chief disadvantage of [a style like {\tt plain}] is that additions
+or deletions cannot be made after the manuscript is typed without changing
+numbers in both text references and list.''
+\LaTeX, obviously, sidesteps the disadvantage.
+
+Finally, the logical deficiencies of the author-date style
+are quite evident once you've written a program to implement it.
+For example, in a large bibliography,
+using the standard alphabetizing scheme,
+the entry for `(Aho et~al., 1983b)'
+might be half a page later than the one for `(Aho et~al., 1983a)'$\!$.
+Fixing this problem results in even worse ones.
+What a mess.
+(I have, unfortunately, programmed such a style,
+and if you're saddled with an unenlightened publisher
+or if you don't buy my propaganda,
+it's available from the Rochester style collection.)
+
+Ok, so the spiel wasn't very brief;
+but it made me feel better,
+and now my blood pressure is back to normal.
+Here are the tips for using \BibTeX\
+with the standard styles
+(although many of them hold for nonstandard styles, too).
+\begin{enumerate}
+
+\item
+With \BibTeX's style-designing language
+you can program general database manipulations,
+in addition to bibliography styles.
+For example it's a fairly easy task for someone familiar with the language
+to produce a database-key/author index of all the entries in a database.
+Consult the {\em Local Guide\/} to see
+what tools are available on your system.
+
+\item
+The standard style's thirteen entry types
+do reasonably well at formatting most entries,
+but no scheme with just thirteen formats
+can do everything perfectly.
+Thus, you should feel free to be creative
+in how you use these entry types
+(but if you have to be too creative,
+there's a good chance you're using the wrong entry type).
+
+\item
+Don't take the field names too seriously.
+Sometimes, for instance, you might have to include
+the publisher's address along with the publisher's name
+in the \hbox{\tt publisher} field,
+rather than putting it in the \hbox{\tt address} field.
+Or sometimes, difficult entries work best when you
+make judicious use of the {\tt note} field.
+
+\item
+Don't take the warning messages too seriously.
+Sometimes, for instance, the year appears in the title,
+as in {\em The 1966 World Gnus Almanac}.
+In this case it's best to omit the {\tt year} field
+and to ignore \BibTeX's warning message.
+
+\item
+If you have too many names to list in an
+\hbox{\tt author} or \hbox{\tt editor} field,
+you can end the list with ``and others'';
+the standard styles appropriately append an ``et~al.''
+
+\item
+In general, if you want to keep \BibTeX\ from changing
+something to lower case, you enclose it in braces.
+You might not get the effect you want, however,
+if the very first character after the left brace is a backslash.
+The ``special characters'' item later in this section explains.
+
+\item
+For {\em Scribe\/} compatibility, the database files
+allow an \hbox{\tt @COMMENT} command; it's not really
+needed because \BibTeX\ allows in the database files
+any comment that's not within an entry.
+If you want to comment out an entry,
+simply remove the `{\tt @}' character preceding the entry type.
+
+\item
+The standard styles have journal abbreviations that are
+computer-science oriented;
+these are in the style files primarily for the example.
+If you have a different set of journal abbreviations,
+it's sensible to put them in \hbox{\tt @STRING} commands
+in their own database file and to list this database file
+as an argument to \LaTeX's \hbox{\verb|\bibliography|} command
+(but you should list this argument before the ones that
+specify real database entries).
+
+\item
+It's best to use the three-letter abbreviations for the month,
+rather than spelling out the month yourself.
+This lets the bibliography style be consistent.
+And if you want to include information for the day of the month,
+the {\tt month} field is usually the best place.
+For example
+\begin{verbatim}
+    month = jul # "~4,"
+\end{verbatim}
+will probably produce just what you want.
+
+\item
+If you're using the \hbox{\tt unsrt} style
+(references are listed in order of citation)
+along with the \hbox{\verb|\nocite{*}|} feature
+(all entries in the database are included),
+the placement of the \hbox{\verb|\nocite{*}|} command
+within your document file will determine the reference order.
+According to the rule given in Section~\ref{features}:
+If the command is placed at the beginning of the document,
+the entries will be listed in exactly the order
+they occur in the database;
+if it's placed at the end,
+the entries that you explicitly
+\hbox{\verb|\cite|} or \hbox{\verb|\nocite|}
+will occur in citation order,
+and the remaining database entries will be in database order.
+
+\item
+For theses, van Leunen recommends not giving
+the school's department after the name of the degree,
+since schools, not departments, issue degrees.
+If you really think that giving the department information
+will help the reader find the thesis,
+put that information in the \hbox{\tt address} field.
+
+\item
+The \hbox{\tt MASTERSTHESIS} and \hbox{\tt PHDTHESIS} entry types
+are so named for {\em Scribe\/} compatibility;
+\hbox{\tt MINORTHESIS} and \hbox{\tt MAJORTHESIS}
+probably would have been better names.
+Keep this in mind when trying to classify
+a non-U.S.\ thesis.
+
+\item
+Here's yet another suggestion for what to do when an author's
+name appears slightly differently in two publications.
+Suppose, for example, two journals articles use these fields.
+\begin{verbatim}
+    author = "Donald E. Knuth"
+    .  .  .
+    author = "D. E. Knuth"
+\end{verbatim}
+There are two possibilities.
+You could (1)~simply leave them as is,
+or (2)~assuming you know for sure that
+these authors are one and the same person,
+you could list both in the form that the author prefers
+(say, `Donald~E.\ Knuth').
+In the first case, the entries might be alphabetized incorrectly,
+and in the second, the slightly altered name might
+foul up somebody's electronic library search.
+But there's a third possibility, which is the one I prefer.
+You could convert the second journal's field to
+\begin{verbatim}
+    author = "D[onald] E. Knuth"
+\end{verbatim}
+This avoids the pitfalls of the previous two solutions,
+since \BibTeX\ alphabetizes this as if the brackets weren't there,
+and since the brackets clue the reader in that a full first name
+was missing from the original.
+Of course it introduces another pitfall---`D[onald]~E.\ Knuth' looks ugly---%
+but in this case I think the increase in accuracy outweighs
+the loss in aesthetics.
+
+\item
+\LaTeX's comment character `{\tt\%}' is not a comment character
+in the database files.
+
+\item
+Here's a more complete description of
+the ``author'' information referred to in previous sections.
+For most entry types the ``author'' information
+is simply the \hbox{\tt author} field.
+However:
+For the \hbox{\tt BOOK} and \hbox{\tt INBOOK} entry types
+it's the \hbox{\tt author} field, but if there's no author
+then it's the \hbox{\tt editor} field;
+for the \hbox{\tt MANUAL} entry type
+it's the \hbox{\tt author} field, but if there's no author
+then it's the \hbox{\tt organization} field;
+and for the \hbox{\tt PROCEEDINGS} entry type
+it's the \hbox{\tt editor} field, but if there's no editor
+then it's the \hbox{\tt organization} field.
+
+\item
+When creating a label,
+the \hbox{\tt alpha} style uses the ``author'' information described above,
+but with a slight change---%
+for the \hbox{\tt MANUAL} and \hbox{\tt PROCEEDINGS} entry types,
+the {\tt key} field takes precedence over the \hbox{\tt organization} field.
+Here's a situation where this is useful.
+\begin{verbatim}
+   organization = "The Association for Computing Machinery",
+   key = "ACM"
+\end{verbatim}
+Without the {\tt key} field, the \hbox{\tt alpha} style
+would make a label from the first three letters of information
+in the \hbox{\tt organization} field;
+\hbox{\tt alpha} knows to strip off the `\hbox{\tt The }'$\!$,
+but it would still form a label like `\hbox{[Ass86]}'$\!$,
+which, however intriguing, is uninformative.
+Including the {\tt key} field, as above,
+would yield the better label `\hbox{[ACM86]}'$\!$.
+
+You won't always need the {\tt key} field to override the
+\hbox{\tt organization}, though:
+With
+\begin{verbatim}
+    organization = "Unilogic, Ltd.",
+\end{verbatim}
+for instance, the \hbox{\tt alpha} style would
+form the perfectly reasonable label `\hbox{[Uni86]}'$\!$.
+
+\item
+Section~\ref{features} discusses accented characters.
+To \BibTeX, an accented character is really a special case
+of a ``special character''$\!$,
+which consists of everything from a left brace at the top-most level,
+immediately followed by a backslash,
+up through the matching right brace.
+For example in the field
+\begin{verbatim}
+    author = "\AA{ke} {Jos{\'{e}} {\'{E}douard} G{\"o}del"
+\end{verbatim}
+there are just two special characters,
+`\hbox{\verb|{\'{E}douard}|}' and `\hbox{\verb|{\"o}|}'
+(the same would be true if the pair of double quotes
+delimiting the field were braces instead).
+In general, \BibTeX\ will not do any processing
+of a \TeX\ or \LaTeX\ control sequence inside a special character,
+but it {\em will\/} process other characters.
+Thus a style that converts all titles to lower case
+would convert
+\begin{verbatim}
+    The {\TeX BOOK\NOOP} Experience
+\end{verbatim}
+to
+\begin{verbatim}
+    The {\TeX book\NOOP} experience
+\end{verbatim}
+(the `{\tt The}' is still capitalized
+because it's the first word of the title).
+
+This special-character scheme is useful for handling accented characters,
+for getting \BibTeX's alphabetizing to do what you want,
+and, since \BibTeX\ counts an entire special character as just one letter,
+for stuffing extra characters inside labels.
+The file \hbox{\tt XAMPL.BIB} distributed with \BibTeX\
+gives examples of all three uses.
+
+\item
+This final item of the section describes \BibTeX's names
+(which appear in the \hbox{\tt author} or \hbox{\tt editor} field)
+in slightly more detail than what
+appears in Appendix~B of the \LaTeX\ book.
+In what follows, a ``name'' corresponds to a person.
+(Recall that you separate multiple names in a single field
+with the word ``and''$\!$, surrounded by spaces,
+and not enclosed in braces.
+This item concerns itself with the structure of a single name.)
+
+Each name consists of four parts: First, von, Last, and~Jr;
+each part consists of a (possibly empty) list of name-tokens.
+The Last part will be nonempty if any part is,
+so if there's just one token, it's always a Last token.
+
+Recall that Per Brinch~Hansen's name should be typed
+\begin{verbatim}
+    "Brinch Hansen, Per"
+\end{verbatim}
+The First part of his name has the single token ``Per'';
+the Last part has two tokens, ``Brinch'' and ``Hansen'';
+and the von and Jr parts are empty.
+If you had typed
+\begin{verbatim}
+    "Per Brinch Hansen"
+\end{verbatim}
+instead, \BibTeX\ would (erroneously) think ``Brinch'' were a First-part token,
+just as ``Paul'' is a First-part token in ``John~Paul Jones''$\!$,
+so this erroneous form would have two First tokens and one Last token.
+
+Here's another example:
+\begin{verbatim}
+    "Charles Louis Xavier Joseph de la Vall{\'e}e Poussin"
+\end{verbatim}
+This name has four tokens in the First part, two in the von, and
+two in the Last.
+Here \BibTeX\ knows where one part ends and the other begins because
+the tokens in the von part begin with lower-case letters.
+
+In general, it's a von token if the first letter at brace-level~0
+is in lower case.
+Since technically everything
+in a ``special character'' is at brace-level~0,
+you can trick \BibTeX\ into thinking that
+a token is or is not a von token by prepending a dummy
+special character whose first letter past the \TeX\ control sequence
+is in the desired case, upper or lower.
+
+To summarize, \BibTeX\ allows three possible forms for the name:
+\begin{verbatim}
+    "First von Last"
+    "von Last, First"
+    "von Last, Jr, First"
+\end{verbatim}
+You may almost always use the first form;
+you shouldn't if either there's a Jr part,
+or the Last part has multiple tokens but there's no von part.
+
+\end{enumerate}
+
+\bibliography{btxdoc}
+\bibliographystyle{plain}
+\end{document}

@@ -1,0 +1,26 @@
+.TH TIME 2
+.SH NAME
+time \- time in seconds since epoch
+.SH SYNOPSIS
+.nf
+.B long time(long *tp)
+.fi
+.SH DESCRIPTION
+.I Time
+returns the number of seconds since the epoch 00:00:00 GMT, Jan. 1, 1970.
+If
+.I tp
+is not zero then
+.BI * tp
+is also set to the answer.
+.PP
+This function works by reading
+.BI /dev/time ,
+opening that file when
+.I time
+is first called.
+.SH SEE ALSO
+.IR cons (3)
+.SH DIAGNOSTICS
+Sets
+.I errstr.

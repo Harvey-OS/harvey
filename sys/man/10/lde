@@ -1,0 +1,90 @@
+.TH LDE 10.1
+.SH NAME
+LDE, lde \- logic design equation programs
+.SH SYNOPSIS
+.B lde
+[
+.I option
+] [
+.I filenames
+]
+.br
+.B LDE
+[
+.I option
+] [
+.I filenames
+]
+.SH DESCRIPTION
+.I Lde
+is the front end of a set of programs that prepare data
+for fuse-programmable logic elements.
+It accepts an expression language described in
+.IR lde_format (10.6)
+on its standard input or from the named files, and writes
+an interpretation on its standard output.
+.I Lde
+produces minterms in
+.IR minterm (10.6)
+output which may be reduced by
+.IR quine (10.1)
+and
+.IR cover (10.1).
+The options are:
+.TP
+.B -o
+Produce octal output (rather than the decimal default)
+.TP
+.B -x
+Produce hex output.
+.TP
+.B -L
+Put a the sum of products representation of the output on the standard
+error file.
+.TP
+.B -d -v -T
+Produce other stuff to help debug the program.
+.PP
+Numeric parameters may be passed from the command line with
+.TP
+.BI - n
+where
+.I n
+is decimal.
+The (zero based)
+.RI m th
+numeric parameter is substituted for the symbol
+.B $m
+in the input.
+.PP
+.I LDE
+is an analog of
+.I lde
+that has some restrictions on the input specification,
+produces a cover that is often, but not necessarily minimal,
+but runs much faster.
+.I LDE
+takes some more options:
+.TP
+.B -L
+Output a sum of products representation to standard
+error.
+.TP
+.B -I
+Also calculate the complements of the logic functions.
+.TP
+.B -X
+Also calculate the xor of the output signals with their logic functions (useful
+for programmable parts that support toggle flip-flops).
+.SH SEE ALSO
+.IR lde (10.6),
+.IR minterm (10.6),
+.IR cdl (10.6),
+.IR quine (10.1),
+.IR xpal (10.1),
+.IR urom (10.1),
+.IR cdm (10.1)
+.SH BUGS
+.I LDE
+does not support 'don't cares' or multiplication, division, modulo,
+or right and left shifts by variables.

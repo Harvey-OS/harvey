@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+TARG=ftpfs
+OFILES=ftpfs.$O\
+	proto.$O\
+	file.$O\
+	tm2sec.$O\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

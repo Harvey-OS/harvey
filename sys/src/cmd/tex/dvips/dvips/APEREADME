@@ -1,0 +1,19 @@
+Changes to distribution:
+
+dvips.c: formsperpage, new -A, -B, -L, -T options (move their -T to -G)
+
+search.c: SHORTFNAMES addition
+
+paths.h: forms.pro
+
+output.c: formperpage stuff, popen declaration
+
+makefont.c: defcommand gets TEXBIN
+
+Makefile: TEXBIN, forms.pro stuff
+
+dvips.tex: document new options
+
+config.*: various changes
+
+MakeTeXPK: various changes

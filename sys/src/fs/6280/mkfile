@@ -1,0 +1,89 @@
+objtype=mips
+</$objtype/mkfile
+
+BUILTINS=
+I=-I. -I../port
+CFLAGS=-w $I
+
+OBJ=\
+	l.$O\
+	6280.$O\
+	arp.$O\
+	auth.$O\
+	cache.$O\
+	chk.$O\
+	clock.$O\
+	con.$O\
+	config.$O\
+	console.$O\
+	cw.$O\
+	cyclone.$O\
+	data.$O\
+	dentry.$O\
+	devcons.$O\
+	dk1.$O\
+	dk2.$O\
+	dk3.$O\
+	duart.$O\
+	eagle.$O\
+	fcall.$O\
+	fcmd.$O\
+	fs.$O\
+	fworm.$O\
+	hsvme.$O\
+	il.$O\
+	iobuf.$O\
+	ip.$O\
+	jaguar.$O\
+	lock.$O\
+	main.$O\
+	malloc.$O\
+	mworm.$O\
+	print.$O\
+	proc.$O\
+	sub.$O\
+	time.$O\
+	toy.$O\
+	trap.$O\
+	vme.$O\
+	worm.$O\
+	wren.$O\
+	uidgid.$O\
+
+HFILES=\
+	../port/all.h\
+	../port/portdat.h\
+	./dat.h\
+	../port/portfns.h\
+	./fns.h\
+	./io.h\
+	../port/lib.h\
+	./mem.h\
+	/$objtype/include/u.h\
+	/$objtype/include/ureg.h\
+	../cyc/comm.h\
+
+96280fs:	$OBJ 96280fs.$O
+	$LD -o $target -l -R4 -H1 -T0x80020000 $prereq -lauth -lc
+
+<../port/mkfile
+
+install:	96280fs
+	cp 96280fs /mips/96280fs
+
+push:	96280fs
+	push tempel 96280fs /usr/local/boot
+
+96280fs.$O:	96280fs.c
+	$CC $CFLAGS -DDATE'='`{date -n} 96280fs.c
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	$HFILES
+
+clean:
+	rm -f *.[2kovz] [2akvz].out 96280fs

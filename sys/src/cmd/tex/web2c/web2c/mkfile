@@ -1,0 +1,53 @@
+# Makefile for TeX to C conversion programs.
+#
+APE=/sys/src/ape
+< $APE/config
+SITEDIR=..
+OPT=-B
+SHELL=/bin/rc
+
+TARG=fixwrites splitup regfix web2c
+
+OFILES=
+
+HFILES=symtab.h\
+	$SITEDIR/site.h\
+
+YFILES=web2c.yacc
+
+LFILES=web2c.lex
+
+</sys/src/cmd/mkmany
+
+CFLAGS=$OPT -I$SITEDIR -c
+LD=pcc
+# -S is for stdio printf
+YFLAGS=-S -d
+# Note: If you're going to use flex, compile web2cl.c with "-DFLEX".
+LEX=lex
+
+$O.web2c:	web2cy.$O web2cl.$O
+
+web2cl.$O:	web2c.h web2cy.h
+web2cy.$O:	web2c.h
+web2c.$O:	web2cy.h
+
+web2cl.c:	$LFILES
+		$LEX -t $prereq > $target
+
+web2cy.c:	y.tab.c
+		mv $prereq $target
+
+web2cy.h:	y.tab.h
+		$SHELL -c 'if (! cmp -s web2cy.h y.tab.h) cp y.tab.h web2cy.h'
+
+nuke:V:
+		mk clean
+		rm -f web2cy.c web2cl.c web2cy.h y.tab.h lex.yy.c
+		#rm -f '#'*'#' *~ *.bak
+
+install:VQ:
+		echo do mk install in ..
+
+installall:VQ:
+		echo do mk installall in ..

@@ -1,0 +1,101 @@
+</$objtype/mkfile
+
+TARG=3to1\
+	adapt\
+	ahe\
+	aplot\
+	card\
+	cmap\
+	crispen\
+	dither\
+	drop\
+	edge\
+	edge2\
+	edge3\
+	examine\
+	extremum\
+	face2pic\
+	flip\
+	floyd\
+	gif2pic\
+	halftone\
+	he\
+	hysteresis\
+	ikon\
+	improve\
+	lam\
+	laplace\
+	lerp\
+	logo\
+	lum\
+	mcut\
+	median\
+	moto\
+	nonoise\
+	pcp\
+	pcx2pic\
+	pic2ps\
+	piccat\
+	picinfo\
+	picjoin\
+	posit\
+	ramp\
+	remap\
+	resample\
+	rotate\
+	save\
+	shadepic\
+	smooth\
+	transpose\
+	xpand\
+
+OFILES=
+HFILES=
+YFILES=moto.y
+RFILES=dumppic.r\
+	hed.r\
+	nohed.r\
+	picnegate.r\
+	picopic.r\
+	quantize.r\
+	twb.r\
+
+BIN=/$objtype/bin/fb
+</sys/src/cmd/mkmany
+CFLAGS=
+
+adapt.$O:	map.cc
+ahe.$O:		map.cc
+crispen.$O:	filter.cc
+edge.$O:	filter.cc
+edge2.$O:	filter.cc
+edge3.$O:	filter.cc
+extremum.$O:	filter.cc
+ikon.$O:	scsicam.h
+laplace.$O:	filter.cc
+nonoise.$O:	filter.cc
+smooth.$O:	filter.cc
+
+all:V:		dpic-all
+install:V:	dpic-install
+installall:V:	dpic-installall
+clean:V:	dpic-clean
+nuke:V:		dpic-nuke
+
+clean:V:
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG moto.c
+
+moto.c:	y.tab.c
+	mv $prereq $target
+%.r:V:
+	cp $stem.r $BIN/$stem
+	chmod +x $BIN/$stem
+
+dpic-%:V:
+	cd dpic
+	mk $stem
+
+installall:V:
+	mk $RFILES
+	for(objtype in mips 68020 sparc 386)
+		mk $MKFLAGS install

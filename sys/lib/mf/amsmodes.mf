@@ -1,0 +1,141 @@
+% AMSMODES.MF
+% This file is based on Stanford's WAITS.mf.  A few extra modes
+% are added and the file CURMODE.mf is input at the end if
+% the variable "mode" is unknown.
+
+% This file can be loaded after PLAIN.MF.
+% It introduces conventions that are commonly used at WAITS.
+base_version:=base_version&"/WAITS";
+
+% The WAITS implementation allows an extended character set;
+% characters :=, <=, <>, and >= are put into the class with <, =, >, :, and |;
+% character ^^L (form feed) is in a class by itself, and is like an "outer" \.
+% Files containing these special characters should not be expected to work
+% elsewhere unless the following replacements are made:
+  let <= = <=;
+  let <> = <>;
+  let >= = >=;
+  let := = :=;
+
+% We make the following modification of "mode_def" from PLAIN in order
+% to accomodate modes not preloaded in MF.  Even though mode had been
+% set dependently on the command line (as with mode=talaris), when
+% mode_def came along to define "talaris" the assignment operator
+% (:=) wiped out that dependency and left mode hanging and undefined
+% when mode_setup was called.  We simply add a test to see whether
+% "mode" has been set to the mode being defined.
+
+% Furthermore, if mode was set to a mode which was preloaded and
+% that mode was re-defined at run-time, the value of mode would
+% only pick up the old definition.  So, for the other case,
+% that the mode being defined already has a numeric realization,
+% we avoid redefining that mode's (behind-the-scenes) value.
+
+% We also add the following macros to enable conditional "and"
+% and "or".  See The MEtafontBook, pp.288-9
+
+def cand(text q) = startif true q else: false fi enddef;
+def cor(text q) = startif true true else: q fi enddef;
+tertiarydef p startif true = if p: enddef;
+
+
+def mode_def suffix $ =
+ if known($) cand
+   (numeric $ cand
+   ($<number_of_modes cand
+   (mode_name[$] = (str $ & "_")))):
+ else: if known(mode-$) cand (unknown mode): mode:= fi
+       $:=incr number_of_modes;
+       mode_name[$]:=str$ & "_";
+ fi
+ expandafter quote def scantokens mode_name[$] enddef;
+
+
+screen_rows:=400; screen_cols:=480;
+
+% Here are conventions for local output devices:
+
+mode_def pcscreen =  % pcscreen mode: for screen fonts (118dpi)
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=118;
+ blacker:=0;      % Canon engine is black enough
+ fillin:=0;      % and it tends to fill in diagonals
+ o_correction:=1;    % don't overshoot
+ enddef;          
+
+mode_def epsonlq =  % epsonlq mode: for the Epson LQ and Toshiba
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=180;
+ blacker:=0;      % don't make pens any blacker
+ fillin:=0;      % and don't compensate for diagonal fillin
+ o_correction:=.3;    % but don't overshoot much
+ enddef;
+
+mode_def epsonx =  % Epson 240dpi
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=240;    % lowres
+ blacker:=0;      % don't make the pens any blacker
+ fillin:=0;      % and don't compensate for fillin
+ o_correction:=.2;    % but suppress most overshoots
+ aspect_ratio:=9/10;    % 216 dots/inch vertical
+ enddef;
+
+mode_def laser =  % laser mode: for the Apple LaserWriter or Canon 300dpi
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=300;
+ blacker:=0;      % Canon engine is black enough
+ fillin:=.2;      % and it tends to fill in diagonals
+ o_correction:=.6;    %
+ enddef;          
+
+mode_def fourc =  % for 400dpi printers 
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=400;
+ blacker:=0;      % engine is black enough
+ fillin:=.2;      % and it tends to fill in diagonals
+ o_correction:=.6;    %
+ enddef;          
+
+% macintosh mode: for screen fonts (72dpi) & imagewriter (144dpi)
+mode_def macintosh =  
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=72;
+ blacker:=0;      % Don't blacken
+ fillin:=0;      % 
+ o_correction:=1;    %
+ enddef;          
+
+mode_def notimagewriter =  % notimagewriter mode: to get 129pk for screen
+       % Largest resolution which guarantees at least one point size less
+       % than imagewriter size.
+ proofing:=0;      % no, we're not making proofs
+ fontmaking:=1;      % yes, we are making a font
+ tracingtitles:=0;    % no, don't show titles in the log
+ pixels_per_inch:=129;
+ blacker:=0;      % Don't blacken
+ fillin:=0;      % 
+ o_correction:=1;    %
+ enddef;          
+
+inner end;
+def bye=
+ if fontmaking>0: font_family font_identifier_;
+  coding_scheme font_coding_scheme_;
+  font_face_byte max(0,254-round 2designsize); fi
+ tracingstats:=1;  % at least for now we want this
+ end
+ enddef;
+
+outer bye,end;

@@ -1,0 +1,79 @@
+PFILES=`{cd ../port;echo *.c | sed 's/fcall.c //; s/ /|/g; s/\.c//g'}`
+
+^($PFILES)\.$O:R:	'../port/\1.c'
+	$CC $CFLAGS -I. ../port/$stem1.c
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+
+installall:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i install
+
+all:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i
+
+clean:V:
+	rm -f *.[$OS] *.root.c devtab.h cfs.h fs.h init.h conf.h *.out
+	for(i in $CONFLIST)
+		rm -f $i.c 9$i boot$i.*
+
+%.$O:	u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
+
+fcall.$O: ../port/fcall.c
+	$CC $CFLAGS ../port/fcall.c
+
+../port/systab.h:	/sys/src/libc/9syscall/sys.h
+	rc ../port/mksystab > ../port/systab.h
+
+$CONF.c: ../port/mkdevc $CONF
+	rc ../port/mkdevc $CONF > $CONF.c
+
+devtab.h:	../port/mkdevh $CONFLIST
+	rc ../port/mkdevh $CONFLIST > devtab.h
+
+errstr.h:	../port/mkerrstr ../port/error.h
+	rc ../port/mkerrstr > errstr.h
+
+%.db:		main.$O
+	$CC -s$stem main.c | dbfmt > $stem.db
+
+../boot/libboot.a$O: /dev/cons
+	cd ../boot
+	mk
+
+dev.$O:		devtab.h
+devmnt.$O:	/sys/include/fcall.h
+proc.$O:	errstr.h
+devroot.$O:	errstr.h
+tcpinput.$O:	../port/ipdat.h
+tcpoutput.$O:	../port/ipdat.h
+tcptimer.$O:	../port/ipdat.h
+tcpif.$O:	../port/ipdat.h
+stil.$O:	../port/ipdat.h
+devip.$O:	../port/ipdat.h
+trap.$O:	/$objtype/include/ureg.h
+devproc.$O:	/$objtype/include/ureg.h
+main.$O:	init.h
+segment.$O:	segment.h
+trap.$O:	../port/systab.h
+devbit.$O:	screen.h
+
+kfs.root.c:	/$objtype/bin/disk/kfs
+	cp $prereq kfs.out
+	../port/mkroot kfs fs
+
+cfs.root.c:	/$objtype/bin/cfs
+	cp /$objtype/bin/cfs cfs.out
+	../port/mkroot cfs cfs
+
+boot$CONF.root.c: $CONF print.$O ../boot/boot.c ../boot/libboot.a$O
+	../boot/mkboot $CONF > boot$CONF.c
+	$CC $CFLAGS boot$CONF.c
+	$LD -o boot$CONF.out boot$CONF.$O ../boot/libboot.a$O print.$O -lauth
+	../port/mkroot boot$CONF boot

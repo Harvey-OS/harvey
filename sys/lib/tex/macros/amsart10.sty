@@ -1,0 +1,162 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMSART10.STY						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%% This is file `tex_inputs:amsart10.sty' generated
+%% on <1990/7/10> with the docstrip utility (v1.1j). 
+%% 
+%% The original source file was `tex_inputs:amsart10.doc'.
+%% 
+%% 
+\def\fileversion{v1.0b}
+\def\filedate{90/06/21}
+\def\docdate{90/06/21}
+
+%% \CheckSum{2006}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+\def\@normalsize{\@setsize\normalsize{12\p@}\xpt\@xpt
+  \abovedisplayskip 6\p@ \@plus 6\p@
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus 6\p@
+  \belowdisplayshortskip 3\p@ \@plus 6\p@
+  \let\@listi\@listI}
+\def\small{\footnotesize}
+\def\footnotesize{\@setsize\footnotesize{10\p@}\viiipt\@viiipt
+  \abovedisplayskip 5\p@ \@plus 5\p@
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip \z@ \@plus 5\p@
+  \belowdisplayshortskip 3\p@ \@plus 5\p@
+  \def\@listi{\topsep \smallskipamount \parsep \z@ \itemsep \z@}}
+\def\scriptsize{\@setsize\scriptsize{8\p@}\viipt\@viipt}
+\def\tiny{\@setsize\tiny{6\p@}\vpt\@vpt}
+
+\def\large{\@setsize\large{14\p@}\xiipt\@xiipt}
+\def\Large{\large}
+\def\LARGE{\large}
+\def\huge{\large}
+\def\Huge{\large}
+
+\normalsize
+
+\lineskip=1pt \normallineskip=1pt \normallineskiplimit=1pt
+\def\baselinestretch{1}
+\headheight=8pt \headsep=16pt \footskip=24pt
+\textheight=50pc \topskip=10pt
+\textwidth=30pc
+\columnsep=10pt \columnseprule=0pt
+
+\marginparwidth=90pt
+\marginparsep=11pt
+
+\setbox0=\hbox{\footnotesize M$^1$}
+\footnotesep=\ht0
+\skip\footins=7pt plus11pt
+\skip\@mpfootins=\skip\footins
+
+\fboxsep=3pt \fboxrule=.4pt
+
+\arrayrulewidth=.4pt    \doublerulesep=2pt
+\labelsep=5pt           \arraycolsep=\labelsep
+\tabcolsep=\labelsep    \tabbingsep=\labelsep
+
+\floatsep=6pt plus9pt             \textfloatsep=6pt plus9pt
+\intextsep=6pt plus9pt            \@maxsep=6pt
+\dblfloatsep=6pt plus9pt          \dbltextfloatsep=12pt plus9pt
+\@dblmaxsep=12pt                  \@fptop=0pt plus1fil
+\@fpsep=8pt plus2fil              \@fpbot=0pt plus1fil
+\@dblfptop=0pt plus1fil           \@dblfpsep=8pt plus2fil
+\@dblfpbot=0pt plus1fil           \marginparpush=5pt
+
+\parskip=0pt plus1pt
+\newdimen\normalparindent       \normalparindent=12pt
+\parindent=\normalparindent
+
+\partopsep=0pt
+
+\@lowpenalty=51         \@medpenalty=151        \@highpenalty=301
+\@beginparpenalty=-\@lowpenalty
+\@endparpenalty=-\@lowpenalty
+\@itempenalty=-\@lowpenalty
+\def\part{\@startsection{\@string\part}%
+        0\z@{12\p@\@plus12\p@}{6\p@}%
+        {\raggedright\defaultfont\bf}}
+
+\def\partname{Part}
+\def\section{\@startsection{\@string\section}%
+        1\z@{9\p@\@plus12\p@}{6\p@}%
+        {\centering\defaultfont\sc}}
+\def\subsection{\@startsection{\@string\subsection}%
+        2\z@{6\p@\@plus9\p@}{-.5em}%
+        {\defaultfont\bf}}
+
+\def\subsubsection{\@startsection{\@string\subsubsection}%
+        3\z@{6\p@\@plus9\p@}{-.5em}%
+        \defaultfont\it}
+
+\def\paragraph{\@startsection{\@string\paragraph}%
+        4\z@\z@{-\spaceskip}\defaultfont}
+
+\def\appendix{\par\c@section\z@ \c@subsection\z@
+   \let\sectionname\appendixname
+   \def\thesection{\@Alph\c@section}}
+
+\def\appendixname{Appendix}
+
+\settowidth\leftmargini{\labelenumi\hspace*\labelsep}
+\advance\leftmargini by 18pt
+\settowidth\leftmarginii{\labelenumii\hspace*\labelsep}
+\advance\leftmarginii by 15pt
+\settowidth\leftmarginiii{\labelenumiii\hspace*\labelsep}
+\advance\leftmarginiii by 12pt
+\settowidth\leftmarginiv{\labelenumiv\hspace*\labelsep}
+\advance\leftmarginiv by 10pt
+\leftmarginv=10pt
+\leftmarginvi=10pt
+\leftmargin=\leftmargini
+\labelsep=5pt
+\labelwidth=\leftmargini \advance\labelwidth-\labelsep
+
+\def\@listI{\leftmargin\leftmargini \parsep\z@
+  \topsep\smallskipamount \itemsep\z@}
+\let\@listi\@listI
+\@listi
+\def\@listii{\leftmargin\leftmarginii
+ \labelwidth\leftmarginii \advance\labelwidth-\labelsep
+ \topsep\z@ \parsep\z@ \itemsep\z@}
+\def\@listiii{\leftmargin\leftmarginiii
+ \labelwidth\leftmarginiii \advance\labelwidth-\labelsep
+ \topsep\z@ \parsep\z@ \partopsep\z@ \itemsep\z@}
+\def\@listiv{\leftmargin\leftmarginiv
+ \labelwidth\leftmarginiv \advance\labelwidth-\labelsep}
+\def\@listv{\leftmargin\leftmarginv
+ \labelwidth\leftmarginv \advance\labelwidth-\labelsep}
+\def\@listvi{\leftmargin\leftmarginvi
+ \labelwidth\leftmarginvi \advance\labelwidth-\labelsep}
+
+\if@article \else %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BOOK ONLY
+\input amsbk1\@ptsize.sty\relax
+\fi %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\endinput
+%% 
+%% End of file `tex_inputs:amsart10.sty'.

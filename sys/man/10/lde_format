@@ -1,0 +1,272 @@
+.TH LDE_FORMAT 10.6
+.SH NAME
+lde \- logic design expression language
+.SH DESCRIPTION
+The
+.I lde
+language contains declaration areas
+that must appear in the following order:
+.TP
+.PD 0
+.B .x
+an optional chip declaration area,
+.TP
+.B .m
+a master pin definition (LDE only)
+.TP
+.B .i
+an input declaration area,
+.TP
+.B .o
+an output declaration area,
+.TP
+.B .io
+an external input/output declaration area
+.TP
+.B .b
+a buried input/output declaration area
+.TP
+.B .f
+an optional field declaration area,
+.TP
+.B .e
+and an expression area.
+.PD
+.PP
+The
+.I lde
+language contains expressions like those in C.
+Identifiers may include
+.BR + ,
+.BR - ,
+and
+.B .
+and semicolons are not used to end statements.
+Symbols must be declared before used.
+.PP
+The chip declaration area contains two strings, 
+.I name
+and 
+.I type.
+.PP
+Variables
+are declared by white-space delimited lists in the
+.BR .i ,
+.BR io ,
+.BR .b ,
+or
+.B .o
+areas or by appearance on the left of an
+.B =
+in the
+.B .f
+or
+.B .e
+areas.
+The
+variables are computer words with one or more bits
+representing two-level logic signals.
+In the default case,
+the least significant bit represents a single signal.
+An entry
+.IB identifier [ n ] ,
+where n is an integer,  maps the logic signals
+.IR identifier0 ,
+.IR identifier1 ", ...
+.IR identifiern \-1
+to the least significant through the
+.IR n \-1 th
+bit of
+.I identifier.
+The numeric suffixes are left filled with zeros so that they all have the same
+number of digits.
+Similarly,
+an entry in the field declaration area of
+the form
+.I n_id
+=
+.I o_id o_id ...
+defines a new multibit variable
+.I n_id
+the least significant bit of which is the first old identifier,
+.I o_id
+and the higher bits the following old identifier.
+.PP
+.I Lde
+also accepts white-space delimited declarations of the form
+.IB name : master
+in the
+.B .m
+area to declare an instance of a master definition.
+The master corresponds to a library definition in the target
+technology to be used. 
+Variables of the form
+.I name.id
+for each pin in the corresponding
+master library definition may then be used in the expressions.
+.PP
+In the
+.B .e
+area, the binary operators
+.BR * ,
+.BR / ,
+.BR % ,
+.BR + ,
+.BR - ,
+.BR < ,
+.BR <= ,
+.BR > ,
+.BR >= ,
+.BR == ,
+.BR != ,
+.BR & ,
+.BR ^ ,
+.BR | ,
+.BR && ,
+and
+.B ||
+have the same meaning
+as in the C language. So do the unary operators
+.B !
+and
+.B ~
+and the conditional operator
+.BR ?: .
+Since
+.I lde
+is an expression language, no flow control (such as
+.B if
+or
+.BR switch )
+is allowed.
+An expression selector is available;
+.IB expra {[[ exprb ]:] exprc ,
+.BI [[ exprd ]:] expre ,
+.IB ... }
+has the value of
+.I exprc
+if
+.I expra
+equals
+.IR exprb .
+If there is no
+.I exprb
+and there is a colon, then
+.I exprc
+is the default case.
+If there is no
+.I exprb
+and no colon, then the pre-incremented value of the prior
+value of
+.I exprb
+is used, and the prior value of
+.I exprb
+is initialized to \-1.
+.PP
+Combinatorial logic may be specified
+with the assignment operator,
+.B =.
+The assignment operator
+.B ~=
+is a cue to down stream programs that the combinational logic of the
+right hand side is to be inverted.
+.PP
+The assignment operators
+.BR := ,
+.BR #= ,
+and
+.B ^=
+specify clocked outputs. The expression on the right hand side is the
+clock. The data input is a simple assignment statement as above.
+.B :=
+means D flip-flop,
+.B #=
+transparent latch, 
+and 
+.B ^=
+toggle flip-flop (output toggles when the date input is true).
+Optionally for clocked devices,
+.BR += ,
+.BR -= ,
+and
+.B %=
+define signals that set, clear, and qualify the clock.
+.PP
+The operator
+.B *=
+assigns the enable expression for tri-state outputs. Sometimes, in the case of
+tri-state outputs used as inputs, it is important to state whether the input
+is before or
+after the tri-state driver. 
+.IB id <- P 
+means use signal
+.I id
+at the pin (after the tri-state driver) while
+.IB id <- Q
+means use the internal signal before the tri-state driver.
+.PP
+Identifiers may be modified by a appended single quote
+.RB ( ' ),
+in which case a value of one has the meaning "don't_care" for the unmodified
+identifier.
+.PP
+Numeric values may be passed from the command line of the program interpreting the
+.I lde
+language.
+They appear as
+.BR $m .
+The (zero based)
+.RI m th
+occurrence of
+.BI \- n
+on the command line substitutes the value
+.I n
+for the symbol
+.BR $m .
+.SH EXAMPLES
+.PP
+A 4-bit counter.
+.IP
+.EX
+ .i
+	ck
+	en
+ .b
+	x[4]			/* a buried vector */
+ .o
+	c[4]
+ .f
+	rx = x3 x2 x1 x0	/* note use of vector elements */
+ .e
+	x = x ^ (x + 1)	/* expression for counter */
+	x ^= ~0*ck		/* if the elements are toggles */
+	c = rx		/* output bit reversal of counter */
+	c *= ~0*en		/* note ~0* idiom */
+.EE
+.PP
+A simple state machine that indicates even, state equals 3, or
+odd, state equals 0, number of input ones.
+.IP
+.EX
+ .i
+ 	input clk reset
+ .io
+ 	state[2]
+ .e
+ 	state = state {
+ 			0:
+ 				(input == 1) ? 4 : 0,
+ 			4:
+ 				(input == 1) ? 0 : 4,
+ 			:
+ 				0
+ 	}
+
+ 	state' = state & 1		/* don't cares */
+
+ 	state -= reset ~0 : 0		/* clear */
+
+ 	state := clk ? ~0 : 0		/* d flip-flop */
+.EE
+.SH SEE ALSO
+.IR lde (10.1)

@@ -1,0 +1,28 @@
+#!/bin/rc
+
+# net 5000 is VCC, 5001 is GND
+
+prog='
+BEGIN{
+	n = 0
+	flag = 5
+	fmt = "%3d%7d%7d%5d%5d\n"
+}
+{
+	if(n++ > 0){
+		printf fmt, flag+0, x+0, y+0, net+0, net+0
+		flag = 4
+	}
+	x = $3+0
+	y = $4+0
+}
+END{
+	if(n > 0){
+		flag = 6
+		printf fmt, flag+0, x+0, y+0, net+0, net+0
+	}
+}'
+
+grep '^ +INC +THERMAL1' $* | sed 's/,/ /g' | awk -v 'net=5000' $prog
+grep '^ +INC +THERMAL0' $* | sed 's/,/ /g' | awk -v 'net=5001' $prog
+echo ' -1  32767  32767    0    0'

@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% RIGHTTAG.STY						    July 1990      %
+%                                                                          %
+% This file is part of the AMS-LaTeX Version 1.0 distribution              %
+%   American Mathematical Society, Technical Support Group,                %
+%   P. O. Box 6248, Providence, RI 02940                                   %
+%   800-321-4AMS (321-4267) or 401-455-4080                                %
+%   Internet: Tech-Support@Math.AMS.com                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%% This is file `righttag.sty' generated
+%% on <1990/6/20> with the docstrip utility (v1.1j). 
+%% 
+%% The original source file was `righttag.doc'.
+%% 
+\def\fileversion{v1.0}
+\def\filedate{25-FEB-1990}
+\def\docdate {20-FEB-1990}
+
+%% \CheckSum{20}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\@ifundefined{iftagsleft@}
+     {\errmessage{The style option `righttag' does not make sense if you
+        do not use an AMS documentstyle (`amsart', `amsbook')
+        or the `amstex' option (and in the latter case
+        `amstex' must precede `righttag' in the options list).}\endinput}
+     {}
+\immediate\write\sixt@@n{Style Option `righttag'
+ \fileversion\space <\filedate>  (MJD)}
+\immediate\write\sixt@@n{English Documentation
+           \@spaces  <\docdate>  (MJD)}
+\tagsleft@false
+\def\@eqnnum{\tagform@\theequation}
+\endinput
+
+\endinput
+%% 
+%% End of file `righttag.sty'.

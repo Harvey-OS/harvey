@@ -1,0 +1,34 @@
+APE=/sys/src/ape
+< $APE/config
+L=/$objtype/lib/ape/libl.a
+CFLAGS=$CFLAGS -D_RESEARCH_SOURCE
+BUILTINS=
+
+NAMES=U=allprint main reject yyless yywrap
+
+OBJ=U=${NAMES:%=$L(%.$O)}
+
+install:VQ:	$L
+	echo done $L
+
+compile:V:	$L
+test:VQ:
+	echo libl has no test
+clean:V:
+	rm -f *.[$OS]
+
+nuke:V:		clean
+	rm -f $L
+
+$L:	$OBJ
+	names=`{membername $newprereq}
+	$AR rv $L $names && rm -f $names
+	$RANLIB $L
+
+$L(%.$O):N:	%.$O
+
+%.$O:	%.c
+	$CC $CFLAGS -c $stem.c
+
+%.$O:	$FAMILY/%.c
+	$CC $CFLAGS -c $prereq

@@ -1,0 +1,4 @@
+</$objtype/mkfile
+
+v.out:	cmap.c
+	$CC $CFLAGS cmap.c && $LD cmap.$O -lstdio

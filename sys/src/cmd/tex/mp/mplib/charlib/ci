@@ -1,0 +1,7 @@
+vardef C.ci(expr n) =
+ save p; picture p;
+ p=nullpicture;
+ addto p doublepath makepath pencircle shifted(.5,.5)
+  withpen pencircle scaled.0444;
+ p scaled(.75*fontsize n)
+enddef;

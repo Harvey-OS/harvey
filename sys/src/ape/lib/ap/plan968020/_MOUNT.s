@@ -1,0 +1,4 @@
+TEXT _MOUNT(SB), 1, $0
+MOVL $13, R0
+TRAP $0
+RTS

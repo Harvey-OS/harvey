@@ -1,0 +1,20 @@
+#!/bin/rc
+/bin/awk 'BEGIN {
+	p = 1
+}
+{
+	for (i = 1; i <= length($1); i++) {
+		c = substr($1,i,1)
+		for (j = 1; j <= $2; j++)
+			print "Pin "c""j" "p++
+		if (NF > 2) {
+			n = $2+$3+1
+			for (j = n; j < n+$4; j++)
+				print "Pin "c""j" "p++
+		}
+	}
+}' <<eof
+ABC	14
+DEFGHJKL	3	8	3
+MNP	14
+eof

@@ -1,0 +1,30 @@
+.TH RESAMPLE 9.1
+.SH NAME
+resample \- resample a picture horizontally
+.SH SYNOPSIS
+.B fb/resample
+.I width
+[
+.I input
+] [
+.I B C
+]
+.SH DESCRIPTION
+.I Resample
+resamples the scan lines of its input image (default standard input)
+to the given new width.  The image is decimated or interpolated using
+a well-designed cubic filter.
+See
+.IR transpose (9.1)
+for assistance with vertical resampling.
+.PP
+The reference explains the optional filter parameters
+.I B
+and
+.I C.
+The default values give optimal alias rejection, and should not
+normally be tampered with.
+.SH "SEE ALSO
+.IR picfile (9.6),
+``Reconstruction in Computer Graphics'', by Mitchell and Netravali in
+SIGGRAPH 88 Proceedings.

@@ -1,0 +1,21 @@
+S=cda.ms
+G=`{echo *.g}
+L=toy.w.l toy.pins.l toy.wx.l
+F=${G:%.g=%.pic}
+
+cda.i: $S $F $L
+	pic $S | tbl | troff -ms > cda.i
+
+figs:N: $F
+
+%.pic: %.g
+	cda/grawp -t $prereq >$target
+
+%.l: %
+	sed 's/^/\\\&/' $prereq >$target
+
+list:Q:
+	echo mkfile $S
+
+clean:Q:
+	rm -f cda.i *.pic

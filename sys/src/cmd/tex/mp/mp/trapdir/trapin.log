@@ -1,0 +1,198 @@
+This is MetaPost, C Version 0.15 (INIMP)  28 AUG 1990 10:27
+**\input trap
+(trap.mp
+>> << == >> ::: ||`` ''--!! ??## && @@ $$[[]]{{ }}((5.5 0.5))
+>> ".."
+! Not implemented: (unknown numeric)++(string).
+<to be read again> 
+                   ;
+l.4 ...}} . (( 5.5.5 )) ++ "..";
+                                
+I'm afraid I don't know how to apply that operation to that
+combination of types. Continue, and I'll return the second
+argument (see above) as the result of the operation.
+
+..
+! Missing `=' has been inserted.
+<to be read again> 
+                   ,
+l.5   begingroup save =; let=,
+                              ; save,; newinternal $=,; let )...
+You should have said `let symbol = something'.
+But don't worry; I'll pretend that an equals sign
+was present. The next token I read will be `something'.
+
+> errorstopmode=errorstopmode
+> readstring=readstring
+> 2
+> "2"
+> ,=,
+> (=tag
+> )=,
+<< == >> ::: ||`` ''--!! ??## && @@ $$[[]]{{ }}(([][]))=numeric
+<< == >> ::: ||`` ''--!! ??## && @@ $$[[]]{{ }}((5.5 0.5))=<< == >> ::: 
+||`` ''--!! ??## && @@ $$[[]]{{ }}((5.5 0.5))
+> year=month
+! OK.
+l.6 ...ring,2,"2",,,(,),<<,year;
+                                
+
+! Missing `:' has been inserted.
+<to be read again> 
+                   ;
+l.8 ...not cycle "":1.1 forever;
+                                fi;
+The next thing in this loop should have been a `:'.
+So I'll pretend that a colon was present;
+everything from here to `endfor' will be iterated.
+
+{fi}
+{exitif}
+{[repeat the loop]}
+{false}
+{fi}
+{exitif}
+{[repeat the loop]}
+{(2.1)>(2)}
+{true}
+{tracingcommands:=2.1}
+{showtoken}
+> |=:|>=|=:|>
+! OK.
+l.9 ... endfor; showtoken |=:|>;
+                                
+
+! Arithmetic overflow.
+l.10 ...acinglostchars:=1/.00001
+                                ; tracingequations:=$+1; p~=t...
+Uh, oh. A little while ago one of the quantities that I was
+computing got too large, so I'm afraid your answers will be
+somewhat askew. You'll probably have to adopt different
+tactics next time. But I shall try to carry on anyway.
+
+{tracinglostchars:=32767.99998}
+{(0)+(1)}
+{tracingequations:=1}
+{(32767.99998)+(0.00002)}
+! Arithmetic overflow.
+l.10 ...tracinglostchars+.00001;
+                                
+Uh, oh. A little while ago one of the quantities that I was
+computing got too large, so I'm afraid your answers will be
+somewhat askew. You'll probably have to adopt different
+tactics next time. But I shall try to carry on anyway.
+
+{(p~)=(32767.99998)}
+## p~=32767.99998
+{interim}
+{tracingmacros:=1}
+{tracingoutput:=1}
+{warningcheck:=1}
+{tracingstats:=1}
+{tracingchoices:=1}
+{tracingspecs:=1}
+{ASCII("")}
+{$:=-1}
+{$:=x}
+>> x
+! Internal quantity `$' must receive a known value.
+<to be read again> 
+                   ;
+l.12 ...os:=1; $:=ASCII""; $:=x;
+                                 p~:=p~;
+I can't set an internal quantity to anything but a known
+numeric value, so I'll have to ignore this assignment.
+
+{p~:=32767.99998}
+## p~=32767.99998
+! Value is too large (32767.99998).
+l.12 ...:=ASCII""; $:=x; p~:=p~;
+                                
+The equation I just processed has given some variable
+a value of 4096 or more. Continue and I'll try to cope
+with that big value; but it might be dangerous.
+(Set warningcheck:=0 to suppress this message.)
+
+{delimiters}
+{delimiters}
+{vardef}
+{def}
+
+foo(TEXT2)->begingroup(TEXT2)endgroup
+(SUFFIX0)<-
+(SUFFIX1)<-foo
+(TEXT2)<-interim.tracinglostchars:=(0.5;show.urcorner("flubo"infont"trap
+f"),2+2
+{begingroup}
+{interim}
+! Missing `)' has been inserted.
+<to be read again> 
+                   ;
+<argument> ...nglostchars:=(0.5;
+                                show.urcorner("flubo"infont"t...
+foo->begingroup(TEXT2)
+                      endgroup
+l.17   ),2+2endtext
+                   ; for n=tracingspecs step 1 until $:fi end...
+I found no right delimiter to match a left one. So I've
+put one in, behind the scenes; this may fix the problem.
+
+{tracinglostchars:=0.5}
+{show}
+{("flubo")infont("trapf")}
+Missing character: There is no f in font trapf!
+Missing character: There is no l in font trapf!
+Missing character: There is no o in font trapf!
+{urcorner(picture)}
+>> (2.9888,7.97011)
+{(2)+(2)}
+
+>> 4
+! OK.
+<to be read again> 
+                   endgroup
+l.17   ),2+2endtext
+                   ; for n=tracingspecs step 1 until $:fi end...
+
+{restoring tracinglostchars=32767.99998}
+{endgroup}
+{for}
+{showstats}
+Memory usage 292&36 (2918 still untouched)
+String usage 29&104 (1315&9972 now untouched)
+! OK.
+l.17 ...l $:fi endfor showstats;
+                                
+
+{let}
+{path}
+{-(15)}
+{-(12)}
+Path at line 18, before choices:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)
+
+Path at line 18, after choices:
+(0,0)..controls (15,4) and (-15,-12)
+ ..(4,0)
+
+{(unknown path p~)=(path)}
+{everyjob}
+{vardef}
+{let}
+{vardef}
+{def}
+{begingroup}
+{errorstopmode}
+
+{endgroup}
+{elseif}
+{endinput}
+{\}
+)
+*dump
+Beginning to dump on file trap.mem
+ (preloaded mem=trap 90.8.28)
+at most 1193 strings of total length 22060
+398 memory locations dumped; current usage is 318&68
+265 symbolic tokens

@@ -1,0 +1,52 @@
+</$objtype/mkfile
+
+TARG=rc
+FILES=code.c\
+	exec.c\
+	getflags.c\
+	glob.c\
+	here.c\
+	io.c\
+	lex.c\
+	pcmd.c\
+	pfnc.c\
+	simple.c\
+	subr.c\
+	trap.c\
+	tree.c\
+	var.c\
+
+FILES9=plan9.c\
+
+FILESUNIX=unix.c\
+
+CFILES=$FILES $FILES9 y.tab.c
+OFILES=${CFILES:%.c=%.$O}
+HFILES=rc.h\
+	x.tab.h\
+	io.h\
+	exec.h\
+	fns.h\
+
+YFILES=syn.y
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=
+
+x.tab.h: y.tab.h
+	flag e -
+	cmp -s x.tab.h y.tab.h || cp y.tab.h x.tab.h
+
+clean:V:
+	rm -f [$OS].out *.[$OS] [xy].tab.? y.debug $TARG
+
+regress: $O.out
+	cd test
+	mk
+
+unregress:V:
+	for(test in test/*.test) rc $test >$test.out
+
+listing:
+	pr mkfile $HFILES $FILES $FILES9 $FILESUNIX $YFILES|lp -du

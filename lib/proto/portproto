@@ -1,0 +1,71 @@
+usr
+adm
+	+
+fd
+lib
+	namespace
+	ndb
+		local
+	font
+		bit
+			pelm
+				*
+			misc
+				6x10.0
+				6x13.0
+rc
+	+
+mail
+$cputype
+	bin
+		*
+		aux
+			*
+		disk
+			*
+		games
+			*
+		ndb
+			cs
+			query
+		ip
+			*
+	include
+		*
+	init
+	lib
+		*
+	mkfile
+mnt
+	8½
+	help
+	term
+n
+	boot
+	bootes
+	bootesother
+	bowell
+	coma
+	dump
+	pipe
+	tempel
+	kfs
+net
+proc
+srv
+sys
+	games
+		+
+	lib
+		troff
+			term
+				*
+		newuser
+		samsave
+		tmac
+			+
+		yaccpar
+		yaccpars
+	include
+		*
+tmp

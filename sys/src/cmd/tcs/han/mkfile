@@ -1,0 +1,28 @@
+RAW=/usr/rob/data/unicode/cjkxref.fix
+
+all install installall:V:	../kuten.c
+
+../kuten.c:Pcmp -s:	kuten.c
+	cp $prereq $target
+
+kuten.c:D:	kuten.awk jis.font
+	rm -f jis.dups
+	awk -f kuten.awk < jis.font > $target
+
+jis.font:D:	han.map desc.han font.awk
+	sed '1,/^UNIC/d' desc.han | time awk -f font.awk
+	awk -f jis.awk < jis.font | sort +1n -o jis.font
+	cat han.map >> jis.font
+
+#han.map:D:	han.raw han.awk han.bwk jis.weird
+#	awk -f han.awk < han.raw > han.map
+#	cat jis.weird >> han.map
+#	cat han.bwk >> han.map		# errors/buglets
+
+han.map:D:	$RAW nhan.awk han.bwk jis.weird
+	awk -f nhan.awk < $RAW > han.map
+	cat jis.weird >> han.map
+	cat han.bwk >> han.map		# errors/buglets
+
+nuke clean:V:
+	rm -f *.font han.map kuten.c

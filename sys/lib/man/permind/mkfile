@@ -1,0 +1,27 @@
+BUILTINS=
+< /$objtype/mkfile
+
+out: permindex dopermind mac
+	dopermind > out
+
+permindex:V: ptx
+	rm -f junk*
+	for (i in /sys/man/[0-9])
+		makind1 $i >> junk0
+	sed 's/0intro/intro/g' junk0 > junk1
+	ptx -f -w 100 -i ignore -b bfile -r junk1 >junk2
+	awk -f dup2.awk junk2 | awk -f dup1.awk | sort -dfut'"' +5 -6 +1 -2 +8 +0 >junk3
+	mv junk3 junk2
+	awk -f dup2.awk junk2 | awk -f dup1.awk | sort -dfut'"' +5 -6 +1 -2 +8 +0 >junk3
+	mv junk3 junk2
+	awk -f dup2.awk junk2 | awk -f dup1.awk | sort -dfut'"' +5 -6 +1 -2 +8 +0 >junk3
+	mv junk3 permindex
+	rm junk*
+
+
+ptx: ptx.c
+	$CC ptx.c
+	$LD -o ptx ptx.$O -lstdio
+
+clean:V:
+	rm -f junk* ptx.v ptx permindex out

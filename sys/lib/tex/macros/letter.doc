@@ -1,0 +1,830 @@
+% LETTER DOCUMENT STYLE -- Released 20 Sep 88
+%    for LaTeX version 2.09
+% Copyright (C) 1987 by Leslie Lamport
+
+\typeout{Document Style `letter' <20 Sep 88>.}
+
+%  The type size option is handled by \def'ing \@ptsize to the following
+%  values:
+%       10pt : 0, 11pt : 1, 12pt : 2
+%  Then loading the different fonts accordingly.
+%
+
+\def\@ptsize{0}                     % Default is 10pt.
+\@namedef{ds@11pt}{\def\@ptsize{1}} % 11pt option.
+\@namedef{ds@12pt}{\def\@ptsize{2}} % 12pt option.
+
+
+% no twoside option
+%
+\@twosidefalse
+
+%  draft option
+%
+% \overfullrule = 0pt             % Default is don't mark overfull hboxes.
+\def\ds@draft{\overfullrule 5pt}  % Causes overfull hboxes to be marked.
+
+% The \@options command causes the execution of every command \ds@FOO 
+% which is defined and for which the user typed the FOO option in his
+% \documentstyle command.  For every option BAR he typed for which
+% \ds@BAR is not defined, the file BAR.sty will be read after the present
+% (main) .STY file is executed.
+
+\@options
+
+%  ****************************************
+%  *               FONTS                  *
+%  ****************************************
+%
+
+\lineskip 1pt            % \lineskip is 1pt for all font sizes.
+\normallineskip 1pt
+\def\baselinestretch{1}
+
+% Each size-changing command \SIZE executes the command
+%        \@setsize\SIZE{BASELINESKIP}\FONTSIZE\@FONTSIZE
+% where:
+%   BASELINESKIP = Normal value of \baselineskip for that size.  (Actual 
+%                  value will be \baselinestretch * BASELINESKIP.)
+%
+%  \FONTSIZE     = Name of font-size command.  The currently available
+%                  (preloaded) font sizes are: \vpt (5pt), \vipt (6pt),
+%                  \viipt (etc.), \viiipt, \ixpt, \xpt, \xipt, \xiipt,
+%                  \xivpt, \xviipt, \xxpt, \xxvpt.
+%  \@FONTSIZE    = The same as the font-size command except with an
+%                  '@' in front---e.g., if \FONTSIZE = \xivpt then
+%                  \@FONTSIZE = \@xivpt.
+%
+% For reasons of efficiency that needn't concern the designer,
+% the document style defines \@normalsize instead of \normalsize .  This is
+% done only for \normalsize, not for any other size-changing commands.
+
+\ifcase \@ptsize\relax   % 10pt option
+
+\def\@normalsize{\@setsize\normalsize{12pt}\xpt\@xpt  
+\abovedisplayskip 10pt plus2pt minus5pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip  \z@ plus3pt%   
+\belowdisplayshortskip  6pt plus3pt minus3pt%
+\let\@listi\@listI}   % Setting of \@listi added 22 Dec 87
+
+\def\small{\@setsize\small{11pt}\ixpt\@ixpt
+\abovedisplayskip 8.5pt plus 3pt minus 4pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus2pt%
+\belowdisplayshortskip 4pt plus2pt minus 2pt%
+\def\@listi{\leftmargin\leftmargini %% Def of \@list i added 22 Dec 87
+\topsep 4pt plus 2pt minus 2pt\parsep 2pt plus 1pt minus 1pt
+\itemsep \parsep}}
+
+\def\footnotesize{\@setsize\footnotesize{9.5pt}\viiipt\@viiipt
+\abovedisplayskip 6pt plus 2pt minus 4pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus 1pt%
+\belowdisplayshortskip 3pt plus 1pt minus 2pt%
+\def\@listi{\leftmargin\leftmargini %% Def of \@list i added 22 Dec 87
+\topsep 3pt plus 1pt minus 1pt\parsep 2pt plus 1pt minus 1pt
+\itemsep \parsep}}
+
+\def\scriptsize{\@setsize\scriptsize{8pt}\viipt\@viipt}
+\def\tiny{\@setsize\tiny{6pt}\vpt\@vpt}
+\def\large{\@setsize\large{14pt}\xiipt\@xiipt}
+\def\Large{\@setsize\Large{18pt}\xivpt\@xivpt}
+\def\LARGE{\@setsize\LARGE{22pt}\xviipt\@xviipt}
+\def\huge{\@setsize\huge{25pt}\xxpt\@xxpt}
+\def\Huge{\@setsize\Huge{30pt}\xxvpt\@xxvpt}
+
+\or  % 11pt option
+
+\def\@normalsize{\@setsize\normalsize{13.6pt}\xipt\@xipt
+\abovedisplayskip 11pt plus3pt minus6pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip  \z@ plus3pt%   
+\belowdisplayshortskip  6.5pt plus3.5pt minus3pt%
+\let\@listi\@listI}   % Setting of \@listi added 22 Dec 87
+
+\def\small{\@setsize\small{12pt}\xpt\@xpt
+\abovedisplayskip 10pt plus2pt minus5pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip  \z@ plus3pt%   
+\belowdisplayshortskip  6pt plus3pt minus3pt%
+\def\@listi{\leftmargin\leftmargini %% Def of \@listi added 22 Dec 87
+\topsep 6pt plus 2pt minus 2pt\parsep 3pt plus 2pt minus 1pt
+\itemsep \parsep}}
+
+\def\footnotesize{\@setsize\footnotesize{11pt}\ixpt\@ixpt
+\abovedisplayskip 8pt plus 2pt minus 4pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip \z@ plus 1pt%
+\belowdisplayshortskip 4pt plus 2pt minus 2pt%
+\def\@listi{\leftmargin\leftmargini %% Def of \@listi added 22 Dec 87
+\topsep 4pt plus 2pt minus 2pt\parsep 2pt plus 1pt minus 1pt
+\itemsep \parsep}}
+
+\def\scriptsize{\@setsize\scriptsize{9.5pt}\viiipt\@viiipt}
+\def\tiny{\@setsize\tiny{7pt}\vipt\@vipt}
+\def\large{\@setsize\large{14pt}\xiipt\@xiipt}
+\def\Large{\@setsize\Large{18pt}\xivpt\@xivpt}
+\def\LARGE{\@setsize\LARGE{22pt}\xviipt\@xviipt}
+\def\huge{\@setsize\huge{25pt}\xxpt\@xxpt}
+\def\Huge{\@setsize\Huge{30pt}\xxvpt\@xxvpt}
+
+\or  % 12pt option
+
+\def\@normalsize{\@setsize\normalsize{15pt}\xiipt\@xiipt
+\abovedisplayskip 12pt plus3pt minus7pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip  \z@ plus3pt%   
+\belowdisplayshortskip  6.5pt plus3.5pt minus3pt%
+\let\@listi\@listI}   % Setting of \@listi added 22 Dec 87
+
+\def\small{\@setsize\small{13.6pt}\xipt\@xipt
+\abovedisplayskip 11pt plus3pt minus6pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip  \z@ plus3pt%   
+\belowdisplayshortskip  6.5pt plus3.5pt minus3pt%
+\def\@listi{\leftmargin\leftmargini %% Def of \@list i added 22 Dec 87
+\parsep 4.5pt plus 2pt minus 1pt
+            \itemsep \parsep
+            \topsep 9pt plus 3pt minus 5pt}}
+
+\def\footnotesize{\@setsize\footnotesize{12pt}\xpt\@xpt
+\abovedisplayskip 10pt plus2pt minus5pt%
+\belowdisplayskip \abovedisplayskip
+\abovedisplayshortskip  \z@ plus3pt%   
+\belowdisplayshortskip  6pt plus3pt minus3pt%
+\def\@listi{\leftmargin\leftmargini %% Def of \@list i added 22 Dec 87
+\topsep 6pt plus 2pt minus 2pt\parsep 3pt plus 2pt minus 1pt
+\itemsep \parsep}}
+
+\def\scriptsize{\@setsize\scriptsize{9.5pt}\viiipt\@viiipt}
+\def\tiny{\@setsize\tiny{7pt}\vipt\@vipt}
+\def\large{\@setsize\large{18pt}\xivpt\@xivpt}
+\def\Large{\@setsize\Large{22pt}\xviipt\@xviipt}
+\def\LARGE{\@setsize\LARGE{25pt}\xxpt\@xxpt}
+\def\huge{\@setsize\huge{30pt}\xxvpt\@xxvpt}
+\let\Huge=\huge
+\fi
+
+\normalsize  % Choose the normalsize font.
+
+
+%  ****************************************
+%  *            PAGE LAYOUT               *
+%  ****************************************
+%
+% All margin dimensions measured from a point one inch from top and side
+% of page.  Dimensions shrink by about 2 percent
+
+% SIDE MARGINS:
+\oddsidemargin   53pt      % Left margin on odd-numbered pages.
+\evensidemargin  53pt      % Left margin on even-numbered pages.
+\marginparwidth  90pt      % Width of marginal notes.
+\marginparsep    11pt      % Horizontal space between outer margin and 
+                           % marginal note
+\marginparpush 5pt         % Minimum vertical space between marginal notes.
+
+% VERTICAL SPACING:        
+                         % Top of page:
+\topmargin 27pt          %    Nominal distance from top of page to top of
+                         %    box containing running head.
+\headheight 12pt         %    Height of box containing running head.
+\headsep 45pt            %    Space between running head and text.
+% \topskip = 10pt        %    '\baselineskip' for first line of page.
+                         % Bottom of page:
+\footheight 12pt         %    Height of box containing running foot.
+\footskip 25pt           %    Distance from baseline of box containing foot 
+                         %    to baseline of last line of text.
+
+% DIMENSION OF TEXT:
+
+\textheight 505pt        % Height of text (including footnotes and figures, 
+                         % excluding running head and foot).
+\textwidth 365pt         % Width of text line.
+                         % For two-column mode: 
+\columnsep 10pt          %    Space between columns 
+\columnseprule 0pt       %    Width of rule between columns.
+
+\raggedbottom             % 'ragged bottom' (all pages set to natural
+                          % height, with no stretch or shrinkage) 
+
+% FOOTNOTES:
+
+\footnotesep 12pt    % Height of strut placed at the beginning of every
+                     % footnote.
+\skip\footins 10pt plus 2pt minus 4pt  % Space between last line of text and 
+                                       % top of first footnote.
+
+
+% FLOATS:
+%   The following items must be defined, even though there are no
+%   floats in this style.
+\floatsep 12pt plus 2pt minus 2pt
+\textfloatsep  20pt plus 2pt minus 4pt
+\intextsep 12pt plus 2pt minus 2pt
+\dblfloatsep 12pt plus 2pt minus 2pt
+\dbltextfloatsep 20pt plus 2pt minus 4pt
+\@maxsep 20pt
+\@dblmaxsep 20pt
+\@fptop 0pt plus 1fil
+\@fpsep 8pt plus 2fil
+\@fpbot 0pt plus 1fil
+\@dblfptop 0pt plus 1fil
+\@dblfpsep 8pt plus 2fil
+\@dblfpbot 0pt plus 1fil
+
+
+
+%    ****************************************
+%    *           LETTER COMMANDS            *
+%    ****************************************
+%
+% The following declarations, shown with examples, give information about the
+% sender:
+%
+% \name{Dr. L. User} : to be used for the return address on the envelope.
+% \signature{Larry User} : goes after the closing.
+% \address{3245 Foo St.\\Gnu York} : used as the return address in the letter
+%          and on the envelope.  If not declared, then an institutional 
+%          standard address is used.
+% \location{Room 374} : Acts as modifier to the standard institutional address.
+% \telephone{(415)123-4567} : Just in case some style puts it on the letter.
+% 
+% The \makelabels declaration causes mailing labels to be made.  It must
+% go before the \begin{document} command.  
+%
+% The letter environment: creates a new letter, starting from page 1.
+% (The first page is unnumbered.)  It has a single argument, which
+% is the adressee and his address, as in
+%        \begin{letter}{Sam Jones \\ 
+%                       Institute for Retarded Study\\ Princeton, N.J.}
+%
+% Local declarations, such as \address, can follow the \begin{letter}.
+%
+% Text is begun with the \opening command, whose argument generates the
+% salutation, as in 
+%           \opening{Dear Henry,} 
+% The body of the letter follows, ended by a \closing command, as in
+%            \closing{Yours truly,} 
+% The 'signature' is provided automatically.
+%  
+%  After the \closing you can put arbitrary stuff, which is typeset
+%  with \parindent = 0 and no page breaking.  Commands designed
+%  for use after the closing are:
+%
+%  \cc{Tinker\\Evers\\Chance} -- which produces:
+%        cc: Tinker
+%            Evers
+%            Chance
+%  
+%  \encl{Foo(2)\\Bar} -- which produces:
+%        encl: Foo(2)
+%              Bar
+%
+%
+%  DOCUMENT STYLE PARAMETERS AND COMMANDS.  CHANGE THESE TO
+%  CUSTOMIZE LETTER STYLE.
+%
+%  \opening{Dear Mr. Foo:}- Command to produce everything up to and including
+%     Should produce everything up to and including the 'Dear Mr. Foo:'
+%     and a \par command that follows.  Since there's a \vfil at the bottom
+%     of every page, it can add vertical  fil  to position a short letter.
+%     It should use the following commands:
+%       
+%     \toname       : name part of 'to' address.  Will be one line long.
+%     \toaddress    : address part of 'to' address. Lines separated by \\.
+%     \fromname     : name of sender.
+%     \fromaddress  : argument of current \address declaration--null if none.
+%                     Should use standard institutional address if null.
+%     \fromlocation : argument of current \location declaration--null if none.
+%     \telephonenum : argument of current \telephone declaration--null if none.
+%
+%     Note that  \ifx\foo\@empty  tests for a null value of \foo.
+%
+%  \closing{TXT} : Generates the closing matter, and the signature.
+%     An obvious thing to do is to use a \parbox for the closing
+%     and the signature.  Should use the following:
+%
+%     \fromsig    : argument of current \signature declaration or, if null,
+%                   the \fromname .
+%     \stopbreaks : a macro that inhibits page breaking.
+%
+%  \cc{ARG} and \encl{ARG} : obvious use of a \parbox[t] .
+%
+%  \ps : The only thing that this needs to do is call \startbreaks, which
+%        allows page breaking again.
+%
+%  \stopletter : Command called by \endletter to do the following:
+%     * Add any desired  fil  or other material at the end of the letter.
+%     * Define \returnaddress to be the return address for the mailing label.
+%       More precisely, it is the first argument of the \mlabel command
+%       described below. It should be \def'd to null if the return address
+%       doesn't appear on the labels.  Any command, other than \\, that
+%       should not be expanded until the \mlabel command is actually 
+%       executed must be preceded by \protect.  Whenever possible,
+%       \protect commands in the definition of \returnaddress---it's
+%       much more efficient that way.  In particular, when the standard
+%       return address is used, you should \def \returnaddress to something
+%       like \protect\standardreturnaddress .
+%
+% CUSTOMIZING THE LABELS
+%
+% Commands for generating the labels are put on the .AUX file, which is
+% read in and processed by the \end{document} command.  You have to
+% define the following two commands:
+%
+%    \startlabels : Should reset the page layout parameters if necessary.
+%       
+%    \mlabel{RETURN ADDRESS}{TO ADRESS} : Command to generate a single
+%        label.
+%
+
+
+%    ****************************************
+%    *        THE SRI LETTER FORMAT         *
+%    ****************************************
+%
+% Much of the following is copied from the letter format in the TeXbook.
+
+\newdimen\longindentation
+\longindentation=.5\textwidth
+\newdimen\indentedwidth
+\indentedwidth=\textwidth
+\advance\indentedwidth -\longindentation
+
+
+\def\opening#1{\ifx\@empty\fromaddress
+  \thispagestyle{firstpage} 
+    {\raggedleft\@date\par}
+  \else  % home address
+    \thispagestyle{empty} 
+    {\raggedleft\begin{tabular}{l}\ignorespaces\fromaddress \\*[2\parskip]
+      \@date \end{tabular}\par}
+  \fi
+  \vspace{2\parskip}
+  {\raggedright \toname \\ \toaddress \par}\vspace{2\parskip}
+  #1\par\nobreak}
+
+\long\def\closing#1{\par\nobreak\vspace{\parskip} 
+  \stopbreaks
+  \noindent
+  \ifx\@empty\fromaddress\else
+  \hspace*{\longindentation}\fi
+  \parbox{\indentedwidth}{\raggedright
+       \ignorespaces #1\\[6\medskipamount]%% changed 20 Jan 88
+       \ifx\@empty\fromsig 
+           \fromname
+       \else \fromsig \fi\strut}
+   \par}
+
+
+\def\ps{\par\startbreaks}
+
+\def\cc#1{\par\noindent
+\parbox[t]{\textwidth}{\@hangfrom{\rm  cc: }\ignorespaces #1\strut}\par}
+
+\def\encl#1{\par\noindent
+\parbox[t]{\textwidth}{\@hangfrom{\rm  encl: }\ignorespaces #1\strut}\par}
+
+\def\stopletter{}
+
+% Labels
+
+\def\returnaddress{}
+\newcount\labelcount
+
+
+% The following \startlabels command sets things up for producing
+% labels in two columns of five 2" X 4-1/4" labels each, suitable
+% for reproducing onto Avery brand number 5352 address labels.
+
+\def\startlabels{\labelcount=0 \baselineskip=0pt \lineskip=0pt
+\pagestyle{empty}
+\let\@texttop=\relax
+\topmargin -50pt
+\headsep 0pt
+\oddsidemargin -35pt
+\evensidemargin -35pt
+\textheight 10in
+\@colht\textheight  \@colroom\textheight \vsize\textheight
+\textwidth 550pt
+\columnsep 25pt
+\xpt
+\baselineskip=0pt
+\lineskip=0pt
+\boxmaxdepth=0pt
+\parindent=0pt      %% corrected 3/5/86 
+\twocolumn\relax}
+
+\def\mlabel#1#2{\setbox0\vbox{\parbox[b]{3.6in}{\strut\ignorespaces #2}}
+         \vbox to 2in{\vss \box0 \vss}}
+
+
+
+%    ****************************************
+%    *     THE GENERIC LETTER COMMANDS      *
+%    ****************************************
+%
+
+
+
+\long\def\letter#1{\newpage
+  \c@page\@ne
+  \interlinepenalty=200 % smaller than the TeXbook value
+  \@processto{#1}}
+
+\def\endletter{\stopletter\@@par\pagebreak\@@par
+  \if@filesw 
+    \begingroup 
+      \def\protect{\string}
+      \let\\=\relax
+      \def\protect##1{\string##1\space}
+      \immediate\write\@auxout{\string\mlabel{\returnaddress}{\toname
+           \\\toaddress}}
+    \endgroup 
+  \fi}
+
+% \@processto gets the \toname and \toaddress from the letter
+% environment's macro.  
+%
+\long\def\@processto#1{\@xproc #1\\@@@\ifx\toaddress\@empty 
+    \else \@yproc #1@@@\fi}
+\long\def\@xproc #1\\#2@@@{\def\toname{#1}\def\toaddress{#2}}
+\long\def\@yproc #1\\#2@@@{\def\toaddress{#2}}
+
+\def\stopbreaks{\interlinepenalty \@M
+   \def\par{\@@par\nobreak}\let\\=\@nobreakcr
+   \let\vspace\@nobreakvspace}
+
+\def\@nobreakvspace{\@ifstar{\@nobreakvspacex}{\@nobreakvspacex}}
+
+\def\@nobreakvspacex#1{\ifvmode\nobreak\vskip #1\relax\else
+               \@bsphack\vadjust{\nobreak\vskip #1}\@esphack\fi}
+
+\def\@nobreakcr{\vadjust{\penalty\@M}\@ifstar{\@xnewline}{\@xnewline}}
+
+\def\startbreaks{\let\\=\@normalcr
+   \interlinepenalty 200\def\par{\@@par\penalty 200\relax}}
+%% \relax added 20 Sep 88
+
+\def\name#1{\def\fromname{#1}}
+\def\fromname{}
+
+\def\signature#1{\def\fromsig{#1}}
+\def\fromsig{}
+
+\long\def\address#1{\def\fromaddress{#1}}
+\def\fromaddress{}
+
+\def\location#1{\def\fromlocation{#1}}
+\def\fromlocation{}
+
+\def\telephone#1{\def\telephonenum{#1}}
+\def\telephonenum{}
+
+% \document redefined so it writes '\startlabels\@startlabels' on the 
+% AUX file if it's making one.
+%
+\def\document{\endgroup
+  \@colht\textheight  \@colroom\textheight \vsize\textheight
+   \columnwidth\textwidth \@clubpenalty\clubpenalty
+   \if@twocolumn \advance\columnwidth -\columnsep 
+      \divide\columnwidth\tw@ \hsize\columnwidth \@firstcolumntrue 
+   \fi
+  \hsize\columnwidth \linewidth\hsize
+  \begingroup\@floatplacement\@dblfloatplacement\endgroup
+  \if@filesw \immediate\openout\@mainaux=\jobname.aux
+   \immediate\write\@mainaux{\string\startlabels\string\@startlabels}\fi
+  \def\do##1{\let ##1\@notprerr}
+  \@preamblecmds
+  \let\do\noexpand  
+  \@normalsize\everypar{}}
+
+% Redefine \enddocument so it outputs the last page of labels, if necessary.
+%
+\def\enddocument{\@checkend{document}\newpage\begingroup  
+\if@filesw \immediate\closeout\@mainaux 
+\makeatletter\input \jobname.aux\clearpage
+\fi\endgroup\deadcycles\z@\@@end}
+
+
+\def\makelabels{\@fileswtrue}
+
+\def\@startlabels{}
+
+
+
+%    ****************************************
+%    *            PAGE STYLES               *
+%    ****************************************
+%
+
+% The letter style sets \@texttop to \vskip 0pt plus .00006fil on
+% the first page of a letter, which centers a short letter on the page.
+% This fil value may have to be changed for other letterheads.
+
+\def\@texttop{\ifnum\c@page=1\vskip 0pt plus .00006fil\relax\fi}
+
+\def\ps@headings{\def\@oddhead{\sl To \ignorespaces\toname \hfil \@date
+    \hfil Page \thepage}\def\@oddfoot{}}
+
+\def\ps@empty{\def\@oddhead{}\def\@oddfoot{}%
+\def\@evenhead{}\def\@evenfoot{}}
+
+
+% The firstpage heading style puts the telephone number
+% in the proper place for the SRI letterhead.  It must be changed for
+% other sites.
+
+\def\ps@firstpage{\def\@oddhead{}\def\@oddfoot{\raisebox
+   {-45pt}[0pt]{\hbox to \textwidth
+  {\hspace*{100pt}\xpt\fromlocation \hfill \telephonenum}}\hss}%
+\def\@evenhead{}\def\@evenfoot{}}
+
+\def\ps@plain{\def\@oddhead{}\def\@oddfoot{\rm\hfil\thepage
+     \hfil}\def\@evenhead{}\let\@evenfoot\@oddfoot}
+
+
+%  ****************************************
+%  *           PARAGRAPHING               *
+%  ****************************************
+%
+\parskip .7em                      % Extra vertical space between paragraphs.
+\parindent 0pt                     % Width of paragraph indentation.
+\topsep .4em                       % Extra vertical space, in addition to 
+                                   % \parskip, added above and below list and
+                                   % paragraphing environments.
+\partopsep 0pt                     % Extra vertical space, in addition to 
+                                   % \parskip and \topsep, added when user
+                                   % leaves blank line before environment.
+\itemsep .4em                      % Extra vertical space, in addition to
+                                   % \parskip, added between list items.
+
+% The following page-breaking penalties are defined
+
+\@lowpenalty   51      % Produced by \nopagebreak[1] or \nolinebreak[1]
+\@medpenalty  151      % Produced by \nopagebreak[2] or \nolinebreak[2]
+\@highpenalty 301      % Produced by \nopagebreak[3] or \nolinebreak[3]
+
+\@beginparpenalty -\@lowpenalty    % Before a list or paragraph environment.
+\@endparpenalty   -\@lowpenalty    % After a list or paragraph environment.
+\@itempenalty     -\@lowpenalty    % Between list items.
+
+% \clubpenalty         % 'Club line'  at bottom of page.
+% \widowpenalty        % 'Widow line' at top of page.
+% \displaywidowpenalty % Math display widow line.
+% \predisplaypenalty   % Breaking before a math display.
+% \postdisplaypenalty  % Breaking after a math display.
+% \interlinepenalty    % SET BY THE LETTER COMMANDS
+% \brokenpenalty       % Breaking after a hyphenated line.
+
+
+
+%    ****************************************
+%    *                LISTS                 *
+%    ****************************************
+%
+
+% The following commands are used to set the default values for the list
+% environment's parameters. See the LaTeX manual for an explanation of
+% the meanings of the parameters.  Defaults for the list environment are
+% set as follows.  First, \rightmargin, \listparindent and \itemindent
+% are set to 0pt.  Then, for a Kth level list, the command \@listK is
+% called, where 'K' denotes 'i', 'ii', ... , 'vi'.  (I.e., \@listiii is
+% called for a third-level list.)  By convention, \@listK should set
+% \leftmargin to \leftmarginK.
+%
+% For efficiency, level-one list's values are defined at top level, and
+% \@listi is defined to be a no-op.
+
+\leftmargini   2.5em
+\leftmarginii  2.2em    % > \labelsep + width of '(m)'
+\leftmarginiii 1.87em   % > \labelsep + width of 'vii.'
+\leftmarginiv  1.7em    % > \labelsep + width of 'M.'
+\leftmarginv   1em
+\leftmarginvi  1em
+
+\leftmargin\leftmargini
+\labelwidth\leftmargini\advance\labelwidth-\labelsep
+\labelsep 5pt
+\parsep 0pt
+\let\@listi\relax
+
+\def\@listii{\leftmargin\leftmarginii
+   \labelwidth\leftmarginii\advance\labelwidth-\labelsep}
+
+\def\@listiii{\leftmargin\leftmarginiii
+    \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
+    \topsep .2em 
+    \itemsep \topsep}
+
+\def\@listiv{\leftmargin\leftmarginiv
+     \labelwidth\leftmarginiv\advance\labelwidth-\labelsep}
+
+\def\@listv{\leftmargin\leftmarginv
+     \labelwidth\leftmarginv\advance\labelwidth-\labelsep}
+
+\def\@listvi{\leftmargin\leftmarginvi
+     \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
+
+% ENUMERATE
+%  Enumeration is done with four counters: enumi, enumii, enumiii
+%  and enumiv, where enumN controls the numbering of the Nth level
+%  enumeration.  The label is generated by the commands \labelenumi 
+%  ... \labelenumiv.  The expansion of \p@enumN\theenumN defines the 
+%  output of a \ref command.  
+
+\def\labelenumi{\arabic{enumi}.}    
+\def\theenumi{\arabic{enumi}}     
+ 
+\def\labelenumii{(\alph{enumii})}
+\def\theenumii{\alph{enumii}}
+\def\p@enumii{\theenumi}
+
+\def\labelenumiii{\roman{enumiii}.}
+\def\theenumiii{\roman{enumiii}}
+\def\p@enumiii{\theenumi(\theenumii)}
+
+\def\labelenumiv{\Alph{enumiv}.}
+\def\theenumiv{\Alph{enumiv}}     
+\def\p@enumiv{\p@enumiii\theenumiii}
+
+% ITEMIZE
+% Itemization is controlled by four commands: \labelitemi, \labelitemii,
+% \labelitemiii, and \labelitemiv, which define the labels of the various 
+% itemization levels.
+
+\def\labelitemi{$\bullet$}
+\def\labelitemii{\bf --}
+\def\labelitemiii{$\ast$}
+\def\labelitemiv{$\cdot$}
+
+% VERSE
+%   The verse environment is defined by making clever use of the
+%   list environment's parameters.  The user types \\ to end a line.
+%   This is implemented by \let'in \\ equal \@centercr.
+%
+\def\verse{\let\\=\@centercr  
+  \list{}{\itemsep\z@ \itemindent -15pt\listparindent \itemindent 
+          \rightmargin\leftmargin\advance\leftmargin 15pt}\item[]}
+\let\endverse\endlist
+
+% QUOTATION
+%   Fills lines
+%   Indents paragraph
+%   
+\def\quotation{\list{}{\listparindent 1.5em
+    \itemindent\listparindent
+    \rightmargin\leftmargin}\item[]}
+\let\endquotation=\endlist
+
+% QUOTE -- same as quotation except no paragraph indentation,
+%
+\def\quote{\list{}{\rightmargin\leftmargin}\item[]}
+\let\endquote=\endlist
+
+% DESCRIPTION 
+%
+%  To change the formatting of the label, you must redefine 
+%  \descriptionlabel.  
+
+\def\descriptionlabel#1{\hspace\labelsep \bf #1}
+\def\description{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+       \let\makelabel\descriptionlabel}}
+
+\let\enddescription\endlist
+
+
+
+%    ****************************************
+%    *         OTHER ENVIRONMENTS           *
+%    ****************************************
+%
+%
+% THEOREM
+% \@begintheorem ... \@endtheorem are the commands executed at the
+% beginning and end of a (user-defined) theorem-like environment.
+% Except \@opargbegintheorem is executed when an optional argument is
+% given.  Cf. LATEX.TEX.
+%
+% \def\@begintheorem#1#2{\it \trivlist \item[\hskip \labelsep{\bf #1\ #2}]}
+% \def\@opargbegintheorem#1#2#3{\it \trivlist
+%       \item[\hskip \labelsep{\bf #1\ #2\ (#3)}]}
+% \def\@endtheorem{\endtrivlist}
+
+
+% EQUATION and EQNARRAY 
+%
+% \newcounter{equation}    
+%  Default is for left-hand side of equations to be flushleft.
+%  To make them flushright, do:
+%  \let\@eqnsel = \hfil
+%
+
+\def\theequation{\arabic{equation}}
+
+% \jot = 3pt      % Extra space added between lines of an eqnarray environment
+
+\arraycolsep 5pt     % Half the space between columns in an array environment.
+\tabcolsep 6pt       % Half the space between columns in a tabular environment.
+\arrayrulewidth .4pt % Width of rules in array and tabular environment.
+\doublerulesep 2pt   % Space between adjacent rules in array or tabular env.
+
+% TABBING
+%
+\tabbingsep \labelsep   % Space used by the \' command.  (See LaTeX manual.)
+
+% MINIPAGE
+%  \@minipagerestore is called upon entry to a minipage environment to
+%  set up things that are to be handled differently inside a minipage
+%  environment. In the current styles, it does nothing.
+%
+% \skip\@mpfootins : plays same role for footnotes in a minipage as
+%                    \skip\footins does for ordinary footnotes
+
+\skip\@mpfootins = \skip\footins
+
+% FRAMEBOX
+%
+\fboxsep = 3pt    % Space left between box and text by \fbox and \framebox.
+\fboxrule = .4pt  % Width of rules in box made by \fbox and \framebox.
+
+
+%    ****************************************
+%    *             FOOTNOTES                *
+%    ****************************************
+%
+% \footnoterule is a macro to draw the rule separating the footnotes from
+% the text.  It should take zero vertical space, so it needs a negative
+% skip to compensate for any positive space taken by the rule.  (See
+% PLAIN.TEX.)
+
+\def\footnoterule{\kern-1\p@   
+  \hrule width .4\columnwidth 
+  \kern .6\p@}                 % The \hrule has default height of .4pt .
+
+% \newcounter{footnote}
+
+% The numbering style (arabic, alph, etc.) for ordinary footnotes
+% is defined by the macro \thefootnote.
+%
+%   \@makefntext{NOTE} :
+%        Must produce the actual footnote, using \@thefnmark as the mark 
+%        of the footnote and NOTE as the text.  It is called when effectively
+%        inside a \parbox, with \hsize = \columnwidth.  
+%
+
+\long\def\@makefntext#1{\noindent % Macro to make the text of a footnote
+    \hangindent 5pt\hbox 
+    to 5pt{\hss $^{\@thefnmark}$}#1}
+
+% \@makefnmark : A macro to generate the footnote marker that goes
+%                in the text.  Default definition used.
+
+
+%    ****************************************
+%    *         FIGURES AND TABLES           *
+%    ****************************************
+% 
+% Float placement parameters set by some commands.  Easier to define
+% them than change the commands.
+
+\c@topnumber=2
+\def\topfraction{.7}
+\c@bottomnumber=1
+\def\bottomfraction{.3}
+\c@totalnumber=3
+\def\textfraction{.2}
+\def\floatpagefraction{.5}
+\c@dbltopnumber= 2
+\def\dbltopfraction{.7}
+\def\dblfloatpagefraction{.5}
+
+
+%    ****************************************
+%    *            MISCELLANEOUS             *
+%    ****************************************
+%
+% DATE
+%
+\def\today{\ifcase\month\or
+  January\or February\or March\or April\or May\or June\or
+  July\or August\or September\or October\or November\or December\fi
+  \space\number\day, \number\year}
+
+
+
+%    ****************************************
+%    *           INITIALIZATION             *
+%    ****************************************
+%
+% Default initializations
+
+\smallskipamount=.5\parskip  % These values are used by the letter macros.
+\medskipamount=\parskip
+\bigskipamount=2\parskip
+
+\ps@plain                    % 'plain' page style
+\pagenumbering{arabic}       % Arabic page numbers
+\onecolumn                   % Single-column
+\@fileswfalse                % Inhibits writing of .AUX file.

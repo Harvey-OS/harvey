@@ -1,0 +1,5 @@
+#!/bin/sh
+# Convert TeXware programs to C
+cat mpware.defines $1 \
+	| ../web2c/web2c -hmpware.h -c`basename $1 .p` \
+	| ../web2c/fixwrites > $2

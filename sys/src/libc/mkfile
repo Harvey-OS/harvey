@@ -1,0 +1,26 @@
+</$objtype/mkfile
+
+DIRS=9sys 9syscall port $CPUS
+
+all install:V:
+	for(i in 9sys 9syscall port $objtype)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS install
+	}
+
+clean:V:
+	for(i in $DIRS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS clean
+	}
+nuke:V:
+	for(i in $DIRS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS nuke
+	}
+
+installall:V:
+	for(objtype in $CPUS) mk $MKFLAGS install

@@ -1,0 +1,38 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=xil
+OFILES=vis.$O\
+	tree.$O\
+	mach.$O\
+	par.$O\
+	util.$O\
+
+HFILES=dat.h\
+	symbols.h\
+	y.tab.h\
+
+YFILES=par.y\
+
+</sys/src/cmd/mkone
+YFLAGS= -S -d -v
+
+%.go:	%.xnf
+	rx marlin 'cat > xilinx/'$prereq < $prereq
+	rx marlin 'cd xilinx; ppr '$prereq
+
+par.c:	y.tab.c
+	mv $prereq $target
+
+%.m:	%.e
+	LDE $prereq > $target
+
+%.xnf:	%.m xil
+	xil -x -p 4005PG156 $stem.m > $target
+
+wc:V:
+	wc dat.h par.y tree.c mach.c util.c vis.c
+
+tryagain:V:	xil
+	$prereq xor.m
+

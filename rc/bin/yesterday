@@ -1,0 +1,104 @@
+#!/bin/rc
+if(! test -e /n/dump/1991)
+	9fs dump
+fn nummon{
+	switch($1){
+	case Jan
+		echo 01
+	case Feb
+		echo 02
+	case Mar
+		echo 03
+	case Apr
+		echo 04
+	case May
+		echo 05
+	case Jun
+		echo 06
+	case Jul
+		echo 07
+	case Aug
+		echo 08
+	case Sep
+		echo 09
+	case Oct
+		echo 10
+	case Nov
+		echo 11
+	case Dec
+		echo 12
+	}
+}
+
+fn usage {
+	echo 'usage: yesterday [-c] [-[[[yy]yy]mm]dd] file ...' >[1=2]
+	exit 'usage'
+}
+
+year=`{date|sed 's/.* //'}
+copy=no
+switch($1){
+case -c
+	copy=yes
+	shift
+}
+switch($1){
+case -??
+	mon=`{nummon `{date|sed 's/^....(...).*/\1/'}}
+	last=/n/dump/$year/$mon ^`{echo $1|sed 's/^-//'}
+	shift
+case -????
+	last=/n/dump/$year/ ^ `{echo $1|sed 's/^-//'}
+	shift
+case -??????
+	last=/n/dump/ ^ `{echo $year|sed 's/..$//'} ^ `{echo $1|sed 's/^-(..)/\1\//'}
+	shift
+case -????????
+	last=/n/dump/ ^ `{echo $1|sed 's/^-(....)/\1\//'}
+	shift
+case -*
+	usage
+case *
+	last=`{ls -lt /n/dump/$year|sed 1q|sed 's/.* //'}
+}
+switch($1){
+case -c
+	copy=yes
+	shift
+}
+
+if(~ $#* 0)
+	usage
+
+if(! test -e $last){
+	echo 'yesterday:' \
+		`{echo $last|sed 's/.n.dump.(....).(..)(..)/\1 \2 \3/'} \
+		'is not a backup day'
+	exit 'bad date'
+}
+
+dir=`{pwd}
+if(! ~ $status ''){
+	echo 'yesterday: can''t find directory'
+	exit 'pwd failed'
+}
+
+for(i){
+	switch($i){
+	case /*
+		if(~ $copy yes){
+			echo cp $last^$i .
+			cp $last^$i .
+		}
+		if not
+			echo $last^$i
+	case *
+		if(~ $copy yes){
+			echo cp $last^$dir/$i $i
+			cp $last^$dir/$i $i
+		}
+		if not
+			echo $last^$dir/$i
+	}
+}
+exit ''

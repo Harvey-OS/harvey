@@ -1,0 +1,208 @@
+.TH CON 1
+.SH NAME
+con, telnet, hayes, cu, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
+.SH SYNOPSIS
+.B con
+[
+.B -dCrv
+]
+[
+.B -l
+[
+.I remuser
+]
+]
+[
+.B -c
+.I cmd
+]
+.IR net ! machine
+.PP
+.B telnet
+[
+.B -dCr
+]
+.IR net ! machine
+.PP
+.B hayes
+[
+.B -p
+]
+.I number
+[
+.I device
+]
+.PP
+.B cu
+.I number
+.PP
+.B rx
+[
+.B -n
+]
+.IR net ! machine
+[
+.I command-word ...
+]
+.PP
+.B xms
+.I file
+.PP
+.B xmr
+.I file
+.SH DESCRIPTION
+.I Con
+connects to the computer whose network address is
+.IR net ! machine
+and logs in if possible.
+With no options, the account name used on the remote system is the same
+as that on the local system.
+Standard input and output go to the local machine.
+.PP
+Options are:
+.TP
+.B -l
+with an argument causes
+.I remuser
+to be used as the account name on the remote system.
+Without an argument this option disables automatic login
+and a normal login session ensues.
+.TP
+.B -C
+forces cooked mode, that is, local echo.
+.TP
+.B -c
+runs
+.I cmd
+as if it had been typed as a command from the escape mode.
+This is used by
+.IR cu .
+.TP
+.B -v
+(verbose mode) causes information about connection attempts
+to be output to standard error.  This can be useful when
+trying to debug network connectivity.
+.TP
+.B -d
+causes debugging information to be output to standard error.
+.TP
+.B -r
+suppresses printing of any carriage return followed by a new line.
+This is useful since carriage return is a printable character in
+Plan 9.
+.PP
+The control-\e character is a local escape.
+It prompts with the local machine name and
+.BR >>> .
+Legitimate responses to the prompt are
+.TP
+.B i
+Send a quit [sic] signal to the remote machine.
+.PD0
+.TP
+.B q
+Exit.
+.TP
+.B b
+Send a break.
+.TP
+.B .
+Return from the escape.
+.TP
+.B !cmd
+Run the command with the network connection as its
+standard input and standard output.
+Standard error will go to the screen.
+This is useful for transmitting and receiving files
+over the connections using programs such as
+.IR xms .
+.PD
+.PP
+.I Telnet
+is similar to con, but it uses the
+.I telnet
+protocol to communicate with the remote machine.
+.PP
+.I Hayes
+dials a number using the Hayes modem protocol.
+Option
+.B p
+uses pulse dialing rather than the
+default tone dialing.
+If specified,
+.I device
+is the file opened for the call.
+The default is
+.BR /dev/eia0 .
+.PP
+.I Cu
+is a shell script that uses
+.I hayes
+and
+.I con
+to connect to a machine via a modem.
+If the machine is equipped with a local modem, it is used.
+Otherwise, the call is placed through Datakit.
+.PP
+.I Rx
+executes one shell command
+on the remote machine as if logged in there,
+but with local standard input and output.
+Unquoted shell metacharacters in the command
+are interpreted
+locally, quoted ones remotely.
+The assignment
+.B REXEC=1
+appears in the remote environment.
+.PP
+Network addresses for both
+.I con
+and
+.I rx
+have the form
+.IB network ! host.
+Supported networks are those listed in
+.BR /net .
+.PP
+The commands
+.I xms
+and
+.I xmr
+respectively send and receive a single file using the
+XMODEM protocol.
+They use standard input and standard output for communication
+and are intended for use with
+.IR con .
+.SH EXAMPLES
+.TP
+.L
+rx kremvax cat file1 >file2
+Copy remote
+.I file1
+to local
+.IR file2 .
+.TP
+.L
+rx kremvax cat file1 '>file2'
+Copy remote
+.I file1
+to remote
+.IR file2.
+.TP
+.L
+eqn paper | rx kremvax troff -ms | rx deepthought lp
+Parallel processing:
+do each stage of a pipeline on a different machine.
+.SH "SEE ALSO"
+.IR push (1)
+.br
+.SH BUGS
+Under
+.IR rx ,
+a program
+that should behave specially towards terminals may not: e.g.,
+remote shells will not prompt.
+Also under
+.IR rx ,
+the remote standard error and standard output are combined 
+and go inseparably to the local standard output.

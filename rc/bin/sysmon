@@ -1,0 +1,12 @@
+#!/bin/rc -e
+switch($#*){
+case 0
+case 1
+	import $1 / /n/$1
+	bind /n/$1/dev/sysstat /dev/sysstat
+	bind /n/$1/dev/swap /dev/swap
+case *
+	echo usage: sysmon '[machine]'
+	exit usage
+}
+exec /bin/stats

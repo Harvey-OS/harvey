@@ -1,0 +1,240 @@
+.TH FCALL 2
+.SH NAME
+fcall, convS2M, convD2M, convM2S, convM2D, getS, fcallconv, dirconv, dirmodeconv \- interface to Plan 9 File protocol
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
+.B #include <fcall.h>
+.PP
+.B
+int convS2M(Fcall *f, char *ap)
+.PP
+.B
+int convD2M(Dir *d, char *ap)
+.PP
+.B
+int convM2S(char *ap, Fcall *f, int n)
+.PP
+.B
+int convM2D(char *ap, Dir *d)
+.PP
+.B
+char *getS(int fd, char *ap, Fcall *f, long *lp)
+.PP
+.B
+int dirconv(void *o, int f1, int f2, int f3, int chr)
+.PP
+.B
+int fcallconv(void *o, int f1, int f2, int f3, int chr)
+.PP
+.B
+int dirmodeconv(void *o, int f2, int f2, int f3, int chr)
+.SH DESCRIPTION
+These
+routines convert messages in the machine-independent format of
+the Plan 9 file protocol,
+9P, to and from a more convenient form,
+an
+.B Fcall
+structure:
+.EX
+.if n .ta 4n +6n +4n +6n +16n
+.if t .ta \w'xxxx'u +\w'short 'u +\w'xxxx'u +\w'short 'u +\w'aname[NAMELEN]; 'u
+typedef
+struct Fcall {
+	char	type;
+	short	fid;
+	short	tag;
+	union {
+		struct {
+			ushort	oldtag;		/* Tflush */
+			Qid	qid;		/* Rattach, Rwalk, Ropen, Rcreate */
+		};
+		struct {
+			char	uname[NAMELEN];	/* Tauth, Tattach */
+			char	aname[NAMELEN];	/* Tattach */
+			char	auth[NAMELEN];	/* Tattach */
+			char	chal[8+NAMELEN];/* Tauth, Rauth */
+		};
+		struct {
+			char	ename[ERRLEN];	/* Rerror */
+		};
+		struct {
+			long	perm;		/* Tcreate */ 
+			short	newfid;		/* Tclone, Tclwalk */
+			char	name[NAMELEN];	/* Twalk, Tclwalk, Tcreate */
+			char	mode;		/* Tcreate, Topen */
+		};
+		struct {
+			long	offset;		/* Tread, Twrite */
+			long	count;		/* Tread, Twrite, Rread */
+			char	*data;		/* Twrite, Rread */
+		};
+		struct {
+			char	stat[DIRLEN];	/* Twstat, Rstat */
+		};
+	};
+} Fcall;
+.EE
+.PP
+This structure is defined in
+.BR <fcall.h> .
+See section 5
+for a full description of 9P messages and their encoding.
+For all message types, the
+.B type
+field of an
+.B Fcall
+holds one of
+.BR Tnop ,
+.BR Rnop ,
+.BR Tsession ,
+.BR Rsession ,
+etc. (defined in an enumerated type in
+.BR <fcall.h> ).
+.B Fid
+is used by most messages, and
+.B tag
+is used by all messages.
+The other fields are used selectively by the message types
+given in comments.
+.PP
+.I ConvM2S
+takes a 9P message at
+.I ap
+of length
+.IR n ,
+and uses it to fill in
+.B Fcall
+structure
+.IR f .
+If the passed message
+including any data for
+.B Twrite
+and
+.B Rread
+messages
+is formatted properly,
+the return value is
+.IR n ;
+otherwise it is 0.
+For
+.B Twrite
+and
+.B Tread
+messages,
+.B data
+is set to a pointer into the argument message,
+not a copy.
+.PP
+.I ConvS2M
+does the reverse conversion, turning
+.I f
+into a message starting at
+.IR ap .
+The length of the resulting message is returned.
+For
+.B Twrite
+and
+.B Rread
+messages,
+.B count
+bytes starting at
+.B data
+are copied into the message.
+.PP
+The constant
+.B MAXMSG
+is the length of the longest message, excluding data;
+.B MAXFDATA
+(8192)
+is the maximum
+.B count
+in a read or write message.
+Thus messages are guaranteed to be shorter than
+.B MAXMSG+MAXFDATA
+bytes long.
+.PP
+Another structure is
+.BR Dir ,
+used by the routines described in
+.IR stat (2).
+.I ConvM2D
+converts the machine-independent form starting at
+.I ap
+into
+.IR d
+and returns the length of the encoding.
+.I ConvD2M
+does the reverse translation,
+also returning the length of the encoding.
+.PP
+.I GetS
+reads a message from file descriptor
+.I fd
+into
+.IR ap
+and converts the message using
+.I convM2S
+into the
+.B Fcall
+structure
+.IR f .
+The
+.I lp
+argument must point to a
+.B long
+holding the size of the
+.I ap
+buffer.
+It is somewhat resilient to transient read errors.
+If
+.I convM2S
+succeeds, its return value is stored in
+.RI * lp ,
+and
+.I getS
+returns zero.
+Otherwise
+.I getS
+returns a string identifying the error.
+.PP
+.IR Dirconv ,
+.IR fcallconv ,
+and
+.I dirmodeconv
+are formatting routines, suitable for
+.I fmtinstall
+(see
+.IR print (2)).
+They convert
+.BR Dir* ,
+.BR Fcall* ,
+and
+.BR long
+values into string representations of the directory buffer,
+.B Fcall
+buffer,
+or file mode value.
+.I Fcallconv
+assumes that
+.I dirconv
+has been installed with format letter
+.LR D .
+.SH SEE ALSO
+.IR intro (2),
+.IR stat (2),
+.IR intro (5)
+.SH DIAGNOSTICS
+.I GetS
+sets
+.I errstr.
+.SH BUGS
+The offset and directory length fields have 8 bytes in the protocol,
+but these routines assume they fit into a long.
+.PP
+.I ConvS2M
+should check for counts exceeding
+.BR MAXFMSG .

@@ -1,0 +1,76 @@
+%%%---------------Beginning o' style file.
+\typeout{Document Style option 'decalign', Released 1 October 1987}
+\def\dsep{}  % This is necessary for some unknown reason.
+\def\@testpach#1{\@chclass \ifnum \@lastchclass=\tw@ 4 \else
+    \ifnum \@lastchclass=3 5 \else
+     \z@ \if #1c\@chnum \z@ \else
+                              \if #1l\@chnum \@ne \else
+                              \if #1r\@chnum \tw@ \else
+          \@chclass \if #1|\@ne \else
+                    \if #1@\tw@ \else
+                    \if #1p3 \else
+                    \if #1d7 \else
+                    \ifnum \@lastchclass=7 8 \else \z@ \@preamerr 0\fi
+  \fi  \fi  \fi  \fi  \fi  \fi  \fi  \fi
+\fi}
+%  Additions to these macros handle the extra classes.
+\def\@mkpream#1{\@firstamptrue\@lastchclass6
+\def\@preamble{}\def\protect{\noexpand\protect\noexpand}\let\@sharp\relax
+\let\@startpbox\relax\let\@endpbox\relax
+\@expast{#1}\expandafter\@tfor \expandafter
+  \@nextchar \expandafter:\expandafter=\@tempa\do{\@testpach\@nextchar
+  \ifnum \@lastchclass=7 \ifnum \@chclass=8 \else\@classviii{.}\fi\fi
+  \ifcase \@chclass \@classz \or \@classi \or \@classii \or \@classiii
+    \or \@classiv \or\@classv \or \or\@classvii \or\@classviii{\@nextchar}%
+    \fi\@lastchclass\@chclass}%
+\ifcase \@lastchclass \@acol
+    \or \or \@preamerr \@ne\or \@preamerr \tw@\or \or \@acol \fi}
+\def\@tabular{\leavevmode \hbox \bgroup $\let\@acol\@tabacol
+   \let\@classz\@tabclassz
+   \let\@classiv\@tabclassiv
+   \let\@classviii\@tabclassviii
+   \let\\\@tabularcr\@tabarray}
+\def\array{\let\@acol\@arrayacol \let\@classz\@arrayclassz
+   \let\@classiv\@arrayclassiv
+   \let\@classviii\@arrayclassviii
+   \let\\\@arraycr\def\@halignto{}\@tabarray}
+\def\@arrayclassz{\ifcase \@lastchclass \@acolampacol \or \@ampacol \or
+   \or \or \@addamp \or
+   \@acolampacol \or \@firstampfalse \@acol \or
+   \@acolampacol \or \@acolampacol
+   \fi
+\edef\@preamble{\@preamble
+  \ifcase \@chnum
+     \hfil$\relax\@sharp$\hfil \or $\relax\@sharp$\hfil
+    \or \hfil$\relax\@sharp$\fi}}
+\def\@tabclassz{\ifcase \@lastchclass \@acolampacol \or \@ampacol \or
+   \or \or \@addamp \or
+   \@acolampacol \or \@firstampfalse \@acol \or
+   \@acolampacol \or \@acolampacol
+   \fi
+\edef\@preamble{\@preamble
+  \ifcase \@chnum
+     \hfil\ignorespaces\@sharp\unskip\hfil
+     \or \ignorespaces\@sharp\unskip\hfil
+     \or \hfil\hskip\z@ \ignorespaces\@sharp\unskip\fi}}
+\def\@classi{\ifcase \@lastchclass \@acol \@arrayrule \or
+   \@addtopreamble{\hskip \doublerulesep}\@arrayrule\or
+   \or \or \@arrayrule \or
+   \@acol \@arrayrule \or \@arrayrule \or
+   \@acol \@arrayrule \or \@acol \@arrayrule
+   \fi}
+\def\@classiii{\ifcase \@lastchclass \@acolampacol \or
+   \@addamp\@acol \or
+   \or \or \@addamp \or
+   \@acolampacol \or \@ampacol \or
+   \@acolampacol \or \@ampacol
+   \fi}
+\def\@classvii{\ifcase \@lastchclass \@acolampacol \or
+   \@addamp\@acol \or
+   \or \or \@addamp \or
+   \@acolampacol \or \@ampacol \or
+   \@acolampacol \or \@acolampacol \fi}
+\def\@tabclassviii#1{\@addtopreamble{\catcode`#1=4 \hfil\ignorespaces\@sharp
+   \unskip&#1\@sharp\unskip\hfil}}
+\def\@arrayclassviii#1{\@addtopreamble{\catcode`#1=4 \hfil$\relax\@sharp$&
+   $\relax.\@sharp$\hfil}}

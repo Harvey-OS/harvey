@@ -1,0 +1,19 @@
+#!/bin/rc
+
+switch($#*){
+case 0
+	echo 'usage:' $0 '[signal|chip.pin] [file.wr...]' >[1=2]
+	exit usage
+}
+signal=$1
+shift
+awk -v signal'='$signal '
+BEGIN{
+	if(signal ~ /\./){
+		chip = signal; sub(/\..*$/, "", chip)
+		pin = signal; sub(/^[^.]*\./, "", pin)
+		signal = ""
+	}
+}
+(signal != "") ? ($3 == signal) : (($6 == chip && $8 == pin) || ($10 == chip && $12 == pin))
+' $*

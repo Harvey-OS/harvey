@@ -1,0 +1,23 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=gnet
+OFILES=thing.$O\
+	conn.$O\
+	wire.$O\
+	text.$O\
+	box.$O\
+	master.$O\
+	main.$O\
+
+HFILES=thing.h\
+	text.h\
+	conn.h\
+	wire.h\
+	box.h\
+	master.h\
+
+</sys/src/cmd/mkone
+CC=c++/$CC
+LD=c++/$LD
+CFLAGS=

@@ -1,0 +1,50 @@
+.TH SYSCALL 1 
+.SH NAME
+syscall  \- test a system call
+.SH SYNOPSIS
+.B syscall
+[
+.B -o
+]
+.I entry
+[
+.I arg ...
+]
+.SH DESCRIPTION
+.I Syscall
+makes the
+.I entry
+system call with the given arguments.
+It prints the return value and the error string, if there was an error.
+An argument is either an integer constant as in C (its value is passed),
+a string (its address is passed),
+or the literal
+.B buf
+(a pointer to a 1 Kbyte buffer is passed).
+If
+.B -o
+is given, the contents of the 1 Kbyte buffer are printed as a string
+after the system call is done.
+.SH EXAMPLES
+Write a string to standard output
+.IP
+.EX
+syscall write 1 hello 5
+.EE
+.PP
+Print the last system call error string
+.IP
+.EX
+syscall -o errstr buf
+.EE
+.SH "SEE ALSO"
+Section 2 of this manual.
+.SH DIAGNOSTICS
+If
+.I entry
+is not a system call name, the exit status is
+.LR unknown .
+If the system call succeeds, the exit status is null;
+otherwise the exit status is the string that
+.IR errstr (2)
+returns.

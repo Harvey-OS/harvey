@@ -1,0 +1,497 @@
+% Errata and additions to the first edition of the LaTeX manual,
+% published by Addison-Wesley.
+%  31 October 1989
+
+These are all the errors and omissions to the manual, \LaTeX: {\em A
+Document Preparation System} reported by 6 June 1989.
+
+\subsection{First Four Printings}
+
+The following errors were corrected in the Fourth Printing.  To see if
+your copy is one of the first three printings, turn to the copyright
+page---the one with the Library of Congress cataloging information, on
+the back of the title page.  If the fifth line on that page begins
+``that, as of August 27, 1985'', then your copy is from the first three
+printings.
+
+\subsubsection*{page xiii}
+
+Add Mike Urban to the list of people thanked in the third paragraph.
+% Mike Urban
+
+\subsubsection*{page 2}
+
+In the first paragraph of Section~1.1, replace the three instances of
+{\tt sample.tex} by {\tt small.tex}.
+% LL, 8 Jan 86
+
+\subsubsection*{page 15, line 18}
+
+Replace ``thay'' by ``that''.
+% Mike Urban, 4 Jan 86
+
+\subsubsection*{page 24, line 13}
+Add a period to the end of the line.
+% Edgar Whipple, 10 Apr 86
+
+\subsubsection*{page 31, line 7}
+Delete one ``will''.
+% Nelson Beebe, 27 Feb 86
+
+\subsubsection*{page 39, line 2}
+
+Change ``six'' to ``five''.
+% Stephen Gildea, 14 Feb 86
+
+\subsubsection*{page 39, line 17}
+Remove the extra ``it''.
+
+\subsubsection*{page 40, line $-8$}
+Change ``five'' to ``six''.
+% Hal Perkins 25 Mar 86
+
+\subsubsection*{Section~3.3.5, page 49}
+The name of the environment is {\tt eqnarray}.  There are two instances
+on this page of the incorrect name ``{\tt eqnarry}'' that should be
+changed.
+% Oren Patashnik
+
+
+\subsubsection*{page 52, last line}
+
+Replace ``instead of $\int\int ydxdy$'' by 
+``instead of $\int\int zdxdy$''.
+% Oren Patashnik 16 Jan 86
+
+\subsubsection*{pages 55--58, 124, and 173--174}
+
+Commands that define or redefine a command or environment, such as the
+\linebreak
+\hbox{\verb|\newcommand|} and \hbox{\verb|\renewenvironment|} commands,
+should not be nested within one another.  Doing so may result in the
+following \TeX\ error:
+\begin{verbatim}
+! Illegal parameter number in definition of ... .
+\end{verbatim}
+
+\subsubsection*{page 56, line $-3$}
+
+Change ``\verb|{\bf x}|'' to ``\verb|{x}|''.
+% Stephen Gildea, 14 Feb 86
+
+\subsubsection*{page 60, line $-7$}
+
+Replace ``one of these environments'' by ``a {\tt figure} or
+{\tt table} environment''.
+% improvement suggested by Arthur Keller, 1 Jan 86
+
+\subsubsection*{page 74, line 20}
+Change \verb|\begin{documentstyle}| to \verb|\begin{document}|.
+% Hal Perkins 25 Mar 86
+
+
+\subsubsection*{page 75, line 15}
+Change \verb|\thebibliography|  to \verb|\bibliography|.
+% Charles Karney 6 Jan 86
+
+\subsubsection*{page 79, line 16}
+Change ``diplaying'' to ``displaying''.
+% Stephen Gildea, 14 Feb 86
+
+\subsubsection*{page 88, line 27}
+
+Change ``entire the paragraph''to ``the entire paragraph''.
+
+\subsubsection*{page 89, line 16}
+
+Change ``page-breaking'' to ``line-breaking''.  
+% Arthur Keller, 1 Jan 86
+
+\subsubsection*{page 95, line 5}
+
+Replace ``\verb|{.01in}|'' by ``\verb|{1.01in}|''.
+
+\subsubsection*{page 96}
+
+In the penultimate paragraph of Section~5.4.2, replace 
+\begin{quote}
+The \verb|\vfill| command is an abbreviation for \verb|\vspace{\fill}|.
+\end{quote}
+with the following:
+\begin{quote}
+The \verb|\vfill| command is equivalent to a blank line followed by
+\verb|\vspace{\fill}|.
+\end{quote}
+
+\subsubsection*{page 98, line 6}
+
+Remove an ``i'' from ``directiion''. 
+% Arthur Keller, 1 Jan 86
+
+\subsubsection*{page 102}
+In Figure~5.1, replace the two occurrences of ``-1.8'' by
+``$-1.8$''.
+% Charles Karney, 6 Jan 86       
+
+\subsubsection*{page 104, line $-3$}
+Correct the spelling of ``positioning''.
+% Nelson Beebe, 27 Feb 86
+
+% \subsubsection*{page 108}
+% There is an insignificant error in the picture of in the first
+% example box.
+
+\subsubsection*{page 113}
+Change the label on the arrow above Item~2 from \verb|\itemsep| to
+\verb|\itemsep + \parsep|.
+% Stephen Gildea 24 Mar 86
+
+
+\subsubsection*{page 116, line 20}
+
+Change ``fourteen-point Plus Roman'' to ``twelve-point Plus Roman''.
+% Arthur Keller, 1 Jan 86
+
+\subsubsection*{page 118, line $-10$}
+
+Change this line to:
+\begin{small}
+\begin{verbatim}
+... (myfile.tex [1] [2] [3] (part1.tex [4] [5]) (part2.tex [6] [7]
+\end{verbatim}
+\end{small}
+% Arthur Keller, 1 Jan 86
+
+\subsubsection*{page 129}
+
+The following \LaTeX\ warning messages should be listed:
+\begin{itemize}
+\item[] {\tt No ... typeface in this size, using ...}\\
+A type style declaration specified a type style and size combination
+that is not available, so \LaTeX\ is substituting another one.
+
+\item[] {\tt ... in math mode.}\\
+The indicated command is not permitted in math mode but was used there.
+Remember that \verb|\boldmath|, \verb|\unboldmath|, and size-changing
+commands may not be used in math mode.
+\end{itemize}
+% Stephen Gildea, 14 Feb 86
+
+
+\subsubsection*{pages 141--142}
+
+Change ``von Beethoven'' to ``van Beethoven''.
+% Louis E. Janus 15 Dec 86
+
+
+\subsubsection*{page 142}
+
+Add the following near the bottom of the page, just above the
+{\bf Titles} heading.
+\begin{quote}
+If an {\tt author} or {\tt editor} field has more names than you want to
+type, just end the list of names with \index{and others}{\tt and
+others}; the standard styles convert this to the conventional {\em et
+al.}
+\end{quote}
+
+\subsubsection*{page 147, line 6}
+
+Change ``Scribe-compatible'' to ``{\em Scribe\/}-compatible''.
+% Oren Patashnik 10 Feb 86
+
+\subsubsection*{page 152, line $-6$}
+Add \verb|\newtheorem| and \verb|\hyphenation| to the list
+of global declarations.
+% Hal Perkins 25 Mar 86
+
+
+\subsubsection*{page 157, line $-10$}
+The first paragraph of Section~C.3.1 should note that the {\tt *}-form
+of a sectioning command does not affect the running head.
+% Oren Patashnik 24 Mar 86
+
+
+\subsubsection*{page 158, line $-12$}
+Change ``chapters'' to ``appendix chapters''.
+% Hal Perkins 25 Mar 86
+
+\subsubsection*{page 160, top line}
+
+Change ``(Section 5.6)'' to ``(Section 5.3)''.
+
+\subsubsection*{page 160, line $-9$}
+
+Change the description of the {\tt openbib} style option to: ``Causes
+the bibliography (Section 4.3) to be formatted in open style.  (See
+van~Leunen~[7].)''
+% Charles Karney, 6 Jan 85
+
+
+\subsubsection*{page 163, line 19}
+Change ``Section 5.1.2'' to ``Section 5.1.1''.
+% Hal Perkins 25 Mar 86
+
+\subsubsection*{page 168, line $-5$}
+
+Replace ``printed as \verb*|\ |'' by ``printed as \verb*| |''.
+
+\subsubsection*{page 169, line $-5$}
+Change ``first and third rows'' to ``first and third columns''.
+
+\subsubsection*{page 169, line $-3$}
+Add a period to the end of the sentence.
+
+\subsubsection*{page 170}
+
+Add the following paragraph after line 5:
+\begin{quote}
+An overfull \verb|\hbox| warning occurs if a formula extends beyond the
+prevailing margins.  However, if the formula does lie within the
+margins, no warning is generated even if it extends far enough to
+overprint the equation number.
+\end{quote}
+
+\subsubsection*{page 174, line $-1$}
+Add the following sentence: ``It is a global declaration.''
+% Hal Perkins 25 Mar 86
+
+\subsubsection*{page 176}
+
+Change the four lines immediately following the heading for
+Section C.8.1 to:
+\begin{quote}
+\begin{tabular}{lll}
+ \verb|\begin{figure}[|{\em loc\/}{\tt ]} & {\em body\/}
+      & \verb|\end{figure}| \\
+ \verb|\begin{figure*}[|{\em loc\/}{\tt ]} & {\em body\/}
+      & \verb|\end{figure*}| \\
+ \verb|\begin{table}[|{\em loc\/}{\tt ]} & {\em body\/}
+      & \verb|\end{table}| \\
+ \verb|\begin{table*}[|{\em loc\/}{\tt ]} & {\em body\/}
+      & \verb|\end{table*}| 
+\end{tabular}
+\end{quote}
+
+% \subsubsection*{page 182, Figure C.5}
+% Interchange ``high'' and ``low''
+% Stephen Gildea, 14 Feb 86
+
+\subsubsection*{page 185, line $-5$}
+Replace ``suppresses command'' by ``command suppresses''.
+%Rusty Wright 5 Dec 85
+
+\subsubsection*{page 187, lines 15--17}
+The sentence ``It also writes {\em bib\_files\/}\ldots'' is
+redundant and can be eliminated.
+% Charles Karney, 6 Jan 86
+
+\subsubsection*{page 188, lines 1, 2, 4, 8} 
+Change ``{\em key\_lst\/}'' to ``{\em key\_list\/}''.
+% Dave Johnson, 10 Mar 86
+
+\subsubsection*{page 191, line 13} 
+The word ``paragraph'' misspelled.
+% Mark Kent 9 Dec 85
+
+\subsubsection*{page 191, line 14}
+Remove the space between \verb|\begin| and \verb|{sloppypar}|.
+(This is for consistency only; \LaTeX\ ignores the space.)
+
+\subsubsection*{page 199}
+Add the following sentence to the last paragraph on the page:
+\begin{quote}
+Words typeset in typewriter style or in two different styles
+are not hyphenated except where permitted by \verb|\-| commands.
+\end{quote}
+(This is a change to \LaTeX\ made on 18~December~1985.) Also, add the
+following index entry citations to this page: ``\verb|\-|'',
+``hyphenation, suppressed'', and ``typewriter type style, no
+hyphenation in''.
+
+\subsubsection*{page 217}
+Add the subentry ``{\tt openbib}, 160'' to the index entry
+``document-style option''.
+
+
+\subsubsection*{page 223, column 2, line 13}
+Change ``mad'' to ``made''.
+% Barbara Beeton, 23 Apr 86
+
+\subsubsection*{page 225}
+Add page 47 to the index entry for ``Leunen, Mary-Claire van''.
+% Oren Patashnik
+
+\subsubsection*{page 228}
+In index entry for \verb|\multicolumn|, change ``194''
+to ``184''.
+
+
+\subsubsection*{Tear-Out Command Sheet}
+
+In the first column, sixth line after ``Sentences and Paragraphs'' heading, 
+replace ``\hbox{\& \verb|&|}'' by ``\hbox{\& \verb|\&|}''.
+
+\subsection{First Five Printings}
+
+\subsubsection*{page xiii, line $-7$}
+The hyphenation of ``Leunen'' is obviously incorrect.
+% Don Knuth 11 May 89
+
+\subsubsection*{page7, line 33}
+Add the following sentence after ``[6].''
+\begin{quote}
+(Many of the details of \LaTeX, including command names, were also
+taken from {\em Scribe}.)
+\end{quote}
+
+\subsubsection*{page 12, line $-7$}
+Replace ``every'' with ``ever''.
+% David Sullivan, 13 Apr 88
+
+\subsubsection*{page 53, line 16}
+Change ``math itallic is the default in math mode'' to ``math italic is
+almost identical to the default type style of math mode''.
+% Matthew Swift, 6 Jun 89.
+
+\subsubsection*{page 71, last line}
+Change ``comand'' to ``command''.
+% William LeFebvre, 2 Jun 88
+
+\subsubsection*{page 84}
+Add the following paragraph just after line~2.
+\begin{quote}
+Some commands, such as \verb|\chapter|, change the style of the current
+page.  You can change it yourself with the \verb|\thispagestyle|
+command.
+\end{quote}
+Also, add the appropriate index entries for \verb|\thispagestyle| and
+\verb|\chapter|.
+
+\subsubsection*{page 88, line 29}
+Change ``its'' to ``it's''.
+% Cynthia Hibbard, 20 Jul 87
+
+\subsubsection*{page 91, line 5}
+\begin{sloppypar}
+It should be noted that in the {\tt book} document style,
+\verb|\chapter| uses \verb|\cleardoublepage|.
+\end{sloppypar}
+
+\subsubsection*{page 111, line $-4$}
+Remove the extra {\tt t} from ``{\tt withtout}''.
+% Joseph Hurler 25 Aug 87
+
+\subsubsection*{page 122, line 17}
+Change the sentence that begins ``The most probable cause is'' to
+the following:
+\begin{quote}
+The most probable cause is a list-making environment with no
+\verb|\item| command.
+\end{quote}
+% Oren Patashnik 19 Sep 86
+
+
+\subsubsection*{Page 126, line 12ff}
+An un\verb|\protect|ed command---even a robust one---in the argument
+of one of these commands can cause \TeX\ to run out of this kind of
+space.  It's a good idea to \verb|\protect| all commands in
+these arguments.
+% Flavio Rose, 13 Jun 86
+
+
+\subsubsection*{Page 153, top of page}
+It should be noted that if the invisible ``word'' occurs at the end
+of a paragraph, not attached to a real word, then it could appear
+on a line by itself, producing a blank line in the output.
+
+\subsubsection*{Page 156}
+In the third line of the description of \verb|\footnotemark|, 
+remove the phrase ``just like \verb|\footnote|''.
+% Stephen Peckham 31 Oct 89
+
+\subsubsection*{Page 160, line $-7$}
+Replace ``{\tt equations}'' with ``{\tt equation}''.
+% Nelson Beebe, 8 Jan 88
+
+\subsubsection*{Page 162}
+
+In the description of \verb|\pagenumbering|, it should be mentioned
+that the command sets the value of the {\tt page} counter to 1.
+
+\subsubsection*{Page 161, line $-9$}
+Replace ``head information'' by ``head information (but not
+page number)''
+
+\subsubsection*{Page 162, line 6}
+Replace ``{\tt heading}'' by ``{\tt headings}''.
+% Mathieu Federspiel 18 Jul 88
+
+\subsubsection*{Page 177, line 1}
+It should be noted that, in a two-column page style, a single-column
+figure can come before an earlier double-column figure, and vice-versa.
+% Sam Whidden, 5 Jun 86.
+
+\subsubsection*{Page 177, line $-1$}
+Replace ``page'' with ``text page''.
+% Mike Fischer 20 Mar 87.
+
+\subsubsection*{Page 178, lines 1 and 8}
+Replace ``page'' with ``text page''.  
+% Mike Fischer 20 Mar 87.
+
+\subsubsection*{page 183}
+The description of \verb|\extracolsep| should mention that no extra
+space is put to the left of the first column.
+% Scott Simpson 12 May 88.
+
+\subsubsection*{page 191}
+Add to the description of \verb|\pagebreak| the
+information that it has an effect only when used in paragraph mode,
+not inside a parbox.
+% Andy Hisgen 27 Apr 89
+
+\subsubsection*{page 191, line $-2$}
+Add a ``t'' to ``explicily''.
+% Nelson Beebe 9 Mar 89.
+
+\subsubsection*{page 213}
+Change the page reference for ``\verb|\bibitem|, moving argument of''
+from 153 to 152.
+% Oren Patashnik 19 Sep 86
+
+\subsubsection*{page 211}
+Change index entry for \verb|\AE| to page 40.
+% Jerry Leichter 28 Nov 88
+
+\subsubsection*{page 213}
+Change the first page reference for ``{\tt bbl} (bibliography) file''
+from 74 to 75.
+% Martin Abadi 14 Mar 88
+
+\subsubsection*{page 217}
+Add an index entry ``diacritical marks, see accents''.
+% Suggested by Hank Lewis 22 May 88
+
+\subsubsection*{page 219, index entry for ``figures''}
+Remove the ``and'' from the subentry for ``output by
+\verb|\end{document}|''.
+% David Wise 5 Aug 86
+
+\subsubsection*{page 219, column 1, line 3}
+Replace ``anomolous'' by ``anomalous''.
+% Martin Abadi 20 Jul 88
+
+\subsubsection*{page 223, left column, line 2}
+Remove the page number ``79'' from the first subentry
+under \verb|\index|.
+
+\subsubsection*{page 228}
+Change the page reference for ``\verb|\multicolumn|''
+from 194  to 184.
+% 19 Sep 86
+
+\subsubsection*{page 228}
+Remove the extra ``,'' from the index entries for \verb|\o|
+and \verb|\O|.
+% Nelson Beebe 14 Mar 88

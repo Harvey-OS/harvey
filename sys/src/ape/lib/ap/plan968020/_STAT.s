@@ -1,0 +1,4 @@
+TEXT _STAT(SB), 1, $0
+MOVL $18, R0
+TRAP $0
+RTS

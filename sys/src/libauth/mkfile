@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libauth.a
+OFILES=\
+	auth.$O\
+	srvauth.$O\
+	chall.$O\
+	newns.$O\
+	authdial.$O\
+	passtokey.$O\
+	nvcsum.$O\
+
+HFILES=/sys/include/auth.h
+
+</sys/src/cmd/mksyslib

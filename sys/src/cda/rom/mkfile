@@ -1,0 +1,9 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin/cda
+TARG=urom
+OFILES=urom.$O
+
+</sys/src/cmd/mkone
+CFLAGS=-DPLAN9 -B -w
+

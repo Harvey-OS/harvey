@@ -1,0 +1,1327 @@
+\def\vouchversiondate{1991-Dec-30}
+\typeout{Document Style `voucher' (AT\&T Bell Laboratories Expense Vouchers).  
+Release \vouchversiondate .}
+\typeout{   * Comments/suggestions/bug reports on voucher styles to} 
+\typeout{   * Terry Anderson at tla@bartok.att.com or 908 580-4428.}
+%
+% Changes:
+%---------------------------------
+%  
+%	91-Jan-31	fixed `and' in spellout
+%       91-Feb-21       added \miles
+%       91-Sep-26       fudged several v spacings to reduce total size
+%                         enough to print better on laser printers
+%                         all marked with `should be'; total about 11pt
+%       91-Oct-7        added `-' to spellout, eg. twenty-two & fixed
+%                         some extra interwords spaces
+%       91-Nov-13       fixed typo, INCURREND
+%       91-Dec-19       changed to 1992 voucher form
+%       91-Dec-20       fixed typo found by andy sherman
+%       91-Dec-30       added version stamp to bottom of form
+%------------------
+% article.sty  4-Sep-86
+%
+% Page dimension parameters
+%
+\def\@ptsize{0} \@namedef{ds@11pt}{\def\@ptsize{1}}
+\@namedef{ds@12pt}{\def\@ptsize{2}} 
+% old ptsize maintained for compatiblity by tm@ptsize used so that 
+% sizes not starting with 1 are supported.
+\def\tm@ptsize{8}
+\@namedef{ds@10pt}{\def\tm@ptsize{10}}
+\@namedef{ds@11pt}{\def\tm@ptsize{11}}
+\@namedef{ds@12pt}{\def\tm@ptsize{12}} 
+\@namedef{ds@9pt}{\def\tm@ptsize{9}} 
+\@namedef{ds@8pt}{\def\tm@ptsize{8}} 
+\def\ds@twoside{\@twosidetrue \@mparswitchtrue} \def\ds@draft{\overfullrule
+5pt} 
+\@options
+\input tm\tm@ptsize.sty\relax
+
+
+\def\labelenumi{\arabic{enumi}.} 
+\def\theenumi{\arabic{enumi}} 
+\def\labelenumii{(\alph{enumii})}
+\def\theenumii{\alph{enumii}}
+\def\p@enumii{\theenumi}
+\def\labelenumiii{\roman{enumiii}.}
+\def\theenumiii{\roman{enumiii}}
+\def\p@enumiii{\theenumi(\theenumii)}
+\def\labelenumiv{\Alph{enumiv}.}
+\def\theenumiv{\Alph{enumiv}} 
+\def\p@enumiv{\p@enumiii\theenumiii}
+
+\def\labelitemi{$\bullet$}
+\def\labelitemii{\bf --}
+\def\labelitemiii{$\ast$}
+\def\labelitemiv{$\cdot$}
+
+\def\verse{\let\\=\@centercr 
+ \list{}{\itemsep\z@ \itemindent -1.5em\listparindent \itemindent 
+ \rightmargin\leftmargin\advance\leftmargin 1.5em}\item[]}
+\let\endverse\endlist
+\def\quotation{\list{}{\listparindent 1.5em
+ \itemindent\listparindent
+ \rightmargin\leftmargin \parsep 0pt plus 1pt}\item[]}
+\let\endquotation=\endlist
+\def\quote{\list{}{\rightmargin\leftmargin}\item[]}
+\let\endquote=\endlist
+
+\def\descriptionlabel#1{\hspace\labelsep \bf #1}
+\def\description{\list{}{\labelwidth\z@ \itemindent-\leftmargin
+ \let\makelabel\descriptionlabel}}
+\let\enddescription\endlist
+
+
+\def\theequation{\arabic{equation}}
+
+
+\def\titlepage{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
+ \else \newpage \fi \thispagestyle{empty}\c@page\z@}
+\def\endtitlepage{\if@restonecol\twocolumn \else \newpage \fi}
+
+\arraycolsep 5pt \tabcolsep 6pt \arrayrulewidth .4pt \doublerulesep 2pt 
+\tabbingsep \labelsep 
+
+\skip\@mpfootins = \skip\footins
+\fboxsep = 3pt \fboxrule = .4pt 
+
+\newcounter{part}
+\newcounter {section}
+\newcounter {subsection}[section]
+\newcounter {subsubsection}[subsection]
+\newcounter {paragraph}[subsubsection]
+\newcounter {subparagraph}[paragraph]
+
+\def\thepart{\Roman{part}} \def\thesection {\arabic{section}}
+\def\thesubsection {\thesection.\arabic{subsection}}
+\def\thesubsubsection {\thesubsection .\arabic{subsubsection}}
+\def\theparagraph {\thesubsubsection.\arabic{paragraph}}
+\def\thesubparagraph {\theparagraph.\arabic{subparagraph}}
+
+\def\@pnumwidth{1.55em}
+\def\@tocrmarg {2.55em}
+\def\@dotsep{4.5}
+\setcounter{tocdepth}{3}
+
+\def\tableofcontents{\setcounter{tm@totalpages}{\c@page}\newpage
+\pagenumbering{roman}\parskip=0pt%
+ \section*{Contents\@mkboth{CONTENTS}{CONTENTS}}
+ \@starttoc{toc}}
+\def\l@part#1#2{\addpenalty{\@secpenalty}
+ \addvspace{2.25em plus 1pt} \begingroup
+ \@tempdima 3em \parindent \z@ \rightskip \@pnumwidth \parfillskip
+-\@pnumwidth 
+ {\large \bf \leavevmode #1\hfil \hbox to\@pnumwidth{\hss #2}}\par
+ \nobreak \endgroup}
+% changed to make section like subsection -- tla
+% \def\l@section#1#2{\addpenalty{\@secpenalty} \addvspace{1.0em plus 1pt}
+% \@tempdima 1.5em \begingroup
+%  \parindent \z@ \rightskip \@pnumwidth 
+%  \parfillskip -\@pnumwidth 
+%  \bf \leavevmode #1\hfil \hbox to\@pnumwidth{\hss #2}\par
+%  \endgroup}
+\def\l@section{\addpenalty{\@secpenalty} \addvspace{1.0em plus 1pt}
+   \@dottedtocline{1}{0em}{1.5em}}
+\def\l@subsection{\@dottedtocline{2}{1.5em}{2.3em}}
+\def\l@subsubsection{\@dottedtocline{3}{3.8em}{3.2em}}
+\def\l@paragraph{\@dottedtocline{4}{7.0em}{4.1em}}
+\def\l@subparagraph{\@dottedtocline{5}{10em}{5em}}
+\def\listoffigures{\newpage\section*{List of Figures\@mkboth
+ {LIST OF FIGURES}{LIST OF FIGURES}}\@starttoc{lof}}
+\def\l@figure{\@dottedtocline{1}{1.5em}{2.3em}}
+\def\listoftables{\newpage\section*{List of Tables\@mkboth
+ {LIST OF TABLES}{LIST OF TABLES}}\@starttoc{lot}}
+\let\l@table\l@figure
+
+
+
+\@namedef{thebibliography*}#1{\section*{References\@mkboth
+ {REFERENCES}{REFERENCES}\addcontentsline{toc}{section}{REFERENCES}}\list
+ {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+ \advance\leftmargin\labelsep
+ \usecounter{enumi}}
+ \setcounter{tm@references}{0}
+ \def\newblock{\hskip .11em plus .33em minus -.07em}
+ \sloppy\clubpenalty4000\widowpenalty4000
+ \sfcode`\.=1000\relax}
+\def\thebibliography{\clearpage\csname thebibliography*\endcsname}
+\def\endthebibliography{\endlist}
+\@namedef{endthebibliography*}{\endthebibliography} 
+
+%
+% bibitem redefined to count all items -- enumi only counts those
+%   with default label
+%
+\def\bibitem{\global\advance\c@tm@references by1%
+  \@ifnextchar[{\@lbibitem}{\@bibitem}}
+ 
+
+\newif\if@restonecol
+\def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+\columnseprule \z@
+\columnsep 35pt\twocolumn[\section*{Index}]
+ \@mkboth{INDEX}{INDEX}\thispagestyle{plain}\parindent\z@
+ \parskip\z@ plus .3pt\relax\let\item\@idxitem}
+\def\@idxitem{\par\hangindent 40pt}
+\def\subitem{\par\hangindent 40pt \hspace*{20pt}}
+\def\subsubitem{\par\hangindent 40pt \hspace*{30pt}}
+\def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
+\def\indexspace{\par \vskip 10pt plus 5pt minus 3pt\relax}
+
+\def\footnoterule{\kern-3\p@ 
+ \hrule width .4\columnwidth 
+ \kern 2.6\p@} 
+
+\long\def\@makefntext#1{\parindent 1em\noindent 
+ \hbox to 1.8em{\hss$^{\@thefnmark}$}#1}
+
+
+\setcounter{topnumber}{5}
+\def\topfraction{.7}
+\setcounter{bottomnumber}{5}
+\def\bottomfraction{.3}
+\setcounter{totalnumber}{10}
+\def\textfraction{.2}
+\def\floatpagefraction{.5}
+\setcounter{dbltopnumber}{2}
+\def\dbltopfraction{.7}
+\def\dblfloatpagefraction{.5}
+
+\long\def\@makecaption#1#2{
+ \vskip 10pt 
+ \setbox\@tempboxa\hbox{#1: #2}
+ \ifdim \wd\@tempboxa >\hsize #1: #2\par \else \hbox
+to\hsize{\hfil\box\@tempboxa\hfil} 
+ \fi}
+
+
+\newcounter{figure}
+\def\thefigure{\@arabic\c@figure}
+\def\fps@figure{tbp}
+\def\ftype@figure{1}
+\def\ext@figure{lof}
+\def\fnum@figure{Figure \thefigure}
+\def\figure{\@float{figure}}
+\let\endfigure\end@float
+\@namedef{figure*}{\@dblfloat{figure}}
+\@namedef{endfigure*}{\end@dblfloat}
+\newcounter{table}
+\def\thetable{\@arabic\c@table}
+\def\fps@table{tbp}
+\def\ftype@table{2}
+\def\ext@table{lot}
+\def\fnum@table{Table \thetable}
+\def\table{\@float{table}}
+\let\endtable\end@float
+\@namedef{table*}{\@dblfloat{table}}
+\@namedef{endtable*}{\end@dblfloat}
+
+
+\def\maketitle{\par
+ \begingroup
+ \def\thefootnote{\fnsymbol{footnote}}
+ \def\@makefnmark{\hbox 
+ to 0pt{$^{\@thefnmark}$\hss}} 
+ \if@twocolumn 
+ \twocolumn[\@maketitle] 
+ \else \newpage
+ \global\@topnum\z@ \@maketitle \fi\thispagestyle{plain}\@thanks
+ \endgroup
+ \setcounter{footnote}{0}
+ \let\maketitle\relax
+ \let\@maketitle\relax
+ \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+\def\@maketitle{\newpage
+ \null
+ \vskip 2em \begin{center}
+ {\LARGE \@title \par} \vskip 1.5em {\large \lineskip .5em
+\begin{tabular}[t]{c}\@author 
+ \end{tabular}\par} 
+ \vskip 1em {\large \@date} \end{center}
+ \par
+ \vskip 1.5em} 
+\def\abstract{\if@twocolumn
+\section*{Abstract}
+\else \small 
+\begin{center}
+{\bf Abstract\vspace{-.5em}\vspace{0pt}} 
+\end{center}
+\quotation 
+\fi}
+\def\endabstract{\if@twocolumn\else\endquotation\fi}
+
+\mark{{}{}} 
+
+\if@twoside \def\ps@headings{\let\@mkboth\markboth
+\def\@oddfoot{}\def\@evenfoot{}\def\@evenhead{\rm \thepage\hfil \sl
+\leftmark}\def\@oddhead{\hbox{}\sl \rightmark \hfil
+\rm\thepage}\def\sectionmark##1{\markboth {\uppercase{\ifnum \c@secnumdepth
+>\z@
+ \thesection\hskip 1em\relax \fi ##1}}{}}\def\subsectionmark##1{\markright
+{\ifnum \c@secnumdepth >\@ne
+ \thesubsection\hskip 1em\relax \fi ##1}}}
+\else \def\ps@headings{\let\@mkboth\markboth
+\def\@oddfoot{}\def\@evenfoot{}\def\@oddhead{\hbox {}\sl \rightmark \hfil
+\rm\thepage}\def\sectionmark##1{\markright {\uppercase{\ifnum \c@secnumdepth
+>\z@
+ \thesection\hskip 1em\relax \fi ##1}}}}
+\fi
+
+\def\today{\ifcase\month\or
+ January\or February\or March\or April\or May\or June\or
+ July\or August\or September\or October\or November\or December\fi
+ \space\number\day, \number\year}
+
+\ps@plain \pagenumbering{arabic} \onecolumn \if@twoside\else\raggedbottom\fi 
+
+%------------------
+%  END OF MATERIAL FROM ARTICLE.STY
+
+
+% Input local page positioning parameters
+\input local.sty 
+% input LaTeX extentions
+%
+\input tmaddon.sty		
+
+\def\cents{\hbox{\rm\rlap/c}}
+\def\voucher@companyname{AT\&T BELL LABORATORIES}
+\def\tableline{\hbox to\hsize}
+
+\newsavebox{\check@box}
+\global\sbox{\check@box}{%
+  \vbox to 12pt{\hrule\hbox to 12pt{\vbox to 11.2pt{}\vrule\hfill\vrule}\vfill\hrule}
+  }%
+\newsavebox{\checked@box}
+\global\sbox{\checked@box}{%
+  \vbox to 12pt{%
+    \hrule\hbox to 12pt{\vbox to 11.2pt{}\vrule\hfill\raise2pt\hbox{$\surd$}\hfill\vrule}\vfill\hrule}
+  }%
+\newsavebox{\small@box}
+\global\sbox{\small@box}{%
+  \vbox to 5pt{\hrule\hbox to 5pt{%
+    \vbox to 4.2pt{}\vrule\hfill\vrule}\vfill\hrule}
+  }%
+\def\voucher{\init@totals
+  \voucher@setsizes
+  \setbox0\vbox\bgroup\voucher@head
+  \voucher@idtable\labelfont
+}
+\def\endvoucher{\noindent% 
+%  \vfill
+  \egroup%
+  \copy0\voucher@bottoma
+  \copy0\voucher@bottomb
+  \box0\voucher@bottomc
+  \typeout{Total DUE: \the\c@voucher@due}
+  }
+\def\expenses{\vskip-1pt% should be +1
+  \centerline{\biglabelfont BUSINESS EXPENSES INCURRED}%
+  \hbox\bgroup\fatvrule\vbox\bgroup%
+    \voucher@expensehead\vskip-1pt%
+  }%
+\def\endexpenses{\voucher@subtotalline%
+  \egroup\medvrule\egroup%
+  }%
+\newsavebox{\otherexpenses@box}
+\def\otherexpenses{%
+  \global\sbox{\otherexpenses@box}\bgroup\fatvrule%
+    \raise8pt\vtop\bgroup\hsize493pt%
+    \voucher@otherhead%
+  }%
+\def\endotherexpenses{\voucher@othertail%
+  \egroup\fatvrule%
+  \hfill\egroup%
+  }%
+\def\projnums{\setcounter{proj@percent}{0}%
+  \prevdepth=-1000pt\hbox{\fatvrule\vbox{\voucher@totalline}\medvrule}
+  \prevdepth=-1000pt\hbox\bgroup\vtop\bgroup%
+    \prevdepth=-1000pt\hbox{}\hbox{\usebox{\otherexpenses@box}}%
+    \prevdepth=-1000pt\hbox\bgroup%
+      \fatvrule\vtop\bgroup\hsize244pt\projnum@head%
+  }%
+\def\endprojnums{\projnum@tail\fathrule%
+   \hbox{\vbox to 29pt{\hsize=3.3in
+      {\tiny\vfill
+      \hbox{* Nonemployee Account Number}
+      \hbox{**Enter Non-travel Meals under ``Other Exp.
+                   Itemized,'' see instr. for descr.}
+      \hbox{\dag Non-travel meals**, conf. reg.,
+                   home data lines, material purchased, all agent}
+      \hbox{\hskip 4pt disbursements, AMEX adjustments, etc.  See
+                   instruction for additional descrip.}
+      \hbox{\dag\dag Employees who do not have a ATT-BL PAN
+                   must supply their SSN.}
+      \vfill}}}%
+  \vfill\egroup%
+    \fatvrule%
+    \vtop{\hsize242pt%
+      \disposition@balance\fathrule\vfill}%
+    \fatvrule%
+    \egroup\egroup\exp@summary\egroup}%
+%
+\newdimen\hoffset@amount\hoffset@amount=-70pt
+\def\shifttoleft{\hoffset@amount=-250pt}
+\def\voucher@setsizes{%
+  \hsize=760pt \vsize=8.3in \textheight 8.3in
+  \newpage
+  \hoffset\hoffset@amount\voffset-65pt
+  \pagestyle{empty}
+  \font\attlogofont=att36
+  \font\labelfont=cmss8
+  \font\littlelabelfont=cmr6
+  \font\biglabelfont=cmss9
+  \parindent=0pt
+  \newdimen\fatrule\fatrule=2.0pt
+  \newdimen\medrule\medrule=1.6pt
+  \newdimen\thinrule\thinrule=1pt
+  \def\fathrule{\hrule height\fatrule}%
+  \def\fatvrule{\vrule width\fatrule}%
+  \def\medhrule{\hrule height\medrule}%
+  \def\medvrule{\vrule width\medrule}%
+  \def\thinhrule{\hrule height\thinrule}%
+  \def\thinvrule{\vrule width\thinrule}%
+  \font\largesf=cmss12
+  \labelfont
+}
+\def\englishnumber#1{%
+  \ifnum#1=0 zero
+  \else\ifnum#1=1 one
+  \else\ifnum#1=2 two
+  \else\ifnum#1=3 three
+  \else\ifnum#1=4 four
+  \else\ifnum#1=5 five
+  \else\ifnum#1=6 six
+  \else\ifnum#1=7 seven
+  \else\ifnum#1=8 eight
+  \else\ifnum#1=9 nine\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi}
+%
+\def\Englishnumber#1{%
+  \ifnum#1=0 Zero
+  \else\ifnum#1=1 One
+  \else\ifnum#1=2 Two
+  \else\ifnum#1=3 Three
+  \else\ifnum#1=4 Four
+  \else\ifnum#1=5 Five
+  \else\ifnum#1=6 Six
+  \else\ifnum#1=7 Seven
+  \else\ifnum#1=8 Eight
+  \else\ifnum#1=9 Nine\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi}
+%
+\def\englishtens#1{%
+  \ifnum#1=0 zero%
+  \else\ifnum#1=1 BAD % should call teens for next digit
+  \else\ifnum#1=2 twenty%
+  \else\ifnum#1=3 thirty%
+  \else\ifnum#1=4 forty%
+  \else\ifnum#1=5 fifty%
+  \else\ifnum#1=6 sixty%
+  \else\ifnum#1=7 seventy%
+  \else\ifnum#1=8 eighty%
+  \else\ifnum#1=9 ninety\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi}%
+%
+\def\Englishtens#1{%
+  \ifnum#1=0 zero%
+  \else\ifnum#1=1 BAD% should call teens for next digit
+  \else\ifnum#1=2 Twenty%
+  \else\ifnum#1=3 Thirty%
+  \else\ifnum#1=4 Forty%
+  \else\ifnum#1=5 Fifty%
+  \else\ifnum#1=6 Sixty%
+  \else\ifnum#1=7 Seventy%
+  \else\ifnum#1=8 Eighty%
+  \else\ifnum#1=9 Ninety\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi}%
+%
+\def\englishteens#1{
+  \ifnum#1=0 zero
+  \else\ifnum#1=1 eleven
+  \else\ifnum#1=2 twelve
+  \else\ifnum#1=3 thirteen
+  \else\ifnum#1=4 fourteen
+  \else\ifnum#1=5 fifteen
+  \else\ifnum#1=6 sixteen
+  \else\ifnum#1=7 seventeen
+  \else\ifnum#1=8 eighteen
+  \else\ifnum#1=9 nineteen\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi}
+%
+\def\Englishteens#1{
+  \ifnum#1=0 Zero
+  \else\ifnum#1=1 Eleven
+  \else\ifnum#1=2 Twelve
+  \else\ifnum#1=3 Thirteen
+  \else\ifnum#1=4 Fourteen
+  \else\ifnum#1=5 Fifteen
+  \else\ifnum#1=6 Sixteen
+  \else\ifnum#1=7 Seventeen
+  \else\ifnum#1=8 Eighteen
+  \else\ifnum#1=9 Nineteen\fi\fi\fi\fi\fi\fi\fi\fi\fi\fi}
+%
+\def\get@right@digit#1{% returns righthand digit in voucher@tempa
+                       % number divided by 10 in voucher@tempb
+  \setcounter{voucher@tempa}{#1}%
+  \setcounter{voucher@tempb}{#1}%
+  \divide\c@voucher@tempb by10%
+  \setcounter{voucher@tempc}{\c@voucher@tempb}%
+  \multiply\c@voucher@tempc by10%
+  \advance\c@voucher@tempa by-\c@voucher@tempc%
+  }%
+%
+\newcounter{voucher@one}
+\newcounter{voucher@ten}
+\newcounter{voucher@hundred}
+\newcounter{voucher@thousand}
+\newcounter{voucher@tenthousand}
+%
+\newif\ifnotzero
+\def\voucher@spellout#1{% dollars; cents will not be spelled out
+  \setcounter{voucher@tempb}{#1}%
+  \get@right@digit\c@voucher@tempb
+  \setcounter{voucher@one}{\c@voucher@tempa}
+  \get@right@digit\c@voucher@tempb
+  \setcounter{voucher@ten}{\c@voucher@tempa}
+  \get@right@digit\c@voucher@tempb
+  \setcounter{voucher@hundred}{\c@voucher@tempa}
+  \get@right@digit\c@voucher@tempb
+  \setcounter{voucher@thousand}{\c@voucher@tempa}
+  \get@right@digit\c@voucher@tempb
+  \setcounter{voucher@tenthousand}{\c@voucher@tempa}
+  \raise2pt\vbox{\hrule width1in}
+  \notzerofalse
+  \ifnum\c@voucher@tenthousand=0
+    \ifnum\c@voucher@thousand>0
+      \Englishnumber{\c@voucher@thousand}\notzerotrue\fi\fi
+  \ifnum\c@voucher@tenthousand=1
+    \ifnum\c@voucher@thousand>0
+      \Englishteens{\c@voucher@thousand}\notzerotrue\fi\fi
+  \ifnum\c@voucher@tenthousand>1
+    \Englishtens{\c@voucher@tenthousand}\notzerotrue%
+    \ifnum\c@voucher@thousand>0%
+      -\Englishnumber{\c@voucher@thousand}\notzerotrue\fi\fi
+  \ifnotzero Thousand \fi
+  \ifnum\c@voucher@hundred>0
+    \Englishnumber{\c@voucher@hundred}Hundred \notzerotrue\fi
+  \ifnum\c@voucher@ten=0
+    \ifnum\c@voucher@one>0
+%      \ifnotzero\ and\fi
+      \Englishnumber{\c@voucher@one}\fi\fi
+  \ifnum\c@voucher@ten=1
+    \ifnum\c@voucher@one>0
+%      \ifnotzero\ and\fi
+      \Englishteens{\c@voucher@one}\fi\fi
+  \ifnum\c@voucher@ten>1
+%    \ifnotzero\ and\fi
+    \Englishtens{\c@voucher@ten}%
+    \ifnum\c@voucher@one>0%
+      -\Englishnumber{\c@voucher@one}\fi\fi%
+  \kern1pt\raise2pt\vbox{\hrule width1in}
+  }
+%
+\newdimen\box@width%
+\newdimen\tableboxheight%
+\newdimen\fatboxheight%
+\def\tablebox{\@ifstar%
+    {\box@width=0pt% vrule width
+      \tbl@box{}{\tableboxheight}}%
+    {\box@width-0.4pt%
+      \tbl@box{\vrule}{\tableboxheight}}}%
+\def\tbl@box#1#2#3#4{%
+    \advance\box@width#3%
+    \vbox to #2{\hsize=\box@width\vfill%
+    \tableline{#4}\vfill}#1}%
+\def\dollars@cents#1{%
+    \ifnum#1=0\def\voucher@dollars{}\def\voucher@cents{}%
+    \else\setcounter{voucher@temp}{#1}%
+      \divide\c@voucher@temp by 100\def\voucher@dollars{\thevoucher@temp}%
+      \setcounter{voucher@tempb}{\value{voucher@temp}}%
+      \multiply\c@voucher@tempb by 100\setcounter{voucher@tempa}{#1}%
+      \addtocounter{voucher@tempa}{-\value{voucher@tempb}}%
+      \ifnum\c@voucher@tempa>9
+        \def\voucher@cents{\thevoucher@tempa}%
+      \else\def\voucher@cents{0\thevoucher@tempa}%  
+      \fi
+    \fi
+}%
+\def\linetotalbox#1{%
+      \dollars@cents{#1}%
+      \fatboxheight\tableboxheight\advance\fatboxheight-1.6pt%
+      \vbox{\hbox{\box@width0pt%
+        \tbl@box{}{\fatboxheight}{93.6pt}{\hskip2pt\hfil%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+        \box@width-0.4pt%
+        \tbl@box{}{\fatboxheight}{5pt}{\hfill\hfill}}}%
+      }%
+\def\totalbox#1{\medvrule%
+      \dollars@cents{#1}%
+      \fatboxheight\tableboxheight\advance\fatboxheight-1.6pt%
+      \vbox{\hbox{\box@width0pt%
+        \tbl@box{}{\fatboxheight}{93.6pt}{\hskip2pt\$\hfil%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+        \box@width-0.4pt%
+        \tbl@box{}{\fatboxheight}{5pt}{\hfill\hfill}}}%
+      }%
+\def\otherexpbox#1{%
+    \dollars@cents{#1}%
+    \vbox{\hbox{%
+      \tablebox*{59.6pt}{\hskip2pt\hfill%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+      \vrule% height6pt%
+%      \tablebox{18pt}{\hfill\ifamex$\surd$\fi\hfill}
+     }}%
+    }%
+\def\expbox{\@ifstar%
+    {\exp@fatbox}%
+    {\exp@box}%
+    }%
+\def\exp@box#1{%
+    \dollars@cents{#1}%
+    \vbox{\hbox{%
+      \tablebox*{71.6pt}{\hskip2pt\hfill%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+      \vrule% height6pt%
+      \tablebox{18pt}{\hfill\ifamex$\surd$\fi\hfill}}}%
+    }%
+\def\exp@fatbox#1{%
+      \dollars@cents{#1}%
+      \fatboxheight\tableboxheight\advance\fatboxheight-1.6pt%
+      \vbox{\medhrule\hbox{\medvrule\box@width0pt%
+        \tbl@box{}{\fatboxheight}{70.4pt}{\hskip2pt\$\hfil%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+        \box@width-0.4pt%
+        \tbl@box{\vrule}{\fatboxheight}{18pt}{\hfill\hfill}}}%
+      }%
+\def\balbox#1{%
+    \dollars@cents{#1}%
+    \vbox{\hbox{%
+      \tablebox*{55pt}{\hskip2pt\$\hfill%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+      %\vrule% height6pt%
+      \tablebox{5pt}{\hfill\hfill}\vrule}}%
+    }%
+\def\exp@sumbox#1{%
+      \dollars@cents{#1}%
+      \fatboxheight\tableboxheight\advance\fatboxheight-1.6pt%
+      \vbox{\medhrule\hbox{\medvrule\box@width0pt%
+        \tbl@box{}{\fatboxheight}{54.4pt}{\hskip2pt\$\hfil%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+        \box@width-0.4pt%
+        \hfill\tbl@box{\vrule}{\fatboxheight}{5pt}{\hfill\hfill}}}%
+      }%
+
+%
+\def\voucher@head{%
+  \hbox to \hsize{%
+    \rlap{\vbox{\hsize=130pt\parbox{40pt}{\attlogofont L}
+      \parbox{86pt}{{\attlogofont AT\&T}}}}
+    \rlap{\hskip1.3in
+    \lower12pt\vbox{\hbox{\ifsummerhire\usebox{\checked@box}%
+      \else\usebox{\check@box}\fi\hskip4pt}}
+    \lower10pt\vbox{\hbox{{\small CHECK HERE IF SUMMER HIRE}}}} 
+    \hfill\vbox{\hsize=2in\hbox{\hfill \largesf EXPENSE VOUCHER \hfill}}
+    \hfill
+    \llap{\lower10pt\vbox{\hsize=2in\hbox{%
+      \rlap{\hskip36pt\raise2pt\hbox{\page@num}}\hfill PAGE\ 
+      \vrule height0.4pt depth0pt width 32pt 
+      \rlap{\hskip25pt\raise2pt\hbox{\page@of}}%
+      \ OF\ \vrule height0.4pt depth0pt width 32pt \hfill}}}
+    }\vskip1pt}% should be 6
+\def\voucher@bottoma{\vskip-2pt%
+  \hbox to \hsize{%
+    \rlap{\vbox to12pt{\vfill{\tiny voucher.sty \vouchversiondate}\vfill}}
+    \hfill
+    \vbox to 12pt{\hsize=3in\vfill\hbox{{\largesf\hfill TREASURY COPY\hfill}}\vfill}
+    \hfill
+    \llap{\vbox to 12pt{\hsize=2in\vfill{\hfill\voucher@companyname}%
+          \vfill}} 
+    }\vfill\newpage}
+\def\voucher@bottomb{\vskip-2pt%
+  \hbox to \hsize{%
+    \hfill
+    \vbox to 12pt{\hsize=3in\vfill\hbox{{\largesf\hfill DUPLICATE TREASURY COPY\hfill}}\vfill}
+    \hfill
+    \llap{\vbox to 12pt{\hsize=2in\vfill{\hfill\voucher@companyname}%
+          \vfill}} 
+    }\vfill\newpage}
+\def\voucher@bottomc{\vskip-2pt%
+  \hbox to \hsize{%
+     \hfill
+    \vbox to 12pt{\hsize=3in\vfill\hbox{{\largesf\hfill EMPLOYEE COPY\hfill}}\vfill}
+    \hfill
+    \llap{\vbox to 12pt{\hsize=2in\vfill{\hfill\voucher@companyname}%
+          \vfill}} 
+    }\vfill\newpage}
+%
+% top table that identifies filer
+\def\voucher@idtable{{\noindent%
+  \newdimen\box@width%
+  \def\tablebox{\@ifstar%
+    {\box@width-0.4pt% vrule width
+     \tbl@box{\vrule}}%
+    {\box@width=0pt%
+     \tbl@box{}}}%
+  \def\tbl@box##1##2##3##4{%
+      \advance\box@width##2%
+      \vbox to 20pt{\hsize=\box@width\vfill%
+      \tableline{{\hskip2pt\labelfont##3\hfill}}%
+      \tableline{{\hfill\labelfont##4\hfill}}\vfill}##1}%
+  \def\otherbox{\@ifstar%
+    {\box@width-0.4pt% vrule width
+     \oth@box{\vrule}}%
+    {\box@width=0pt%
+     \oth@box{}}}%
+  \def\oth@box##1##2##3##4##5##6{%
+      \advance\box@width##2%
+      \vbox to 30pt{\hsize=\box@width\vfill%
+      \tableline{{\hskip2pt\labelfont##3\hfill}}%
+      \vskip-4pt
+      \tableline{{\hskip20pt\tiny##4\hfill}}%
+      \tableline{{\hskip2pt\labelfont##5\hfill}}%
+      \vskip-4pt
+      \tableline{{\hskip20pt\tiny##6\hfill}}\vfill}##1}%
+ \fatvrule
+   \vbox{\fathrule%
+         \hbox{%   First Row
+         % should be 125
+            \tablebox*{137pt}{AT\&T-BL PAN, SSN OR NEICS NO.*}{\voucher@pan}%
+            \tablebox{125pt}{NAME\hskip45pt (LAST)}{\voucher@lname}%
+            \tablebox{115pt}{(FIRST)}{\voucher@fname}%
+            \tablebox*{66pt}{(MI)}{\voucher@mname}%
+            % should be 200
+            \tablebox*{174pt}{ORGANIZATION}{\voucher@orgnum}%
+            % should be 125
+            \tablebox{139pt}{TODAY'S DATE}{\voucher@date}%
+            \hfill%
+         }\thinhrule
+         \hbox{%  Second Row
+            \tablebox*{152pt}{LOCATION CODE}{\voucher@loccode}%
+%            \tablebox*{73pt}{BASE LOC.}{\voucher@loccode}%
+            \tablebox*{79pt}{ROOM}{\voucher@room}%
+            \tablebox*{143pt}{TELEPHONE NUMBER}%
+              {(\voucher@phonearea) \voucher@phoneexch%
+                  --\voucher@phonenum}%
+            % should be 257
+            \tablebox*{243pt}{BUSINESS PURPOSE}{\voucher@buspurpose}%
+            % chould be 125
+            \tablebox{139pt}{DATE OF EARLIEST AMEX CHARGE}{\voucher@earliestdate}%
+            \hfill%
+         }\thinhrule
+         \hbox{% Third  Row
+            \otherbox{52pt}{CHECK ONE}{}{}{}%
+            \otherbox{173pt}%
+              {\if1\expense@type\rlap{\raise2pt\vbox{$\surd$}}\fi%
+                \usebox{\small@box} 1 BUSINESS TRIP}%
+              {\hfill}
+              {\if2\expense@type\rlap X\fi%
+                \usebox{\small@box} 2 FIELD ASSIGNMENT}%
+              {(not eligible for relocation benefits)}
+            \otherbox{173pt}%
+              {\if3\expense@type\rlap X\fi%
+                \usebox{\small@box} 3 FIELD DISBURSEMENTS}%
+              {(for BL Agent account holders only)}
+              {\if4\expense@type\rlap X\fi%
+                \usebox{\small@box} 4 OTHER
+                \@ifundefined{voucher@other}{}%
+                  {\rlap{\raise2pt\hbox{{\hskip10pt\tiny\voucher@other}}}}
+                \vrule height 0.4pt depth
+                0pt width 120pt}%
+              {(i.e., material purchases, etc.)}
+            \otherbox{173pt}%
+              {\if5\expense@type\rlap X\fi%
+                \usebox{\small@box} 5 FOREIGN EXCHANGE RATE
+                \@ifundefined{fxrate}{}%
+                  {\rlap{\raise2pt\hbox{{\hskip10pt\tiny\fxrate}}}}
+                \vrule height0.4pt width28pt}%
+              {\hfill}
+              {\if6\expense@type\rlap X\fi%
+                \usebox{\small@box} 6 AUTHORIZED WORK BALANCE}%
+              {(special account holders only)}
+            \otherbox{173pt}%
+              {\if7\expense@type\rlap X\fi%
+                \usebox{\small@box} 7 AMEX CREDIT ADJUSTMENT}%
+              {Date of original voucher
+               \@ifundefined{credit@date}{}%
+                  {\rlap{\raise2pt\hbox to79pt{{\hfill\tiny\credit@date}}}}
+               \vrule height 0.4pt depth 0pt width 77pt}
+              {\if8\expense@type\rlap X\fi%
+                \usebox{\small@box} 8 AMEX DEBIT ADJUSTMENT}%
+              {Date of original voucher 
+               \@ifundefined{debit@date}{}%
+                  {\rlap{\raise2pt\hbox to79pt{{\hfill\tiny\debit@date}}}}
+               \vrule height 0.4pt depth 0pt width 77pt}
+          }\fathrule%
+        }\fatvrule
+  }}
+%
+\def\init@totals{
+  \newcounter{mileage}
+  \newcounter{trans@cents}
+  \newcounter{car@cents}
+  \newcounter{park@cents}
+  \newcounter{meals@cents}
+  \newcounter{lodge@cents}
+  \newcounter{other@cents}
+  \newcounter{tax@cents}
+  \newcounter{totalother@cents}
+  \newcounter{advance@cents}
+  \newcounter{prereg@cents}
+  \newcounter{deduct@cents}
+  \newcounter{trans@total}\setcounter{trans@total}{0}
+  \newcounter{car@total}\setcounter{car@total}{0}
+  \newcounter{park@total}\setcounter{park@total}{0}
+  \newcounter{meals@total}\setcounter{meals@total}{0}
+  \newcounter{lodge@total}\setcounter{lodge@total}{0}
+  \newcounter{other@total}\setcounter{other@total}{0}
+  \newcounter{i@other@total}\setcounter{i@other@total}{0}
+  \newcounter{otheramount@total}\setcounter{otheramount@total}{0}
+  \newcounter{othertax@total}\setcounter{othertax@total}{0}
+  \newcounter{subtotal@total}\setcounter{subtotal@total}{0}
+  \newcounter{total@total}\setcounter{total@total}{0}
+  \newcounter{line@total}\setcounter{line@total}{0}
+  \newcounter{amex@total}\setcounter{amex@total}{0}
+  \newcounter{voucher@due}
+  \newcounter{voucher@temp}
+  \newcounter{voucher@tempa}\newcounter{voucher@tempb}
+  \newcounter{voucher@tempc}\newcounter{voucher@tempd}
+  \newcounter{line@num}\setcounter{line@num}{0}
+  \@ifundefined{amex@advance}%
+    {\setcounter{advance@cents}{0}}%
+    {\ifx\my@null\amex@advance{}%
+       \else\setcounter{advance@cents}{\amex@advance}\fi}%
+  \@ifundefined{conf@prereg}%
+    {\setcounter{prereg@cents}{0}}%
+    {\ifx\my@null\conf@prereg{}%
+      \else\setcounter{prereg@cents}{\conf@prereg}\fi}%
+  }
+\def\my@null{}
+\newif\ifamex\amexfalse
+\newif\iftransamex\transamexfalse
+\newif\ifmealsamex\mealsamexfalse
+\newif\iflodgeamex\lodgeamexfalse
+\newif\ifotheramex\otheramexfalse
+\newif\ifsummerhire\summerhirefalse
+\def\expense{% actually takes 7 params
+  \ifnum\c@line@num>8%
+    \typeout{!!!!!!!!!!!!!! TOO MANY EXPENSE LINES (>9) !!!!!!!!!!!!!}%
+    \fi
+    \voucher@gettrans
+  }
+  
+\def\voucher@gettrans#1#2#3{%
+    \addtocounter{line@num}{1}
+    \def\exp@date{#1}
+    \def\exp@desc{#2}
+    \setcounter{line@total}{0}
+
+    \def\my@arg{#3}
+    \ifx\my@null\my@arg\setcounter{trans@cents}{0}%
+    \else\setcounter{trans@cents}{#3}\fi
+      \addtocounter{trans@total}{\c@trans@cents}
+      \addtocounter{line@total}{\c@trans@cents}
+    \@ifstar{\transamextrue\addtocounter{amex@total}{\c@trans@cents}
+        \voucher@getcar}%
+        {\transamexfalse\voucher@getcar}
+  }
+
+\def\voucher@getcar#1{%
+    \def\my@arg{#1}
+    \ifx\my@null\my@arg\setcounter{car@cents}{0}%
+    \else\setcounter{car@cents}{#1}\fi
+      \addtocounter{car@total}{\c@car@cents}
+      \addtocounter{line@total}{\c@car@cents}
+\setcounter{park@cents}{0}
+    \voucher@getmeals
+    }
+\def\voucher@getmeals#1#2{%
+    \def\num@meals{#1}
+    \def\my@arg{#2}
+    \ifx\my@null\my@arg\setcounter{meals@cents}{0}
+    \else\setcounter{meals@cents}{#2}\fi
+      \addtocounter{meals@total}{\c@meals@cents}
+      \addtocounter{line@total}{\c@meals@cents}
+    \@ifstar{\mealsamextrue\addtocounter{amex@total}{\c@meals@cents}
+        \voucher@getlodge}%
+        {\mealsamexfalse\voucher@getlodge}
+    }
+\def\voucher@getlodge#1{%
+    \def\my@arg{#1}
+    \ifx\my@null\my@arg\setcounter{lodge@cents}{0}
+    \else\setcounter{lodge@cents}{#1}\fi
+      \addtocounter{lodge@total}{\c@lodge@cents}
+      \addtocounter{line@total}{\c@lodge@cents}
+%\setcounter{other@cents}{0}
+    \addtocounter{subtotal@total}{\c@line@total}
+    \@ifstar{\lodgeamextrue\addtocounter{amex@total}{\c@lodge@cents}
+        \voucher@expenseline}%
+        {\lodgeamexfalse\voucher@expenseline}
+%    \voucher@expenseline
+    }
+
+\def\voucher@expenseline{%
+  \def\car@box##1{%
+    \dollars@cents{##1}%
+    \vbox{\hbox{%
+      \tablebox*{71.6pt}{\hskip2pt\hfill%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+      \vrule% height6pt%
+      }}%
+    }%
+  \tableboxheight=11.6pt%
+  \hbox{%
+     \tablebox{41pt}{\hskip2pt\hfill\exp@date\hfill}%
+     \tablebox{255pt}{\hskip2pt\exp@desc\hfill}%
+     \iftransamex\amextrue\else\amexfalse\fi
+     \expbox{\c@trans@cents}%
+     \amexfalse
+     \car@box{\c@car@cents}%
+     \if0\num@meals\tablebox{19pt}{\hfill\ \hfill}%
+     \else\tablebox{19pt}{\hfill\num@meals\hfill}%
+     \fi%
+     \ifmealsamex\global\amextrue\else\global\amexfalse\fi
+     \expbox{\c@meals@cents}%
+     \iflodgeamex\global\amextrue\else\global\amexfalse\fi
+     \expbox{\c@lodge@cents}%
+     \amexfalse
+     \medvrule%
+     \linetotalbox{\c@line@total}\vrule%
+     }\hrule%
+  }%
+\def\voucher@subtotalline{%
+  \def\exp@fatbox##1{%
+      \dollars@cents{##1}%
+      \fatboxheight\tableboxheight%\advance\fatboxheight-1.6pt%
+      \vbox{\hbox{\medvrule\box@width0pt%
+        \tbl@box{}{\fatboxheight}{70.4pt}{\hskip2pt\$\hfil%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+        \box@width-0.4pt%
+        \tbl@box{\vrule}{\fatboxheight}{18pt}{\hfill\hfill}}}%
+      }%
+  \def\car@subbox##1{%
+      \dollars@cents{##1}%
+      \fatboxheight\tableboxheight%\advance\fatboxheight-1.6pt%
+      \vbox{\hbox{\medvrule\box@width0pt%
+        \tbl@box{}{\fatboxheight}{70.4pt}{\hskip2pt\$\hfil%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+        \box@width-0.4pt%
+        }}%
+      }%
+  \def\sp@box##1{%
+      \dollars@cents{##1}%
+      \fatboxheight\tableboxheight%\advance\fatboxheight-1.6pt%
+      \vbox{\hbox{\box@width0pt%
+        \tbl@box{}{\fatboxheight}{70.4pt}{\hskip2pt\$\hfil%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+        \box@width-0.4pt%
+        \tbl@box{\vrule}{\fatboxheight}{18pt}{\hfill\hfill}}}%
+      }%
+  % end of defs
+      \loop\ifnum\c@line@num<9\expense{}{}{0}{0}{0}{0}{0}%
+        \repeat%
+      \tableboxheight=11.6pt%
+      \hbox{\vbox{\hrule height0pt depth0pt width 295.6pt}\vbox{\fathrule width 461pt depth0pt}}%
+      \prevdepth=-1000pt\hbox{%
+        \tablebox{296pt}{\hskip2pt1\hfill\hfill SUBTOTALS\hskip26pt}%
+        \expbox*{\c@trans@total}%
+        \car@subbox{\c@car@total}%
+        \hbox to20.6pt{\medvrule height\fatboxheight\hfill\ \hfill}%
+        \amexfalse
+        \sp@box{\c@meals@total}%
+        \expbox*{\c@lodge@total}%
+        \totalbox{\c@subtotal@total}\vrule%
+        }
+      \fathrule%
+}
+
+\def\voucher@totalline{
+      \tableboxheight=11.6pt%
+      \hbox{%
+        \vbox to12pt{\vfill% 
+          \hbox to656.6pt{\hskip2pt1A TOTAL AMOUNT FROM ``OTHER
+          EXPENSES ITEMIZED''\hfill}
+        \vfill%
+          }\vrule\totalbox{\c@i@other@total}\vrule%
+        }%
+        \setcounter{total@total}{\c@subtotal@total}
+        \addtocounter{total@total}{\c@i@other@total}
+      \hrule
+      \hbox{%
+        \vbox to12pt{\vfill% 
+          \setcounter{voucher@tempd}{\c@total@total}%
+          \divide\c@voucher@tempd by100%
+          \hbox to656.6pt{\hskip2pt2 TOTAL EXPENSES (write
+            out):\quad\voucher@spellout{\c@voucher@tempd}\hfill
+            \dollars@cents{\c@total@total}%
+            AND\hbox to40pt{\hfill\voucher@cents\hfill}/100
+            \hskip6pt}
+        \vfill%
+          }\vrule\totalbox{\c@total@total}\vrule%
+        }%
+      \fathrule%
+}%
+\def\voucher@expensehead{%
+  \par%
+  \hbox{%
+  \vbox{\fathrule%
+        \hbox{% label line
+           \vbox to 26pt{\hsize=40.6pt\vfill%
+             \tableline{\hfill DATE\hfill}\vfill}%
+           \vrule%  
+           \vbox to 26pt{\hsize=254.6pt\vfill%
+             \tableline{\hfill TRAVEL AND LIVING EXPENSES\hfill}
+             \tableline{\hfill LOCATION/DESCRIPTION\hfill}\vfill}% 
+           \vrule%
+           \vbox to 26pt{\hsize=89.6pt\vfill%
+             \tableline{\hfill AIR/GROUND\hfill}
+             \tableline{\hfill TRANSPORTATION\hfill}\vskip-2pt
+             \tableline{\hfill{\tiny (including parking \& tolls)}\hfill}\vfill}%
+           \vrule%
+           \vbox to 26pt{\hsize=71.6pt\vskip2pt
+             \tableline{\hfill PERSONAL CAR\hfill}\vskip2pt\hrule
+             \vfill
+             \tableline{\hfill @\milesrate\cents\hfill}
+             \vfill}%
+           \vrule%
+           \vbox to 26pt{\hsize=108.6pt\vskip2pt
+             \tableline{\hfill TRAVEL MEALS**\hfill}\vskip2pt\vfill\hrule
+             \tableline{%
+               \vbox to 13.6pt{\vfill\hbox to 18.6pt{\hfill NO.\hfill}\vfill}%
+               \vrule%
+               \vbox to 13.6pt{\vfill\hbox to 60.6pt{\hfill AMOUNT\hfill}%
+                 \vfill}\hfill}}%
+           \vrule%
+           \vbox to 26pt{\hsize=89.6pt\vfill
+             \tableline{\hfill LODGING\hfill}\vskip-2pt
+             \tableline{\hfill{\tiny(including telephone calls}\hfill}\vskip-2pt
+             \tableline{\hfill{\tiny charged to room)}\hfill}
+             \vfill}%
+           \fatvrule%
+           \vbox to 24pt{\hsize=98pt\vfill
+             \tableline{\hfill TOTAL\hfill}
+             \tableline{\hfill EXPENSES\hfill}\vfill}%
+           \vrule
+        }\fathrule%
+  }%
+  }}%
+
+\def\otherexpense{%
+  \ifnum\c@line@num>11%should be 12 and 13 on line below; reduced for size
+    \typeout{!!!!!!!!!!!!!! TOO MANY OTHER EXPENSES (>12) !!!!!!!!!!!!!}%
+  \fi%
+  \voucher@getother
+}
+
+\def\voucher@getother#1#2#3{%
+    \addtocounter{line@num}{1}
+    \def\exp@date{#1}
+    \def\exp@desc{#2}
+    \def\my@arg{#3}
+    \ifx\my@null\my@arg\setcounter{other@cents}{0}
+      \else\setcounter{other@cents}{#3}\fi
+      \addtocounter{otheramount@total}{#3}
+    \@ifstar{\otheramextrue\voucher@gettax}%
+      {\otheramexfalse\voucher@gettax}
+}
+
+\def\voucher@gettax#1{
+    \def\my@arg{#1}
+    \ifx\my@null\my@arg\setcounter{tax@cents}{0}
+      \else\setcounter{tax@cents}{#1}\fi
+      \addtocounter{othertax@total}{\c@tax@cents}
+      \setcounter{totalother@cents}{\c@other@cents}
+      \addtocounter{totalother@cents}{\c@tax@cents}
+      \addtocounter{i@other@total}{\c@totalother@cents}
+    \@ifstar{\otheramextrue\voucher@getsubacct}%
+      {\ifotheramex{}\else\otheramexfalse\fi\voucher@getsubacct}
+}
+
+\def\voucher@getsubacct#1{
+    \def\sub@acct{#1}
+    \ifotheramex\addtocounter{amex@total}{\c@totalother@cents}\fi
+    \voucher@otherline
+}
+
+\def\voucher@otherline{%
+  \tableboxheight=11.6pt%
+  \hbox{%
+     \tablebox{41pt}{\hskip2pt\hfill\exp@date\hfill}%
+     \tablebox{195pt}{\hskip2pt\exp@desc\hfill}%
+     \otherexpbox{\c@other@cents}%
+     \otherexpbox{\c@tax@cents}%
+     \otherexpbox{\c@totalother@cents}%
+     \tablebox{17pt}{\ifotheramex\hfill$\surd$\hfill\fi}%
+     \tablebox*{60pt}{\hfill\sub@acct\hfill}%
+     }\hrule
+  }%
+\def\voucher@otherhead{%
+  \setcounter{line@num}{0}%
+  \par%
+        \prevdepth=-1000pt\hbox{\baselineskip 6pt% label line
+           \vbox to 11.6pt{\hsize=40.6pt\vfill%
+             \tableline{\hfill DATE\hfill}\vfill}%
+           \vrule%  
+           \vbox to 11.6pt{\hsize=194.6pt\vfill%
+             \tableline{\hfill \dag OTHER EXPENSES ITEMIZED
+             \hfill}\vfill}% 
+           \vrule%
+           \vbox to 11.6pt{\hsize=59.6pt\vfill%
+             \tableline{\tiny\hfill Amount\hfill}
+             \tableline{\tiny\hfill without tax\hfill}\vfill}%
+           \vrule%
+           \vbox to 11.6pt{\hsize=59.6pt\vfill%
+             \tableline{\tiny\hfill tax amt. per receipt\hfill}
+             \tableline{\tiny\hfill material purch only\hfill}\vfill}%
+           \vrule%
+           \vbox to 11.6pt{\hsize=59.6pt\vfill%
+             \tableline{\small\hfill Total Other Exp\hfill}\vfill}%
+           \vrule%
+           \vbox to 11.6pt{\hsize=16.6pt\vfill%
+             \tableline{\tiny\hfill $\surd$ if\hfill}
+             \tableline{\tiny\hfill amex\hfill}\vfill}%
+           \vrule%
+           \vbox to 11.6pt{\hsize=59.6pt\vfill%
+             \tableline{\tiny\hfill FML Common\hfill}
+             \tableline{\tiny\hfill Subaccount\hfill}\vfill}%
+        }\fathrule%
+  }%
+\def\voucher@othertail{%
+  \def\expbox{\@ifstar%
+    {\exp@fatbox}%
+    {\exp@box}%
+    }%
+  \def\exp@box##1{%
+    \dollars@cents{##1}%
+    \vbox{\hbox{%
+      \tablebox*{59.6pt}{\hskip2pt\hskip2pt\$\hfill%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+      \vrule% height6pt%
+      %\tablebox{0.4pt}{\hfill\hfill}
+      }}%
+    }%
+  \def\exp@fatbox##1{%
+      \dollars@cents{##1}%
+      \fatboxheight\tableboxheight\advance\fatboxheight-1.6pt%
+      \vbox{\medhrule\hbox{\medvrule\box@width0pt%
+        \tbl@box{}{\fatboxheight}{57.6pt}{\hskip2pt\$\hfil%
+        \ifx\my@null\voucher@dollars\relax\else\voucher@dollars.\voucher@cents\hskip2pt\fi}%
+        \box@width-0.4pt%
+        \tbl@box{\vrule}{\fatboxheight}{0.4pt}{\hfill\hfill}}}%
+      }%
+  \loop\ifnum\c@line@num<12\otherexpense{}{}{0}{0}{}%
+    \repeat%
+  \tableboxheight=11.6pt%
+  \hbox{%
+        \tablebox{236pt}{\hskip2pt{\tiny\dag enter ``total other expenses''
+        amount on line 1A (far right) under total exp.}\hfill}%
+        
+        \expbox{\c@otheramount@total}%
+        \expbox{\c@othertax@total}%
+        \expbox*{\c@i@other@total}%
+        \box@width0pt%
+        \tbl@box{}{10pt}{59pt}{}%
+   }\fathrule%
+%   \ifnum\c@i@other@total=\c@other@total\relax\else%
+%     \typeout{!!!!!!!!!!!!!! OTHER EXPENSE TOTALS DO NOT MATCH !!!!!!!!!!!!!!}%     \fi%
+   }%
+
+\newcounter{proj@percent}%
+\def\projnum#1#2#3{%
+  \ifnum\c@line@num>5%
+    \typeout{!!!!!!!!!!!!!! TOO MANY PROJECT NUMBERS (>6) !!!!!!!!!!!!!}%
+  \else%
+    \addtocounter{line@num}{1}
+    \addtocounter{proj@percent}{#3}%
+    \projnum@line{#1}{#2}{#3}%
+  \fi}%
+\def\projnum@head{\vskip-0.8pt\par%
+  \setcounter{line@num}{0}%
+  \tableboxheight=11.6pt%
+  \hbox{\tablebox*{244pt}{\hfill ACCOUNTING INFORMATION FROM EMPLOYEE\hfill}}%
+  \vskip-0.8pt\hrule%
+  \hbox{%
+    \tablebox{52pt}{\hfill ORG.\ NO.\hfill}%
+    \tablebox{144pt}{\hfill PROJECT NUMBER\hfill}%
+    \tablebox*{48pt}{\hfill PERCENT\hfill}%
+    }%
+  \hrule%
+  }%
+\def\projnum@line#1#2#3{%
+  \tableboxheight=11.6pt%
+  \hbox{%
+     \tablebox{52pt}{\hfill#1\hfill}%
+     \tablebox{144pt}{\hfill#2\hfill}%
+     \ifnum#3=0\tablebox*{48pt}{\hfill}%
+       \else\tablebox*{48pt}{\hfill#3\hfill}\fi%
+     }\hrule
+  }%
+  \def\projnum@tail{%
+  \ifnum\c@proj@percent=100\relax\else%
+    \typeout{!!!!!!!!!!!!!! PROJECT PERCENTS DO NOT ADD TO 100 !!!!!!!!!!!!!}%
+    \fi
+  \loop\ifnum\c@line@num<3\projnum{}{}{0}%
+    \repeat%
+   }%
+%
+\def\disposition@balance{\vskip-0.8pt\par%
+  \tableboxheight=11.6pt%
+  \hbox{\tablebox*{247pt}{\hfill DISPOSITION OF BALANCE\hfill}}%
+  \vskip-0.8pt\hrule%
+  \hbox to 247pt{\hskip6pt%
+    \vbox{{\labelfont\baselineskip8pt%
+      \vskip2pt%
+      \hbox{%
+        \parbox{235pt}{{%
+          If balance is due the company, attach a check made payable\\
+          to AT\&T Bell Laboratories to the front of the voucher.
+          \vskip3pt
+          If the balance is due employee, indicate preferred method
+          }}%
+        }%
+      \vskip2pt%
+      \hbox{{\labelfont%
+        \vbox to12pt{\hbox{of payment}\vfill}%
+        \hskip8pt\usebox{\check@box}\hskip4pt\vtop{\hbox{CHECK BY MAIL}}%
+        \hskip8pt\usebox{\check@box}\hskip4pt\vtop{\hbox{CASH AT COUNTER}}%
+        }}%
+      \vskip5pt
+      \hbox{{\labelfont Cash received by \vrule height0.4pt depth0pt
+        width162pt}}%
+      \vskip1pt%
+      \hbox{{\labelfont Amount \$ \vrule height0.4pt depth0pt
+        width108pt\ \vbox{\hbox{Teller}\hbox{Initials}}\vrule
+        height0.4pt depth0pt width52pt}}%
+      }}
+    }%
+  \vskip2pt
+  }%
+
+\def\exp@summary{%
+  \tableboxheight=15.6pt%
+  \vtop{\hbox{}\baselineskip7pt\vskip-2pt% 
+    \hbox to264pt{%
+      \vtop{%
+        \hbox to200pt{%
+          \vbox to\tableboxheight{\hsize=139pt\vfill\vskip1pt{\littlelabelfont%
+            \tableline{\hskip2pt 3 BUSINESS EXPENSES\hfill}%
+            \tableline{\hskip8pt CHARGED TO AMEX (ADD ALL $\surd$'s)}\vfill}}%
+          \vbox to\tableboxheight{\vfill\exp@sumbox{\c@amex@total}\vfill}%
+          }\hrule%
+        \hbox to200pt{%
+          \vbox to\tableboxheight{\hsize=139pt\vfill{\littlelabelfont%
+            \tableline{\hskip2pt 4 AMEX CASH ADVANCE\hfill}%
+            \vfill}}%
+          \vbox to \tableboxheight{\vfill\exp@sumbox{\c@advance@cents}\vfill}%
+          }\hrule%
+        \hbox to200pt{%
+          \vbox to\tableboxheight{\hsize=139pt\vfill{\littlelabelfont%
+             \tableline{\hskip2pt 5 CONFERENCE/SEMINAR PRE-\hfill}%
+             \tableline{\hskip8pt REGISTRATION ADV. (NON-AMEX)\hfill}\vfill}}%
+          \vbox to \tableboxheight{\vfill\exp@sumbox{\c@prereg@cents}\vfill}%
+         }\hrule%
+        \setcounter{deduct@cents}{\c@amex@total}%
+        \addtocounter{deduct@cents}{\c@advance@cents}%
+        \addtocounter{deduct@cents}{\c@prereg@cents}%
+        \hbox to200pt{%
+          \vbox to \tableboxheight{\hsize=139pt\vfill{\littlelabelfont%
+            \tableline{\hskip2pt 6 TOTAL DEDUCTIONS\hfill}%
+            \tableline{\hskip8pt (ADD LINES 3, 4 \& 5)\hfill}\vfill}}%
+          \vbox to \tableboxheight{\vfill\exp@sumbox{\c@deduct@cents}\vfill}%
+          }%
+        }%
+      \medvrule\hfill\vtop{\hbox to60pt{\hfill Treasury Use\hfill}%
+        \hbox to60pt{\hfill Only\hfill}%
+        \vskip8pt
+        \hbox to60pt{\hfill Audited By\hfill}%
+        \vskip8pt\hbox to60pt{\hfill\vrule height 0.4pt depth 0pt
+          width 48pt\hfill}% 
+        }\vrule\fatvrule}\prevdepth=-1000pt%
+    \hbox{\vbox{\hrule width139pt}\vbox{\fathrule width124.6pt}}\prevdepth=-1000pt%
+    \setcounter{voucher@due}{\c@total@total}%
+    \addtocounter{voucher@due}{-\c@deduct@cents}%
+    \hbox to264pt{%
+      \vbox to\tableboxheight{\hsize=200pt\vfill{\littlelabelfont%
+         \tableline{\hskip2pt 7 BALANCE DUE AT\&T-BL (LINE 6-2)
+         {\footnotesize\bf Attach Payment} 
+           \hfill}\vfill}}%
+      \fatvrule%
+      \vbox to\tableboxheight{\vfill%
+        \ifnum\c@voucher@due<0\balbox{-\c@voucher@due}\else\balbox{0}\fi%
+        \vfill}%
+      \medvrule}\prevdepth=-1000pt%
+    \hbox{\vbox{\hrule width200pt}\vbox{\fathrule width63.6pt}}\prevdepth=-1000pt%
+    \hbox to264pt{%
+      \vbox to\tableboxheight{\hsize=200pt\vfill{\littlelabelfont%
+         \tableline{\hskip2pt 8 BALANCE DUE INDIVIDUAL (LINE 2-6) 
+           \hfill}\vfill}}%
+      \fatvrule%
+      \vbox to\tableboxheight{\vfill%
+        \ifnum\c@voucher@due>0\balbox{\c@voucher@due}\else\balbox{0}\fi%
+        \vfill}%
+      \medvrule}\fathrule%
+    \hbox to264pt{\hskip6pt\vbox{\littlelabelfont
+    \vskip8pt%
+    \hbox{%
+      \parbox{250pt}{%
+        I HEREBY CERTIFY THAT I HAVE INCURRED ALL OF THE ABOVE\\
+        EXPENSES ON BEHALF OF AT\&T BELL LABORATORIES
+        }
+      }%
+    \vskip18pt\hrule width238pt%
+    \hbox to 250pt{Signature\hfill Date\hskip24pt}
+    \vskip15pt\hrule width238pt%
+    \hbox to 250pt{Approver's Signature\hfill Date\hskip24pt}
+    \vskip12pt\hbox{\vrule height.4pt depth0pt
+    width104pt\hskip4pt\usebox{\check@box}\hskip4pt\vtop{\vskip-12pt\hbox{Check
+    if temporary Delegation}\hbox{of Authority on record}}}%%
+    
+    \hbox to 104pt{Approver's PAN or SSN\dag\dag\hfill}%
+    \vskip15pt\hrule width238pt%
+    \hbox to 250pt{Other Approver's Signature\hfill Date\hskip24pt}
+    \vskip12pt\hbox{\vrule height.4pt depth0pt
+    width104pt\hskip4pt\usebox{\check@box}\hskip4pt\vtop{\vskip-12pt\hbox{Check
+    if temporary Delegation}\hbox{of Authority on record}}}%%
+    
+    \hbox to 104pt{Other Approver's PAN or SSN\dag\dag\hfill}%
+    \vskip7.6pt%
+    }\hfill\fatvrule}\fathrule}%
+  }%
+
+%
+% voucher macros
+%
+\def\pan#1{\gdef\voucher@pan{#1}}
+\def\name#1#2#3{
+    \gdef\voucher@fname{#1}
+    \gdef\voucher@mname{#2}
+    \gdef\voucher@lname{#3}
+    }
+% numpersons is obsolete
+\def\numpersons#1{\gdef\voucher@numpersons{#1}}
+\def\orgnum#1{\gdef\voucher@orgnum{#1}}
+\def\date#1{\gdef\voucher@date{#1}}
+% candidatenum is obsolete
+\def\candidatenum#1{\gdef\voucher@cannum{#1}}\candidatenum{}
+% baseloc is obsolete but tolerated as a syn for loccode
+\def\loccode#1{\gdef\voucher@loccode{#1}}
+\def\baseloc#1{\gdef\voucher@loccode{#1}}% to allow old name
+
+\def\room#1{\gdef\voucher@room{#1}}
+\def\phone#1#2#3{\gdef\voucher@phonearea{#1}
+                 \gdef\voucher@phoneexch{#2}
+                 \gdef\voucher@phonenum{#3}
+                 }
+\def\buspurpose#1{\gdef\voucher@buspurpose{#1}}\buspurpose{}
+\def\earliestdate#1{\gdef\voucher@earliestdate{#1}}
+\def\amexadvance#1{\gdef\amex@advance{#1}}
+\def\confprereg#1{\gdef\conf@prereg{#1}}
+\def\expensetype#1{\gdef\expense@type{#1}}
+\def\milesrate{28}
+\def\miles#1{%convert miles to carcents
+  #1{}%
+    \multiply\c@car@cents by\milesrate%
+  } 
+\def\summerhire{\summerhiretrue}
+\def\pageof#1#2{\def\page@num{#1}\def\page@of{#2}}
+\def\page@num{1}\def\page@of{1}
+\def\exchangerate#1{\def\fxrate{#1}}
+\def\other#1{\def\voucher@other{#1}}
+\def\creditdate#1{\def\credit@date{#1}}
+\def\debitdate#1{\def\debit@date{#1}}

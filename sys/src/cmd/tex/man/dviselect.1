@@ -1,0 +1,110 @@
+.TH DVISELECT 1
+.SH NAME
+dviselect \- extract pages from DVI files
+.SH SYNOPSIS
+.B dviselect
+[
+.B \-s
+] [
+.B \-i
+.I infile
+] [
+.B \-o
+.I outfile
+]
+.I "list of pages"
+[
+.I infile
+[
+.I outfile
+] ]
+.SH DESCRIPTION
+.I Dviselect
+selects pages from a DVI file produced by TeX, creating a new DVI
+file usable by any of TeX's conversion program, or even
+by dviselect itself.
+.PP
+A
+.I range
+is a string of the form
+.I first:last
+where both
+.I first
+and
+.I last
+are optional numeric strings, with negative numbers indicated by
+a leading underscore character ``_''.  If both
+.I first
+and
+.I last
+are omitted, the colon may also be omitted, or may be replaced
+with an asterisk ``*''.  A
+.I page range
+is a list of ranges separated by periods.  A
+.I "list of pages"
+is described by a set of page ranges separated by commas and/or white space.
+.PP
+.I Dviselect
+actually looks at the ten
+.I count
+variables that TeX writes; the first of these (\ecount0) is the
+page number, with \ecount1 through \ecount9 having varied uses
+depending on which macro packages are in use.  (Typically \ecount1
+is a chapter or section number.)  A page is included in
+.IR dviselect 's
+output if all its \ecount values are within any one of the ranges
+listed on the command line.  For example, the command
+``dviselect *.1,35:''
+might select everything in chapter 1, as well as pages 35 and up.
+``dviselect 10:30'' would select pages 10 through 30 (inclusive).
+``:43'' means everything up to and including page 43 (including
+negative-numbered pages).
+If a Table of Contents has negative page numbers, ``:_1'' will select it.
+``*.4 .........1'' might
+mean everything in every chapter 4 and an index, presuming \ecount9
+was set to 1 in the index.  (``*'' must be quoted from the shell;
+the null string is more convenient to use, if harder to read.)
+.PP
+Instead of \ecount values,
+.I dviselect
+can also select by ``absolute page number'', where the first page
+is page 1, the second page 2, and so forth.  Absolute page numbers
+are indicated by a leading equal sign ``=''.  Ranges of absolute
+pages are also allowed: ``dviselect =3:7'' will extract the third
+through seventh pages.  Dot separators are not legal in absolute
+ranges, and there are no negative absolute page numbers.
+.PP
+More precisely, an asterisk or a null string implies no limit;
+an equal sign means absolute pages rather than \ecounts;
+a leading colon means everything up to and including the given page; a
+trailing colon means everything from the given page on; and
+a period indicates that the next \ecount should be examined.
+If fewer than 10 ranges are specified, the remaining \ecounts
+are left unrestricted (that is, ``1:5'' and ``1:5.*'' are equivalent).
+A single number \fIn\fP is treated as if it were the range \fIn:n\fP.
+An arbitrary number of page selectors may be given, separated by commas
+or whitespace; a page is selected if any of the selectors matches
+its \ecounts or absolute page number.
+.PP
+Dviselect normally prints the page numbers of the pages selected; the
+.I \-s
+option suppresses this.
+.SH AUTHOR
+Chris Torek, University of Maryland
+.SH "SEE ALSO"
+dvipr(1), iptex(1), tex(1), \fIThe TeXbook\fP
+.SH BUGS
+A leading ``-'' ought to be allowed for negative numbers, but it
+is currently used as a synonym for ``:'', for backwards compatibility.
+.PP
+Section or subsection selection will sometimes fail, for the DVI
+file lists only the \ecount values that were active when the page
+ended.  Clever macro packages can alleviate this by making use of
+other ``free'' \ecount registers.  Chapters normally begin on new
+pages, and do not suffer from this particular problem.
+.PP
+.I Dviselect
+does not adjust the parameters in the postamble; however, since these
+values are normally used only to size certain structures in the output
+conversion programs, and the parameters never need to be adjusted upward,
+this has not proven to be a problem.

@@ -1,0 +1,28 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libmach.a
+OFILES=executable.$O\
+	map.$O\
+	obj.$O\
+	swap.$O\
+	sym.$O\
+	symsrch.$O\
+	v.$O\
+	k.$O\
+	2.$O\
+	z.$O\
+	6.$O\
+	8.$O\
+	vobj.$O\
+	kobj.$O\
+	2obj.$O\
+	zobj.$O\
+	6obj.$O\
+	8obj.$O\
+
+HFILES=/sys/include/mach.h
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-w -I/sys/src/cmd
+

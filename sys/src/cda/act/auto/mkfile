@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+../comb:	comb.a togates
+	togates < comb.a | grep -v buf > $target
+
+%.$O:	%.c
+	$CC $stem.c
+
+togates:	togates.$O
+	$LD -o togates $prereq
+
+%.m:	%.e
+	toupper $prereq | LDE > $target
+
+%.a:	%.m
+	act -d -v $prereq > $target
+
+clean:
+	rm togates *.$O *.m

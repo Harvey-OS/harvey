@@ -1,0 +1,44 @@
+dev
+	root	/
+	duart	t
+	cons	c
+	env	e
+	pipe	|
+	proc	p
+	srv	s
+	mnt	M
+	incon	i
+	dk	k
+	dup	d
+	bit	b
+	port	x
+	isdn	I	scsisubs
+	hifi	H
+	conc	K
+stream
+	async
+	fcall
+	lapd
+	splice
+	urp
+misc
+port
+	int cpuserver = 0;
+	long cfslen; ulong cfscode[1];
+	long fslen; ulong fscode[1];
+	void kproftimer(ulong pc){ USED(pc); }
+	void consdebug(void){}
+	void
+	confinit1(int mul)
+	{
+		USED(mul);
+		conf.nisdn = 3;
+		conf.nlapd = 3;
+		conf.nconc = 2;
+	}
+	char	*conffile = "gnot";
+boot boot
+	incon "config 1 16 restart dk"
+	cincon "config conc 16 16 16 16;config 1 16 restart dk"
+	9600
+	19200

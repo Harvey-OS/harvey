@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+TARG=sendmail
+OFILES=message.$O\
+	main.$O\
+	bind.$O\
+	rewrite.$O\
+	local.$O\
+	dest.$O\
+	translate.$O\
+	log.$O\
+	gateway.$O\
+	authorize.$O\
+
+HFILES=send.h\
+
+LIB=../common/libcommon.a$O\
+	../libString/libString.a$O\
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkone
+CFLAGS=-w -I../common
+
+%.$O:	../common/common.h ../common/sys.h

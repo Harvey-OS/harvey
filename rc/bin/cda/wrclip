@@ -1,0 +1,30 @@
+#!/bin/rc
+
+switch($#*){
+case 0
+	echo usage: $0 signo >[1=2]
+	exit usage
+}
+signo=$1
+shift
+
+awk '
+/Vsig '$signo'{/	{ level=1; next }
+/pins [0-9]+{/	{ if(level==1) ++level; next }
+/}/		{ if(level > 0) --level; next }
+level == 2	{
+	split($5,x,".")
+	split($2,p,"/")
+	pin = p[1]/10"/"p[2]/10" "x[1]" "$3" "x[2]
+	if(odd == 0)
+		l = pin
+	else{
+		r = pin
+		print "w 10 GND 100",l,r
+	}
+	odd = 1-odd
+}
+END {
+	if(odd)
+		print "w 10 GND 100",l,l
+}' $*

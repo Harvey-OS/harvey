@@ -1,0 +1,173 @@
+.TH 2L 1 
+.SH NAME
+2l, 6l, 8l, kl, vl, zl \- loaders
+.SH SYNOPSIS
+.B 2l
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B 6l
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B 8l
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B kl
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B vl
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.B zl
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+.SH DESCRIPTION
+.IR 2l ,
+.IR 6l ,
+.IR 8l ,
+.IR kl ,
+.IR vl ,
+and
+.I zl
+load the named files into MC68020, i960, i386, SPARC, MIPS, and Hobbit executable files.
+The files should be object files or libraries (archives of object files)
+for the appropriate architecture.
+Also, a name like
+.BI -l ext
+represents the library
+.BI lib ext .a
+in
+.BR /$objtype/lib ,
+where
+.I objtype
+is one of
+.BR 68020 ,
+.BR 960 ,
+.BR 386 ,
+.BR sparc ,
+.BR mips ,
+or
+.B hobbit .
+In practice, such options are rarely necessary as the header files for
+the libraries cause their archives to be included automatically in the load
+(see
+.IR 2c (1)).
+The libraries must have tables of contents
+(see
+.IR rl (1)).
+.PP
+Normally there is an implicit
+.B -lc
+after the named files to search the C library
+.BR /$objtype/lib/libc.a .
+Also, the loader creates an undefined symbol
+.B _main
+(or
+.B _mainp
+if profiling is enabled) to force loading of the
+startup linkage from the C library.
+.PP
+The loader options are:
+.TP 1i
+.B -l
+(As a bare option.)
+Suppress the default loading of the C library and startup linkage.
+.TP
+.BI -o " out"
+Place output in file
+.I out.
+Default is
+.IB O .out,
+where
+.I O
+is the first letter of the loader name.
+.TP
+.B -p
+Insert profiling code into the executable output.
+.TP
+.B -s
+Strip the symbol tables from the output file.
+.TP
+.B -a
+Print the object code in assembly language, with addresses.
+.TP
+.B -v
+Print debugging output that annotates the activities of the load.
+.TP
+.BI -H n
+Executable header is type
+.IR n .
+The meaning of the types is architecture-dependent; typically
+type 1 is Plan 9 boot format and type 2 is the
+regular Plan 9 format, the default.  These are reversed on the MIPS.
+The Next boot format is 3.
+.TP
+.BI -T t
+The text segment starts at address
+.I t.
+.TP
+.BI -D d
+The data segment starts at address
+.IR d .
+.TP
+.BI -R r
+The text segment is rounded to a multiple of
+.I r
+(if
+.I r
+is nonzero).
+.PP
+The numbers in the above options can begin with
+.L 0x
+or
+.L 0
+to change the default base from decimal to hexadecimal or octal.
+The defaults for the values depend on the compiler and the
+header type.
+.SH FILES
+.TF /$objtype/lib
+.TP
+.B /$objtype/lib
+for
+.BI -l lib
+arguments.
+.SH "SEE ALSO"
+.IR 2c (1),
+.IR 2a (1),
+.IR ar (1),
+.IR rl (1),
+.IR nm (1),
+.IR db (1),
+.IR prof (1)
+.PP
+Rob Pike,
+``How to Use the Plan 9 C Compiler''

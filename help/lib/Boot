@@ -1,0 +1,16 @@
+#!/bin/rc
+for(i in $helpboot){
+	if(~ $i /*) i=$i/stf
+	if not i=/help/$i/stf
+	x=`{cat /mnt/help/new/ctl}
+	> /mnt/help/$x/ctl {
+		{
+			echo A
+			cat $i
+		} | help/buf > /mnt/help/$x/ctl
+		{
+			echo a
+			echo $i'	Close!	Get!'
+		} | help/buf
+	} 
+}

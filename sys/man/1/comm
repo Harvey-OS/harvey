@@ -1,0 +1,57 @@
+.TH COMM 1 
+.CT 1 files
+.SH NAME
+comm \- select or reject lines common to two sorted files
+.SH SYNOPSIS
+.B comm
+[
+.B -123
+]
+.I file1 file2
+.SH DESCRIPTION
+.I Comm
+reads
+.I file1
+and
+.I file2,
+which are ordered in
+.SM ASCII 
+collating sequence,
+and produces a three column output: lines only in
+.IR file1 ;
+lines only in
+.IR file2 ;
+and lines in both files.
+The file name
+.L -
+means the standard input.
+.PP
+Flag
+.LR 1 ,
+.LR 2 ,
+or
+.LR 3
+suppresses printing of the corresponding
+column.
+.SH EXAMPLES
+.TP
+.L
+comm -12 file1 file2
+Print lines common to two sorted files.
+.TP
+.L
+deroff -w /mail/lib/names.last | tr a-z A-Z | sort -u >temp
+.br
+.ns
+.TP
+.L
+spell temp | comm -13 - temp
+Print names that are known both to
+.IR mail (1)
+and
+.IR spell (1)
+.SH "SEE ALSO"
+.IR sort (1),
+.IR cmp (1), 
+.IR diff (1), 
+.IR uniq (1)

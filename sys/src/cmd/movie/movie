@@ -1,0 +1,48 @@
+#!/bin/rc
+# Usage: movie [-d] [file ...]
+
+MLIB=/sys/lib/movie/$objtype
+dflag=0
+files=()
+tname=/tmp/movie$pid
+for(x){
+    switch($x){
+    case -d
+	dflag=1
+    case *
+	files=($files $x)
+    }
+}
+if(~ $#files 0){
+	# save stdin in a tmp file
+	fn sigint sighup{ rm -f $tname }
+	files=$tname
+	cat > $files
+}
+for(f in $files){
+	if(! test -r $f){
+		echo movie: cannot open $f
+		exit
+	}
+	if(awk 'NR==1 {if(length($1)==1) exit(0); else exit(1) }' $f){
+		# $f is already developed
+		$MLIB/anim $f
+	}
+	if not{
+		if(~ $dflag 1){
+			switch($f){
+			case *.s
+				ifile=`{echo $f | sed 's/s$/i/'}
+			case *
+				ifile=$f.i
+			}
+		}
+		if not
+			ifile=$tname.i
+		if($MLIB/fdevelop $f > $ifile)
+			$MLIB/anim $ifile
+		if(! ~ $dflag 1)
+			rm -f $ifile
+	}
+}
+rm -f $tname

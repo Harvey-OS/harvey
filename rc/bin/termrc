@@ -1,0 +1,58 @@
+#!/bin/rc
+
+site=plan9
+# default cpu server; edit this to suit
+cpu=kremvax
+
+# cs sets sysname
+/bin/ndb/cs
+cs = `{cat /dev/sysname}
+
+switch($terminal){
+case *' nextstation'*
+	switch($terminal){
+	case *next*disk*
+		# non-disk Next's hang on this
+		/bin/bind -a '#w1' /dev >/dev/null >[2=1]
+	}
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	/bin/bind -a '#f' /dev >/dev/null >[2=1]
+	if(test -e /net/tcp/clone) ip/ipconfig
+case *' ss'*
+	/bin/bind -a '#w' /dev >/dev/null >[2=1]
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	ip/ipconfig
+	/bin/echo 'add il tcp udp' > /net/cs
+case *' magnum'*
+	/bin/bind -a '#w' /dev >/dev/null >[2=1]
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+	ip/ipconfig
+	/bin/echo 'add il tcp udp' > /net/cs
+case *' safari'*
+	/bin/bind -b '#w' /dev >/dev/null
+	/bin/bind -a '#f' /dev >/dev/null
+	/bin/bind -a '#t' /dev >/dev/null
+	/bin/bind -a '#L' /dev >/dev/null >[2=1]
+	/bin/dossrv dos  >/dev/null
+	/bin/mount -c /srv/dos /n/c: /dev/hd0dos
+	if(test -e /net/tcp/clone) ip/ipconfig
+	echo ps2 > '#v/mouseconf'
+case  *' pc'*
+	/bin/bind -b '#w' /dev >/dev/null
+	/bin/bind -a '#f' /dev >/dev/null
+	/bin/bind -a '#t' /dev >/dev/null
+	/bin/bind -a '#L' /dev >/dev/null >[2=1]
+	/bin/dossrv dos  >/dev/null
+	/bin/mount -c /srv/dos /n/c: /dev/hd0dos
+	if(test -e /net/tcp/clone) ip/ipconfig
+	echo serial0 > '#v/mouseconf'
+case *' gnot'*
+	switch($terminal){
+	case *disk*
+		# non-disk gnot's hang on this
+		/bin/bind -a '#w' /dev >/dev/null >[2=1]
+	}
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+case *hobbit*
+	/bin/bind -a '#t' /dev >/dev/null >[2=1]
+}

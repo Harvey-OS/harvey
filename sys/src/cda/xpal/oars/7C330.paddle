@@ -1,0 +1,190 @@
+CY7C330=7C330 {
+    constants {
+	OEMUX=100,
+	FBMUX=200,
+	RCKMUX=300,
+	PMUX=400,
+	CKMUX=500
+    }
+    array and/or
+	{
+	inputs	{
+	    complement+ external {
+#	    input	output	feedback buried
+		3,
+		4,
+		5,
+		6,
+		7,
+		9,
+		10,
+		11,
+		12,
+		13,
+		14,
+			28,
+			27,
+				40,
+			26,
+				39,
+			25,
+			24,
+				38,
+			23,
+					34,
+					33,
+			20,
+				37,
+			19,
+					32,
+					31,
+			18,
+				36,
+			17,
+			16,
+				35,
+			15
+			}
+		}
+	outputs {
+		external {
+			29,		# reset
+			28:9,
+			27:19,
+			26:11,
+			25:17,
+			24:13,
+			23:15,
+				34:19,
+				33:11,
+			20:15,
+			19:13,
+				32:17,
+				31:13,
+			18:17,
+			17:11,
+			16:19,
+			15:9,	
+			30		# set
+			}
+		}
+	}
+    fuses {
+	OEMUX+28=17028, FBMUX+28, RCKMUX+28, PMUX+28,
+	OEMUX+27, FBMUX+27, RCKMUX+27,
+	OEMUX+26, FBMUX+26, RCKMUX+26, PMUX+26,
+	OEMUX+25, FBMUX+25, RCKMUX+25,
+	OEMUX+24, FBMUX+24, RCKMUX+24, PMUX+24,
+	OEMUX+23, FBMUX+23, RCKMUX+23,
+	OEMUX+20, FBMUX+20, RCKMUX+20, PMUX+20,
+	OEMUX+19, FBMUX+19, RCKMUX+19,
+	OEMUX+18, FBMUX+18, RCKMUX+18, PMUX+18,
+	OEMUX+17, FBMUX+17, RCKMUX+17,
+	OEMUX+16, FBMUX+16, RCKMUX+16, PMUX+16,
+	OEMUX+15, FBMUX+15, RCKMUX+15,
+	CKMUX+2,
+	CKMUX+3,
+	CKMUX+4,
+	CKMUX+5,
+	CKMUX+6,
+	CKMUX+7,
+	CKMUX+9,
+	CKMUX+10,
+	CKMUX+11,
+	CKMUX+12,
+	CKMUX+13,
+	CKMUX+14
+    }
+}
+29M16=PALCE29M16 {
+    constants {
+	XOR=60,
+	OUTPUT=40,
+	POL=100,
+	COMB=200,
+	REG=300,
+	IO=400,
+	ICK=500,
+	LOHI=600,
+	TRISTATE=700,
+	ENA=800
+    }
+    array and/or {
+	inputs {
+	    complement+ external {
+		2,
+		3,
+		OUTPUT+3,
+		4,
+		OUTPUT+4,
+		5,
+		6,
+		7,
+		8,
+		9,
+		OUTPUT+9,
+		10,
+		OUTPUT+10,
+		11,
+		13,
+		14,
+		15,
+		OUTPUT+15,
+		16,
+		OUTPUT+16,
+		17,
+		18,
+		19,
+		21,
+		OUTPUT+11,
+		22,
+		OUTPUT+12,
+		23
+	    }
+	}
+	outputs	{
+	    external {
+		3:8,
+		XOR+3:2,
+		25,	# observe product term
+		22:8,
+		XOR+28:2,
+		26,	# preset product term
+		4:8,
+		21:8,
+		5:12,
+		20:12,
+		6:16,
+		19:16,
+		7:16,
+		18:12,
+		8:12,
+		17:12,
+		9:8,
+		16:8,
+		10:12,
+		15:12,
+		XOR+15:2,
+		27	# reset product term
+	    }
+	}
+    }
+    fuses {
+	POL+3=10904, COMB+3, REG+3, IO+3, ICK+3, LOHI+3, TRISTATE+3, ENA+3,
+	POL+22, COMB+22, REG+22, IO+22, ICK+22, LOHI+22, TRISTATE+22, ENA+22,
+	POL+4, COMB+4, REG+4, IO+4, ICK+4, LOHI+4, TRISTATE+4, ENA+4,
+	POL+21, COMB+21, REG+21, IO+21, ICK+21, LOHI+21, TRISTATE+21, ENA+21,
+	POL+5, COMB+5, REG+5, IO+5, ICK+5, LOHI+5, TRISTATE+5, ENA+5,
+	POL+20, COMB+20, REG+20, IO+20, ICK+20, LOHI+20, TRISTATE+20, ENA+20,
+	POL+6, COMB+6, REG+6, IO+6, ICK+6, LOHI+6, TRISTATE+6, ENA+6,
+	POL+19, COMB+19, REG+19, IO+19, ICK+19, LOHI+19, TRISTATE+19, ENA+19,
+	POL+7, COMB+7, REG+7, IO+7, ICK+7, LOHI+7, TRISTATE+7, ENA+7,
+	POL+18, COMB+18, REG+18, IO+18, ICK+18, LOHI+18, TRISTATE+18, ENA+18,
+	POL+8, COMB+8, REG+8, IO+8, ICK+8, LOHI+8, TRISTATE+8, ENA+8,
+	POL+17, COMB+17, REG+17, IO+17, ICK+17, LOHI+17, TRISTATE+17, ENA+17,
+	POL+9, COMB+9, REG+9, IO+9, ICK+9, LOHI+9, TRISTATE+9, ENA+9,
+	POL+16, COMB+16, REG+16, IO+16, ICK+16, LOHI+16, TRISTATE+16, ENA+16,
+	POL+10, COMB+10, REG+10, IO+10, ICK+10, LOHI+10, TRISTATE+10, ENA+10,
+	POL+15, COMB+15, REG+15, IO+15, ICK+15, LOHI+15, TRISTATE+15, ENA+15
+    }
+}

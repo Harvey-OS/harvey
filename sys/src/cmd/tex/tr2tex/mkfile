@@ -1,0 +1,32 @@
+APE=/sys/src/ape
+< $APE/config
+CFLAGS=-D_POSIX_SOURCE
+TEXBIN=/sys/lib/tex/bin/$objtype
+TEXMACROS=/sys/lib/tex/macros
+
+all:V: tr2tex.$objtype
+
+tr2tex.$objtype: tr2tex.$O tr.$O subs.$O
+	$CC -o $target $prereq
+
+%.$O: %.c setups.h simil.h greek.h macros.h maths.h flip.h forbid.h
+	$CC -c $CFLAGS $stem.c
+
+compile:V: tr2tex.$objtype
+
+install:V: tr2tex.$objtype
+	$INSTALL $prereq $TEXBIN/tr2tex $INSOWNER $INSGROUP 775
+	$INSTALL troffms.sty $TEXMACROS/troffms.sty $INSOWNER $INSGROUP 664
+	$INSTALL troffman.sty $TEXMACROS/troffman.sty $INSOWNER $INSGROUP 664
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+clean nuke:V:
+	rm -f *.$CPUS *.$O testfile.tex tr2tex.9.tex
+
+test:VE:
+	tr2tex.$objtype testfile > testfile.tex
+	diff testfile.tex testfile.tex-orig
+	tr2tex.$objtype -m tr2tex.9 > tr2tex.9.tex
+	diff trtex.9.tex tr2tex.9-tex-orig

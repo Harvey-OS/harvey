@@ -1,0 +1,28 @@
+</$objtype/mkfile
+
+TARG=seemail
+OFILES=main.$O\
+	io.$O\
+	lib.$O\
+	trail.$O\
+
+HFILES=dat.h\
+
+BIN=/$objtype/bin
+AUXBIN=$BIN/aux
+</sys/src/cmd/mkone
+
+default:V:	all
+
+all:V:	$O.out $O.geticon
+
+$O.geticon:	geticon.$O
+	$LD -o $target $prereq
+
+install:V:	$AUXBIN/geticon
+
+$AUXBIN/geticon:	$O.geticon
+	cp $prereq $target
+
+clean:V:
+	rm -f *.[$OS] [$OS].out [$OS].geticon y.tab.? y.debug y.output $TARG

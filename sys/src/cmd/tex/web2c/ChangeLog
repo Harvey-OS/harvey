@@ -1,0 +1,142 @@
+Wed Apr 18 11:44:49 1990  Karl Berry  (karl at aten)
+
+	* Version 5.0c. (5.0b was released by Tim.)
+
+	* web/Makefile: (.ch.p): invoke ./tangle instead of `tangle'.
+
+	* site.h: change default glueratio to `float'.
+
+	* web/Makefile (tangle.p): put the ``until...done'' in an sh -c,
+	for the sake of Ultrix (from maj@computer-lab.cambridge.ac.uk).
+
+	* PROBLEMS: add patch for yacc problem (from justin@crim.ca).
+
+Mon Apr 16 08:03:52 1990  Karl Berry  (karl at hayley)
+
+	* site.h: do not unconditionally (un)define the symbols.
+
+Thu Apr 12 21:33:41 1990  Karl Berry  (karl at hayley)
+
+	* tex/extra.c (calledit): do not xor with 0x80 (from
+	ekrell@ulysses.att.com).
+
+Fri Apr  6 20:40:20 1990  Karl Berry  (karl at hayley)
+
+	* {tex,mf}/extra.c (zinputln): have to test against 255, not 127.
+
+	* web/Makefile: touch tangle.h (from colin@umist.ac.uk).
+
+Wed Apr  4 16:10:03 1990  Karl Berry  (karl at aten)
+
+	* PROBLEMS: cc and gftodvi/vftovp don't mix.
+
+Thu Mar 29 07:50:15 1990  Karl Berry  (karl at mole.ai.mit.edu)
+
+	* Version 5.0a (with ken's changes to the change files).
+
+Tue Mar 27 08:01:20 1990  Karl Berry  (karl at hayley)
+
+	* web2c/web2c.yacc (FUNCTION_HEAD): check for debug before
+	printing out the function name.
+
+	* texware/Makefile (pltotf): don't put this on two lines.
+
+Fri Mar 23 18:46:49 1990  Karl Berry  (karl at aten)
+
+	* Version 4.893c.
+
+	* web2c/Makefile: do test ... instead of [ ... ].
+        mf/MFwindow/Makefile: use $(SHELL) instead of /bin/sh.
+
+Thu Mar 22 18:20:38 1990  Karl Berry  (karl at aten)
+
+	* texware/dvitypext.c: declare packrealnameoffile to be void, even
+	if ANSI is not defined, else Ultrix loses.
+
+Fri Mar  9 08:38:56 1990  Karl Berry  (karl at hayley)
+
+	* defaults.h, site.h: move ANSI from the former back to the
+        latter, since some systems want it.
+
+	* bibtex/bibtex.ch (int_to_ASCII): use `the_int' instead of `int'
+        as the first parameter name; some cc's bomb with `int'.
+        (from rusty@garnet.berkeley.edu)
+
+	* texware/dvitypext.c (packrealnameoffile): return type is void.
+
+	* */Makefile (veryclean): remove backup files, core files.
+        */Makefile: use $(SHELL) ./<script> instead of ./<script>.
+        web/Makefile: define SHELL.
+        (mackay@cs.washington.edu supplied these changes.)
+
+Fri Mar  2 17:27:22 1990  Karl Berry  (karl at hayley)
+
+	* texware/dvitype.ch: make input be 8 bits, like the rest of the
+	programs.
+
+Sun Feb 25 20:36:19 1990  Karl Berry  (karl at hayley)
+
+	* {mf,tex}/ini_to_tr[ai]p: save the .h file we're editing.
+
+Thu Feb 22 21:06:49 1990  Karl Berry  (karl at hayley)
+
+	* */Makefile: change $(RM) to rm.
+
+	* texware/texware.h: do not cast the result of getc to char, for
+	the sake of Ultrix.
+
+Sat Feb 17 07:36:50 1990  Karl Berry  (karl at hayley)
+
+	* README: Make the instructions for bootstrapping tangle correct.
+
+	* Makefile (dist): tangleboot.pas is in web, not web2c.
+
+	* {mfware,texware,web,web2c}/Makefile: remove $(CFLAGS) from the
+	load lines.
+
+	* bibtex/bibext.c: move conditional on BSD to after #include
+	"site.h" (from bsuggs@hac.arpa.com).
+
+	* web2c/Makefile (web2cy.c): do `-if', since one of the commands
+	exits with bad status under Ultrix.
+
+Release 4.893b:
+* Include patches from Tim to web2c to turn off the verbose output,
+  unless -d is supplied to web2c.
+* Change $(AR) in the MFwindow Makefile to `ar'.
+* Try to get the base file from the program name in Metafont, as well in
+  TeX.  Implication: mf.script and tex.script are no longer supplied,
+  since a link to plain.{base,fmt} named {mf,tex}.{base,fmt} suffices. 
+  `make install' doesn't create these links, since they only need to be
+  done once.
+* Move some stuff from site.h that should never be changed to a new
+  file, defaults.h. Add a new definition, SIGNAL_HANDLER_RETURN_TYPE, to
+  site.h, to get rid of the warnings in {tex,mf}/extra.c.
+* Use a sed script, contributed by eggert@twinsun.com, instead of the
+  awk script, at the beginning of the pipeline.
+* Fix an unsigned comparison problem in pltotf, that made cc produce
+  infinite ligature loops when converting trip.pl.
+* Change threshold in Metafont, and f in tftopl, so broken C compilers
+  (like some versions of pcc) don't get confused.
+* Port vftovp and vptovf. Move pktogf and pktype to fontutil.
+* Allow more than 500 kern pairs in pltotf.
+* Change the first parameter to {mf,extra}/extra.c to *filename from
+  filename[].
+* Use a better hack for the mutually recursive procedures in pltotf et al.,
+  from Tor Lillqvist <tml@hemuli.atk.vtt.fi>.
+
+Release 2.993+1.9 = 4.893a:
+Sebastian contributed the updates to ctex.ch, tftopl.ch, and pltotf.ch. 
+Karl did the cmf.ch update.
+
+Release 3.0:
+Brings everything up to the new 8-bit versions.
+Almost every file has changed at least somewhat, so I'm not going to
+list all the changes.  Here are some highlights:
+* char is now 0.255 instead of 0..127 in *.defines.
+* `packed' is no longer ignored as part of an identifier (e.g., `packed_trie').
+* new Makefiles to make it easier to do the trip/trap test, and with all
+  the support programs integrated.
+* ctex.ch has a hack to get around trie_op_hash being an array with a
+  negative lower bound.
+* pltotf.ch has a hack to get around mutually recursive routines.
