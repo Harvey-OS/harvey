@@ -117,7 +117,7 @@ static int
 SC_write(SConn *conn, uchar *buf, int n)
 {
 	SS *ss = (SS*)(conn->chan);
-	uchar count[2], digest[SHA1dlen];
+	uchar count[2], digest[SHA1dlen], enc[Maxmsg+1];
 	int len;
 
 	if(n <= 0 || n > Maxmsg+1){
@@ -136,9 +136,10 @@ SC_write(SConn *conn, uchar *buf, int n)
 	if(ss->alg){
 		hash(ss->out.secret, buf, n, ss->out.seqno, digest);
 		rc4(&ss->out.rc4, digest, SHA1dlen);
-		rc4(&ss->out.rc4, buf, n);
+		memcpy(enc, buf, n);
+		rc4(&ss->out.rc4, enc, n);
 		if(write(ss->fd, digest, SHA1dlen) != SHA1dlen ||
-				write(ss->fd, buf, n) != n){
+				write(ss->fd, enc, n) != n){
 			werrstr("!SC_write error on send");
 			return -1;
 		}

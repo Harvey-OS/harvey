@@ -78,7 +78,7 @@
 386/bin/auth/rsagen - 775 sys sys 1064598052 152733
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1064598053 187847
-386/bin/auth/secstored - 775 sys sys 1064598055 193693
+386/bin/auth/secstored - 775 sys sys 1064798342 194075
 386/bin/auth/secuser - 775 sys sys 1064667524 151195
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1064598056 61525
@@ -4982,7 +4982,7 @@ sys/man/8/replica - 664 sys sys 1021579979 6239
 sys/man/8/rsa - 664 sys sys 1057955511 4628
 sys/man/8/scanmail - 664 sys sys 969499895 10803
 sys/man/8/scuzz - 664 sys sys 984709640 7916
-sys/man/8/secstore - 664 sys sys 1062291170 1159
+sys/man/8/secstore - 664 sys sys 1064789017 1294
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
 sys/man/8/smtp - 664 sys sys 1049408388 4111
@@ -6746,7 +6746,7 @@ sys/src/cmd/auth/rsa2x509.c - 664 sys sys 1048614964 794
 sys/src/cmd/auth/rsafill.c - 664 sys sys 1048614963 747
 sys/src/cmd/auth/rsagen.c - 664 sys sys 1048614963 992
 sys/src/cmd/auth/secstore - 20000000775 sys sys 1017337838 0
-sys/src/cmd/auth/secstore/SConn.c - 664 sys sys 1041890053 4381
+sys/src/cmd/auth/secstore/SConn.c - 664 sys sys 1064789003 4419
 sys/src/cmd/auth/secstore/SConn.h - 664 sys sys 1015008431 955
 sys/src/cmd/auth/secstore/aescbc.c - 664 sys sys 1045504879 3920
 sys/src/cmd/auth/secstore/dirls.c - 664 sys sys 1062277640 1842
@@ -6757,7 +6757,7 @@ sys/src/cmd/auth/secstore/secacct.c - 644 sys sys 1015008431 755
 sys/src/cmd/auth/secstore/secchk.c - 664 sys sys 1055698993 560
 sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1062277640 12269
 sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
-sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1062525349 7978
+sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1064789004 7955
 sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1064667494 4971
 sys/src/cmd/auth/secstore/util.c - 664 sys sys 1021579985 1498
 sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1045504896 8973
