@@ -4029,3 +4029,4 @@ Warning: bad syntax, perhaps a bogus '-'? See http://procps.sf.net/faq.html
 Those days [of "one tool doing one job well"] are dead and gone and the eulogy was delivered by Perl.  - rob
 We have found that the Real Player plugin, which is used by the BBC Radio Player, may or may not function fully depending on a combination of what flavour of unix/linux you are using, which browser you are using, which version of browser you are using, and which version of GCC built the plugin during installation.
 Sheer [program] size is often an illusion, reflecting only a need for improvement.  - Kernighan and Plauger
+bootsplash: silent mode.

@@ -7,12 +7,6 @@ typedef struct SDpart SDpart;
 typedef struct SDperm SDperm;
 typedef struct SDreq SDreq;
 typedef struct SDunit SDunit;
-typedef struct SDwp SDwp;
-typedef struct SDcache SDcache;
-
-enum {
-	SDcachesize = 20,
-};
 
 struct SDperm {
 	char*	name;
@@ -26,20 +20,6 @@ struct SDpart {
 	SDperm;
 	int	valid;
 	ulong	vers;
-};
-
-struct SDcache {
-	ulong age;
-	ulong bn;
-	uchar *data;
-};
-
-struct SDwp {
-	QLock;
-	ulong age;
-	ulong start;
-	ulong end;
-	SDcache cache[SDcachesize];
 };
 
 struct SDunit {
@@ -61,9 +41,6 @@ struct SDunit {
 	int	state;
 	SDreq*	req;
 	SDperm	rawperm;
-
-	int	wpunit;			/* whole unit is write protected */
-	SDwp	*wp;			/* block level write prtection */
 };
 
 /* 
