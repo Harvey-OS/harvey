@@ -17,6 +17,7 @@ int	bargc;
 
 static void	swapproc(void);
 static Method	*rootserver(char*);
+static void	kbmap(void);
 
 void
 boot(int argc, char *argv[])
@@ -72,6 +73,11 @@ boot(int argc, char *argv[])
 	(*mp->config)(mp);
 	islocal = strcmp(mp->name, "local") == 0;
 	ishybrid = strcmp(mp->name, "hybrid") == 0;
+
+	/*
+	 *  load keymap if its there
+	 */
+	kbmap();
 
 	/*
  	 *  authentication agent
@@ -288,4 +294,34 @@ old9p(int fd)
 		close(p[0]);
 	}
 	return p[1];	
+}
+
+static void
+kbmap(void)
+{
+	char *f;
+	int in, out;
+	int n;
+	char buf[1024];
+
+	f = getenv("kbmap");
+	if(f == nil)
+		return;
+	in = open(f, OREAD);
+	if(in < 0)
+		return;
+	if(bind("#κ", "/dev", MAFTER) < 0){
+		close(in);
+		return;
+	}
+	out = open(f, OREAD);
+	if(out < 0){
+		close(in);
+		return;
+	}
+	while((n = read(in, buf, sizeof(buf))) > 0)
+		if(write(out, buf, n) != n)
+			break;
+	close(in);
+	close(out);
 }

@@ -543,7 +543,7 @@
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
 386/lib/libmp.a - 664 sys sys 1077940925 77700
-386/lib/libndb.a - 664 sys sys 1078929181 61344
+386/lib/libndb.a - 664 sys sys 1079451578 61344
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
 386/lib/libscribble.a - 664 sys sys 1073851274 107542
@@ -3013,7 +3013,7 @@ rc/bin/ipconf/inside - 775 sys sys 1058790955 427
 rc/bin/ipconf/lra - 775 sys sys 1058791152 1558
 rc/bin/ipconf/outside - 775 sys sys 1058790951 550
 rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
-rc/bin/ipso - 775 sys sys 1035591514 2304
+rc/bin/ipso - 775 sys sys 1079377794 2838
 rc/bin/iwhois - 775 sys sys 1068053163 584
 rc/bin/kill - 775 sys sys 1018387014 132
 rc/bin/label - 775 sys sys 945617207 34
@@ -4611,7 +4611,7 @@ sys/man/1/INDEX.html - 664 sys sys 1026845791 15882
 sys/man/1/acid - 664 sys sys 1046201556 9731
 sys/man/1/acme - 664 sys sys 1019828741 17587
 sys/man/1/ap - 664 sys sys 1068471657 364
-sys/man/1/ar - 664 sys sys 1055701045 3149
+sys/man/1/ar - 664 sys sys 1079397701 3153
 sys/man/1/ascii - 664 sys sys 957920005 2733
 sys/man/1/awk - 664 sys sys 944959677 10645
 sys/man/1/basename - 664 sys sys 944959673 535
@@ -4712,7 +4712,7 @@ sys/man/1/rm - 664 sys sys 944959673 515
 sys/man/1/rtstats - 664 sys sys 1018897631 2108
 sys/man/1/rwd - 664 sys sys 1042469992 2958
 sys/man/1/sam - 664 sys sys 984709628 18107
-sys/man/1/secstore - 664 sys sys 1041890056 3434
+sys/man/1/secstore - 664 sys sys 1079378118 3763
 sys/man/1/sed - 664 sys sys 944959674 6884
 sys/man/1/seq - 664 sys sys 1063855680 1131
 sys/man/1/size - 664 sys sys 944959674 393
@@ -4919,6 +4919,7 @@ sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1055701106 2706
 sys/man/3/i82365 - 664 sys sys 954378906 884
 sys/man/3/ip - 664 sys sys 1019858396 21625
+sys/man/3/kbmap - 644 sys sys 1079463778 1331
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
 sys/man/3/lpt - 664 sys sys 944959698 893
@@ -5213,7 +5214,7 @@ sys/src/9/bitsy/wavelan.c - 664 sys sys 1064584681 27267
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1018556557 0
 sys/src/9/boot/aux.c - 664 sys sys 1063857702 2579
-sys/src/9/boot/boot.c - 664 sys sys 1077376393 5361
+sys/src/9/boot/boot.c - 664 sys sys 1079463769 5842
 sys/src/9/boot/boot.h - 664 sys sys 1063857659 1785
 sys/src/9/boot/bootauth.c - 664 sys sys 1039763726 1097
 sys/src/9/boot/bootcache.c - 664 sys sys 1063857645 1579
@@ -5322,7 +5323,7 @@ sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1071245462 18026
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1066514925 29683
-sys/src/9/pc/ether83815.c - 664 sys sys 1076594631 23182
+sys/src/9/pc/ether83815.c - 664 sys sys 1079387926 23128
 sys/src/9/pc/ether8390.c - 664 sys sys 1071245462 17557
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherec2t.c - 664 sys sys 1020284820 4038
@@ -5345,7 +5346,7 @@ sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1072972600 8023
-sys/src/9/pc/kbd.c - 664 sys sys 1071726245 9135
+sys/src/9/pc/kbd.c - 664 sys sys 1079491476 11550
 sys/src/9/pc/l.s - 664 sys sys 1074785126 22699
 sys/src/9/pc/main.c - 664 sys sys 1074785126 14644
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
@@ -5430,6 +5431,7 @@ sys/src/9/port/devdraw.c - 664 sys sys 1039753332 41987
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
 sys/src/9/port/devfs.c - 664 sys sys 1067722764 10760
+sys/src/9/port/devkbmap.c - 644 sys sys 1079463756 2774
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
 sys/src/9/port/devmnt.c - 664 sys sys 1067953214 21594
@@ -5479,7 +5481,7 @@ sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
 sys/src/9/port/portclock.c - 664 sys sys 1077376395 4759
 sys/src/9/port/portdat.h - 664 sys sys 1073324006 22707
-sys/src/9/port/portfns.h - 664 sys sys 1068215525 11376
+sys/src/9/port/portfns.h - 664 sys sys 1079463756 11455
 sys/src/9/port/portmkfile - 664 sys sys 1067722766 2098
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1078550254 28021
@@ -6809,7 +6811,7 @@ sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
 sys/src/cmd/acme/elog.c - 664 sys sys 1078839859 7236
-sys/src/cmd/acme/exec.c - 664 sys sys 1077376257 28024
+sys/src/cmd/acme/exec.c - 664 sys sys 1079489096 28152
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1079102913 2883
 sys/src/cmd/acme/fsys.c - 664 sys sys 1079102915 12799
@@ -11156,7 +11158,7 @@ sys/src/cmd/webfs/url.c - 664 sys sys 1019240175 24238
 sys/src/cmd/webfs/util.c - 664 sys sys 1015015823 1211
 sys/src/cmd/webfsget.c - 664 sys sys 1068413017 1595
 sys/src/cmd/wikifs - 20000000775 sys sys 1018211094 0
-sys/src/cmd/wikifs/fs.c - 664 sys sys 1019678648 15353
+sys/src/cmd/wikifs/fs.c - 664 sys sys 1079380576 15626
 sys/src/cmd/wikifs/io.c - 664 sys sys 1018387004 11469
 sys/src/cmd/wikifs/lookup.c - 664 sys sys 1018211093 182
 sys/src/cmd/wikifs/map.c - 664 sys sys 1018211093 109
@@ -11164,7 +11166,7 @@ sys/src/cmd/wikifs/mkfile - 664 sys sys 1045503591 468
 sys/src/cmd/wikifs/parse.c - 664 sys sys 1018211093 4929
 sys/src/cmd/wikifs/parsehist.c - 664 sys sys 1018211093 1906
 sys/src/cmd/wikifs/testwrite.c - 664 sys sys 1018211093 818
-sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1045503591 13989
+sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1079380577 13998
 sys/src/cmd/wikifs/util.c - 664 sys sys 1018211093 1807
 sys/src/cmd/wikifs/wdir.c - 664 sys sys 1018211094 876
 sys/src/cmd/wikifs/wiki.h - 664 sys sys 1018323492 1891

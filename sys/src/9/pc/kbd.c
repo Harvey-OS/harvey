@@ -33,6 +33,7 @@ enum {
 	Caps=		Spec|0x64,
 	Num=		Spec|0x65,
 	Middle=		Spec|0x66,
+	Altgr=		Spec|0x67,
 	No=		0x00,		/* peter */
 
 	Home=		KF|13,
@@ -47,13 +48,15 @@ enum {
 	Ins=		KF|20,
 	Del=		0x7F,
 	Scroll=		KF|21,
+
+	Nscan=	128,
 };
 
 /*
  * The codes at 0x79 and 0x81 are produed by the PFU Happy Hacking keyboard.
  * A 'standard' keyboard doesn't produce anything above 0x58.
  */
-Rune kbtab[] = 
+Rune kbtab[Nscan] = 
 {
 [0x00]	No,	0x1b,	'1',	'2',	'3',	'4',	'5',	'6',
 [0x08]	'7',	'8',	'9',	'0',	'-',	'=',	'\b',	'\t',
@@ -73,7 +76,7 @@ Rune kbtab[] =
 [0x78]	No,	View,	No,	Up,	No,	No,	No,	No,
 };
 
-Rune kbtabshift[] =
+Rune kbtabshift[Nscan] =
 {
 [0x00]	No,	0x1b,	'!',	'@',	'#',	'$',	'%',	'^',
 [0x08]	'&',	'*',	'(',	')',	'_',	'+',	'\b',	'\t',
@@ -93,7 +96,7 @@ Rune kbtabshift[] =
 [0x78]	No,	Up,	No,	Up,	No,	No,	No,	No,
 };
 
-Rune kbtabesc1[] =
+Rune kbtabesc1[Nscan] =
 {
 [0x00]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x08]	No,	No,	No,	No,	No,	No,	No,	No,
@@ -102,7 +105,7 @@ Rune kbtabesc1[] =
 [0x20]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x28]	No,	No,	Shift,	No,	No,	No,	No,	No,
 [0x30]	No,	No,	No,	No,	No,	'/',	No,	Print,
-[0x38]	Latin,	No,	No,	No,	No,	No,	No,	No,
+[0x38]	Altgr,	No,	No,	No,	No,	No,	No,	No,
 [0x40]	No,	No,	No,	No,	No,	No,	Break,	Home,
 [0x48]	Up,	Pgup,	No,	Left,	No,	Right,	No,	End,
 [0x50]	Down,	Pgdown,	Ins,	Del,	No,	No,	No,	No,
@@ -111,6 +114,46 @@ Rune kbtabesc1[] =
 [0x68]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x70]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
+};
+
+Rune kbtabaltgr[Nscan] =
+{
+[0x00]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x08]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x10]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x18]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x20]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x28]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x30]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x38]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x40]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x48]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x50]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x58]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
+};
+
+Rune kbtabctrl[] =
+{
+[0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'', 
+[0x08]	'', 	'', 	'', 	'', 	'', 	'', 	'\b',	'\t',
+[0x10]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'\t',
+[0x18]	'', 	'', 	'', 	'', 	'\n',	Ctrl,	'', 	'', 
+[0x20]	'', 	'', 	'', 	'\b',	'\n',	'', 	'', 	'', 
+[0x28]	'', 	No, 	Shift,	'', 	'', 	'', 	'', 	'', 
+[0x30]	'', 	'', 	'', 	'', 	'', 	'', 	Shift,	'\n',
+[0x38]	Latin,	No, 	Ctrl,	'', 	'', 	'', 	'', 	'', 
+[0x40]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'', 
+[0x48]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'', 
+[0x50]	'', 	'', 	'', 	'', 	No,	No,	No,	'', 
+[0x58]	'', 	No,	No,	No,	No,	No,	No,	No,
+[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	No,	'', 	No,	'\b',	No,	No,	No,	No,
 };
 
 enum
@@ -254,7 +297,7 @@ i8042intr(Ureg*, void*)
 {
 	int s, c, i;
 	static int esc1, esc2;
-	static int alt, caps, ctl, num, shift;
+	static int alt, altgr, caps, ctl, num, shift;
 	static int collecting, nk;
 	static Rune kc[5];
 	int keyup;
@@ -285,7 +328,8 @@ i8042intr(Ureg*, void*)
 	}
 
 	/*
-	 *  e0's is the first of a 2 character sequence
+	 *  e0's is the first of a 2 character sequence, e1 the first
+	 *  of a 3 character sequence (on the safari)
 	 */
 	if(c == 0xe0){
 		esc1 = 1;
@@ -312,6 +356,10 @@ i8042intr(Ureg*, void*)
 		return;
 	} else if(shift)
 		c = kbtabshift[c];
+	else if(altgr)
+		c = kbtabaltgr[c];
+	else if(ctl)
+		c = kbtabctrl[c];
 	else
 		c = kbtab[c];
 
@@ -341,11 +389,9 @@ i8042intr(Ureg*, void*)
  	 *  normal character
 	 */
 	if(!(c & (Spec|KF))){
-		if(ctl){
+		if(ctl)
 			if(alt && c == Del)
 				exit(0);
-			c &= 0x1f;
-		}
 		if(!collecting){
 			kbdputc(kbdq, c);
 			return;
@@ -392,9 +438,11 @@ i8042intr(Ureg*, void*)
 			}
 			return;
 		case Ctrl:
-			collecting = 0;
-			nk = 0;
 			ctl = 1;
+			return;
+		case Altgr:
+			altgr = 1;
+			collecting = 0;
 			return;
 		}
 	}
@@ -472,4 +520,58 @@ kbdenable(void)
 	ioalloc(Cmd, 1, 0, "kbd");
 
 	intrenable(IrqKBD, i8042intr, 0, BUSUNKNOWN, "kbd");
+}
+
+void
+kbdputmap(ushort m, ushort scanc, Rune r)
+{
+	if(scanc >= Nscan)
+		error(Ebadarg);
+	switch(m) {
+	default:
+		error(Ebadarg);
+	case 0:
+		kbtab[scanc] = r;
+		break;
+	case 1:
+		kbtabshift[scanc] = r;
+		break;
+	case 2:
+		kbtabesc1[scanc] = r;
+		break;
+	case 3:
+		kbtabaltgr[scanc] = r;
+		break;
+	case 4:	
+		kbtabctrl[scanc] = r;
+		break;
+	}
+}
+
+int
+kbdgetmap(int offset, int *t, int *sc, Rune *r)
+{
+	*t = offset/Nscan;
+	*sc = offset%Nscan;
+	if(*t < 0 || *sc < 0)
+		error(Ebadarg);
+	switch(*t) {
+	default:
+		return 0;
+	case 0:
+		*r = kbtab[*sc];
+		return 1;
+	case 1:
+		*r = kbtabshift[*sc];
+		return 1;
+	case 2:
+		*r = kbtabesc1[*sc];
+		return 1;
+	case 3:
+		*r = kbtabaltgr[*sc];
+		return 1;
+	case 4:
+		*r = kbtabctrl[*sc];
+		return 1;
+	}
 }

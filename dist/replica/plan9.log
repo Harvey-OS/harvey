@@ -14663,3 +14663,16 @@
 1079376349 12 c sys/src/cmd/test.c - 664 sys sys 1079372543 5409
 1079376349 13 c sys/src/libhttpd/hio.c - 664 sys sys 1079372798 7482
 1079376349 14 c dist/replica/plan9.proto - 664 sys sys 1079376335 2533
+1079492484 0 c 386/lib/libndb.a - 664 sys sys 1079451578 61344
+1079492484 1 c rc/bin/ipso - 775 sys sys 1079377794 2838
+1079492484 2 c sys/man/1/ar - 664 sys sys 1079397701 3153
+1079492484 3 c sys/man/1/secstore - 664 sys sys 1079378118 3763
+1079492484 4 a sys/man/3/kbmap - 644 sys sys 1079463778 1331
+1079492484 5 c sys/src/9/boot/boot.c - 664 sys sys 1079463769 5842
+1079492484 6 c sys/src/9/pc/ether83815.c - 664 sys sys 1079387926 23128
+1079492484 7 c sys/src/9/pc/kbd.c - 664 sys sys 1079491476 11550
+1079492484 8 c sys/src/9/port/portfns.h - 664 sys sys 1079463756 11455
+1079492484 9 a sys/src/9/port/devkbmap.c - 644 sys sys 1079463756 2774
+1079492484 10 c sys/src/cmd/acme/exec.c - 664 sys sys 1079489096 28152
+1079492484 11 c sys/src/cmd/wikifs/fs.c - 664 sys sys 1079380576 15626
+1079492484 12 c sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1079380577 13998
