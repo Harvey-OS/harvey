@@ -16858,3 +16858,6 @@
 1041147015 0 c acme/mail/386/Mail - 775 sys sys 1041145349 175523
 1041186629 0 a sys/src/cmd/upas/filterkit/pipefrom.sample - 775 sys sys 1041184939 380
 1041197439 0 c sys/src/libregexp/regcomp.h - 664 sys sys 1041196492 1986
+1041229876 0 c 386/lib/libregexp.a - 664 sys sys 1041228419 37356
+1041262210 0 a sys/man/3/fs - 664 sys sys 1041261485 2707
+1041262210 1 a sys/src/9/port/devfs.c - 664 sys sys 1041261474 11170

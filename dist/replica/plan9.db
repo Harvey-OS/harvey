@@ -484,7 +484,7 @@
 386/lib/libmp.a - 664 sys sys 1039753150 76970
 386/lib/libndb.a - 664 sys sys 1038443228 52836
 386/lib/libplumb.a - 664 sys sys 1039758629 19000
-386/lib/libregexp.a - 664 sys sys 1038443228 37356
+386/lib/libregexp.a - 664 sys sys 1041228419 37356
 386/lib/libscribble.a - 664 sys sys 1039758629 108138
 386/lib/libsec.a - 664 sys sys 1038443230 632402
 386/lib/libstdio.a - 664 sys sys 1038443231 125150
@@ -4677,6 +4677,7 @@ sys/man/3/dup - 664 sys sys 1015024778 1099
 sys/man/3/env - 664 sys sys 1015024778 1409
 sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
+sys/man/3/fs - 664 sys sys 1041261485 2707
 sys/man/3/i82365 - 664 sys sys 954378906 884
 sys/man/3/ip - 664 sys sys 1019858396 21625
 sys/man/3/kprof - 664 sys sys 1018029972 1377
@@ -5181,6 +5182,7 @@ sys/src/9/port/devcons.c - 664 sys sys 1036812998 20919
 sys/src/9/port/devdraw.c - 664 sys sys 1039753332 41987
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1019762849 6562
+sys/src/9/port/devfs.c - 664 sys sys 1041261474 11170
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1018721201 14968
 sys/src/9/port/devmnt.c - 664 sys sys 1039743586 21096
