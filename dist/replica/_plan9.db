@@ -453,7 +453,7 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1085077118 172912
+386/bin/usb/usbaudio - 775 sys sys 1091071249 172909
 386/bin/usb/usbd - 775 sys sys 1085077118 122174
 386/bin/usb/usbmouse - 775 sys sys 1085077119 138047
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
@@ -3327,7 +3327,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1091022704 248857
+sys/games/lib/fortunes - 664 sys sys 1091127469 249033
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
@@ -5092,7 +5092,7 @@ sys/man/8/scuzz - 664 sys sys 984709640 7916
 sys/man/8/secstore - 664 sys sys 1064807283 1306
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
-sys/man/8/smtp - 664 sys sys 1087406045 4703
+sys/man/8/smtp - 664 sys sys 1091126310 4724
 sys/man/8/snoopy - 664 sys sys 1057752980 3802
 sys/man/8/stats - 664 sys sys 1067722908 4291
 sys/man/8/stub - 664 sys sys 1044830500 943
@@ -5313,7 +5313,7 @@ sys/src/9/pc/devarch.c - 664 sys sys 1087496483 18476
 sys/src/9/pc/devether.c - 664 sys sys 1078928204 10183
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1086406910 19989
-sys/src/9/pc/devlm78.c - 664 sys sys 1026847635 6038
+sys/src/9/pc/devlm78.c - 664 sys sys 1091129037 6255
 sys/src/9/pc/devlml.c - 664 sys sys 1026847636 7486
 sys/src/9/pc/devlml.h - 664 sys sys 1026847636 2948
 sys/src/9/pc/devlpt.c - 664 sys sys 1015014514 4420
@@ -5362,7 +5362,7 @@ sys/src/9/pc/main.c - 664 sys sys 1089046997 14677
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
-sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
+sys/src/9/pc/mmu.c - 664 sys sys 1091110410 10043
 sys/src/9/pc/mouse.c - 664 sys sys 1065717607 6625
 sys/src/9/pc/mp.c - 664 sys sys 1084475127 17013
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
@@ -5378,7 +5378,7 @@ sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1067722894 1383
 sys/src/9/pc/pci.c - 664 sys sys 1087657460 25736
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1048635123 1545
-sys/src/9/pc/piix4smbus.c - 664 sys sys 1067722684 5273
+sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
 sys/src/9/pc/plan9l.s - 664 sys sys 1015014521 910
 sys/src/9/pc/psaux.c - 664 sys sys 1026847650 915
 sys/src/9/pc/ptclbsum386.s - 664 sys sys 1015014521 1493
@@ -9342,7 +9342,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 984758036 125
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1050689595 13603
 sys/src/cmd/gzip/zip.c - 664 sys sys 1033183074 7054
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1081651071 24671
+sys/src/cmd/hget.c - 664 sys sys 1091129591 25650
 sys/src/cmd/history.c - 664 sys sys 1084471627 6117
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 944961000 10041
@@ -10870,7 +10870,7 @@ sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
 sys/src/cmd/upas/send/tryit - 664 sys sys 944961322 584
 sys/src/cmd/upas/smtp - 20000000775 sys sys 988250017 0
-sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1075211327 6300
+sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1091126808 6470
 sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1067722781 746
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1055703150 4887
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
@@ -12339,4 +12339,10 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/usb/usbaudio - 775 sys sys 1091071249 172909
+386/9loaddebug - 775 sys sys 1091156989 270242
+386/9pc - 775 sys sys 1091156992 1808630
+386/9pccpu - 775 sys sys 1091156995 1464782
+386/9pcdisk - 775 sys sys 1091156999 2011236
+386/9pcf - 775 sys sys 1091157003 2342879
+386/bin/hget - 775 sys sys 1091156987 230376
+386/bin/upas/smtpd - 775 sys sys 1091156988 324025
