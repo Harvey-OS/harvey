@@ -452,7 +452,10 @@ syncjar(Jar *jar)
 
 	jar->dirty = 0;
 	close(fd);
-	jar->qid = q;
+	if((d = dirstat(jar->file)) != nil){
+		jar->qid = d->qid;
+		free(d);
+	}
 	return 0;
 }
 
@@ -599,7 +602,7 @@ isbadcookie(Cookie *c, char *dom, char *path)
 	if(strncmp(c->path, path, strlen(c->path)) != 0)
 		return "cookie path is not a prefix of the request path";
 
-	if(c->dom[0] != '.')
+	if(c->explicitdom && c->dom[0] != '.')
 		return "cookie domain doesn't start with dot";
 
 	if(memchr(c->dom+1, '.', strlen(c->dom)-1-1) == nil)
@@ -792,7 +795,7 @@ isnetscape(char *hdr)
 
 /*
  * Parse HTTP response headers, adding cookies to jar.
- * Overwrites the headers.
+ * Overwrites the headers.  May overwrite path.
  */
 static char* parsecookie(Cookie*, char*, char**, int, char*, char*);
 static int
@@ -904,6 +907,7 @@ parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
 	int i, done;
 	char *t, *u, *attr, *val;
 
+	c->expire = ~0;
 	memset(c, 0, sizeof *c);
 
 	/* NAME=VALUE */
@@ -930,6 +934,10 @@ parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
 		t = skiptoken(p);
 		u = skipspace(t);
 		switch(*u){
+		case '\0':
+			*t = '\0';
+			val = p = u;
+			break;
 		case ';':
 			*t = '\0';
 			val = "";
@@ -981,8 +989,13 @@ parsecookie(Cookie *c, char *p, char **e, int isns, char *dom, char *path)
 		c->dom = dom;
 	if(c->path)
 		c->explicitpath = 1;
-	else
+	else{
 		c->path = path;
+		if((t = strchr(c->path, '?')) != 0)
+			*t = '\0';
+		if((t = strrchr(c->path, '/')) != 0)
+			*t = '\0';
+	}	
 	c->netscapestyle = isns;
 	*e = p;
 

@@ -11,6 +11,7 @@ typedef enum Tevent {
 	SExpel,		/* Edf expel */
 	SDead,		/* proc dies */
 	SUser,		/* user event */
+	Nevent,
 } Tevent;
 
 typedef struct Traceevent	Traceevent;

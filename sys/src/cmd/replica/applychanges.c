@@ -101,9 +101,10 @@ walk(char *new, char *old, Dir *pd, void*)
 				return;
 			}
 			od.mtime = d.mtime;
+			od.muid = "mark";
 			xlog('c', new, &od);
 			if(!justshow){
-				if(copyfile(new, old, &od, 0) == 0)
+				if(copyfile(newpath, oldpath, &od, 0) == 0)
 					insertdb(db, new, &od);
 			}
 		}
@@ -126,6 +127,7 @@ walk(char *new, char *old, Dir *pd, void*)
 				od.uid = d.uid;
 			od.gid = d.gid;
 			od.mode = d.mode;
+			od.muid = "mark";
 			xlog('m', new, &od);
 			if(!justshow){
 				if(metafile(oldpath, &od) == 0)
@@ -200,7 +202,7 @@ main(int argc, char **argv)
 				removedb(db, e->name);
 				continue;
 			}
-			if(xd->mtime != e->d.mtime){
+			if(xd->mtime != e->d.mtime && (e->d.mode&xd->mode&DMDIR)==0){
 				print("x %q remove/update conflict\n", e->name);
 				free(xd);
 				continue;
@@ -216,6 +218,7 @@ main(int argc, char **argv)
 				if(remove(oldpath) == 0)
 					removedb(db, e->name);
 			}
+			free(xd);
 		}
 	}
 
@@ -266,18 +269,27 @@ copyfile(char *from, char *to, Dir *d, int dowstat)
 		return -1;
 
 	didcreate = 0;
-	if((wfd = open(to, OTRUNC|OWRITE)) < 0){
-		if((wfd = create(to, OWRITE, 0)) < 0){
+	if(d->mode&DMDIR){
+		if((wfd = create(to, OREAD, DMDIR)) < 0){
+			fprint(2, "mkdir %q: %r\n", to);
 			close(rfd);
 			return -1;
 		}
-		didcreate = 1;
+	}else{
+		if((wfd = open(to, OTRUNC|OWRITE)) < 0){
+			if((wfd = create(to, OWRITE, 0)) < 0){
+				close(rfd);
+				return -1;
+			}
+			didcreate = 1;
+		}
+		if(copy1(rfd, wfd, from, to) < 0){
+			close(rfd);
+			close(wfd);
+			return -1;
+		}
 	}
-	if(copy1(rfd, wfd, from, to) < 0){
-		close(rfd);
-		close(wfd);
-		return -1;
-	}
+	close(rfd);
 	if(didcreate || dowstat){
 		nulldir(&nd);
 		nd.mode = d->mode;

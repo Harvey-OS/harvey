@@ -155,7 +155,7 @@ static Lock tlock;
 static int topens;
 static int tproduced, tconsumed;
 static Rendez teventr;
-void	(*proctrace)(Proc*, int, vlong); 
+void (*proctrace)(Proc*, int, vlong);
 
 extern int unfair;
 
@@ -265,7 +265,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 }
 
 static void
-_proctrace(Proc*p, Tevent etype, vlong ts)
+_proctrace(Proc* p, Tevent etype, vlong ts)
 {
 	Traceevent *te;
 
@@ -1388,7 +1388,7 @@ procctlreq(Proc *p, char *va, int n)
 		procwired(p, atoi(cb->f[1]));
 		break;
 	case CMtrace:
-		p->trace = (p->trace + 1) & 1;
+		p->trace ^= 1;
 		break;
 	/* real time */
 	case CMperiod:

@@ -288,8 +288,8 @@ typedef struct {
 
 struct DevConf
 {
-	ulong	intnum;	/* interrupt number */
-	char	*type;		/* card type, malloced */
-	int	nports;		/* Number of ports */
-	port_t	*ports;		/* The ports themselves */
+	ulong	intnum;			/* interrupt number */
+	char	*type;			/* card type, malloced */
+	int	nports;			/* Number of ports */
+	port_t	*ports;			/* The ports themselves */
 };

@@ -15,7 +15,7 @@ int	edfprint = 0;
 static vlong	now;
 extern ulong	delayedscheds;
 extern Schedq	runq[Nrq];
-extern int		nrdy;
+extern int	nrdy;
 extern ulong	runvec;
 
 /* Statistics stuff */
@@ -23,10 +23,10 @@ ulong		nilcount;
 ulong		scheds;
 vlong		edfruntime;
 ulong		edfnrun;
-int			misseddeadlines;
+int		misseddeadlines;
 
 /* Edfschedlock protects modification of admission params */
-int			edfinited;
+int		edfinited;
 QLock		edfschedlock;
 static Lock	thelock;
 
@@ -41,8 +41,8 @@ static Proc *qschedulability;
 enum {
 	Onemicrosecond =	1000ULL,
 	Onemillisecond =	1000000ULL,
-	Onesecond =			1000000000ULL,
-	OneRound = 			Onemillisecond/2LL,
+	Onesecond =		1000000000ULL,
+	OneRound = 		Onemillisecond/2LL,
 	MilliRound = 		Onemicrosecond/2LL,
 };
 
