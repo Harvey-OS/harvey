@@ -12833,3 +12833,6 @@
 1057957321 6 c 386/bin/auth/rsafill - 775 sys sys 1057955567 142267
 1057957321 7 c 386/bin/auth/rsagen - 775 sys sys 1057955567 152977
 1058013103 0 c sys/man/8/pop3 - 664 sys sys 1058012143 2444
+1058130077 0 c 386/lib/libregexp.a - 664 sys sys 1058129072 37616
+1058130077 1 c sys/src/libregexp/regexec.c - 664 sys sys 1058129054 4975
+1058130077 2 c sys/src/libregexp/rregexec.c - 664 sys sys 1058129062 4671
