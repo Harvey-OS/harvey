@@ -4671,7 +4671,7 @@ sys/man/1/comm - 664 sys sys 944959675 665
 sys/man/1/con - 664 sys sys 1071156278 4318
 sys/man/1/cp - 664 sys sys 1015024738 1390
 sys/man/1/cpp - 664 sys sys 944959674 2105
-sys/man/1/cpu - 664 sys sys 1079576028 3328
+sys/man/1/cpu - 664 sys sys 1099501544 3540
 sys/man/1/crop - 664 sys sys 984709627 2596
 sys/man/1/date - 664 sys sys 969499884 996
 sys/man/1/db - 664 sys sys 1015024738 17862
@@ -5426,7 +5426,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1086987325 52219
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1096467467 50899
+sys/src/9/pc/sdata.c - 664 sys sys 1099487462 50970
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1092080705 20458
@@ -6803,7 +6803,7 @@ sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
-sys/src/cmd/acme/text.c - 664 sys sys 1098466676 27550
+sys/src/cmd/acme/text.c - 664 sys sys 1099500744 27642
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
 sys/src/cmd/acme/wind.c - 664 sys sys 1096388102 11187
@@ -12392,3 +12392,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/acme - 775 sys sys 1099541194 425223

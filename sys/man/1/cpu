@@ -13,6 +13,9 @@ cpu \- connection to cpu server
 .B -a
 .I auth-method
 ] [
+.B -P
+.I patternfile
+] [
 .B -e
 .I encryption-hash-algs
 ] [
@@ -75,6 +78,15 @@ argument is present, the remainder of the command line is executed by
 on the server, and then
 .I cpu
 exits.
+.PP
+If a
+.B -P
+argument is present, the
+.I patternfile
+is passed to
+.IR exportfs (1)
+to control how much of the local name space will be exported to
+the remote system.
 .PP
 The
 .B -a
@@ -157,7 +169,8 @@ are bound to their standard locations from there.
 .B /sys/src/cmd/cpu.c
 .SH SEE ALSO
 .IR rc (1) ,
-.IR rio (1)
+.IR rio (1) ,
+.IR exportfs (1)
 .SH BUGS
 Binds and mounts done after the terminal
 .B lib/profile
