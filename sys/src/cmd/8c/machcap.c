@@ -35,6 +35,7 @@ machcap(Node *n)
 
 	case OCOND:
 	case OCOMMA:
+	case OLIST:
 	case OANDAND:
 	case OOROR:
 	case ONOT:
