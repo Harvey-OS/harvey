@@ -621,11 +621,7 @@ vncname(char *fmt, ...)
 static void
 setpixelfmt(Vncs *v)
 {
-	char buf[32], buf2[32];
 	ulong chan;
-
-	if(v->image)
-		fprint(2, "%V: client already has image (leaking memory!)\n", v);
 
 	vncgobble(v, 3);
 	v->Pixfmt = vncrdpixfmt(v);
@@ -634,17 +630,7 @@ setpixelfmt(Vncs *v)
 		fprint(2, "%V: bad pixel format; hanging up\n", v);
 		vnchungup(v);
 	}
-
-	v->image = allocmemimage(Rpt(ZP, v->dim), chan);
-	if(v->image == nil){
-		fprint(2, "%V: allocmemimage: %r; hanging up\n", v);
-		vnchungup(v);
-	}
-if(verbose)fprint(2, "v %R g %R\n", v->image->r, gscreen->r);
-
-	if(verbose)
-		fprint(2, "%V: translating image from chan=%s to chan=%s\n",
-			v, chantostr(buf, gscreen->chan), chantostr(buf2, chan));
+	v->imagechan = chan;
 }
 
 /*
@@ -942,6 +928,9 @@ updateimage(Vncs *v)
 	int (*count)(Vncs*, Rectangle);
 	int (*send)(Vncs*, Rectangle);
 
+	if(v->image == nil)
+		return 0;
+
 	/* warping info and unlock v so that updates can proceed */
 	needwarp = v->canwarp && v->needwarp;
 	warppt = v->warppt;
@@ -1076,6 +1065,7 @@ updatesnarf(Vncs *v)
 static void
 clientwriteproc(Vncs *v)
 {
+	char buf[32], buf2[32];
 	int sent;
 
 	vncname("write %V", v);
@@ -1083,6 +1073,19 @@ clientwriteproc(Vncs *v)
 		vnclock(v);
 		if(v->ndead)
 			break;
+		if((v->image == nil && v->imagechan!=0)
+		|| (v->image && v->image->chan != v->imagechan)){
+			if(v->image)
+				freememimage(v->image);
+			v->image = allocmemimage(Rpt(ZP, v->dim), v->imagechan);
+			if(v->image == nil){
+				fprint(2, "%V: allocmemimage: %r; hanging up\n", v);
+				vnchungup(v);
+			}
+			if(verbose)
+				fprint(2, "%V: translating image from chan=%s to chan=%s\n",
+					v, chantostr(buf, gscreen->chan), chantostr(buf2, v->imagechan));
+		}
 		sent = 0;
 		if(v->updaterequest){
 			v->updaterequest = 0;

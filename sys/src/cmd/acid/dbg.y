@@ -40,7 +40,7 @@
 %token <fval>	Tfconst
 %token <string>	Tstring
 %token Tif Tdo Tthen Telse Twhile Tloop Thead Ttail Tappend Tfn Tret Tlocal
-%token Tcomplex Twhat Tdelete Teval
+%token Tcomplex Twhat Tdelete Teval Tbuiltin
 
 %%
 
@@ -57,10 +57,11 @@ bigstmnt	: stmnt
 		}
 		| Tfn Tid '(' args ')' zsemi '{' slist '}'
 		{
-			if($2->builtin)
-				print("warning: %s() is a builtin; definition ignored\n", $2->name);
-			else
-				$2->proc = an(OLIST, $4, $8);
+			$2->proc = an(OLIST, $4, $8);
+		}
+		| Tfn Tid
+		{
+			$2->proc = nil;
 		}
 		| Tcomplex name '{' members '}' ';'
 		{
@@ -356,6 +357,11 @@ term		: '(' expr ')'
 		| name '(' args ')'
 		{
 			$$ = an(OCALL, $1, $3);
+		}
+		| Tbuiltin name '(' args ')'
+		{
+			$$ = an(OCALL, $2, $4);
+			$$->builtin = 1;
 		}
 		| name
 		| Tconst

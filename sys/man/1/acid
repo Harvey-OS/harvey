@@ -158,11 +158,31 @@ Statements are
 .br
 .BI defn " name" ( args ") {" " statement \fP}
 .br
+.BI defn " name"
+.br
+.IB name ( args )
+.br
+.BI builtin " name" ( args )
+.br
 .BI local " name
 .br
 .BI return " expr
 .br
 .BR whatis " [ \fI name \fP]
+.PP
+The statement
+.B defn
+.I name
+clears the definition for
+.IR name .
+A
+.B defn
+may override a built-in function;
+prefixing a function call with
+.B builtin
+ignores any overriding
+.BR defn ,
+forcing the use of the built-in function.
 .PP
 Here is a partial list of functions; see the manual for a complete list.
 .TF asm(address)

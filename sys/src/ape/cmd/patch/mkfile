@@ -1,0 +1,41 @@
+</$objtype/mkfile
+
+TARG=patch
+
+OFILES=\
+	addext.$O\
+	argmatch.$O\
+	backupfile.$O\
+	basename.$O\
+	getopt.$O\
+	getopt1.$O\
+	inp.$O\
+	maketime.$O\
+	partime.$O\
+	patch.$O\
+	pch.$O\
+	quotearg.$O\
+	util.$O\
+	version.$O\
+
+HFILES=\
+	backupfile.h\
+	common.h\
+	getopt.h\
+	maketime.h\
+	inp.h\
+	partime.h\
+	quotearg.h\
+	pch.h\
+	util.h\
+	version.h\
+
+BIN=/$objtype/bin/ape
+
+</sys/src/cmd/mkone
+
+CC=pcc -c
+CFLAGS=-B -p -D_POSIX_SOURCE \
+	-D_BSD_EXTENSION -I. -DHAVE_CONFIG_H \
+	-Ded_PROGRAM="/bin/ed"
+

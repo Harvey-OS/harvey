@@ -139,6 +139,8 @@ ctlr
 	# vid=0x5333 did=0x8A20		# Savage 3D, not supported
 	# vid=0x5333 did=0x8A21		# Savage 3DMV, not supported
 	vid=0x5333 did=0x8A22		# Savage 4
+	vid=0x5333 did=0x8A25		# ProSavage PN133
+	vid=0x5333 did=0x8A26		# ProSavage KN133 
 	vid=0x5333 did=0x883D		# ViRGE VX
 	vid=0x5333 did=0x8C01		# ViRGE MX
 	vid=0x5333 did=0x8C03		# ViRGE MXP
