@@ -5494,7 +5494,7 @@ sys/src/9/port/portdat.h - 664 sys sys 1091904422 22118
 sys/src/9/port/portfns.h - 664 sys sys 1091904430 11426
 sys/src/9/port/portmkfile - 664 sys sys 1091733856 2087
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
-sys/src/9/port/proc.c - 664 sys sys 1091733600 28176
+sys/src/9/port/proc.c - 664 sys sys 1094293852 28200
 sys/src/9/port/qio.c - 664 sys sys 1070287837 23562
 sys/src/9/port/qlock.c - 664 sys sys 1067722765 3196
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
