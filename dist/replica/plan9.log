@@ -13864,3 +13864,13 @@
 1065816109 1 c sys/src/boot/pc/pci.c - 664 sys sys 1065815736 17580
 1065834010 0 c 386/bin/ip/imap4d - 775 sys sys 1065833429 235591
 1065834010 1 c sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1065833426 11749
+1065897100 0 c 386/bin/ip/imap4d - 775 sys sys 1065896906 235609
+1065897100 1 c sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1065896903 11762
+1065916922 0 c 386/bin/srv - 775 sys sys 1065915883 80817
+1065916922 1 c 386/bin/disk/kfs - 775 sys sys 1065916877 249460
+1065916922 2 c sys/src/cmd/disk/kfs/9p1.c - 664 sys sys 1065916867 25359
+1065916922 3 c sys/src/cmd/disk/kfs/9p2.c - 664 sys sys 1065916867 34556
+1065916922 4 c sys/src/cmd/disk/kfs/dentry.c - 664 sys sys 1065916868 2880
+1065916922 5 c sys/src/cmd/disk/kfs/mkfile - 664 sys sys 1065916865 717
+1065916922 6 c sys/src/cmd/disk/kfs/portdat.h - 664 sys sys 1065916866 6171
+1065916922 7 c sys/src/cmd/srv.c - 664 sys sys 1065915862 3964

@@ -1303,7 +1303,7 @@ f_wstat(Chan *cp, Oldfcall *in, Oldfcall *ou)
 		if(xd.mtime)
 			d->mtime = xd.mtime;
 	} else
-		accessdir(p, d, FREAD);
+		accessdir(p, d, FWSTAT);
 
 out:
 	if(p)

@@ -156,6 +156,7 @@ struct	File
 		#define	FREAD	1
 		#define	FWRITE	2
 		#define	FREMOV	4
+		#define	FWSTAT	8
 	long	doffset;	/* directory reading */
 	ulong	dvers;
 	long	dslot;

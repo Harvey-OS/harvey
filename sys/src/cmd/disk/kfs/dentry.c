@@ -17,10 +17,10 @@ accessdir(Iobuf *p, Dentry *d, int f)
 	long t;
 
 	if(p && !isro(p->dev)) {
-		if(!(f & FWRITE) && noatime)
+		if(!(f & (FWRITE|FWSTAT)) && noatime)
 			return;
 		t = time(nil);
-		if(f & (FREAD|FWRITE)){
+		if(f & (FREAD|FWRITE|FWSTAT)){
 			d->atime = t;
 			p->flags |= Bmod;
 		}
