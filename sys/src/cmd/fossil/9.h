@@ -19,17 +19,17 @@ struct Msg {
 	Fcall	r;
 	Con*	con;
 
-	Msg*	anext;			/* alloc */
+	Msg*	anext;			/* allocation free list */
 
-	Msg*	mnext;			/* Con */
+	Msg*	mnext;			/* all active messsages on this Con */
 	Msg* 	mprev;
 
-	Msg*	rwnext;			/* proc read/write */
+	int	state;			/* */
 
-	int	state;
+	Msg*	flush;			/* flushes waiting for this Msg */
 
-	Msg*	behind;			/* proc flush */
-	Msg*	before;
+	Msg*	rwnext;			/* read/write queue */
+	int	nowq;			/* do not place on write queue */
 };
 
 enum {

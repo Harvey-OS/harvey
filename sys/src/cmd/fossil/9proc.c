@@ -101,7 +101,7 @@ static void
 msgFree(Msg* m)
 {
 	assert(m->rwnext == nil);
-	assert(m->behind == nil && m->before == nil);
+	assert(m->flush == nil);
 
 	vtLock(mbox.alock);
 	if(mbox.nmsg > mbox.maxmsg){
@@ -144,6 +144,7 @@ msgAlloc(Con* con)
 
 	m->con = con;
 	m->state = MsgR;
+	m->nowq = 0;
 
 	return m;
 }
@@ -166,32 +167,11 @@ msgMunlink(Msg* m)
 	m->mprev = m->mnext = nil;
 }
 
-static void
-msgUnlinkAndFree(Msg* m)
-{
-	/*
-	 * Unlink the message from the flush
-	 * and message lists, and free the message.
-	 * Called with con->mlock locked.
-	 */
-	if(m->behind){
-		m->behind->before = nil;
-		m->behind = nil;
-	}
-	if(m->before){
-		m->before->behind = nil;
-		m->before = nil;
-	}
-
-	msgMunlink(m);
-	msgFree(m);
-}
-
 void
 msgFlush(Msg* m)
 {
 	Con *con;
-	Msg *old;
+	Msg *flush, *old;
 
 	con = m->con;
 
@@ -231,8 +211,8 @@ msgFlush(Msg* m)
 	 * processing has been done yet and it is still on the read
 	 * queue. The second is if old is a Tflush, which doesn't
 	 * affect the server state. In both cases, put the old
-	 * message into MsgF state and let MsgProc or MsgWrite
-	 * toss it after pulling it off the appropriate queue.
+	 * message into MsgF state and let MsgWrite toss it after
+	 * pulling it off the queue.
 	 */
 	if(old->state == MsgR || old->t.type == Tflush){
 		old->state = MsgF;
@@ -243,21 +223,29 @@ msgFlush(Msg* m)
 
 	/*
 	 * Link this flush message and the old message
-	 * so we can coalesce multiple flushes (if there are
+	 * so multiple flushes can be coalesced (if there are
 	 * multiple Tflush messages for a particular pending
 	 * request, it is only necessary to respond to the last
 	 * one, so any previous can be removed) and to be
 	 * sure flushes wait for their corresponding old
 	 * message to go out first.
+	 * Waiting flush messages do not go on the write queue,
+	 * they are processed after the old message is dealt
+	 * with. There's no real need to protect the setting of
+	 * Msg.nowq, the only code to check it runs in this
+	 * process after this routine returns.
 	 */
-	if(old->behind){
+	if((flush = old->flush) != nil){
 		if(Dflag)
 			fprint(2, "msgFlush: remove %d from %d list\n",
-				old->behind->t.tag, old->t.tag);
-		msgUnlinkAndFree(old->behind);
+				old->flush->t.tag, old->t.tag);
+		m->flush = flush->flush;
+		flush->flush = nil;
+		msgMunlink(flush);
+		msgFree(flush);
 	}
-	old->behind = m;
-	m->before = old;
+	old->flush = m;
+	m->nowq = 1;
 
 	if(Dflag)
 		fprint(2, "msgFlush: add %d to %d queue\n",
@@ -348,14 +336,16 @@ msgProc(void*)
 		 * Put the message (with reply) on the
 		 * write queue and wakeup the write process.
 		 */
-		vtLock(con->wlock);
-		if(con->whead == nil)
-			con->whead = m;
-		else
-			con->wtail->rwnext = m;
-		con->wtail = m;
-		vtWakeup(con->wrendez);
-		vtUnlock(con->wlock);
+		if(!m->nowq){
+			vtLock(con->wlock);
+			if(con->whead == nil)
+				con->whead = m;
+			else
+				con->wtail->rwnext = m;
+			con->wtail = m;
+			vtWakeup(con->wrendez);
+			vtUnlock(con->wlock);
+		}
 	}
 }
 
@@ -430,67 +420,12 @@ msgRead(void* v)
 	}
 }
 
-static int
-_msgWrite(Msg* m)
-{
-	Con *con;
-	int eof, msgw, n;
-
-	/*
-	 * A message with .before set implies it is waiting
-	 * for the .before message to go out first, so punt
-	 * until the .before message goes out (see below).
-	 */
-	con = m->con;
-	if(m->before != nil){
-		if(Dflag)
-			fprint(2, "msgWrite %p: delay r %F\n", con, &m->r);
-		return 0;
-	}
-	if(m->state == MsgF)
-		msgw = 0;
-	else
-		msgw = 1;
-
-	msgMunlink(m);
-	vtUnlock(con->mlock);
-
-	eof = 0;
-	if(msgw){
-		/*
-		 * TODO: optimise this copy away somehow for
-		 * read, stat, etc.
-		 */
-		assert(n = convS2M(&m->r, con->data, con->msize));
-		if(write(con->fd, con->data, n) != n)
-			eof = 1;
-	}
-
-	if(Dflag)
-		fprint(2, "msgWrite %d: r %F\n", msgw, &m->r);
-
-	/*
-	 * Message written or flushed. If it has anything waiting
-	 * for it to have gone out, recurse down the list writing
-	 * them out too.
-	 */
-	vtLock(con->mlock);
-	if(m->behind != nil){
-		m->behind->before = nil;
-		eof += _msgWrite(m->behind);
-		m->behind = nil;
-	}
-	msgFree(m);
-
-	return eof;
-}
-
 static void
 msgWrite(void* v)
 {
-	Msg *m;
-	int eof;
 	Con *con;
+	int eof, n;
+	Msg *flush, *m;
 
 	vtThreadSetName("msgWrite");
 
@@ -510,17 +445,41 @@ msgWrite(void* v)
 		m = con->whead;
 		con->whead = m->rwnext;
 		m->rwnext = nil;
+		assert(!m->nowq);
 		vtUnlock(con->wlock);
 
+		eof = 0;
+
 		/*
-		 * If the message hasn't been flushed,
-		 * change its state so it will be written
-		 * out.
+		 * Write each message (if it hasn't been flushed)
+		 * followed by any messages waiting for it to complete.
 		 */
 		vtLock(con->mlock);
-		if(m->state != MsgF)
-			m->state = MsgW;
-		eof = _msgWrite(m);
+		while(m != nil){
+			msgMunlink(m);
+
+			if(Dflag)
+				fprint(2, "msgWrite %d: r %F\n",
+					m->state, &m->r);
+
+			if(m->state != MsgF){
+				m->state = MsgW;
+				vtUnlock(con->mlock);
+
+				n = convS2M(&m->r, con->data, con->msize);
+				if(write(con->fd, con->data, n) != n)
+					eof = 1;
+
+				vtLock(con->mlock);
+			}
+
+			if((flush = m->flush) != nil){
+				assert(flush->nowq);
+				m->flush = nil;
+			}
+			msgFree(m);
+			m = flush;
+		}
 		vtUnlock(con->mlock);
 
 		vtLock(con->lock);
