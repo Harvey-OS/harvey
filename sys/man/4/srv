@@ -210,7 +210,7 @@ Some of its options are the same as those of
 the special ones are:
 .TP
 .B -d
-Enable debuggging
+Enable debugging
 .TP
 .BI -u\  user
 When connecting to the remote server, log in as
