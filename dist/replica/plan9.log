@@ -13123,3 +13123,6 @@
 1062525684 0 c 386/bin/auth/secstored - 775 sys sys 1062525364 193939
 1062525684 1 c sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1062525349 7978
 1062621096 0 c sys/src/libc/9syscall/sys.h - 664 sys sys 1062619381 878
+1062721914 0 c sys/src/9/boot/libboot.a8 - 664 sys sys 1062721685 54780
+1062721914 1 c sys/src/9/pc/pcauth - 664 sys sys 1062721660 632
+1062721914 2 c sys/src/9/port/systab.h - 664 sys sys 1062721698 3044

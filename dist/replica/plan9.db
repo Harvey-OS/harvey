@@ -5090,7 +5090,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
-sys/src/9/boot/libboot.a8 - 664 sys sys 1060267156 54780
+sys/src/9/boot/libboot.a8 - 664 sys sys 1062721685 54780
 sys/src/9/boot/local.c - 664 sys sys 1039763718 2041
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -5223,7 +5223,7 @@ sys/src/9/pc/mouse.c - 664 sys sys 1060266650 6625
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
 sys/src/9/pc/pc - 664 sys sys 1055700612 1360
-sys/src/9/pc/pcauth - 664 sys sys 1055700612 609
+sys/src/9/pc/pcauth - 664 sys sys 1062721660 632
 sys/src/9/pc/pccd - 664 sys sys 1055090302 1302
 sys/src/9/pc/pccpu - 664 sys sys 1056568059 803
 sys/src/9/pc/pccpuf - 664 sys sys 1056503364 909
@@ -5359,7 +5359,7 @@ sys/src/9/port/segment.c - 664 sys sys 1032990942 13776
 sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
 sys/src/9/port/sysfile.c - 664 sys sys 1062077221 21838
 sys/src/9/port/sysproc.c - 664 sys sys 1055688564 15125
-sys/src/9/port/systab.h - 664 sys sys 1062076988 3104
+sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
 sys/src/9/port/taslock.c - 664 sys sys 1036813005 2896
 sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
 sys/src/9/port/thwack.h - 664 sys sys 1015278340 1792
