@@ -13143,3 +13143,8 @@
 1071536469 0 c sys/include/keyboard.h - 664 sys sys 1071535972 802
 1071538269 0 a sys/lib/lp/tmp - 20000000777 sys sys 1071536829 0
 1071540069 0 c sys/lib/lp/bin/lpscratch - 775 sys sys 1071539623 32
+1071574274 0 c rc/bin/window - 775 sys sys 1071573331 1781
+1071574274 1 c sys/lib/mimetype - 664 sys sys 1071573310 5589
+1071615680 0 c sys/src/9/pc/sdata.c - 664 sys sys 1071615236 50538
+1071615680 1 c sys/src/boot/pc/sdata.c - 664 sys sys 1071615664 35424
+1071621080 0 a sys/lib/lp/log - 20000000775 sys sys 1071620128 0

@@ -3098,7 +3098,7 @@ rc/bin/wdoc2txt - 755 sys sys 1017431153 277
 rc/bin/weather - 775 sys sys 1016825765 795
 rc/bin/who - 775 sys sys 945617210 61
 rc/bin/whois - 775 sys sys 945617210 189
-rc/bin/window - 775 sys sys 1045504108 1742
+rc/bin/window - 775 sys sys 1071573331 1781
 rc/bin/wloc - 775 sys sys 969512017 191
 rc/bin/wurl2txt - 755 sys sys 1017431148 296
 rc/bin/yesterday - 775 sys sys 1070288432 2541
@@ -3876,6 +3876,7 @@ sys/lib/lp/kill/generic - 775 sys sys 954037458 638
 sys/lib/lp/kill/xerox - 775 sys sys 954037458 89
 sys/lib/lp/kill/xerox-4512 - 775 sys sys 954037458 75
 sys/lib/lp/kill/xerox-4517 - 775 sys sys 954037458 75
+sys/lib/lp/log - 20000000775 sys sys 1071620128 0
 sys/lib/lp/perm - 20000000775 sys sys 954037458 0
 sys/lib/lp/process - 20000000775 sys sys 1015012169 0
 sys/lib/lp/process/dpost - 775 sys sys 1015012079 2412
@@ -3948,7 +3949,7 @@ sys/lib/man/preface4 - 664 sys sys 1020082276 1758
 sys/lib/man/secindex - 775 sys sys 956337727 322
 sys/lib/man/title - 664 sys sys 1019915894 746
 sys/lib/man/trademarks - 664 sys sys 958527089 1838
-sys/lib/mimetype - 664 sys sys 1064393944 5563
+sys/lib/mimetype - 664 sys sys 1071573310 5589
 sys/lib/newuser - 775 sys sys 1018386991 1229
 sys/lib/plumb - 20000000775 sys sys 944957365 0
 sys/lib/plumb/basic - 664 sys sys 1070330856 2930
@@ -5347,7 +5348,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1055689891 52089
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1071247345 50401
+sys/src/9/pc/sdata.c - 664 sys sys 1071615236 50538
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1055689892 7406
 sys/src/9/pc/trap.c - 664 sys sys 1068237910 20045
@@ -6473,7 +6474,7 @@ sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1032215925 2404
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1015007954 52004
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdata.c - 664 sys sys 1068156754 35084
+sys/src/boot/pc/sdata.c - 664 sys sys 1071615664 35424
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1015007955 28743
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1018553454 6680
 sys/src/boot/pc/trap.c - 664 sys sys 1018462833 7098

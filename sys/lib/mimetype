@@ -51,6 +51,7 @@
 .hqx		application	octet-stream	-		m # Mac BinHex
 .htm		text		html		-		m
 .html		text		html		-		m
+.ico		image		x-icon		-		y
 .ief		image		ief		-		y
 .jar		application	java-archive -		y
 .jfif		image		jpeg		-		y
