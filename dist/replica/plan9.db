@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1077508785 77700
+386/lib/libmp.a - 664 sys sys 1077751659 77700
 386/lib/libndb.a - 664 sys sys 1077636970 54474
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -2761,7 +2761,7 @@ lib/ndb/common - 664 sys sys 1065569740 5261
 lib/ndb/consoledb - 664 sys sys 960222421 95
 lib/ndb/dhcp - 20000000775 sys sys 959260749 0
 lib/ndb/dnsdump - 664 sys sys 1032057649 61
-lib/ndb/local - 664 sys sys 1021926975 195
+lib/ndb/local - 664 sys sys 1077723747 292
 lib/ndb/local.complicated - 664 sys sys 1032354376 2740
 lib/ndb/nfs - 664 sys sys 954036707 113
 lib/news - 20000000775 sys sys 944943954 0
@@ -3891,7 +3891,7 @@ sys/lib/lp/process - 20000000775 sys sys 1015012169 0
 sys/lib/lp/process/dpost - 775 sys sys 1015012079 2412
 sys/lib/lp/process/dvipost - 775 sys sys 954037459 3123
 sys/lib/lp/process/g3post - 775 sys sys 954037459 2348
-sys/lib/lp/process/generic - 775 sys sys 1077634895 4849
+sys/lib/lp/process/generic - 775 sys sys 1077715118 4805
 sys/lib/lp/process/gifpost - 775 sys sys 1015012079 2317
 sys/lib/lp/process/gspipe - 775 sys sys 1015012079 434
 sys/lib/lp/process/gspipeijs - 775 sys sys 1077670465 949
@@ -6476,7 +6476,7 @@ sys/src/boot/pc/load.c - 664 sys sys 1056087197 7987
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1015007953 3407
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
-sys/src/boot/pc/mkfile - 664 sys sys 1077033680 3061
+sys/src/boot/pc/mkfile - 664 sys sys 1077739195 3063
 sys/src/boot/pc/noether.c - 664 sys sys 1018553453 300
 sys/src/boot/pc/part.c - 664 sys sys 1032215918 7505
 sys/src/boot/pc/pbs.s - 664 sys sys 1017854325 8279

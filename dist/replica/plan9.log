@@ -13996,3 +13996,10 @@
 1077638447 0 c 386/lib/libauthsrv.a - 664 sys sys 1077636970 33806
 1077638447 1 c 386/lib/libndb.a - 664 sys sys 1077636970 54474
 1077670852 0 a sys/lib/lp/process/gspipeijs - 775 sys sys 1077670465 949
+1077715866 0 c sys/lib/lp/process/generic - 775 sys sys 1077715118 4805
+1077723066 0 c lib/ndb/local - 664 sys sys 1077722881 318
+1077724868 0 c lib/ndb/local - 664 sys sys 1077723747 292
+1077726667 0 c sys/src/boot/pc/mkfile - 664 sys sys 1077725215 3062
+1077739268 0 c sys/src/boot/pc/mkfile - 664 sys sys 1077739195 3063
+1077744671 0 c 386/lib/libmp.a - 664 sys sys 1077744096 81428
+1077751872 0 c 386/lib/libmp.a - 664 sys sys 1077751659 77700
