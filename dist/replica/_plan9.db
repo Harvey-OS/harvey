@@ -2777,7 +2777,7 @@ lib/ndb/consoledb - 664 sys sys 960222421 95
 lib/ndb/dhcp - 20000000775 sys sys 959260749 0
 lib/ndb/dnsdump - 664 sys sys 1032057649 61
 lib/ndb/local - 664 sys sys 1077723747 292
-lib/ndb/local.complicated - 664 sys sys 1032354376 2740
+lib/ndb/local.complicated - 664 sys sys 1105461604 2976
 lib/ndb/nfs - 664 sys sys 954036707 113
 lib/news - 20000000775 sys sys 944943954 0
 lib/sky - 20000000775 sys sys 1079376081 0
@@ -9550,7 +9550,7 @@ sys/src/cmd/ip/udpecho.c - 664 sys sys 1050714674 855
 sys/src/cmd/join.c - 664 sys sys 944961364 7488
 sys/src/cmd/jpg - 20000000775 sys sys 988249983 0
 sys/src/cmd/jpg/bmp.c - 664 sys sys 1079970078 4217
-sys/src/cmd/jpg/bmp.h - 664 sys sys 1079970081 975
+sys/src/cmd/jpg/bmp.h - 664 sys sys 1105455271 1034
 sys/src/cmd/jpg/close.c - 664 sys sys 944961292 1930
 sys/src/cmd/jpg/gif.c - 664 sys sys 1045505400 8844
 sys/src/cmd/jpg/ico.c - 664 sys sys 1072107030 8799
@@ -9562,7 +9562,7 @@ sys/src/cmd/jpg/multichan.c - 664 sys sys 1039753047 825
 sys/src/cmd/jpg/onechan.c - 664 sys sys 1039753044 3732
 sys/src/cmd/jpg/png.c - 664 sys sys 1014926432 4655
 sys/src/cmd/jpg/ppm.c - 664 sys sys 944961292 4190
-sys/src/cmd/jpg/readbmp.c - 664 sys sys 1079970079 13697
+sys/src/cmd/jpg/readbmp.c - 664 sys sys 1105455271 13691
 sys/src/cmd/jpg/readgif.c - 664 sys sys 1014926433 10306
 sys/src/cmd/jpg/readjpg.c - 664 sys sys 1032060302 33009
 sys/src/cmd/jpg/readpng.c - 664 sys sys 1068773222 6914
@@ -12453,3 +12453,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/bmp - 775 sys sys 1105502893 157210

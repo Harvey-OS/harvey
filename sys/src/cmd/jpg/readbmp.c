@@ -489,7 +489,7 @@ ReadBMP(Biobuf *b, int *width, int *height)
 
 	if(num_coltab) {
 		int i; 
-		Bseek(b, bmih.size + sizeof(Infohdr), 0);
+		Bseek(b, bmih.size + Filehdrsz, 0);
 
 		for(i = 0; i < num_coltab; i++) {
 			clut[i].blue  = (uchar)Bgetc(b);
