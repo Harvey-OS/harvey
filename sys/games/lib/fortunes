@@ -4025,3 +4025,5 @@ ntifs.c(202) : error C2064: term does not evaluate to a function taking 25732904
 There's no "I" in team, but there's both a "me" and an "I" in media.
 Oh, I'm sorry, sir, go ahead.  I didn't realize you were root.
 C++ is to C as lung cancer is to lung.
+Warning: bad syntax, perhaps a bogus '-'? See http://procps.sf.net/faq.html
+Those days [of "one tool doing one job well"] are dead and gone and the eulogy was delivered by Perl.  - rob
