@@ -24,7 +24,7 @@ enum {
 	hwCurImage = Pramin + (0x00010000 - 0x0800),
 };
 
-/* Nvidia is good about backwards compatibility -- any did > 0x20 is fine */
+/* Nvidia is good about backwards compatibility -- any did >= 0x20 is fine */
 static Pcidev*
 nvidiapci(void)
 {
@@ -32,7 +32,7 @@ nvidiapci(void)
 
 	p = nil;
 	while((p = pcimatch(p, 0x10DE, 0)) != nil){
-		if(p->did > 0x20 && p->ccrb == 3)	/* video card */
+		if(p->did >= 0x20 && p->ccrb == 3)	/* video card */
 			return p;
 	}
 	return nil;

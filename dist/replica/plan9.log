@@ -13031,3 +13031,14 @@
 1060189283 0 c 386/bin/ip/ipconfig - 775 sys sys 1060189244 128491
 1060189283 1 c sys/src/cmd/ip/ipconfig.c - 664 sys sys 1060189236 29311
 1060191081 0 c sys/man/8/ipconfig - 664 sys sys 1060189415 5050
+1060264967 0 a sys/man/8/pem - 664 sys sys 1060263669 1189
+1060266768 0 c sys/src/9/pc/fns.h - 664 sys sys 1060266613 4268
+1060266768 1 c sys/src/9/pc/mouse.c - 664 sys sys 1060266650 6625
+1060266768 2 c sys/src/9/pc/uarti8250.c - 664 sys sys 1060266726 12826
+1060266768 3 c sys/src/9/port/devmouse.c - 664 sys sys 1060266767 12196
+1060266768 4 c sys/src/9/port/portfns.h - 664 sys sys 1060266745 10822
+1060268569 0 c sys/src/9/alphapc/screen.h - 664 sys sys 1060267151 3584
+1060268569 1 c sys/src/9/boot/libboot.a8 - 664 sys sys 1060267156 54780
+1060268569 2 c sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
+1060268569 3 c sys/src/9/port/devuart.c - 664 sys sys 1060267239 11762
+1060270370 0 c sys/src/9/pc/vganvidia.c - 664 sys sys 1060269772 6545
