@@ -24,7 +24,6 @@ void
 ignore(void *a, char *c)
 {
 	USED(a);
-fprint(2, "%s\n", c);
 	if(strcmp(c, "alarm") == 0){
 		fprint(2, "srv: timeout establishing connection to %s\n", dest);
 		exits("timeout");

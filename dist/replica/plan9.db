@@ -204,7 +204,7 @@
 386/bin/disk/exsort - 775 sys sys 1064598123 58541
 386/bin/disk/fdisk - 775 sys sys 1064598124 106639
 386/bin/disk/format - 775 sys sys 1064598125 91621
-386/bin/disk/kfs - 775 sys sys 1064598126 249244
+386/bin/disk/kfs - 775 sys sys 1065916877 249460
 386/bin/disk/kfscmd - 775 sys sys 1064598127 38451
 386/bin/disk/ksync - 775 sys sys 1020319074 302
 386/bin/disk/mbr - 775 sys sys 1064598127 73194
@@ -275,7 +275,7 @@
 386/bin/ip/httpd/save - 775 sys sys 1064598231 130742
 386/bin/ip/httpd/webls - 775 sys sys 1065646626 129996
 386/bin/ip/httpd/wikipost - 775 sys sys 1064598232 111102
-386/bin/ip/imap4d - 775 sys sys 1065833429 235591
+386/bin/ip/imap4d - 775 sys sys 1065896906 235609
 386/bin/ip/ipconfig - 775 sys sys 1064598234 128285
 386/bin/ip/ping - 775 sys sys 1064598234 74889
 386/bin/ip/ppp - 775 sys sys 1064598236 216026
@@ -384,7 +384,7 @@
 386/bin/sort - 775 sys sys 1064598313 81046
 386/bin/spin - 775 sys sys 1048745068 649685
 386/bin/split - 775 sys sys 1064598314 74007
-386/bin/srv - 775 sys sys 1064598314 80641
+386/bin/srv - 775 sys sys 1065915883 80817
 386/bin/srvfs - 775 sys sys 1064598315 39646
 386/bin/srvold9p - 775 sys sys 1064598316 130962
 386/bin/ssh - 775 sys sys 1064598317 209762
@@ -7128,11 +7128,11 @@ sys/src/cmd/disk/9660/write.c - 664 sys sys 1021579990 8764
 sys/src/cmd/disk/exsort.c - 664 sys sys 944960885 1964
 sys/src/cmd/disk/format.c - 664 sys sys 1022448818 17648
 sys/src/cmd/disk/kfs - 20000000775 sys sys 1019072794 0
-sys/src/cmd/disk/kfs/9p1.c - 664 sys sys 1037136027 25358
+sys/src/cmd/disk/kfs/9p1.c - 664 sys sys 1065916867 25359
 sys/src/cmd/disk/kfs/9p1.h - 664 sys sys 1021579989 2261
 sys/src/cmd/disk/kfs/9p12.c - 664 sys sys 1022008487 1963
 sys/src/cmd/disk/kfs/9p1lib.c - 664 sys sys 1015009187 7102
-sys/src/cmd/disk/kfs/9p2.c - 664 sys sys 1022008487 34555
+sys/src/cmd/disk/kfs/9p2.c - 664 sys sys 1065916867 34556
 sys/src/cmd/disk/kfs/all.h - 664 sys sys 944960883 67
 sys/src/cmd/disk/kfs/auth.c - 664 sys sys 1037136028 2137
 sys/src/cmd/disk/kfs/chk.c - 664 sys sys 1017166328 10120
@@ -7140,7 +7140,7 @@ sys/src/cmd/disk/kfs/con.c - 664 sys sys 1022008487 12770
 sys/src/cmd/disk/kfs/console.c - 664 sys sys 1017679313 5501
 sys/src/cmd/disk/kfs/dat.c - 664 sys sys 1015009188 2290
 sys/src/cmd/disk/kfs/dat.h - 664 sys sys 1022008485 3591
-sys/src/cmd/disk/kfs/dentry.c - 664 sys sys 1018553455 2864
+sys/src/cmd/disk/kfs/dentry.c - 664 sys sys 1065916868 2880
 sys/src/cmd/disk/kfs/devmulti.c - 664 sys sys 1015009188 4087
 sys/src/cmd/disk/kfs/devwren.c - 664 sys sys 1015009188 3019
 sys/src/cmd/disk/kfs/errno.h - 664 sys sys 1015009189 1317
@@ -7149,9 +7149,9 @@ sys/src/cmd/disk/kfs/ialloc.c - 664 sys sys 944960883 103
 sys/src/cmd/disk/kfs/iobuf.c - 664 sys sys 1015009189 3769
 sys/src/cmd/disk/kfs/main.c - 664 sys sys 1022112155 9420
 sys/src/cmd/disk/kfs/misc.c - 664 sys sys 1015009189 1182
-sys/src/cmd/disk/kfs/mkfile - 664 sys sys 1022008484 755
+sys/src/cmd/disk/kfs/mkfile - 664 sys sys 1065916865 717
 sys/src/cmd/disk/kfs/ofcallfmt.c - 664 sys sys 1015009189 4674
-sys/src/cmd/disk/kfs/portdat.h - 664 sys sys 1020313860 6152
+sys/src/cmd/disk/kfs/portdat.h - 664 sys sys 1065916866 6171
 sys/src/cmd/disk/kfs/portfns.h - 664 sys sys 1020313861 2804
 sys/src/cmd/disk/kfs/porttime.c - 664 sys sys 1015009190 3922
 sys/src/cmd/disk/kfs/print.c - 664 sys sys 944960882 3573
@@ -9202,7 +9202,7 @@ sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1062298855 4597
 sys/src/cmd/ip/imap4d/csquery.c - 664 sys sys 1015013076 762
 sys/src/cmd/ip/imap4d/date.c - 664 sys sys 1045505209 5668
 sys/src/cmd/ip/imap4d/debug.c - 664 sys sys 1016731557 1962
-sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1065833426 11749
+sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1065896903 11762
 sys/src/cmd/ip/imap4d/fns.h - 664 sys sys 1015013076 4282
 sys/src/cmd/ip/imap4d/folder.c - 664 sys sys 1015013076 5959
 sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1065805751 40675
@@ -10099,7 +10099,7 @@ sys/src/cmd/spin/tl_trans.c - 664 sys sys 953242990 16758
 sys/src/cmd/spin/vars.c - 664 sys sys 953242990 8412
 sys/src/cmd/spin/version.h - 664 sys sys 956275780 54
 sys/src/cmd/split.c - 664 sys sys 1038183077 3219
-sys/src/cmd/srv.c - 664 sys sys 1045505557 3986
+sys/src/cmd/srv.c - 664 sys sys 1065915862 3964
 sys/src/cmd/srvfs.c - 664 sys sys 1014926615 1504
 sys/src/cmd/srvold9p - 20000000775 sys sys 1016921011 0
 sys/src/cmd/srvold9p/9p1.h - 664 sys sys 1016921010 2413

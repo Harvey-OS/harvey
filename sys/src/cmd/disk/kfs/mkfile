@@ -32,12 +32,9 @@ HFILES=\
 
 BIN=/$objtype/bin/disk
 
-CFILES=${OFILES:%.$O=%.c}
-
 UPDATE=mkfile\
-	/386/bin/disk/$TARG\
 	$HFILES\
-	$CFILES\
+	${OFILES:%.$O=%.c}\
 
 </sys/src/cmd/mkone
 

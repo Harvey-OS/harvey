@@ -66,6 +66,7 @@ fetchMsg(Box *, Msg *m, int uids, void *vf)
 	for(f = vf; f != nil; f = f->next){
 		switch(f->op){
 		case FFlags:
+			todo = 1;
 			break;
 		case FUid:
 			todo = 1;
