@@ -215,6 +215,8 @@ window rio
 wloc rio
 rm rm
 rtstats rtstats
+conswdir rwd
+rwd rwd
 B sam
 sam sam
 sam.save sam
