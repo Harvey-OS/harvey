@@ -3348,7 +3348,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1108487635 252847
+sys/games/lib/fortunes - 664 sys sys 1108670044 253033
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -3451,7 +3451,7 @@ sys/include/control.h - 664 sys sys 1084467622 4844
 sys/include/ctype.h - 664 sys sys 1014929062 951
 sys/include/cursor.h - 664 sys sys 1014929062 102
 sys/include/disk.h - 664 sys sys 1014929063 1096
-sys/include/draw.h - 664 sys sys 1097972690 15982
+sys/include/draw.h - 664 sys sys 1108655526 16144
 sys/include/event.h - 664 sys sys 1014929063 1426
 sys/include/fcall.h - 664 sys sys 1032058178 3062
 sys/include/flate.h - 664 sys sys 1014929063 1245
@@ -12471,3 +12471,12 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/lib/libcontrol.a - 664 sys sys 1108699738 274922
+386/lib/libdraw.a - 664 sys sys 1108699738 373548
+386/lib/libframe.a - 664 sys sys 1108699739 66060
+386/lib/libgeometry.a - 664 sys sys 1108699739 50470
+386/lib/libhtml.a - 664 sys sys 1108699739 219972
+386/lib/libmemdraw.a - 664 sys sys 1108699740 283188
+386/lib/libmemlayer.a - 664 sys sys 1108699740 47360
+386/lib/libplumb.a - 664 sys sys 1108699740 18876
+386/lib/libscribble.a - 664 sys sys 1108699740 107280
