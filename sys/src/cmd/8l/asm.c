@@ -362,16 +362,16 @@ asmb(void)
 		lputl(textsize);		/* file size */
 		lputl(textsize);		/* memory size */
 		lputl(0x05L);			/* protections = RX */
-		lputl(0x10000L);		/* alignment code?? */
+		lputl(INITRND);			/* alignment */
 
 		lputl(1L);			/* data - type = PT_LOAD */
 		lputl(HEADR+textsize);		/* file offset */
 		lputl(INITDAT);			/* vaddr */
 		lputl(PADDR(INITDAT));		/* paddr */
 		lputl(datsize);			/* file size */
-		lputl(datsize);			/* memory size */
-		lputl(0x07L);			/* protections = RWX */
-		lputl(0x10000L);		/* alignment code?? */
+		lputl(datsize+bsssize);		/* memory size */
+		lputl(0x06L);			/* protections = RW */
+		lputl(INITRND);			/* alignment */
 
 		lputl(0L);			/* data - type = PT_NULL */
 		lputl(HEADR+textsize+datsize);	/* file offset */
@@ -380,7 +380,7 @@ asmb(void)
 		lputl(symsize);			/* symbol table size */
 		lputl(lcsize);			/* line number size */
 		lputl(0x04L);			/* protections = R */
-		lputl(0x04L);			/* alignment code?? */
+		lputl(0x04L);			/* alignment */
 		break;
 	}
 	cflush();
