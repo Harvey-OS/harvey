@@ -693,6 +693,9 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 
 	/* (i) */
 	e->depth = d;
+	/* might have been local and now global; reverse cannot happen */
+	if(globalToLocal(b->score) == NilBlock)
+		e->flags &= ~VtEntryLocal;
 	memmove(e->score, b->score, VtScoreSize);
 	entryPack(e, p->data, r->offset % r->epb);
 	blockDependency(p, b, r->offset % r->epb, nil, &oe);
