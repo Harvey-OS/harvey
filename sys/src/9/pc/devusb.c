@@ -17,9 +17,9 @@ static int debug = 0;
 Usbhost*	usbhost[MaxUsb];
 
 static char *devstates[] = {
-	[Disabled]		"Disabled",
+	[Disabled]	"Disabled",
 	[Attached]	"Attached",
-	[Enabled]		"Enabled",
+	[Enabled]	"Enabled",
 	[Assigned]	"Assigned",
 	[Configured]	"Configured",
 };
@@ -64,13 +64,13 @@ enum {
 #define	PATH(t, s, c)	((t)|((s)<<SLOTSHIFT)|((c)<<CTLRSHIFT))
 
 static Dirtab usbdir2[] = {
-	"new",	{Qnew},			0,	0666,
-	"port",	{Qport},			0,	0666,
+	"new",		{Qnew},			0,	0666,
+	"port",		{Qport},		0,	0666,
 };
 
 static Dirtab usbdir3[]={
 	"ctl",		{Qctl},			0,	0666,
-	"status",	{Qstatus},			0,	0444,
+	"status",	{Qstatus},		0,	0444,
 	"setup",	{Qep0},			0,	0666,
 	/* epNdata names are generated on demand */
 };
@@ -97,19 +97,19 @@ enum
 static Cmdtab usbportmsg[] =
 {
 	PMdisable,	"disable",	2,
-	PMenable,		"enable",	2,
-	PMreset,		"reset",	2,
+	PMenable,	"enable",	2,
+	PMreset,	"reset",	2,
 };
 
 static Cmdtab usbctlmsg[] =
 {
-	CMclass,		"class",	0,
-	CMdata,		"data",	3,
-	CMdebug,		"debug",	3,
+	CMclass,	"class",	0,
+	CMdata,		"data",		3,
+	CMdebug,	"debug",	3,
 	CMep,		"ep",		6,
 	CMmaxpkt,	"maxpkt",	3,
-	CMadjust,		"adjust",	3,
-	CMspeed,		"speed",	2,
+	CMadjust,	"adjust",	3,
+	CMspeed,	"speed",	2,
 	CMunstall,	"unstall",	2,
 };
 
