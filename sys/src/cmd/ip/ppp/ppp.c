@@ -1304,7 +1304,6 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 		}
 		break;
 	case Ltermreq:
-fprint(2, "remreq\n");
 		m->code = Ltermack;
 		putframe(ppp, p->proto, b);
 
@@ -1321,7 +1320,6 @@ fprint(2, "remreq\n");
 	case Ltermack:
 		if(p->termid != m->id)	/* ignore if it isn't the message we're sending */
 			break;
-fprint(2, "remack\n");
 
 		if(p->proto == Plcp)
 			ppp->ipcp->state = Sclosed;

@@ -2770,7 +2770,7 @@ lib/tftpd - 20000000775 sys sys 944944178 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1014923483 9984
-lib/vgadb - 664 sys sys 1063237366 27747
+lib/vgadb - 664 sys sys 1065961653 27832
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
 lp - 20000000775 sys sys 958199268 0
@@ -6600,7 +6600,7 @@ sys/src/cmd/9nfs/string.c - 664 sys sys 1017337815 1659
 sys/src/cmd/9nfs/strparse.c - 664 sys sys 1015090373 506
 sys/src/cmd/9nfs/system.c - 664 sys sys 1017337815 437
 sys/src/cmd/9nfs/testit - 775 sys sys 1017337816 251
-sys/src/cmd/9nfs/unixnames.c - 664 sys sys 1040952457 5974
+sys/src/cmd/9nfs/unixnames.c - 664 sys sys 1065963574 6006
 sys/src/cmd/9nfs/xfile.c - 664 sys sys 1017337816 1847
 sys/src/cmd/aan.c - 664 sys sys 1019856827 9758
 sys/src/cmd/acid - 20000000775 sys sys 944960739 0
@@ -6818,7 +6818,7 @@ sys/src/cmd/aux/na/mkfile - 664 sys sys 955036627 121
 sys/src/cmd/aux/na/na.h - 775 sys sys 955036627 267
 sys/src/cmd/aux/na/na.y - 775 sys sys 1015008889 25158
 sys/src/cmd/aux/nfsmount.c - 664 sys sys 1045589268 6202
-sys/src/cmd/aux/olefs.c - 664 sys sys 1014925094 9627
+sys/src/cmd/aux/olefs.c - 664 sys sys 1065963681 9630
 sys/src/cmd/aux/pcmcia.c - 664 sys sys 1065397225 8366
 sys/src/cmd/aux/portmap.c - 664 sys sys 1049776133 3617
 sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
@@ -9208,7 +9208,7 @@ sys/src/cmd/ip/imap4d/folder.c - 664 sys sys 1015013076 5959
 sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1065805751 40675
 sys/src/cmd/ip/imap4d/imap4d.h - 664 sys sys 1015013076 6697
 sys/src/cmd/ip/imap4d/list.c - 664 sys sys 1015013076 7619
-sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1015013077 16842
+sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1065963776 16849
 sys/src/cmd/ip/imap4d/mkfile - 664 sys sys 1063897579 332
 sys/src/cmd/ip/imap4d/msg.c - 664 sys sys 1055699143 31357
 sys/src/cmd/ip/imap4d/mutf7.c - 664 sys sys 1015013077 2724
@@ -9229,7 +9229,7 @@ sys/src/cmd/ip/ppp/dotest - 775 sys sys 944961006 152
 sys/src/cmd/ip/ppp/ipaux.c - 664 sys sys 1015090266 2326
 sys/src/cmd/ip/ppp/mkfile - 664 sys sys 1063897576 352
 sys/src/cmd/ip/ppp/mppc.c - 664 sys sys 1015090267 16624
-sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1063855083 59501
+sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1065963823 59455
 sys/src/cmd/ip/ppp/ppp.h - 664 sys sys 1050360942 8225
 sys/src/cmd/ip/ppp/testppp.c - 664 sys sys 1045505281 3011
 sys/src/cmd/ip/ppp/thw.c - 664 sys sys 1015090268 5962
