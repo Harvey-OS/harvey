@@ -3126,7 +3126,7 @@ rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
 rc/bin/usbstart - 775 sys sys 1044894155 81
 rc/bin/usps - 775 sys sys 1016826030 450
-rc/bin/vwhois - 775 sys sys 1097960228 298
+rc/bin/vwhois - 775 sys sys 1106409971 445
 rc/bin/wdoc2txt - 755 sys sys 1017431153 277
 rc/bin/weather - 775 sys sys 1016825765 795
 rc/bin/who - 775 sys sys 945617210 61
@@ -7072,7 +7072,7 @@ sys/src/cmd/aux/mnihongo/mnihongo.c - 664 sys sys 946759402 6406
 sys/src/cmd/aux/mnihongo/tmac.nihongo - 664 sys sys 944960789 22
 sys/src/cmd/aux/mouse.c - 664 sys sys 1063855425 7049
 sys/src/cmd/aux/ms2.c - 664 sys sys 1015008685 3129
-sys/src/cmd/aux/msexceltables.c - 664 sys sys 1105123098 13134
+sys/src/cmd/aux/msexceltables.c - 664 sys sys 1106410108 13282
 sys/src/cmd/aux/mswordstrings.c - 664 sys sys 952201344 5767
 sys/src/cmd/aux/na - 20000000775 sys sys 955036627 0
 sys/src/cmd/aux/na/mkfile - 664 sys sys 955036627 121
@@ -7522,7 +7522,7 @@ sys/src/cmd/faces - 20000000775 sys sys 952888246 0
 sys/src/cmd/faces/dblook.c - 664 sys sys 944961084 359
 sys/src/cmd/faces/facedb.c - 664 sys sys 1062460263 9927
 sys/src/cmd/faces/faces.h - 664 sys sys 1072972232 1115
-sys/src/cmd/faces/main.c - 664 sys sys 1072972232 13637
+sys/src/cmd/faces/main.c - 664 sys sys 1106409986 13643
 sys/src/cmd/faces/mkfile - 664 sys sys 1062460262 355
 sys/src/cmd/faces/plumb.c - 664 sys sys 1072972233 7054
 sys/src/cmd/faces/util.c - 664 sys sys 1035698250 569
@@ -9747,7 +9747,7 @@ sys/src/cmd/mkmany - 664 sys sys 1022112160 1196
 sys/src/cmd/mkone - 664 sys sys 1101311048 835
 sys/src/cmd/mkstate.c - 664 sys sys 1014926695 2995
 sys/src/cmd/mksyslib - 664 sys sys 1022112160 660
-sys/src/cmd/mntgen.c - 664 sys sys 1048644521 3365
+sys/src/cmd/mntgen.c - 664 sys sys 1106410349 3630
 sys/src/cmd/mount.c - 664 sys sys 1034195354 1508
 sys/src/cmd/ms2html.c - 664 sys sys 1084470689 40502
 sys/src/cmd/mtime.c - 664 sys sys 1036172302 450
@@ -12062,7 +12062,7 @@ sys/src/libmach/qdb.c - 664 sys sys 1014929544 27188
 sys/src/libmach/qobj.c - 664 sys sys 1091732625 2310
 sys/src/libmach/setmach.c - 664 sys sys 1089313993 2682
 sys/src/libmach/swap.c - 664 sys sys 964540518 1026
-sys/src/libmach/sym.c - 664 sys sys 1088653081 26582
+sys/src/libmach/sym.c - 664 sys sys 1106409575 26581
 sys/src/libmach/v.c - 664 sys sys 964540518 3403
 sys/src/libmach/vcodas.c - 664 sys sys 1014929545 10253
 sys/src/libmach/vdb.c - 664 sys sys 1014929545 22248
@@ -12457,3 +12457,16 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/acid - 775 sys sys 1106453224 355754
+386/bin/db - 775 sys sys 1106453226 302164
+386/bin/faces - 775 sys sys 1106453226 192585
+386/bin/snap - 775 sys sys 1106453229 269608
+386/bin/snapfs - 775 sys sys 1106453230 338462
+386/bin/kprof - 775 sys sys 1106453227 99494
+386/bin/ktrace - 775 sys sys 1106453227 113445
+386/bin/nm - 775 sys sys 1106453228 115508
+386/bin/prof - 775 sys sys 1106453228 104237
+386/bin/aux/msexceltables - 775 sys sys 1106453225 80995
+386/bin/mntgen - 775 sys sys 1106453227 139193
+386/bin/tprof - 775 sys sys 1106453230 255090
+386/lib/libmach.a - 664 sys sys 1106453232 652292

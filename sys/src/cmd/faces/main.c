@@ -599,7 +599,7 @@ click(int button, Mouse *m)
 		}else{
 			for(i=first; i<last; i++)	/* clear vwhois faces */
 				if(ptinrect(p, facerect(i-first)) 
-				&& strstr(faces[i]->str[Sshow], "/mail/fs/mbox/XXX")){
+				&& strstr(faces[i]->str[Sshow], "/XXXvwhois")){
 					delface(i);
 					flushimage(display, 1);
 				}
@@ -674,7 +674,7 @@ startproc(void (*f)(void), int index)
 void
 usage(void)
 {
-	fprint(2, "usage: faces [-hi]\n");
+	fprint(2, "usage: faces [-hi] [-m maildir]\n");
 	exits("usage");
 }
 

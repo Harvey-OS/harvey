@@ -284,6 +284,53 @@ release(void)
 	Ncols = -1;
 }
 
+void
+skip(Biff *b, int len)
+{
+	if (Bseek(b->bp, len, 1) == -1)
+		sysfatal("seek failed - %r\n");
+	b->len -= len;
+}
+
+void
+gmem(Biff *b, void *p, int n)
+{
+	if (b->len < n)
+		sysfatal("short record %d < %d\n", b->len, n);
+	if (Bread(b->bp, p, n) != n)
+		sysfatal("unexpected EOF - %r\n");
+	b->len -= n;
+}
+
+void
+xd(Biff *b)
+{
+	uvlong off;
+	uchar buf[16];
+	int addr, got, n, i, j;
+
+	addr = 0;
+	off = Boffset(b->bp);
+	while (addr < b->len){
+		n = (b->len >= sizeof(buf))? sizeof(buf): b->len;
+		got = Bread(b->bp, buf, n);
+
+		Bprint(bo, "	%6d  ", addr);
+		addr += n;
+
+		for (i = 0; i < got; i++)
+			Bprint(bo, "%02x ", buf[i]);
+		for (j = i; j < 16; j++)
+			Bprint(bo, "   ");
+		Bprint(bo, "  ");
+		for (i = 0; i < got; i++)
+			Bprint(bo, "%c", isprint(buf[i])? buf[i]: '.');
+		Bprint(bo, "\n");
+	}
+	Bseek(b->bp, off, 0);
+	off = Boffset(b->bp);
+}
+
 static int 
 getrec(Biff *b)
 {
@@ -302,6 +349,10 @@ getrec(Biff *b)
 	b->len |= c << 8;
 	if (b->op == 0 && b->len == 0)
 		return -1;
+	if (Debug){
+		Bprint(bo, "op=0x%x len=%d\n", b->op, b->len);
+		xd(b);
+	}
 	return 0;
 }
 
@@ -322,24 +373,6 @@ gint(Biff *b, int n)
 		rc |= vl << (8*i);
 	}
 	return rc;
-}
-
-void
-skip(Biff *b, int len)
-{
-	if (Bseek(b->bp, len, 1) == -1)
-		sysfatal("seek failed - %r\n");
-	b->len -= len;
-}
-
-void
-gmem(Biff *b, void *p, int n)
-{
-	if (b->len < n)
-		sysfatal("short record %d < %d\n", b->len, n);
-	if (Bread(b->bp, p, n) != n)
-		sysfatal("unexpected EOF - %r\n");
-	b->len -= n;
 }
 
 double
@@ -378,28 +411,24 @@ char *
 gstr(Biff *b, int len_width)
 {
 	Rune r;
-	int len, opt;
+	int nch, sz, len, opt;
 	char *buf, *p;
 
-	if (b->len == 0){
+	if (b->len < len_width){
 		if (getrec(b) == -1)
 			sysfatal("expected CONTINUE, got EOF\n");
 		if (b->op != 0x03c)	
 			sysfatal("expected CONTINUE, got op=0x%x\n", b->op);
 	}
 
-	switch(len_width){
-	case 16: len = gint(b, 2); break;
-	case 8:  len = gint(b, 1); break;
-	default: sysfatal("can't happen error\n"); SET(len); break;
-	}
-
+	len = gint(b, len_width);
 	if (Biffver != Ver8){
 		if ((buf = calloc(len+1, sizeof(char))) == nil)
 			sysfatal("no memory\n");
 		gmem(b, buf, len);
 		return buf;
 	}
+
 
 	if ((buf = calloc(len+1, sizeof(char)*UTFmax)) == nil)
 		sysfatal("no memory\n");
@@ -408,40 +437,24 @@ gstr(Biff *b, int len_width)
 	if (len == 0)
 		return buf;
 
-	opt = gint(b, 1);
-	if (opt & 0x0c)
-		sysfatal("Can't parse rich or Asian phonetic text - no documentation!\n");
-
-	while(len--){
-		r = gint(b, (opt & 1)? sizeof(Rune): sizeof(char));
-		p += runetochar(p, &r);
+	nch = 0;
+	while (1){
+		opt = gint(b, 1);
+		sz = (opt & 1)? sizeof(Rune): sizeof(char);
+		while(b->len > 0){
+			r = gint(b, sz);
+			p += runetochar(p, &r);
+			if (++nch >= len){
+				return buf;
+			}
+		}
+		if (getrec(b) == -1)
+			sysfatal("expected CONTINUE, got EOF\n");
+		if (b->op != 0x03c)	
+			sysfatal("expected CONTINUE, got op=0x%x\n", b->op);
 	}
+	sysfatal("cannot ever happen error\n");
 	return buf;
-}
-
-void
-xd(Biff *b)
-{
-	uchar buf[16];
-	int addr, n, i, j;
-
-	addr = 0;
-	while (b->len){
-		n = (b->len >= sizeof(buf))? sizeof(buf): b->len;
-		gmem(b, buf, n);
-
-		Bprint(bo, "	%6d  ", addr);
-		addr += n;
-
-		for (i = 0; i < n; i++)
-			Bprint(bo, "%02x ", buf[i]);
-		for (j = i; j < 16; j++)
-			Bprint(bo, "   ");
-		Bprint(bo, "  ");
-		for (i = 0; i < n; i++)
-			Bprint(bo, "%c", isprint(buf[i])? buf[i]: '.');
-		Bprint(bo, "\n");
-	}
 }
 
 void
@@ -454,7 +467,7 @@ sst(Biff *b)
 	if ((Strtab = calloc(Nstrtab, sizeof(char *))) == nil)
 		sysfatal("no memory\n");
 	for (n = 0; n < Nstrtab; n++)
-		Strtab[n] = gstr(b, 16);
+		Strtab[n] = gstr(b, 2);
 }
 
 void
@@ -506,7 +519,7 @@ label(Biff *b)
 	int r = gint(b, 2);		// row
 	int c = gint(b, 2);		// col
 	int f = gint(b, 2);		// formatting ref
-	char *s = gstr(b, 16);		// byte string
+	char *s = gstr(b, 2);		// byte string
 	cell(r, c, f, Tlabel, s);
 }
 
@@ -616,7 +629,7 @@ xf(Biff *b)
 void
 writeaccess(Biff *b)
 {
-	Bprint(bo, "# author %s\n", gstr(b, 16));
+	Bprint(bo, "# author %s\n", gstr(b, 2));
 }
 
 void
@@ -659,11 +672,6 @@ xls2csv(Biobuf *bp)
 		for (i = 0; i < nelem(dispatch); i++)
 			if (b->op == dispatch[i].op)
 				(*dispatch[i].func)(b);
-
-		if (Debug && i >= nelem(dispatch)){
-			Bprint(bo, "op=0x%x len=%d\n", b->op, b->len);
-			xd(b);
-		}
 		skip(b, b->len);
 	}
 }
