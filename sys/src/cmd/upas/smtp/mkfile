@@ -4,6 +4,7 @@ TARG = smtpd\
 	smtp\
 
 OFILES=
+
 LIB=../common/libcommon.a$O\
 
 HFILES=../common/common.h\
@@ -13,16 +14,21 @@ HFILES=../common/common.h\
 
 BIN=/$objtype/bin/upas
 UPDATE=\
+	greylist.c\
 	mkfile\
+	mxdial.c\
+	rfc822.y\
+	rmtdns.c\
+	smtpd.y\
+	spam.c\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	smtpd.y\
 	${TARG:%=%.c}\
 
 </sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common -D'SPOOL="/mail"'
 
-$O.smtpd:	smtpd.tab.$O rmtdns.$O spam.$O rfc822.tab.$O greylist.$O mxdial.$O
+$O.smtpd:	smtpd.tab.$O rmtdns.$O spam.$O rfc822.tab.$O greylist.$O
 $O.smtp:	rfc822.tab.$O mxdial.$O
 
 smtpd.$O: 	smtpd.h

@@ -32,6 +32,7 @@ torgbv(Rawimage *i, int errdiff)
 	int j, k, rgb, x, y, er, eg, eb, col, t;
 	int r, g, b, r1, g1, b1;
 	int *ered, *egrn, *eblu, *rp, *gp, *bp;
+	int bpc;
 	uint *map3;
 	uchar *closest;
 	Rawimage *im;
@@ -173,26 +174,52 @@ torgbv(Rawimage *i, int errdiff)
 		break;
 
 	case CYCbCr:
+		bpc = 1;
+		rpic = i->chans[0];
+		gpic = i->chans[1];
+		bpic = i->chans[2];
 		closest = closestycbcr;
 		map3 = ycbcrmap;
+		if(i->nchans != 3)
+			return _remaperror("remap: RGB image has %d channels", i->nchans);
 		goto Threecolor;
 
 	case CRGB:
+		bpc = 1;
+		rpic = i->chans[0];
+		gpic = i->chans[1];
+		bpic = i->chans[2];
+		if(i->nchans != 3)
+			return _remaperror("remap: RGB image has %d channels", i->nchans);
+		goto rgbgen;
+
+	case CRGB24:
+		bpc = 3;
+		bpic = i->chans[0];
+		gpic = i->chans[0] + 1;
+		rpic = i->chans[0] + 2;
+		goto rgbgen;
+
+	case CRGBA32:
+		bpc = 4;
+		/* i->chans[0]+0 is alpha */
+		bpic = i->chans[0] + 1;
+		gpic = i->chans[0] + 2;
+		rpic = i->chans[0] + 3;
+
+	rgbgen:
 		closest = closestrgb;
 		map3 = rgbmap;
 
 	Threecolor:
-		if(i->nchans != 3)
-			return _remaperror("remap: RGB image has %d channels", i->nchans);
-		rpic = i->chans[0];
-		gpic = i->chans[1];
-		bpic = i->chans[2];
+
 		if(errdiff == 0){
-			for(j=0; j<i->chanlen; j++){
+			outp = out;
+			for(j=0; j<i->chanlen; j+=bpc){
 				r = rpic[j]>>4;
 				g = gpic[j]>>4;
 				b = bpic[j]>>4;
-				out[j] = closest[b+16*(g+16*r)];
+				*outp++ = closest[b+16*(g+16*r)];
 			}
 		}else{
 			/* modified floyd steinberg, coefficients (1 0) 3/16, (0, 1) 3/16, (1, 1) 7/16 */
@@ -204,9 +231,12 @@ torgbv(Rawimage *i, int errdiff)
 				gp = egrn;
 				bp = eblu;
 				for(x=0; x<dx; x++){
-					r = *rpic++ + *rp;
-					g = *gpic++ + *gp;
-					b = *bpic++ + *bp;
+					r = *rpic + *rp;
+					g = *gpic + *gp;
+					b = *bpic + *bp;
+					rpic += bpc;
+					gpic += bpc;
+					bpic += bpc;
 					/*
 					 * Errors can be uncorrectable if converting from YCbCr,
 					 * since we can't guarantee that an extremal value of one of
@@ -261,12 +291,21 @@ torgbv(Rawimage *i, int errdiff)
 		}
 		break;
 
+	case CYA16:
+		bpc = 2;
+		/* i->chans[0] + 0 is alpha */
+		rpic = i->chans[0] + 1;
+		goto greygen;
+
 	case CY:
+		bpc = 1;
+		rpic = i->chans[0];
 		if(i->nchans != 1)
 			return _remaperror("remap: Y image has %d chans", i->nchans);
-		rpic = i->chans[0];
+
+	greygen:
 		if(errdiff == 0){
-			for(j=0; j<i->chanlen; j++){
+			for(j=0; j<i->chanlen; j+=bpc){
 				r = rpic[j]>>4;
 				*outp++ = closestrgb[r+16*(r+16*r)];
 			}
@@ -276,7 +315,8 @@ torgbv(Rawimage *i, int errdiff)
 				er = 0;
 				rp = ered;
 				for(x=0; x<dx; x++){
-					r = *inp++ + *rp;
+					r = *rpic + *rp;
+					rpic += bpc;
 					r1 = clamp[r+CLAMPOFF];
 					col = closestrgb[r1+16*(r1+16*r1)];
 					*outp++ = col;
