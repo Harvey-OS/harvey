@@ -49,7 +49,7 @@ regexec1(Reprog *progp,	/* program to run */
 			switch(j->starttype) {
 			case RUNE:
 				p = utfrune(s, j->startchar);
-				if(p == 0)
+				if(p == 0 || s == j->eol)
 					return match;
 				s = p;
 				break;
@@ -57,7 +57,7 @@ regexec1(Reprog *progp,	/* program to run */
 				if(s == bol)
 					break;
 				p = utfrune(s, '\n');
-				if(p == 0)
+				if(p == 0 || s == j->eol)
 					return match;
 				s = p;
 				break;
