@@ -2708,7 +2708,7 @@ lib/tftpd - 20000000775 sys sys 944944178 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1014923483 9984
-lib/vgadb - 664 sys sys 1048636622 27466
+lib/vgadb - 664 sys sys 1052409026 27589
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
 lp - 20000000775 sys sys 958199268 0
