@@ -35,6 +35,7 @@ typedef struct Attr Attr;
 typedef struct Domain Domain;
 typedef struct Fsstate Fsstate;
 typedef struct Key Key;
+typedef struct Keyinfo Keyinfo;
 typedef struct Keyring Keyring;
 typedef struct Logbuf Logbuf;
 typedef struct Proto Proto;
@@ -82,6 +83,16 @@ struct Key
 	Proto *proto;
 
 	void *priv;	/* protocol-specific; a parsed key, perhaps */
+};
+
+struct Keyinfo	/* for findkey */
+{
+	Fsstate *fss;
+	char *user;
+	int noconf;
+	int skip;
+	int usedisabled;
+	Attr *attr;
 };
 
 struct Keyring
@@ -176,7 +187,7 @@ int secstorefetch(char*);
 #define estrdup estrdup9p
 #define erealloc erealloc9p
 #pragma varargck argpos failure 2
-#pragma varargck argpos findkey 7
+#pragma varargck argpos findkey 3
 #pragma varargck argpos setattr 2
 
 int		_authdial(char*, char*);
@@ -185,10 +196,12 @@ int		attrnamefmt(Fmt *fmt);
 int		canusekey(Fsstate*, Key*);
 void		closekey(Key*);
 uchar	*convAI2M(AuthInfo*, uchar*, int);
+void		disablekey(Key*);
 char		*estrappend(char*, char*, ...);
 #pragma varargck argpos estrappend 2
 int		failure(Fsstate*, char*, ...);
-int		findkey(Key**, Fsstate*, char*, int, int, Attr*, char*, ...);
+Keyinfo*	mkkeyinfo(Keyinfo*, Fsstate*, Attr*);
+int		findkey(Key**, Keyinfo*, char*, ...);
 int		findp9authkey(Key**, Fsstate*);
 Proto	*findproto(char*);
 char		*getnvramkey(int, char**);
@@ -219,7 +232,6 @@ extern Proto p9any, p9sk1, p9sk2;	/* p9sk.c */
 extern Proto chap, mschap;		/* chap.c */
 extern Proto p9cr, vnc;			/* p9cr.c */
 extern Proto pass;			/* pass.c */
-extern Proto sshrsa;			/* sshrsa.c */
 extern Proto rsa;			/* rsa.c */
 extern Proto wep;			/* wep.c */
 /* extern Proto srs;			/* srs.c */

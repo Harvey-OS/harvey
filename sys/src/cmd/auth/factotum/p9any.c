@@ -141,9 +141,10 @@ passret(Fsstate *fss, State *s, int ret)
 static int
 p9anyread(Fsstate *fss, void *a, uint *n)
 {
-	int i, j, m, ophase, ret;
+	int i, m, ophase, ret;
 	Attr *anew;
 	Key *k;
+	Keyinfo ki;
 	String *negstr;
 	State *s;
 
@@ -155,9 +156,14 @@ p9anyread(Fsstate *fss, void *a, uint *n)
 	case SHaveProtos:
 		m = 0;
 		negstr = s_new();
+		mkkeyinfo(&ki, fss, nil);
+		ki.attr = nil;
+		ki.noconf = 1;
+		ki.user = nil;
 		for(i=0; i<nelem(negotiable); i++){
 			anew = setattr(_copyattr(fss->attr), "proto=%q dom?", negotiable[i]->name);
-			for(j=0; findkey(&k, fss, nil, 1, j, anew, nil)==RpcOk; j++){
+			ki.attr = anew;
+			for(ki.skip=0; findkey(&k, &ki, nil)==RpcOk; ki.skip++){
 				if(m++)
 					s_append(negstr, " ");
 				s_append(negstr, negotiable[i]->name);
@@ -247,6 +253,7 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 	int asking, i, m, ophase, ret;
 	Attr *anew, *anewsf, *attr;
 	Key *k;
+	Keyinfo ki;
 	Proto *p;
 	State *s;
 
@@ -284,14 +291,20 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 				continue;
 			dom = getdom(token[i]);
 			ret = RpcFailure;
-			if(user==nil || strcmp(user, fss->sysuser)==0)
-				ret = findkey(&k, fss, nil, 0, 0, anewsf,
-						"proto=%q dom=%q role=speakfor %s",
+			mkkeyinfo(&ki, fss, nil);
+			if(user==nil || strcmp(user, fss->sysuser)==0){
+				ki.attr = anewsf;
+				ki.user = nil;
+				ret = findkey(&k, &ki, "proto=%q dom=%q role=speakfor %s",
 						p->name, dom, p->keyprompt);
-			if(ret == RpcFailure)
-				ret = findkey(&k, fss, fss->sysuser, 0, 0, anew,
+			}
+			if(ret == RpcFailure){
+				ki.attr = anew;
+				ki.user = fss->sysuser;
+				ret = findkey(&k, &ki,
 					"proto=%q dom=%q role=client %s",
 					p->name, dom, p->keyprompt);
+			}
 			if(ret == RpcConfirm){
 				free(a);
 				return ret;
@@ -313,7 +326,9 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 					continue;
 				}
 				dom = getdom(token[s->keyasked]);
-				ret = findkey(&k, fss, fss->sysuser, 0, 0, anew,
+				mkkeyinfo(&ki, fss, nil);
+				ki.attr = anew;
+				ret = findkey(&k, &ki,
 					"proto=%q dom=%q role=client %s",
 					p->name, dom, p->keyprompt);
 				s->keyasked++;
@@ -360,7 +375,10 @@ p9anywrite(Fsstate *fss, void *va, uint n)
 			return failure(fss, Enegotiation);
 		}
 		attr = _delattr(_copyattr(fss->attr), "proto");
-		ret = findkey(&k, fss, nil, 0, 0, attr, "proto=%q dom=%q role=server", token[0], token[1]);
+		mkkeyinfo(&ki, fss, nil);
+		ki.attr = attr;
+		ki.user = nil;
+		ret = findkey(&k, &ki, "proto=%q dom=%q role=server", token[0], token[1]);
 		free(a);
 		_freeattr(attr);
 		if(ret == RpcConfirm)

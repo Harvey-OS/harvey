@@ -17,6 +17,7 @@ char	*thestring 	= "386";
  *	-H2 -T4128 -R4096		is plan9 format
  *	-H3 -Tx -Rx			is MS-DOS .COM
  *	-H4 -Tx -Rx			is fake MS-DOS .EXE
+ *	-H5 -T0x80100020 -R4096		is ELF
  */
 
 static int
@@ -171,6 +172,15 @@ main(int argc, char *argv[])
 		HEADR += (INITTEXT & 0xFFFF);
 		if(debug['v'])
 			Bprint(&bso, "HEADR = 0x%ld\n", HEADR);
+		break;
+	case 5:	/* elf executable */
+		HEADR = rnd(52L+3*32L, 16);
+		if(INITTEXT == -1)
+			INITTEXT = 0x80100000L+HEADR;
+		if(INITDAT == -1)
+			INITDAT = 0;
+		if(INITRND == -1)
+			INITRND = 4096;
 		break;
 	}
 	if(INITDAT != 0 && INITRND != 0)

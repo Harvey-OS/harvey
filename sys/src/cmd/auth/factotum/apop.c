@@ -97,6 +97,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 	DigestState *ds;
 	Key *k;
 	State *s;
+	Keyinfo ki;
 
 	s = fss->ps;
 	a = va;
@@ -105,7 +106,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		return phaseerror(fss, "write");
 
 	case CNeedChal:
-		ret = findkey(&k, fss, fss->sysuser, 0, 0, fss->attr, "%s", fss->proto->keyprompt);
+		ret = findkey(&k, mkkeyinfo(&ki, fss, nil), "%s", fss->proto->keyprompt);
 		if(ret != RpcOk)
 			return ret;
 		v = _strfindattr(k->privattr, "!password");
@@ -280,6 +281,7 @@ doreply(State *s, char *user, char *response)
 	convM2T(ticket, &s->t, (char*)s->key->priv);
 	if(s->t.num != AuthTs
 	|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
+		disablekey(s->key);
 		werrstr(Easproto);
 		goto err;
 	}
