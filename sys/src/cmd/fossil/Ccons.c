@@ -34,6 +34,7 @@ static struct {
 	Q*	oq;		/* output */
 	char	l[Nl];		/* command line assembly */
 	int	nl;		/* current line length */
+	int	nopens;
 
 	char*	prompt;
 	int	np;
@@ -69,10 +70,10 @@ consClose(Cons* cons)
 		close(cons->fd);
 		cons->fd = -1;
 	}
-
 	vtUnlock(cons->lock);
 	vtLockFree(cons->lock);
 	vtMemFree(cons);
+	console.nopens--;
 }
 
 static void
@@ -160,6 +161,7 @@ consOpen(int fd, int srvfd, int ctlfd)
 	cons->ctlfd = ctlfd;
 	cons->iq = console.iq;
 	cons->oq = console.oq;
+	console.nopens++;
 
 	vtLock(cons->lock);
 	cons->ref = 2;
@@ -313,7 +315,9 @@ int
 consWrite(char* buf, int len)
 {
 	if(console.oq == nil)
-		return fprint(2, buf, len);
+		return write(2, buf, len);
+	if(console.nopens == 0)
+		write(2, buf, len);
 	return qWrite(console.oq, buf, len);
 }
 

@@ -68,6 +68,10 @@ callmx(DS *ds, char *dest, char *domain)
 
 	/* get a list of mx entries */
 	nmx = mxlookup(ds, domain);
+	if(nmx < 0){
+		/* dns isn't working, don't just dial */
+		return -1;
+	}
 	if(nmx == 0){
 		if(debug)
 			fprint(2, "mxlookup returns nothing\n");
@@ -110,7 +114,7 @@ mxlookup(DS *ds, char *domain)
 	} else {
 		ds->netdir = "/net";
 		n = mxlookup1(ds, domain);
-		if(n <= 0) {
+		if(n == 0) {
 			ds->netdir = "/net.alt";
 			n = mxlookup1(ds, domain);
 		}
@@ -138,7 +142,15 @@ mxlookup1(DS *ds, char *domain)
 	snprint(buf, sizeof(buf), "%s mx", ds->host);
 	if(debug)
 		fprint(2, "sending %s '%s'\n", dnsname, buf);
-	if(write(fd, buf, strlen(buf)) >= 0){
+	n = write(fd, buf, strlen(buf));
+	if(n < 0){
+		rerrstr(buf, sizeof buf);
+		if(strstr(buf, "dns failure")){
+			/* if dns fails for the mx lookup, we have to stop */
+			close(fd);
+			return -1;
+		}
+	} else {
 		/*
 		 *  get any mx entries
 		 */
@@ -182,7 +194,14 @@ mxlookup1(DS *ds, char *domain)
 	snprint(buf, sizeof(buf), "%s ip", ds->host);
 	if(debug)
 		fprint(2, "sending %s '%s'\n", dnsname, buf);
-	if(write(fd, buf, strlen(buf)) >= 0){
+	n = write(fd, buf, strlen(buf));
+	if(n < 0){
+		rerrstr(buf, sizeof buf);
+		if(strstr(buf, "dns failure")){
+			close(fd);
+			return -1;
+		}
+	} else {
 		seek(fd, 0, 0);
 	
 		if((n = read(fd, buf, sizeof(buf)-1)) > 0){

@@ -34,3 +34,16 @@ changes since initial alpha release
 	comment out an overeager assert in source.c.
 	move setting of fid->qid.path higher in rTcreate for exclAlloc.
 
+20 feb 2003
+	flfmt -v was trying to create /active; bug fixed.
+
+16 apr 2003
+	df command, who command, halt, unhalt
+
+15 jun 2003
+	make df easier to understand
+	read config out of fossil disk (-f option)
+	fossil/conf
+	automatic deletion of snapshots
+
+

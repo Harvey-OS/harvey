@@ -13,9 +13,14 @@ is normally invoked by a rule in in the
 upas rewrite file,
 .IR rewrite (6).
 .PP
-Each line of an alias file begins with
+If a line of an alias file begins with
+.BR #include ,
+the line is replaced by the contents of the file whose name follows.
+Other lines, beginning with
 .B #
-(comment) or with a name.
+are ignored as comment.
+.PP
+Otherwise, lines begin with a name.
 The rest of a name line gives the expansion.
 The expansion may contain multiple addresses and may be continued
 to another line by appending a backslash.

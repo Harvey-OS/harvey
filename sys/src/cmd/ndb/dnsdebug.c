@@ -31,6 +31,7 @@ int	maxage;
 char	*logfile = "dns";
 char	*dbfile;
 char	mntpt[Maxpath];
+char	*zonerefreshprogram;
 
 int prettyrrfmt(Fmt*);
 void preloadserveraddrs(void);

@@ -539,7 +539,7 @@ cupdate(Chan *c, uchar *buf, int len, vlong off)
 			len -= o;
 			offset += o;
 			if(len <= 0) {
-if (f && p->start + p->len > f->start) print("CACHE: p->start=%uld p->len=%d f->start=%uld\n", p->start, p->len, f->start);
+if(f && p->start + p->len > f->start) print("CACHE: p->start=%uld p->len=%d f->start=%uld\n", p->start, p->len, f->start);
 				qunlock(m);
 				return;
 			}

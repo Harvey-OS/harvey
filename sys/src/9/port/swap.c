@@ -167,7 +167,7 @@ loop:
 
 			/* Emulate the old system if no swap channel */
 			print("no physical memory\n");
-			tsleep(&swapalloc.pause, return0, 0, 5000);
+			tsleep(&up->sleep, return0, 0, 5000);
 			wakeup(&palloc.r);
 		}
 	}

@@ -54,12 +54,6 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	}ARGEND
 
-	s = getenv("service");
-	if(s && strcmp(s, "cpu") == 0){
-		fprint(2, "passwd must not be run on the cpu server\n");
-		exits("boofhead");
-	}
-
 	s = nil;
 	if(argc > 0){
 		user = argv[0];

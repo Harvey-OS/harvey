@@ -342,16 +342,87 @@ rcopy(char **to, Resub *match, int n)
 	}
 }
 
-ulong
-mkmtime(char *name)
+void
+dirtime(char *dir, char *path)
 {
-	Dir *buf;
-	ulong t;
+	int i, fd, n;
+	void *t;
+	Dir *d;
+	char buf[4096];
 
-	buf = dirstat(name);
-	if(buf == nil)
+	fd = open(dir, OREAD);
+	if(fd >= 0){
+		while((n = dirread(fd, &d)) > 0){
+			for(i=0; i<n; i++){
+				t = (void*)d[i].mtime;
+				if(t == nil)
+					continue;
+				sprint(buf, "%s%s", path, d[i].name);
+				if(symlook(buf, S_TIME, 0))
+					continue;
+				symlook(strdup(buf), S_TIME, t)->value = t;
+			}
+			free(d);
+		}
+		close(fd);
+	}
+}
+
+void
+bulkmtime(char *dir)
+{
+	char buf[4096];
+	char *ss, *s;
+
+	if(dir){
+		s = dir;
+		if(strcmp(dir, "/") == 0)
+			strcpy(buf, dir);
+		else
+			sprint(buf, "%s/", dir);
+	}else{
+		s = ".";
+		buf[0] = 0;
+	}
+	if(symlook(s, S_BULKED, 0))
+		return;
+	ss = strdup(s);
+	symlook(ss, S_BULKED, (void*)ss);
+	dirtime(s, buf);
+}
+
+ulong
+mkmtime(char *name, int force)
+{
+	Dir *d;
+	char *s, *ss, carry;
+	ulong t;
+	Symtab *sym;
+
+	s = utfrrune(name, '/');
+	if(s == name)
+		s++;
+	if(s){
+		ss = name;
+		carry = *s;
+		*s = 0;
+	}else{
+		ss = 0;
+		carry = 0;
+	}
+	bulkmtime(ss);
+	if(carry)
+		*s = carry;
+	if(!force){
+		sym = symlook(name, S_TIME, 0);
+		if(sym)
+			return (ulong)sym->value;
 		return 0;
-	t = buf->mtime;
-	free(buf);
+	}
+	if((d = dirstat(name)) == nil)
+		return 0;
+	t = d->mtime;
+	free(d);
 	return t;
 }
+

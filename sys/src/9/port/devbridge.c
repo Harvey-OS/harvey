@@ -1032,7 +1032,7 @@ if(0)print("devbridge: etherread: blocklen = %d\n", blocklen(bp));
 				port->inunknown++;
 				bp2 = bp; bp = nil;
 				ethermultiwrite(b, bp2, port);
-			} else if (ce->port != port->id) {
+			}else if(ce->port != port->id){
 				b->hit++;
 				bp2 = bp; bp = nil;
 				etherwrite(b->port[ce->port], bp2);

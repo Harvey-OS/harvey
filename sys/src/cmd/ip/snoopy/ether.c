@@ -39,6 +39,7 @@ static Field p_fields[] =
 	{"s",	Fether,	Os,	"source address",	} ,
 	{"d",	Fether,	Od,	"destination address",	} ,
 	{"a",	Fether,	Oa,	"source|destination address" } ,
+	{"sd",	Fether,	Oa,	"source|destination address" } ,
 	{"t",	Fnum,	Ot,	"type" } ,
 	{0}
 };

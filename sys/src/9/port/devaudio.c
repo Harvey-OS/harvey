@@ -347,7 +347,7 @@ contindma(void)
 		goto shutdown;
 
 	b = audio.current;
-	if (b){
+	if(b){
 		audio.totcount += Bufsize;
 		audio.tottime = todget(nil);
 	}

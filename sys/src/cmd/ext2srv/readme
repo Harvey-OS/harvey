@@ -1,0 +1,53 @@
+Ext2srv Version 0.2
+----------------
+
+Ext2srv is a file server that interprets EXT2 file systems. Ext2srv is identical
+to dossrv in specification. 
+
+I added just one option. By default ext2srv search for the first ext2 partition
+on the device (typically a disk) given by the mount spec option (see bind(1)).
+So, if you have different ext2 partitions on the same disk you can select one 
+of them by adding the partition number at the end of the device in the mount
+system call. For example 
+
+	mount -c /srv/ext2 /n/linux /dev/hd1disk:3
+
+forces the server to look for ext2 filesystem on the third partition of your second
+hard drive.
+
+
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+
+	Ext2srv uses some cache. So you must unmount the directory where you 
+	mount your ext2 partition. It's the only way to synchronise dirty buffers
+	with the disk. 
+
+	Don't reboot your terminal (^t^t r) without explicitly unmount.
+
+	Using something like this script is recommended :
+
+		#!/bin/rc
+	
+		unmount /n/linux >[2] /dev/null
+		unmount /n/linux2 >[2] /dev/null
+		disk/kfscmd halt
+
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+
+
+I provide this software `as is' and without any warranty. Feed back are welcome !!!
+
+bl@mime.univ-paris8.fr
+
+changes 5/17/2000 - threw away partition table
+walking, fixed name_len (it's a uchar not a ushort).
+
+-rsc
+
+changes for 4th edition 13 May 2002 - miller@hamnavoe.demon.co.uk
+ - adapted for 9P2000
+ - added [-p passwd] [-g group] args as in tapefs(4)
+ - create makes files with user and group of parent directory (not 100/200)
+ - prevent writing to non-regular files
+ - correct calculation of group descriptor block location when bsize!=1024
+

@@ -650,7 +650,7 @@ rwstat(Fid *f)
 	 */
 	if(dir.gid[0]!='\0' && strcmp(r->group, dir.gid)!=0){
 		if(strcmp(f->user, r->user) == 0)
-		if(strcmp(f->user, dir.gid) == 0)
+	//	if(strcmp(f->user, dir.gid) == 0)
 			goto ok;
 		if(strcmp(f->user, r->group) == 0)
 		if(strcmp(f->user, dir.gid) == 0)

@@ -580,6 +580,7 @@ rralloc(int type)
 	switch(type){
 	case Tsoa:
 		rp->soa = emalloc(sizeof(*rp->soa));
+		rp->soa->slaves = nil;
 		break;
 	case Tkey:
 		rp->key = emalloc(sizeof(*rp->key));
@@ -620,6 +621,7 @@ rrfree(RR *rp)
 
 	switch(rp->type){
 	case Tsoa:
+		freeserverlist(rp->soa->slaves);
 		free(rp->soa);
 		break;
 	case Tkey:
@@ -674,6 +676,7 @@ rrcopy(RR *rp, RR **last)
 		*nrp = *rp;
 		nrp->soa = soa;
 		*nrp->soa = *rp->soa;
+		nrp->soa->slaves = copyserverlist(rp->soa->slaves);
 		break;
 	case Tkey:
 		key = nrp->key;
@@ -937,6 +940,7 @@ rrfmt(Fmt *f)
 	Fmt fstr;
 	int rv;
 	char buf[Domlen];
+	Server *s;
 
 	fmtstrinit(&fstr);
 
@@ -986,6 +990,8 @@ rrfmt(Fmt *f)
 		fmtprint(&fstr, "\t%s %s %lud %lud %lud %lud %lud", rp->host->name,
 			rp->rmb->name, rp->soa->serial, rp->soa->refresh, rp->soa->retry,
 			rp->soa->expire, rp->soa->minttl);
+		for(s = rp->soa->slaves; s != nil; s = s->next)
+			fmtprint(&fstr, " %s", s->name);
 		break;
 	case Tnull:
 		fmtprint(&fstr, "\t%.*H", rp->null->dlen, rp->null->data);
@@ -1029,6 +1035,7 @@ rravfmt(Fmt *f)
 	char *strp;
 	Fmt fstr;
 	int rv;
+	Server *s;
 
 	fmtstrinit(&fstr);
 
@@ -1080,6 +1087,8 @@ rravfmt(Fmt *f)
 			rp->host->name, rp->rmb->name, rp->soa->serial,
 			rp->soa->refresh, rp->soa->retry,
 			rp->soa->expire, rp->soa->minttl);
+		for(s = rp->soa->slaves; s != nil; s = s->next)
+			fmtprint(&fstr, " dnsslave=%s", s->name);
 		break;
 	case Tnull:
 		fmtprint(&fstr, " null=%.*H", rp->null->dlen, rp->null->data);
@@ -1441,8 +1450,6 @@ dnptr(uchar *net, uchar *mask, char *dom, int bytes, int ttl)
 	char ptr[Domlen];
 	char *p, *e;
 
-syslog(0, logfile, "looking for things in %s %I %I", dom, net, mask);
-
 	l = &first;
 	first = nil;
 	for(i = 0; i < HTLEN; i++){
@@ -1471,4 +1478,42 @@ syslog(0, logfile, "looking for things in %s %I %I", dom, net, mask);
 		rp->next = nil;
 		rrattach(rp, 1);
 	}
+}
+
+void
+freeserverlist(Server *s)
+{
+	Server *next;
+
+	for(; s != nil; s = next){
+		next = s->next;
+		free(s);
+	}
+}
+
+void
+addserver(Server **l, char *name)
+{
+	Server *s;
+
+	while(*l)
+		l = &(*l)->next;
+	s = malloc(sizeof(Server)+strlen(name)+1);
+	if(s == nil)
+		return;
+	s->name = (char*)(s+1);
+	strcpy(s->name, name);
+	s->next = nil;
+	*l = s;
+}
+
+Server*
+copyserverlist(Server *s)
+{
+	Server *ns;
+
+	
+	for(ns = nil; s != nil; s = s->next)
+		addserver(&ns, s->name);
+	return ns;
 }

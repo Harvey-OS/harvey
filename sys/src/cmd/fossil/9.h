@@ -44,6 +44,8 @@ struct Con {
 	char*	name;
 	uchar*	data;			/* max, not negotiated */
 	int	isconsole;		/* immutable */
+	int	noauth;			/* immutable */
+	int	noperm;			/* immutable */
 
 	VtLock*	lock;
 	int	state;

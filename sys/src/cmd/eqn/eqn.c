@@ -265,9 +265,6 @@ char*	yystates[1];		/* for debugging */
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
 
-extern	int	fprint(int, char*, ...);
-extern	int	sprint(char*, char*, ...);
-
 char*
 yytokname(int yyc)
 {
@@ -328,7 +325,7 @@ out:
 	if(c == 0)
 		c = yytok2[1];	/* unknown char */
 	if(yydebug >= 3)
-		printf("lex %.4X %s\n", yychar, yytokname(c));
+		printf("lex %.4lX %s\n", yychar, yytokname(c));
 	return c;
 }
 
@@ -379,9 +376,9 @@ yystack:
 		printf("char %s in %s", yytokname(yychar), yystatname(yystate));
 
 	yyp++;
-	if(yyp >= &yys[YYMAXDEPTH]) { 
-		yyerror("yacc stack overflow"); 
-		goto ret1; 
+	if(yyp >= &yys[YYMAXDEPTH]) {
+		yyerror("yacc stack overflow");
+		goto ret1;
 	}
 	yyp->yys = yystate;
 	yyp->yyv = yyval;

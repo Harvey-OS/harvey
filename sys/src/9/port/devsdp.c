@@ -160,7 +160,6 @@ struct Conv {
 struct Sdp {
 	QLock;
 	Log;
-	Rendez	vous;			/* used by sdpackproc */
 	int	nconv;
 	Conv *conv[Maxconv];
 	int ackproc;
@@ -909,7 +908,7 @@ sdpackproc(void *a)
 	Conv *c;
 
 	for(;;) {
-		tsleep(&sdp->vous, return0, 0, 1000);
+		tsleep(&up->sleep, return0, 0, 1000);
 		sec = TK2SEC(m->ticks);
 		qlock(sdp);
 		for(i=0; i<sdp->nconv; i++) {

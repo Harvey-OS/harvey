@@ -73,9 +73,7 @@ main(int argc, char *argv[])
 
 	apsize = ap->size - ap->arenaBase;
 	n = apsize / asize;
-	if(apsize - (n * asize) >= MinArenaSize)
-		n++;
-	
+
 	fprint(2, "configuring %s with arenas=%d for a total storage of bytes=%lld and directory bytes=%d\n",
 		file, n, apsize, ap->tabSize);
 
@@ -86,16 +84,8 @@ main(int argc, char *argv[])
 	addr = ap->arenaBase;
 	for(i = 0; i < n; i++){
 		limit = addr + asize;
-		if(limit >= ap->size || ap->size - limit < MinArenaSize){
-			limit = ap->size;
-			if(limit - addr < MinArenaSize)
-				fatal("bad arena set math: runt arena at %lld,%lld %lld\n", addr, limit, ap->size);
-		}
-
 		snprint(aname, ANameSize, "%s%d", name, i);
-
 		fprint(2, "adding arena %s at [%lld,%lld)\n", aname, addr, limit);
-
 		arena = newArena(part, aname, addr, limit - addr, blockSize);
 		if(!arena)
 			fprint(2, "can't make new arena %s: %r", aname);

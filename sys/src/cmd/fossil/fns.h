@@ -93,7 +93,7 @@ void bwatchReset(uchar[VtScoreSize]);
 void initWalk(WalkPtr*, Block*, uint);
 int nextWalk(WalkPtr*, uchar[VtScoreSize], uchar*, u32int*, Entry**);
 
-void snapGetTimes(Snap*, u32int*, u32int*);
-void snapSetTimes(Snap*, u32int, u32int);
+void snapGetTimes(Snap*, u32int*, u32int*, u32int*);
+void snapSetTimes(Snap*, u32int, u32int, u32int);
 
 #pragma varargck type "L" Label*

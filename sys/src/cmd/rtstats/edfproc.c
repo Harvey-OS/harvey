@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include "realtime.h"
 #include "time.h"
 
 char *	T = "10s";
@@ -8,7 +9,7 @@ char *	C = "1.5s";
 char *	S = nil;
 char *	s = "250ms";
 char *	R = "";
-int		verbose, debug, tset, dset, cset, sset;
+int		verbose, debug, tset, dset, cset, sset, besteffort;
 int		nproc = 1;
 
 uvlong v;
@@ -42,10 +43,10 @@ schedpars(char *period, char *deadline, char *cost)
 	if ((fd = open(clonedev, ORDWR)) < 0) 
 		sysfatal("%s: %r", clonedev);
 
-	fprint(2, "T=%s D=%s C=%s procs=%d resources=%q %sadmit\n",
-		period, deadline, cost, getpid(), R, verbose?"verbose ":"");
-	if (fprint(fd, "T=%s D=%s C=%s procs=%d resources=%q %sadmit",
-		period, deadline, cost, getpid(), R, verbose?"verbose ":"") < 0)
+	fprint(2, "T=%s D=%s C=%s procs=%d resources=%q %s%sadmit\n",
+		period, deadline, cost, getpid(), R, besteffort?"besteffort ":"", verbose?"verbose ":"");
+	if (fprint(fd, "T=%s D=%s C=%s procs=%d resources=%q %s%sadmit",
+		period, deadline, cost, getpid(), R, besteffort?"besteffort ":"", verbose?"verbose ":"") < 0)
 			sysfatal("%s: %r", clonedev);
 	notefd = fd;
 	atnotify(rthandler, 1);
@@ -97,6 +98,9 @@ main(int argc, char *argv[])
 		nproc = atoi(EARGF(usage()));
 		if (nproc <= 0 || nproc > 10)
 			sysfatal("%d processes?", nproc);
+		break;
+	case 'b':
+		besteffort++;
 		break;
 	case 'v':
 		verbose++;

@@ -27,6 +27,8 @@ static struct {
 	"sparc", "#r/nvram", 1024+850, sizeof(Nvrsafe),
 	"pc", "#S/sdC0/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sdC0/9fat", -1, sizeof(Nvrsafe),
+	"pc", "#S/sdC1/nvram", 0, sizeof(Nvrsafe),
+	"pc", "#S/sdC1/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sd00/nvram", 0, sizeof(Nvrsafe),
 	"pc", "#S/sd00/9fat", -1, sizeof(Nvrsafe),
 	"pc", "#S/sd01/nvram", 0, sizeof(Nvrsafe),
@@ -34,7 +36,7 @@ static struct {
 	"pc", "#f/fd0disk", -1, 512,	/* 512: #f requires whole sector reads */
 	"pc", "#f/fd1disk", -1, 512,
 	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
-	"power", "#F/flash/flash0", 0x300000, sizeof(Nvrsafe),
+	"power", "#F/flash/flash0", 0x440000, sizeof(Nvrsafe),
 	"power", "#r/nvram", 4352, sizeof(Nvrsafe),	/* OK for MTX-604e */
 	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
 };

@@ -5,7 +5,7 @@
 long
 mtime(char *name)
 {
-	return mkmtime(name);
+	return mkmtime(name, 1);
 }
 
 long
@@ -24,7 +24,7 @@ timeof(char *name, int force)
 	if (sym)
 		return (long) sym->value;		/* uggh */
 
-	t = mtime(name);
+	t = mkmtime(name, 0);
 	if(t == 0)
 		return 0;
 

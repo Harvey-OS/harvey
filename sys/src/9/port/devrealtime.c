@@ -617,6 +617,8 @@ devrtwrite(Chan *c, void *va, long n, vlong)
 			}else if (strcmp(a, "acquire") == 0){
 				if (v == nil)
 					error("acquire: value missing");
+				if (up->task != t)
+					error("acquire: not for another task");
 				if ((r = resource(v, 0)) == nil)
 					error("acquire: no such resource");
 				for (l = (CSN*)t->csns.next; l; l = (CSN*)l->next){
@@ -632,6 +634,8 @@ DEBUG("l->p (0x%p) == t->curcsn (0x%p) && l->S (%T) != 0\n", l->p, t->curcsn, ti
 			}else if (strcmp(a, "release") == 0){
 				if (v == nil)
 					error("release: value missing");
+				if (up->task != t)
+					error("release: not for another task");
 				if ((r = resource(v, 0)) == nil)
 					error("release: no such resource");
 				if (t->curcsn->i != r)
@@ -678,6 +682,13 @@ DEBUG("l->p (0x%p) == t->curcsn (0x%p) && l->S (%T) != 0\n", l->p, t->curcsn, ti
 					}
 				}
 			}else if (strcmp(a, "admit") == 0){
+				if (e = edf->edfadmit(t))
+					error(e);
+			}else if (strcmp(a, "besteffort") == 0){
+				t->T = Infinity;
+				t->D = Infinity;
+				t->C = 0;
+				t->flags |= BestEffort;
 				if (e = edf->edfadmit(t))
 					error(e);
 			}else if (strcmp(a, "expel") == 0){
@@ -731,12 +742,7 @@ devrtremove(Chan *c)
 	if (t == nil)
 		error(Enonexist);
 	qlock(&edfschedlock);
-	if (waserror()){
-		qunlock(&edfschedlock);
-		nexterror();
-	}
 	removetask(t);
-	poperror();
 	qunlock(&edfschedlock);
 }
 

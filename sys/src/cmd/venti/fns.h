@@ -51,7 +51,7 @@ Index		*initIndex(char *name, ISect **sects, int n);
 void		initLumpCache(u32int size, u32int nblocks);
 int		initLumpQueues(int nq);
 Part*		initPart(char *name, int writable);
-int		initVenti(char *config);
+int		initVenti(char *file, Config *conf);
 void		insertLump(Lump *lump, Packet *p);
 int		insertScore(u8int *score, IAddr *ia, int write);
 ZBlock		*loadClump(Arena *arena, u64int aa, int blocks, Clump *cl, u8int *score, int verify);

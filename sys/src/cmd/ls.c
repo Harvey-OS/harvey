@@ -95,7 +95,7 @@ ls(char *s, int multi)
 		fprint(2, "ls: %s: %r\n", s);
 		return 1;
 	}
-	if(db->qid.type&QTDIR && dflag==0){
+	if((db->qid.type&QTDIR) && dflag==0){
 		output();
 		fd = open(s, OREAD);
 		if(fd == -1)
@@ -121,8 +121,6 @@ ls(char *s, int multi)
 		if(p){
 			dirbuf[ndir].prefix = s;
 			*p = 0;
-			/* restore original name; don't use result of stat */
-			dirbuf[ndir].d->name = strdup(p+1);
 		}
 		ndir++;
 	}

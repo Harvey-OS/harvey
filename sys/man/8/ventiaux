@@ -3,6 +3,7 @@
 buildindex,
 checkarenas,
 checkindex,
+conf,
 copy,
 fmtarenas,
 fmtindex,
@@ -40,6 +41,15 @@ write \- Venti maintenance and debugging commands
 ]
 .I venti.config
 .I tmp
+.PP
+.B venti/conf
+[
+.B -w
+]
+.I partition
+[
+.I configfile
+]
 .PP
 .B venti/copy
 [
@@ -464,6 +474,26 @@ children are also already on
 .IR dst .
 Without this flag, the copy often transfers many times more
 data than necessary.
+.PP
+To make it easier to bootstrap servers, the configuration
+file can be stored at the beginning of any Venti partitions using
+.IR conf .
+A partition so branded with a configuration file can
+be used in place of a configuration file when invoking any
+of the venti commands.
+By default,
+.I conf
+prints the configuration stored in
+.IR partition .
+When invoked with the
+.B -w
+flag,
+.I conf
+reads a configuration file from 
+.I configfile
+(or else standard input)
+and stores it in
+.IR partition .
 .SH SOURCE
 .B /sys/src/cmd/venti
 .SH "SEE ALSO"

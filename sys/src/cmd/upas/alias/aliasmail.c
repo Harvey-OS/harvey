@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 static String *
 getdbfiles(void)
 {
-	Biobuf *fp;
+	Sinstack *sp;
 	String *files = s_new();
 	char *nf;
 
@@ -100,10 +100,10 @@ getdbfiles(void)
 		nf = namefiles;
 
 	/* system wide aliases */
-	if ((fp = sysopen(nf, "r", 0)) != 0){
-		while(s_getline(fp, files))
+	if ((sp = s_allocinstack(nf)) != 0){
+		while(s_rdinstack(sp, files))
 			s_append(files, " ");
-		sysclose(fp);
+		s_freeinstack(sp);
 	}
 
 
@@ -189,26 +189,33 @@ lookup(
 	String *file,
 	String *alias)	/* returned String */
 {
-	Biobuf *fp;
 	String *line = s_new();
 	String *token = s_new();
 	String *bangtoken;
 	int i, rv = -1;
 	char *name =  s_to_c(namev[0]);
+	Sinstack *sp;
 
 	DEBUG print("lookup(%s, %s, %s, %s)\n", s_to_c(namev[0]), s_to_c(namev[1]),
 		s_to_c(file), s_to_c(alias));
 
 	s_reset(alias);
-	if ((fp = sysopen(s_to_c(file), "r", 0)) == 0)
+	if ((sp = s_allocinstack(s_to_c(file))) == 0)
 		return -1;
 
 	/* look for a match */
-	while (s_getline(fp, s_restart(line))!=0) {
+	while (s_rdinstack(sp, s_restart(line))!=0) {
 		DEBUG print("line is %s\n", s_to_c(line));
 		s_restart(token);
 		if (s_parse(s_restart(line), token)==0)
 			continue;
+		if (compare(token, "#include")==0){
+			if(s_parse(line, s_restart(token))!=0) {
+				if(lookup(namev, line, alias) == 0)
+					break;
+			}
+			continue;
+		}
 		if (compare(token, name)!=0)
 			continue;
 		/* match found, get the alias */
@@ -236,7 +243,7 @@ lookup(
 	}
 	s_free(line);
 	s_free(token);
-	sysclose(fp);
+	s_freeinstack(sp);
 	return rv;
 }
 

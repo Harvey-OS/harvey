@@ -636,6 +636,8 @@ static struct {
 } rtl8139pci[] = {
 	{ "rtl8139",	(0x8139<<16)|0x10EC, },	/* generic */
 	{ "smc1211",	(0x1211<<16)|0x1113, },	/* SMC EZ-Card */
+	{ "dfe-538tx",	(0x1300<<16)|0x1186, }, /* D-Link DFE-538TX */
+	{ "dfe-560txd",	(0x1340<<16)|0x1186, }, /* D-Link DFE-560TXD */
 	{ nil },
 };
 

@@ -5,15 +5,60 @@
 int
 readIFile(IFile *f, char *name)
 {
+	Part *p;
 	ZBlock *b;
+	int m;
+	u8int *z;
 
-	b = readFile(name);
-	if(b == nil)
+	p = initPart(name, 1);
+	if(p == nil)
 		return 0;
+	b = allocZBlock(8192, 1);
+	if(b == nil){
+		setErr(EOk, "can't alloc %s: %R", name);
+		goto err;
+	}
+	if(p->size > PartBlank){
+		/*
+		 * this is likely a real venti partition, in which case
+		 * we're looking for the config file stored as 8k at end of PartBlank.
+		 */
+		if(!readPart(p, PartBlank-8192, b->data, 8192)){
+			setErr(EOk, "can't read %s: %R", name);
+			goto err;
+		}
+		m = 5+1+6+1;
+		if(memcmp(b->data, "venti config\n", m) != 0){
+			setErr(EOk, "bad venti config magic in %s", name);
+			goto err;
+		}
+		b->data += m;
+		b->len -= m;
+		z = memchr(b->data, 0, b->len);
+		if(z)
+			b->len = z - b->data;
+	}else if(p->size > 8192){
+		setErr(EOk, "config file is too large");
+		freePart(p);
+		freeZBlock(b);
+		return 0;
+	}else{
+		if(!readPart(p, 0, b->data, p->size)){
+			setErr(EOk, "can't read %s: %R", name);
+			goto err;
+		}
+		b->len = p->size;
+	}
 	f->name = name;
 	f->b = b;
 	f->pos = 0;
 	return 1;
+
+err:
+	freePart(p);
+	if(b)
+		freeZBlock(b);
+	return 0;
 }
 
 void

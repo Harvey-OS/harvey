@@ -10,6 +10,10 @@ fossil \- archival file server
 .B -c
 .I cmd
 ]...
+[
+.B -f
+.I file
+]
 .PP
 .B fossil/flchk
 [
@@ -46,6 +50,15 @@ fossil \- archival file server
 .I score
 ]
 .I file
+.PP
+.B fossil/conf
+[
+.B -w
+]
+.I file
+[
+.I config
+]
 .SH DESCRIPTION
 Fossil
 will become the main file system for Plan 9.
@@ -152,6 +165,8 @@ Authentication can be disabled using the
 .B -A
 flag to
 .B open
+or
+.B srv
 (see
 .IR fossilcons (8)).
 .PP
@@ -213,6 +228,13 @@ which starts a file server console on
 See
 .IR fossilcons (8)
 for more information.
+.TP
+.BI -f " file
+Read and execute console commands stored in the Fossil disk 
+.IR file .
+.I Conf
+.RI ( q.v. )
+reads and writes the command set stored in the disk.
 .PD
 .PP
 .I Flchk
@@ -321,6 +343,27 @@ rather than by
 .IR vac (1),
 so that the appropriate snapshot metadata is present.
 .PD
+.PP
+.I Conf
+reads or writes the configuration branded on the Fossil disk
+.IR file .
+By default, it reads the configuration from the disk and prints it to
+standard output.
+If the
+.B -w
+flag is given,
+.I conf
+reads a new configuration from 
+.I config
+(or else from standard input)
+and writes it to the disk.
+The Plan 9 kernel boot process runs
+.RB `` fossil
+.B -f
+.IR disk ''
+to start a Fossil file server.
+The disk is just a convenient place to store configuration
+information.
 .SH EXAMPLES
 .PP
 Place the root of the archive file system on
@@ -345,7 +388,7 @@ checking turned off, create a users file, and mount the server:
 .IP
 .EX
 fossil/flfmt /dev/sdC0/fossil
-cat >flproto <<EOF
+fossil/conf -w /dev/sdC0/fossil <<EOF
 fsys main config /dev/sdC0/fossil
 fsys main open -AWP
 fsys main
@@ -355,7 +398,7 @@ users -w /active/adm/users
 srv -p fscons
 srv fossil
 EOF
-fossil/fossil -c '. flproto'
+fossil/fossil -f /dev/sdC0/fossil
 mount /srv/fossil /n/fossil
 .EE
 .LP
@@ -415,5 +458,5 @@ Changing to the new format will require reformatting
 the disk as in the example above,
 but note that this will preserve most of the file system
 (all but
-.B /snapshot
-) with little effort.
+.BR /snapshot )
+with little effort.

@@ -8,7 +8,7 @@
 #define ispunct(c)		(c=='|' || c=='&' || c==';' || c=='<' || \
 				 c=='>' || c=='(' || c==')' || c=='\n')
 #define isspace(c)		(c==' ' || c=='\t')
-#define execute(np)		(np? (*(np)->op)(np) : 0)
+#define execute(np)		(ignored = (np? (*(np)->op)(np) : 0))
 
 typedef struct Node	Node;
 struct Node{			/* parse tree node */
@@ -25,12 +25,13 @@ char	*sfree;			/* next free character in strspace */
 int	t;			/* current token code */
 char 	*token;			/* current token text (in strspace) */
 int	putback = 0;		/* lookahead */
-Waitmsg	status;			/* exit status of most recent command */
+char	status[256];		/* exit status of most recent command */
 int	cflag = 0;		/* command is argument to sh */
 int	tflag = 0;		/* read only one line */
 int	interactive = 0;	/* prompt */
 char	*cflagp;		/* command line for cflag */
 char	*path[] ={"/bin", 0};
+int	ignored;
 
 Node	*alloc(int (*op)(Node *));
 int	builtin(Node *np);
@@ -49,6 +50,7 @@ int	xsubshell(Node *np);
 int	xnowait(Node *np);
 int	xwait(Node *np);
 
+void
 main(int argc, char *argv[])
 {
 	Node *np;
@@ -81,7 +83,7 @@ main(int argc, char *argv[])
 		while(t!=EOF && t!='\n')	/* flush syntax errors */
 			t = gettoken();
 	}
-	exits(status.msg);
+	exits(status);
 }
 
 /* alloc - allocate for op and return a node */
@@ -97,6 +99,7 @@ alloc(int (*op)(Node *))
 	}
 	error("node storage overflow", "");
 	exits("node storage overflow");
+	return nil;
 }
 
 /* builtin - check np for builtin command and, if found, execute it */
@@ -104,7 +107,8 @@ int
 builtin(Node *np)
 {
 	int n = 0;
-	char *s, name[MAXLINE];
+	char name[MAXLINE];
+	Waitmsg *wmsg;
 
 	if(np->argv[1])
 		n = strtoul(np->argv[1], 0, 0);
@@ -113,7 +117,7 @@ builtin(Node *np)
 			error(": bad directory", np->argv[0]);
 		return 1;
 	}else if(strcmp(np->argv[0], "exit") == 0)
-		exits(np->argv[1]? np->argv[1] : status.msg);
+		exits(np->argv[1]? np->argv[1] : status);
 	else if(strcmp(np->argv[0], "bind") == 0){
 		if(np->argv[1]==0 || np->argv[2]==0)
 			error("usage: bind new old", "");
@@ -132,21 +136,41 @@ builtin(Node *np)
 		return 1;
 #endif
 	}else if(strcmp(np->argv[0], "wait") == 0){
-		while(wait(&status) != -1)
-			if(n && status.pid==n){
+		while((wmsg = wait()) != nil){
+			strncpy(status, wmsg->msg, sizeof(status)-1);
+			if(n && wmsg->pid==n){
 				n = 0;
+				free(wmsg);
 				break;
 			}
+			free(wmsg);
+		}
 		if(n)
 			error("wait error", "");
 		return 1;
-	}else if(strcmp(np->argv[0], "newpgrp") == 0){
-		int i;
-		i = forkpgrp(0);
-		if(i < 0)
-			error("forkpgrp error", "");
-		else
-			fprint(2, "%d\n", i);
+	}else if(strcmp(np->argv[0], "rfork") == 0){
+		char *p;
+		int mask;
+
+		p = np->argv[1];
+		if(p == 0 || *p == 0)
+			p = "ens";
+		mask = 0;
+
+		while(*p)
+			switch(*p++){
+			case 'n': mask |= RFNAMEG; break;
+			case 'N': mask |= RFCNAMEG; break;
+			case 'e': mask |= RFENVG; break;
+			case 'E': mask |= RFCENVG; break;
+			case 's': mask |= RFNOTEG; break;
+			case 'f': mask |= RFFDG; break;
+			case 'F': mask |= RFCFDG; break;
+			case 'm': mask |= RFNOMNT; break;
+			default: error(np->argv[1], "bad rfork flag");
+			}
+		rfork(mask);
+
 		return 1;
 	}else if(strcmp(np->argv[0], "exec") == 0){
 		redirect(np);
@@ -265,10 +289,10 @@ list(void)
 void
 error(char *s, char *t)
 {
-	char buf[ERRLEN];
+	char buf[256];
 
 	fprint(2, "%s%s", t, s);
-	errstr(buf);
+	errstr(buf, sizeof buf);
 	fprint(2, ": %s\n", buf);
 }
 
@@ -380,7 +404,7 @@ xpipeline(Node *np)
 		close(fd[0]);
 		close(fd[1]);
 		execute(np->args[0]);
-		exits(status.msg);
+		exits(status);
 	}else if(pid == -1){
 		error("can't create process", "");
 		return 0;
@@ -391,7 +415,7 @@ xpipeline(Node *np)
 		close(fd[1]);
 		pid = execute(np->args[1]); /*BUG: this is wrong sometimes*/
 		if(pid > 0)
-			while(wait(&status)!=-1  && status.pid!=pid)
+			while(waitpid()!=pid)
 				;
 		exits(0);
 	}else if(pid == -1){
@@ -427,6 +451,7 @@ xsimple(Node *np)
 		}
 	error(": not found", np->argv[0]);
 	exits("not found");
+	return -1;		// suppress compiler warnings
 }
 
 /* xsubshell - execute (cmd) */
@@ -442,7 +467,8 @@ xsubshell(Node *np)
 	}
 	redirect(np);	/* child process */
 	execute(np->args[0]);
-	exits(status.msg);
+	exits(status);
+	return -1;		// suppress compiler warnings
 }
 
 /* xnowait - execute cmd & */
@@ -462,14 +488,22 @@ xnowait(Node *np)
 int xwait(Node *np)
 {
 	int pid;
+	Waitmsg *wmsg;
 
 	execute(np->args[0]);
 	pid = execute(np->args[1]);
 	if(pid > 0){
-		while(wait(&status) != -1 && status.pid != pid)
-			;
-		if(status.pid != pid)
+		while((wmsg = wait()) != nil){
+			if(wmsg->pid == pid)
+				break;
+			free(wmsg);
+		}
+		if(wmsg == nil)
 			error("wait error", "");
+		else {
+			strncpy(status, wmsg->msg, sizeof(status)-1);
+			free(wmsg);
+		}
 	}
 	return 0;
 }

@@ -3,9 +3,11 @@
 ipconfig, rip \- Internet configuration and routing
 .SH SYNOPSIS
 .B ip/ipconfig
-.RB [ -ndDrG ]
+.RB [ -DGPdnr ]
 .RB [ -b
 .IR baud ]
+.RB [ -c
+.IR ctl ]
 .RB [ -m
 .IR mtu ]
 .RB [ -g
@@ -39,6 +41,7 @@ in the command line or obtained via DHCP.  If DHCP is
 requested, it will also obtain the addresses of DNS
 servers, NTP servers, gateways, a Plan 9 file server,
 and a Plan 9 authentication server.  If this is the first
+non-loopback
 interface on the IP stack, the information will be
 written to
 .B /net/ndb
@@ -79,40 +82,6 @@ IP stack.
 .PP
 The options are:
 .TP
-.B x
-use the IP stack mounted at
-.I netmtpt
-instead of at
-.BR /net .
-.TP
-.B g
-the default gateway.
-.TP
-.B d
-use DHCP to determine any unspecified configuration parameters.
-.TP
-.B r
-by default, 
-.I ipconfig
-exits after trying DHCP for 15 seconds with no answer.
-This option directs
-.I ipconfig
-instead to fork a background
-process that keeps trying forever.
-.TP
-.B h
-the hostname to add to DHCP requests.  Some DHCP
-servers, such as the one used by COMCAST, will not respond
-unless a correct hostname is in the request.
-.TP
-.B n
-determine parameters but don't configure the interface.
-.TP
-.B b
-the baud rate to use on a serial line
-when configuring
-.BR PPP .
-.TP
 .B D
 turn on debugging.
 .TP
@@ -126,9 +95,55 @@ interpret as the Plan 9 file server and auth server.
 Replies to these options contain a list of IP addresses for possible
 file servers and auth servers.
 .TP
+.B P
+write configuration information to
+.BR /net/ndb ,
+even if other network interfaces are already configured
+.TP
+.B b
+the baud rate to use on a serial line
+when configuring
+.BR PPP .
+.TP
+.B c
+write the control string
+.I ctl
+to the ethernet device control file before starting to configure it.
+May be repeated to specify multiple control writes.
+.TP
+.B d
+use DHCP to determine any unspecified configuration parameters.
+.TP
+.B g
+the default gateway.
+.TP
+.B h
+the hostname to add to DHCP requests.  Some DHCP
+servers, such as the one used by COMCAST, will not respond
+unless a correct hostname is in the request.
+.TP
 .B m
 the maximum IP packet size to use on this
 interface.
+.TP
+.B n
+determine parameters but don't configure the interface.
+.TP
+.B r
+by default, 
+.I ipconfig
+exits after trying DHCP for 15 seconds with no answer.
+This option directs
+.I ipconfig
+instead to fork a background
+process that keeps trying forever.
+.TP
+.B x
+use the IP stack mounted at
+.I netmtpt
+instead of at
+.BR /net .
+.PD
 .PP
 If DHCP is requested, a process is forked
 off to renew the lease before it

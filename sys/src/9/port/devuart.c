@@ -179,7 +179,6 @@ uartreset(void)
 	dp->length = 0;
 	dp->perm = DMDIR|0555;
 	dp++;
-
 	p = uartlist;
 	for(i = 0; i < uartnuart; i++){
 		/* 3 directory entries per port */
@@ -535,7 +534,7 @@ uartpower(int on)
 	Uart *p;
 
 	for(p = uartlist; p != nil; p = p->next) {
-		if (p->phys->power)
+		if(p->phys->power)
 			(*p->phys->power)(p, on);
 	}
 }
@@ -623,7 +622,7 @@ uartrecv(Uart *p,  char ch)
 	if(p->xonoff){
 		if(ch == CTLS){
 			p->blocked = 1;
-		}else if (ch == CTLQ){
+		}else if(ch == CTLQ){
 			p->blocked = 0;
 			p->ctsbackoff = 2; /* clock gets output going again */
 		}
@@ -632,7 +631,7 @@ uartrecv(Uart *p,  char ch)
 	/* receive the character */
 	if(p->putc)
 		p->putc(p->iq, ch);
-	else {
+	else{
 		next = p->iw + 1;
 		if(next == p->ie)
 			next = p->istage;

@@ -308,6 +308,7 @@ estrdup(char *s)
 	return t;
 }
 
+/*
 ZBlock*
 readFile(char *name)
 {
@@ -332,6 +333,7 @@ readFile(char *name)
 	freePart(p);
 	return b;
 }
+*/
 
 /*
  * return floor(log2(v))

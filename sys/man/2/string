@@ -225,6 +225,11 @@ The string is null terminated.
 reads up to the next newline and returns
 a pointer to the beginning of the bytes read.  Leading
 spaces and tabs and the trailing newline are all discarded.
+.I S_getline
+will recursively read through files included with
+.B #include
+and discard all other lines beginning with
+.BR # .
 .SH SOURCE
 .B /sys/src/libString
 .SH SEE ALSO

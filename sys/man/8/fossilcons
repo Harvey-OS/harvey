@@ -179,7 +179,7 @@ con /srv/fscons
 ]
 .B epoch
 [
-.B -y
+.B -ry
 ]
 .I n
 .PP
@@ -232,6 +232,10 @@ con /srv/fscons
 [
 .B -s
 .I interval
+]
+[
+.B -t
+.I timeout
 ]
 .PP
 [
@@ -479,9 +483,12 @@ adm:adm:adm:sys
 none:none::
 noworld:noworld::
 sys:sys::
+glenda:glenda:glenda:
 .PP
-These users are mandatory and must appear in all user files.
-It is not possible to rename these unames.
+Except
+.BR glenda ,
+these users are mandatory: they must appear in all user
+files and cannot be renamed.
 .EE
 .PP
 The
@@ -746,6 +753,20 @@ the archiver should take care
 of those snapshots (moving the blocks from disk to Venti)
 if you give it more time.
 .PP
+The
+.B -r
+flag to epoch causes it to remove any now-inaccessible
+snapshot directories once it has changed the epoch.
+This flag only makes sense in conjunction with the
+.B -y
+flag.
+.PP
+.I Epoch
+is a very low-level way to retire snapshots.
+The preferred way is by setting an automatic timer
+with
+.IR snaptime .
+.PP
 .I Halt
 suspends file system activity;
 .I unhalt
@@ -785,6 +806,9 @@ An archival snapshot is taken once a day, at
 while temporary snapshots are taken at multiples of
 .I interval
 minutes.
+Temporary snapshots are discarded once they are
+.I timeout
+minutes old.
 With no arguments,
 .I snaptime
 prints the current snapshot times.
@@ -800,7 +824,16 @@ or
 of
 .L none
 can be used to disable that kind of automatic snapshot.
-By default, both are disabled.
+The
+.B -t
+option sets the snapshot timeout.
+If
+.I timeout
+is
+.LR none ,
+temporary snapshots are not automatically discarded.
+By default, all three times are set to
+.LR none .
 .PP
 .I Stat
 displays metadata for each of the named

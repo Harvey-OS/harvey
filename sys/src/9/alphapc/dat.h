@@ -160,7 +160,7 @@ struct Mach
 	int	load;
 	int	intr;
 	int	flushmmu;		/* make current proc flush it's mmu state */
-	int		ilockdepth;
+	int	ilockdepth;
 
 	ulong	spuriousintr;
 	int	lastintr;
@@ -197,18 +197,18 @@ struct PCArch
 	int	(*intrvecno)(int);
 	int	(*intrdisable)(int);
 
-	int		(*_inb)(int);
+	int	(*_inb)(int);
 	ushort	(*_ins)(int);
 	ulong	(*_inl)(int);
-	void		(*_outb)(int, int);
-	void		(*_outs)(int, ushort);
-	void		(*_outl)(int, ulong);
-	void		(*_insb)(int, void*, int);
-	void		(*_inss)(int, void*, int);
-	void		(*_insl)(int, void*, int);
-	void		(*_outsb)(int, void*, int);
-	void		(*_outss)(int, void*, int);
-	void		(*_outsl)(int, void*, int);
+	void	(*_outb)(int, int);
+	void	(*_outs)(int, ushort);
+	void	(*_outl)(int, ulong);
+	void	(*_insb)(int, void*, int);
+	void	(*_inss)(int, void*, int);
+	void	(*_insl)(int, void*, int);
+	void	(*_outsb)(int, void*, int);
+	void	(*_outss)(int, void*, int);
+	void	(*_outsl)(int, void*, int);
 };
 
 /*
@@ -217,9 +217,9 @@ struct PCArch
 #define NISAOPT		8
 
 struct ISAConf {
-	char		*type;
+	char	*type;
 	ulong	port;
-	ulong	irq;
+	int	irq;
 	ulong	dma;
 	ulong	mem;
 	ulong	size;
@@ -242,13 +242,13 @@ extern register Proc	*up;
  */
 typedef struct {
 	ulong	port;	
-	int		size;
+	int	size;
 } port_t;
 
 struct DevConf
 {
 	ulong	intnum;	/* interrupt number */
-	char		*type;	/* card type, malloced */
-	int		nports;	/* Number of ports */
+	char	*type;	/* card type, malloced */
+	int	nports;	/* Number of ports */
 	port_t	*ports;	/* The ports themselves */
 };

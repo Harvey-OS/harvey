@@ -116,7 +116,7 @@ queueFlush(void)
 		vtUnlock(q->lock);
 	}
 }
-		
+
 static void
 doQueue(void *vq)
 {
@@ -140,7 +140,7 @@ doQueue(void *vq)
 		vtUnlock(q->lock);
 
 		if(!writeQLump(u, p, creator))
-			fprint(2, "failed to write lump for %V: %R", u->score);
+			fprint(2, "failed to write lump for %V: %R\n", u->score);
 
 		vtLock(q->lock);
 		q->r = (q->r + 1) & (MaxLumpQ - 1);

@@ -1010,7 +1010,7 @@ ipid(void)
 			strcpy(mysysname, ipaddr);
 					
 
-		/* set /dev/mysysname if we now know it */
+		/* set /dev/sysname if we now know it */
 		if(*mysysname){
 			f = open("/dev/sysname", OWRITE);
 			if(f >= 0){

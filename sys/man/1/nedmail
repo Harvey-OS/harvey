@@ -243,6 +243,14 @@ Append the message to the specified mailbox.
 If
 .I mfile
 doesn't start with a `/', it is interpreted relative to the directory in which the mailbox resides.
+If
+.I mfile
+is a directory then the destination is a file in that directry.
+If the MIME header specifies a file name, that one is used.
+Otherwise, one is generated using
+.IR mktemp (2)
+and the string
+.BR att.XXXXXXXXXXX .
 .TP
 .B q
 Put undeleted mail back in the mailbox and stop.
@@ -263,10 +271,20 @@ Remove mark for deletion.
 .B x
 Exit, without changing the mailbox file.
 .TP
+.B y
+Synchronize with the mail box.  Any deleted
+messages are purged and any new messages read.
+This is equivalent to quiting nedmail and restarting.
+.TP
 .BI | command
 Run the
 .I command
-with the message as standard input.
+with the message body as standard input.
+.TP
+.BI || command
+Run the
+.I command
+with the whole message as standard input.
 .TP
 .BI ! command
 Escape to the shell to do

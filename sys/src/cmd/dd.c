@@ -39,6 +39,7 @@ int	nspace;
 uchar	etoa[256];
 uchar	atoe[256];
 uchar	atoibm[256];
+int	quiet;
 
 void	flsh(void);
 int	match(char *s);
@@ -97,6 +98,10 @@ main(int argc, char *argv[])
 		}
 		if(iskey("trunc")) {
 			dotrunc = number(BIG);
+			continue;
+		}
+		if(iskey("quiet")) {
+			quiet = number(BIG);
 			continue;
 		}
 		if(iskey("skip")) {
@@ -248,10 +253,10 @@ loop:
 			ibc = 0;
 			for(c=0; c<ibs; c++)
 				if(ibuf[c] != 0)
-					ibc = c;
+					ibc = c+1;
+			seek(ibf, ibs, 1);
 			stats();
-		}
-		if(ibc == 0 && --files<=0) {
+		}else if(ibc == 0 && --files<=0) {
 			flsh();
 			term();
 		}
@@ -546,7 +551,8 @@ term(void)
 void
 stats(void)
 {
-
+	if(quiet)
+		return;
 	fprint(2, "%lud+%lud records in\n", nifr, nipr);
 	fprint(2, "%lud+%lud records out\n", nofr, nopr);
 	if(ntrunc)

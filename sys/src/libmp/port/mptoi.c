@@ -28,6 +28,8 @@ mptoi(mpint *b)
 {
 	uint x;
 
+	if(b->top==0)
+		return 0;
 	x = *b->p;
 	if(b->sign > 0){
 		if(b->top > 1 || (x > MAXINT))

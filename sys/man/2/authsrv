@@ -131,6 +131,12 @@ On x86s and Alphas
 successively opens the following areas stopping with the
 first to succeed:
 .PP
+\- the partition named by the
+.B $nvram
+environment variable
+(commonly set via
+.IR plan9.ini (8))
+.br
 \- the partition
 .B #S/sdC0/nvram
 .br

@@ -690,7 +690,7 @@ w_timer(void* arg)
 
 	ctlr->timerproc = up;
 	for(;;){
-		tsleep(&ctlr->timer, return0, 0, MSperTick);
+		tsleep(&up->sleep, return0, 0, MSperTick);
 		ctlr = (Ctlr*)ether->ctlr;
 		if(ctlr == 0)
 			break;

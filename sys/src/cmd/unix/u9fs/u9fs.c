@@ -1318,6 +1318,8 @@ userchange(User *u, char **ep)
 int
 groupchange(User *u, User *g, char **ep)
 {
+	if(g == nil)
+		return -1;
 	if(!useringroup(u, g)){
 		if(chatty9p)
 			fprint(2, "%s not in group %s\n", u->name, g->name);

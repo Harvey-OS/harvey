@@ -44,7 +44,6 @@ boot(int argc, char *argv[])
 	bind("#ec", "/env", MREPL|MCREATE);
 	bind("#e", "/env", MAFTER);
 	bind("#s", "/srv", MREPL|MCREATE);
-
 #ifdef DEBUG
 	print("argc=%d\n", argc);
 	for(fd = 0; fd < argc; fd++)

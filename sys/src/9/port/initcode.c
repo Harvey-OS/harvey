@@ -1,3 +1,8 @@
+/*
+ * IMPORTANT!  DO NOT ADD LIBRARY CALLS TO THIS FILE.
+ * The entire text image must fit on one page.
+ */
+
 #include <u.h>
 #include <libc.h>
 

@@ -940,7 +940,8 @@ D2B(Pool *p, void *v)
 	Alloc *a;
 	a = _D2B(v);
 	if(a->magic != KEMPT_MAGIC)
-		p->panic(p, "D2B called on non-block %p (double-free?)", v);
+		p->panic(p, "D2B called on non-block %p (double-free?) (magic %.8luX)", 
+					v, a->magic);
 	return a;
 }
 

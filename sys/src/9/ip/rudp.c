@@ -30,6 +30,7 @@ enum
 	UDP_RHDRSIZE	= 36,	/* pseudo header + udp header + rudp header */
 	UDP_IPHDR	= 8,	/* ip header */
 	IP_UDPPROTO	= 254,
+	UDP_USEAD7	= 52,
 	UDP_USEAD6	= 36,
 	UDP_USEAD4	= 12,
 
@@ -146,7 +147,6 @@ struct Rudpstats
 typedef struct Rudppriv Rudppriv;
 struct Rudppriv
 {
-	Rendez	vous;
 	Ipht	ht;
 
 	/* MIB counters */
@@ -358,6 +358,22 @@ rudpkick(void *x)
 
 	ucb = (Rudpcb*)c->ptcl;
 	switch(ucb->headers) {
+	case 7:
+		/* get user specified addresses */
+		bp = pullupblock(bp, UDP_USEAD7);
+		if(bp == nil)
+			return;
+		ipmove(raddr, bp->rp);
+		bp->rp += IPaddrlen;
+		ipmove(laddr, bp->rp);
+		bp->rp += IPaddrlen;
+		/* pick interface closest to dest */
+		if(ipforme(f, laddr) != Runi)
+			findlocalip(f, laddr, raddr);
+		bp->rp += IPaddrlen;		/* Ignore ifc address */
+		rport = nhgets(bp->rp);
+		bp->rp += 2+2;			/* Ignore local port */
+		break;
 	case 6:
 		/* get user specified addresses */
 		bp = pullupblock(bp, UDP_USEAD6);
@@ -368,20 +384,6 @@ rudpkick(void *x)
 		ipmove(laddr, bp->rp);
 		bp->rp += IPaddrlen;
 		/* pick interface closest to dest */
-		if(ipforme(f, laddr) != Runi)
-			findlocalip(f, laddr, raddr);
-		rport = nhgets(bp->rp);
-
-		bp->rp += 4;			/* Igonore local port */
-		break;
-	case 4:
-		bp = pullupblock(bp, UDP_USEAD4);
-		if(bp == nil)
-			return;
-		v4tov6(raddr, bp->rp);
-		bp->rp += IPv4addrlen;
-		v4tov6(laddr, bp->rp);
-		bp->rp += IPv4addrlen;
 		if(ipforme(f, laddr) != Runi)
 			findlocalip(f, laddr, raddr);
 		rport = nhgets(bp->rp);
@@ -415,8 +417,8 @@ rudpkick(void *x)
 	uh->frag[1] = 0;
 	hnputs(uh->udpplen, ptcllen);
 	switch(ucb->headers){
-	case 4:
 	case 6:
+	case 7:
 		v6tov4(uh->udpdst, raddr);
 		hnputs(uh->udpdport, rport);
 		v6tov4(uh->udpsrc, laddr);
@@ -488,6 +490,7 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 	ushort rport, lport;
 	Rudppriv *upriv;
 	Fs *f;
+	uchar *p;
 
 	upriv = rudp->priv;
 	f = rudp->f;
@@ -565,27 +568,24 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 		raddr, rport, laddr, lport, len);
 
 	switch(ucb->headers){
+	case 7:
+		/* pass the src address */
+		bp = padblock(bp, UDP_USEAD7);
+		p = bp->rp;
+		ipmove(p, raddr); p += IPaddrlen;
+		ipmove(p, laddr); p += IPaddrlen;
+		ipmove(p, ifc->lifc->local); p += IPaddrlen;
+		hnputs(p, rport); p += 2;
+		hnputs(p, lport);
+		break;
 	case 6:
 		/* pass the src address */
 		bp = padblock(bp, UDP_USEAD6);
-		ipmove(bp->rp, raddr);
-		if(ipforme(f, laddr) == Runi)
-			ipmove(bp->rp+IPaddrlen, laddr);
-		else
-			ipmove(bp->rp+IPaddrlen, ifc->lifc->local);
-		hnputs(bp->rp+2*IPaddrlen, rport);
-		hnputs(bp->rp+2*IPaddrlen+2, lport);
-		break;
-	case 4:
-		/* pass the src address */
-		bp = padblock(bp, UDP_USEAD4);
-		v6tov4(bp->rp, raddr);
-		if(ipforme(f, laddr) == Runi)
-			v6tov4(bp->rp+IPv4addrlen, laddr);
-		else
-			v6tov4(bp->rp+IPv4addrlen, ifc->lifc->local);
-		hnputs(bp->rp + 2*IPv4addrlen, rport);
-		hnputs(bp->rp + 2*IPv4addrlen + 2, lport);
+		p = bp->rp;
+		ipmove(p, raddr); p += IPaddrlen;
+		ipmove(p, ipforme(f, laddr)==Runi ? laddr : ifc->lifc->local); p += IPaddrlen;
+		hnputs(p, rport); p += 2;
+		hnputs(p, lport);
 		break;
 	default:
 		/* connection oriented rudp */
@@ -629,8 +629,8 @@ rudpctl(Conv *c, char **f, int n)
 	if(n < 1)
 		return rudpunknown;
 
-	if(strcmp(f[0], "headers4") == 0){
-		ucb->headers = 4;
+	if(strcmp(f[0], "headers++4") == 0){
+		ucb->headers = 7;
 		return nil;
 	} else if(strcmp(f[0], "headers") == 0){
 		ucb->headers = 6;
@@ -760,13 +760,11 @@ relackproc(void *a)
 	Proto *rudp;
 	Reliable *r;
 	Conv **s, *c;
-	Rudppriv *upriv;
 
 	rudp = (Proto *)a;
-	upriv = rudp->priv;
 
 loop:
-	tsleep(&upriv->vous, return0, 0, Rudptickms);
+	tsleep(&up->sleep, return0, 0, Rudptickms);
 
 	for(s = rudp->conv; *s; s++) {
 		c = *s;

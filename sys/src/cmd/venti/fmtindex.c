@@ -5,7 +5,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: fmtindex config\n");
+	fprint(2, "usage: fmtindex [-a] config\n");
 	exits(0);
 }
 

@@ -7,7 +7,7 @@
  * Some machine instructions not handled by 8[al].
  */
 #define OP16		BYTE $0x66
-#define	DELAY		BYTE $0xEB; BYTE $0x00	/* JMP .+2 */
+#define DELAY		BYTE $0xEB; BYTE $0x00	/* JMP .+2 */
 #define CPUID		BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
 #define WRMSR		BYTE $0x0F; BYTE $0x30	/* WRMSR, argument in AX/DX (lo/hi) */
 #define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
@@ -827,3 +827,4 @@ TEXT vectortable(SB), $0
 	CALL _strayintr(SB); BYTE $0xFD
 	CALL _strayintr(SB); BYTE $0xFE
 	CALL _strayintr(SB); BYTE $0xFF
+

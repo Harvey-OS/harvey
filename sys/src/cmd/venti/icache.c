@@ -194,6 +194,6 @@ icacheAlloc(IAddr *ia, u8int *score)
 Found:
 	ie->ia = *ia;
 	scoreCp(ie->score, score);
-	ie->rac = 0;	
+	ie->rac = 0;
 	return ie;
 }

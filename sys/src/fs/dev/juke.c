@@ -860,8 +860,8 @@ wormi(char *arg)
 	Juke *w;
 	Side *v;
 
-	w = jukelist;
 	i = number(arg, -1, 10) - 1;
+	w = jukelist;
 	if(i < 0 || i >= w->nside) {
 		print("bad unit number %s (%d)\n", arg, i+1);
 		return 0;
@@ -906,12 +906,12 @@ cmd_wormoffline(int argc, char *argv[])
 	int u, i;
 	Juke *w;
 
-	w = jukelist;
 	if(argc <= 1) {
 		print("usage: wormoffline drive\n");
 		return;
 	}
 	u = number(argv[1], -1, 10);
+	w = jukelist;
 	if(u < 0 || u >= w->ndrive) {
 		print("bad drive %s (0<=%d<%d)\n", argv[1], u, w->ndrive);
 		return;
@@ -933,12 +933,12 @@ cmd_wormonline(int argc, char *argv[])
 	int u;
 	Juke *w;
 
-	w = jukelist;
 	if(argc <= 1) {
 		print("usage: wormonline drive\n");
 		return;
 	}
 	u = number(argv[1], -1, 10);
+	w = jukelist;
 	if(u < 0 || u >= w->ndrive) {
 		print("bad drive %s (0<=%d<%d)\n", argv[1], u, w->ndrive);
 		return;
@@ -972,10 +972,10 @@ cmd_wormeject(int argc, char *argv[])
 		print("usage: wormeject unit\n");
 		return;
 	}
-	w = jukelist;
 	v = wormi(argv[1]);
 	if(v == 0)
 		return;
+	w = jukelist;
 	mmove(w, w->mt0, v->elem, w->ie0, 0);
 	qunlock(v);
 }
@@ -987,7 +987,6 @@ cmd_wormingest(int argc, char *argv[])
 	Juke *w;
 	Side *v;
 
-	w = jukelist;
 	if(argc <= 1) {
 		print("usage: wormingest unit\n");
 		return;
@@ -995,6 +994,7 @@ cmd_wormingest(int argc, char *argv[])
 	v = wormi(argv[1]);
 	if(v == 0)
 		return;
+	w = jukelist;
 	mmove(w, w->mt0, w->ie0, v->elem, 0);
 	qunlock(v);
 }
@@ -1143,6 +1143,7 @@ wormprobe(void)
 	long t;
 	Side *v;
 	Juke *w;
+
 
 	t = toytime() - TWORM;
 	for(w=jukelist; w; w=w->link) {

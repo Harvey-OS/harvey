@@ -7,9 +7,6 @@
 
 static Ndb *db;
 
-Area *owned;
-Area *delegated;
-
 static RR*	dblookup1(char*, int, int, int);
 static RR*	addrrr(Ndbtuple*, Ndbtuple*);
 static RR*	nsrr(Ndbtuple*, Ndbtuple*);
@@ -425,6 +422,14 @@ soarr(Ndbtuple *entry, Ndbtuple *pair)
 			ns->val);
 		rp->rmb = dnlookup(mailbox, Cin, 1);
 	}
+
+	/*  hang dns slaves off of the soa.  this is 
+	 *  for managing the area.
+	 */
+	for(t = entry; t != nil; t = t->entry)
+		if(strcmp(t->attr, "dnsslave") == 0)
+			addserver(&rp->soa->slaves, t->val);
+			
 	return rp;
 }
 
@@ -470,47 +475,6 @@ doaxfr(Ndb *db, char *name)
 	return 0;
 }
 
-/*
- *  our area is the part of the domain tree that
- *  we serve
- */
-static void
-addarea(DN *dp, RR *rp, Ndbtuple *t)
-{
-	Area **l, *s;
-
-	if(t->val[0])
-		l = &delegated;
-	else
-		l = &owned;
-
-	/*
-	 *  The area contains a copy of the soa rr that created it.
-	 *  The owner of the the soa rr should stick around as long
-	 *  as the area does.
-	 */
-	s = emalloc(sizeof(*s));
-	s->len = strlen(dp->name);
-	rrcopy(rp, &s->soarr);
-	s->soarr->owner = dp;
-	s->soarr->db = 1;
-	s->soarr->ttl = Hour;
-
-	s->next = *l;
-	*l = s;
-}
-
-static void
-freearea(Area **l)
-{
-	Area *s;
-
-	while(s = *l){
-		*l = s->next;
-		rrfree(s->soarr);
-		free(s);
-	}
-}
 
 /*
  *  read the all the soa's from the database to determine area's.
@@ -615,8 +579,11 @@ db2cache(int doit)
 	static ulong lastcheck;
 	static ulong lastyoungest;
 
+	/* no faster than once every 2 minutes */
 	if(now < lastcheck + 2*Min && !doit)
 		return;
+
+	refresh_areas(owned);
 
 	lock(&dblock);
 
@@ -683,37 +650,6 @@ db2cache(int doit)
 	}
 
 	unlock(&dblock);
-}
-
-/*
- *  true if a name is in our area
- */
-Area*
-inmyarea(char *name)
-{
-	int len;
-	Area *s, *d;
-
-	len = strlen(name);
-	for(s = owned; s; s = s->next){
-		if(s->len > len)
-			continue;
-		if(cistrcmp(s->soarr->owner->name, name + len - s->len) == 0)
-			if(len == s->len || name[len - s->len - 1] == '.')
-				break;
-	}
-	if(s == 0)
-		return 0;
-
-	for(d = delegated; d; d = d->next){
-		if(d->len > len)
-			continue;
-		if(cistrcmp(d->soarr->owner->name, name + len - d->len) == 0)
-			if(len == d->len || name[len - d->len - 1] == '.')
-				return 0;
-	}
-
-	return s;
 }
 
 extern uchar	ipaddr[IPaddrlen];

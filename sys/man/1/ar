@@ -120,16 +120,16 @@ showing
 .B
 	mode uid/gid size date name
 .TP
-.B c
-Create.
-Normally
-.I ar
-will create a new archive when
-.I afile
-does not exist, and give a warning.
-Option 
-.B c
-discards any old contents and suppresses the warning.
+.\" .B c
+.\" Create.
+.\" Normally
+.\" .I ar
+.\" will create a new archive when
+.\" .I afile
+.\" does not exist, and give a warning.
+.\" Option 
+.\" .B c
+.\" discards any old contents and suppresses the warning.
 .TP
 .B l
 Local.

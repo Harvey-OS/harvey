@@ -1,0 +1,110 @@
+.TH EXT2SRV 4
+.SH NAME
+ext2srv \- ext2 file system
+.SH SYNOPSIS
+.B ext2srv
+[
+.B -vrs
+] [
+.B -f
+.I file
+] [
+.B -p
+.I passwd
+] [
+.B -g
+.I group
+] [
+.I service
+]
+.SH DESCRIPTION
+.I Ext2srv
+is a file server that interprets the Linux Second Extended File System.
+A single instance of
+.I ext2srv
+can provide access to multiple ext2 partitions simultaneously.
+.PP
+.I Ext2srv
+posts a file descriptor named
+.I service
+(default
+.BR ext2 )
+in the
+.B /srv
+directory.
+To access an ext2 file system on a device, use
+.B mount
+with the
+.I spec
+argument
+(see
+.IR bind (1))
+the name of the file holding the raw ext2 file system, typically the disk or partition.
+If
+.I spec
+is undefined in the
+.BR mount ,
+.I ext2srv
+will use
+.I file
+as the default name for the device holding the file system.
+.PP
+Normally
+.I ext2srv
+creates a pipe to act as the communications channel between
+itself and its clients.
+The
+.B -s
+flag instructs
+.I ext2srv
+to use its standard input and output instead.
+This flag also prevents the creation of an explicit service file in
+.BR /srv .
+.PP
+The
+.B -v
+flag causes verbose output for debugging, while
+the
+.B -r
+flag (recommended) makes the file system read-only.
+The optional
+.B -p
+and
+.B -g
+flags specify Unix-format password (respectively group) files
+that give the mapping between the numeric user- and group-ID
+numbers in the ext2 file system and the strings reported by Plan 9 status
+inquiries.
+.PP
+There is no authentication or permission checking.
+Anyone who can access the ext2 file system will have full access
+to all its files, including write access if
+.I ext2srv
+is not started with the
+.B -r
+flag, irrespective of file ownership and permission flags.
+.PP
+Some file system state is cached in memory, and may
+be flushed only when the file system is unmounted.
+Therefore if
+.I ext2srv
+is stopped or the machine is rebooted while an ext2 file system
+is still mounted,
+the superblock on the device will have been marked `not valid'
+(unless the
+.B -r
+flag was used),
+and a
+.I fsck
+will be required before that file system may be mounted again.
+.SH BUGS
+There is no authentication or permission checking.
+The implementation has not tracked any changes to the ext2
+specification since it was written.
+There may be other bugs.
+It is advisable to use
+.I ext2srv
+in read-only mode whenever possible.
+.SH AUTHOR
+Bodet Laurent (bl@mime.univ-paris8.fr),
+with later updates by Russ Cox and Richard Miller.

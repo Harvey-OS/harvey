@@ -434,7 +434,7 @@ trap(Ureg *ureg)
 				postnote(up, 1, buf, NDebug);
 			}
 		}else{
-			warnregs(ureg, "undefined instruction");
+			iprint("undefined instruction: pc=0x%lux, inst=0x%lux, 0x%lux, 0x%lux, 0x%lux, 0x%lux\n", ureg->pc, ((ulong*)ureg->pc)[-2], ((ulong*)ureg->pc)[-1], ((ulong*)ureg->pc)[0], ((ulong*)ureg->pc)[1], ((ulong*)ureg->pc)[2]);
 			panic("undefined instruction");
 		}
 		break;

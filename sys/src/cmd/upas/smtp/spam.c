@@ -371,9 +371,9 @@ masquerade(String *path, char *him)
 	/* sender is untrusted; ensure receiver is in one of our domains */
 	for(cp = s_to_c(lpath); *cp; cp++)		/* convert receiver lc */
 		*cp = tolower(*cp);
+	s = s_to_c(lpath);
 
 	/* scan first element of ! or last element of @ paths */
-	s = s_to_c(lpath);
 	if((cp = strchr(s, '!')) != nil){
 		*cp = 0;
 		if(isourdom(s))

@@ -70,6 +70,8 @@ int	needrefresh;
 int	resolver;
 uchar	ipaddr[IPaddrlen];	/* my ip address */
 int	maxage;
+char	*zonerefreshprogram;
+int	sendnotifies;
 
 void	rversion(Job*);
 void	rauth(Job*);
@@ -148,6 +150,12 @@ main(int argc, char *argv[])
 	case 't':
 		testing = 1;
 		break;
+	case 'z':
+		zonerefreshprogram = ARGF();
+		break;
+	case 'n':
+		sendnotifies = 1;
+		break;
 	}ARGEND
 	USED(argc);
 	USED(argv);
@@ -176,6 +184,9 @@ if(testing) mainmem->flags |= POOL_NOREUSE;
 
 	if(serve)
 		dnudpserver(mntpt);
+	if(sendnotifies)
+		notifyproc();
+
 	io();
 	syslog(0, logfile, "io returned, exiting");
 	exits(0);

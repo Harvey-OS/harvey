@@ -24,11 +24,12 @@ main(int argc, char *argv[])
 	u32int mem, icmem, bcmem;
 	int background, cfd;
 	char *adir;
+	Config conf;
 
-	vaddr = "tcp!*!venti";
+	vaddr = nil;
 	haddr = nil;
 	config = nil;
-	mem = 0xffffffffUL;
+	mem = 0xFFFFFFFFUL;
 	icmem = 0;
 	bcmem = 0;
 	background = 1;
@@ -84,19 +85,35 @@ main(int argc, char *argv[])
 	if(!initArenaSum())
 		fprint(2, "warning: can't initialize arena summing process: %R");
 
-	if(!initVenti(config))
+	if(!initVenti(config, &conf))
 		fatal("can't init server: %R");
+	if(vaddr == nil){
+		vaddr = conf.vaddr;
+		if(vaddr == nil)
+			vaddr = "tcp!*!venti";
+	}
+	if(haddr == nil)
+		haddr = conf.haddr;
+	if(bcmem == 0)
+		bcmem = conf.bcmem;
+	if(icmem == 0)
+		icmem = conf.icmem;
+	if(mem == 0xFFFFFFFFUL){
+		mem = conf.mem;
+		if(mem == 0xFFFFFFFFUL)
+			mem = 1 * 1024 * 1024;
+	}
+	if(queueWrites == 0)
+		queueWrites = conf.queueWrites;
 
-	if(mem == 0xffffffffUL)
-		mem = 1 * 1024 * 1024;
-	fprint(2, "initialize %d bytes of lump cache for %d lumps\n", mem, mem / (8 * 1024));
+//	fprint(2, "initialize %d bytes of lump cache for %d lumps\n", mem, mem / (8 * 1024));
 	initLumpCache(mem, mem / (8 * 1024));
 
 	icmem = u64log2(icmem / (sizeof(IEntry) + sizeof(IEntry*)) / ICacheDepth);
 	if(icmem < 4)
 		icmem = 4;
-	fprint(2, "initialize %d bytes of index cache for %d index entries\n",
-		(sizeof(IEntry) + sizeof(IEntry*)) * (1 << icmem) * ICacheDepth, (1 << icmem) * ICacheDepth);
+//	fprint(2, "initialize %d bytes of index cache for %d index entries\n",
+//		(sizeof(IEntry) + sizeof(IEntry*)) * (1 << icmem) * ICacheDepth, (1 << icmem) * ICacheDepth);
 	initICache(icmem, ICacheDepth);
 
 	/*
@@ -104,15 +121,15 @@ main(int argc, char *argv[])
 	 */
 	if(bcmem < maxBlockSize * (mainIndex->narenas + mainIndex->nsects * 4 + 16))
 		bcmem = maxBlockSize * (mainIndex->narenas + mainIndex->nsects * 4 + 16);
-	fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+//	fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
 	initDCache(bcmem);
 
-	fprint(2, "sync arenas and index...\n");
+//	fprint(2, "sync arenas and index...\n");
 	if(!syncIndex(mainIndex, 1))
 		fatal("can't sync server: %R");
 
 	if(queueWrites){
-		fprint(2, "initialize write queue...\n");
+	//	fprint(2, "initialize write queue...\n");
 		if(!initLumpQueues(mainIndex->nsects)){
 			fprint(2, "can't initialize lump queues, disabling write queueing: %R");
 			queueWrites = 0;
@@ -120,12 +137,12 @@ main(int argc, char *argv[])
 	}
 
 	if(haddr){
-		fprint(2, "starting http server at %s\n", haddr);
+	//	fprint(2, "starting http server at %s\n", haddr);
 		if(httpdInit(haddr) < 0)
 			fprint(2, "warning: can't start http server: %R");
 	}
 
-	fprint(2, "starting server\n");
+//	fprint(2, "starting server\n");
 	adir = vtMemAlloc(100);
 	cfd = announce(vaddr, adir);
 	if(cfd < 0)

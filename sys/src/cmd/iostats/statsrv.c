@@ -32,10 +32,26 @@ okfile(char *s, int mode)
 }
 
 void
+update(Rpc *rpc, ulong t)
+{
+	ulong t2;
+
+	t2 = msec();
+	t -= t2;
+	if((long)t < 0)
+		t = 0;
+
+	rpc->time += t;
+	if(t < rpc->loms)
+		rpc->loms = t;
+	if(t > rpc->hims)
+		rpc->hims = t;
+}
+
+void
 Xversion(Fsrpc *r)
 {
 	Fcall thdr;
-	Rpc *rpc;
 	ulong t;
 
 	t = msec();
@@ -55,20 +71,13 @@ Xversion(Fsrpc *r)
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 
-	t = msec()-t;
-	rpc = &stats->rpc[Tversion];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Tversion], t);
 }
 
 void
 Xauth(Fsrpc *r)
 {
 	Fcall thdr;
-	Rpc *rpc;
 	ulong t;
 
 	t = msec();
@@ -76,13 +85,7 @@ Xauth(Fsrpc *r)
 	reply(&r->work, &thdr, Enoauth);
 	r->busy = 0;
 
-	t = msec()-t;
-	rpc = &stats->rpc[Tauth];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Tauth], t);
 }
 
 void
@@ -117,7 +120,6 @@ Xattach(Fsrpc *r)
 {
 	Fcall thdr;
 	Fid *f;
-	Rpc *rpc;
 	ulong t;
 
 	t = msec();
@@ -134,13 +136,7 @@ Xattach(Fsrpc *r)
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 
-	t = msec()-t;
-	rpc = &stats->rpc[Tattach];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Tattach], t);
 }
 
 void
@@ -150,7 +146,6 @@ Xwalk(Fsrpc *r)
 	Fcall thdr;
 	Fid *f, *n;
 	File *nf;
-	Rpc *rpc;
 	ulong t;
 	int i;
 
@@ -214,13 +209,7 @@ Xwalk(Fsrpc *r)
 	reply(&r->work, &thdr, err);
 	r->busy = 0;
 
-	t = msec()-t;
-	rpc = &stats->rpc[Twalk];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Twalk], t);
 }
 
 void
@@ -228,7 +217,6 @@ Xclunk(Fsrpc *r)
 {
 	Fcall thdr;
 	Fid *f;
-	Rpc *rpc;
 	ulong t;
 	int fid;
 
@@ -248,13 +236,7 @@ Xclunk(Fsrpc *r)
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 
-	t = msec()-t;
-	rpc = &stats->rpc[Tclunk];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Tclunk], t);
 
 	if(f->nread || f->nwrite)
 		fidreport(f);
@@ -270,7 +252,6 @@ Xstat(Fsrpc *r)
 	Fcall thdr;
 	Fid *f;
 	int s;
-	Rpc *rpc;
 	ulong t;
 
 	t = msec();
@@ -305,13 +286,7 @@ Xstat(Fsrpc *r)
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 
-	t = msec()-t;
-	rpc = &stats->rpc[Tstat];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Tstat], t);
 }
 
 void
@@ -321,7 +296,6 @@ Xcreate(Fsrpc *r)
 	Fcall thdr;
 	Fid *f;
 	File *nf;
-	Rpc *rpc;
 	ulong t;
 
 	t = msec();
@@ -358,13 +332,7 @@ Xcreate(Fsrpc *r)
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 
-	t = msec()-t;
-	rpc = &stats->rpc[Tcreate];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Tcreate], t);
 }
 
 
@@ -375,7 +343,6 @@ Xremove(Fsrpc *r)
 	Fcall thdr;
 	Fid *f;
 	ulong t;
-	Rpc *rpc;
 
 	t = msec();
 
@@ -404,13 +371,7 @@ Xremove(Fsrpc *r)
 	reply(&r->work, &thdr, 0);
 	r->busy = 0;
 
-	t = msec()-t;
-	rpc = &stats->rpc[Tremove];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Tremove], t);
 }
 
 void
@@ -421,7 +382,6 @@ Xwstat(Fsrpc *r)
 	Fid *f;
 	int s;
 	ulong t;
-	Rpc *rpc;
 
 	t = msec();
 
@@ -445,13 +405,7 @@ Xwstat(Fsrpc *r)
 		reply(&r->work, &thdr, 0);
 
 	r->busy = 0;
-	t = msec()-t;
-	rpc = &stats->rpc[Twstat];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Twstat], t);
 }
 
 void
@@ -549,7 +503,6 @@ slaveopen(Fsrpc *p)
 	Fcall *work, thdr;
 	Fid *f;
 	ulong t;
-	Rpc *rpc;
 
 	work = &p->work;
 
@@ -593,13 +546,7 @@ slaveopen(Fsrpc *p)
 	thdr.qid = f->f->qid;
 	reply(work, &thdr, 0);
 
-	t = msec()-t;
-	rpc = &stats->rpc[Topen];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Topen], t);
 }
 
 void
@@ -610,7 +557,6 @@ slaveread(Fsrpc *p)
 	Fid *f;
 	int n, r;
 	ulong t;
-	Rpc *rpc;
 
 	work = &p->work;
 
@@ -662,13 +608,7 @@ slaveread(Fsrpc *p)
 	f->bread += r;
 	reply(work, &thdr, 0);
 
-	t = msec()-t;
-	rpc = &stats->rpc[Tread];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Tread], t);
 }
 
 void
@@ -679,7 +619,6 @@ slavewrite(Fsrpc *p)
 	Fid *f;
 	int n;
 	ulong t;
-	Rpc *rpc;
 
 	work = &p->work;
 
@@ -711,13 +650,7 @@ slavewrite(Fsrpc *p)
 	stats->totwrite += n;
 	reply(work, &thdr, 0);
 
-	t = msec()-t;
-	rpc = &stats->rpc[Twrite];
-	rpc->time += t;
-	if(t < rpc->loms)
-		rpc->loms = t;
-	if(t > rpc->hims)
-		rpc->hims = t;
+	update(&stats->rpc[Twrite], t);
 }
 
 void

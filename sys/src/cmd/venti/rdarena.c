@@ -31,7 +31,7 @@ rdArena(Arena *arena)
 		if(a + bs > e)
 			bs = arena->blockSize;
 		if(!readPart(arena->part, a, b->data, bs))
-			fprint(2, "can't copy %s, read at %lld failed: %r\n", arena->name, a);	
+			fprint(2, "can't copy %s, read at %lld failed: %r\n", arena->name, a);
 		if(write(1, b->data, bs) != bs)
 			fatal("can't copy %s, write at %lld failed: %r", arena->name, a);
 	}

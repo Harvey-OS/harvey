@@ -167,7 +167,8 @@ TEXT putttb(SB), $-4
  */
 TEXT mmuenable(SB), $-4
 	MRC	CpMMU, 0, R0, C(CpControl), C(0x0)
-	ORR	$(CpCmmuena|CpCdcache|CpCicache|CpCwb), R0
+	ORR	$(CpCmmuena|CpCdcache|CpCicache|CpCwb|CpCsystem), R0
+	BIC	$(CpCrom), R0
 	MCR     CpMMU, 0, R0, C(CpControl), C(0x0)
 	MOVW R0, R0
 	MOVW R0, R0

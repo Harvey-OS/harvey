@@ -70,7 +70,7 @@ clientrxmit(DNSmsg *req, uchar *buf)
 void
 dnudpserver(char *mntpt)
 {
-	int fd, len;
+	int fd, len, op;
 	Request req;
 	DNSmsg reqmsg, repmsg;
 	uchar buf[OUdphdrsize + Maxudp + 1024];
@@ -126,7 +126,8 @@ restart:
 			syslog(0, logfile, "server: reply not request from %I", buf);
 			goto freereq;
 		}
-		if((reqmsg.flags & Omask) != Oquery){
+		op = reqmsg.flags & Omask;
+		if(op != Oquery && op != Onotify){
 			syslog(0, logfile, "server: op %d from %I", reqmsg.flags & Omask, buf);
 			goto freereq;
 		}
@@ -149,7 +150,14 @@ restart:
 		/* loop through each question */
 		while(reqmsg.qd){
 			memset(&repmsg, 0, sizeof(repmsg));
-			dnserver(&reqmsg, &repmsg, &req);
+			switch(op){
+			case Oquery:
+				dnserver(&reqmsg, &repmsg, &req);
+				break;
+			case Onotify:
+				dnnotify(&reqmsg, &repmsg, &req);
+				break;
+			}
 			reply(fd, buf, &repmsg, &req);
 			rrfreelist(repmsg.qd);
 			rrfreelist(repmsg.an);

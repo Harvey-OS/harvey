@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 	if(argc != 2)
 		usage();
 
-	if(!initVenti(argv[0]))
+	if(!initVenti(argv[0], nil))
 		fatal("can't init venti: %R");
 
 	if(bcmem < maxBlockSize * (mainIndex->narenas + mainIndex->nsects * 4 + 16))

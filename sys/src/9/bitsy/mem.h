@@ -150,7 +150,7 @@
  *  Internal MMU coprocessor registers
  */
 #define CpCPUID		0		/* R: */
-#define CpControl	1		/* R: */
+#define CpControl	1		/* RW: */
 #define CpTTB		2		/* RW: translation table base */
 #define CpDAC		3		/* RW: domain access control */
 #define CpFSR		5		/* RW: fault status */

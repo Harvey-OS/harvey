@@ -377,7 +377,6 @@ typedef struct Ctlr {
 	Block*	tb[Ntdesc];		/* transmit buffers */
 	int	tdh;			/* transmit descriptor head */
 	int	tdt;			/* transmit descriptor tail */
-	Rendez	timer;			/* watchdog timer */
 	int	txstalled;		/* count of times unable to send */
 
 	int	txcw;
@@ -1228,8 +1227,7 @@ gc82543watchdog(void* arg)
 
 	edev = arg;
 	for(;;){
-		ctlr = edev->ctlr;
-		tsleep(&ctlr->timer, return0, 0, 1000);
+		tsleep(&up->sleep, return0, 0, 1000);
 
 		ctlr = edev->ctlr;
 		if(ctlr == nil){
@@ -1256,13 +1254,11 @@ gc82543pci(void)
 
 		switch((p->did<<16)|p->vid){
 		case (0x1000<<16)|0x8086:	/* LSI L2A1157 (82542) */
+		case (0x1004<<16)|0x8086:	/* Intel PRO/1000 T */
+		case (0x1008<<16)|0x8086:	/* Intel PRO/1000 XT */
 		default:
 			continue;
 		case (0x1001<<16)|0x8086:	/* Intel PRO/1000 F */
-			break;
-		case (0x1004<<16)|0x8086:	/* Intel PRO/1000 T */
-			break;
-		case (0x1008<<16)|0x8086:	/* Intel PRO/1000 XT */
 			break;
 		}
 

@@ -184,9 +184,12 @@ resourcetimes(Task *task, Head *h)
 			C =  c->p->C;
 		else
 			C =  task->C;
-		if (c->C > C)
+		if (task->flags & BestEffort){
+			if (c->C == 0)
+				error("no cost specified for resource");
+		}else if (c->C > C)
 			error("resource uses too much time");
-		if (c->C == 0)
+		else if (c->C == 0)
 			c->C = C;
 		r = c->i;
 		assert(r);

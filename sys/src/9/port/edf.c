@@ -16,6 +16,7 @@ char *edfstatename[] = {
 	[EdfUnused] =		"Unused",
 	[EdfExpelled] =		"Expelled",
 	[EdfAdmitted] =	"Admitted",
+	[EdfBestEffort] =	"BestEffort",
 	[EdfIdle] =			"Idle",
 	[EdfAwaitrelease] =	"Awaitrelease",
 	[EdfReleased] =		"Released",
@@ -331,6 +332,11 @@ edfadmit(Task *t)
 	}
 	ilock(&edflock);
 	DPRINT("%d edfadmit, %s, %d\n", m->machno, edfstatename[t->state], t->runq.n);
+	if (t->flags & BestEffort){
+		t->state = EdfBestEffort;
+		iunlock(&edflock);
+		return nil;
+	}
 	now = fastticks(nil);
 
 	t->state = EdfAdmitted;
@@ -359,7 +365,6 @@ edfadmit(Task *t)
 	}else{
 		if (t->runq.n){
 			if (edfstack[m->machno].head == nil){
-				t->state = EdfAdmitted;
 				t->r = now;
 				edfrelease(t);
 				setdelta();
@@ -672,7 +677,7 @@ edfresched(Task *t)
 				edfrelease(t);
 				return;
 			}
-			if (now < t->d && (t->flags & Useblocking) == 0){
+			if ((t->flags & Useblocking) == 0 && now < t->d){
 				if (t->S > 0){
 					DPRINT("%d edfresched, resume\n", m->machno);
 					/* Released, not yet at deadline, release (again) */
@@ -1000,7 +1005,7 @@ edftestschedulability(Task *thetask)
 	for (l = tasks.next; l; l = l->next){
 		t = l->i;
 		assert(t);
-		if (t->state <= EdfExpelled && t != thetask)
+		if (t->state <= EdfExpelled && t != thetask && (t->flags & BestEffort) == 0)
 			continue;
 		t->testtype = Release;
 		t->testtime = 0;
@@ -1060,11 +1065,15 @@ resacquire(Task *t, CSN *c)
 {
 	Ticks now, when, used;
 
+	ilock(&edflock);
 	now = fastticks(nil);
 	used = now - t->scheduled;
 	t->scheduled = now;
 	t->total += used;
-	t->S -= used;
+	if (t->flags & BestEffort)
+		c->S = c->C;
+	else
+		t->S -= used;
 	if (t->curcsn)
 		t->curcsn->S -= used;
 	when = now + c->S;
@@ -1074,6 +1083,8 @@ resacquire(Task *t, CSN *c)
 	}
 	t->Delta = c->Delta;
 	t->curcsn = c;
+	t->state = EdfRunning;
+	iunlock(&edflock);
 	if(devrt) devrt(t, now, SResacq);
 	/* priority is going up, no need to reschedule */
 }
@@ -1084,6 +1095,7 @@ resrelease(Task *t)
 	Ticks now, when, used;
 	CSN *c;
 
+	ilock(&edflock);
 	c = t->curcsn;
 	assert(c);
 	t->curcsn = c->p;
@@ -1091,7 +1103,8 @@ resrelease(Task *t)
 	used = now - t->scheduled;
 	t->scheduled = now;
 	t->total += used;
-	t->S -= used;
+	if ((t->flags & BestEffort) == 0)
+		t->S -= used;
 	c->S -= used;
 	if (now + t->S > t->d)
 		when = t->d;
@@ -1102,14 +1115,18 @@ resrelease(Task *t)
 		t->Delta = t->curcsn->Delta;
 		if (when > now + t->curcsn->S)
 			when = now + t->curcsn->S;
-	}else
+	}else{
 		t->Delta = Infinity;
-	c->S = 0LL;	/* don't allow reuse */
-	if(devrt) devrt(t, now, SResrel);
+		if (t->flags & BestEffort)
+			t->state = EdfBestEffort;
+	}
+	c->S = 0LL;	/* don't allow reuse this period */
 	deadlinetimer[m->machno].when = when;
 	timeradd(&deadlinetimer[m->machno]);
+	iunlock(&edflock);
 
 	qunlock(&edfschedlock);
+	if(devrt) devrt(t, now, SResrel);
 	sched();	/* reschedule */
 	qlock(&edfschedlock);
 }

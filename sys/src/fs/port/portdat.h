@@ -164,9 +164,9 @@ struct	Device
 		} cat;
 		struct			/* cw */
 		{
-			Device*	c;
-			Device*	w;
-			Device*	ro;
+			Device*	c;	/* cache device */
+			Device*	w;	/* worm device */
+			Device*	ro;	/* dump - readonly */
 		} cw;
 		struct			/* juke */
 		{

@@ -45,6 +45,7 @@ enum
 	Oquery=		0<<11,		/* normal query */
 	Oinverse=	1<<11,		/* inverse query */
 	Ostatus=	2<<11,		/* status request */
+	Onotify=	4<<11,		/* notify slaves of updates */
 	Omask=		0xf<<11,	/* mask for opcode */
 
 	/* response codes */
@@ -104,6 +105,7 @@ typedef struct Key	Key;
 typedef struct Cert	Cert;
 typedef struct Sig	Sig;
 typedef struct Null	Null;
+typedef struct Server	Server;
 
 /*
  *  a structure to track a request and any slave process handling it
@@ -218,6 +220,15 @@ struct RR
 };
 
 /*
+ *  list of servers
+ */
+struct Server
+{
+	Server	*next;
+	char	*name;
+};
+
+/*
  *  timers for a start of authenticated record
  */
 struct SOA
@@ -227,6 +238,7 @@ struct SOA
 	ulong	retry;		/* zone retry interval (sec) - soa */
 	ulong	expire;		/* time to expiration (sec) - soa */
 	ulong	minttl;		/* minimum time to live for any entry (sec) - soa */
+	Server	*slaves;	/* slave servers */
 };
 
 /*
@@ -255,6 +267,8 @@ struct Area
 
 	int		len;		/* strlen(area->soarr->owner->name) */
 	RR		*soarr;		/* soa defining this area */
+	int		neednotify;
+	int		needrefresh;
 };
 
 enum
@@ -308,6 +322,14 @@ extern RR*	randomize(RR*);
 extern void*	emalloc(int);
 extern char*	estrdup(char*);
 extern void	dnptr(uchar*, uchar*, char*, int, int);
+extern void	addserver(Server**, char*);
+extern Server*	copyserverlist(Server*);
+extern void	freeserverlist(Server*);
+
+/* dnarea.c */
+extern void	refresh_areas(Area*);
+extern void	freearea(Area**);
+extern void	addarea(DN *dp, RR *rp, Ndbtuple *t);
 
 /* dblookup.c */
 extern RR*	dblookup(char*, int, int, int, int);
@@ -319,15 +341,23 @@ extern int	opendatabase(void);
 
 /* dns.c */
 extern char*	walkup(char*);
-extern RR*	dnresolve(char*, int, int, Request*, RR**, int, int, int, int*);
 extern RR*	getdnsservers(int);
 extern void	logreply(int, uchar*, DNSmsg*);
 extern void	logsend(int, int, uchar*, char*, char*, int);
+
+/* dnresolve.c */
+extern RR*	dnresolve(char*, int, int, Request*, RR**, int, int, int, int*);
+extern int	udpport(void);
+extern int	mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno);
 
 /* dnserver.c */
 extern void	dnserver(DNSmsg*, DNSmsg*, Request*);
 extern void	dnudpserver(char*);
 extern void	dntcpserver(char*);
+
+/* dnnotify.c */
+extern void	dnnotify(DNSmsg*, DNSmsg*, Request*);
+extern void	notifyproc(void);
 
 /* convDNS2M.c */
 extern int	convDNS2M(DNSmsg*, uchar*, int);
@@ -349,9 +379,11 @@ extern char	mntpt[];
 extern char	*logfile;
 extern int	resolver;
 extern int	maxage;		/* age of oldest entry in cache (secs) */
-
-/* time base */
-extern ulong	now;
+extern char	*zonerefreshprogram;
+extern int	sendnotifies;
+extern ulong	now;		/* time base */
+extern Area	*owned;
+extern Area	*delegated;
 
 #pragma	varargck	type	"R"	RR*
 #pragma	varargck	type	"Q"	RR*
