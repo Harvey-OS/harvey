@@ -10199,7 +10199,7 @@ sys/src/cmd/rio/scrl.c - 664 sys sys 1014926357 3245
 sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
 sys/src/cmd/rio/util.c - 664 sys sys 1014926357 2061
 sys/src/cmd/rio/wctl.c - 664 sys sys 1023206837 8808
-sys/src/cmd/rio/wind.c - 664 sys sys 1072729026 32762
+sys/src/cmd/rio/wind.c - 664 sys sys 1073268477 32704
 sys/src/cmd/rio/xfid.c - 664 sys sys 1032061723 17424
 sys/src/cmd/rm.c - 664 sys sys 1014926615 1563
 sys/src/cmd/rtstats - 20000000775 sys sys 1018897680 0
