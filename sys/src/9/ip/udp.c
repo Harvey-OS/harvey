@@ -188,6 +188,7 @@ udpkick(void *x, Block *bp)
 	Udppriv *upriv;
 	Fs *f;
 	int version;
+	Conv *rc;
 
 	upriv = c->p->priv;
 	f = c->p->f;
@@ -269,12 +270,14 @@ udpkick(void *x, Block *bp)
 			v6tov4(uh4->udpdst, raddr);
 			hnputs(uh4->udpdport, rport);
 			v6tov4(uh4->udpsrc, laddr);
+			rc = nil;
 		} else {
 			v6tov4(uh4->udpdst, c->raddr);
 			hnputs(uh4->udpdport, c->rport);
 			if(ipcmp(c->laddr, IPnoaddr) == 0)
 				findlocalip(f, c->laddr, c->raddr);
 			v6tov4(uh4->udpsrc, c->laddr);
+			rc = c;
 		}
 		hnputs(uh4->udpsport, c->lport);
 		hnputs(uh4->udplen, ptcllen);
@@ -283,7 +286,7 @@ udpkick(void *x, Block *bp)
 		hnputs(uh4->udpcksum, 
 		       ptclcsum(bp, UDP4_PHDR_OFF, dlen+UDP_UDPHDR_SZ+UDP4_PHDR_SZ));
 		uh4->vihl = IP_VER4;
-		ipoput4(f, bp, 0, c->ttl, c->tos);
+		ipoput4(f, bp, 0, c->ttl, c->tos, rc);
 		break;
 
 	case V6:
@@ -302,12 +305,14 @@ udpkick(void *x, Block *bp)
 			ipmove(uh6->udpdst, raddr);
 			hnputs(uh6->udpdport, rport);
 			ipmove(uh6->udpsrc, laddr);
+			rc = nil;
 		} else {
 			ipmove(uh6->udpdst, c->raddr);
 			hnputs(uh6->udpdport, c->rport);
 			if(ipcmp(c->laddr, IPnoaddr) == 0)
 				findlocalip(f, c->laddr, c->raddr);
 			ipmove(uh6->udpsrc, c->laddr);
+			rc = c;
 		}
 		hnputs(uh6->udpsport, c->lport);
 		hnputs(uh6->udplen, ptcllen);
@@ -319,7 +324,7 @@ udpkick(void *x, Block *bp)
 		uh6->viclfl[0] = IP_VER6;
 		hnputs(uh6->len, ptcllen);
 		uh6->nextheader = IP_UDPPROTO;
-		ipoput6(f, bp, 0, c->ttl, c->tos);
+		ipoput6(f, bp, 0, c->ttl, c->tos, rc);
 		break;
 
 	default:

@@ -408,7 +408,7 @@ ilkick(void *x, Block *bp)
 
 	if(later(NOW, ic->timeout, nil))
 		ilsettimeout(ic);
-	ipoput4(f, bp, 0, c->ttl, c->tos);
+	ipoput4(f, bp, 0, c->ttl, c->tos, c);
 	priv->stats[OutMsgs]++;
 }
 
@@ -820,7 +820,7 @@ ilrexmit(Ilcb *ic)
 
 	ilbackoff(ic);
 
-	ipoput4(c->p->f, nb, 0, ic->conv->ttl, ic->conv->tos);
+	ipoput4(c->p->f, nb, 0, c->ttl, c->tos, c);
 
 	/* statistics */
 	ic->rxtot++;
@@ -1027,7 +1027,7 @@ if(ipc->p==nil)
 		iltype[ih->iltype], nhgetl(ih->ilid), nhgetl(ih->ilack), 
 		nhgets(ih->ilsrc), nhgets(ih->ildst));
 
-	ipoput4(ipc->p->f, bp, 0, ttl, tos);
+	ipoput4(ipc->p->f, bp, 0, ttl, tos, ipc);
 }
 
 void
@@ -1061,7 +1061,7 @@ ilreject(Fs *f, Ilhdr *inih)
 	if(ilcksum)
 		hnputs(ih->ilsum, ptclcsum(bp, IL_IPSIZE, IL_HDRSIZE));
 
-	ipoput4(f, bp, 0, MAXTTL, DFLTTOS);
+	ipoput4(f, bp, 0, MAXTTL, DFLTTOS, nil);
 }
 
 void

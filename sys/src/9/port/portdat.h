@@ -657,10 +657,9 @@ struct Proc
 	ulong	priority;	/* priority level */
 	ulong	basepri;	/* base priority level */
 	uchar	fixedpri;	/* priority level deson't change */
-	ulong	rt;		/* # ticks used since last blocked */
-	ulong	art;		/* avg # ticks used since last blocked */
+	int	quanta;		/* quanta left */
+	ulong	readytime;	/* time process came ready */
 	ulong	movetime;	/* last time process switched processors */
-	ulong	readytime;	/* time process went ready */
 	int	preempted;	/* true if this process hasn't finished the interrupt
 				 *  that last preempted it
 				 */

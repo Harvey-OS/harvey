@@ -270,7 +270,7 @@ icmpkick6(void *x, Block *bp)
 	p->vcf[0] = 0x06 << 4;
 	if(p->type <= Maxtype6)	
 		ipriv->out[p->type]++;
-	ipoput6(c->p->f, bp, 0, c->ttl, c->tos);
+	ipoput6(c->p->f, bp, 0, c->ttl, c->tos, nil);
 }
 
 char*
@@ -382,7 +382,7 @@ icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac)
 	np->vcf[0] = 0x06 << 4;
 	ipriv->out[NbrSolicit]++;
 	netlog(f, Logicmp, "sending neighbor solicitation %I\n", targ);
-	ipoput6(f, nbp, 0, MAXTTL, DFLTTOS);
+	ipoput6(f, nbp, 0, MAXTTL, DFLTTOS, nil);
 }
 
 /*
@@ -417,7 +417,7 @@ icmpna(Fs *f, uchar* src, uchar* dst, uchar* targ, uchar* mac, uchar flags)
 	np->vcf[0] = 0x06 << 4;
 	ipriv->out[NbrAdvert]++;
 	netlog(f, Logicmp, "sending neighbor advertisement %I\n", src);
-	ipoput6(f, nbp, 0, MAXTTL, DFLTTOS);
+	ipoput6(f, nbp, 0, MAXTTL, DFLTTOS, nil);
 }
 
 extern void
@@ -464,7 +464,7 @@ icmphostunr(Fs *f, Ipifc *ifc, Block *bp, int code, int free)
 	if(free)
 		ipiput6(f, ifc, nbp);
 	else {
-		ipoput6(f, nbp, 0, MAXTTL, DFLTTOS);
+		ipoput6(f, nbp, 0, MAXTTL, DFLTTOS, nil);
 		return;
 	}
 
@@ -508,7 +508,7 @@ icmpttlexceeded6(Fs *f, Ipifc *ifc, Block *bp)
 	np->ttl = HOP_LIMIT;
 	np->vcf[0] = 0x06 << 4;
 	ipriv->out[TimeExceedV6]++;
-	ipoput6(f, nbp, 0, MAXTTL, DFLTTOS);
+	ipoput6(f, nbp, 0, MAXTTL, DFLTTOS, nil);
 }
 
 extern void
@@ -547,7 +547,7 @@ icmppkttoobig6(Fs *f, Ipifc *ifc, Block *bp)
 	np->ttl = HOP_LIMIT;
 	np->vcf[0] = 0x06 << 4;
 	ipriv->out[PacketTooBigV6]++;
-	ipoput6(f, nbp, 0, MAXTTL, DFLTTOS);
+	ipoput6(f, nbp, 0, MAXTTL, DFLTTOS, nil);
 }
 
 /*
@@ -745,7 +745,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 	case EchoRequestV6:
 		r = mkechoreply6(bp);
 		ipriv->out[EchoReply]++;
-		ipoput6(icmp->f, r, 0, MAXTTL, DFLTTOS);
+		ipoput6(icmp->f, r, 0, MAXTTL, DFLTTOS, nil);
 		break;
 
 	case UnreachableV6:

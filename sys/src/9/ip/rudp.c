@@ -322,7 +322,7 @@ doipoput(Conv *c, Fs *f, Block *bp, int x, int ttl, int tos)
 	if(ucb->randdrop && nrand(100) < ucb->randdrop)
 		freeblist(bp);
 	else
-		ipoput4(f, bp, x, ttl, tos);
+		ipoput4(f, bp, x, ttl, tos, nil);
 }
 
 int

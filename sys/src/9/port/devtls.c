@@ -730,7 +730,7 @@ tlsrecread(TlsRec *tr)
 	Block *volatile b;
 	uchar *p, seq[8], header[RecHdrLen], hmac[MD5dlen];
 	int volatile nconsumed;
-	int len, type, ver;
+	int len, type, ver, unpad_len;
 
 	nconsumed = 0;
 	if(waserror()){
@@ -791,19 +791,18 @@ tlsrecread(TlsRec *tr)
 	qlock(&in->seclock);
 	p = b->rp;
 	if(in->sec != nil) {
-		len = (*in->sec->dec)(in->sec, p, len);
-		if(len < 0)
-			rcvError(tr, EDecodeError, "incorrectly encrypted message");
-		if(len <= in->sec->maclen)
-			rcvError(tr, EDecodeError, "record message too short for mac");
-		len -= in->sec->maclen;
+		/* to avoid Canvel-Hiltgen-Vaudenay-Vuagnoux attack, all errors here
+		        should look alike, including timing of the response. */
+		unpad_len = (*in->sec->dec)(in->sec, p, len);
+		if(unpad_len > in->sec->maclen)
+			len = unpad_len - in->sec->maclen;
 
 		/* update length */
 		put16(header+3, len);
 		put64(seq, in->seq);
 		in->seq++;
 		(*tr->packMac)(in->sec, in->sec->mackey, seq, header, p, len, hmac);
-		if(memcmp(hmac, p+len, in->sec->maclen) != 0)
+		if(unpad_len <= in->sec->maclen || memcmp(hmac, p+len, in->sec->maclen) != 0)
 			rcvError(tr, EBadRecordMac, "record mac mismatch");
 		b->wp = b->rp + len;
 	}

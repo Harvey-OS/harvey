@@ -132,7 +132,7 @@ struct IP
 };
 
 int
-ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
+ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
 	int tentative;
 	Ipifc *ifc;
@@ -179,7 +179,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
 		goto free;
 	}
 
-	r = v6lookup(f, eh->dst);
+	r = v6lookup(f, eh->dst, c);
 	if(r == nil){
 //		print("no route for %I, src %I free\n", eh->dst, eh->src);
 		ip->stats[OutNoRoutes]++;
@@ -194,7 +194,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos)
 	else
 	if(r->type & (Rbcast|Rmulti)) {
 		gate = eh->dst;
-		sr = v6lookup(f, eh->src);
+		sr = v6lookup(f, eh->src, nil);
 		if(sr != nil && (sr->type & Runi))
 			ifc = sr->ifc;
 	}
@@ -392,8 +392,8 @@ ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 			return;
 		}
 		/* don't forward to source's network */
-		sr = v6lookup(f, h->src);
-		r = v6lookup(f, h->dst);
+		sr = v6lookup(f, h->src, nil);
+		r = v6lookup(f, h->dst, nil);
 
 		if(r == nil || sr == r){
 			ip->stats[OutDiscards]++;
@@ -420,7 +420,7 @@ ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 		h = (Ip6hdr *) (bp->rp);
 		tos = IPV6CLASS(h);
 		hop = h->ttl;
-		ipoput6(f, bp, 1, hop-1, tos);
+		ipoput6(f, bp, 1, hop-1, tos, nil);
 		return;
 	}
 

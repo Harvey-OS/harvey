@@ -74,7 +74,7 @@ main(int argc, char *argv[]) {
 			break;
 		default:
 		Usage:
-			fprint(2, "usage: %s [-b dpi] [-m magnification] [-L] [-P postscript_patch_string] [-p paperwidth paperlength (in inches)] inputfile\n", argv[0]);
+			fprint(2, "usage: %s [-b dpi] [-m magnification] [-L] [-P postscript_patch_string] [-p paperlength paperwidth (in inches)] inputfile\n", argv[0]);
 			exits("usage");
 		}
 	}

@@ -35,7 +35,7 @@ enum
 	Maxproto=	20,
 	Nhash=		64,
 	Maxincall=	5,
-	Nchans=		512,
+	Nchans=		1024,
 	MAClen=		16,		/* longest mac address */
 
 	MAXTTL=		255,
@@ -88,7 +88,6 @@ struct Conv
 	ushort	lport;			/* local port number */
 	ushort	rport;			/* remote port number */
 
-
 	char	*owner;			/* protections */
 	int	perm;
 	int	inuse;			/* opens of listen/data/ctl */
@@ -118,6 +117,9 @@ struct Conv
 	Ipmulti	*multi;			/* multicast bindings for this interface */
 
 	void*	ptcl;			/* protocol specific stuff */
+
+	Route	*r;			/* last route used */
+	ulong	rgen;			/* routetable generation for *r */
 };
 
 struct Medium
@@ -486,8 +488,8 @@ extern void	v4addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int
 extern void	v6addroute(Fs *f, char *tag, uchar *a, uchar *mask, uchar *gate, int type);
 extern void	v4delroute(Fs *f, uchar *a, uchar *mask, int dolock);
 extern void	v6delroute(Fs *f, uchar *a, uchar *mask, int dolock);
-extern Route*	v4lookup(Fs *f, uchar *a);
-extern Route*	v6lookup(Fs *f, uchar *a);
+extern Route*	v4lookup(Fs *f, uchar *a, Conv *c);
+extern Route*	v6lookup(Fs *f, uchar *a, Conv *c);
 extern long	routeread(Fs *f, char*, ulong, int);
 extern long	routewrite(Fs *f, Chan*, char*, int);
 extern void	routetype(int, char*);
@@ -521,11 +523,11 @@ struct Arpent
 	Arpent*	hash;
 	Block*	hold;
 	Block*	last;
-	uint	time;
-	uint	used;
+	uint	ctime;			/* time entry was created or refreshed */
+	uint	utime;			/* time entry was last used */
 	uchar	state;
 	Arpent	*nextrxt;		/* re-transmit chain */
-	uint	rxtat;
+	uint	rtime;			/* time for next retransmission */
 	uchar	rxtsrem;
 	Ipifc	*ifc;
 	uchar	ifcid;			/* must match ifc->id */
@@ -620,8 +622,8 @@ extern void	icmpttlexceeded(Fs*, uchar*, Block*);
 extern ushort	ipcsum(uchar*);
 extern void	ipiput4(Fs*, Ipifc*, Block*);
 extern void	ipiput6(Fs*, Ipifc*, Block*);
-extern int	ipoput4(Fs*, Block*, int, int, int);
-extern int	ipoput6(Fs*, Block*, int, int, int);
+extern int	ipoput4(Fs*, Block*, int, int, int, Conv*);
+extern int	ipoput6(Fs*, Block*, int, int, int, Conv*);
 extern int	ipstats(Fs*, char*, int);
 extern ushort	ptclbsum(uchar*, int);
 extern ushort	ptclcsum(Block*, int, int);
