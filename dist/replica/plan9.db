@@ -11910,7 +11910,7 @@ sys/src/libdraw/ellipse.c - 664 sys sys 1040442971 1936
 sys/src/libdraw/emenuhit.c - 664 sys sys 1014927874 7136
 sys/src/libdraw/event.c - 664 sys sys 1097973929 8983
 sys/src/libdraw/fmt.c - 664 sys sys 1070344369 270
-sys/src/libdraw/font.c - 664 sys sys 1082924457 7594
+sys/src/libdraw/font.c - 664 sys sys 1106665816 7574
 sys/src/libdraw/freesubfont.c - 664 sys sys 984709664 259
 sys/src/libdraw/getdefont.c - 664 sys sys 944961724 1082
 sys/src/libdraw/getrect.c - 664 sys sys 1014927875 3046
