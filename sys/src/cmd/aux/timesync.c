@@ -1201,7 +1201,7 @@ sample(long (*get)(void))
 static int
 openfreqfile(void)
 {
-	char buf[29];
+	char *p;
 	int fd;
 
 	if(sysid == nil)
@@ -1209,15 +1209,16 @@ openfreqfile(void)
 
 	switch(type){
 	case Ntp:
-		snprint(buf, sizeof buf, "%s/ts.%s.%d.%s", dir, sysid, type, timeserver);
+		p = smprint("%s/ts.%s.%d.%s", dir, sysid, type, timeserver);
 		break;
 	default:
-		snprint(buf, sizeof buf, "%s/ts.%s.%d", dir, sysid, type);
+		p = smprint("%s/ts.%s.%d", dir, sysid, type);
 		break;
 	}
-	fd = open(buf, ORDWR);
+	fd = open(p, ORDWR);
 	if(fd < 0)
-		fd = create(buf, ORDWR, 0666);
+		fd = create(p, ORDWR, 0666);
+	free(p);
 	if(fd < 0)
 		return -1;
 	return fd;

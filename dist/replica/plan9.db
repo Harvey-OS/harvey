@@ -147,7 +147,7 @@
 386/bin/aux/stub - 775 sys sys 1064598090 136225
 386/bin/aux/tcpostio - 775 sys sys 1071245296 199664
 386/bin/aux/text2post - 775 sys sys 1064598091 77005
-386/bin/aux/timesync - 775 sys sys 1081480402 129618
+386/bin/aux/timesync - 775 sys sys 1083726045 128480
 386/bin/aux/tr2post - 775 sys sys 1064598093 175937
 386/bin/aux/trampoline - 775 sys sys 1081480402 82131
 386/bin/aux/typepasswd - 775 sys sys 1064598094 67908
@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1083639692 81428
+386/lib/libmp.a - 664 sys sys 1083726045 77700
 386/lib/libndb.a - 664 sys sys 1079451578 61344
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -7109,7 +7109,7 @@ sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
 sys/src/cmd/aux/reboot.c - 664 sys sys 1014925091 1411
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
 sys/src/cmd/aux/stub.c - 664 sys sys 1032468954 2637
-sys/src/cmd/aux/timesync.c - 664 sys sys 1080399717 24797
+sys/src/cmd/aux/timesync.c - 664 sys sys 1083697436 24772
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1078840013 3521
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
