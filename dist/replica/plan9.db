@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1104121955 103973
 386/bin/aan - 775 sys sys 1104121955 130710
 386/bin/acid - 775 sys sys 1106453224 355754
-386/bin/acme - 775 sys sys 1106799168 427251
+386/bin/acme - 775 sys sys 1107230748 428041
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1104121958 70291
@@ -3343,7 +3343,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1107071255 252431
+sys/games/lib/fortunes - 664 sys sys 1107160187 252674
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -4657,7 +4657,7 @@ sys/man/1/2l - 664 sys sys 1101668051 4365
 sys/man/1/INDEX - 664 sys sys 1104811679 3004
 sys/man/1/INDEX.html - 664 sys sys 1104736360 16403
 sys/man/1/acid - 664 sys sys 1101668051 9727
-sys/man/1/acme - 664 sys sys 1101996606 17593
+sys/man/1/acme - 664 sys sys 1107154713 18033
 sys/man/1/ap - 664 sys sys 1068471657 364
 sys/man/1/ar - 664 sys sys 1079397701 3153
 sys/man/1/ascii - 664 sys sys 957920005 2733
@@ -4990,7 +4990,7 @@ sys/man/4 - 20000000775 sys sys 1018581459 0
 sys/man/4/0intro - 664 sys sys 944959699 472
 sys/man/4/INDEX - 664 sys sys 1104811679 985
 sys/man/4/INDEX.html - 664 sys sys 1104736381 4926
-sys/man/4/acme - 664 sys sys 1015024813 9642
+sys/man/4/acme - 664 sys sys 1107154713 9959
 sys/man/4/archfs - 664 sys sys 960000712 533
 sys/man/4/cdfs - 664 sys sys 1026846913 3638
 sys/man/4/cfs - 664 sys sys 1015024813 1758
@@ -5500,7 +5500,7 @@ sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1071245428 28564
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1017679394 9600
-sys/src/9/port/devsrv.c - 664 sys sys 1104243965 5149
+sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
 sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1086406907 45225
@@ -6797,7 +6797,7 @@ sys/src/cmd/acme/acme.c - 664 sys sys 1104430286 19613
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1079102914 11126
-sys/src/cmd/acme/dat.h - 664 sys sys 1104874643 11144
+sys/src/cmd/acme/dat.h - 664 sys sys 1107154481 11165
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1101910761 12068
@@ -6805,8 +6805,8 @@ sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
 sys/src/cmd/acme/elog.c - 664 sys sys 1078839859 7236
 sys/src/cmd/acme/exec.c - 664 sys sys 1099329953 28183
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
-sys/src/cmd/acme/fns.h - 664 sys sys 1079102913 2883
-sys/src/cmd/acme/fsys.c - 664 sys sys 1079102915 12799
+sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
+sys/src/cmd/acme/fsys.c - 664 sys sys 1107154482 12881
 sys/src/cmd/acme/look.c - 664 sys sys 1077376257 14213
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
@@ -6814,9 +6814,9 @@ sys/src/cmd/acme/rows.c - 664 sys sys 1103565437 14702
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1103606882 27652
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
-sys/src/cmd/acme/util.c - 664 sys sys 1100535510 7208
+sys/src/cmd/acme/util.c - 664 sys sys 1107154483 7984
 sys/src/cmd/acme/wind.c - 664 sys sys 1104874643 11201
-sys/src/cmd/acme/xfid.c - 664 sys sys 1104874643 19219
+sys/src/cmd/acme/xfid.c - 664 sys sys 1107154483 19555
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
 sys/src/cmd/archfs.c - 664 sys sys 1014925694 3871
 sys/src/cmd/ascii.c - 664 sys sys 964457138 3989
