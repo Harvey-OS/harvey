@@ -122,7 +122,7 @@ struct Ndbs
 #define NDB_IPlen 16
 
 Ndbtuple*	csgetval(char*, char*, char*, char*, char*);
-Ndbtuple*	csgetvalue(char*, char*, char*, char*, char*, int);
+char*		csgetvalue(char*, char*, char*, char*, Ndbtuple**);
 Ndbtuple*	csipinfo(char*, char*, char*, char**, int);
 Ndbtuple*	dnsquery(char*, char*, char*);
 char*		ipattr(char*);
@@ -134,11 +134,11 @@ Ndbtuple*	ndbdiscard(Ndbtuple*, Ndbtuple*);
 void		ndbfree(Ndbtuple*);
 Ndbtuple*	ndbgetipaddr(Ndb*, char*);
 Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
-Ndbtuple*	ndbgetvalue(Ndb*, Ndbs*, char*, char*, char*, char*, int);
+char*		ndbgetvalue(Ndb*, Ndbs*, char*, char*, char*, Ndbtuple**);
+Ndbtuple*	ndbfindattr(Ndbtuple*, Ndbtuple*, char*);
 ulong		ndbhash(char*, int);
 Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
 Ndbtuple*	ndblookval(Ndbtuple*, Ndbtuple*, char*, char*);
-Ndbtuple*	ndblookvalue(Ndbtuple*, Ndbtuple*, char*, char*, int);
 Ndbtuple*	ndbnew(char*, char*);
 Ndb*		ndbopen(char*);
 Ndbtuple*	ndbparse(Ndb*);

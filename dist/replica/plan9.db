@@ -543,7 +543,7 @@
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
 386/lib/libmp.a - 664 sys sys 1077940925 77700
-386/lib/libndb.a - 664 sys sys 1078626124 61198
+386/lib/libndb.a - 664 sys sys 1078839930 60772
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
 386/lib/libscribble.a - 664 sys sys 1073851274 107542
@@ -3413,7 +3413,7 @@ sys/include/memdraw.h - 664 sys sys 1039752978 5616
 sys/include/memlayer.h - 664 sys sys 1051031022 1851
 sys/include/mouse.h - 664 sys sys 1035232010 1003
 sys/include/mp.h - 664 sys sys 1014929065 4610
-sys/include/ndb.h - 664 sys sys 1078618596 4334
+sys/include/ndb.h - 664 sys sys 1078839927 4315
 sys/include/nfs3.h - 664 sys sys 1045589438 15082
 sys/include/plumb.h - 664 sys sys 1014929065 989
 sys/include/pool.h - 664 sys sys 1032058257 1156
@@ -4835,7 +4835,7 @@ sys/man/2/mouse - 664 sys sys 971455512 4966
 sys/man/2/mp - 664 sys sys 1071238964 10690
 sys/man/2/muldiv - 664 sys sys 984709633 639
 sys/man/2/nan - 664 sys sys 975084242 937
-sys/man/2/ndb - 664 sys sys 1078625843 9479
+sys/man/2/ndb - 664 sys sys 1078840106 9427
 sys/man/2/notify - 664 sys sys 1032058674 6376
 sys/man/2/object - 664 sys sys 944959695 3864
 sys/man/2/open - 664 sys sys 1015091524 3404
@@ -5207,7 +5207,6 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
-sys/src/9/boot/libboot.a8 - 664 sys sys 1074883206 62012
 sys/src/9/boot/local.c - 664 sys sys 1068835808 5355
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -6762,7 +6761,7 @@ sys/src/cmd/9nfs/pcnfsd.c - 664 sys sys 1017337815 3964
 sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1040952456 3179
 sys/src/cmd/9nfs/rpc.c - 664 sys sys 1017337815 5293
 sys/src/cmd/9nfs/rpc.h - 664 sys sys 1017337815 1996
-sys/src/cmd/9nfs/server.c - 664 sys sys 1050715043 11065
+sys/src/cmd/9nfs/server.c - 664 sys sys 1078839960 10996
 sys/src/cmd/9nfs/string.c - 664 sys sys 1017337815 1659
 sys/src/cmd/9nfs/strparse.c - 664 sys sys 1015090373 506
 sys/src/cmd/9nfs/system.c - 664 sys sys 1017337815 437
@@ -6794,7 +6793,7 @@ sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
-sys/src/cmd/acme/elog.c - 664 sys sys 1067723163 7241
+sys/src/cmd/acme/elog.c - 664 sys sys 1078839859 7236
 sys/src/cmd/acme/exec.c - 664 sys sys 1077376257 28024
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1077376255 2857
@@ -6848,14 +6847,14 @@ sys/src/cmd/astro/venust.c - 664 sys sys 944960761 739
 sys/src/cmd/auth - 20000000775 sys sys 1015008432 0
 sys/src/cmd/auth/asn12rsa.c - 664 sys sys 1048614959 1192
 sys/src/cmd/auth/authcmdlib.h - 664 sys sys 1032497636 1438
-sys/src/cmd/auth/authsrv.c - 664 sys sys 1051128389 18428
+sys/src/cmd/auth/authsrv.c - 664 sys sys 1078839960 18395
 sys/src/cmd/auth/challenge.c - 664 sys sys 1015008432 980
 sys/src/cmd/auth/changeuser.c - 664 sys sys 1015008431 2933
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1015008430 2347
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1015008432 2401
 sys/src/cmd/auth/cron.c - 664 sys sys 1063858528 11410
-sys/src/cmd/auth/debug.c - 664 sys sys 1044839697 7324
+sys/src/cmd/auth/debug.c - 664 sys sys 1078839961 7339
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
 sys/src/cmd/auth/factotum - 20000000775 sys sys 1017165894 0
@@ -6930,7 +6929,7 @@ sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
 sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1074559798 7998
 sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1064667494 4971
 sys/src/cmd/auth/secstore/util.c - 664 sys sys 1021579985 1498
-sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1074559811 8985
+sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1078840013 9007
 sys/src/cmd/auth/status - 775 sys sys 1015008430 738
 sys/src/cmd/auth/uniq.c - 664 sys sys 1015008430 1429
 sys/src/cmd/auth/userpasswd.c - 664 sys sys 1015008432 591
@@ -7078,7 +7077,7 @@ sys/src/cmd/aux/reboot.c - 664 sys sys 1014925091 1411
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
 sys/src/cmd/aux/stub.c - 664 sys sys 1032468954 2637
 sys/src/cmd/aux/timesync.c - 664 sys sys 1071334828 24811
-sys/src/cmd/aux/trampoline.c - 664 sys sys 1034780422 3571
+sys/src/cmd/aux/trampoline.c - 664 sys sys 1078840013 3521
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
 sys/src/cmd/aux/vga - 20000000775 sys sys 1018723175 0
@@ -7094,7 +7093,7 @@ sys/src/cmd/aux/vga/clgd546x.c - 664 sys sys 1014925007 7996
 sys/src/cmd/aux/vga/ct65540.c - 664 sys sys 1014925007 5355
 sys/src/cmd/aux/vga/cyber938x.c - 664 sys sys 1045505008 6440
 sys/src/cmd/aux/vga/data.c - 664 sys sys 1019498850 2200
-sys/src/cmd/aux/vga/db.c - 664 sys sys 1048636615 9349
+sys/src/cmd/aux/vga/db.c - 664 sys sys 1078840016 9331
 sys/src/cmd/aux/vga/error.c - 664 sys sys 1014925008 745
 sys/src/cmd/aux/vga/et4000.c - 664 sys sys 1014925008 6720
 sys/src/cmd/aux/vga/et4000hwgc.c - 664 sys sys 1014925008 552
@@ -9426,7 +9425,6 @@ sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1048285493 13555
 sys/src/cmd/ip/ftpfs/ftpfs.h - 664 sys sys 1048312051 2328
 sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048312050 173
 sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1048285496 29321
-sys/src/cmd/ip/gizzard.c - 664 sys sys 1063897565 8950
 sys/src/cmd/ip/glob.c - 664 sys sys 1015013111 2968
 sys/src/cmd/ip/glob.h - 664 sys sys 1015090252 270
 sys/src/cmd/ip/gping.c - 664 sys sys 1015013112 20476
@@ -9434,6 +9432,7 @@ sys/src/cmd/ip/hogports.c - 664 sys sys 988225294 987
 sys/src/cmd/ip/httpd - 20000000775 sys sys 1016902735 0
 sys/src/cmd/ip/httpd/anonymous.c - 664 sys sys 984773807 195
 sys/src/cmd/ip/httpd/authorize.c - 664 sys sys 1016902735 2387
+sys/src/cmd/ip/httpd/classify.c - 664 sys sys 1078840017 9665
 sys/src/cmd/ip/httpd/content.c - 664 sys sys 1015090170 3140
 sys/src/cmd/ip/httpd/emem.c - 664 sys sys 984773807 278
 sys/src/cmd/ip/httpd/hints.c - 664 sys sys 1024927592 6314
@@ -9474,7 +9473,7 @@ sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1071498576 34555
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
-sys/src/cmd/ip/mkfile - 664 sys sys 1063897563 1250
+sys/src/cmd/ip/mkfile - 664 sys sys 1078879907 1240
 sys/src/cmd/ip/ping.c - 664 sys sys 1061496964 5552
 sys/src/cmd/ip/ppp - 20000000775 sys sys 988249980 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
@@ -9735,10 +9734,10 @@ sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1060612175 6862
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
-sys/src/cmd/ndb/cs.c - 664 sys sys 1078631715 33161
+sys/src/cmd/ndb/cs.c - 664 sys sys 1078840015 33033
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
-sys/src/cmd/ndb/dblookup.c - 664 sys sys 1060612175 17896
+sys/src/cmd/ndb/dblookup.c - 664 sys sys 1078840015 18019
 sys/src/cmd/ndb/dn.c - 664 sys sys 1063855019 26727
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1055701929 2126
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1055701929 3062
@@ -9755,9 +9754,9 @@ sys/src/cmd/ndb/mkdb.c - 664 sys sys 957402054 2886
 sys/src/cmd/ndb/mkfile - 664 sys sys 1055701930 1877
 sys/src/cmd/ndb/mkhash.c - 664 sys sys 1014926160 2899
 sys/src/cmd/ndb/mkhosts.c - 664 sys sys 957402054 4294
-sys/src/cmd/ndb/query.c - 664 sys sys 957402054 1133
+sys/src/cmd/ndb/query.c - 664 sys sys 1078840016 1120
 sys/src/cmd/ndb/time.c - 664 sys sys 957402055 321
-sys/src/cmd/netstat.c - 664 sys sys 1063854991 3794
+sys/src/cmd/netstat.c - 664 sys sys 1078839959 3846
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
 sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
 sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
@@ -10398,7 +10397,7 @@ sys/src/cmd/ssh/scp.c - 664 sys sys 1075130172 13886
 sys/src/cmd/ssh/smsg.c - 664 sys sys 1062091015 6135
 sys/src/cmd/ssh/ssh.c - 664 sys sys 1066515693 9667
 sys/src/cmd/ssh/ssh.h - 664 sys sys 1048179595 6054
-sys/src/cmd/ssh/sshnet.c - 664 sys sys 1062091019 17661
+sys/src/cmd/ssh/sshnet.c - 664 sys sys 1078840016 17641
 sys/src/cmd/ssh/sshserve.c - 664 sys sys 1062091020 5786
 sys/src/cmd/ssh/util.c - 664 sys sys 1063858753 4478
 sys/src/cmd/stats.c - 664 sys sys 1074086705 28191
@@ -10810,7 +10809,7 @@ sys/src/cmd/upas/common/aux.c - 664 sys sys 1019498851 2300
 sys/src/cmd/upas/common/become.c - 664 sys sys 1015009623 430
 sys/src/cmd/upas/common/common.h - 664 sys sys 1075069143 2021
 sys/src/cmd/upas/common/config.c - 664 sys sys 944961316 254
-sys/src/cmd/upas/common/libsys.c - 664 sys sys 1071334866 14459
+sys/src/cmd/upas/common/libsys.c - 664 sys sys 1078840017 14437
 sys/src/cmd/upas/common/mail.c - 664 sys sys 944961315 1346
 sys/src/cmd/upas/common/makefile - 664 sys sys 944961315 366
 sys/src/cmd/upas/common/mkfile - 664 sys sys 1075069142 273
@@ -11333,7 +11332,7 @@ sys/src/libauth/noworld.c - 664 sys sys 1014929318 779
 sys/src/libauthsrv - 20000000775 sys sys 1015091654 0
 sys/src/libauthsrv/_asgetticket.c - 664 sys sys 1015091652 280
 sys/src/libauthsrv/_asrdresp.c - 664 sys sys 1015091652 874
-sys/src/libauthsrv/authdial.c - 664 sys sys 1017166331 711
+sys/src/libauthsrv/authdial.c - 664 sys sys 1078840018 687
 sys/src/libauthsrv/convA2M.c - 664 sys sys 1015091652 501
 sys/src/libauthsrv/convM2A.c - 664 sys sys 1015091652 470
 sys/src/libauthsrv/convM2PR.c - 664 sys sys 1015091653 610
@@ -12110,7 +12109,7 @@ sys/src/libmp/power/mpvecsub.s - 664 sys sys 950104732 1118
 sys/src/libmp/power/placeholder.c - 664 sys sys 944961747 0
 sys/src/libmp/test.c - 664 sys sys 964798440 12260
 sys/src/libndb - 20000000775 sys sys 1015013466 0
-sys/src/libndb/csgetval.c - 664 sys sys 1078626122 1600
+sys/src/libndb/csgetval.c - 664 sys sys 1078839927 1752
 sys/src/libndb/csipinfo.c - 664 sys sys 1069206439 1175
 sys/src/libndb/dnsquery.c - 664 sys sys 1078618597 2840
 sys/src/libndb/ipattr.c - 664 sys sys 953844690 586
@@ -12121,12 +12120,12 @@ sys/src/libndb/ndbcat.c - 664 sys sys 950311789 224
 sys/src/libndb/ndbconcatenate.c - 664 sys sys 1078618598 259
 sys/src/libndb/ndbdiscard.c - 664 sys sys 1078618598 436
 sys/src/libndb/ndbfree.c - 664 sys sys 1078618598 952
-sys/src/libndb/ndbgetipaddr.c - 664 sys sys 1078618598 813
-sys/src/libndb/ndbgetval.c - 664 sys sys 1078626122 1160
+sys/src/libndb/ndbgetipaddr.c - 664 sys sys 1078839928 792
+sys/src/libndb/ndbgetval.c - 664 sys sys 1078839928 1309
 sys/src/libndb/ndbhash.c - 664 sys sys 1069206440 4973
 sys/src/libndb/ndbhf.h - 664 sys sys 1015013485 746
 sys/src/libndb/ndbipinfo.c - 664 sys sys 1078618599 4640
-sys/src/libndb/ndblookval.c - 664 sys sys 1078626123 981
+sys/src/libndb/ndblookval.c - 664 sys sys 1078839929 791
 sys/src/libndb/ndbopen.c - 664 sys sys 1069206441 2716
 sys/src/libndb/ndbparse.c - 664 sys sys 1069206440 1167
 sys/src/libndb/ndbreorder.c - 664 sys sys 1078618600 966

@@ -1,6 +1,6 @@
 .TH NDB 2
 .SH NAME
-ndbopen, ndbcat, ndbchanged, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetvalue, ndbfree, ipattr, ndbgetipaddr, ndbipinfo, csipinfo, ndbhash, ndbparse, csgetvalue, ndblookvalue, dnsquery, ndbdiscard, ndbconcatenate, ndbreorder, ndbsubstitute, ndbgetval, csgetval, ndblookval \- network database
+ndbopen, ndbcat, ndbchanged, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetvalue, ndbfree, ipattr, ndbgetipaddr, ndbipinfo, csipinfo, ndbhash, ndbparse, csgetvalue, ndbfindattr, dnsquery, ndbdiscard, ndbconcatenate, ndbreorder, ndbsubstitute, ndbgetval, csgetval, ndblookval \- network database
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -33,14 +33,14 @@ Ndbtuple*	ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 Ndbtuple*	ndbsnext(Ndbs *s, char *attr, char *val)
 .PP
 .B
-Ndbtuple*	ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val,
+char*	ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val,
 .br
 .B
-		char *rattr, char *buf, int buflen)
+		char *rattr, Ndbtuple **tp)
 .PP
 .B
-Ndbtuple*	csgetvalue(char *netroot, char *attr, char *val, char *rattr,
-		char *buf, int buflen)
+char*	csgetvalue(char *netroot, char *attr, char *val, char *rattr,
+		Ndbtuple **tp)
 .PP
 .B
 char*	ipattr(char *name)
@@ -68,8 +68,7 @@ Ndbtuple*	ndbparse(Ndb *db)
 Ndbtuple*	dnsquery(char *netroot, char *domainname, char *type)
 .PP
 .B
-Ndbtuple*	ndblookvalue(Ndbtuple *entry, Ndbtuple *line, char *attr,
-		char *to, int tolen)
+Ndbtuple*	ndbfindattr(Ndbtuple *entry, Ndbtuple *line, char *attr)
 .PP
 .B
 void	ndbfree(Ndbtuple *db)
@@ -195,12 +194,14 @@ attribute/value pair,
 .IR attr = val ,
 but also a pair with the attribute
 .IR rattr .
-If successful, it copies up to
-.I buflen
-bytes of the value associated with
-.I rattr
-into
-.IR buf .
+If successful, it returns a malloced copy of the null terminated value associated with
+.IR  rattr .
+If
+.I tp
+is non nil,
+.I *tp
+will point to the entry.  Otherwise the entry will be freeed.
+.PP
 .I Csgetvalue
 is like
 .I ndbgetvalue
@@ -374,16 +375,12 @@ name servers.  Returns domain name
 and name server
 .RI ( ns )
 .PP
-.I Ndblookvalue
+.I Ndbfindattr
 searches 
 .I entry
 for the tuple
 with attribute
-.IR attr ,
-copies up to
-.I tolen
-bytes of the value into
-.IR to ,
+.I attr
 and returns a pointer to the tuple.
 If
 .I line
@@ -453,8 +450,6 @@ is freed.
 .IR ndb (6)
 .IR ndb (8)
 .SH DIAGNOSTICS
-These routines set
-.IR errstr .
 .IR Ndbgetvalue ,
 .IR csgetvalue ,
 and
@@ -462,7 +457,7 @@ and
 set
 .I errstr
 to
-.B "return value truncated"
+.B "buffer too short"
 if the buffer provided isn't long enough for the
 returned value.
 .SH BUGS

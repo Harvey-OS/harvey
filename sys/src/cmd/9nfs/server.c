@@ -473,10 +473,10 @@ addcacheentry(void *name, int len, ulong ip)
 int
 getdnsdom(ulong ip, char *name, int len)
 {
-	char buf[Ndbvlen];
-	char dom[Ndbvlen];
+	char buf[128];
+	char dom[256];
 	Namecache *nc;
-	Ndbtuple *t;
+	char *p;
 
 	if(nc=iplookup(ip)) {
 		strncpy(name, nc->dom, len);
@@ -485,14 +485,12 @@ getdnsdom(ulong ip, char *name, int len)
 	}
 	clog("getdnsdom: %I\n", ip);
 	snprint(buf, sizeof buf, "%I", ip);
-	t = csgetval("/net", "ip", buf, "dom", dom);
-clog("csgetval %p\n", t);
-	if(t == nil)
+	p = csgetvalue("/net", "ip", buf, "dom", nil);
+	if(p == nil)
 		return -1;
-	ndbfree(t);
-clog("csgetval %s\n", dom);
-	strncpy(name, dom, len-1);
+	strncpy(name, p, len-1);
 	name[len] = 0;
+	free(p);
 	addcacheentry(name, strlen(name), ip);
 	return 0;
 }

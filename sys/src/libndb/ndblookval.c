@@ -9,20 +9,14 @@
  *  then in the whole entry.
  */
 Ndbtuple*
-ndblookvalue(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to, int len)
+ndbfindattr(Ndbtuple *entry, Ndbtuple *line, char *attr)
 {
 	Ndbtuple *nt;
 
 	/* first look on same line (closer binding) */
-	werrstr("");
-	for(nt = line;;){
-		if(strcmp(attr, nt->attr) == 0){
-			strncpy(to, nt->val, len);
-			to[len-1] = 0;
-			if(strlen(nt->val) >= len)
-				werrstr("return value truncated");
+	for(nt = line; nt;){
+		if(strcmp(attr, nt->attr) == 0)
 			return nt;
-		}
 		nt = nt->line;
 		if(nt == line)
 			break;
@@ -30,18 +24,21 @@ ndblookvalue(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to, int len)
 
 	/* search whole tuple */
 	for(nt = entry; nt; nt = nt->entry)
-		if(strcmp(attr, nt->attr) == 0){
-			strncpy(to, nt->val, len);
-			to[len-1] = 0;
-			if(strlen(nt->val) >= len)
-				werrstr("return value truncated");
+		if(strcmp(attr, nt->attr) == 0)
 			return nt;
-		}
-	return 0;
+
+	return nil;
 }
 
 Ndbtuple*
 ndblookval(Ndbtuple *entry, Ndbtuple *line, char *attr, char *to)
 {
-	return ndblookvalue(entry, line, attr, to, Ndbvlen);
+	Ndbtuple *t;
+
+	t = ndbfindattr(entry, line, attr);
+	if(t != nil){
+		strncpy(to, t->val, Ndbvlen-1);
+		to[Ndbvlen-1] = 0;
+	}
+	return t;
 }

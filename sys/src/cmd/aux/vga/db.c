@@ -227,7 +227,7 @@ dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 {
 	Ndbs s;
 	Ndbtuple *t, *tuple;
-	char *p, attr[Namelen+1], val[Namelen+1], buf[2*Namelen+1], vbuf[Ndbvlen];
+	char *p, attr[Namelen+1], val[Namelen+1], buf[2*Namelen+1];
 	int clock, x;
 
 	/*
@@ -253,9 +253,9 @@ dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 	strcpy(attr, type);
 	strcpy(val, buf);
 
-	if(t=ndbgetval(db, &s, attr, "", "videobw", vbuf)){
-		ndbfree(t);
-		mode->videobw = atol(vbuf)*1000000UL;
+	if(p = ndbgetvalue(db, &s, attr, "", "videobw", nil)){
+		mode->videobw = atol(p)*1000000UL;
+		free(p);
 	}
 
 	if(mode->x == 0 && ((mode->x = strtol(val, &p, 0)) == 0 || *p++ != 'x'))
