@@ -3879,6 +3879,7 @@ sys/lib/kbmap/bgmap - 664 sys sys 1079475826 561
 sys/lib/kbmap/ee - 644 sys sys 1080222237 429
 sys/lib/kbmap/es - 664 sys sys 1079535430 1360
 sys/lib/kbmap/fi - 664 sys sys 1079617317 369
+sys/lib/kbmap/jp - 664 sys sys 1088002290 317
 sys/lib/kbmap/uk - 664 sys sys 1079473812 55
 sys/lib/kbmap/us - 664 sys sys 1082221421 6248
 sys/lib/lex - 20000000775 sys sys 945136651 0
