@@ -5429,7 +5429,7 @@ sys/src/9/pc/sdata.c - 664 sys sys 1099487462 50970
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1092080705 20458
-sys/src/9/pc/uarti8250.c - 664 sys sys 1102093392 13917
+sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
 sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
 sys/src/9/pc/usbuhci.c - 664 sys sys 1099760881 30955
@@ -12394,3 +12394,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9pc - 775 sys sys 1102825222 1832889
+386/9pccpu - 775 sys sys 1102825226 1487882
+386/9pcdisk - 775 sys sys 1102825230 2038279
+386/9pcf - 775 sys sys 1102825235 2371314
