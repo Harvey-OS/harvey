@@ -12443,3 +12443,9 @@
 1069592527 52 c 386/bin/upas/smtp - 775 sys sys 1069592384 271115
 1069592527 53 c 386/bin/upas/smtpd - 775 sys sys 1069592385 320515
 1069592527 54 c 386/lib/libndb.a - 664 sys sys 1069592386 54610
+1069684229 0 c sys/src/cmd/fossil/9.h - 664 sys sys 1069683864 4268
+1069684229 1 c sys/src/cmd/fossil/9proc.c - 664 sys sys 1069683861 14521
+1069684229 2 c sys/src/cmd/fossil/cache.c - 664 sys sys 1069683862 43183
+1069684229 3 c sys/src/cmd/fossil/fossil.c - 664 sys sys 1069683860 2114
+1069707632 0 c sys/man/3/proc - 664 sys sys 1069706068 11896
+1069707632 1 d sys/man/3/realtime - 664 sys sys 1067722856 0

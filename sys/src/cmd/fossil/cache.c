@@ -1102,6 +1102,7 @@ blistAlloc(Block *b)
 		p = c->blfree;
 		c->blfree = p->next;
 		vtUnlock(c->lk);
+assert(b->iostate == BioDirty);
 		return p;
 	}
 	vtUnlock(c->lk);
@@ -1144,6 +1145,7 @@ blistFree(Cache *c, BList *bl)
 	c->blfree = bl;
 	vtWakeup(c->blrend);
 	vtUnlock(c->lk);
+cacheFlush(c, 0);
 }
 
 /*
@@ -1218,6 +1220,7 @@ blockDependency(Block *b, Block *bb, int index, uchar *score, Entry *e)
 	if(p == nil)
 		return;
 
+	assert(bb->iostate == BioDirty);
 if(0)fprint(2, "%d:%x:%d depends on %d:%x:%d\n", b->part, b->addr, b->l.type, bb->part, bb->addr, bb->l.type);
 
 	p->part = bb->part;
@@ -1515,6 +1518,8 @@ blockWrite(Block *b)
 			fprint(2, "%d:%x:%d iostate is %d in blockWrite\n",
 				bb->part, bb->addr, bb->l.type, bb->iostate);
 			/* probably BioWriting if it happens? */
+			if(bb->iostate == BioClean)
+				goto ignblock;
 		}
 
 		blockPut(bb);

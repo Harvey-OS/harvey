@@ -5,6 +5,7 @@ proc \- running processes
 .nf
 .B bind #p /proc
 
+.B /proc/trace
 .BI /proc/ n /args
 .BI /proc/ n /ctl
 .BI /proc/ n /fd
@@ -28,7 +29,9 @@ proc \- running processes
 The
 .I proc
 device serves a two-level directory structure.
-The first level contains numbered directories
+The first level contains the
+.B trace
+file (see below) and numbered directories
 corresponding to pids of live processes;
 each such directory contains a set of files
 representing the corresponding process.
@@ -266,6 +269,11 @@ Set the base priority for the process to the integer
 Wire the process to processor
 .IR n .
 .TP 10n
+.B trace
+Toggle trace event generation for this process into
+.B /proc/trace
+(see below).
+.TP 10n
 .B "period\ \fInu
 Set the real-time scheduling period of the process to
 .IR nu ,
@@ -289,9 +297,9 @@ empty.  The time is interpreted, respectively, as
 or, in the case of an absent units specifier, as
 .IR nanoseconds .
 If the time specifier is signed, it is interpreted as an increment or decrement
-from a previously set value.
-See
-.IR realtime (3).
+from a previously set value.  See also the
+.B admit
+command below.
 .TP 10n
 .B "deadline\ \fInu
 Set the real-time deadline interval of the process to
@@ -303,8 +311,6 @@ and
 are interpreted as for
 .B period
 above.
-See
-.IR realtime (3).
 .TP 10n
 .B "cost\ \fInu
 Set the real-time cost (maximum CPU time per period) of the process to
@@ -318,14 +324,15 @@ are interpreted as for
 above.
 .TP 10n
 .B "sporadic
-Use sporadic scheduling for the real-time process.
-See
-.IR realtime (3).
+Use sporadic scheduling for the real-time process.  The description of the
+.B admit
+command below contains further details.
 .TP 10n
 .B "yieldonblock
 Make the real-time process yield on blocking I/O.
-See
-.IR realtime (3).
+  The description of the
+.B admit
+command below contains further details.
 .TP 10n
 .B "admit
 Given real-time
@@ -342,9 +349,59 @@ to
 perform a schedulability test and start scheduling the process as a real-time
 process if the test succeeds.  If the test fails, the
 .B write
-will fail with error set to the reason for failure.
-See
-.IR realtime (3).
+will fail with error set to the reason for failure.  For details on real time, read on.
+.PP
+Real-time processes are periodically
+.IR released ,
+giving them a higher priority than non-real-time processes until they either
+give up the processor voluntarily, they exhaust their CPU allocation, or they reach their
+.IR deadline .
+The moment of release is dictated by the
+.I period
+and whther the process is
+.I sporadic
+or not.
+Non-sporadic processes are called
+.I periodic
+and they are released precisely at intervals of their period (but perods can be skipped
+if the process blocks on I/O).  Sporadic processes are released whenever they become
+runnable (after being blocked by
+.IR sleep ()
+or I/O), but always at least an interval of
+.I period
+after the previous release.
+.PP
+The
+.I deadline
+of a real-time process specifies that the process must complete within the first
+.I deadline
+seconds of its
+.IR period .
+The dealine must be less than or equal to the period.  If it is not specified, it is set to the period.
+.PP
+The
+.I cost
+of a real-time process describes the maximum CPU time the process may use per period.
+.PP
+A real-time process can give up the CPU before its deadline is reached or its allocation is exhausted.
+It does this by calling
+.IR sleep (0).
+If
+.I yieldonblock
+is specified, it also does it by executing any blocking system call.
+.I Yieldonblock
+is assumed for
+.I sporadic
+processes.
+.PP
+Of the released processes, the one with the earliest deadline has the highest priority.
+Care should be taken using spin locks (see
+.IR lock (2))
+because a real-time process spinning on a lock will not give up the processor until
+its CPU allocation is exhausted; this is unlikely to be the desired behavior.
+.PP
+When a real-time process reaches its deadline or exhausts its CPU allocation, it remains
+schedulable, but at a very low priority.
 .PP
 The priority is interpreted by Plan 9's multilevel process scheduler.
 Priorities run from 0 to 19, with higher
@@ -401,12 +458,33 @@ in
 .IR fork (2)).
 The file may be written to cause the process to change to another note group,
 provided the group exists and is owned by the same user.
+.PP
+The file
+.B /proc/trace
+can be opened once and read to see trace events from processes that have
+had the string
+.B trace
+written to their
+.B ctl
+file.
+Each event produces, in native machine format, the
+.IR pid ,
+a
+.IR type ,
+and a
+.I "time stamp"
+(see
+.B /sys/include/trace.h
+and
+.BR /sys/src/cmd/trace.c ).
 .SH FILES
 .nf
 .B /sys/src/9/*/mem.h
 .B /sys/src/9/*/dat.h
+.B /sys/include/trace.h
 .fi
 .SH SEE ALSO
+.IR trace (1),
 .IR debugger (2),
 .IR mach (2),
 .IR cons (3)

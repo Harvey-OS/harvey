@@ -4847,8 +4847,7 @@ sys/man/3/mnt - 664 sys sys 944959698 1994
 sys/man/3/mouse - 664 sys sys 1020313480 4276
 sys/man/3/pipe - 664 sys sys 1032640674 1145
 sys/man/3/pnp - 664 sys sys 1019864752 4645
-sys/man/3/proc - 664 sys sys 1067722856 9526
-sys/man/3/realtime - 664 sys sys 1067722856 7946
+sys/man/3/proc - 664 sys sys 1069706068 11896
 sys/man/3/root - 664 sys sys 1046958450 632
 sys/man/3/rtc - 664 sys sys 954378857 667
 sys/man/3/sd - 664 sys sys 1018386776 4805
@@ -7301,7 +7300,7 @@ sys/src/cmd/file.c - 664 sys sys 1065017417 20590
 sys/src/cmd/fmt.c - 664 sys sys 1069018548 3897
 sys/src/cmd/fortune.c - 664 sys sys 1035832953 1674
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
-sys/src/cmd/fossil/9.h - 664 sys sys 1068129294 4165
+sys/src/cmd/fossil/9.h - 664 sys sys 1069683864 4268
 sys/src/cmd/fossil/9auth.c - 664 sys sys 1061530721 3393
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1042005502 1995
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
@@ -7310,7 +7309,7 @@ sys/src/cmd/fossil/9fsys.c - 664 sys sys 1068591358 29979
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
 sys/src/cmd/fossil/9p.c - 664 sys sys 1066098096 21486
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
-sys/src/cmd/fossil/9proc.c - 664 sys sys 1068129294 15100
+sys/src/cmd/fossil/9proc.c - 664 sys sys 1069683861 14521
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1066098097 3682
 sys/src/cmd/fossil/9user.c - 664 sys sys 1066098098 17239
 sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
@@ -7321,7 +7320,7 @@ sys/src/cmd/fossil/archive.c - 664 sys sys 1061530723 9109
 sys/src/cmd/fossil/build - 664 sys sys 1042005505 449
 sys/src/cmd/fossil/buildsh - 775 sys sys 1042005505 561
 sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
-sys/src/cmd/fossil/cache.c - 664 sys sys 1068526660 43049
+sys/src/cmd/fossil/cache.c - 664 sys sys 1069683862 43183
 sys/src/cmd/fossil/conf.rc - 775 sys sys 1055703747 1407
 sys/src/cmd/fossil/dat.h - 664 sys sys 1061530727 7851
 sys/src/cmd/fossil/deadlock - 775 sys sys 1042005506 413
@@ -7336,7 +7335,7 @@ sys/src/cmd/fossil/flfmt.c - 664 sys sys 1061530720 10358
 sys/src/cmd/fossil/flproto - 664 sys sys 1042005508 210
 sys/src/cmd/fossil/fns.h - 664 sys sys 1068526660 3077
 sys/src/cmd/fossil/fossil-acid - 664 sys sys 1042005508 3965
-sys/src/cmd/fossil/fossil.c - 664 sys sys 1061530719 2112
+sys/src/cmd/fossil/fossil.c - 664 sys sys 1069683860 2114
 sys/src/cmd/fossil/fs.c - 664 sys sys 1061530725 21071
 sys/src/cmd/fossil/fs.h - 664 sys sys 1055703744 1398
 sys/src/cmd/fossil/history - 664 sys sys 1055703793 1400
