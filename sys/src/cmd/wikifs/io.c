@@ -343,6 +343,7 @@ currentmap(int force)
 	int lfd, fd, m, n;
 	Dir *d;
 	Map *nmap;
+	char *err = nil;
 
 	lfd = -1;
 	fd = -1;
@@ -355,8 +356,10 @@ currentmap(int force)
 	if(!force && map && map->t+Tcache >= time(0))
 		goto Return;
 
-	if((lfd = getlock("d/L.map")) < 0)
+	if((lfd = getlock("d/L.map")) < 0){
+		err = "can't lock";
 		goto Return;
+	}
 
 	if((d = wdirstat("d/map")) == nil)
 		goto Return;
@@ -368,6 +371,7 @@ currentmap(int force)
 
 	if(d->length > Maxmap){
 		//LOG
+		err = "too long";
 		goto Return;
 	}
 
@@ -377,8 +381,10 @@ currentmap(int force)
 	nmap = emalloc(sizeof *nmap);
 	nmap->buf = emalloc(d->length+1);
 	n = readn(fd, nmap->buf, d->length);
-	if(n != d->length)
+	if(n != d->length){
+		err = "bad length";
 		goto Return;
+	}
 	nmap->buf[n] = '\0';
 
 	n = 0;
@@ -418,7 +424,7 @@ Return:
 		free(nmap);
 	}
 	if(map == nil)
-		sysfatal("cannot get map");
+		sysfatal("cannot get map: %s: %r", err);
 
 	if(fd >= 0)
 		close(fd);

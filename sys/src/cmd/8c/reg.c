@@ -208,6 +208,10 @@ regopt(Prog *p)
 		case ASHRW:
 		case AIMULL:
 		case AIMULW:
+		case ANEGL:
+		case ANOTL:
+		case AADCL:
+		case ASBBL:
 			for(z=0; z<BITS; z++) {
 				r->set.b[z] |= bit.b[z];
 				r->use2.b[z] |= bit.b[z];

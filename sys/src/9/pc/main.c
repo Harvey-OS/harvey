@@ -108,6 +108,7 @@ main(void)
 	i8253link();
 	swapinit();
 	userinit();
+	active.thunderbirdsarego = 1;
 	schedinit();
 }
 

@@ -156,7 +156,6 @@ static Traceevent *tevents;
 static Lock tlock;
 static int topens;
 static int tproduced, tconsumed;
-static Rendez teventr;
 void (*proctrace)(Proc*, int, vlong);
 
 extern int unfair;
@@ -271,12 +270,10 @@ _proctrace(Proc* p, Tevent etype, vlong ts)
 {
 	Traceevent *te;
 
-	if (p->trace == 0 || topens == 0)
+	if (p->trace == 0 || topens == 0 ||
+		tproduced - tconsumed >= Nevents)
 		return;
 
-	if(tproduced - tconsumed >= Nevents)
-		tconsumed = tproduced - Nevents + 1;
-		/* discard oldest, never mind the race */
 	te = &tevents[tproduced&Emask];
 	te->pid = p->pid;
 	te->etype = etype;
@@ -285,12 +282,6 @@ _proctrace(Proc* p, Tevent etype, vlong ts)
 	else
 		te->time = ts;
 	tproduced++;
-
-	/* To avoid circular wakeup when used in combination with 
-	 * EDF scheduling.
-	 */
-	if (teventr.p && teventr.p->state == Wakeme)
-		wakeup(&teventr);
 }
 
 static void
@@ -406,12 +397,18 @@ procopen(Chan *c, int omode)
 			error(Eperm);
 		break;
 
-	case Qmem:
 	case Qnote:
+		if(p->privatemem)
+			error(Eperm);
+		break;
+
+	case Qmem:
 	case Qctl:
 		if(p->privatemem)
 			error(Eperm);
-		/* fall through */
+		nonone(p);
+		break;
+
 	case Qargs:
 	case Qnoteid:
 	case Qstatus:

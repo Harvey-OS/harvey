@@ -42,6 +42,8 @@ enum {
 	Iccittg4,
 	Ippm,
 	Ipng,
+	Iyuv,
+	Ibmp,
 };
 
 /*
@@ -52,7 +54,7 @@ Convert cvt[] = {
 [Ipic]		{ "plan9",	"fb/3to1 rgbv %a |fb/pcp -tplan9" },
 [Itiff]		{ "tiff",	"fb/tiff2pic %a | fb/3to1 rgbv | fb/pcp -tplan9" },
 [Iplan9bm]	{ "plan9bm",	nil },
-[Ijpeg]		{ "jpeg",	"jpg -9 %a", "jpg -t9 %a", },
+[Ijpeg]		{ "jpeg",	"jpg -9 %a", "jpg -t9 %a" },
 [Igif]		{ "gif",	"gif -9 %a", "gif -t9 %a" },
 [Iinferno]	{ "inferno",	nil },
 [Ifax]		{ "fax",	"aux/g3p9bit -g %a" },
@@ -61,6 +63,8 @@ Convert cvt[] = {
 /* ``temporary'' hack for hobby */
 [Iccittg4]	{ "ccitt-g4",	"cat %a|rx nslocum /usr/lib/ocr/bin/bcp -M|fb/pcp -tcompressed -l0" },
 [Ipng]		{ "png",	"png -9 %a", "png -t9 %a" },
+[Iyuv]		{ "yuv",	"yuv -9 %a", "yuv -t9 %a"  },
+[Ibmp]		{ "bmp",	"bmp -9 %a", "bmp -t9 %a"  },
 };
 
 static Image*	convert(Graphic*);
@@ -125,8 +129,9 @@ genaddpage(Document *doc, char *name, uchar *buf, int nbuf)
 	GfxInfo *gfx;
 	Biobuf *b;
 	uchar xbuf[32];
-	int i;
+	int i, l;
 
+	l = 0;
 	gfx = doc->extra;
 
 	assert((name == nil) ^ (buf == nil));
@@ -137,6 +142,7 @@ genaddpage(Document *doc, char *name, uchar *buf, int nbuf)
 			return i;
 
 	if(name){
+		l = strlen(name);
 		if((b = Bopen(name, OREAD)) == nil) {
 			werrstr("Bopen: %r");
 			return -1;
@@ -180,12 +186,16 @@ genaddpage(Document *doc, char *name, uchar *buf, int nbuf)
 		g->type = Ipic;
 	else if(buf[0] == 'P' && '0' <= buf[1] && buf[1] <= '9')
 		g->type = Ippm;
+	else if(memcmp(buf, "BM", 2) == 0)
+		g->type = Ibmp;
 	else if(memcmp(buf, "          ", 10) == 0 &&
 		'0' <= buf[10] && buf[10] <= '9' &&
 		buf[11] == ' ')
 		g->type = Iplan9bm;
 	else if(strtochan((char*)buf) != 0)
 		g->type = Iplan9bm;
+	else if (l > 4 && strcmp(name + l -4, ".yuv") == 0)
+		g->type = Iyuv;
 	else
 		g->type = Icvt2pic;
 

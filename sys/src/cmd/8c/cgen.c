@@ -1,5 +1,7 @@
 #include "gc.h"
 
+/* ,x/^(print|prtree)\(/i/\/\/ */
+
 void
 cgen(Node *n, Node *nn)
 {
@@ -8,6 +10,7 @@ cgen(Node *n, Node *nn)
 	Node nod, nod1, nod2, nod3, nod4;
 	int o, hardleft;
 	long v, curs;
+	Renv renv;
 
 	if(debug['g']) {
 		prtree(nn, "cgen lhs");
@@ -43,6 +46,9 @@ cgen(Node *n, Node *nn)
 	if(r != Z && r->complex >= FNX)
 	switch(o) {
 	default:
+		if(cond(o) && typesuv[l->type->etype])
+			break;
+
 		regret(&nod, r);
 		cgen(r, &nod);
 
@@ -69,6 +75,19 @@ cgen(Node *n, Node *nn)
 	switch(o) {
 	default:
 		diag(n, "unknown op in cgen: %O", o);
+		break;
+
+	case ONEG:
+	case OCOM:
+		if(nn == Z) {
+			nullwarn(l, Z);
+			break;
+		}
+		regalloc(&nod, l, nn);
+		cgen(l, &nod);
+		gopcode(o, n->type, Z, &nod);
+		gmove(&nod, nn);
+		regfree(&nod);
 		break;
 
 	case OAS:
@@ -321,7 +340,7 @@ cgen(Node *n, Node *nn)
 			if(o == ODIV || o == OMOD)
 				gins(ACDQ, Z, Z);
 			if(o == OLDIV || o == OLMOD)
-				gins(AMOVL, nodconst(0), &nod1);
+				zeroregm(&nod1);
 			if(r->addable < INDEXED || r->op == OCONST) {
 				regsalloc(&nod3, r);
 				cgen(r, &nod3);
@@ -336,7 +355,7 @@ cgen(Node *n, Node *nn)
 			if(o == ODIV || o == OMOD)
 				gins(ACDQ, Z, Z);
 			if(o == OLDIV || o == OLMOD)
-				gins(AMOVL, nodconst(0), &nod1);
+				zeroregm(&nod1);
 			gopcode(o, n->type, &nod3, Z);
 		}
 		if(o == OMOD || o == OLMOD)
@@ -517,7 +536,7 @@ cgen(Node *n, Node *nn)
 			if(o == OASDIV || o == OASMOD)
 				gins(ACDQ, Z, Z);
 			if(o == OASLDIV || o == OASLMOD)
-				gins(AMOVL, nodconst(0), &nod1);
+				zeroregm(&nod1);
 			if(r->addable < INDEXED || r->op == OCONST ||
 			   !typeil[r->type->etype]) {
 				regalloc(&nod3, r, Z);
@@ -537,7 +556,7 @@ cgen(Node *n, Node *nn)
 			if(o == OASDIV || o == OASMOD)
 				gins(ACDQ, Z, Z);
 			if(o == OASLDIV || o == OASLMOD)
-				gins(AMOVL, nodconst(0), &nod1);
+				zeroregm(&nod1);
 			gopcode(o, l->type, &nod3, Z);
 			regfree(&nod3);
 		}
@@ -666,6 +685,7 @@ cgen(Node *n, Node *nn)
 			return;
 		}
 		gargs(r, &nod, &nod1);
+		reg64save(&renv);
 		if(l->addable < INDEXED) {
 			reglcgen(&nod, l, nn);
 			nod.op = OREGISTER;
@@ -673,6 +693,7 @@ cgen(Node *n, Node *nn)
 			regfree(&nod);
 		} else
 			gopcode(OFUNC, n->type, Z, l);
+		reg64rest(&renv);
 		if(REGARG && reg[REGARG])
 			reg[REGARG]--;
 		if(nn != Z) {
@@ -754,6 +775,10 @@ cgen(Node *n, Node *nn)
 		if(nocast(l->type, n->type) && nocast(n->type, nn->type)) {
 			/* both null, gen l->nn */
 			cgen(l, nn);
+			break;
+		}
+		if(typev[l->type->etype]) {
+			cgen64(n, nn);
 			break;
 		}
 		regalloc(&nod, l, nn);
@@ -972,6 +997,10 @@ boolgen(Node *n, int true, Node *nn)
 	switch(n->op) {
 
 	default:
+		if(typev[n->type->etype]) {
+			testv(n, true);
+			goto com;
+		}
 		o = ONE;
 		if(true)
 			o = OEQ;
@@ -1073,6 +1102,12 @@ boolgen(Node *n, int true, Node *nn)
 	case OLO:
 	case OLS:
 		o = n->op;
+		if(typev[l->type->etype]) {
+			if(!true)
+				n->op = comrel[relindex(o)];
+			cgen64(n, Z);
+			goto com;
+		}
 		if(true)
 			o = comrel[relindex(o)];
 		if(l->complex >= FNX && r->complex >= FNX) {
@@ -1137,7 +1172,10 @@ boolgen(Node *n, int true, Node *nn)
 		if(l->addable < INDEXED || l->addable == 13) {
 			regalloc(&nod1, l, Z);
 			cgen(l, &nod1);
-			gopcode(o, l->type, &nod1, &nod);
+			if(typechlp[l->type->etype])
+				gopcode(o, types[TINT], &nod1, &nod);
+			else
+				gopcode(o, l->type, &nod1, &nod);
 			regfree(&nod1);
 		} else
 			gopcode(o, l->type, l, &nod);
@@ -1162,9 +1200,9 @@ void
 sugen(Node *n, Node *nn, long w)
 {
 	Prog *p1;
-	Node nod0, nod1, nod2, nod3, nod4, *l, *r;
+	Node nod0, nod1, nod2, nod3, nod4, *h, *l, *r;
 	Type *t;
-	int c;
+	int c, v, x;
 
 	if(n == Z || n->type == T)
 		return;
@@ -1192,37 +1230,38 @@ sugen(Node *n, Node *nn, long w)
 				break;
 			}
 
-			switch(nn->op) {
-			default:
+			if(nn->op == OREGPAIR) {
+				loadpair(n, nn);
+				break;
+			}
+			else if(notvaddr(nn, 0)) {
 				t = nn->type;
 				nn->type = types[TLONG];
 				reglcgen(&nod1, nn, Z);
 				nn->type = t;
 
 				if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-					gmove(nodconst((long)(n->vconst>>32)), &nod1);
+					gmove(nodconst((long)((uvlong)n->vconst>>32)), &nod1);
 				else
 					gmove(nodconst((long)(n->vconst)), &nod1);
 				nod1.xoffset += SZ_LONG;
 				if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
 					gmove(nodconst((long)(n->vconst)), &nod1);
 				else
-					gmove(nodconst((long)(n->vconst>>32)), &nod1);
+					gmove(nodconst((long)((uvlong)n->vconst>>32)), &nod1);
 
 				regfree(&nod1);
-				break;
-
-			case ONAME:
-			case OINDREG:
+			}
+			else {
 				if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-					gins(AMOVL, nodconst((long)(n->vconst>>32)), nn);
+					gins(AMOVL, nodconst((long)((uvlong)n->vconst>>32)), nn);
 				else
 					gins(AMOVL, nodconst((long)(n->vconst)), nn);
 				nn->xoffset += SZ_LONG;
 				if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
 					gins(AMOVL, nodconst((long)(n->vconst)), nn);
 				else
-					gins(AMOVL, nodconst((long)(n->vconst>>32)), nn);
+					gins(AMOVL, nodconst((long)((uvlong)n->vconst>>32)), nn);
 				nn->xoffset -= SZ_LONG;
 				break;
 			}
@@ -1336,9 +1375,16 @@ sugen(Node *n, Node *nn, long w)
 		break;
 
 	case OFUNC:
+//prtree(n, "64 FUNC src");
+//prtree(nn, "64 FUNC dst");
 		if(nn == Z) {
 			sugen(n, nodrat, w);
 			break;
+		}
+		h = nn;
+		if(nn->op == OREGPAIR) {
+			regsalloc(&nod1, nn);
+			nn = &nod1;
 		}
 		if(nn->op != OIND) {
 			nn = new1(OADDR, nn, Z);
@@ -1350,6 +1396,8 @@ sugen(Node *n, Node *nn, long w)
 		n->type = types[TVOID];
 		n->left->type = types[TVOID];
 		cgen(n, Z);
+		if(h->op == OREGPAIR)
+			loadpair(nn->left, h);
 		break;
 
 	case OCOND:
@@ -1371,9 +1419,31 @@ sugen(Node *n, Node *nn, long w)
 	return;
 
 copy:
-	if(nn == Z)
-		return;
-	if(n->complex >= FNX && nn->complex >= FNX) {
+	if(nn == Z) {
+		switch(n->op) {
+		case OASADD:
+		case OASSUB:
+		case OASAND:
+		case OASOR:
+		case OASXOR:
+
+		case OASASHL:
+		case OASASHR:
+		case OASLSHR:
+			break;
+
+		case OPOSTINC:
+		case OPOSTDEC:
+		case OPREINC:
+		case OPREDEC:
+			break;
+
+		default:
+			return;
+		}
+	}
+
+	if(n->complex >= FNX && nn != nil && nn->complex >= FNX) {
 		t = nn->type;
 		nn->type = types[TLONG];
 		regialloc(&nod1, nn, Z);
@@ -1397,21 +1467,18 @@ copy:
 		return;
 	}
 
-	/* most common case of vlong variables */
-	if((n->op == ONAME || n->op == OINDREG) &&
-	   (nn->op == ONAME || nn->op == OINDREG) && w == 8) {
-		n->type = types[TLONG];
-		regalloc(&nod1, n, Z);
-		gins(AMOVL, n, &nod1);
-		gins(AMOVL, &nod1, nn);
-		n->xoffset += SZ_LONG;
-		nn->xoffset += SZ_LONG;
-		gins(AMOVL, n, &nod1);
-		gins(AMOVL, &nod1, nn);
-		n->xoffset -= SZ_LONG;
-		nn->xoffset -= SZ_LONG;
-		regfree(&nod1);
-		return;
+	x = 0;
+	v = w == 8;
+	if(v) {
+		c = cursafe;
+		if(cgen64(n, nn)) {
+			cursafe = c;
+			return;
+		}
+		if(n->op == OCOM) {
+			n = n->left;
+			x = 1;
+		}
 	}
 
 	/* botch, need to save in .safe */
@@ -1419,47 +1486,113 @@ copy:
 	if(n->complex > nn->complex) {
 		t = n->type;
 		n->type = types[TLONG];
-		nodreg(&nod1, n, D_SI);
-		if(reg[D_SI]) {
-			gins(APUSHL, &nod1, Z);
-			c |= 1;
-			reg[D_SI]++;
+		if(v) {
+			regalloc(&nod0, n, Z);
+			if(notvaddr(n, 0)) {
+				reglcgen(&nod1, n, Z);
+				n->type = t;
+				n = &nod1;
+			}
+			else
+				n->type = t;
 		}
-		lcgen(n, &nod1);
-		n->type = t;
+		else {
+			nodreg(&nod1, n, D_SI);
+			if(reg[D_SI]) {
+				gins(APUSHL, &nod1, Z);
+				c |= 1;
+				reg[D_SI]++;
+			}
+			lcgen(n, &nod1);
+			n->type = t;
+		}
 
 		t = nn->type;
 		nn->type = types[TLONG];
-		nodreg(&nod2, nn, D_DI);
-		if(reg[D_DI]) {
-			gins(APUSHL, &nod2, Z);
-			c |= 2;
-			reg[D_DI]++;
+		if(v) {
+			if(notvaddr(nn, 0)) {
+				reglcgen(&nod2, nn, Z);
+				nn->type = t;
+				nn = &nod2;
+			}
+			else
+				nn->type = t;
 		}
-		lcgen(nn, &nod2);
-		nn->type = t;
+		else {
+			nodreg(&nod2, nn, D_DI);
+			if(reg[D_DI]) {
+				gins(APUSHL, &nod2, Z);
+				c |= 2;
+				reg[D_DI]++;
+			}
+			lcgen(nn, &nod2);
+			nn->type = t;
+		}
 	} else {
 		t = nn->type;
 		nn->type = types[TLONG];
-		nodreg(&nod1, nn, D_DI);
-		if(reg[D_DI]) {
-			gins(APUSHL, &nod1, Z);
-			c |= 1;
-			reg[D_DI]++;
+		if(v) {
+			regalloc(&nod0, nn, Z);
+			if(notvaddr(nn, 0)) {
+				reglcgen(&nod2, nn, Z);
+				nn->type = t;
+				nn = &nod2;
+			}
+			else
+				nn->type = t;
 		}
-		lcgen(nn, &nod1);
-		nn->type = t;
+		else {
+			nodreg(&nod2, nn, D_DI);
+			if(reg[D_DI]) {
+				gins(APUSHL, &nod2, Z);
+				c |= 2;
+				reg[D_DI]++;
+			}
+			lcgen(nn, &nod2);
+			nn->type = t;
+		}
 
 		t = n->type;
 		n->type = types[TLONG];
-		nodreg(&nod2, n, D_SI);
-		if(reg[D_SI]) {
-			gins(APUSHL, &nod2, Z);
-			c |= 2;
-			reg[D_SI]++;
+		if(v) {
+			if(notvaddr(n, 0)) {
+				reglcgen(&nod1, n, Z);
+				n->type = t;
+				n = &nod1;
+			}
+			else
+				n->type = t;
 		}
-		lcgen(n, &nod2);
-		n->type = t;
+		else {
+			nodreg(&nod1, n, D_SI);
+			if(reg[D_SI]) {
+				gins(APUSHL, &nod1, Z);
+				c |= 1;
+				reg[D_SI]++;
+			}
+			lcgen(n, &nod1);
+			n->type = t;
+		}
+	}
+	if(v) {
+		gins(AMOVL, n, &nod0);
+		if(x)
+			gins(ANOTL, Z, &nod0);
+		gins(AMOVL, &nod0, nn);
+		n->xoffset += SZ_LONG;
+		nn->xoffset += SZ_LONG;
+		gins(AMOVL, n, &nod0);
+		if(x)
+			gins(ANOTL, Z, &nod0);
+		gins(AMOVL, &nod0, nn);
+		n->xoffset -= SZ_LONG;
+		nn->xoffset -= SZ_LONG;
+		if(nn == &nod2)
+			regfree(&nod2);
+		if(n == &nod1)
+			regfree(&nod1);
+		regfree(&nod0);
+		return;
 	}
 	nodreg(&nod3, n, D_CX);
 	if(reg[D_CX]) {

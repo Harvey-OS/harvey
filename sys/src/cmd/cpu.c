@@ -268,6 +268,8 @@ remoteside(int old)
 	char user[MaxStr], home[MaxStr], buf[MaxStr], xdir[MaxStr], cmd[MaxStr];
 	int i, n, fd, badchdir, gotcmd;
 
+	rfork(RFENVG);
+	putenv("service", "cpu");
 	fd = 0;
 
 	/* negotiate authentication mechanism */

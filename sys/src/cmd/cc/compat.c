@@ -28,3 +28,15 @@ void
 free(void*)
 {
 }
+
+/* needed when profiling */
+void*
+mallocz(ulong size, int clr)
+{
+	void *v;
+
+	v = alloc(size);
+	if(clr && v != nil)
+		memset(v, 0, size);
+	return v;
+}

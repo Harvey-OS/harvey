@@ -15,6 +15,7 @@ int	beprimary = -1;
 int	nodhcpwatch;
 int	sendhostname;
 int	dondbconfig = 0;
+int	Oflag;
 
 char	*ndboptions;
 
@@ -274,6 +275,9 @@ main(int argc, char **argv)
 	case 'N':
 		dondbconfig = 1;
 		break;
+	case 'O':
+		Oflag = 1;
+		break;
 	case 'p':
 		beprimary = 1;
 		break;
@@ -389,7 +393,8 @@ main(int argc, char **argv)
 		parseip(conf.raddr, argv[2]);
 		/* fall through */
 	case 2:
-		parseipmask(conf.mask, argv[1]);
+		if(strcmp(argv[1], "0") != 0)
+			parseipmask(conf.mask, argv[1]);
 		/* fall through */
 	case 1:
 		parseip(conf.laddr, argv[0]);
@@ -1056,21 +1061,28 @@ dhcprecv(void)
 		DEBUG("lease=%lud ", lease);
 
 		// address and mask
-		v4tov6(conf.laddr, bp->yiaddr);
-		if(!optgetaddr(bp->optdata, OBmask, conf.mask))
-			ipmove(conf.mask, IPnoaddr);
+		if(!validip(conf.laddr) || !Oflag)
+			v4tov6(conf.laddr, bp->yiaddr);
+		if(!validip(conf.mask) || !Oflag){
+			if(!optgetaddr(bp->optdata, OBmask, conf.mask))
+				ipmove(conf.mask, IPnoaddr);
+		}
 		DEBUG("ipaddr=%I ipmask=%M ", conf.laddr, conf.mask);
 
 		// get a router address either from the router option
 		// or from the router that forwarded the dhcp packet
-		if(optgetaddr(bp->optdata, OBrouter, conf.gaddr)){
-			DEBUG("ipgw=%I ", conf.gaddr);
-		} else {
-			if(memcmp(bp->giaddr, IPnoaddr+IPv4off, IPv4addrlen) != 0){
-				v4tov6(conf.gaddr, bp->giaddr);
-				DEBUG("giaddr=%I ", conf.gaddr);
+		if(!validip(conf.gaddr) || !Oflag){
+			if(optgetaddr(bp->optdata, OBrouter, conf.gaddr)){
+				DEBUG("ipgw=%I ", conf.gaddr);
+			} else {
+				if(memcmp(bp->giaddr, IPnoaddr+IPv4off, IPv4addrlen) != 0){
+					v4tov6(conf.gaddr, bp->giaddr);
+					DEBUG("giaddr=%I ", conf.gaddr);
+				}
 			}
 		}
+		else
+			DEBUG("ipgw=%I ", conf.gaddr);
 
 		// get dns servers
 		memset(conf.dns, 0, sizeof(conf.dns));
@@ -1095,15 +1107,19 @@ dhcprecv(void)
 
 		// get plan9 specific options
 		n = optgetvec(bp->optdata, OBvendorinfo, vopts, sizeof(vopts)-1);
-		if(n > 0){
-			if(parseoptions(vopts, n) == 0){
+		if(n > 0 && parseoptions(vopts, n) == 0){
+			if(validip(conf.fs) && Oflag)
+				n = 1;
+			else
 				n = optgetaddrs(vopts, OP9fs, conf.fs, 2);
-				for(i = 0; i < n; i++)
-					DEBUG("fs=%I ", conf.fs+i*IPaddrlen);
+			for(i = 0; i < n; i++)
+				DEBUG("fs=%I ", conf.fs+i*IPaddrlen);
+			if(validip(conf.auth) && Oflag)
+				n = 1;
+			else
 				n = optgetaddrs(vopts, OP9auth, conf.auth, 2);
-				for(i = 0; i < n; i++)
-					DEBUG("auth=%I ", conf.auth+i*IPaddrlen);
-			}
+			for(i = 0; i < n; i++)
+				DEBUG("auth=%I ", conf.auth+i*IPaddrlen);
 		}
 
 		conf.lease = lease;

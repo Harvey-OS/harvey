@@ -1021,6 +1021,7 @@ reread:
 		else
 			r &= ~Eedi;
 		csr32w(ctlr, Mear, r);
+		microdelay(1);
 		csr32w(ctlr, Mear, Eeclk|r);
 		microdelay(1);
 		csr32w(ctlr, Mear, r);

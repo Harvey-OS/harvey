@@ -1,5 +1,28 @@
 #include "gc.h"
 
+static int
+needc(Prog *p)
+{
+	while(p != P) {
+		switch(p->as) {
+		case AADCL:
+		case ASBBL:
+			return 1;
+		case AADDL:
+		case ASUBL:
+		case AJMP:
+		case ARET:
+		case ACALL:
+			return 0;
+		default:
+			if(p->to.type == D_BRANCH)
+				return 0;
+		}
+		p = p->link;
+	}
+	return 0;
+}
+
 void
 peep(void)
 {
@@ -39,7 +62,12 @@ peep(void)
 		}
 	}
 
+	pc = 0;	// speculating it won't kill
+
 loop1:
+	if(debug['b'])
+		comtarg();
+
 	t = 0;
 	for(r=firstr; r!=R; r=r->link) {
 		p = r->prog;
@@ -73,7 +101,7 @@ loop1:
 			break;
 		case AADDL:
 		case AADDW:
-			if(p->from.type != D_CONST)
+			if(p->from.type != D_CONST || needc(p->link))
 				break;
 			if(p->from.offset == -1){
 				if(p->as == AADDL)
@@ -92,7 +120,7 @@ loop1:
 			break;
 		case ASUBL:
 		case ASUBW:
-			if(p->from.type != D_CONST)
+			if(p->from.type != D_CONST || needc(p->link))
 				break;
 			if(p->from.offset == -1) {
 				if(p->as == ASUBL)
@@ -412,6 +440,16 @@ copyu(Prog *p, Adr *v, Adr *s)
 		if(debug['P'])
 			print("unknown op %A\n", p->as);
 		return 2;
+
+	case ANEGB:
+	case ANEGW:
+	case ANEGL:
+	case ANOTB:
+	case ANOTW:
+	case ANOTL:
+		if(copyas(&p->to, v))
+			return 2;
+		break;
 
 	case ALEAL:	/* lhs addr, rhs store */
 		if(copyas(&p->from, v))

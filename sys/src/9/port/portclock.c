@@ -92,14 +92,14 @@ void
 timeradd(Timer *nt)
 {
 	Timers *tt;
-	uvlong when;
+	vlong when;
 
 	if (nt->tmode == Tabsolute){
 		when = todget(nil);
 		if (nt->tns <= when){
-			if (nt->tns + MS2NS(10) <= when)	/* Give it some slack, small deviations will happen */
-				print("timeradd (%lld %lld) %lld too early 0x%lux\n",
-					when, nt->tns, when - nt->tns, getcallerpc(&nt));
+	//		if (nt->tns + MS2NS(10) <= when)	/* small deviations will happen */
+	//			print("timeradd (%lld %lld) %lld too early 0x%lux\n",
+	//				when, nt->tns, when - nt->tns, getcallerpc(&nt));
 			nt->tns = when;
 		}
 	}
@@ -177,10 +177,7 @@ timerintr(Ureg *u, uvlong)
 	Timers *tt;
 	uvlong when, now;
 	int callhzclock;
-	ulong pc;
 	static int sofar;
-
-	pc = m->splpc;	/* remember last splhi pc for kernel profiling */
 
 	intrcount[m->machno]++;
 	callhzclock = 0;
@@ -198,14 +195,8 @@ timerintr(Ureg *u, uvlong)
 		if(when > now){
 			timerset(when);
 			iunlock(tt);
-			m->splpc = pc;	/* for kernel profiling */
 			if(callhzclock)
 				hzclock(u);
-			else if (up && up->delaysched){
-				spllo();
-				sched();
-				splhi();
-			}
 			return;
 		}
 		tt->head = t->tnext;

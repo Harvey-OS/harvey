@@ -1,5 +1,5 @@
 enum {
-	Maxsteps = 20 * 2 * 100,	/* 100 periods of 20 procs */
+	Maxsteps = 200 * 100 * 2,	/* 100 periods of 200 procs */
 
 	/* Edf.flags field */
 	Admitted		= 0x01,
@@ -49,5 +49,5 @@ extern Lock	edftestlock;	/* for atomic admitting/expelling */
 #pragma	varargck	type	"U"		uvlong
 
 /* Interface: */
-void		edflock(void);
+Edf*		edflock(Proc*);
 void		edfunlock(void);

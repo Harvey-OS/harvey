@@ -70,7 +70,7 @@ main(int argc, char **argv)
 	char buf[ERRMAX], ebuf[ERRMAX];
 	Fsrpc *r;
 	int n, fd;
-	char *dbfile, *srv, *file, *na, *nsfile;
+	char *dbfile, *srv, *file, *na, *nsfile, *keyspec;
 	AuthInfo *ai;
 	ulong initial;
 
@@ -79,6 +79,7 @@ main(int argc, char **argv)
 	srvfd = -1;
 	na = nil;
 	nsfile = nil;
+	keyspec = "";
 
 	ai = nil;
 	ARGBEGIN{
@@ -89,7 +90,7 @@ main(int argc, char **argv)
 		 * requires p9sk2. (The two differ in who talks first, so compatibility
 		 * is awkward.)
 		 */
-		ai = auth_proxy(0, auth_getkey, "proto=p9any role=server");
+		ai = auth_proxy(0, auth_getkey, "proto=p9any role=server %s", keyspec);
 		if(ai == nil)
 			fatal("auth_proxy: %r");
 		if(nonone && strcmp(ai->cuid, "none") == 0)
@@ -97,6 +98,10 @@ main(int argc, char **argv)
 		if(auth_chuid(ai, nsfile) < 0)
 			fatal("auth_chuid: %r");
 		putenv("service", "exportfs");
+		break;
+
+	case 'k':
+		keyspec = EARGF(usage());
 		break;
 
 	case 'e':
@@ -175,7 +180,7 @@ main(int argc, char **argv)
 		if((fd = dial(netmkaddr(na, 0, "importfs"), 0, 0, 0)) < 0)
 			sysfatal("can't dial %s: %r", na);
 	
-		ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client");
+		ai = auth_proxy(fd, auth_getkey, "proto=p9any role=client %s", keyspec);
 		if(ai == nil)
 			sysfatal("%r: %s", na);
 

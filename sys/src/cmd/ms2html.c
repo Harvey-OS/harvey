@@ -15,6 +15,7 @@ enum
 	Nline=	1024,
 	Maxget= 10,
 	Maxif = 20,
+	Maxfsp = 100,
 
 	/* list types */
 	Lordered = 1,
@@ -468,8 +469,8 @@ Font bfont = { "<B>", "</B>" };
 Font ifont = { "<I>", "</I>" };
 Font bifont = { "<B><I>", "</I></B>" };
 Font cwfont = { "<TT>", "</TT>" };
-Font *prevfont;
-Font *curfont;
+Font *fstack[Maxfsp];
+int fsp = -1;
 
 typedef struct String String;
 struct String
@@ -719,12 +720,27 @@ char*
 changefont(Font *f)
 {
 	token[0] = 0;
-	if(curfont != nil)
-		strcpy(token, curfont->end);
+	if(fsp == Maxfsp)
+		return token;
+	if(fsp >= 0 && fstack[fsp])
+		strcpy(token, fstack[fsp]->end);
 	if(f != nil)
 		strcat(token, f->start);
-	prevfont = curfont;
-	curfont = f;
+	fstack[++fsp] = f;
+	return token;
+}
+
+char*
+changebackfont(void)
+{
+	token[0] = 0;
+	if(fsp >= 0){
+		if(fstack[fsp])
+			strcpy(token, fstack[fsp]->end);
+		fsp--;
+	}
+	if(fsp >= 0 && fstack[fsp])
+		strcat(token, fstack[fsp]->start);
 	return token;
 }
 
@@ -781,7 +797,7 @@ getnext(void)
 			return changefont(&ifont);
 		}
 		eqnmode = 0;
-		return changefont(prevfont);
+		return changebackfont();
 	}
 	switch(r){
 	case '\\':
@@ -901,7 +917,7 @@ getnext(void)
 			case '5':
 				return changefont(&cwfont);
 			case 'P':
-				return changefont(prevfont);
+				return changebackfont();
 			case 'R':
 			default:
 				return changefont(nil);
@@ -1041,6 +1057,7 @@ getnext(void)
 	return token;
 }
 
+/* if arg0 is set, read up to (and expand) to the next whitespace, else to the end of line */
 char*
 copyline(char *p, char *e, int arg0)
 {
@@ -1090,9 +1107,8 @@ done:
 char*
 copyarg(char *p, char *e, int *nullarg)
 {
-	int c, quoted;
+	int c, quoted, last;
 	Rune r;
-	char *p1;
 
 	*nullarg = 0;
 	quoted = 0;
@@ -1109,41 +1125,39 @@ copyarg(char *p, char *e, int *nullarg)
 	if(c == '\n')
 		goto done;
 
+	last = 0;
 	for(; p < e; c = getrune()) {
 		if (c < 0)
 			break;
 		switch(c) {
-		case '\\':
-			break;
 		case '\n':
 			ungetrune();
 			goto done;
+		case '\\':
+			r = c;
+			p += runetochar(p,&r);
+			if(last == '\\')
+				r = 0;
+			break;
 		case ' ':
 		case '\t':
-			if(!quoted)
+			if(!quoted && last != '\\')
 				goto done;
 			r = c;
 			p += runetochar(p,&r);
-			continue;
+			break;
 		case '"':
-			if(quoted)
+			if(quoted && last != '\\')
 				goto done;
 			r = c;
 			p += runetochar(p,&r);
-			continue;
+			break;
 		default:
 			r = c;
 			p += runetochar(p,&r);
-			continue;
+			break;
 		}
-		ungetrune();
-		p1 = getnext();
-		if(p1 == nil)
-			break;
-		if(*p1 == '\n')
-			break;
-		while((*p = *p1++) && p < e)
-			p++;
+		last = r;
 	}
 done:
 	*p++ = 0;
@@ -1336,8 +1350,8 @@ doconvert(void)
 	dohanginghead();
 	dohangingdt();
 	closel();
-	if(curfont)
-		Bprint(&bout, "%s", curfont->end);
+	if(fsp >= 0 && fstack[fsp])
+		Bprint(&bout, "%s", fstack[fsp]->end);
 	Bprint(&bout, "<br>&#32;<br>\n");
 	Bprint(&bout, "<A href=http://www.lucent.com/copyright.html>\n");
 	t = localtime(time(nil));
@@ -1645,14 +1659,25 @@ g_AU(int, char**)
 }
 
 void
-setfont(Font *f)
+pushfont(Font *f)
 {
-	if(curfont != nil)
-		Bprint(&bout, "%s", curfont->end);
-	prevfont = curfont;
+	if(fsp == Maxfsp)
+		return;
+	if(fsp >= 0 && fstack[fsp])
+		Bprint(&bout, "%s", fstack[fsp]->end);
 	if(f != nil)
 		Bprint(&bout, "%s", f->start);
-	curfont = f;
+	fstack[++fsp] = f;
+}
+
+void
+popfont(void)
+{
+	if(fsp >= 0){
+		if(fstack[fsp])
+			Bprint(&bout, "%s", fstack[fsp]->end);
+		fsp--;
+	}
 }
 
 /*
@@ -1663,19 +1688,15 @@ setfont(Font *f)
 void
 font(Font *f, int argc, char **argv)
 {
-	Font *prev;
-
 	if(argc == 1){
-		setfont(nil);
+		pushfont(nil);
 		return;
 	}
 	if(argc > 3)
 		printarg(argv[3]);
-	prev = prevfont;
-	setfont(f);
+	pushfont(f);
 	printarg(argv[1]);
-	setfont(prevfont);
-	prevfont = prev;
+	popfont();
 	if(argc > 2)
 		printarg(argv[2]);
 	Bprint(&bout, "\n");
@@ -1684,10 +1705,9 @@ font(Font *f, int argc, char **argv)
 void
 closefont(void)
 {
-	if(curfont != nil)
-		Bprint(&bout, "%s", curfont->end);
-	curfont = nil;
-	prevfont = nil;
+	if(fsp >= 0 && fstack[fsp])
+		Bprint(&bout, "%s", fstack[fsp]->end);
+	fsp = -1;
 }
 
 void
@@ -1785,31 +1805,31 @@ void
 g_ft(int argc, char **argv)
 {
 	if(argc < 2){
-		setfont(nil);
+		pushfont(nil);
 		return;
 	}
 
 	switch(argv[1][0]){
 	case '3':
 	case 'B':
-		setfont(&bfont);
+		pushfont(&bfont);
 		break;
 	case '2':
 	case 'I':
-		setfont(&ifont);
+		pushfont(&ifont);
 		break;
 	case '4':
-		setfont(&bifont);
+		pushfont(&bifont);
 		break;
 	case '5':
-		setfont(&cwfont);
+		pushfont(&cwfont);
 		break;
 	case 'P':
-		setfont(prevfont);
+		popfont();
 		break;
 	case 'R':
 	default:
-		setfont(nil);
+		pushfont(nil);
 		break;
 	}
 }

@@ -261,7 +261,14 @@ nettrans(char *addr, char *naddr, int na, char *file, int nf)
 	*p++ = 0;
 	strncpy(naddr, p, na);
 	naddr[na-1] = 0;
-	strncpy(file, buf, nf);
-	file[nf-1] = 0;
+
+	if(buf[0] == '/'){
+		p = strchr(buf+1, '/');
+		if(p == nil)
+			p = buf;
+		else 
+			p++;
+	}
+	snprint(file, nf, "%s/%s", netdir, p);
 	return 0;
 }

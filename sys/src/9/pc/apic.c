@@ -349,7 +349,7 @@ ioapicinit(Apic* apic, int apicno)
 void
 lapictimerset(uvlong next)
 {
-	ulong period;
+	vlong period;
 	int x;
 
 	x = splhi();
