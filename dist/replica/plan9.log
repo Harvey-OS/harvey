@@ -19025,3 +19025,7 @@
 1048890698 5 c 386/bin/fossil/fossil - 775 sys sys 1048889328 335467
 1048912320 0 c sys/src/9/port/dev.c - 664 sys sys 1048912316 8379
 1048912320 1 c sys/src/9/port/devroot.c - 664 sys sys 1048912313 4015
+1048969914 0 c sys/src/cmd/unix/u9fs/authp9any.c - 664 sys sys 1048969294 11114
+1048969914 1 c sys/src/cmd/unix/u9fs/des.c - 664 sys sys 1048969295 16922
+1048969914 2 c sys/src/cmd/unix/u9fs/makefile - 664 sys sys 1048969298 1064
+1048969914 3 c sys/src/cmd/unix/u9fs/plan9.h - 664 sys sys 1048969296 5572

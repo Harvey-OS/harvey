@@ -15,7 +15,7 @@ typedef struct	Authenticator	Authenticator;
 enum
 {
 	DOMLEN=		48,		/* length of an authentication domain name */
-	DESKEYLEN=	7,		/* length of a des key for encrypt/decrypt */
+/*	DESKEYLEN=	7,		/* length of a des key for encrypt/decrypt */
 	CHALLEN=	8		/* length of a challenge */
 };
 
@@ -83,6 +83,8 @@ struct Authenticator
 	ulong	id;			/* authenticator id, ++'d with each auth */
 };
 #define	AUTHENTLEN	(CHALLEN+4+1)
+
+extern int chatty9p;
 
 static	int	convT2M(Ticket*, char*, char*);
 static	void	convM2T(char*, Ticket*, char*);

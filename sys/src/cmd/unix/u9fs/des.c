@@ -108,7 +108,7 @@ static long  s7p[] = {
 /*
  *	DES electronic codebook encryption of one block
  */
-static void
+void
 block_cipher(char expanded_key[128], char text[8], int decrypting)
 {
 	char *key;
@@ -335,7 +335,7 @@ static uchar keyexpand[][15][2] = {
 	   77,  2,  95,  8, 102, 16, 111, 32, 117,  1, 127, 16,   0,  0, }
 };
 
-static void
+void
 key_setup(char key[DESKEYLEN], char *ek)
 {
 	int i, j, k, mask;

@@ -2,6 +2,8 @@
 #define _XOPEN_SOURCE 500
 /* magic to get 64-bit pread/pwrite */
 #define _LARGEFILE64_SOURCE
+/* magic to get 64-bit stat on Linux, maybe others */
+#define _FILE_OFFSET_BITS 64
 
 #ifdef sgi
 #define _BSD_TYPES	1	/* for struct timeval */
@@ -182,5 +184,6 @@ enum {
 };
 
 /* DES */
+#define DESKEYLEN 7
 void	key_setup(char key[DESKEYLEN], char expandedkey[128]);
 void	block_cipher(char expandedkey[128], char buf[8], int decrypting);
