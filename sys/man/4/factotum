@@ -1,6 +1,6 @@
 .TH FACTOTUM 4
 .SH NAME
-factotum, fgui, secretpem\- authentication agent and its graphical interface
+factotum, fgui, secretpem \- authentication agent
 .SH SYNOPSIS
 .B auth/factotum
 [
@@ -14,6 +14,10 @@ factotum, fgui, secretpem\- authentication agent and its graphical interface
 .B -m
 .I mtpt
 ]
+[
+.B -o
+.I owner
+]
 .PP
 .B auth/factotum
 .B -g
@@ -23,9 +27,6 @@ factotum, fgui, secretpem\- authentication agent and its graphical interface
 .B ...
 .PP
 .B auth/fgui
-.PP
-.B auth/secretpem
-.I key.pem
 .SH DESCRIPTION
 .I Factotum
 is a user-level file system that
@@ -126,8 +127,8 @@ the challenge/response protocols used by PPP and PPTP.
 .B mschap
 a proprietary Microsoft protocol also used by PPP and PPTP.
 .TP
-.B sshrsa
-an public key protocol used by ssh.
+.B rsa
+RSA public key decryption, used by SSH and TLS.
 .TP
 .B pass
 passwords in the clear.
@@ -135,6 +136,9 @@ passwords in the clear.
 .B vnc
 .IR vnc (1)'s
 challenge/response.
+.TP
+.B wep
+WEP passwords for wireless ethernet cards.
 .PD
 .PP
 The options are:
@@ -211,6 +215,17 @@ and
 .BR \-S .
 This option is typically used by
 the kernel at boot time.
+.TP
+.B \-o
+causes the agent to set the owner to
+.I owner
+(by default, the user invoking
+.IR factotum ).
+This allows
+.I owner
+to use the keys stored in that instance of the factotum,
+and is useful for setting up a factotum to be used by
+.BR none .
 .PD
 .PP
 .I Fgui
@@ -293,9 +308,9 @@ attributes; e.g.
     proto=pass user=tb !password=does.it.matter
 .EE
 .PP
-.B Sshrsa
+.B Rsa
 requires a key with
-.B proto=sshrsa
+.B proto=rsa
 in addition to all the hex attributes defining an RSA key:
 .BR ek ,
 .BR n ,
@@ -306,11 +321,43 @@ in addition to all the hex attributes defining an RSA key:
 .BR !c2 ,
 and
 .BR !dk .
+By convention, programs using the RSA protocol also require a
+.B service
+attribute set to
+.BR ssh ,
+.BR sshserve ,
+or
+.BR tls .
+.PP
+.B Wep
+requires a
+.BR key1 ,
+.BR key2 ,
+or
+.BR key3
+set to the password to be used.
+Starting the protocol causes
+.I factotum
+to configure the wireless ethernet card
+.B #l/ether0
+for WEP encryption with the given password.
 .PP
 All keys can have additional attibutes that act either as comments
 or as selectors to distinguish them in the
 .IR auth (2)
 library calls.
+.PP
+The factotum owner can use any key stored by factotum.
+Any key may have one or more
+.B owner
+attributes listing the users who can use the key
+as though they were the owner.
+For example, the TLS and SSH host keys on a server
+often have an attribute
+.B owner=*
+to allow any user (and in particular,
+.L none )
+to run the TLS or SSH server-side protocol.
 .PP
 Any key may have a
 .B role
@@ -675,10 +722,5 @@ where
 is the reason for the error.
 .PD
 .RE
-.PP
-.I Secretpem
-copies a PEM-format RSA private key onto standard output in sshrsa key syntax,
-suitable for writing to
-.IR /mnt/factotum/ctl .
 .SH SOURCE
 .B /sys/src/cmd/auth/factotum

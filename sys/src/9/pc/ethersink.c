@@ -48,7 +48,7 @@ reset(Ether* ether)
 	ether->mbps = 1000;
 	ether->attach = nop;
 	ether->transmit = nop;
-	ether->irq = 0;
+	ether->irq = -1;
 	ether->interrupt = nil;
 	ether->ifstat = nil;
 	ether->ctl = ctl;

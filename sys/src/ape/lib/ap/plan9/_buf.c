@@ -67,6 +67,9 @@ _startbuf(int fd)
 		atexit(_killmuxsid);
 	}
 
+	if(fd == -1)
+		return 0;
+
 	slot = mux->curfds++;
 	if(mux->curfds > INITBUFS) {
 		if(_SEGBRK(mux, mux->bufs+mux->curfds) < 0){
@@ -274,6 +277,8 @@ select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeo
 			_SLEEP(t);
 		return 0;
 	}
+
+	_startbuf(-1);
 
 	/* make sure all requested rfds and efds are buffered */
 	if(nfds >= OPEN_MAX)

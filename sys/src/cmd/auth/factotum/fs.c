@@ -5,7 +5,6 @@ char		*authaddr;
 int		debug;
 int		gflag;
 char		*owner;
-char		*invoker;
 int		kflag;
 char		*mtpt = "/mnt";
 Keyring	*ring;
@@ -38,6 +37,7 @@ prototab[] =
 	&sshrsa,
 	&rsa,
 	&vnc,
+	&wep,
 	nil,
 };
 
@@ -87,9 +87,6 @@ main(int argc, char **argv)
 		break;
 	case 'n':
 		trysecstore = 0;
-		break;
-	case 'o':
-		owner = EARGF(usage());
 		break;
 	case 's':		/* set service name */
 		service = EARGF(usage());
@@ -150,9 +147,7 @@ main(int argc, char **argv)
 		free(s);
 	} else if(uflag)
 		promptforhostowner();
-	invoker = getuser();
-	if(owner == nil)
-		owner = invoker;
+	owner = getuser();
 	notify(notifyf);
 
 	if(trysecstore){
@@ -259,7 +254,7 @@ static struct {
 } dirtab[] = {
 	"confirm",	Qconfirm,	0600|DMEXCL,		/* we know this is slot #0 below */
 	"needkey", Qneedkey,	0600|DMEXCL,		/* we know this is slot #1 below */
-	"ctl",		Qctl,			0600,
+	"ctl",		Qctl,			0644,
 	"rpc",	Qrpc,		0666,
 	"proto",	Qprotolist,	0444,
 	"log",	Qlog,		0400|DMEXCL,
@@ -272,8 +267,8 @@ static void
 fillstat(Dir *dir, char *name, int type, int path, ulong perm)
 {
 	dir->name = estrdup(name);
-	dir->uid = estrdup(invoker);
-	dir->gid = estrdup(invoker);
+	dir->uid = estrdup(owner);
+	dir->gid = estrdup(owner);
 	dir->mode = perm;
 	dir->length = 0;
 	dir->qid = mkqid(type, path);
@@ -375,7 +370,7 @@ fsopen(Req *r)
 	if(i < nelem(dirtab)){
 		if(dirtab[i].perm & DMEXCL)
 			p = &inuse[i];
-		if(strcmp(r->fid->uid, invoker) == 0)
+		if(strcmp(r->fid->uid, owner) == 0)
 			perm = dirtab[i].perm>>6;
 		else
 			perm = dirtab[i].perm;
@@ -425,7 +420,7 @@ fsdestroyfid(Fid *fid)
 }
 
 static int
-readlist(int off, int (*gen)(int, char*, uint), Req *r)
+readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r, Fsstate *fss)
 {
 	char *a, *ea;
 	int n;
@@ -433,7 +428,7 @@ readlist(int off, int (*gen)(int, char*, uint), Req *r)
 	a = r->ofcall.data;
 	ea = a+r->ifcall.count;
 	for(;;){
-		n = (*gen)(off, a, ea-a);
+		n = (*gen)(off, a, ea-a, fss);
 		if(n == 0){
 			r->ofcall.count = a - (char*)r->ofcall.data;
 			return off;
@@ -445,16 +440,16 @@ readlist(int off, int (*gen)(int, char*, uint), Req *r)
 }
 
 static int
-keylist(int i, char *a, uint n)
+keylist(int i, char *a, uint n, Fsstate *fss)
 {
 	char buf[512];
 	Key *k;
 
-	if(i >= ring->nkey)
+	k = nil;
+	if(findkey(&k, fss, fss->sysuser, 0, i, nil, "") != RpcOk)
 		return 0;
-	k = ring->key[i];
-	k->attr = sortattr(k->attr);
 	snprint(buf, sizeof buf, "key %A %N\n", k->attr, k->privattr);
+	closekey(k);
 	strcpy(buf+sizeof buf-2, "\n");	/* if line is really long, just truncate */
 	if(strlen(buf) > n)
 		return 0;
@@ -464,8 +459,10 @@ keylist(int i, char *a, uint n)
 }
 
 static int
-protolist(int i, char *a, uint n)
+protolist(int i, char *a, uint n, Fsstate *fss)
 {
+	USED(fss);
+
 	if(i >= nelem(prototab)-1)
 		return 0;
 	if(strlen(prototab[i]->name)+1 > n)
@@ -507,11 +504,11 @@ fsread(Req *r)
 		logread(r);
 		break;
 	case Qctl:
-		s->listoff = readlist(s->listoff, keylist, r);
+		s->listoff = readlist(s->listoff, keylist, r, s);
 		respond(r, nil);
 		break;
 	case Qprotolist:
-		s->listoff = readlist(s->listoff, protolist, r);
+		s->listoff = readlist(s->listoff, protolist, r, s);
 		respond(r, nil);
 		break;
 	}

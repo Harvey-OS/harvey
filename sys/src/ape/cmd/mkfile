@@ -8,8 +8,10 @@ TARG=basename\
 	uname
 
 DIRS=\
+	diff\
 	expr\
 	make\
+	patch\
 	pdksh\
 	sed\
 

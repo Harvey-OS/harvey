@@ -135,14 +135,21 @@ dbpci(Vga *vga, Ndbtuple *tuple)
 		if(strcmp(t->attr, "vid") != 0 || (vid=atoi(t->val)) == 0)
 			continue;
 		for(td = t->line; td != t; td = td->line){
-			if(strcmp(td->attr, "did") == 0
-			&& (did=atoi(td->val)) != 0
-			&& (pci=pcimatch(nil, vid, did)) != 0){
-				vga->pci = pci;
-				addattr(&vga->attr, t);
-				addattr(&vga->attr, td);
-				return 1;
-			}
+			if(strcmp(td->attr, "did") != 0)
+				continue;
+			if(strcmp(td->val, "*") == 0)
+				did = 0;
+			else if((did=atoi(td->val)) == 0)
+				continue;
+			for(pci=nil; pci=pcimatch(pci, vid, did);)
+				if((pci->ccru>>8) == 3)
+					break;
+			if(pci == nil)
+				continue;
+			vga->pci = pci;
+			addattr(&vga->attr, t);
+			addattr(&vga->attr, td);
+			return 1;
 		}
 	}
 	return 0;

@@ -971,9 +971,9 @@ vfDecRef(VacFile *vf)
 
 	p = vf->up;
 	qq = &p->down;
-		for(q = *qq; q; qq=&q->next,q=*qq)
-	if(q == vf)
-		break;
+	for(q = *qq; q; qq=&q->next,q=*qq)
+		if(q == vf)
+			break;
 	assert(q != nil);
 	*qq = vf->next;
 
@@ -1002,15 +1002,17 @@ vfGetBlockScore(VacFile *vf, ulong bn, uchar score[VtScoreSize])
 	int ret, off;
 	Source *r;
 
-	if(vfRLock(vf))
+	if(!vfRLock(vf))
 		return 0;
 
 	r = vf->source;
 
 	u = sourceWalk(r, bn, 1, &off);
-	if(u == nil)
+	if(u == nil){
+		vfRUnlock(vf);
 		return 0;
-	
+	}
+
 	ret = lumpGetScore(u, off, score);
 	lumpDecRef(u, 0);
 	vfRUnlock(vf);

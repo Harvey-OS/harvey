@@ -14,8 +14,6 @@ BIN=/$objtype/bin
 
 UPDATE=\
 	mkfile\
-	/sys/man/4/dossrv\
-	/386/bin/$TARG\
 	${OFILES:%.$O=%.c}\
 	$HFILES\
 

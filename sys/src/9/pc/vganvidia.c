@@ -24,46 +24,19 @@ enum {
 	hwCurImage = Pramin + (0x00010000 - 0x0800),
 };
 
-static ushort nvidiadid[] = {
-	0x0020,		/* Riva TNT */
-	0x0028,		/* Riva TNT2 */
-	0x0029,		/* Riva TNT2 (Ultra)*/
-	0x002C,		/* Riva TNT2 (Vanta) */
-	0x002D,		/* Riva TNT2 M64 */
-	0x00A0,		/* Riva TNT2 (Integrated) */
-	0x0100,		/* GeForce 256 */
-	0x0101,		/* GeForce DDR */
-	0x0103,		/* Quadro */
-	0x0110,		/* GeForce2 MX */
-	0x0111,		/* GeForce2 MX DDR */
-	0x0112,		/* GeForce 2 Go */
-	0x0113,		/* Quadro 2 MXR */
-	0x0150,		/* GeForce2 GTS */
-	0x0151,		/* GeForce2 GTS (rev 1) */
-	0x0152,		/* GeForce2 Ultra */
-	0x0153,		/* Quadro 2 Pro */
-	0x0200,		/* GeForce3 */
-	0x0201,
-	0x0202,
-	0,
-};
-
+/* Nvidia is good about backwards compatibility -- any did > 0x20 is fine */
 static Pcidev*
 nvidiapci(void)
 {
 	Pcidev *p;
 	ushort *did;
 
-	if((p = pcimatch(nil, 0x10DE, 0)) == nil)
-		return nil;
-	for(did = nvidiadid; *did; did++){
-		if(*did == p->did)
+	p = nil;
+	while((p = pcimatch(p, 0x10DE, 0)) != nil)
+		if(p->did > 0x20 && p->ccrp == 3)	/* video card */
 			return p;
-	}
-
 	return nil;
 }
-
 
 static ulong
 nvidialinear(VGAscr* scr, int* size, int* align)
@@ -82,7 +55,7 @@ nvidialinear(VGAscr* scr, int* size, int* align)
 		*size = p->mem[1].size;
 	}
 
-	if(wasupamem) {
+	if(wasupamem){
 		if(oaperture == aperture)
 			return oaperture;
 		upafree(oaperture, oapsize);
@@ -123,14 +96,14 @@ nvidiaenable(VGAscr* scr)
 		return;
 
 	scr->io = upamalloc(p->mem[0].bar & ~0x0F, p->mem[0].size, 0);
-	if (scr->io == 0)
+	if(scr->io == 0)
 		return;
 	addvgaseg("nvidiammio", scr->io, p->mem[0].size);
 
 	size = p->mem[1].size;
 	align = 0;
 	aperture = nvidialinear(scr, &size, &align);
-	if(aperture) {
+	if(aperture){
 		scr->aperture = aperture;
 		scr->apsize = size;
 		addvgaseg("nvidiascreen", aperture, size);
@@ -161,16 +134,16 @@ nvidiacurload(VGAscr* scr, Cursor* curs)
 
 	p = KADDR(scr->io + hwCurImage);
 
-	for (i=0; i<16; i++) {
+	for(i=0; i<16; i++) {
 		c = (curs->clr[2 * i] << 8) | curs->clr[2 * i+1];
 		s = (curs->set[2 * i] << 8) | curs->set[2 * i+1];
 		tmp = 0;
-		for (j=0; j<16; j++) {
+		for (j=0; j<16; j++){
 			if(s&0x8000)
 				tmp |= 0x80000000;
 			else if(c&0x8000)
 				tmp |= 0xFFFF0000;
-			if (j&0x1) {
+			if (j&0x1){
 				*p++ = tmp;
 				tmp = 0;
 			} else {
@@ -258,7 +231,7 @@ waitforidle(VGAscr *scr)
 	pgraph = KADDR(scr->io + Pgraph);
 
 	x = 0;
-	while (pgraph[0x00000700/4] & 0x01 && x++ < 1000000)
+	while(pgraph[0x00000700/4] & 0x01 && x++ < 1000000)
 		;
 
 	if(x >= 1000000)
@@ -274,7 +247,7 @@ waitforfifo(VGAscr *scr, int fifo, int entries)
 	x = 0;
 	fifofree = KADDR(scr->io + Fifo + fifo + 0x10);
 
-	while (((*fifofree >> 2) < entries) && x++ < 1000000)
+	while(((*fifofree >> 2) < entries) && x++ < 1000000)
 		;
 
 	if(x >= 1000000)
@@ -328,7 +301,7 @@ nvidiablank(VGAscr*, int blank)
 	seq1 = vgaxi(Seqx, 1) & ~0x20;
 	crtc1A = vgaxi(Crtx, 0x1A) & ~0xC0;
 
-	if(blank) {
+	if(blank){
 		seq1 |= 0x20;
 //		crtc1A |= 0xC0;
 		crtc1A |= 0x80;

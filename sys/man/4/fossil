@@ -417,12 +417,3 @@ but note that this will preserve most of the file system
 (all but
 .B /snapshot
 ) with little effort.
-.LP
-The implementation of
-.IR flush (5)
-has a race that will be fixed shortly.
-It is possible (though, in practice, it happens
-very rarely) that 
-.I fossil
-will respond to a message after responding
-to a flush of that message.

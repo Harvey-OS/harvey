@@ -15,8 +15,22 @@ static int	envwriteable(Chan *c);
 
 static Egrp	confegrp;	/* global environment group containing the kernel configuration */
 
+static Evalue*
+envlookup(Egrp *eg, char *name, ulong qidpath)
+{
+	Evalue *e;
+	int i;
+
+	for(i=0; i<eg->nent; i++){
+		e = eg->ent[i];
+		if(e->qid.path == qidpath || (name && e->name[0]==name[0] && strcmp(e->name, name) == 0))
+			return e;
+	}
+	return nil;
+}
+
 static int
-envgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+envgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 {
 	Egrp *eg;
 	Evalue *e;
@@ -28,8 +42,11 @@ envgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 
 	eg = envgrp(c);
 	rlock(eg);
-	for(e = eg->entries; e && s; e = e->link)
-		s--;
+	e = 0;
+	if(name)
+		e = envlookup(eg, name, -1);
+	else if(s < eg->nent)
+		e = eg->ent[s];
 
 	if(e == 0) {
 		runlock(eg);
@@ -41,16 +58,6 @@ envgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	devdir(c, e->qid, up->genbuf, e->len, eve, 0666, dp);
 	runlock(eg);
 	return 1;
-}
-
-static Evalue*
-envlookup(Egrp *eg, char *name, ulong qidpath)
-{
-	Evalue *e;
-	for(e = eg->entries; e; e = e->link)
-		if(e->qid.path == qidpath || (name && strcmp(e->name, name) == 0))
-			return e;
-	return nil;
 }
 
 static Chan*
@@ -135,6 +142,7 @@ envcreate(Chan *c, char *name, int omode, ulong)
 {
 	Egrp *eg;
 	Evalue *e;
+	Evalue **ent;
 
 	if(c->qid.type != QTDIR)
 		error(Eperm);
@@ -155,11 +163,18 @@ envcreate(Chan *c, char *name, int omode, ulong)
 	e->name = smalloc(strlen(name)+1);
 	strcpy(e->name, name);
 
+	if(eg->nent == eg->ment){
+		eg->ment += 32;
+		ent = smalloc(sizeof(eg->ent[0])*eg->ment);
+		if(eg->nent)
+			memmove(ent, eg->ent, sizeof(eg->ent[0])*eg->nent);
+		free(eg->ent);
+		eg->ent = ent;
+	}
 	e->qid.path = ++eg->path;
 	e->qid.vers = 0;
 	eg->vers++;
-	e->link = eg->entries;
-	eg->entries = e;
+	eg->ent[eg->nent++] = e;
 	c->qid = e->qid;
 
 	wunlock(eg);
@@ -173,29 +188,28 @@ envcreate(Chan *c, char *name, int omode, ulong)
 static void
 envremove(Chan *c)
 {
+	int i;
 	Egrp *eg;
-	Evalue *e, **l;
+	Evalue *e;
 
 	if(c->qid.type & QTDIR)
 		error(Eperm);
 
 	eg = envgrp(c);
 	wlock(eg);
-	l = &eg->entries;
-	for(e = *l; e; e = e->link) {
-		if(e->qid.path == c->qid.path)
+	e = 0;
+	for(i=0; i<eg->nent; i++){
+		if(eg->ent[i]->qid.path == c->qid.path){
+			e = eg->ent[i];
+			eg->nent--;
+			eg->ent[i] = eg->ent[eg->nent];
+			eg->vers++;
 			break;
-		l = &e->link;
+		}
 	}
-
-	if(e == 0) {
-		wunlock(eg);
-		error(Enonexist);
-	}
-
-	*l = e->link;
-	eg->vers++;
 	wunlock(eg);
+	if(e == 0)
+		error(Enonexist);
 	free(e->name);
 	if(e->value)
 		free(e->value);
@@ -308,39 +322,44 @@ Dev envdevtab = {
 void
 envcpy(Egrp *to, Egrp *from)
 {
-	Evalue **l, *ne, *e;
+	int i;
+	Evalue *ne, *e;
 
-	l = &to->entries;
 	rlock(from);
-	for(e = from->entries; e; e = e->link) {
+	to->ment = (from->nent+31)&~31;
+	to->ent = smalloc(to->ment*sizeof(to->ent[0]));
+	for(i=0; i<from->nent; i++){
+		e = from->ent[i];
 		ne = smalloc(sizeof(Evalue));
 		ne->name = smalloc(strlen(e->name)+1);
 		strcpy(ne->name, e->name);
-		if(e->value) {
+		if(e->value){
 			ne->value = smalloc(e->len);
 			memmove(ne->value, e->value, e->len);
 			ne->len = e->len;
 		}
 		ne->qid.path = ++to->path;
-		*l = ne;
-		l = &ne->link;
+		to->ent[i] = ne;
 	}
+	to->nent = from->nent;
 	runlock(from);
 }
 
 void
 closeegrp(Egrp *eg)
 {
-	Evalue *e, *next;
+	int i;
+	Evalue *e;
 
-	if(decref(eg) == 0) {
-		for(e = eg->entries; e; e = next) {
-			next = e->link;
+	if(decref(eg) == 0){
+		for(i=0; i<eg->nent; i++){
+			e = eg->ent[i];
 			free(e->name);
 			if(e->value)
 				free(e->value);
 			free(e);
 		}
+		free(eg->ent);
 		free(eg);
 	}
 }
@@ -385,7 +404,7 @@ getconfenv(void)
 	Egrp *eg = &confegrp;
 	Evalue *e;
 	char *p, *q;
-	int n;
+	int i, n;
 
 	rlock(eg);
 	if(waserror()) {
@@ -395,13 +414,16 @@ getconfenv(void)
 	
 	/* determine size */
 	n = 0;
-	for(e=eg->entries; e; e=e->link)
+	for(i=0; i<eg->nent; i++){
+		e = eg->ent[i];
 		n += strlen(e->name) + e->len + 2;
+	}
 	p = malloc(n + 1);
 	if(p == nil)
 		error(Enomem);
 	q = p;
-	for(e=eg->entries; e; e=e->link) {
+	for(i=0; i<eg->nent; i++){
+		e = eg->ent[i];
 		strcpy(q, e->name);
 		q += strlen(q) + 1;
 		memmove(q, e->value, e->len);

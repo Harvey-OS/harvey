@@ -12,6 +12,7 @@ PROTO=\
 	pass.$O\
 	sshrsa.$O\
 	rsa.$O\
+	wep.$O\
 
 FOFILES=\
 	$PROTO\
@@ -33,7 +34,6 @@ UPDATE=\
 	$HFILES\
 	${FOFILES:%.$O=%.c}\
 	fgui.c\
-	${TARG:%=/386/bin/auth/%}\
 
 </sys/src/cmd/mkmany
 

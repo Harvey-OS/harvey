@@ -59,7 +59,7 @@ listkeys(Key **kp)
 		if(nf == 0 || strcmp(f[0], "key") != 0)
 			continue;
 		p = find(f, nf, "proto");
-		if(p == nil || strcmp(p, "sshrsa") != 0)
+		if(p == nil || strcmp(p, "rsa") != 0)
 			continue;
 		p = find(f, nf, "n");
 		if(p == nil || (mod = strtomp(p, nil, 16, nil)) == nil)
@@ -96,7 +96,7 @@ dorsa(mpint *mod, mpint *exp, mpint *chal, uchar chalbuf[32])
 
 	USED(exp);
 
-	snprint(buf, sizeof buf, "proto=sshrsa role=client");
+	snprint(buf, sizeof buf, "proto=rsa service=ssh role=client");
 	if((afd = open("/mnt/factotum/rpc", ORDWR)) < 0){
 		debug(DBG_AUTH, "open /mnt/factotum/rpc: %r\n");
 		return -1;

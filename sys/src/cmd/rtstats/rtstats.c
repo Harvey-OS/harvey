@@ -75,11 +75,11 @@ int schedfd;
 int
 rthandler(void*, char *s)
 {
-	if (strncmp(missstr, s, strlen(missstr)) == 0)
+	if (s && strncmp(missstr, s, strlen(missstr)) == 0)
 		return 1;
 
 	/* On any other note */
-	if (fprint(schedfd, "remove") < 0)
+	if (!besteffort && fprint(schedfd, "remove") < 0)
 		sysfatal("Could not remove task: %r");
 	sysfatal("Removed task");
 	return 1;

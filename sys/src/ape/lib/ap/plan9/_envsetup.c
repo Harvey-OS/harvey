@@ -32,21 +32,21 @@ enum {
 void
 _envsetup(void)
 {
-	DIR *d;
+	int dfd;
 	struct dirent *de;
-	int n, m, i, f;
+	int n, nd, m, i, j, f;
 	int psize, cnt;
 	int nohandle;
 	int fdinited;
 	char *ps, *p;
 	char **pp;
-	Dir *d9;
+	Dir *d9, *d9a;
 
 	nohandle = 0;
 	fdinited = 0;
 	cnt = 0;
-	d = opendir(name);
-	if(!d) {
+	dfd = _OPEN(name, 0);
+	if(dfd < 0) {
 		static char **emptyenvp = 0;
 		environ = emptyenvp;
 		return;
@@ -54,21 +54,21 @@ _envsetup(void)
 	name[2] = '/';
 	ps = p = malloc(Envhunk);
 	psize = Envhunk;
-	while((de = readdir(d)) != NULL){
-		strcpy(name+3, de->d_name);
-		if((d9 = _dirstat(name)) == nil)
-			continue;
-		n = strlen(de->d_name);
+	nd = _dirreadall(dfd, &d9a);
+	_CLOSE(dfd);
+	for(j=0; j<nd; j++){
+		d9 = &d9a[j];
+		n = strlen(d9->name);
 		m = d9->length;
-		free(d9);
 		i = p - ps;
 		if(i+n+1+m+1 > psize) {
 			psize += (n+m+2 < Envhunk)? Envhunk : n+m+2;
 			ps = realloc(ps, psize);
 			p = ps + i;
 		}
-		memcpy(p, de->d_name, n);
+		memcpy(p, d9->name, n);
 		p[n] = '=';
+		strcpy(name+3, d9->name);
 		f = _OPEN(name, O_RDONLY);
 		if(f < 0 || _READ(f, p+n+1, m) != m)
 			m = 0;
@@ -79,17 +79,17 @@ _envsetup(void)
 			if(p[n+1+i] == 0)
 				p[n+1+i] = 1;
 		p[n+1+m] = 0;
-		if(strcmp(de->d_name, "_fdinfo") == 0) {
+		if(strcmp(d9->name, "_fdinfo") == 0) {
 			_fdinit(p+n+1, p+n+1+m);
 			fdinited = 1;
-		} else if(strcmp(de->d_name, "_sighdlr") == 0)
+		} else if(strcmp(d9->name, "_sighdlr") == 0)
 			sigsetup(p+n+1, p+n+1+m);
-		else if(strcmp(de->d_name, "nohandle") == 0)
+		else if(strcmp(d9->name, "nohandle") == 0)
 			nohandle = 1;
 		p += n+m+2;
 		cnt++;
 	}
-	closedir(d);
+	free(d9a);
 	if(!fdinited)
 		_fdinit(0, 0);
 	environ = pp = malloc((1+cnt)*sizeof(char *));

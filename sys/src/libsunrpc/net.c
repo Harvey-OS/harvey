@@ -40,11 +40,11 @@ sunSrvNet(SunSrv *srv, char *addr)
 
 	a = emalloc(sizeof(Arg));
 	if((a->fd = announce(addr, a->adir)) < 0)
-		return 0;
+		return -1;
 	a->srv = srv;
 
 	proccreate(sunNetListen, a, SunStackSize);
-	return 1;
+	return 0;
 }
 
 int

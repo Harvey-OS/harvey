@@ -2,106 +2,90 @@
 .SH NAME
 lock, canlock, unlock,
 qlock, canqlock, qunlock,
-rlock, runlock, canrlock,
-wlock, wunlock, canwlock,
+rlock, canrlock, runlock,
+wlock, canwlock, wunlock,
+rsleep, rwakeup, rwakeupall
 incref, decref
-\- shared memory spin locks, rendez-vous locks, reader-writer locks, and
-atomic increment and decrement
+\- spin locks, queueing rendezvous locks, reader-writer locks, rendezvous points, and reference counts
 .SH SYNOPSIS
-.B
+.ft L
+.nf
 #include <u.h>
-.br
-.B
 #include <libc.h>
 .PP
-.B
+.ft L
+.nf
 void	lock(Lock *l)
-.PP
-.B
 int	canlock(Lock *l)
-.PP
-.B
 void	unlock(Lock *l)
 .PP
-.B
+.ft L
+.nf
 void	qlock(QLock *l)
-.PP
-.B
+int	canqlock(QLock *l)
 void	qunlock(QLock *l)
 .PP
-.B
-int	canqlock(QLock *l)
-.PP
-.B
+.ft L
+.nf
 void	rlock(RWLock *l)
-.PP
-.B
+int	canrlock(RWLock *l)
 void	runlock(RWLock *l)
 .PP
-.B
-int	canrlock(RWLock *l)
-.PP
-.B
+.ft L
+.nf
 void	wlock(RWLock *l)
-.PP
-.B
+int	canwlock(RWLock *l)
 void	wunlock(RWLock *l)
 .PP
-.B
-int	canwlock(RWLock *l)
+.ft L
+.nf
+typedef struct Rendez {
+	QLock *l;
+	\fI...\fP
+} Rendez;
 .PP
+.ft L
+.nf
+void	rsleep(Rendez *r)
+int	rwakeup(Rendez *r)
+int	rwakeupall(Rendez *r)
 .PP
-.B
+.ft L
 #include <thread.h>
 .PP
-.B
+.ft L
+.nf
 typedef struct Ref {
-.br
-.B
 	long ref;
-.br
-.B
 } Ref;
 .PP
-.B
+.ft L
+.nf
 void incref(Ref*)
-.PP
-.B
 long decref(Ref*)
+.fi
 .SH DESCRIPTION
 These routines are used  to synchronize processes sharing memory.
 .PP
-The first group
-.RI ( lock ,
-.IR canlock , 
-.IR unlock )
-uses spin locks in shared memory.
-The second group
-.RI ( qlock ,
-.IR canqlock ,
-.IR qunlock ),
-uses rendezvous locks in shared
-memory.
-The third group
-.RI ( rlock ,
-.IR runlock ,
-.IR canrlock ,
-.IR wlock ,
-.IR wunlock ,
-.IR canwlock ),
-also uses rendezvous locks but has slightly different
-semantics.
+.B Locks
+are spin locks,
+.B QLocks
+and
+.B RWLocks
+are different types of queueing rendezvous locks,
+and
+.B Rendezes
+are rendezvous points.
 .PP
-Locks work in regular programs as well as programs that use the thread library
+Locks and rendezvous points work in regular programs as
+well as programs that use the thread library
 (see
 .IR thread (2)).
 The thread library replaces the
-.B rendezvous
+.IR rendezvous (2)
 system call
-(see
-.IR rendezvous (2))
 with its own implementation,
-.BR threadrendezvous ,
+.IR threadrendezvous ,
 so that threads as well as processes may be synchronized by locking calls
 in threaded programs.
 .PP
@@ -155,6 +139,52 @@ read access until write access is released.
 All types of lock should be initialized to all zeros before use; this
 puts them in the unlocked state.
 .PP
+.B Rendezes
+are rendezvous points.  Each
+.B Rendez
+.I r
+is protected by a
+.B QLock
+.IB r -> l \fR,
+which must be held by the callers of
+.IR rsleep ,
+.IR rwakeup ,
+and
+.IR rwakeupall .
+.I Rsleep
+atomically releases
+.IB r -> l
+and suspends execution of the calling task.
+After resuming execution,
+.I rsleep
+will reacquire
+.IB r -> l
+before returning.
+If any processes are sleeping on
+.IR r ,
+.I rwakeup
+wakes one of them.
+it returns 1 if a process was awakened, 0 if not.
+.I Rwakeupall
+wakes all processes sleeping on
+.IR r ,
+returning the number of processes awakened.
+.I Rwakeup
+and
+.I rwakeupall
+do not release
+.IB r -> l
+and do not suspend execution of the current task.
+.PP
+Before use,
+.B Rendezes
+should be initialized to all zeros except for
+.IB r -> l
+pointer, which should point at the
+.B QLock
+that will guard
+.IR r .
+.PP
 A
 .B Ref
 contains a
@@ -178,3 +208,25 @@ and returns zero if the resulting value is zero, non-zero otherwise.
 .I rfork
 in
 .IR fork (2)
+.SH BUGS
+.B Locks
+are not strictly spin locks.
+After each unsuccessful attempt,
+.I lock
+calls
+.B sleep(0)
+to yield the CPU; this handles the common case
+where some other process holds the lock.
+After a thousand unsuccessful attempts,
+.I lock
+sleeps for 100ms between attempts.
+Another another thousand unsuccessful attempts,
+.I lock
+sleeps for a full second between attempts.
+.B Locks
+are not intended to be held for long periods of time.
+The 100ms and full second sleeps are only heuristics to
+avoid tying up the CPU when a process deadlocks.
+As discussed above,
+if a lock is to be held for much more than a few instructions,
+the queueing lock types should be almost always be used.

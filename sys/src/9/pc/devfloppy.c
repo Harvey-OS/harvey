@@ -119,6 +119,7 @@ Dirtab floppydir[]={
 enum
 {
 	CMdebug,
+	CMnodebug,
 	CMeject,
 	CMformat,
 	CMreset,
@@ -127,6 +128,7 @@ enum
 static Cmdtab floppyctlmsg[] =
 {
 	CMdebug,	"debug",	1,
+	CMnodebug,	"nodebug", 1,
 	CMeject,	"eject",	1,
 	CMformat,	"format",	0,
 	CMreset,	"reset",	1,
@@ -473,6 +475,9 @@ floppywrite(Chan *c, void *a, long n, vlong off)
 			break;
 		case CMdebug:
 			floppydebug = 1;
+			break;
+		case CMnodebug:
+			floppydebug = 0;
 			break;
 		}
 		poperror();

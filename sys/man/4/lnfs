@@ -11,6 +11,8 @@ lnfs \- long name file system
 .I srvname
 ]
 .I mountpoint
+.B unlnfs
+.I mountpoint
 .SH DESCRIPTION
 .I Lnfs
 starts a process that mounts itself (see
@@ -46,10 +48,16 @@ provide a service name,
 to post in
 .BR /srv .
 Without this option, no posting is performed.
+.PP
+.I Unlnfs
+renames files with shortened names to their actual long names.
+It is useful once you have moved to a file server with true long name support.
 .SH FILES
 .B .longnames
 .SH SOURCE
 .B /sys/src/cmd/lnfs.c
+.PP
+.B /sys/src/cmd/unlnfs.c
 .SH BUGS
 This exists only to shame us into getting a real long
 name file server working.

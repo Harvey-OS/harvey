@@ -103,5 +103,5 @@ sunSrvFd(SunSrv *srv, int fd)
 
 	chanfree(arg->csync);
 	free(arg);
-	return 1;
+	return 0;
 }

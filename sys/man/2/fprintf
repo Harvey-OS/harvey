@@ -2,6 +2,8 @@
 .SH NAME
 fprintf, printf, sprintf, snprintf, vfprintf, vprintf, vsprintf, vsnprintf \- print formatted output
 .SH SYNOPSIS
+.B #include <u.h>
+.br
 .B #include <stdio.h>
 .PP
 .B

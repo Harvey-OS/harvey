@@ -233,7 +233,7 @@ facetime(Face *f, int *recent)
 {
 	static char buf[30];
 
-	if((long)(now - f->time) > 23*60*60){
+	if((long)(now - f->time) > HhmmTime){
 		*recent = 0;
 		sprint(buf, "%.3s %2d", mon+3*f->tm.mon, f->tm.mday);
 		return buf;

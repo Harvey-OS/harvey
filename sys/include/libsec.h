@@ -229,8 +229,9 @@ RSApriv*	asn1toRSApriv(uchar*, int);
 void		asn1dump(uchar *der, int len);
 uchar*		decodepem(char *s, char *type, int *len);
 uchar*		X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
+uchar*		X509req(RSApriv *priv, char *subj, int *certlen);
 char*		X509verify(uchar *cert, int ncert, RSApub *pk);
-
+void		X509dump(uchar *cert, int ncert);
 /////////////////////////////////////////////////////////
 // elgamal
 /////////////////////////////////////////////////////////

@@ -15,9 +15,9 @@ Queue*	lineq;			/* processed console input */
 Queue*	serialoq;		/* serial console output */
 Queue*	kprintoq;		/* console output, for /dev/kprint */
 ulong	kprintinuse;		/* test and set whether /dev/kprint is open */
-int		iprintscreenputs = 1;
+int	iprintscreenputs = 1;
 
-int		panicking;
+int	panicking;
 
 static struct
 {

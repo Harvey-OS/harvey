@@ -387,13 +387,13 @@ etherreset(void)
 			snprint(name, sizeof(name), "ether%d", ctlrno);
 
 			/*
-			 * If ether->irq is 0, it is a hack to indicate no interrupt
+			 * If ether->irq is <0, it is a hack to indicate no interrupt
 			 * used by ethersink.
 			 */
-			if(ether->irq > 0)
+			if(ether->irq >= 0)
 				intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 
-			i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %lud",
+			i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %d",
 				ctlrno, ether->type, ether->mbps, ether->port, ether->irq);
 			if(ether->mem)
 				i += sprint(buf+i, " addr 0x%luX", PADDR(ether->mem));

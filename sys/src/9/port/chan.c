@@ -81,6 +81,7 @@ struct Elemlist
 	int	nelems;
 	char	**elems;
 	int	*off;
+	int	mustbedir;
 };
 
 #define SEP(c) ((c) == 0 || (c) == '/')
@@ -974,6 +975,10 @@ growparse(Elemlist *e)
  * The name is known to be valid.
  * Copy the name so slashes can be overwritten.
  * An empty string will set nelem=0.
+ * A path ending in / or /. or /.//./ etc. will have
+ * e.mustbedir = 1, so that we correctly
+ * reject, e.g., "/adm/users/." when /adm/users is a file
+ * rather than a directory.
  */
 static void
 parsename(char *name, Elemlist *e)
@@ -985,17 +990,19 @@ parsename(char *name, Elemlist *e)
 	e->nelems = 0;
 	e->elems = nil;
 	e->off = smalloc(sizeof(int));
-	e->off[0] = 0;
+	e->off[0] = skipslash(name) - name;
 	for(;;){
 		name = skipslash(name);
-		if(*name=='\0')
+		if(*name=='\0'){
+			e->mustbedir = 1;
 			break;
+		}
 		growparse(e);
-		
 		e->elems[e->nelems++] = name;
 		slash = utfrune(name, '/');
 		if(slash == nil){
 			e->off[e->nelems] = name+strlen(name) - e->name;
+			e->mustbedir = 0;
 			break;
 		}
 		e->off[e->nelems] = slash - e->name;
@@ -1059,7 +1066,6 @@ namec(char *aname, int amode, int omode, ulong perm)
 	case '/':
 		c = up->slash;
 		incref(c);
-		name = skipslash(name);
 		break;
 	
 	case '#':
@@ -1099,7 +1105,6 @@ namec(char *aname, int amode, int omode, ulong perm)
 	default:
 		c = up->dot;
 		incref(c);
-		name = skipslash(name);
 		break;
 	}
 	prefix = name - aname;
@@ -1123,11 +1128,19 @@ namec(char *aname, int amode, int omode, ulong perm)
 	parsename(name, &e);
 
 	/*
-	 * On create, don't try to walk the last path element just yet.
+	 * On create, ....
 	 */
 	if(amode == Acreate){
+		/* perm must have DMDIR if last element is / or /. */
+		if(e.mustbedir && !(perm&DMDIR)){
+			npath = e.nelems;
+			strcpy(tmperrbuf, "create without DMDIR");
+			goto NameError;
+		}
+
+		/* don't try to walk the last path element just yet. */
 		if(e.nelems == 0)
-			error(Eisdir);
+			error(Eexist);
 		e.nelems--;
 	}
 
@@ -1136,14 +1149,26 @@ namec(char *aname, int amode, int omode, ulong perm)
 			print("namec %s walk error npath=%d\n", aname, npath);
 			nexterror();
 		}
-		len = prefix+e.off[npath];
 		strcpy(tmperrbuf, up->errstr);
+	NameError:
+		len = prefix+e.off[npath];
 		if(len < ERRMAX/3 || (name=memrchr(aname, '/', len))==nil || name==aname)
 			snprint(up->genbuf, sizeof up->genbuf, "%.*s", len, aname);
 		else
 			snprint(up->genbuf, sizeof up->genbuf, "...%.*s", (int)(len-(name-aname)), name);
 		snprint(up->errstr, ERRMAX, "%#q %s", up->genbuf, tmperrbuf);
 		nexterror();
+	}
+
+	if(e.mustbedir && !(c->qid.type&QTDIR)){
+		npath = e.nelems;
+		strcpy(tmperrbuf, "not a directory");
+		goto NameError;
+	}
+
+	if(amode == Aopen && (omode&3) == OEXEC && (c->qid.type&QTDIR)){
+		npath = e.nelems;
+		error("cannot exec directory");
 	}
 
 	switch(amode){
@@ -1356,18 +1381,13 @@ if(c->umh != nil){
 }
 
 /*
- * name is valid. skip leading / and ./ and trailing .
+ * name is valid. skip leading / and ./ as much as possible
  */
 char*
 skipslash(char *name)
 {
-    Again:
-	while(*name == '/')
+	while(name[0]=='/' || (name[0]=='.' && (name[1]==0 || name[1]=='/')))
 		name++;
-	if(*name=='.' && (name[1]=='\0' || name[1]=='/')){
-		name++;
-		goto Again;
-	}
 	return name;
 }
 

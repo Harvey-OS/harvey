@@ -29,12 +29,6 @@ enum
 	RpcToosmall,
 	RpcPhase,
 	RpcConfirm,
-
-	/* key lookup */
-	Kowner = 1<<0,
-	Kuser = 1<<1,
-	Kwho = 3<<0,
-	Knoconf = 1<<2,
 };
 
 typedef struct Attr Attr;
@@ -180,7 +174,7 @@ int secstorefetch(char*);
 #define estrdup estrdup9p
 #define erealloc erealloc9p
 #pragma varargck argpos failure 2
-#pragma varargck argpos findkey 6
+#pragma varargck argpos findkey 7
 #pragma varargck argpos setattr 2
 
 int		_authdial(char*, char*);
@@ -193,7 +187,7 @@ int		ctlwrite(char*);
 char		*estrappend(char*, char*, ...);
 #pragma varargck argpos estrappend 2
 int		failure(Fsstate*, char*, ...);
-int		findkey(Key**, Fsstate*, int, int, Attr*, char*, ...);
+int		findkey(Key**, Fsstate*, char*, int, int, Attr*, char*, ...);
 int		findp9authkey(Key**, Fsstate*);
 Proto	*findproto(char*);
 char		*getnvramkey(int, char**);
@@ -221,8 +215,9 @@ void		writehostowner(char*);
 /* protocols */
 extern Proto apop, cram;		/* apop.c */
 extern Proto p9any, p9sk1, p9sk2;	/* p9sk.c */
-extern Proto chap, mschap;	/* chap.c */
-extern Proto p9cr, vnc;		/* p9cr.c */
+extern Proto chap, mschap;		/* chap.c */
+extern Proto p9cr, vnc;			/* p9cr.c */
 extern Proto pass;			/* pass.c */
 extern Proto sshrsa;			/* sshrsa.c */
-extern Proto rsa;				/* rsa.c */
+extern Proto rsa;			/* rsa.c */
+extern Proto wep;			/* wep.c */

@@ -12,8 +12,8 @@ OFILES=readaddrs.$O
 UPDATE=\
 	mkfile\
 	${TARG:%=%.c}\
-	myupassend.sample\
 	pipeto.sample\
+	pipefrom.sample\
 	pipeto.sample-hold\
 
 </sys/src/cmd/mkmany

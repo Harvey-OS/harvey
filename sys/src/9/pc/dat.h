@@ -253,7 +253,7 @@ struct PCArch
 struct ISAConf {
 	char	*type;
 	ulong	port;
-	ulong	irq;
+	int	irq;
 	ulong	dma;
 	ulong	mem;
 	ulong	size;

@@ -305,8 +305,6 @@ struct Ctlr
 
 	Stats;
 	WStats;
-
-	ushort	scanbuf[25*4];		// buffer for base station scan info
 };
 
 extern char* wavenames[];

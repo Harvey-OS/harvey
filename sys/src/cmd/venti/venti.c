@@ -8,7 +8,7 @@ static Packet	*srvRead(VtSession *z, uchar score[VtScoreSize], int type, int n);
 static int	srvWrite(VtSession *z, uchar score[VtScoreSize], int type, Packet *p);
 static void	srvSync(VtSession *z);
 static void	srvClosing(VtSession *z, int clean);
-static void	daemon(char *vaddr);
+static void	daemon(void *rock);
 
 static VtServerVtbl serverVtbl = {
 .read	srvRead,
@@ -22,6 +22,8 @@ main(int argc, char *argv[])
 {
 	char *config, *haddr, *vaddr;
 	u32int mem, icmem, bcmem;
+	int background, cfd;
+	char *adir;
 
 	vaddr = "tcp!*!venti";
 	haddr = nil;
@@ -29,6 +31,7 @@ main(int argc, char *argv[])
 	mem = 0xffffffffUL;
 	icmem = 0;
 	bcmem = 0;
+	background = 1;
 	ARGBEGIN{
 	case 'a':
 		vaddr = ARGF();
@@ -37,6 +40,9 @@ main(int argc, char *argv[])
 		break;
 	case 'B':
 		bcmem = unittoull(ARGF());
+		break;
+	case 's':
+		background = 0;
 		break;
 	case 'c':
 		config = ARGF();
@@ -120,7 +126,14 @@ main(int argc, char *argv[])
 	}
 
 	fprint(2, "starting server\n");
-	daemon(vaddr);
+	adir = vtMemAlloc(100);
+	cfd = announce(vaddr, adir);
+	if(cfd < 0)
+		fatal("can't announce: %s", vtOSError());
+	if(background)
+		vtThread(daemon, adir);
+	else
+		daemon(adir);
 
 	vtDetach();
 
@@ -128,15 +141,14 @@ main(int argc, char *argv[])
 }
 
 static void
-daemon(char *vaddr)
+daemon(void *rock)
 {
-	int cfd, lcfd, fd;
-	char adir[100], ldir[100];
+	int lcfd, fd;
+	char *adir;
+	char ldir[100];
 	VtSession *z;
 
-	cfd = announce(vaddr, adir);
-	if(cfd < 0)
-		fatal("can't announce: %s", vtOSError());
+	adir = rock;
 	for(;;){
 		/* listen for a call */
 		lcfd = listen(adir, ldir);

@@ -121,6 +121,10 @@ rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 
 	switch((int)c->qid.path){
 	case Qdir:
+		if(s == DEVDOTDOT){
+			devdir(c, (Qid){Qdir, 0, QTDIR}, "#/", 0, eve, 0555, dp);
+			return 1;
+		}
 		return devgen(c, name, rootlist.dir, rootlist.ndir, s, dp);
 	case Qboot:
 		if(s == DEVDOTDOT){
@@ -129,6 +133,8 @@ rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 		}
 		return devgen(c, name, bootlist.dir, bootlist.ndir, s, dp);
 	default:
+		if(s != 0)
+			return -1;
 		if((int)c->qid.path < Qboot){
 			t = c->qid.path-1;
 			l = &rootlist;
@@ -137,8 +143,6 @@ rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
 			l = &bootlist;
 		}
 		if(t >= l->ndir)
-			return -1;
-		if(s != 0)
 			return -1;
 		d = &l->dir[t];
 		devdir(c, d->qid, d->name, d->length, eve, d->perm, dp);
@@ -196,8 +200,12 @@ rootread(Chan *c, void *buf, long n, vlong off)
 		l = &bootlist;
 	}
 
-	d = &l->dir[t-1];
-	data = l->data[t-1];
+	t--;
+	if(t >= l->ndir)
+		error(Egreg);
+
+	d = &l->dir[t];
+	data = l->data[t];
 	if(offset >= d->length)
 		return 0;
 	if(offset+n > d->length)

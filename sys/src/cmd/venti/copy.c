@@ -54,7 +54,7 @@ walk(uchar score[VtScoreSize], uint type, int base)
 
 	buf = vtMemAllocZ(VtMaxLumpSize);
 	if(fast && vtRead(zdst, score, type, buf, VtMaxLumpSize) >= 0){
-		fprint(2, "skip %V\n", score);
+		fprint(2, "%V already exists on dst server; skipping.\n", score);
 		free(buf);
 		return;
 	}
