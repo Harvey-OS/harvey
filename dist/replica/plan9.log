@@ -14014,3 +14014,5 @@
 1077942706 0 c 386/bin/fossil/fossil - 775 sys sys 1077940925 349367
 1077942706 1 c 386/lib/libmp.a - 664 sys sys 1077940925 77700
 1077985918 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1077985913 42824
+1078279247 0 c sys/games/lib/fortunes - 664 sys sys 1078279274 247590
+1078281047 0 c sys/games/lib/fortunes - 664 sys sys 1078279900 247772
