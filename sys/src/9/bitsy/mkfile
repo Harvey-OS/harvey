@@ -47,7 +47,6 @@ OBJ=\
 	screen.$O\
 	$DEVS\
 	$PORT\
-	boot$CONF.root.$O\
 	fpi.$O\
 	fpiarm.$O\
 	fpimem.$O\
@@ -91,12 +90,14 @@ installkern:V:	$p$CONF
 
 <../boot/bootmkfile
 <../port/portmkfile
+<|../port/mkbootrules $CONF
 
-init.h:	initcode /sys/src/libc/9syscall/sys.h
-	$AS initcode
-	$LD -l -s -R4 -o init.out initcode.$O
+init.h:	../port/initcode.c init9.s
+	$CC ../port/initcode.c
+	$AS init9.s
+	$LD -l -R1 -o init.out init9.$O initcode.$O /arm/lib/libc.a
 	{echo 'uchar initcode[]={'
-	 xd -r -1x init.out |
+	 strip < init.out | xd -1x |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 

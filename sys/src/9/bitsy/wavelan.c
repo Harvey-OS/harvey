@@ -655,7 +655,7 @@ w_timer(void* arg)
 			}
 			if((ctlr->ticks % 120) == 0)
 			if(ctlr->txbusy == 0)
-				w_cmd(ctlr, WCmdAskStats, WTyp_Stats);
+				w_cmd(ctlr, WCmdEnquire, WTyp_Stats);
 		}
 		iunlock(ctlr);
 	}

@@ -4943,7 +4943,7 @@ sys/src/9/alphapc/vgatvp3026.c - 664 sys sys 1015012788 30
 sys/src/9/alphapc/vgax.c - 664 sys sys 1015012788 24
 sys/src/9/bitsy - 20000000775 sys sys 1018721429 0
 sys/src/9/bitsy/Booting101 - 664 sys sys 1037028993 6820
-sys/src/9/bitsy/bitsy - 664 sys sys 1037028996 412
+sys/src/9/bitsy/bitsy - 664 sys sys 1043922351 450
 sys/src/9/bitsy/bitsyreset.s - 664 sys sys 1017695510 2352
 sys/src/9/bitsy/clock.c - 664 sys sys 1037028998 4835
 sys/src/9/bitsy/dat.h - 664 sys sys 1037029000 5672
@@ -4964,13 +4964,13 @@ sys/src/9/bitsy/fpiarm.c - 664 sys sys 1017695513 9328
 sys/src/9/bitsy/fpimem.c - 664 sys sys 1017695513 2229
 sys/src/9/bitsy/gamma.c - 664 sys sys 1017695513 646
 sys/src/9/bitsy/gamma.h - 664 sys sys 1017695514 540718
-sys/src/9/bitsy/initcode - 664 sys sys 1017695514 456
+sys/src/9/bitsy/init9.s - 444 sys sys 1043922398 183
 sys/src/9/bitsy/io.h - 664 sys sys 1037029022 8008
 sys/src/9/bitsy/l.s - 664 sys sys 1037029024 18182
 sys/src/9/bitsy/main.c - 664 sys sys 1039753387 8929
 sys/src/9/bitsy/map - 664 sys sys 1017695515 236
 sys/src/9/bitsy/mem.h - 664 sys sys 1037029029 8048
-sys/src/9/bitsy/mkfile - 664 sys sys 1039911490 2389
+sys/src/9/bitsy/mkfile - 664 sys sys 1043922405 2438
 sys/src/9/bitsy/mmu.c - 664 sys sys 1017695515 11204
 sys/src/9/bitsy/mouse.c - 664 sys sys 1017695516 962
 sys/src/9/bitsy/paqfiles - 20000000775 sys sys 1020011250 0
@@ -4991,7 +4991,7 @@ sys/src/9/bitsy/sdata.c - 464 sys sys 1037029041 44666
 sys/src/9/bitsy/tar.c - 664 sys sys 1017695521 1375
 sys/src/9/bitsy/trap.c - 664 sys sys 1037029044 18951
 sys/src/9/bitsy/uartsa1110.c - 664 sys sys 1037029045 8530
-sys/src/9/bitsy/wavelan.c - 664 sys sys 1037029074 25685
+sys/src/9/bitsy/wavelan.c - 664 sys sys 1043922422 25684
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1018556557 0
 sys/src/9/boot/aux.c - 664 sys sys 1015012529 2520
