@@ -141,11 +141,11 @@
 386/bin/bind - 775 sys sys 1039758548 58302
 386/bin/bitsy - 20000000775 sys sys 1018721039 0
 386/bin/bitsy/bitsyload - 775 sys sys 1039758548 62104
-386/bin/bitsy/keyboard - 775 sys sys 1039758549 298691
+386/bin/bitsy/keyboard - 775 sys sys 1044031527 300929
 386/bin/bitsy/light - 775 sys sys 1020319072 242
 386/bin/bitsy/params - 775 sys sys 1039758549 57274
 386/bin/bitsy/pencal - 775 sys sys 1039758549 114495
-386/bin/bitsy/prompter - 775 sys sys 1039758549 280856
+386/bin/bitsy/prompter - 775 sys sys 1044031528 283113
 386/bin/bunzip2 - 775 sys sys 1039758550 96083
 386/bin/bzip2 - 775 sys sys 1039758550 112667
 386/bin/cal - 775 sys sys 1039758550 66676
@@ -460,7 +460,7 @@
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
-386/lib/ape/libap.a - 664 sys sys 1038237540 780582
+386/lib/ape/libap.a - 664 sys sys 1044031555 780602
 386/lib/ape/libbsd.a - 664 sys sys 1038237542 171922
 386/lib/ape/libl.a - 664 sys sys 1038237542 8666
 386/lib/ape/libnet.a - 664 sys sys 1038237543 16604
@@ -493,7 +493,7 @@
 386/lib/libscribble.a - 664 sys sys 1039758629 108138
 386/lib/libsec.a - 664 sys sys 1038443230 632402
 386/lib/libstdio.a - 664 sys sys 1038443231 125150
-386/lib/libthread.a - 664 sys sys 1038443231 67534
+386/lib/libthread.a - 664 sys sys 1044031555 68178
 386/lib/libventi.a - 664 sys sys 1038443231 93114
 386/mbr - 775 sys sys 1022125974 407
 386/mkfile - 664 sys sys 948141303 46
@@ -3744,7 +3744,7 @@ sys/lib/man - 20000000775 sys sys 960356011 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
 sys/lib/man/lookman - 20000000775 sys sys 956337764 0
-sys/lib/man/lookman/index - 664 sys sys 1042220693 1397584
+sys/lib/man/lookman/index - 664 sys sys 1044031559 1400691
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
 sys/lib/man/mkhtmlindex - 775 sys sys 959447575 1235
@@ -4544,7 +4544,7 @@ sys/man/1/yacc - 664 sys sys 944959676 3273
 sys/man/1/yesterday - 664 sys sys 959299265 2045
 sys/man/2 - 20000000775 sys sys 1017423721 0
 sys/man/2/0intro - 664 sys sys 958249500 11777
-sys/man/2/9p - 664 sys sys 1032632905 14553
+sys/man/2/9p - 664 sys sys 1044050898 14553
 sys/man/2/9pfid - 664 sys sys 1030451710 3644
 sys/man/2/9pfile - 664 sys sys 1017423719 4426
 sys/man/2/INDEX - 664 sys sys 1041971549 20120
@@ -4964,7 +4964,7 @@ sys/src/9/bitsy/fpiarm.c - 664 sys sys 1017695513 9328
 sys/src/9/bitsy/fpimem.c - 664 sys sys 1017695513 2229
 sys/src/9/bitsy/gamma.c - 664 sys sys 1017695513 646
 sys/src/9/bitsy/gamma.h - 664 sys sys 1017695514 540718
-sys/src/9/bitsy/init9.s - 444 sys sys 1043922398 183
+sys/src/9/bitsy/init9.s - 664 sys sys 1043922398 183
 sys/src/9/bitsy/io.h - 664 sys sys 1037029022 8008
 sys/src/9/bitsy/l.s - 664 sys sys 1037029024 18182
 sys/src/9/bitsy/main.c - 664 sys sys 1039753387 8929
@@ -4986,8 +4986,8 @@ sys/src/9/bitsy/sa1110dma.c - 664 sys sys 1017695520 4666
 sys/src/9/bitsy/sa1110dma.h - 664 sys sys 1017695520 381
 sys/src/9/bitsy/screen.c - 664 sys sys 1039753380 10145
 sys/src/9/bitsy/screen.h - 664 sys sys 1017695520 260
-sys/src/9/bitsy/sd.h - 464 sys sys 1037029038 0
-sys/src/9/bitsy/sdata.c - 464 sys sys 1037029041 44666
+sys/src/9/bitsy/sd.h - 664 sys sys 1037029038 0
+sys/src/9/bitsy/sdata.c - 664 sys sys 1037029041 44666
 sys/src/9/bitsy/tar.c - 664 sys sys 1017695521 1375
 sys/src/9/bitsy/trap.c - 664 sys sys 1037029044 18951
 sys/src/9/bitsy/uartsa1110.c - 664 sys sys 1037029045 8530
