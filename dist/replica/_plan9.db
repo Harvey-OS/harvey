@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
 386/bin/acid - 775 sys sys 1091936087 353717
-386/bin/acme - 775 sys sys 1100579339 425046
+386/bin/acme - 775 sys sys 1101960674 425079
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1085076973 68304
@@ -132,7 +132,7 @@
 386/bin/aux/posttek - 775 sys sys 1087442508 163239
 386/bin/aux/rdwr - 775 sys sys 1085077003 38275
 386/bin/aux/reboot - 775 sys sys 1085077004 58332
-386/bin/aux/samterm - 775 sys sys 1085077004 245843
+386/bin/aux/samterm - 775 sys sys 1101960674 245747
 386/bin/aux/searchfs - 775 sys sys 1085077005 87587
 386/bin/aux/sprog - 775 sys sys 1085077006 77357
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
@@ -220,7 +220,7 @@
 386/bin/ext2srv - 775 sys sys 1089397312 171855
 386/bin/faces - 775 sys sys 1098158504 190538
 386/bin/factor - 775 sys sys 1085077042 59443
-386/bin/file - 775 sys sys 1091936091 108649
+386/bin/file - 775 sys sys 1101960674 110319
 386/bin/fmt - 775 sys sys 1085077043 63269
 386/bin/fortune - 775 sys sys 1085077045 65146
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -401,7 +401,7 @@
 386/bin/swap - 775 sys sys 1085077102 60111
 386/bin/syscall - 775 sys sys 1091849700 71497
 386/bin/tail - 775 sys sys 1085077102 63945
-386/bin/tar - 775 sys sys 1094612761 81786
+386/bin/tar - 775 sys sys 1101960675 81834
 386/bin/tbl - 775 sys sys 1085077103 111047
 386/bin/tcs - 775 sys sys 1085077103 256506
 386/bin/tee - 775 sys sys 1085077104 38401
@@ -458,8 +458,8 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1100664617 183278
-386/bin/usb/usbd - 775 sys sys 1099800617 127661
+386/bin/usb/usbaudio - 775 sys sys 1101960675 183323
+386/bin/usb/usbd - 775 sys sys 1101960675 127706
 386/bin/usb/usbmouse - 775 sys sys 1099800618 138206
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1085077119 167554
@@ -533,7 +533,7 @@
 386/lib/libdisk.a - 664 sys sys 1091936103 42234
 386/lib/libdraw.a - 664 sys sys 1098158576 373544
 386/lib/libflate.a - 664 sys sys 1089397329 76872
-386/lib/libframe.a - 664 sys sys 1098158576 66084
+386/lib/libframe.a - 664 sys sys 1101960676 66060
 386/lib/libgeometry.a - 664 sys sys 1098158576 50470
 386/lib/libhtml.a - 664 sys sys 1098158577 219972
 386/lib/libhttpd.a - 664 sys sys 1091936105 99488
@@ -4650,7 +4650,7 @@ sys/man/1/2l - 664 sys sys 1101668051 4365
 sys/man/1/INDEX - 664 sys sys 1100579340 3010
 sys/man/1/INDEX.html - 664 sys sys 1089320990 16634
 sys/man/1/acid - 664 sys sys 1101668051 9727
-sys/man/1/acme - 664 sys sys 1019828741 17587
+sys/man/1/acme - 664 sys sys 1101996606 17593
 sys/man/1/ap - 664 sys sys 1068471657 364
 sys/man/1/ar - 664 sys sys 1079397701 3153
 sys/man/1/ascii - 664 sys sys 957920005 2733
@@ -12394,10 +12394,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1101960674 425079
-386/bin/usb/usbaudio - 775 sys sys 1101960675 183323
-386/bin/usb/usbd - 775 sys sys 1101960675 127706
-386/bin/file - 775 sys sys 1101960674 110319
-386/bin/aux/samterm - 775 sys sys 1101960674 245747
-386/bin/tar - 775 sys sys 1101960675 81834
-386/lib/libframe.a - 664 sys sys 1101960676 66060
