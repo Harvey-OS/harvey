@@ -138,7 +138,8 @@ static char*
 imap4resp(Imap *imap)
 {
 	char *line, *p, *ep, *op, *q, *r, *en, *verb;
-	int n;
+	int i, n;
+	static char error[256];
 
 	while(p = Brdline(&imap->bin, '\n')){
 		ep = p+Blinelen(&imap->bin);
@@ -214,10 +215,17 @@ imap4resp(Imap *imap)
 							imap->data = imap->base;
 							imap->size = n+1;
 						}
-						if(n >= imap->size)
-							return Eio;
-						if(Bread(&imap->bin, imap->data, n) != n)
-							return Eio;
+						if(n >= imap->size){
+							// friggin microsoft - reallocate
+							i = imap->data - imap->base;
+							imap->base = erealloc(imap->base, i+n+1);
+							imap->data = imap->base + i;
+							imap->size = n+1;
+						}
+						if((i = Bread(&imap->bin, imap->data, n)) != n){
+							snprint(error, sizeof error, "short read from server %d != %d\n", i, n);
+							return error;
+						}
 						imap->data[n] = '\0';
 						imap->data += n;
 						imap->size -= n;
@@ -493,7 +501,7 @@ imap4fetch(Mailbox *mb, Message *m)
 	if(imap->size == 0)
 		return "didn't get size from size command";
 
-	sz = imap->size+200;	/* 200: slop */
+	sz = imap->size;
 	p = emalloc(sz+1);
 	free(imap->base);
 	imap->base = p;
@@ -638,7 +646,7 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 	}
 	waitpid();
 
-	if(nnew){
+	if(nnew || mb->vers == 0){
 		mb->vers++;
 		henter(PATH(0, Qtop), mb->name,
 			(Qid){PATH(mb->id, Qmbox), mb->vers, QTDIR}, nil, mb);
@@ -791,7 +799,7 @@ imap4mbox(Mailbox *mb, char *path)
 
 	imap = emalloc(sizeof(*imap));
 	imap->fd = -1;
-	imap->debug = 0;
+	imap->debug = debug;
 	imap->freep = path;
 	imap->mustssl = mustssl;
 	imap->host = f[2];
