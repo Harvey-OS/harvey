@@ -86,8 +86,8 @@ with older versions of tar.
 Do not generate the POSIX ustar format.
 .TP
 .B R
-When extracting, ignore leading slash on file names,
-i.e., extract all files relative to the current directory.
+When extracting, respect leading slash on file names.
+By default, files are always extracted relative to the current directory.
 .TP
 .B T
 Modifies the behavior of

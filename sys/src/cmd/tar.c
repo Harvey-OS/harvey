@@ -121,7 +121,7 @@ static int posix = 1;
 static int docreate;
 static int aruid;
 static int argid;
-static int relative;
+static int relative = 1;
 static int settime;
 static int verbose;
 static int docompress;
@@ -403,8 +403,10 @@ static char *
 name(Hdr *hp)
 {
 	int pfxlen, namlen;
-	static char fullname[Maxname + 1];
+	static char fullnamebuf[2 + Maxname + 1];	/* 2 at beginning for ./ on relative names */
+	char *fullname;
 
+	fullname = fullnamebuf+2;
 	namlen = strnlen(hp->name, sizeof hp->name);
 	if (hp->prefix[0] == '\0' || !isustar(hp)) {	/* old-style name? */
 		memmove(fullname, hp->name, namlen);
@@ -765,6 +767,7 @@ mkpdirs(char *s)
 }
 
 /* copy a file from the archive into the filesystem */
+/* fname is result of name(), so has two extra bytes at beginning */
 static void
 extract1(int ar, Hdr *hp, char *fname)
 {
@@ -788,8 +791,14 @@ extract1(int ar, Hdr *hp, char *fname)
 		blksleft = 0;
 		break;
 	}
-	if (relative && fname[0] == '/')
-		fname++;
+	if (relative) {
+		if(fname[0] == '/')
+			*--fname = '.';
+		else if(fname[0] == '#'){
+			*--fname = '/';
+			*--fname = '.';
+		}
+	}
 	if (verb == Xtract) {
 		cleanname(fname);
 		switch (hp->linkflag) {
@@ -951,7 +960,7 @@ main(int argc, char *argv[])
 		verb = Replace;
 		break;
 	case 'R':
-		relative++;
+		relative = 0;
 		break;
 	case 't':
 		verb = Toc;

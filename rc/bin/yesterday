@@ -28,8 +28,8 @@ fn Xcp {
 }
 
 fn Xdiff {
-	echo diff $1 $2
-	diff $1 $2
+	echo diff -n $1 $2
+	diff -n $1 $2
 }
 fn Xdiffn {
 	echo diff -n $1 $2
