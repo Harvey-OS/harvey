@@ -6782,7 +6782,7 @@ sys/src/cmd/acme/exec.c - 664 sys sys 1067723165 27057
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1067723164 2922
 sys/src/cmd/acme/fsys.c - 664 sys sys 1022512648 12727
-sys/src/cmd/acme/look.c - 664 sys sys 1041137125 14840
+sys/src/cmd/acme/look.c - 664 sys sys 1072019591 14096
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1068140772 14637
