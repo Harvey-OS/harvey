@@ -147,7 +147,7 @@
 386/bin/aux/vga - 775 sys sys 1090465582 299379
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
-386/bin/aux/vmwarefs - 775 sys sys 1045537962 102172
+386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
 386/bin/aux/write - 775 sys sys 1085077011 4188
 386/bin/aux/zerotrunc - 775 sys sys 1057551514 58154
 386/bin/awd - 775 sys sys 1085077011 5029
@@ -3327,7 +3327,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1094570700 249644
+sys/games/lib/fortunes - 664 sys sys 1095516221 249755
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1091904420 4392
 sys/include/String.h - 664 sys sys 1091904425 1319

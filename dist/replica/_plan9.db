@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1089397305 112804
-386/bin/8c - 775 sys sys 1095443870 357637
+386/bin/8c - 775 sys sys 1095478055 357637
 386/bin/8l - 775 sys sys 1095170407 114895
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
@@ -147,7 +147,7 @@
 386/bin/aux/vga - 775 sys sys 1090465582 299379
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
-386/bin/aux/vmwarefs - 775 sys sys 1045537962 102172
+386/bin/aux/vmwarefs - 775 sys sys 1095539498 99117
 386/bin/aux/write - 775 sys sys 1085077011 4188
 386/bin/aux/zerotrunc - 775 sys sys 1057551514 58154
 386/bin/awd - 775 sys sys 1085077011 5029
@@ -478,7 +478,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1085077125 102330
 386/bin/venti/wrarena - 775 sys sys 1091936100 174140
 386/bin/venti/write - 775 sys sys 1085077126 100504
-386/bin/vncs - 775 sys sys 1091849701 469227
+386/bin/vncs - 775 sys sys 1095478056 469284
 386/bin/vncv - 775 sys sys 1085077128 518402
 386/bin/vt - 775 sys sys 1085077128 170967
 386/bin/vtdump - 775 sys sys 1085077129 157507
@@ -3327,7 +3327,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1094570700 249644
+sys/games/lib/fortunes - 664 sys sys 1095516221 249755
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1091904420 4392
 sys/include/String.h - 664 sys sys 1091904425 1319
@@ -12338,5 +12338,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/8c - 775 sys sys 1095478055 357637
-386/bin/vncs - 775 sys sys 1095478056 469284
+386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
