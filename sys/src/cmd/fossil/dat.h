@@ -67,8 +67,6 @@ struct Fs {
 
 	Periodic *metaFlush;	/* periodically flushes meta data cached in files */
 
-	
-
 	/*
 	 * epoch lock.
 	 * Most operations on the fs require a read lock of elk, ensuring that
@@ -80,6 +78,8 @@ struct Fs {
 	VtLock *elk;		/* epoch lock */
 	u32int ehi;		/* epoch high */
 	u32int elo;		/* epoch low */
+
+	int halted;		/* epoch lock is held to halt (console initiated) */
 
 	Source *source;		/* immutable: root of sources */
 	File *file;		/* immutable: root of files */

@@ -669,6 +669,108 @@ cmdMsg(int argc, char* argv[])
 	return 1;
 }
 
+static int
+scmp(Fid *a, Fid *b)
+{
+	if(a == 0)
+		return 1;
+	if(b == 0)
+		return -1;
+	return strcmp(a->uname, b->uname);
+}
+
+static Fid*
+fidMerge(Fid *a, Fid *b)
+{
+	Fid *s, **l;
+
+	l = &s;
+	while(a || b){
+		if(scmp(a, b) < 0){
+			*l = a;
+			l = &a->sort;
+			a = a->sort;
+		}else{
+			*l = b;
+			l = &b->sort;
+			b = b->sort;
+		}
+	}
+	*l = 0;
+	return s;
+}
+
+static Fid*
+fidMergeSort(Fid *f)
+{
+	int delay;
+	Fid *a, *b;
+
+	if(f == nil)
+		return nil;
+	if(f->sort == nil)
+		return f;
+
+	a = b = f;
+	delay = 1;
+	while(a && b){
+		if(delay)	/* easy way to handle 2-element list */
+			delay = 0;
+		else
+			a = a->sort;
+		if(b = b->sort)
+			b = b->sort;
+	}
+
+	b = a->sort;
+	a->sort = nil;
+
+	a = fidMergeSort(f);
+	b = fidMergeSort(b);
+
+	return fidMerge(a, b);
+}
+
+
+static int
+cmdWho(int argc, char* argv[])
+{
+	char *usage = "usage: who";
+	int i;
+	Con *con;
+	Fid *fid, *last;
+
+	ARGBEGIN{
+	default:
+		return cliError(usage);
+	}ARGEND
+
+	if(argc > 0)
+		return cliError(usage);
+
+	vtRLock(cbox.clock);
+	for(con=cbox.chead; con; con=con->cnext){
+		consPrint("\t%q:", con->name);
+		vtLock(con->fidlock);
+		last = nil;
+		for(i=0; i<NFidHash; i++)
+			for(fid=con->fidhash[i]; fid; fid=fid->hash)
+				if(fid->fidno != NOFID && fid->uname){
+					fid->sort = last;
+					last = fid;
+				}
+		fid = fidMergeSort(last);
+		last = nil;
+		for(; fid; last=fid, fid=fid->sort)
+			if(last==nil || strcmp(fid->uname, last->uname) != 0)
+				consPrint(" %q", fid->uname);
+		vtUnlock(con->fidlock);
+		consPrint("\n");
+	}
+	vtRUnlock(cbox.clock);
+	return 1;
+}	
+
 void
 msgInit(void)
 {
@@ -742,4 +844,5 @@ conInit(void)
 	cbox.msize = NMsizeInit;
 
 	cliAddCmd("con", cmdCon);
+	cliAddCmd("who", cmdWho);
 }
