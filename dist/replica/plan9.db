@@ -223,6 +223,7 @@
 386/bin/ext2srv - 775 sys sys 1108354552 173894
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
+386/bin/fcp - 775 sys sys 1110859785 82162
 386/bin/file - 775 sys sys 1108008333 112495
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
@@ -4697,7 +4698,7 @@ sys/man/1/cmp - 664 sys sys 944959673 1092
 sys/man/1/colors - 664 sys sys 954523212 1443
 sys/man/1/comm - 664 sys sys 944959675 665
 sys/man/1/con - 664 sys sys 1071156278 4318
-sys/man/1/cp - 664 sys sys 1015024738 1390
+sys/man/1/cp - 664 sys sys 1110816882 1947
 sys/man/1/cpp - 664 sys sys 944959674 2105
 sys/man/1/cpu - 664 sys sys 1104939775 3540
 sys/man/1/crop - 664 sys sys 984709627 2596
@@ -7553,6 +7554,7 @@ sys/src/cmd/fax/receive.c - 664 sys sys 944960990 1097
 sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
+sys/src/cmd/fcp.c - 644 sys sys 1110816880 3780
 sys/src/cmd/file.c - 664 sys sys 1104849659 22939
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
