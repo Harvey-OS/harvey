@@ -150,6 +150,7 @@
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1045537962 102172
 386/bin/aux/write - 775 sys sys 1038443108 4198
+386/bin/aux/zerotrunc - 775 sys sys 1056634437 58154
 386/bin/awd - 775 sys sys 1038443108 5033
 386/bin/awk - 775 sys sys 1048745031 316908
 386/bin/basename - 775 sys sys 1039758547 38375
@@ -6766,6 +6767,7 @@ sys/src/cmd/aux/vga/vision968.c - 664 sys sys 1014925014 3959
 sys/src/cmd/aux/vga/vmware.c - 664 sys sys 1020313485 4907
 sys/src/cmd/aux/vga/w30c516.c - 664 sys sys 1014925014 3158
 sys/src/cmd/aux/write.c - 664 sys sys 944960778 471
+sys/src/cmd/aux/zerotrunc.c - 664 sys sys 1056634403 300
 sys/src/cmd/awd.c - 664 sys sys 944961364 567
 sys/src/cmd/awk - 20000000775 sys sys 944964677 0
 sys/src/cmd/awk/awk.h - 664 sys sys 944960803 4624

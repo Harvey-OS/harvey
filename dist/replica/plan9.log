@@ -12743,3 +12743,5 @@
 1056573071 4 c sys/lib/ghostscript/font/README - 444 sys sys 1056572274 350
 1056573071 5 m sys/lib/ghostscript/font/README - 444 sys sys 1056572274 350
 1056573071 6 c sys/lib/postscript/font/NOTICE - 444 sys sys 1056572331 816
+1056636155 0 a 386/bin/aux/zerotrunc - 775 sys sys 1056634437 58154
+1056636155 1 a sys/src/cmd/aux/zerotrunc.c - 664 sys sys 1056634403 300
