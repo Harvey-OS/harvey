@@ -78,7 +78,7 @@
 386/bin/auth/rsagen - 775 sys sys 1064598052 152733
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1068385793 188789
-386/bin/auth/secstored - 775 sys sys 1064798342 194075
+386/bin/auth/secstored - 775 sys sys 1068717498 194661
 386/bin/auth/secuser - 775 sys sys 1068385794 151909
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1064598056 61525
@@ -204,7 +204,7 @@
 386/bin/disk/exsort - 775 sys sys 1064598123 58541
 386/bin/disk/fdisk - 775 sys sys 1064598124 106639
 386/bin/disk/format - 775 sys sys 1064598125 91621
-386/bin/disk/kfs - 775 sys sys 1065916877 249460
+386/bin/disk/kfs - 775 sys sys 1068717499 249427
 386/bin/disk/kfscmd - 775 sys sys 1064598127 38451
 386/bin/disk/ksync - 775 sys sys 1020319074 302
 386/bin/disk/mbr - 775 sys sys 1064598127 73194
@@ -229,9 +229,9 @@
 386/bin/fortune - 775 sys sys 1064598140 66084
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1056364255 1497
-386/bin/fossil/flchk - 775 sys sys 1068129393 232619
-386/bin/fossil/flfmt - 775 sys sys 1068129394 230584
-386/bin/fossil/fossil - 775 sys sys 1068129395 345623
+386/bin/fossil/flchk - 775 sys sys 1068717500 232696
+386/bin/fossil/flfmt - 775 sys sys 1068717501 230661
+386/bin/fossil/fossil - 775 sys sys 1068717502 345764
 386/bin/freq - 775 sys sys 1064598145 60197
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1064598146 95907
@@ -294,7 +294,7 @@
 386/bin/ip/udpecho - 775 sys sys 1064598244 43304
 386/bin/join - 775 sys sys 1064598245 114856
 386/bin/jpg - 775 sys sys 1068385803 173300
-386/bin/kprof - 775 sys sys 1064598247 101656
+386/bin/kprof - 775 sys sys 1068717502 101803
 386/bin/ktrace - 775 sys sys 1068558079 115884
 386/bin/lens - 775 sys sys 1064598248 122791
 386/bin/lex - 775 sys sys 1064598249 97280
@@ -313,7 +313,7 @@
 386/bin/mtime - 775 sys sys 1064598257 57628
 386/bin/mv - 775 sys sys 1064598258 64748
 386/bin/ndb - 20000000775 sys sys 985743147 0
-386/bin/ndb/cs - 775 sys sys 1066515212 144290
+386/bin/ndb/cs - 775 sys sys 1068717503 144127
 386/bin/ndb/csquery - 775 sys sys 1064598259 59890
 386/bin/ndb/dns - 775 sys sys 1064598261 218271
 386/bin/ndb/dnsdebug - 775 sys sys 1064598262 190622
@@ -380,7 +380,7 @@
 386/bin/size - 775 sys sys 1064598308 76047
 386/bin/sleep - 775 sys sys 1038443184 3423
 386/bin/snap - 775 sys sys 1068558112 289953
-386/bin/snapfs - 775 sys sys 1064598312 360074
+386/bin/snapfs - 775 sys sys 1068717504 361553
 386/bin/sniffer - 775 sys sys 1038443185 99028
 386/bin/snoopy - 775 sys sys 1068385806 153816
 386/bin/sort - 775 sys sys 1064598313 81046
@@ -409,7 +409,7 @@
 386/bin/tlsclient - 775 sys sys 1064598330 196114
 386/bin/tlssrv - 775 sys sys 1064598331 196448
 386/bin/togif - 775 sys sys 1068385807 189563
-386/bin/topng - 775 sys sys 1064598333 137721
+386/bin/topng - 775 sys sys 1068717504 137683
 386/bin/toppm - 775 sys sys 1064598335 164939
 386/bin/touch - 775 sys sys 1064598335 62963
 386/bin/tprof - 775 sys sys 1068558117 275057
@@ -9316,7 +9316,7 @@ sys/src/cmd/jpg/png.c - 664 sys sys 1014926432 4655
 sys/src/cmd/jpg/ppm.c - 664 sys sys 944961292 4190
 sys/src/cmd/jpg/readgif.c - 664 sys sys 1014926433 10306
 sys/src/cmd/jpg/readjpg.c - 664 sys sys 1032060302 33009
-sys/src/cmd/jpg/readpng.c - 664 sys sys 1068658904 5130
+sys/src/cmd/jpg/readpng.c - 664 sys sys 1068773222 6914
 sys/src/cmd/jpg/readppm.c - 664 sys sys 1014926433 3649
 sys/src/cmd/jpg/readyuv.c - 664 sys sys 1067742240 3502
 sys/src/cmd/jpg/rgbrgbv.c - 664 sys sys 984718829 1236
