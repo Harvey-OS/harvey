@@ -7101,7 +7101,7 @@ sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
 sys/src/cmd/aux/reboot.c - 664 sys sys 1014925091 1411
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
 sys/src/cmd/aux/stub.c - 664 sys sys 1032468954 2637
-sys/src/cmd/aux/timesync.c - 664 sys sys 1071334828 24811
+sys/src/cmd/aux/timesync.c - 664 sys sys 1080399717 24797
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1078840013 3521
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
@@ -11888,7 +11888,7 @@ sys/src/libdraw/rgb.c - 664 sys sys 984709666 1679
 sys/src/libdraw/string.c - 664 sys sys 1040442975 2978
 sys/src/libdraw/stringbg.c - 664 sys sys 1040442975 1611
 sys/src/libdraw/stringsubfont.c - 664 sys sys 944961725 960
-sys/src/libdraw/stringwidth.c - 664 sys sys 1078466654 1587
+sys/src/libdraw/stringwidth.c - 664 sys sys 1080400060 1589
 sys/src/libdraw/subfont.c - 664 sys sys 984709666 495
 sys/src/libdraw/subfontcache.c - 664 sys sys 984709666 745
 sys/src/libdraw/subfontname.c - 664 sys sys 1014927877 762
