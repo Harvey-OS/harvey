@@ -113,7 +113,7 @@ markblock(ulong from, ulong fromval, Block *b)
 	ulong top;
 	Block *nb;
 
-USED(from);
+USED(from, fromval);
 //print("trace 0x%.8lux from 0x%.8lux (%d)\n", b->addr, from, b->mark);
 	if(b->free){
 	//	fprint(2, "possible dangling pointer *0x%.8lux = 0x%.8lux\n", from, fromval);

@@ -3,13 +3,13 @@
 386/9loaddebug - 775 sys sys 1091156989 270242
 386/9loadlite - 775 sys sys 1088798346 125004
 386/9loadlitedebug - 775 sys sys 1089402462 183654
-386/9pc - 775 sys sys 1091849704 1816945
+386/9pc - 775 sys sys 1092110936 1817018
 386/9pc.gz - 664 sys sys 1077049336 635727
-386/9pccpu - 775 sys sys 1091849706 1473097
+386/9pccpu - 775 sys sys 1092110939 1473170
 386/9pccpu.gz - 664 sys sys 1077049387 519909
-386/9pcdisk - 775 sys sys 1091849710 2019551
+386/9pcdisk - 775 sys sys 1092110943 2019624
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
-386/9pcf - 775 sys sys 1091849714 2351194
+386/9pcf - 775 sys sys 1092110948 2351243
 386/9pcf.gz - 664 sys sys 1077049490 872650
 386/9pxeload - 775 sys sys 1088798346 188040
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -3591,7 +3591,7 @@ sys/lib/dist/pc/inst/xxx - 775 sys sys 1018469719 160
 sys/lib/dist/pc/mkfile - 664 sys sys 1063856155 2026
 sys/lib/dist/pc/plan9.ini - 664 sys sys 1020361168 512
 sys/lib/dist/pc/plan9.ini.blank - 664 sys sys 1018469720 512
-sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1045500125 343
+sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1092148201 357
 sys/lib/dist/pc/plan9.ini.vmware - 664 sys sys 1045500078 168
 sys/lib/dist/pc/proto - 664 sys sys 1089299188 4314
 sys/lib/dist/pc/sub - 20000000775 sys sys 1018640631 0
@@ -6902,7 +6902,7 @@ sys/src/cmd/auth/wrkey.c - 664 sys sys 1019058717 176
 sys/src/cmd/aux - 20000000775 sys sys 1015008975 0
 sys/src/cmd/aux/9pcon.c - 664 sys sys 1032059259 6283
 sys/src/cmd/aux/accupoint.c - 664 sys sys 985124882 2166
-sys/src/cmd/aux/acidleak.c - 664 sys sys 1050441591 5931
+sys/src/cmd/aux/acidleak.c - 664 sys sys 1092148212 5940
 sys/src/cmd/aux/antiword - 20000000775 sys sys 1069793877 0
 sys/src/cmd/aux/antiword/COPYING - 664 sys sys 1069793863 17985
 sys/src/cmd/aux/antiword/ChangeLog - 664 sys sys 1069793863 7543
@@ -12337,3 +12337,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/aux/acidleak - 775 sys sys 1092193654 67378
