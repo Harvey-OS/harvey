@@ -36,6 +36,7 @@ sourceAlloc(Cache *c, Lump *u, ulong block, int entry, int readOnly)
 		return nil;
 	
 	if(!(d.flags & VtEntryActive)) {
+fprint(2, "bad flags %#ux %V\n", d.flags, d.score);
 		vtSetError(ENoDir);
 		return nil;
 	}

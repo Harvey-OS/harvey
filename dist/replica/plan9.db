@@ -4881,7 +4881,7 @@ sys/src/9/alphapc/etherif.h - 664 sys sys 1039753421 1049
 sys/src/9/alphapc/faultalpha.c - 664 sys sys 1015012784 1257
 sys/src/9/alphapc/fdc37c93x.c - 664 sys sys 1015012785 1110
 sys/src/9/alphapc/floppy.h - 664 sys sys 1015012785 3783
-sys/src/9/alphapc/fns.h - 664 sys sys 1026848229 3840
+sys/src/9/alphapc/fns.h - 664 sys sys 1039794342 3889
 sys/src/9/alphapc/fptrap.c - 664 sys sys 1015012785 707
 sys/src/9/alphapc/i8259.c - 664 sys sys 1015012785 3409
 sys/src/9/alphapc/initcode - 664 sys sys 1039753419 779
@@ -4898,7 +4898,7 @@ sys/src/9/alphapc/mouse.c - 664 sys sys 1015012786 25
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
 sys/src/9/alphapc/random.c - 664 sys sys 1039753421 26
 sys/src/9/alphapc/screen.c - 664 sys sys 1039753422 26
-sys/src/9/alphapc/screen.h - 664 sys sys 1039753422 3511
+sys/src/9/alphapc/screen.h - 664 sys sys 1039794340 3547
 sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1015012787 51009
 sys/src/9/alphapc/sdata.c - 664 sys sys 1015012787 25
 sys/src/9/alphapc/sdscsi.c - 664 sys sys 1015012787 26
@@ -4969,7 +4969,7 @@ sys/src/9/boot/boot.c - 664 sys sys 1036813554 5317
 sys/src/9/boot/boot.h - 664 sys sys 1036813626 1744
 sys/src/9/boot/bootauth.c - 664 sys sys 1039763726 1097
 sys/src/9/boot/bootcache.c - 664 sys sys 1039763729 1518
-sys/src/9/boot/bootip.c - 664 sys sys 1039763724 3383
+sys/src/9/boot/bootip.c - 664 sys sys 1039794324 3397
 sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
@@ -5073,6 +5073,7 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1018386992 14056
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1026847639 17884
+sys/src/9/pc/ether82543.c - 664 sys sys 1039803177 38406
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1032052916 32377
 sys/src/9/pc/ether82557.c - 664 sys sys 1032543589 29722
 sys/src/9/pc/ether83815.c - 664 sys sys 1026847640 23050
@@ -5083,6 +5084,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1026847641 48003
 sys/src/9/pc/etherga620.c - 664 sys sys 1032052917 28786
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1026847642 985
+sys/src/9/pc/ethermii.c - 664 sys sys 1039803177 4555
 sys/src/9/pc/ethersink.c - 664 sys sys 1017854323 1075
 sys/src/9/pc/ethersmc.c - 664 sys sys 1015014518 15079
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
@@ -5106,7 +5108,7 @@ sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
 sys/src/9/pc/pc - 664 sys sys 1039753496 1311
 sys/src/9/pc/pcauth - 664 sys sys 1039753496 600
 sys/src/9/pc/pccd - 664 sys sys 1039753495 1278
-sys/src/9/pc/pccpu - 664 sys sys 1039753495 785
+sys/src/9/pc/pccpu - 664 sys sys 1039803186 785
 sys/src/9/pc/pcdisk - 664 sys sys 1039764711 1369
 sys/src/9/pc/pcflop - 664 sys sys 1032749195 1353
 sys/src/9/pc/pci.c - 664 sys sys 1032052921 23359
@@ -10260,17 +10262,17 @@ sys/src/cmd/va/l.s - 664 sys sys 944961340 12696
 sys/src/cmd/va/lex.c - 664 sys sys 944961340 11995
 sys/src/cmd/va/mkfile - 664 sys sys 944961340 215
 sys/src/cmd/vac - 20000000775 sys sys 1019678788 0
-sys/src/cmd/vac/cache.c - 664 sys sys 1036006056 15828
+sys/src/cmd/vac/cache.c - 664 sys sys 1039797583 15878
 sys/src/cmd/vac/dat.h - 664 sys sys 1036006061 3997
 sys/src/cmd/vac/error.c - 664 sys sys 1036006057 633
 sys/src/cmd/vac/error.h - 664 sys sys 1036024048 327
-sys/src/cmd/vac/file.c - 664 sys sys 1036006057 18920
+sys/src/cmd/vac/file.c - 664 sys sys 1039797584 18962
 sys/src/cmd/vac/fns.h - 664 sys sys 1036006061 1746
 sys/src/cmd/vac/fs.c - 664 sys sys 1036006058 2880
 sys/src/cmd/vac/mkfile - 664 sys sys 1036024045 434
 sys/src/cmd/vac/pack.c - 664 sys sys 1036006059 10126
 sys/src/cmd/vac/rtest.c - 664 sys sys 1019678787 1116
-sys/src/cmd/vac/source.c - 664 sys sys 1036006058 6671
+sys/src/cmd/vac/source.c - 664 sys sys 1039797584 6723
 sys/src/cmd/vac/srcload.c - 664 sys sys 1036024047 4925
 sys/src/cmd/vac/stdinc.h - 664 sys sys 1036006059 121
 sys/src/cmd/vac/util.c - 664 sys sys 1019678787 930
@@ -10495,12 +10497,12 @@ sys/src/fs/pc/8250.c - 664 sys sys 1015110032 6795
 sys/src/fs/pc/8253.c - 664 sys sys 1032062036 6206
 sys/src/fs/pc/cga.c - 664 sys sys 1015110034 1484
 sys/src/fs/pc/compat.c - 664 sys sys 1037805115 546
-sys/src/fs/pc/compat.h - 664 sys sys 1037805115 1294
+sys/src/fs/pc/compat.h - 664 sys sys 1039794577 1636
 sys/src/fs/pc/devata.c - 664 sys sys 1037805116 26981
 sys/src/fs/pc/dosfs.c - 664 sys sys 1015110040 16461
 sys/src/fs/pc/dosfs.h - 664 sys sys 1037805116 2667
 sys/src/fs/pc/ether2114x.c - 664 sys sys 1015110044 31874
-sys/src/fs/pc/ether8139.c - 664 sys sys 1037805116 18314
+sys/src/fs/pc/ether8139.c - 664 sys sys 1039794573 18318
 sys/src/fs/pc/ether82557.c - 664 sys sys 1037805116 24037
 sys/src/fs/pc/ether83815.c - 664 sys sys 1037805116 27025
 sys/src/fs/pc/etherdp83820.c - 664 sys sys 1037805116 30732

@@ -16744,3 +16744,15 @@
 1039766123 0 c 386/9pcdisk - 775 sys sys 1039766107 1987341
 1039766123 1 c 386/9pcdisk.gz - 664 sys sys 1039766104 703132
 1039768304 0 c sys/src/cmd/vnc/kbd_vwr.c - 664 sys sys 1039767358 2361
+1039795266 0 c sys/src/9/alphapc/fns.h - 664 sys sys 1039794342 3889
+1039795266 1 c sys/src/9/alphapc/screen.h - 664 sys sys 1039794340 3547
+1039795266 2 c sys/src/9/boot/bootip.c - 664 sys sys 1039794324 3397
+1039795266 3 c sys/src/fs/pc/compat.h - 664 sys sys 1039794577 1636
+1039795266 4 c sys/src/fs/pc/ether8139.c - 664 sys sys 1039794573 18318
+1039798866 0 c sys/src/cmd/vac/cache.c - 664 sys sys 1039797583 15878
+1039798866 1 c sys/src/cmd/vac/file.c - 664 sys sys 1039797584 18962
+1039798866 2 c sys/src/cmd/vac/source.c - 664 sys sys 1039797584 6723
+1039802470 0 c sys/src/9/pc/pccpu - 664 sys sys 1039800821 760
+1039804272 0 c sys/src/9/pc/pccpu - 664 sys sys 1039803186 785
+1039804272 1 a sys/src/9/pc/ether82543.c - 664 sys sys 1039803177 38406
+1039804272 2 a sys/src/9/pc/ethermii.c - 664 sys sys 1039803177 4555
