@@ -36,7 +36,6 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${NFSSERVER:%.$O=%.c}\
 	${TARG:%=%.c}\
-	${TARG:%=/386/bin/aux/%}\
 
 </sys/src/cmd/mkmany
 

@@ -1057,6 +1057,7 @@ openlisten(char *net)
 		sysfatal("can't announce");
 	if(fprint(cfd, "headers") < 0)
 		sysfatal("can't set header mode");
+	fprint(cfd, "oldheaders");
 
 	sprint(data, "%s/data", devdir);
 
@@ -1099,10 +1100,10 @@ ntpserver(char *servenet)
 		gettime(&recvts, 0, 0);
 		if(n < 0)
 			return;
-		if(n < Udphdrsize + NTPSIZE)
+		if(n < OUdphdrsize + NTPSIZE)
 			continue;
 
-		ntp = (NTPpkt*)(buf+Udphdrsize);
+		ntp = (NTPpkt*)(buf+OUdphdrsize);
 		mode = ntp->mode & 7;
 		vers = (ntp->mode>>3) & 7;
 		if(mode != 3)
@@ -1117,7 +1118,7 @@ ntpserver(char *servenet)
 		memmove(ntp->rootid, rootid, sizeof(ntp->rootid));
 		gettime(&x, 0, 0);
 		hnputts(ntp->xmitts, x);
-		write(fd, buf, NTPSIZE+Udphdrsize);
+		write(fd, buf, NTPSIZE+OUdphdrsize);
 	}
 }
 

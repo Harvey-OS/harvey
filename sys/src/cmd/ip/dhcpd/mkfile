@@ -23,7 +23,6 @@ UPDATE=\
 	$HFILES\
 	${DOFILES:%.$O=%.c}\
 	${IOFILES:%.$O=%.c}\
-	${TARG:%=/386/bin/ip/%}\
 
 </sys/src/cmd/mkmany
 

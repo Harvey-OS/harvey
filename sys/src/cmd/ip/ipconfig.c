@@ -9,6 +9,9 @@ int	dodhcp;
 int	nip;
 int	myifc = -1;
 int	plan9 = 1;
+int	beprimary;
+int	nodhcpwatch;
+
 Ipifc	*ifc;
 
 // possible verbs
@@ -16,7 +19,8 @@ enum
 {
 	Vadd,
 	Vremove,
-	Vunbind
+	Vunbind,
+	Vether,
 };
 
 struct {
@@ -115,7 +119,7 @@ Ctl *firstctl, **ctll;
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-ndDrG] [-x netmtpt] [-m mtu] [-b baud] [-g gateway] [-h hostname] [-c control-string]* type device [verb] [localaddr [mask [remoteaddr [fsaddr [authaddr]]]]]\n", argv0);
+	fprint(2, "usage: %s [-ndDrGX] [-x netmtpt] [-m mtu] [-b baud] [-g gateway] [-h hostname] [-c control-string]* type device [verb] [localaddr [mask [remoteaddr [fsaddr [authaddr]]]]]\n", argv0);
 	exits("usage");
 }
 
@@ -123,7 +127,7 @@ void
 main(int argc, char **argv)
 {
 	char *p;
-	int retry, verb;
+	int retry, verb, action;
 	Ctl *cp;
 
 	srand(truerand());
@@ -141,6 +145,21 @@ main(int argc, char **argv)
 	ctll = &firstctl;
 
 	ARGBEGIN {
+	case 'D':
+		debug = 1;
+		break;
+	case 'G':
+		plan9 = 0;
+		break;
+	case 'P':
+		beprimary = 1;
+		break;
+	case 'b':
+		p = ARGF();
+		if(p == nil)
+			usage();
+		conf.baud = p;
+		break;
 	case 'c':
 		p = ARGF();
 		if(p == nil)
@@ -153,11 +172,14 @@ main(int argc, char **argv)
 		cp->next = nil;
 		cp->ctl = p;
 		break;
-	case 'D':
-		debug = 1;
-		break;
 	case 'd':
 		dodhcp = 1;
+		break;
+	case 'g':
+		p = ARGF();
+		if(p == nil)
+			usage();
+		parseip(conf.gaddr, p);
 		break;
 	case 'h':
 		p = ARGF();
@@ -174,66 +196,45 @@ main(int argc, char **argv)
 			usage();
 		conf.mtu = atoi(p);
 		break;
+	case 'r':
+		retry = 1;
+		break;
 	case 'x':
 		p = ARGF();
 		if(p == nil)
 			usage();
 		setnetmtpt(conf.mpoint, sizeof(conf.mpoint), p);
 		break;
-	case 'g':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		parseip(conf.gaddr, p);
-		break;
-	case 'b':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		conf.baud = p;
-		break;
-	case 'r':
-		retry = 1;
-		break;
-	case 'G':
-		plan9 = 0;
+	case 'X':
+		nodhcpwatch = 1;
 		break;
 	} ARGEND;
 
-	// get medium, default is ether
-	switch(argc){
-	default:
-		conf.dev = argv[1];
-		conf.type = argv[0];
-		argc -= 2;
-		argv += 2;
-		break;
-	case 1:
-		conf.type = argv[0];
-		if(strcmp(conf.type, "ether") == 0)
-			conf.dev = "/net/ether0";
-		else if(strcmp(conf.type, "ppp") == 0)
-			conf.dev = "/dev/eia0";
-		else
-			usage();
-		argc -= 1;
-		argv += 1;
-		break;
-	case 0:
-		conf.type = "ether";
-		conf.dev = "/net/ether0";
-		break;
-	}
+	// default
+	conf.type = "ether";
+	conf.dev = "/net/ether0";
+	action = Vadd;
 
 	// get verb, default is "add"
-	verb = Vadd;
-	if(argc > 0){
+	while(argc > 0){
 		verb = parseverb(argv[0]);
-		if(verb >= 0){
-			argc--;
-			argv++;
-		} else
-			verb = Vadd;
+		switch(verb){
+		case Vadd:
+		case Vremove:
+		case Vunbind:
+			action = verb;
+			break;
+		case Vether:
+			conf.type = argv[0];
+			if(argc > 1){
+				conf.dev = argv[1];
+				argc--, argv++;
+			}
+			break;
+		}
+		if(verb < 0)
+			break;
+		argc--, argv++;
 	}
 
 	// get addresses
@@ -255,7 +256,7 @@ main(int argc, char **argv)
 		break;
 	}
 
-	switch(verb){
+	switch(action){
 	case Vadd:
 		doadd(retry);
 		break;
@@ -277,6 +278,8 @@ doadd(int retry)
 
 	// get number of preexisting interfaces
 	nip = nipifcs(conf.mpoint);
+	if(nip == 0)
+		beprimary = 1;
 
 	// get ipifc into name space and condition device for ip
 	if(!noconfig){
@@ -285,7 +288,7 @@ doadd(int retry)
 		binddevice();
 	}
 
-	if(!validip(conf.laddr) && strcmp(conf.type, "ppp") != 0)
+	if(!validip(conf.laddr))
 		dodhcp = 1;
 
 	// run dhcp if we need something
@@ -318,7 +321,7 @@ doadd(int retry)
 	}
 
 	// leave everything we've learned somewhere other procs can find it
-	if(nip == 0){
+	if(beprimary){
 		putndb();
 		tweakservers();
 	}
@@ -355,7 +358,7 @@ doremove(void)
 				fprint(2, "%s: can't open %s: %r\n", argv0, conf.mpoint);
 				continue;
 			}
-			if(fprint(cfd, "remove %I %I", lifc->ip, lifc->mask) < 0)
+			if(fprint(cfd, "remove %I %M", lifc->ip, lifc->mask) < 0)
 				fprint(2, "%s: can't remove %I %I from %s: %r\n", argv0,
 					lifc->ip, lifc->mask, file);
 		}
@@ -462,60 +465,8 @@ void
 binddevice(void)
 {
 	char buf[256];
-	int ac, pid;
-	char *av[12];
-	Waitmsg *w;
 
-	if(strcmp(conf.type, "ppp") == 0){
-		// ppp does the binding
-
-		// start with an empty config file
-		if(nip == 0)
-			writendb("", 0, 0);
-
-		switch(pid = rfork(RFPROC|RFFDG|RFMEM)){
-		case -1:
-			sysfatal("can't start ppp: %r");
-			break;
-		case 0:
-			ac = 0;
-			av[ac++] = "ppp";
-			av[ac++] = "-uf";
-			av[ac++] = "-p";
-			av[ac++] = conf.dev;
-			av[ac++] = "-x";
-			av[ac++] = conf.mpoint;
-			if(conf.baud != nil){
-				av[ac++] = "-b";
-				av[ac++] = conf.baud;
-			}
-			av[ac] = 0;
-			exec("/bin/ip/ppp", av);
-			exec("/ppp", av);
-			sysfatal("execing /ppp: %r");
-		default:
-			break;
-		}
-
-		// wait for ppp to finish connecting and configuring
-		w = nil;
-		for(;;){
-			free(w);
-			w = wait();
-			if(w == nil)
-				sysfatal("/ppp disappeared");
-			if(w->pid == pid){
-				if(w->msg[0] != 0)
-					sysfatal("/ppp exited with status: %s", w->msg);
-				free(w);
-				break;
-			}
-		}
-
-		// ppp sets up the configuration itself
-		noconfig = 1;
-		getndb();
-	} else if(myifc < 0){
+	if(myifc < 0){
 		// get a new ip interface
 		snprint(buf, sizeof(buf), "%s/ipifc/clone", conf.mpoint);
 		conf.cfd = open(buf, ORDWR);
@@ -563,7 +514,7 @@ ipconfig(void)
 		return -1;
 	}
 
-	if(nip == 0 && validip(conf.gaddr))
+	if(beprimary && validip(conf.gaddr))
 		adddefroute(conf.mpoint, conf.gaddr);
 
 	return 0;
@@ -593,7 +544,7 @@ ipunconfig(void)
 	ipmove(conf.mask, IPnoaddr);
 
 	// forget configuration info
-	if(nip == 0)
+	if(beprimary)
 		writendb("", 0, 0);
 }
 
@@ -658,6 +609,9 @@ dhcpwatch(int needconfig)
 	int secs, s;
 	ulong t;
 
+	if(nodhcpwatch)
+		return;
+
 	switch(rfork(RFPROC|RFFDG|RFNOWAIT|RFNOTEG)){
 	default:
 		return;
@@ -705,7 +659,7 @@ dhcpwatch(int needconfig)
 			needconfig = 0;
 
 			// leave everything we've learned somewhere other procs can find it
-			if(nip == 0){
+			if(beprimary){
 				putndb();
 				tweakservers();
 			}
@@ -778,7 +732,7 @@ dhcpsend(int type)
 	uchar *p;
 	int n;
 	uchar vendor[64];
-	Udphdr *up = (Udphdr*)bp.udphdr;
+	OUdphdr *up = (OUdphdr*)bp.udphdr;
 
 	memset(&bp, 0, sizeof(bp));
 
@@ -1020,6 +974,8 @@ openlisten()
 		cfd = announce(data, devdir);
 		if(cfd >= 0)
 			break;
+		if(!noconfig)
+			sysfatal("can't announce for dhcp: %r");
 
 		// might be another client - wait and try again
 		fprint(2, "%s: can't announce: %r\n", argv0);
@@ -1030,6 +986,7 @@ openlisten()
 
 	if(fprint(cfd, "headers") < 0)
 		sysfatal("can't set header mode: %r");
+	fprint(cfd, "oldheaders");
 
 	sprint(data, "%s/data", devdir);
 
@@ -1417,6 +1374,11 @@ nipifcs(char *net)
 	n = 0;
 	ifc = readipifc(net, ifc, -1);
 	for(nifc = ifc; nifc != nil; nifc = nifc->next){
+		/*
+		 * ignore loopback devices when trying to
+		 * figure out if we're the primary interface.
+		 */
+		if(strcmp(nifc->dev, "/dev/null") != 0)
 		for(lifc = nifc->lifc; lifc != nil; lifc = lifc->next)
 			if(validip(lifc->ip)){
 				n++;
@@ -1439,6 +1401,7 @@ char *verbs[] = {
 [Vadd]		"add",
 [Vremove]	"remove",
 [Vunbind]	"unbind",
+[Vether]	"ether",
 };
 
 // look for an action
