@@ -11,7 +11,7 @@
 #include <libsec.h>
 #include <authsrv.h>
 
-extern char* getpass(char*);
+extern char* getpassm(char*);
 
 enum{ CHK = 16, BUF = 4096 };
 
@@ -85,7 +85,7 @@ main(int argc, char **argv)
 		strecpy((char*)buf, (char*)buf+sizeof buf, (char*)nvr.config);
 		n = strlen((char*)buf);
 	}else{
-		pass = getpass("aescbc key:");
+		pass = getpassm("aescbc key:");
 		n = strlen(pass);
 		if(n >= BUF)
 			exits("key too long");
