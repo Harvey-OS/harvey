@@ -13836,3 +13836,5 @@
 1064889121 2 c sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1064887854 1615
 1064889121 3 a sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1064887840 6940
 1064889121 4 a sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3
+1065018673 0 c 386/bin/file - 775 sys sys 1065017417 118088
+1065018673 1 c sys/src/cmd/file.c - 664 sys sys 1065017417 20590
