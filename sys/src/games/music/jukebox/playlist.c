@@ -253,6 +253,7 @@ playvolproc(void*a)
 {
 	int fd, n, nf, volume, nvolume, i;
 	static char buf[256+1];
+	static errors;
 	char *fields[3], *subfields[9];
 	Channel *chan;
 
@@ -265,20 +266,27 @@ playvolproc(void*a)
 		n = read(fd, buf, sizeof buf -1);
 		if(n == 0)
 			continue;
-		if(n < 0)
-			sysfatal("%s: %r", playvolfile);
+		if(n < 0){
+			fprint(2, "%s: %r\n", playvolfile);
+			threadexits("playvolproc");
+		}
 		buf[n] = '\0';
 		if(debug) fprint(2, "volumestring: %s\n", buf);
 		nf = tokenize(buf, fields, nelem(fields));
 		if(nf == 0)
 			continue;
-		if(nf != 2 || strcmp(fields[0], "volume"))
-			sysfatal("playvolproc: [%d]: %s", nf, fields[0]);
-
+		if(nf != 2 || strcmp(fields[0], "volume")){
+			fprint(2, "playvolproc: [%d]: %s\n", nf, fields[0]);
+			if(errors++ > 32)
+				threadexits("playvolproc");
+			continue;
+		}
 		nvolume = tokenize(fields[1], subfields, nelem(subfields));
 		if(nvolume <= 0 || nvolume > 8){
 			fprint(2, "volume format error\n");
-			threadexits(nil);
+			if(errors++ > 32)
+				threadexits("playvolproc");
+			continue;
 		}
 		volume = 0;
 		for(i = 0; i < nvolume; i++)

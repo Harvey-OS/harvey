@@ -23,6 +23,7 @@ long	modified = 0;		/* strange lookahead for menus */
 char	hostlock = 1;
 char	hasunlocked = 0;
 int	maxtab = 8;
+int	autoindent;
 
 void
 threadmain(int argc, char *argv[])
@@ -109,7 +110,8 @@ threadmain(int argc, char *argv[])
 
 
 void
-resize(void){
+resize(void)
+{
 	int i;
 
 	flresize(screen->clipr);
@@ -417,9 +419,37 @@ flushtyping(int clearesc)
 	typeend = -1;
 }
 
-#define	SCROLLKEY	Kdown
 #define	BACKSCROLLKEY	Kup
+#define	ENDKEY	Kend
 #define	ESC		0x1B
+#define	HOMEKEY	Khome
+#define	LEFTARROW	Kleft
+#define	LINEEND	0x05
+#define	LINESTART	0x01
+#define	PAGEDOWN	Kpgdown
+#define	PAGEUP	Kpgup
+#define	RIGHTARROW	Kright
+#define	SCROLLKEY	Kdown
+
+int
+nontypingkey(int c)
+{
+	switch(c){
+	case BACKSCROLLKEY:
+	case ENDKEY:
+	case HOMEKEY:
+	case LEFTARROW:
+	case LINEEND:
+	case LINESTART:
+	case PAGEDOWN:
+	case PAGEUP:
+	case RIGHTARROW:
+	case SCROLLKEY:
+		return 1;
+	}
+	return 0;
+}
+
 
 void
 type(Flayer *l, int res)	/* what a bloody mess this is */
@@ -433,7 +463,7 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 
 	scrollkey = 0;
 	if(res == RKeyboard)
-		scrollkey = (qpeekc()==SCROLLKEY || qpeekc()==BACKSCROLLKEY);	/* ICK */
+		scrollkey = nontypingkey(qpeekc());	/* ICK */
 
 	if(hostlock || t->lock){
 		kbdblock();
@@ -448,7 +478,7 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 	backspacing = 0;
 	while((c = kbdchar())>0){
 		if(res == RKeyboard){
-			if(c==SCROLLKEY || c==BACKSCROLLKEY || c==ESC)
+			if(nontypingkey(c) || c==ESC)
 				break;
 			/* backspace, ctrl-u, ctrl-w, del */
 			if(c=='\b' || c==0x15 || c==0x17 || c==0x7F){
@@ -457,6 +487,19 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 			}
 		}
 		*p++ = c;
+		if(autoindent)
+		if(c == '\n'){
+			/* autoindent */
+			int cursor, ch;
+			cursor = ctlu(&t->rasp, 0, a+(p-buf)-1);
+			while(p < buf+nelem(buf)){
+				ch = raspc(&t->rasp, cursor++);
+				if(ch == ' ' || ch == '\t')
+					*p++ = ch;
+				else
+					break;
+			}
+		}
 		if(c == '\n' || p >= buf+sizeof(buf)/sizeof(buf[0]))
 			break;
 	}
@@ -476,17 +519,50 @@ type(Flayer *l, int res)	/* what a bloody mess this is */
 			flushtyping(0);
 		onethird(l, a);
 	}
-	if(c == SCROLLKEY){
+	if(c==SCROLLKEY || c==PAGEDOWN){
 		flushtyping(0);
 		center(l, l->origin+l->f.nchars+1);
 		/* backspacing immediately after outcmd(): sorry */
-	}else if(c == BACKSCROLLKEY){
+	}else if(c==BACKSCROLLKEY || c==PAGEUP){
 		flushtyping(0);
 		a0 = l->origin-l->f.nchars;
 		if(a0 < 0)
 			a0 = 0;
 		center(l, a0);
+	}else if(c == RIGHTARROW){
+		flushtyping(0);
+		a0 = l->p0;
+		if(a0 < t->rasp.nrunes)
+			a0++;
+		flsetselect(l, a0, a0);
+		center(l, a0);
+	}else if(c == LEFTARROW){
+		flushtyping(0);
+		a0 = l->p0;
+		if(a0 > 0)
+			a0--;
+		flsetselect(l, a0, a0);
+		center(l, a0);
+	}else if(c == HOMEKEY){
+		flushtyping(0);
+		center(l, 0);
+	}else if(c == ENDKEY){
+		flushtyping(0);
+		center(l, t->rasp.nrunes);
+	}else if(c == LINESTART || c == LINEEND){
+		flushtyping(1);
+		if(c == LINESTART)
+			while(a > 0 && raspc(&t->rasp, a-1)!='\n')
+				a--;
+		else
+			while(a < t->rasp.nrunes && raspc(&t->rasp, a)!='\n')
+				a++;
+		l->p0 = l->p1 = a;
+		for(l=t->l; l<&t->l[NL]; l++)
+			if(l->textfn)
+				flsetselect(l, l->p0, l->p1);
 	}else if(backspacing && !hostlock){
+		/* backspacing immediately after outcmd(): sorry */
 		if(l->f.p0>0 && a>0){
 			switch(c){
 			case '\b':

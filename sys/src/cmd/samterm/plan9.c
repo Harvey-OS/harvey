@@ -12,14 +12,27 @@
 static char exname[64];
 
 void
+usage(void)
+{
+	fprint(2, "usage: samterm [-a]\n");
+	threadexitsall("usage");
+}
+
+void
 getscreen(int argc, char **argv)
 {
 	char *t;
 
-	USED(argc);
-	USED(argv);
+	ARGBEGIN{
+	case 'a':
+		autoindent = 1;
+		break;
+	default:
+		usage();
+	}ARGEND
+
 	if(initdraw(panic1, nil, "sam") < 0){
-		fprint(2, "samterm: initimage: %r\n");
+		fprint(2, "samterm: initdraw: %r\n");
 		threadexitsall("init");
 	}
 	t = getenv("tabstop");

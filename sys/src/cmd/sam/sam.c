@@ -37,47 +37,36 @@ void main(int argc, char *argv[])
 {
 	int i;
 	String *t;
-	char **ap, **arg;
-
-	arg = argv++;
-	ap = argv;
-	while(argc>1 && argv[0] && argv[0][0]=='-'){
-		switch(argv[0][1]){
-		case 'd':
-			dflag++;
-			break;
-
-		case 'r':
-			--argc, argv++;
-			if(argc == 1)
-				usage();
-			machine = *argv;
-			break;
-
-		case 'R':
-			Rflag++;
-			break;
-
-		case 't':
-			--argc, argv++;
-			if(argc == 1)
-				usage();
-			samterm = *argv;
-			break;
-
-		case 's':
-			--argc, argv++;
-			if(argc == 1)
-				usage();
-			rsamname = *argv;
-			break;
-
-		default:
-			dprint("sam: unknown flag %c\n", argv[0][1]);
-			exits("usage");
-		}
-		--argc, argv++;
-	}
+	char *termargs[10], **ap;
+	
+	ap = termargs;
+	*ap++ = "samterm";
+	ARGBEGIN{
+	case 'd':
+		dflag++;
+		break;
+	case 'r':
+		machine = EARGF(usage());
+		break;
+	case 'R':
+		Rflag++;
+		break;
+	case 't':
+		samterm = EARGF(usage());
+		break;
+	case 's':
+		rsamname = EARGF(usage());
+		break;
+	default:
+		dprint("sam: unknown flag %c\n", ARGC());
+		usage();
+	/* options for samterm */
+	case 'a':
+		*ap++ = "-a";
+		break;
+	}ARGEND
+	*ap = nil;
+	
 	Strinit(&cmdstr);
 	Strinit0(&lastpat);
 	Strinit0(&lastregexp);
@@ -91,11 +80,11 @@ void main(int argc, char *argv[])
 	if(home == 0)
 		home = "/";
 	if(!dflag)
-		startup(machine, Rflag, arg, ap);
+		startup(machine, Rflag, termargs, argv);
 	notify(notifyf);
 	getcurwd();
-	if(argc>1){
-		for(i=0; i<argc-1; i++){
+	if(argc>0){
+		for(i=0; i<argc; i++){
 			if(!setjmp(mainloop)){
 				t = tmpcstr(argv[i]);
 				Straddc(t, '\0');

@@ -613,8 +613,21 @@ wkeyctl(Window *w, Rune r)
 			wshow(w, 0);
 			return;
 		case Kend:
-		case 0x05:
 			wshow(w, w->nr);
+			return;
+		case 0x01:	/* ^A: beginning of line */
+			if(w->q0==0 || w->q0==w->qh || w->r[w->q0-1]=='\n')
+				return;
+			nb = wbswidth(w, 0x15 /* ^U */);
+			wsetselect(w, w->q0-nb, w->q0-nb);
+			wshow(w, w->q0);
+			return;
+		case 0x05:	/* ^E: end of line */
+			q0 = w->q0;
+			while(q0 < w->nr && w->r[q0]!='\n')
+				q0++;
+			wsetselect(w, q0, q0);
+			wshow(w, w->q0);
 			return;
 		}
 	if(w->rawing && (w->q0==w->nr || w->mouseopen)){
@@ -668,7 +681,7 @@ wkeyctl(Window *w, Rune r)
 		if(nb > 0){
 			wdelete(w, q0, q0+nb);
 			wsetselect(w, q0, q0);
-	}
+		}
 		return;
 	}
 	/* otherwise ordinary character; just insert */

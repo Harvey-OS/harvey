@@ -401,7 +401,7 @@ Optab optab[] =
 	{ AJNE,		yjcond,	Px, 0x75,0x85 },
 	{ AJOC,		yjcond,	Px, 0x71,0x81,(00) },
 	{ AJOS,		yjcond,	Px, 0x70,0x80,(00) },
-	{ AJPC,		yjcond,	Px, 0x76,0x86 },
+	{ AJPC,		yjcond,	Px, 0x7b,0x8b },
 	{ AJPL,		yjcond,	Px, 0x79,0x89 },
 	{ AJPS,		yjcond,	Px, 0x7a,0x8a },
 	{ ALAHF,	ynone,	Px, 0x9f },

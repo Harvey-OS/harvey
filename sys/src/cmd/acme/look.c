@@ -408,7 +408,7 @@ dirname(Text *t, Rune *r, int n)
 	nt = t->w->tag.file->nc;
 	if(nt == 0)
 		goto Rescue;
-	if(n>=1 &&  r[0]=='/')
+	if(n>=1 && r[0]=='/')
 		goto Rescue;
 	b = runemalloc(nt+n+1);
 	bufread(t->w->tag.file, 0, b, nt);

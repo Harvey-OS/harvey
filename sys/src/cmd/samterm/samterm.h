@@ -85,6 +85,7 @@ extern Channel *hostc;
 extern int	hversion;
 extern int	plumbfd;
 extern int	exiting;
+extern int	autoindent;
 
 Rune	*gettext(Flayer*, long, ulong*);
 void	*alloc(ulong n);
