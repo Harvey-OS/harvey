@@ -369,7 +369,7 @@ fileSetTmp(File *f, int istmp)
 			r = f->msource;
 		if(r == nil)
 			continue;
-		if(!sourceGetEntry(f->source, &e)){
+		if(!sourceGetEntry(r, &e)){
 			fprint(2, "sourceGetEntry failed (cannot happen): %r\n");
 			continue;
 		}
@@ -377,7 +377,7 @@ fileSetTmp(File *f, int istmp)
 			e.flags |= VtEntryNoArchive;
 		else
 			e.flags &= ~VtEntryNoArchive;
-		if(!sourceSetEntry(f->source, &e)){
+		if(!sourceSetEntry(r, &e)){
 			fprint(2, "sourceSetEntry failed (cannot happen): %r\n");
 			continue;
 		}
