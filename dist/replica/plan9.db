@@ -222,7 +222,7 @@
 386/bin/gunzip - 775 sys sys 1039758563 79918
 386/bin/gzip - 775 sys sys 1039758563 84015
 386/bin/hayes - 775 sys sys 1039758563 63552
-386/bin/hget - 775 sys sys 1041143638 216044
+386/bin/hget - 775 sys sys 1042940716 215689
 386/bin/history - 775 sys sys 1039758564 71183
 386/bin/hoc - 775 sys sys 1039758564 98955
 386/bin/html2ms - 775 sys sys 1039758564 64730
@@ -438,7 +438,7 @@
 386/bin/vt - 775 sys sys 1039758614 169349
 386/bin/vtdump - 775 sys sys 1039914698 163327
 386/bin/wc - 775 sys sys 1039758615 42416
-386/bin/webcookies - 775 sys sys 1039758615 159686
+386/bin/webcookies - 775 sys sys 1042940804 159394
 386/bin/webfs - 775 sys sys 1039758616 342496
 386/bin/wikifs - 775 sys sys 1039758616 194294
 386/bin/winwatch - 775 sys sys 1039758616 139473
@@ -472,7 +472,7 @@
 386/lib/libauthsrv.a - 664 sys sys 1038443219 31942
 386/lib/libbin.a - 664 sys sys 1038443219 2556
 386/lib/libbio.a - 664 sys sys 1038443219 28390
-386/lib/libc.a - 664 sys sys 1041443377 496640
+386/lib/libc.a - 664 sys sys 1042940064 497624
 386/lib/libcontrol.a - 664 sys sys 1040456880 243448
 386/lib/libdisk.a - 664 sys sys 1038443222 43692
 386/lib/libdraw.a - 664 sys sys 1040456882 372606
@@ -8834,7 +8834,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 984758036 125
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1014924864 13591
 sys/src/cmd/gzip/zip.c - 664 sys sys 1033183074 7054
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1041067379 21856
+sys/src/cmd/hget.c - 664 sys sys 1042940715 21870
 sys/src/cmd/history.c - 664 sys sys 1018721429 4868
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 944961000 10041
@@ -10512,7 +10512,7 @@ sys/src/cmd/vt/mkfile - 664 sys sys 944961620 159
 sys/src/cmd/vt/termcap - 664 sys sys 944961620 278
 sys/src/cmd/vt/vt.c - 664 sys sys 1014926857 16841
 sys/src/cmd/wc.c - 664 sys sys 984717764 12652
-sys/src/cmd/webcookies.c - 664 sys sys 1017680834 23397
+sys/src/cmd/webcookies.c - 664 sys sys 1042940803 23411
 sys/src/cmd/webfs - 20000000775 sys sys 1015015823 0
 sys/src/cmd/webfs/buf.c - 664 sys sys 1032665987 1198
 sys/src/cmd/webfs/client.c - 664 sys sys 1036004434 6477
