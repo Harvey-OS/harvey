@@ -1213,7 +1213,7 @@ lib/face/48x48x2/x - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/y - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/z - 20000000755 sys sys 944941683 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1057004448 1980
+lib/face/48x48x4/.dict - 664 sys sys 1058223097 2005
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -1280,6 +1280,7 @@ lib/face/48x48x4/p/pg.1 - 664 sys sys 944941893 1024
 lib/face/48x48x4/p/philw.1 - 664 sys sys 944941893 1137
 lib/face/48x48x4/p/piers.1 - 664 sys sys 944941893 1014
 lib/face/48x48x4/p/pjw.1 - 664 sys sys 944941893 940
+lib/face/48x48x4/p/plan9.1 - 664 sys sys 1058223140 993
 lib/face/48x48x4/p/presotto.1 - 664 sys sys 944941893 1118
 lib/face/48x48x4/q - 20000000775 sys sys 944941893 0
 lib/face/48x48x4/r - 20000000775 sys sys 947360001 0
