@@ -14,3 +14,4 @@ struct Globlist{
 extern	Globlist*	glob(char*);
 extern	void		globadd(Globlist*, char*, char*);
 extern	void		globlistfree(Globlist *gl);
+extern	char*		globiter(Globlist *gl);

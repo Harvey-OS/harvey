@@ -302,33 +302,34 @@ chpasswd(AuthConn *c, char *id)
 	int rv = -1, newpasslen = 0;
 	mpint *H, *Hi;
 	uchar *memfile;
-	char *newpass = nil;
+	char *newpass, *passck;
 	char *list, *cur, *next, *hexHi;
-	char *f[8], prompt[128], buf[Maxmsg];
+	char *f[8], prompt[128];
 
 	H = mpnew(0);
 	Hi = mpnew(0);
 	// changing our password is vulnerable to connection failure
 	for(;;){
 		snprint(prompt, sizeof(prompt), "new password for %s: ", id);
-		if(getpasswd(prompt, buf, sizeof(buf)) < 0)
+		newpass = getpass(prompt);
+		if(newpass == nil)
 			goto Out;
-		if(strlen(buf) >= 7)
+		if(strlen(newpass) >= 7)
 			break;
-		else if(strlen(buf) == 0){
+		else if(strlen(newpass) == 0){
 			fprint(2, "!password change aborted\n");
 			goto Out;
 		}
 		print("!password must be at least 7 characters\n");
 	}
-	newpass = estrdup(buf);
 	newpasslen = strlen(newpass);
 	snprint(prompt, sizeof(prompt), "retype password: ");
-	if(getpasswd(prompt, buf, sizeof(buf)) < 0){
+	passck = getpass(prompt);
+	if(passck == nil){
 		fprint(2, "getpasswd failed\n");
 		goto Out;
 	}
-	if(strcmp(buf, newpass) != 0){
+	if(strcmp(passck, newpass) != 0){
 		fprint(2, "passwords didn't match\n");
 		goto Out;
 	}
@@ -377,7 +378,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 {
 	AuthConn *c;
 	int fd, n, ntry = 0;
-	char *S, *PINSTA = nil, *nl, s[Maxmsg+1];
+	char *S, *PINSTA = nil, *nl, s[Maxmsg+1], *pass;
 
 	if(dest == nil){
 		fprint(2, "tried to login with nil dest\n");
@@ -417,8 +418,16 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 			return nil;
 		}
 		ntry++;
-		if(!pass_stdin && !pass_nvram)
-			getpasswd("secstore password: ", c->pass, sizeof c->pass);
+		if(!pass_stdin && !pass_nvram){
+			pass = getpass("secstore password: ");
+			if(strlen(pass) >= sizeof c->pass){
+				fprint(2, "password too long, skipping secstore login\n");
+				exits("password too long");
+			}
+			strcpy(c->pass, pass);
+			memset(pass, 0, strlen(pass));
+			free(pass);
+		}
 		if(c->pass[0]==0){
 			fprint(2, "null password, skipping secstore login\n");
 			exits("no password");
@@ -451,7 +460,10 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 				exits("missing PIN+SecureID on standard input");
 			free(PINSTA);
 		}else{
-			getpasswd("STA PIN+SecureID: ", s+3, (sizeof s)-3);
+			pass = getpass("STA PIN+SecureID: ");
+			strncpy(s+3, pass, (sizeof s)-4);
+			memset(pass, 0, strlen(pass));
+			free(pass);
 		}
 		sn = strlen(s+3);
 		if(verbose)

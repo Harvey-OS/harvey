@@ -17,7 +17,7 @@ typedef struct PW {
 PW *getPW(char *, int);
 int putPW(PW *);
 void freePW(PW *);
-int getpasswd(char*, char*, int);
+char* getpass(char*);
 
 // *client: SConn, client name, passphrase
 // *server: SConn, (partial) 1st msg, PW entry
