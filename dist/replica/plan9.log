@@ -13273,3 +13273,6 @@
 1073151086 0 c sys/src/cmd/history.c - 664 sys sys 1073079763 6117
 1073151086 1 c sys/src/cmd/fossil/file.c - 664 sys sys 1073140359 30215
 1073269923 0 c sys/src/cmd/rio/wind.c - 664 sys sys 1073268477 32704
+1073314930 0 c sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
+1073325731 0 c sys/src/9/port/portclock.c - 664 sys sys 1073323995 4758
+1073325731 1 c sys/src/9/port/portdat.h - 664 sys sys 1073324006 22707

@@ -64,6 +64,29 @@ tadd(Timers *tt, Timer *nt)
 	return 0;
 }
 
+static uvlong
+tdel(Timer *dt)
+{
+
+	Timer *t, **last;
+	Timers *tt;
+
+	tt = dt->tt;
+	if (tt == nil)
+		return 0;
+	for(last = &tt->head; t = *last; last = &t->tnext){
+		if(t == dt){
+			assert(dt->tt);
+			dt->tt = nil;
+			*last = t->tnext;
+			break;
+		}
+	}
+	if(last == &tt->head && tt->head)
+		return tt->head->twhen;
+	return 0;
+}
+
 /* add or modify a timer */
 void
 timeradd(Timer *nt)
@@ -80,40 +103,38 @@ timeradd(Timer *nt)
 			nt->tns = when;
 		}
 	}
-	if (nt->tt)
-		timerdel(nt);
+	/* Must lock Timer struct before Timers struct */
+	ilock(nt);
+	if(tt = nt->tt){
+		ilock(tt);
+		tdel(nt);
+		iunlock(tt);
+	}
 	tt = &timers[m->machno];
 	ilock(tt);
 	when = tadd(tt, nt);
 	if(when)
 		timerset(when);
 	iunlock(tt);
+	iunlock(nt);
 }
+
 
 void
 timerdel(Timer *dt)
 {
-	Timer *t, **last;
 	Timers *tt;
+	uvlong when;
 
-	while(tt = dt->tt){
+	ilock(dt);
+	if(tt = dt->tt){
 		ilock(tt);
-		if (tt != dt->tt){
-			iunlock(tt);
-			continue;
-		}
-		for(last = &tt->head; t = *last; last = &t->tnext){
-			if(t == dt){
-				assert(dt->tt);
-				dt->tt = nil;
-				*last = t->tnext;
-				break;
-			}
-		}
-		if(last == &tt->head && tt->head)
+		when = tdel(dt);
+		if(when && tt == &timers[m->machno])
 			timerset(tt->head->twhen);
 		iunlock(tt);
 	}
+	iunlock(dt);
 }
 
 void
@@ -167,6 +188,12 @@ timerintr(Ureg *u, uvlong)
 	now = fastticks(nil);
 	ilock(tt);
 	while(t = tt->head){
+		/*
+		 * No need to ilock t here: any manipulation of t
+		 * requires tdel(t) and this must be done with a
+		 * lock to tt held.  We have tt, so the tdel will
+		 * wait until we're done
+		 */
 		when = t->twhen;
 		if(when > now){
 			timerset(when);
