@@ -21,7 +21,7 @@ permFile(File* file, Fid* fid, int perm)
 	DirEntry de;
 
 	if(!fileGetDir(file, &de))
-		return 0;
+		return -1;
 
 	/*
 	 * User none only gets other permissions.
@@ -320,7 +320,7 @@ rTwstat(Msg* m)
 		if(!validFileName(dir.name))
 			goto error;
 		if(strcmp(dir.name, de.elem) != 0){
-			if(!permParent(fid, PermW))
+			if(permParent(fid, PermW) <= 0)
 				goto error;
 			vtMemFree(de.elem);
 			de.elem = vtStrDup(dir.name);
@@ -438,7 +438,7 @@ _rTclunk(Fid* fid, int remove)
 
 	rok = 1;
 	if(remove && !(fid->qid.type & QTAUTH)){
-		if((rok = permParent(fid, PermW)) != 0)
+		if((rok = permParent(fid, PermW)) > 0)
 			rok = fileRemove(fid->file, fid->uid);
 	}
 	fidClunk(fid);
@@ -588,7 +588,7 @@ rTcreate(Msg* m)
 		vtSetError("not a directory");
 		goto error;
 	}
-	if(!permFid(fid, PermW))
+	if(permFid(fid, PermW) <= 0)
 		goto error;
 	if(!validFileName(m->t.name))
 		goto error;
@@ -696,7 +696,7 @@ rTopen(Msg* m)
 			vtSetError("read-only filesystem");
 			goto error;
 		}
-		if(!permParent(fid, PermW))
+		if(permParent(fid, PermW) <= 0)
 			goto error;
 
 		open |= FidORclose;
@@ -704,7 +704,7 @@ rTopen(Msg* m)
 
 	omode = m->t.mode & OMODE;
 	if(omode == OREAD || omode == ORDWR){
-		if(!permFid(fid, PermR))
+		if(permFid(fid, PermR) <= 0)
 			goto error;
 		open |= FidORead;
 	}
@@ -717,7 +717,7 @@ rTopen(Msg* m)
 			vtSetError("read-only filesystem");
 			goto error;
 		}
-		if(!permFid(fid, PermW))
+		if(permFid(fid, PermW) <= 0)
 			goto error;
 		open |= FidOWrite;
 	}
@@ -726,7 +726,7 @@ rTopen(Msg* m)
 			vtSetError("is a directory");
 			goto error;
 		}
-		if(!permFid(fid, PermX))
+		if(permFid(fid, PermX) <= 0)
 			goto error;
 		open |= FidORead;
 	}
@@ -848,8 +848,15 @@ rTwalk(Msg* m)
 			vtSetError("not a directory");
 			break;
 		}
-		if(!permFile(file, fid, PermX) && strcmp(t->wname[nwname], "..") != 0)
+		switch(permFile(file, fid, PermX)){
+		case 1:
 			break;
+		case 0:
+			if(strcmp(t->wname[nwname], "..") == 0)
+				break;
+		case -1:
+			goto Out;
+		}
 		if((nfile = fileWalk(file, t->wname[nwname])) == nil)
 			break;
 		fileDecRef(file);
@@ -879,6 +886,7 @@ rTwalk(Msg* m)
 		return 1;
 	}
 
+Out:
 	/*
 	 * Didn't walk all elements, 'clunk' nfid if it exists
 	 * and leave fid untouched.

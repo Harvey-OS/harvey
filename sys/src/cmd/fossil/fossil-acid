@@ -8,8 +8,8 @@ rc("cd /sys/src/cmd/fossil; mk disk.acid");
 include("/sys/src/cmd/fossil/disk.acid");
 rc("cd /sys/src/cmd/fossil; mk fs.acid");
 include("/sys/src/cmd/fossil/fs.acid");
-rc("cd /sys/src/libventi; mk plan9.acid");
-include("/sys/src/libventi/plan9.acid");
+rc("cd /sys/src/libventi; mk plan9-thread.acid");
+include("/sys/src/libventi/plan9-thread.acid");
 
 // make a list of pids from a list of Thread structures
 defn _threadlist(t)
@@ -66,12 +66,12 @@ defn vtlock(l)
 
 // try to say something intelligent about why a process is stuck.
 _pauses = {
-	open,
-	pread,
-	pwrite,
-	sleep,
-	vtSleep,
-	vtLock,
+	"open",
+	"pread",
+	"pwrite",
+	"sleep",
+	"vtSleep",
+	"vtLock",
 };
 
 defn deadlocklist(l)

@@ -84,7 +84,7 @@ If a
 argument is present, the
 .I patternfile
 is passed to
-.IR exportfs (1)
+.IR exportfs (4)
 to control how much of the local name space will be exported to
 the remote system.
 .PP
@@ -170,7 +170,7 @@ are bound to their standard locations from there.
 .SH SEE ALSO
 .IR rc (1) ,
 .IR rio (1) ,
-.IR exportfs (1)
+.IR exportfs (4)
 .SH BUGS
 Binds and mounts done after the terminal
 .B lib/profile
