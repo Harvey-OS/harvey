@@ -3949,7 +3949,7 @@ sys/lib/man/preface4 - 664 sys sys 1020082276 1758
 sys/lib/man/secindex - 775 sys sys 956337727 322
 sys/lib/man/title - 664 sys sys 1019915894 746
 sys/lib/man/trademarks - 664 sys sys 958527089 1838
-sys/lib/mimetype - 664 sys sys 1071573310 5589
+sys/lib/mimetype - 664 sys sys 1071926670 5633
 sys/lib/newuser - 775 sys sys 1018386991 1229
 sys/lib/plumb - 20000000775 sys sys 944957365 0
 sys/lib/plumb/basic - 664 sys sys 1070330856 2930
