@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <String.h>
 #include <auth.h>
 
 int
@@ -17,13 +16,13 @@ _attrfmt(Fmt *fmt)
 			continue;
 		switch(a->type){
 		case AttrQuery:
-			b = seprint(b, ebuf, " %q?", s_to_c(a->name));
+			b = seprint(b, ebuf, " %q?", a->name);
 			break;
 		case AttrNameval:
-			b = seprint(b, ebuf, " %q=%q", s_to_c(a->name), s_to_c(a->val));
+			b = seprint(b, ebuf, " %q=%q", a->name, a->val);
 			break;
 		case AttrDefault:
-			b = seprint(b, ebuf, " %q:=%q", s_to_c(a->name), s_to_c(a->val));
+			b = seprint(b, ebuf, " %q:=%q", a->name, a->val);
 			break;
 		}
 	}
@@ -38,7 +37,7 @@ _copyattr(Attr *a)
 	na = nil;
 	la = &na;
 	for(; a; a=a->next){
-		*la = _mkattr(a->type, s_to_c(a->name), s_to_c(a->val), nil);
+		*la = _mkattr(a->type, a->name, a->val, nil);
 		setmalloctag(*la, getcallerpc(&a));
 		la = &(*la)->next;
 	}
@@ -53,7 +52,7 @@ _delattr(Attr *a, char *name)
 	Attr **la;
 
 	for(la=&a; *la; ){
-		if(strcmp(s_to_c((*la)->name), name) == 0){
+		if(strcmp((*la)->name, name) == 0){
 			fa = *la;
 			*la = (*la)->next;
 			fa->next = nil;
@@ -68,7 +67,7 @@ Attr*
 _findattr(Attr *a, char *n)
 {
 	for(; a; a=a->next)
-		if(strcmp(s_to_c(a->name), n) == 0 && a->type != AttrQuery)
+		if(strcmp(a->name, n) == 0 && a->type != AttrQuery)
 			return a;
 	return nil;
 }
@@ -80,8 +79,8 @@ _freeattr(Attr *a)
 
 	for(; a; a=anext){
 		anext = a->next;
-		s_free(a->name);
-		s_free(a->val);
+		free(a->name);
+		free(a->val);
 		a->name = (void*)~0;
 		a->val = (void*)~0;
 		a->next = (void*)~0;
@@ -98,8 +97,10 @@ _mkattr(int type, char *name, char *val, Attr *next)
 	if(a==nil)
 		sysfatal("_mkattr malloc: %r");
 	a->type = type;
-	a->name = s_copy(name);
-	a->val = s_copy(val);
+	a->name = strdup(name);
+	a->val = strdup(val);
+	if(a->name==nil || a->val==nil)
+		sysfatal("_mkattr malloc: %r");
 	a->next = next;
 	setmalloctag(a, getcallerpc(&type));
 	return a;
@@ -112,7 +113,7 @@ cleanattr(Attr *a)
 	Attr **la;
 
 	for(la=&a; *la; ){
-		if((*la)->type==AttrQuery && _findattr(a, s_to_c((*la)->name))){
+		if((*la)->type==AttrQuery && _findattr(a, (*la)->name)){
 			fa = *la;
 			*la = (*la)->next;
 			fa->next = nil;
@@ -163,11 +164,11 @@ _parseattr(char *s)
 }
 
 char*
-_str_findattr(Attr *a, char *n)
+_strfindattr(Attr *a, char *n)
 {
 	a = _findattr(a, n);
 	if(a == nil)
 		return nil;
-	return s_to_c(a->val);
+	return a->val;
 }
 

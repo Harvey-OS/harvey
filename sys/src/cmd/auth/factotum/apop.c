@@ -57,7 +57,7 @@ apopinit(Proto *p, Fsstate *fss)
 	int iscli, ret;
 	State *s;
 
-	if((iscli = isclient(_str_findattr(fss->attr, "role"))) < 0)
+	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
 
 	s = emalloc(sizeof *s);
@@ -108,7 +108,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		ret = findkey(&k, fss, Kuser, 0, fss->attr, "%s", fss->proto->keyprompt);
 		if(ret != RpcOk)
 			return ret;
-		v = _str_findattr(k->privattr, "!password");
+		v = _strfindattr(k->privattr, "!password");
 		if(v == nil)
 			return failure(fss, "key has no password");
 		setattrs(fss->attr, k->attr);
@@ -130,7 +130,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		return RpcOk;
 	
 	case SNeedUser:
-		if((v = _str_findattr(fss->attr, "user")) && strcmp(v, a) != 0)
+		if((v = _strfindattr(fss->attr, "user")) && strcmp(v, a) != 0)
 			return failure(fss, "bad user");
 		fss->attr = setattr(fss->attr, "user=%q", a);
 		s->user = estrdup(a);
@@ -211,8 +211,8 @@ dochal(State *s)
 
 	/* send request to authentication server and get challenge */
 	/* send request to authentication server and get challenge */
-	if((dom = _str_findattr(s->key->attr, "dom")) == nil
-	|| (user = _str_findattr(s->key->attr, "user")) == nil){
+	if((dom = _strfindattr(s->key->attr, "dom")) == nil
+	|| (user = _strfindattr(s->key->attr, "user")) == nil){
 		werrstr("apop/dochal cannot happen");
 		goto err;
 	}

@@ -7,6 +7,9 @@
  *	write challenge
  *	read response
  * all numbers are hexadecimal biginits parsable with strtomp.
+ *
+ * This is just SSH RSA by another name.  Eventually it will become
+ * known as "rsa" rather than "sshrsa".
  */
 
 #include "dat.h"
@@ -63,7 +66,7 @@ Error:
 }
 
 static int
-sshrsainit(Proto*, Fsstate *fss)
+rsainit(Proto*, Fsstate *fss)
 {
 	int iscli;
 	State *s;
@@ -71,7 +74,7 @@ sshrsainit(Proto*, Fsstate *fss)
 	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
 	if(iscli==0)
-		return failure(fss, "sshrsa server unimplemented");
+		return failure(fss, "rsa server unimplemented");
 
 	s = emalloc(sizeof *s);
 	fss->phasename = phasenames;
@@ -82,7 +85,7 @@ sshrsainit(Proto*, Fsstate *fss)
 }
 
 static int
-sshrsaread(Fsstate *fss, void *va, uint *n)
+rsaread(Fsstate *fss, void *va, uint *n)
 {
 	RSApriv *priv;
 	State *s;
@@ -110,7 +113,7 @@ sshrsaread(Fsstate *fss, void *va, uint *n)
 }
 
 static int
-sshrsawrite(Fsstate *fss, void *va, uint)
+rsawrite(Fsstate *fss, void *va, uint)
 {
 	mpint *m;
 	State *s;
@@ -139,7 +142,7 @@ sshrsawrite(Fsstate *fss, void *va, uint)
 }
 
 static void
-sshrsaclose(Fsstate *fss)
+rsaclose(Fsstate *fss)
 {
 	State *s;
 
@@ -152,7 +155,7 @@ sshrsaclose(Fsstate *fss)
 }
 
 static int
-sshrsaaddkey(Key *k)
+rsaaddkey(Key *k)
 {
 	fmtinstall('B', mpfmt);
 
@@ -164,17 +167,17 @@ sshrsaaddkey(Key *k)
 }
 
 static void
-sshrsaclosekey(Key *k)
+rsaclosekey(Key *k)
 {
 	rsaprivfree(k->priv);
 }
 
-Proto sshrsa = {
-.name=	"sshrsa",
-.init=		sshrsainit,
-.write=	sshrsawrite,
-.read=	sshrsaread,
-.close=	sshrsaclose,
-.addkey=	sshrsaaddkey,
-.closekey=	sshrsaclosekey,
+Proto rsa = {
+.name=	"rsa",
+.init=		rsainit,
+.write=	rsawrite,
+.read=	rsaread,
+.close=	rsaclose,
+.addkey=	rsaaddkey,
+.closekey=	rsaclosekey,
 };

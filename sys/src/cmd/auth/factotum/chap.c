@@ -62,7 +62,7 @@ chapinit(Proto *p, Fsstate *fss)
 	int iscli, ret;
 	State *s;
 
-	if((iscli = isclient(_str_findattr(fss->attr, "role"))) < 0)
+	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
 		return failure(fss, nil);
 	if(iscli)
 		return failure(fss, "%s client not supported", p->name);
@@ -193,8 +193,8 @@ dochal(State *s)
 	s->asfd = -1;
 
 	/* send request to authentication server and get challenge */
-	if((dom = _str_findattr(s->key->attr, "dom")) == nil
-	|| (user = _str_findattr(s->key->attr, "user")) == nil){
+	if((dom = _strfindattr(s->key->attr, "dom")) == nil
+	|| (user = _strfindattr(s->key->attr, "user")) == nil){
 		werrstr("chap/dochal cannot happen");
 		goto err;
 	}

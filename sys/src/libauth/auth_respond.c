@@ -61,7 +61,7 @@ auth_respond(void *chal, uint nchal, char *user, uint nuser, void *resp, uint nr
 	memmove(resp, rpc->arg, nresp);
 
 	if((a = auth_attr(rpc)) != nil
-	&& (s = _str_findattr(a, "user")) != nil && strlen(s) < nuser)
+	&& (s = _strfindattr(a, "user")) != nil && strlen(s) < nuser)
 		strcpy(user, s);
 	else if(nuser > 0)
 		user[0] = '\0';

@@ -56,12 +56,12 @@ confirmwrite(char *s)
 		werrstr("empty write");
 		return -1;
 	}
-	if((t = _str_findattr(a, "tag")) == nil){
+	if((t = _strfindattr(a, "tag")) == nil){
 		werrstr("no tag");
 		return -1;
 	}
 	tag = strtoul(t, 0, 0);
-	if((ans = _str_findattr(a, "answer")) == nil){
+	if((ans = _strfindattr(a, "answer")) == nil){
 		werrstr("no answer");
 		return -1;
 	}
@@ -163,7 +163,7 @@ needkeywrite(char *s)
 		werrstr("empty write");
 		return -1;
 	}
-	if((t = _str_findattr(a, "tag")) == nil){
+	if((t = _strfindattr(a, "tag")) == nil){
 		werrstr("no tag");
 		return -1;
 	}

@@ -279,12 +279,7 @@ oldwalk1(Fid *fid, char *name, void *arg)
 	e = srv->walk1(fid, name, &qid);
 	if(e)
 		return e;
-	if(qid.type != fid->qid.type
-	|| qid.vers != fid->qid.vers
-	|| qid.path != fid->qid.path){
-		fprint(2, "fid/qid mismatch in walk1 function");
-		abort();
-	}
+	fid->qid = qid;
 	return nil;
 }
 

@@ -272,7 +272,7 @@ rpcread(Req *r)
 			fss->phase = Notstarted;
 		}	
 		attr = _parseattr(fss->rpc.arg);
-		if((p = _str_findattr(attr, "proto")) == nil){
+		if((p = _strfindattr(attr, "proto")) == nil){
 			retstring(r, fss, "error did not specify proto");
 			_freeattr(attr);
 			break;
@@ -423,7 +423,7 @@ ctlwrite(char *a)
 		nmatch = 0;
 		attr = _parseattr(p);
 		for(pa=attr; pa; pa=pa->next){
-			if(pa->type != AttrQuery && s_to_c(pa->name)[0]=='!'){
+			if(pa->type != AttrQuery && pa->name[0]=='!'){
 				werrstr("only !private? patterns are allowed for private fields");
 				_freeattr(attr);
 				return -1;
@@ -449,7 +449,7 @@ ctlwrite(char *a)
 		/* separate out proto= attributes */
 		lprotos = &protos;
 		for(l=&attr; (*l); ){
-			if(strcmp(s_to_c((*l)->name), "proto") == 0){
+			if(strcmp((*l)->name, "proto") == 0){
 				*lprotos = *l;
 				lprotos = &(*l)->next;
 				*l = (*l)->next;
@@ -466,7 +466,7 @@ ctlwrite(char *a)
 		/* separate out private attributes */
 		lpriv = &priv;
 		for(l=&attr; (*l); ){
-			if(s_to_c((*l)->name)[0] == '!'){
+			if((*l)->name[0] == '!'){
 				*lpriv = *l;
 				lpriv = &(*l)->next;
 				*l = (*l)->next;
@@ -478,8 +478,8 @@ ctlwrite(char *a)
 		/* add keys */
 		ret = 0;
 		for(pa=protos; pa; pa=pa->next){
-			if((proto = findproto(s_to_c(pa->val))) == nil){
-				werrstr("unknown proto %s", s_to_c(pa->val));
+			if((proto = findproto(pa->val)) == nil){
+				werrstr("unknown proto %s", pa->val);
 				ret = -1;
 				continue;
 			}

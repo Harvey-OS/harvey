@@ -100,12 +100,12 @@ promptforkey(char *params)
 	attr = _parseattr(params);
 	fprint(fd, "\n!Adding key:");
 	for(a=attr; a; a=a->next)
-		if(a->type != AttrQuery && s_to_c(a->name)[0] != '!')
-			fprint(fd, " %q=%q", s_to_c(a->name), s_to_c(a->val));
+		if(a->type != AttrQuery && a->name[0] != '!')
+			fprint(fd, " %q=%q", a->name, a->val);
 	fprint(fd, "\n");
 
 	for(a=attr; a; a=a->next){
-		v = s_to_c(a->name);
+		v = a->name;
 		if(a->type != AttrQuery || v[0]=='!')
 			continue;
 		def = nil;
@@ -117,7 +117,7 @@ promptforkey(char *params)
 		a->type = AttrNameval;
 	}
 	for(a=attr; a; a=a->next){
-		v = s_to_c(a->name);
+		v = a->name;
 		if(a->type != AttrQuery || v[0]!='!')
 			continue;
 		def = nil;
@@ -170,7 +170,7 @@ canusekey(Fsstate *fss, Key *k)
 {
 	int i;
 
-	if(_str_findattr(k->attr, "confirm")){
+	if(_strfindattr(k->attr, "confirm")){
 		for(i=0; i<fss->nconf; i++)
 			if(fss->conf[i].key == k)
 				return fss->conf[i].canuse;
@@ -331,9 +331,9 @@ findkey(Key **ret, Fsstate *fss, int who, int skip, Attr *attr0, char *fmt, ...)
 	}else
 		attr1 = nil;
 
-	p = _str_findattr(attr0, "proto");
+	p = _strfindattr(attr0, "proto");
 	if(p == nil)
-		p = _str_findattr(attr1, "proto");
+		p = _strfindattr(attr1, "proto");
 	if(p && findproto(p) == nil){
 		werrstr("unknown protocol %s", p);
 		_freeattr(attr1);
@@ -373,7 +373,7 @@ findkey(Key **ret, Fsstate *fss, int who, int skip, Attr *attr0, char *fmt, ...)
 				;
 			*l = attr1;
 			for(l=&attr0; *l; ){
-				if(ignoreattr(s_to_c((*l)->name))){
+				if(ignoreattr((*l)->name)){
 					a = *l;
 					*l = (*l)->next;
 					a->next = nil;
@@ -404,7 +404,7 @@ findp9authkey(Key **k, Fsstate *fss)
 	 * We don't use fss->attr here because we don't
 	 * care about what the user name is set to, for instance.
 	 */
-	if(dom = _str_findattr(fss->attr, "dom"))
+	if(dom = _strfindattr(fss->attr, "dom"))
 		return findkey(k, fss, Kowner, 0, nil, "proto=p9sk1 dom=%q role=server user?", dom);
 	else
 		return findkey(k, fss, Kowner, 0, nil, "proto=p9sk1 role=server dom? user?");
@@ -491,10 +491,10 @@ hasnameval(Attr *a0, Attr *a1, char *name, char *val)
 	Attr *a;
 
 	for(a=_findattr(a0, name); a; a=_findattr(a->next, name))
-		if(strcmp(s_to_c(a->val), val) == 0)
+		if(strcmp(a->val, val) == 0)
 			return 1;
 	for(a=_findattr(a1, name); a; a=_findattr(a->next, name))
-		if(strcmp(s_to_c(a->val), val) == 0)
+		if(strcmp(a->val, val) == 0)
 			return 1;
 	return 0;
 }
@@ -506,19 +506,19 @@ matchattr(Attr *pat, Attr *a0, Attr *a1)
 
 	for(; pat; pat=pat->next){
 		type = pat->type;
-		if(ignoreattr(s_to_c(pat->name)))
+		if(ignoreattr(pat->name))
 			type = AttrDefault;
 		switch(type){
 		case AttrQuery:		/* name=something be present */
-			if(!hasname(a0, a1, s_to_c(pat->name)))
+			if(!hasname(a0, a1, pat->name))
 				return 0;
 			break;
 		case AttrNameval:	/* name=val must be present */
-			if(!hasnameval(a0, a1, s_to_c(pat->name), s_to_c(pat->val)))
+			if(!hasnameval(a0, a1, pat->name, pat->val))
 				return 0;
 			break;
 		case AttrDefault:	/* name=val must be present if name=anything is present */
-			if(hasname(a0, a1, s_to_c(pat->name)) && !hasnameval(a0, a1, s_to_c(pat->name), s_to_c(pat->val)))
+			if(hasname(a0, a1, pat->name) && !hasnameval(a0, a1, pat->name, pat->val))
 				return 0;
 			break;
 		}
@@ -616,16 +616,16 @@ phasename(Fsstate *fss, int phase, char *tmp)
 static int
 outin(char *prompt, char *def, int len)
 {
-	String *s;
+	char *s;
 
 	s = readcons(prompt, def, 0);
 	if(s == nil)
 		return -1;
-	if(s_to_c(s) == nil)
-		sysfatal("s_to_c(s)==nil???");
-	strncpy(def, s_to_c(s), len);
+	if(s == nil)
+		sysfatal("s==nil???");
+	strncpy(def, s, len);
 	def[len-1] = 0;
-	s_free(s);
+	free(s);
 	return strlen(def);
 }
 
@@ -652,15 +652,33 @@ promptforhostowner(void)
 	writehostowner(owner);
 }
 
+char*
+estrappend(char *s, char *fmt, ...)
+{
+	char *t;
+	va_list arg;
+
+	va_start(arg, fmt);
+	t = vsmprint(fmt, arg);
+	if(t == nil)
+		sysfatal("out of memory");
+	va_end(arg);
+	s = erealloc(s, strlen(s)+strlen(t)+1);
+	strcat(s, t);
+	free(t);
+	return s;
+}
+
+
 /*
  *  prompt for a string with a possible default response
  */
-String*
+char*
 readcons(char *prompt, char *def, int raw)
 {
 	int fdin, fdout, ctl, n;
 	char line[10];
-	String *s = s_new();
+	char *s;
 
 	fdin = open("/dev/cons", OREAD);
 	if(fdin < 0)
@@ -678,6 +696,7 @@ readcons(char *prompt, char *def, int raw)
 			write(ctl, "rawon", 5);
 	} else
 		ctl = -1;
+	s = estrdup("");
 	for(;;){
 		n = read(fdin, line, 1);
 		if(n == 0){
@@ -686,7 +705,7 @@ readcons(char *prompt, char *def, int raw)
 			close(fdout);
 			if(ctl >= 0)
 				close(ctl);
-			s_free(s);
+			free(s);
 			return nil;
 		}
 		if(n < 0)
@@ -701,21 +720,25 @@ readcons(char *prompt, char *def, int raw)
 			close(ctl);
 			close(fdin);
 			close(fdout);
-			s_terminate(s);
-			if(*s_to_c(s) == 0 && def != nil)
-				s_append(s, def);
+			if(*s == 0 && def != nil)
+				s = estrappend(s, "%s", def);
 			return s;
 		}
 		if(line[0] == '\b'){
-			if(s_len(s) > 0)
-				s->ptr--;
+			if(strlen(s) > 0)
+				s[strlen(s)-1] = 0;
 		} else if(line[0] == 0x15) {	/* ^U: line kill */
-			s_reset(s);
+			if(def != nil)
+				fprint(fdout, "\n%s[%s]: ", prompt, def);
+			else
+				fprint(fdout, "\n%s: ", prompt);
+			
+			s[0] = 0;
 		} else {
-			s_putc(s, line[0]);
+			s = estrappend(s, "%c", line[0]);
 		}
 	}
-	return s;	/* how does this happen */
+	return nil; /* not reached */
 }
 
 /*
@@ -787,13 +810,13 @@ setattrs(Attr *a, Attr *b)
 	for(; b; b=b->next){
 		found = 0;
 		for(l=&a; *l; ){
-			if(strcmp(s_to_c(b->name), s_to_c((*l)->name)) == 0){
+			if(strcmp(b->name, (*l)->name) == 0){
 				switch(b->type){
 				case AttrNameval:
 					if(!found){
 						found = 1;
-						s_free((*l)->val);
-						(*l)->val = s_incref(b->val);
+						free((*l)->val);
+						(*l)->val = estrdup(b->val);
 						(*l)->type = AttrNameval;
 						l = &(*l)->next;
 					}else{
@@ -811,7 +834,7 @@ setattrs(Attr *a, Attr *b)
 				l = &(*l)->next;
 		}
 		if(found == 0){
-			*l = _mkattr(b->type, s_to_c(b->name), s_to_c(b->val), nil);
+			*l = _mkattr(b->type, b->name, b->val, nil);
 			setmalloctag(*l, getcallerpc(&a));
 		}
 	}
@@ -861,7 +884,7 @@ sortattr(Attr *a)
 		}else if(a0==nil){
 			anext = a1;
 			a1 = a1->next;
-		}else if(strcmp(s_to_c(a0->name), s_to_c(a1->name)) < 0){
+		}else if(strcmp(a0->name, a1->name) < 0){
 			anext = a0;
 			a0 = a0->next;
 		}else{
@@ -912,7 +935,7 @@ attrnamefmt(Fmt *fmt)
 	for(a=va_arg(fmt->args, Attr*); a; a=a->next){
 		if(a->name == nil)
 			continue;
-		b = seprint(b, ebuf, " %q?", s_to_c(a->name));
+		b = seprint(b, ebuf, " %q?", a->name);
 	}
 	return fmtstrcpy(fmt, buf+1);
 }

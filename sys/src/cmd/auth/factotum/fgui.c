@@ -154,7 +154,7 @@ readreq(void *a)
 		/* separate out the tag */
 		r.tag = nil;
 		for(l = &r.a; *l != nil; l = &(*l)->next)
-			if(strcmp(s_to_c((*l)->name), "tag") == 0){
+			if(strcmp((*l)->name, "tag") == 0){
 				r.tag = *l;
 				*l = r.tag->next;
 				r.tag->next = nil;
@@ -299,8 +299,8 @@ setupconfirm(Request *r)
 	chanprint(cs->ctl, "msg border 1");
 	chanprint(cs->ctl, "msg add 'The following key is being used:'");
 	for(a = r->a; a != nil; a = a->next)
-		chanprint(cs->ctl, "msg add '    %s = %s'", s_to_c(a->name),
-				s_to_c(a->val));
+		chanprint(cs->ctl, "msg add '    %s = %s'", a->name,
+				a->val);
 
 	namectlimage(display->white, "i_white");
 	namectlimage(display->black, "i_black");
@@ -468,8 +468,8 @@ match(Attr *a, Attr *b)
 	Attr *x;
 
 	for(; a != nil; a = a->next){
-		x = _findattr(b, s_to_c(a->name));
-		if(x == nil || strcmp(s_to_c(a->val), s_to_c(x->val)) != 0)
+		x = _findattr(b, a->name);
+		if(x == nil || strcmp(a->val, x->val) != 0)
 			return 0;
 	}
 	return 1;
@@ -577,7 +577,7 @@ setupneedkey(Request *r)
 			entry[i].name = createtext(cs, cn);
 			chanprint(cs->ctl, "%s image white", cn);
 			chanprint(cs->ctl, "%s bordercolor white", cn);
-			chanprint(cs->ctl, "%s add '%s'", cn, s_to_c(a->name));
+			chanprint(cs->ctl, "%s add '%s'", cn, a->name);
 		}
 
 		snprint(cn, sizeof cn, "val_%d", i);
@@ -586,15 +586,15 @@ setupneedkey(Request *r)
 			chanprint(cs->ctl, "%s image yellow", cn);
 			chanprint(cs->ctl, "%s border 1", cn);
 			if(a->name != nil){
-				if(strcmp(s_to_c(a->name), "user") == 0)
+				if(strcmp(a->name, "user") == 0)
 					chanprint(cs->ctl, "%s value %q", cn, getuser());
-				if(*s_to_c(a->name) == '!')
+				if(*a->name == '!')
 					chanprint(cs->ctl, "%s font invisible", cn);
 			}
 		} else {
 			entry[i].val = createtext(cs, cn);
 			chanprint(cs->ctl, "%s image white", cn);
-			chanprint(cs->ctl, "%s add %q", cn, s_to_c(a->val));
+			chanprint(cs->ctl, "%s add %q", cn, a->val);
 		}
 
 		snprint(cn, sizeof cn, "eq_%d", i);
@@ -655,7 +655,7 @@ resizeneedkey(Controlset *cs)
 	for(i = 0; i < entries; i++){
 		if(entry[i].a->name == nil)
 			continue;
-		n = s_len(entry[i].a->name);
+		n = strlen(entry[i].a->name);
 		if(n > mid)
 			mid = n;
 	}
@@ -755,13 +755,13 @@ needkey(Request *r)
 				free(val);
 				continue;
 			}
-			entry[i].a->val = s_copy(val);
+			entry[i].a->val = estrdup(val);
 			free(val);
-			entry[i].a->name = s_copy(nam);
+			entry[i].a->name = estrdup(nam);
 			free(nam);
 		} else {
 			if(val != nil){
-				entry[i].a->val = s_copy(val);
+				entry[i].a->val = estrdup(val);
 				free(val);
 			}
 		}
