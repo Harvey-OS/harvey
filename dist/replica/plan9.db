@@ -370,7 +370,7 @@
 386/bin/read - 775 sys sys 1104122049 58046
 386/bin/replica - 20000000775 sys sys 1018321168 0
 386/bin/replica/applychanges - 775 sys sys 1104122049 98562
-386/bin/replica/applylog - 775 sys sys 1111032635 116663
+386/bin/replica/applylog - 775 sys sys 1111291584 116748
 386/bin/replica/changes - 775 sys sys 1020319082 42
 386/bin/replica/compactdb - 775 sys sys 1104122050 78491
 386/bin/replica/pull - 775 sys sys 1020319083 39
@@ -4783,7 +4783,7 @@ sys/man/1/resample - 664 sys sys 1015024740 1083
 sys/man/1/rio - 664 sys sys 1111181608 14594
 sys/man/1/rm - 664 sys sys 944959673 515
 sys/man/1/rwd - 664 sys sys 1042469992 2958
-sys/man/1/sam - 664 sys sys 984709628 18107
+sys/man/1/sam - 664 sys sys 1111249064 18291
 sys/man/1/secstore - 664 sys sys 1079378118 3763
 sys/man/1/sed - 664 sys sys 944959674 6884
 sys/man/1/seq - 664 sys sys 1063855680 1131
@@ -10247,7 +10247,7 @@ sys/src/cmd/read.c - 664 sys sys 1022047660 1278
 sys/src/cmd/replica - 20000000775 sys sys 1018321113 0
 sys/src/cmd/replica/all.h - 664 sys sys 1091904421 1265
 sys/src/cmd/replica/applychanges.c - 664 sys sys 1068497831 6123
-sys/src/cmd/replica/applylog.c - 664 sys sys 1110990530 18079
+sys/src/cmd/replica/applylog.c - 664 sys sys 1111253491 18157
 sys/src/cmd/replica/avl.c - 664 sys sys 1068497830 6242
 sys/src/cmd/replica/compactdb.c - 664 sys sys 1018323475 652
 sys/src/cmd/replica/db.c - 664 sys sys 1019340165 2989
@@ -10263,7 +10263,7 @@ sys/src/cmd/rio/dat.h - 664 sys sys 1097973839 6938
 sys/src/cmd/rio/data.c - 664 sys sys 1014926356 6169
 sys/src/cmd/rio/fns.h - 664 sys sys 1039133251 1065
 sys/src/cmd/rio/fsys.c - 664 sys sys 1019678647 13259
-sys/src/cmd/rio/mkfile - 664 sys sys 1039133251 454
+sys/src/cmd/rio/mkfile - 664 sys sys 1111249068 431
 sys/src/cmd/rio/rio.c - 664 sys sys 1098468361 22140
 sys/src/cmd/rio/scrl.c - 664 sys sys 1014926357 3245
 sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
