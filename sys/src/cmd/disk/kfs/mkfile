@@ -3,29 +3,30 @@
 TARG=kfs
 
 OFILES=\
-	fs.$O\
-	sub.$O\
-	porttime.$O\
-	fcall.$O\
-	iobuf.$O\
-	dat.$O\
-	main.$O\
-	dentry.$O\
-	fcallconv.$O\
-	ialloc.$O\
-	misc.$O\
+	9p1.$O\
+	9p1lib.$O\
+	9p2.$O\
+	9p12.$O\
+	auth.$O\
+	chk.$O\
 	con.$O\
 	console.$O\
-	chk.$O\
+	dat.$O\
+	dentry.$O\
+	ialloc.$O\
+	iobuf.$O\
+	main.$O\
+	misc.$O\
+	porttime.$O\
+	sub.$O\
 	uid.$O\
-	auth.$O\
+	ofcallfmt.$O\
 
 HFILES=\
 	all.h\
 	dat.h\
 	errno.h\
 	fns.h\
-	lib.h\
 	portfns.h\
 	portdat.h\
 
@@ -37,3 +38,4 @@ $O.out:	devwren.$O
 
 $O.gfs:	$OFILES devmulti.$O
 	$LD $LDFLAGS -o $target $prereq
+

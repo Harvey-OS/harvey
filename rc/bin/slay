@@ -1,5 +1,7 @@
 #!/bin/rc
 U=`{cat /dev/user}
-ps | sed -n '/^'$U' .* '$1'$/s%[^ ]*  *%~>/proc/%
-s%  *.*%/ctl%
-s%~%echo kill%p'
+for(i){
+	ps | sed -n '/^'$U' .* '$i'$/s%[^ ]*  *%~>/proc/%
+	s%  *.*%/ctl%
+	s%~%echo kill%p'
+}

@@ -1,0 +1,24 @@
+#!/bin/rc
+rfork en
+
+
+if(! ~ $#* 1) {
+	echo usage: usps 01601531218002685498 >[1=2]
+	exit usage
+}
+
+rfork e
+
+hget -p 'tracknbr='^$1 http://www.framed.usps.com/cgi-bin/cttgate/ontrack.cgi |
+	tr -d '' |
+	sed 's/<[^>]*>//g' | 
+	sed 's/\&quot;/"/g;s/\&lt;/</g;s/\&gt;/>/g;s/\&amp;/\&/g' |
+	sed 's/\&(copy|nbsp);//' |
+	grep -v Copyright |
+	grep -v 'You can track' |
+	grep -v 'Enter the number' |
+	grep -v 'Item Number:' |
+	sed 's/[ 	]*$//' |
+	uniq |
+	fmt
+

@@ -35,11 +35,15 @@ enum {
 	VgaFreq1	= 28322000,
 };
 
+enum {
+	Namelen		= 32,
+};
+
 typedef struct Ctlr Ctlr;
 typedef struct Vga Vga;
 
 typedef struct Ctlr {
-	char	name[NAMELEN+1];
+	char	name[Namelen+1];
 	void	(*snarf)(Vga*, Ctlr*);
 	void	(*options)(Vga*, Ctlr*);
 	void	(*init)(Vga*, Ctlr*);
@@ -86,9 +90,9 @@ typedef struct Attr {
 } Attr;
 
 typedef struct Mode {
-	char	type[NAMELEN+1];	/* monitor type e.g. "vs1782" */
-	char	size[NAMELEN+1];	/* size e.g. "1376x1024x8" */
-	char chan[NAMELEN+1];	/* channel descriptor, e.g. "m8" or "r8g8b8a8" */
+	char	type[Namelen+1];	/* monitor type e.g. "vs1782" */
+	char	size[Namelen+1];	/* size e.g. "1376x1024x8" */
+	char	chan[Namelen+1];	/* channel descriptor, e.g. "m8" or "r8g8b8a8" */
 
 	int	frequency;		/* Dot Clock (MHz) */
 	int	deffrequency;		/* Default dot clock if calculation can't be done */
@@ -121,6 +125,22 @@ typedef struct Mode {
  * The Crt registers are ushorts in order to keep overflow bits handy.
  * The clock elements are used for communication between the VGA, RAMDAC and clock chips;
  * they can use them however they like, it's assumed they will be used compatibly.
+ *
+ * The mode->x, mode->y coordinates are the physical size of the screen. 
+ * Virtx and virty are the coordinates of the underlying memory image.
+ * This can be used to implement panning around a larger screen or to cope
+ * with chipsets that need the in-memory pixel line width to be a round number.
+ * For example, virge.c uses this because the Savage chipset needs the pixel 
+ * width to be a multiple of 16.  Also, mga2164w.c needs the pixel width
+ * to be a multiple of 128.
+ *
+ * Vga->panning differentiates between these two uses of virtx, virty.
+ *
+ * (14 October 2001, rsc) Most drivers don't know the difference between
+ * mode->x and virtx, a bug that should be corrected.  Vga.c, virge.c, and 
+ * mga2164w.c know.  For the others, the computation that sets crt[0x13]
+ * should use virtx instead of mode->x (and maybe other places change too,
+ * dependent on the driver).
  */
 typedef struct Vga {
 	uchar	misc;
@@ -147,15 +167,18 @@ typedef struct Vga {
 	ulong	apz;			/* aperture size */
 	ulong	vmz;			/* video memory size */
 
-	ulong	membw;		/* memory bandwidth, MB/s */
+	ulong	membw;			/* memory bandwidth, MB/s */
 
 	long	offset;			/* BIOS string offset */
 	char*	bios;			/* matching BIOS string */
+	Pcidev*	pci;			/* matching PCI device if any */
 
 	Mode*	mode;
 
-	ulong	virtx;		/* resolution of virtual screen */
+	ulong	virtx;			/* resolution of virtual screen */
 	ulong	virty;
+
+	int	panning;			/* pan the virtual screen */
 
 	Ctlr*	ctlr;
 	Ctlr*	ramdac;
@@ -239,6 +262,10 @@ extern Ctlr et4000hwgc;
 extern Ctlr hiqvideo;
 extern Ctlr hiqvideohwgc;
 
+/* i81x.c */
+extern Ctlr i81x;
+extern Ctlr i81xhwgc;
+
 /* ibm8514.c */
 extern Ctlr ibm8514;
 
@@ -295,6 +322,10 @@ extern Ctlr mga2164whwgc;
 /* neomagic.c */
 extern Ctlr neomagic;
 extern Ctlr neomagichwgc;
+
+/* nvidia.c */
+extern Ctlr nvidia;
+extern Ctlr nvidiahwgc;
 
 /* palette.c */
 extern Ctlr palette;
@@ -393,8 +424,16 @@ extern Ctlr vision964;
 /* vision968.c */
 extern Ctlr vision968;
 
+/* vmware.c */
+extern Ctlr vmware;
+extern Ctlr vmwarehwgc;
+
 /* w30c516.c */
 extern Ctlr w30c516;
+
+/* mga4xx.c */
+extern Ctlr mga4xx;
+extern Ctlr mga4xxhwgc;
 
 #pragma	varargck	argpos	error	1
 #pragma	varargck	argpos	trace	1

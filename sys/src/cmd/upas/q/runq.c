@@ -121,12 +121,12 @@ emptydir(char *name)
 {
 	int fd;
 	long n;
-	Dir d;
+	char buf[2048];
 
 	fd = open(name, OREAD);
 	if(fd < 0)
 		return 1;
-	n = sysdirread(fd, &d, sizeof(d));
+	n = read(fd, buf, sizeof(buf));
 	close(fd);
 	if(n <= 0) {
 		if(debug)
@@ -150,7 +150,7 @@ forkltd(void)
 	}
 
 	while(i >= npid){
-		pid = wait(0);
+		pid = waitpid();
 		if(pid < 0){
 			syslog(0, runqlog, "forkltd confused");
 			exits(0);
@@ -170,7 +170,7 @@ forkltd(void)
 void
 doalldirs(void)
 {
-	Dir db[HUNK];
+	Dir *db;
 	int fd;
 	long i, n;
 
@@ -180,10 +180,10 @@ doalldirs(void)
 		warning("reading %s", root);
 		return;
 	}
-	while((n=dirread(fd, db, sizeof db)) > 0){
-		n /= sizeof(Dir);
+	n = sysdirreadall(fd, &db);
+	if(n > 0){
 		for(i=0; i<n; i++){
-			if(db[i].qid.path&CHDIR){
+			if(db[i].qid.type & QTDIR){
 				if(emptydir(db[i].name))
 					continue;
 				switch(forkltd()){
@@ -201,41 +201,9 @@ doalldirs(void)
 				}
 			}
 		}
+		free(db);
 	}
 	close(fd);
-}
-
-/*
- * Read a whole directory before removing anything as the holes formed
- * by removing affect the read offset.
- */
-long
-readdirect(int fd)
-{
-	enum
-	{
-		N = 32
-	};
-	long m, n;
-
-	m = 1;	/* prime the loop */
-	for(n=0; m>0; n+=m/sizeof(Dir)){
-		if(limit && n >= limit)
-			break;
-		if(n == ndirbuf){
-			dirbuf = realloc(dirbuf, (ndirbuf+N)*sizeof(Dir));
-			if(dirbuf == 0){
-				warning("memory allocation", 0);
-				return 0;
-			}
-			ndirbuf += N;
-		}
-		/*
-		 * sysreaddot() is a lock-proof version of dirread()
-		 */
-		m = sysreaddot(fd, dirbuf+n, (ndirbuf-n)*sizeof(Dir));
-	}
-	return n;
 }
 
 /*
@@ -273,12 +241,14 @@ rundir(char *name)
 		warning("reading %s", name);
 		return;
 	}
-	nfiles = readdirect(fd);
-
-	for(i=0; i<nfiles; i++){
-		if(dirbuf[i].name[0]!='C' || dirbuf[i].name[1]!='.')
-			continue;
-		dofile(&dirbuf[i]);
+	nfiles = sysdirreadall(fd, &dirbuf);
+	if(nfiles > 0){
+		for(i=0; i<nfiles; i++){
+			if(dirbuf[i].name[0]!='C' || dirbuf[i].name[1]!='.')
+				continue;
+			dofile(&dirbuf[i]);
+		}
+		free(dirbuf);
 	}
 	if(aflag && sflag)
 		sysunlockfile(fd);
@@ -313,10 +283,10 @@ remmatch(char *name)
 void
 dofile(Dir *dp)
 {
-	Dir d;
-	int dfd, ac, dtime, efd, pid, i;
+	Dir *d;
+	int dfd, ac, dtime, efd, pid, i, etime;
 	char *buf, *cp, **av;
-	Waitmsg wm;
+	Waitmsg *wm;
 	Biobuf *b;
 
 	if(debug)
@@ -326,7 +296,8 @@ dofile(Dir *dp)
 	 *  the empty control file must be 15 minutes old, to minimize the
 	 *  chance of a race.
 	 */
-	if(dirstat(file(dp->name, 'D'), &d) < 0){
+	d = dirstat(file(dp->name, 'D'));
+	if(d == nil){
 		syslog(0, runqlog, "no data file for %s", dp->name);
 		remmatch(dp->name);
 		return;
@@ -338,21 +309,25 @@ dofile(Dir *dp)
 		}
 		return;
 	}
-	dtime = d.mtime;
+	dtime = d->mtime;
+	free(d);
 
 	/*
 	 *  retry times depend on the age of the errors file
 	 */
-	if(!Eflag && dirstat(file(dp->name, 'E'), &d) >= 0){
-		if(d.mtime - dtime < 60*60){
+	if(!Eflag && (d = dirstat(file(dp->name, 'E'))) != nil){
+		etime = d->mtime;
+		free(d);
+		if(etime - dtime < 60*60){
 			/* up to the first hour, try every 15 minutes */
-			if(time(0) - d.mtime < 15*60)
+			if(time(0) - etime < 15*60)
 				return;
 		} else {
 			/* after the first hour, try once an hour */
-			if(time(0) - d.mtime < 60*60)
+			if(time(0) - etime < 60*60)
 				return;
 		}
+		
 	}
 
 	/*
@@ -480,14 +455,21 @@ dofile(Dir *dp)
 		error("can't exec %s", cmd);
 		break;
 	default:
-		while(wait(&wm) != pid)
-			;
-		if(wm.msg[0]){
+		for(;;){
+			wm = wait();
+			if(wm == nil)
+				error("wait failed: %r", "");
+			if(wm->pid == pid)
+				break;
+			free(wm);
+		}
+
+		if(wm->msg[0]){
 			if(debug)
-				fprint(2, "[%d] wm.msg == %s\n", getpid(), wm.msg);
-			if(strstr(wm.msg, "Retry")==0){
+				fprint(2, "[%d] wm->msg == %s\n", getpid(), wm->msg);
+			if(strstr(wm->msg, "Retry")==0){
 				/* return the message and remove it */
-				if(returnmail(av, dp->name, wm.msg) == 0)
+				if(returnmail(av, dp->name, wm->msg) == 0)
 					remmatch(dp->name);
 			} else {
 				/* add sys to bad list and try again later */
@@ -499,6 +481,7 @@ dofile(Dir *dp)
 			/* it worked remove the message */
 			remmatch(dp->name);
 		}
+		free(wm);
 
 	}
 done:
@@ -516,9 +499,10 @@ done:
 char*
 file(char *name, char type)
 {
-	static char nname[NAMELEN+1];
+	static char nname[Elemlen+1];
 
-	strcpy(nname, name);
+	strncpy(nname, name, Elemlen);
+	nname[Elemlen] = 0;
 	nname[0] = type;
 	return nname;
 }
@@ -532,7 +516,7 @@ int
 returnmail(char **av, char *name, char *msg)
 {
 	int pfd[2];
-	Waitmsg wm;
+	Waitmsg *wm;
 	int fd;
 	char buf[256];
 	int i;
@@ -610,8 +594,12 @@ returnmail(char **av, char *name, char *msg)
 	}
 	close(pfd[1]);
 out:
-	wait(&wm);
-	return wm.msg[0] ? -1 : 0;
+	wm = wait();
+	if(wm == nil)
+		return -1;
+	i = wm->msg[0] ? -1 : 0;
+	free(wm);
+	return i;
 }
 
 /*
@@ -623,7 +611,7 @@ warning(char *f, void *a)
 	char err[65];
 	char buf[256];
 
-	errstr(err);
+	rerrstr(err, sizeof(err));
 	snprint(buf, sizeof(buf), f, a);
 	fprint(2, "runq: %s: %s\n", buf, err);	
 }
@@ -634,10 +622,10 @@ warning(char *f, void *a)
 void
 error(char *f, void *a)
 {
-	char err[ERRLEN+1];
+	char err[Errlen];
 	char buf[256];
 
-	errstr(err);
+	rerrstr(err, sizeof(err));
 	snprint(buf, sizeof(buf), f, a);
 	fprint(2, "runq: %s: %s\n", buf, err);
 	exits(buf);	
@@ -657,7 +645,7 @@ logit(char *msg, char *file, char **av)
 		sprint(buf + n, " '%s'", *av);
 		n += m + 3;
 	}
-	syslog(0, runqlog, buf);
+	syslog(0, runqlog, "%s", buf);
 }
 
 char *loadfile = ".runqload";
@@ -672,7 +660,7 @@ doload(int start)
 	char buf[32];
 	int i, n;
 	Mlock *l;
-	Dir d;
+	Dir *d;
 
 	if(load <= 0)
 		return;
@@ -704,8 +692,12 @@ doload(int start)
 		i = 0;
 
 	/* ignore load if file hasn't been changed in 30 minutes */
-	if(dirfstat(fd, &d) >= 0 && d.mtime + 30*60 < time(0))
-		i = 0;
+	d = dirfstat(fd);
+	if(d != nil){
+		if(d->mtime + 30*60 < time(0))
+			i = 0;
+		free(d);
+	}
 
 	/* if load already too high, give up */
 	if(start && i >= load){

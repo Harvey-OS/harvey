@@ -3,7 +3,7 @@
 >index
 for(i in /sys/man/[0-9]*/[a-z0-9:]*){
 	p=`{echo $i | sed 's@/sys/man/\([^ ]\)/\([^ ]*\)$@\2(\1)@'}
-	deroff -w < $i |
+	deroff -w_ < $i |
 	tr 'A-Z' 'a-z' |
 	sort -u |
 	comm -23 - junkwords |

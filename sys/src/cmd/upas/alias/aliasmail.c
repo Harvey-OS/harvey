@@ -120,7 +120,6 @@ translate(char *name,		/* name to translate */
 	String *alias)		/* where to put the alias */
 {
 	String *file = s_new();
-	char *user;
 	String **fullnamev;
 	int n, rv;
 
@@ -142,19 +141,6 @@ translate(char *name,		/* name to translate */
 		n++;
 	}
 	fullnamev[n] = 0;
-
-	/* look at user's local names */
-	if(!from){
-		user = getlog();
-		if(user) {
-			mboxpath("names", user, s_restart(file), 0);
-			if (lookup(fullnamev, file, alias)==0) {
-				s_append(alias, "_nosummary_\n");
-				rv = 0;
-				goto out;
-			}
-		}
-	}
 
 	/* look at system-wide names */
 	s_restart(files);

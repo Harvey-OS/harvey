@@ -46,6 +46,7 @@ enum
 Dirtab
 audiodir[] =
 {
+	".",	{Qdir, 0, QTDIR},		0,	DMDIR|0555,
 	"audio",	{Qaudio},		0,	0666,
 	"volume",	{Qvolume},		0,	0666,
 	"audiostat",{Qstatus},		0,	0444,
@@ -67,12 +68,13 @@ static	struct
 {
 	QLock;
 	Rendez	vous;
-	int	bufinit;	/* boolean if buffers allocated */
-	int	curcount;	/* how much data in current buffer */
+	int	buffered;		/* number of bytes en route */
+	int	bufinit;		/* boolean if buffers allocated */
+	int	curcount;		/* how much data in current buffer */
 	int	active;		/* boolean dma running */
-	int	intr;		/* boolean an interrupt has happened */
+	int	intr;			/* boolean an interrupt has happened */
 	int	amode;		/* Aclosed/Aread/Awrite for /audio */
-	int	rivol[Nvol];		/* right/left input/output volumes */
+	int	rivol[Nvol];	/* right/left input/output volumes */
 	int	livol[Nvol];
 	int	rovol[Nvol];
 	int	lovol[Nvol];
@@ -81,7 +83,7 @@ static	struct
 	ulong	totcount;	/* how many bytes processed since open */
 	vlong	tottime;	/* time at which totcount bytes were processed */
 
-	Buf	buf[Nbuf];	/* buffers and queues */
+	Buf	buf[Nbuf];		/* buffers and queues */
 	AQueue	empty;
 	AQueue	full;
 	Buf*	current;
@@ -96,11 +98,11 @@ static	struct
 	int	irval;
 } volumes[] =
 {
-[Vaudio]	"audio",	Fout, 		50,	50,
-[Vsynth]	"synth",	Fin|Fout,	0,	0,
+[Vaudio]		"audio",	Fout, 		50,	50,
+[Vsynth]		"synth",	Fin|Fout,	0,	0,
 [Vcd]		"cd",		Fin|Fout,	0,	0,
-[Vline]		"line",		Fin|Fout,	0,	0,
-[Vmic]		"mic",		Fin|Fout|Fmono,	0,	0,
+[Vline]		"line",	Fin|Fout,	0,	0,
+[Vmic]		"mic",	Fin|Fout|Fmono,	0,	0,
 [Vspeaker]	"speaker",	Fout|Fmono,	0,	0,
 
 [Vtreb]		"treb",		Fout, 		50,	50,
@@ -345,13 +347,21 @@ contindma(void)
 		goto shutdown;
 
 	b = audio.current;
+	if (b){
+		audio.totcount += Bufsize;
+		audio.tottime = todget(nil);
+	}
 	if(audio.amode == Aread) {
-		if(b)	/* shouldn't happen */
+		if(b){
 			putbuf(&audio.full, b);
+			audio.buffered += Bufsize;
+		}
 		b = getbuf(&audio.empty);
 	} else {
-		if(b)	/* shouldn't happen */
+		if(b){
 			putbuf(&audio.empty, b);
+			audio.buffered -= Bufsize;
+		}
 		b = getbuf(&audio.full);
 	}
 	audio.current = b;
@@ -403,7 +413,6 @@ sb16startdma(void)
 	sbcmd(count>>8);
 
 	audio.active = 1;
-	audio.tottime = todget(nil);
 	contindma();
 	iunlock(&blaster);
 }
@@ -495,7 +504,6 @@ ess1688startdma(void)
 	ess1688w(0xB8, x|0x05);
 
 	audio.active = 1;
-	audio.tottime = todget(nil);
 	contindma();
 	iunlock(&blaster);
 }
@@ -522,8 +530,6 @@ sb16intr(void)
 		if(stat & 2) {
 			ilock(&blaster);
 			dummy = inb(blaster.clri16);
-			audio.totcount += Bufsize;
-			audio.tottime = todget(nil);
 			contindma();
 			iunlock(&blaster);
 			audio.intr = 1;
@@ -546,8 +552,6 @@ ess1688intr(void)
 
 	if(audio.active){
 		ilock(&blaster);
-		audio.totcount += Bufsize;
-		audio.tottime = todget(nil);
 		contindma();
 		dummy = inb(blaster.clri8);
 		iunlock(&blaster);
@@ -611,13 +615,14 @@ static void
 sbbufinit(void)
 {
 	int i;
-	void *p;
+	uchar *p;
 
+	p = (uchar*)(((ulong)xalloc((Nbuf+1) * Bufsize) + Bufsize-1)&~(Bufsize-1));
 	for(i=0; i<Nbuf; i++) {
-		p = xspanalloc(Bufsize, CACHELINESZ, 64*1024);
 		dcflush(p, Bufsize);
 		audio.buf[i].virt = UNCACHED(uchar, p);
 		audio.buf[i].phys = (ulong)PADDR(p);
+		p += Bufsize;
 	}
 }
 
@@ -633,6 +638,7 @@ setempty(void)
 	audio.full.last = 0;
 	audio.current = 0;
 	audio.filling = 0;
+	audio.buffered = 0;
 	for(i=0; i<Nbuf; i++)
 		putbuf(&audio.empty, &audio.buf[i]);
 	audio.totcount = 0;
@@ -739,6 +745,17 @@ audioinit(void)
 		print("#A: bad port 0x%lux\n", sbconf.port);
 		return;
 	}
+
+	if(ioalloc(sbconf.port, 0x10, 0, "audio") < 0){
+		print("#A: cannot ioalloc range %lux+0x10\n", sbconf.port);
+		return;
+	}
+	if(ioalloc(sbconf.port+0x100, 1, 0, "audio.mpu401") < 0){
+		iofree(sbconf.port);
+		print("#A: cannot ioalloc range %lux+0x01\n", sbconf.port+0x100);
+		return;
+	}
+
 	switch(sbconf.irq){
 	case 2:
 	case 5:
@@ -748,6 +765,8 @@ audioinit(void)
 		break;
 	default:
 		print("#A: bad irq %lud\n", sbconf.irq);
+		iofree(sbconf.port);
+		iofree(sbconf.port+0x100);
 		return;
 	}
 
@@ -777,6 +796,8 @@ audioinit(void)
 	i = sbread();
 	if(i != 0xaa) {
 		print("#A: no response #%.2x\n", i);
+		iofree(sbconf.port);
+		iofree(sbconf.port+0x100);
 		return;
 	}
 
@@ -788,6 +809,8 @@ audioinit(void)
 		if(audio.major != 3 || audio.minor != 1 || ess1688(&sbconf)){
 			print("#A: model 0x%.2x 0x%.2x; not SB 16 compatible\n",
 				audio.major, audio.minor);
+			iofree(sbconf.port);
+			iofree(sbconf.port+0x100);
 			return;
 		}
 		audio.major = 4;
@@ -815,6 +838,7 @@ audioinit(void)
 		(sbconf.irq==9)? 1:
 		(sbconf.irq==10)? 8:
 		0);
+
 	mxcmd(0x81, 1<<blaster.dma);	/* dma */
 
 	x = mxread(0x81);
@@ -841,16 +865,17 @@ audioattach(char *param)
 	return devattach('A', param);
 }
 
-static int
-audiowalk(Chan *c, char *name)
+static Walkqid*
+audiowalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c, name, audiodir, nelem(audiodir), devgen);
+	return devwalk(c, nc, name, nname, audiodir, nelem(audiodir), devgen);
 }
 
-static void
-audiostat(Chan *c, char *db)
+static int
+audiostat(Chan *c, uchar *db, int n)
 {
-	devstat(c, db, audiodir, nelem(audiodir), devgen);
+	audiodir[Qaudio].length = audio.buffered;
+	return devstat(c, db, n, audiodir, nelem(audiodir), devgen);
 }
 
 static Chan*
@@ -861,7 +886,7 @@ audioopen(Chan *c, int omode)
 	if(audio.major != 4)
 		error(Emajor);
 
-	switch(c->qid.path & ~CHDIR) {
+	switch((ulong)c->qid.path) {
 	default:
 		error(Eperm);
 		break;
@@ -906,7 +931,7 @@ audioclose(Chan *c)
 {
 	Buf *b;
 
-	switch(c->qid.path & ~CHDIR) {
+	switch((ulong)c->qid.path) {
 	default:
 		error(Eperm);
 		break;
@@ -925,6 +950,7 @@ audioclose(Chan *c)
 				if(b) {
 					audio.filling = 0;
 					memset(b->virt+audio.curcount, 0, Bufsize-audio.curcount);
+					audio.buffered += Bufsize-audio.curcount;
 					swab(b->virt);
 					putbuf(&audio.full, b);
 				}
@@ -959,7 +985,7 @@ audioread(Chan *c, void *v, long n, vlong off)
 
 	n0 = n;
 	a = v;
-	switch(c->qid.path & ~CHDIR) {
+	switch((ulong)c->qid.path) {
 	default:
 		error(Eperm);
 		break;
@@ -995,6 +1021,7 @@ audioread(Chan *c, void *v, long n, vlong off)
 			audio.curcount += m;
 			n -= m;
 			a += m;
+			audio.buffered -= m;
 			if(audio.curcount >= Bufsize) {
 				audio.filling = 0;
 				putbuf(&audio.empty, b);
@@ -1006,8 +1033,8 @@ audioread(Chan *c, void *v, long n, vlong off)
 
 	case Qstatus:
 		buf[0] = 0;
-		snprint(buf, sizeof(buf), "bytes %lud\ntime %lld\n",
-			audio.totcount, audio.tottime);
+		snprint(buf, sizeof(buf), "bufsize %6d buffered %6d offset  %10lud time %19lld\n",
+			Bufsize, audio.buffered, audio.totcount, audio.tottime);
 		return readstr(offset, a, n, buf);
 
 	case Qvolume:
@@ -1058,14 +1085,14 @@ static long
 audiowrite(Chan *c, void *vp, long n, vlong)
 {
 	long m, n0;
-	int i, nf, v, left, right, in, out;
-	char buf[255], *field[Ncmd];
+	int i, v, left, right, in, out;
+	Cmdbuf *cb;
 	Buf *b;
 	char *a;
 
 	a = vp;
 	n0 = n;
-	switch(c->qid.path & ~CHDIR) {
+	switch((ulong)c->qid.path) {
 	default:
 		error(Eperm);
 		break;
@@ -1076,18 +1103,18 @@ audiowrite(Chan *c, void *vp, long n, vlong)
 		right = 1;
 		in = 1;
 		out = 1;
-		if(n > sizeof(buf)-1)
-			n = sizeof(buf)-1;
-		memmove(buf, a, n);
-		buf[n] = '\0';
+		cb = parsecmd(vp, n);
+		if(waserror()){
+			free(cb);
+			nexterror();
+		}
 
-		nf = getfields(buf, field, Ncmd, 1, " \t\n");
-		for(i = 0; i < nf; i++){
+		for(i = 0; i < cb->nf; i++){
 			/*
 			 * a number is volume
 			 */
-			if(field[i][0] >= '0' && field[i][0] <= '9') {
-				m = strtoul(field[i], 0, 10);
+			if(cb->f[i][0] >= '0' && cb->f[i][0] <= '9') {
+				m = strtoul(cb->f[i], 0, 10);
 				if(left && out)
 					audio.lovol[v] = m;
 				if(left && in)
@@ -1101,7 +1128,7 @@ audiowrite(Chan *c, void *vp, long n, vlong)
 			}
 
 			for(m=0; volumes[m].name; m++) {
-				if(strcmp(field[i], volumes[m].name) == 0) {
+				if(strcmp(cb->f[i], volumes[m].name) == 0) {
 					v = m;
 					in = 1;
 					out = 1;
@@ -1111,27 +1138,27 @@ audiowrite(Chan *c, void *vp, long n, vlong)
 				}
 			}
 
-			if(strcmp(field[i], "reset") == 0) {
+			if(strcmp(cb->f[i], "reset") == 0) {
 				resetlevel();
 				mxvolume();
 				goto cont0;
 			}
-			if(strcmp(field[i], "in") == 0) {
+			if(strcmp(cb->f[i], "in") == 0) {
 				in = 1;
 				out = 0;
 				goto cont0;
 			}
-			if(strcmp(field[i], "out") == 0) {
+			if(strcmp(cb->f[i], "out") == 0) {
 				in = 0;
 				out = 1;
 				goto cont0;
 			}
-			if(strcmp(field[i], "left") == 0) {
+			if(strcmp(cb->f[i], "left") == 0) {
 				left = 1;
 				right = 0;
 				goto cont0;
 			}
-			if(strcmp(field[i], "right") == 0) {
+			if(strcmp(cb->f[i], "right") == 0) {
 				left = 0;
 				right = 1;
 				goto cont0;
@@ -1140,6 +1167,8 @@ audiowrite(Chan *c, void *vp, long n, vlong)
 			break;
 		cont0:;
 		}
+		free(cb);
+		poperror();
 		break;
 
 	case Qaudio:
@@ -1170,6 +1199,7 @@ audiowrite(Chan *c, void *vp, long n, vlong)
 			audio.curcount += m;
 			n -= m;
 			a += m;
+			audio.buffered += m;
 			if(audio.curcount >= Bufsize) {
 				audio.filling = 0;
 				swab(b->virt);
@@ -1209,8 +1239,8 @@ Dev audiodevtab = {
 
 	devreset,
 	audioinit,
+	devshutdown,
 	audioattach,
-	devclone,
 	audiowalk,
 	audiostat,
 	audioopen,

@@ -258,7 +258,7 @@ uartspecial(int port, void (*rx)(int), int (*tx)(void), int baud)
 		uartsetbaud(up, baud);
 }
 
-static void
+void
 uartputc(int c)
 {
 	int i;

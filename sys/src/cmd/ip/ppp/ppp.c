@@ -7,14 +7,18 @@
 #include <ndb.h>
 #include "ppp.h"
 
+#define PATH 128
+
 static	int	baud;
 static	int	nocompress;
+static 	int	pppframing = 1;
 static	int	noipcompress;
 static	int	server;
 static	int	nip;		/* number of ip interfaces */
 static	int	dying;		/* flag to signal to all threads its time to go */
 static	int	primary;	/* this is the primary IP interface */
 
+int	debug;
 char*	LOG = "ppp";
 
 enum
@@ -192,7 +196,8 @@ init(PPP* ppp)
 			abort();
 		ppp->chap->proto = APmschap;
 		ppp->chap->state = Cunauth;
-		ppp->chap->afd = -1;
+		auth_freechal(ppp->chap->cs);
+		ppp->chap->cs = nil;
 
 		switch(rfork(RFPROC|RFMEM|RFNOWAIT)){
 		case -1:
@@ -228,11 +233,13 @@ setphase(PPP *ppp, int phase)
 		/* link down */
 		switch(oldphase) {
 		case Pauth:
-			close(ppp->chap->afd);
+			auth_freechal(ppp->chap->cs);
+			ppp->chap->cs = nil;
 			ppp->chap->state = Cunauth;
 			break;
 		case Pnet:
-			close(ppp->chap->afd);
+			auth_freechal(ppp->chap->cs);
+			ppp->chap->cs = nil;
 			ppp->chap->state = Cunauth;
 			newstate(ppp, ppp->ccp, Sclosed);
 			newstate(ppp, ppp->ipcp, Sclosed);
@@ -388,7 +395,7 @@ getframe(PPP *ppp, int *protop)
 
 		/* should probably copy to another block if small */
 
-		if(b->rptr[0] == PPP_addr && b->rptr[1] == PPP_ctl)
+		if(pppframing && b->rptr[0] == PPP_addr && b->rptr[1] == PPP_ctl)
 			b->rptr += 2;
 		proto = *b->rptr++;
 		if((proto & 0x1) == 0)
@@ -402,6 +409,7 @@ getframe(PPP *ppp, int *protop)
 		ppp->in.uchars += n;
 		ppp->in.packets++;
 		*protop = proto;
+		netlog("getframe 0x%x\n", proto);
 		return b;
 	}
 
@@ -418,6 +426,7 @@ getframe(PPP *ppp, int *protop)
 			len = buf->lim - buf->wptr;
 			n = read(ppp->mediafd, buf->wptr, len);
 			if(n <= 0){
+				syslog(0, LOG, "medium read returns %d: %r", n);
 				buf->wptr = buf->rptr;
 				return nil;
 			}
@@ -458,6 +467,7 @@ getframe(PPP *ppp, int *protop)
 				ppp->in.uchars += n;
 				ppp->in.packets++;
 				*protop = proto;
+				netlog("getframe 0x%x\n", proto);
 				return b;
 			}
 		} else if(BLEN(b) > 0){
@@ -501,7 +511,7 @@ putframe(PPP *ppp, int proto, Block *b)
 	*--from = proto;
 	if(!(ppp->lcp->flags&Fpc) || proto > 0x100 || proto == Plcp)
 		*--from = proto>>8;
-	if(!(ppp->lcp->flags&Fac) || proto == Plcp){
+	if(pppframing && (!(ppp->lcp->flags&Fac) || proto == Plcp)){
 		*--from = PPP_ctl;
 		*--from = PPP_addr;
 	}
@@ -740,7 +750,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 	Lcpmsg *m, *repm;	
 	Lcpopt *o;
 	uchar *cp, *ap;
-	ulong rejecting, nacking, flags, proto, pap;
+	ulong rejecting, nacking, flags, proto, chapproto;
 	ulong mtu, ctlmap, period;
 	ulong x;
 	Block *repb;
@@ -757,7 +767,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 	ctlmap = 0xffffffff;
 	period = 0;
 	ctype = nil;
-	pap = 0;
+	chapproto = 0;
 
 	m = (Lcpmsg*)b->rptr;
 	repb = alloclcp(Lconfack, m->id, BLEN(b), &repm);
@@ -804,13 +814,14 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 			case Oauth:
 				proto = nhgets(o->data);
 				if(proto == Ppasswd && !server){
-					pap = 1;
+					chapproto = APpasswd;
 					continue;
 				}
 				if(proto != Pchap)
 					break;
-				if(o->data[2] != APmd5)
+				if(o->data[2] != APmd5 && o->data[2] != APmschap)
 					break;
+				chapproto = o->data[2];
 				continue;
 			}
 			break;
@@ -950,8 +961,8 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 			if(mtu < Minmtu)
 				mtu = Minmtu;
 			ppp->mtu = mtu;
-			if(pap)
-				ppp->chap->proto = APpasswd;
+			if(chapproto)
+				ppp->chap->proto = chapproto;
 			
 			break;
 		case Pccp:
@@ -1211,7 +1222,13 @@ rcv(PPP *ppp, Pstate *p, Block *b)
 			newstate(ppp, ppp->ccp, Sclosed);
 		break;
 	case Lechoreq:
+		if(BLEN(b) < 8){
+			netlog("ppp: short lcp echo request\n");
+			freeb(b);
+			return;
+		}
 		m->code = Lechoack;
+		hnputl(m->data, ppp->magic);
 		putframe(ppp, p->proto, b);
 		break;
 	case Lechoack:
@@ -1625,6 +1642,30 @@ catchdie(void*, char *msg)
 }
 
 static void
+hexdump(uchar *a, int na)
+{
+	int i;
+	char buf[80];
+
+	fprint(2, "dump %p %d\n", a, na);
+	buf[0] = '\0';
+	for(i=0; i<na; i++){
+		sprint(buf+strlen(buf), " %.2ux", a[i]);
+		if(i%16 == 7)
+			sprint(buf+strlen(buf), " --");
+		if(i%16==15){
+			sprint(buf+strlen(buf), "\n");
+			write(2, buf, strlen(buf));
+			buf[0] = '\0';
+		}
+	}
+	if(i%16){
+		sprint(buf+strlen(buf), "\n");
+		write(2, buf, strlen(buf));
+	}
+}
+
+static void
 mediainproc(PPP *ppp)
 {
 	Block *b;
@@ -1633,8 +1674,10 @@ mediainproc(PPP *ppp)
 	notify(catchdie);
 	while(!dying){
 		b = pppread(ppp);
-		if(b == nil)
+		if(b == nil){
+			syslog(0, LOG, "pppread return nil");
 			break;
+		}
 		ppp->stat.iprecv++;
 		if(ppp->ipcp->state != Sopened) {
 			ppp->stat.iprecvnotup++;
@@ -1650,7 +1693,12 @@ mediainproc(PPP *ppp)
 				continue;
 			}
 		}
+		if(debug > 1){
+			netlog("ip write pkt %p %d\n", b->rptr, blen(b));
+			hexdump(b->rptr, blen(b));
+		}
 		if(write(ppp->ipfd, b->rptr, blen(b)) < 0) {
+			syslog(0, LOG, "error writing to pktifc");
 			freeb(b);
 			break;
 		}
@@ -1748,47 +1796,30 @@ chapinit(PPP *ppp)
 	Lcpmsg *m;
 	Chap *c;
 	int len;
-	int fd;
-	Ticketreq tr;
-	char trbuf[TICKREQLEN];
+	char *aproto;
 
 	c = ppp->chap;
 	c->id++;
 
-	if((fd = open("#c/random", OREAD))<0)
-		sysfatal("could not open /dev/random: %r");
-	close(fd);
-
-	/* get ticket request from kernel and send to auth server */
-	fd = open("/dev/authenticate", ORDWR);
-	if(fd < 0)
-		sysfatal("could not open /dev/authenticate: %r");
-	read(fd, trbuf, TICKREQLEN);
-	close(fd);
-
-	convM2TR(trbuf, &tr);
-	memset(tr.uid, 0, sizeof(tr.uid));
-	if(c->proto == APmd5)
-		tr.type = AuthChap;
-	else
-		tr.type = AuthMSchap;
-	convTR2M(&tr, trbuf);
-
-	/* send request to authentication server and get challenge */
-	c->afd = authdial();
-	if(c->afd < 0)
-		sysfatal("could not dial auth server: %r");
-	if(write(c->afd, trbuf, TICKREQLEN) != TICKREQLEN)
-		sysfatal("write to auth server failed: %r");
-	if(readn(c->afd, c->chal, sizeof(c->chal)) < 0)
-		sysfatal("reading chal failed: %r");
-
-	len = 4 + 1 + sizeof(c->chal) + strlen(ppp->chapname);
+	switch(c->proto){
+	default:
+		abort();
+	case APmd5:
+		aproto = "chap";
+		break;
+	case APmschap:
+		aproto = "mschap";
+		break;
+	}
+	if((c->cs = auth_challenge("proto=%q role=server", aproto)) == nil)
+		sysfatal("auth_challenge: %r");
+	syslog(0, LOG, ": remote=%I: sending %d byte challenge", ppp->remote, c->cs->nchal);
+	len = 4 + 1 + c->cs->nchal + strlen(ppp->chapname);
 	b = alloclcp(Cchallenge, c->id, len, &m);
 
-	*b->wptr++ = sizeof(c->chal);
-	memmove(b->wptr, c->chal, sizeof(c->chal));
-	b->wptr += sizeof(c->chal);
+	*b->wptr++ = c->cs->nchal;
+	memmove(b->wptr, c->cs->chal, c->cs->nchal);
+	b->wptr += c->cs->nchal;
 	memmove(b->wptr, ppp->chapname, strlen(ppp->chapname));
 	b->wptr += strlen(ppp->chapname);
 	hnputs(m->len, len);
@@ -1798,6 +1829,52 @@ chapinit(PPP *ppp)
 	c->state = Cchalsent;
 }
 
+/*
+ * BUG factotum should do this
+ */
+enum {
+	MShashlen = 16,
+	MSresplen = 24,
+	MSchallen = 8,
+};
+
+void
+desencrypt(uchar data[8], uchar key[7])
+{
+	ulong ekey[32];
+
+	key_setup(key, ekey);
+	block_cipher(ekey, data, 0);
+}
+
+void
+nthash(uchar hash[MShashlen], char *passwd)
+{
+	uchar buf[512];
+	int i;
+	
+	for(i=0; *passwd && i<sizeof(buf); passwd++) {
+		buf[i++] = *passwd;
+		buf[i++] = 0;
+	}
+	memset(hash, 0, 16);
+	md4(buf, i, hash, 0);
+}
+
+void
+mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen])
+{
+	int i;
+	uchar buf[21];
+	
+	memset(buf, 0, sizeof(buf));
+	memcpy(buf, hash, MShashlen);
+
+	for(i=0; i<3; i++) {
+		memmove(resp+i*MSchallen, chal, MSchallen);
+		desencrypt(resp+i*MSchallen, buf+i*7);
+	}
+}
 
 /*
  *  challenge response dialog
@@ -1807,15 +1884,18 @@ extern	int	_asrdresp(int, uchar*, int);
 static void
 getchap(PPP *ppp, Block *b)
 {
+	AuthInfo *ai;
 	Lcpmsg *m;
-	int len, vlen, i, n;
+	int len, vlen, i, id, n, nresp;
 	char md5buf[512], code;
 	Chap *c;
 	Chapreply cr;
 	MSchapreply mscr;
-	char uid[NAMELEN];
-	uchar ticket[TICKETLEN+AUTHENTLEN];
-	uchar *p;
+	char uid[PATH];
+	uchar digest[16], *p, *resp, sdigest[SHA1dlen];
+	uchar mshash[MShashlen], mshash2[MShashlen];
+	DigestState *s;
+	uchar msresp[2*MSresplen+1];
 
 	m = (Lcpmsg*)b->rptr;
 	len = nhgets(m->len);
@@ -1835,23 +1915,44 @@ getchap(PPP *ppp, Block *b)
 			break;
 		}
 
-		/* create string to hash */
-		md5buf[0] = m->id;
-		strcpy(md5buf+1, ppp->secret);
-		n = strlen(ppp->secret) + 1;
-		memmove(md5buf+n, m->data+1, vlen);
-		n += vlen;
+		id = m->id;
+		switch(ppp->chap->proto){
+		default:
+			abort();
+		case APmd5:
+			md5buf[0] = m->id;
+			strcpy(md5buf+1, ppp->secret);
+			n = strlen(ppp->secret) + 1;
+			memmove(md5buf+n, m->data+1, vlen);
+			n += vlen;
+			md5((uchar*)md5buf, n, digest, nil);
+			resp = digest;
+			nresp = 16;
+			break;
+		case APmschap:
+			nthash(mshash, ppp->secret);
+			memset(msresp, 0, sizeof msresp);
+			mschalresp(msresp+MSresplen, mshash, m->data+1);
+			resp = msresp;
+			nresp = sizeof msresp;
+			nthash(mshash, ppp->secret);
+			md4(mshash, 16, mshash2, 0);
+			s = sha1(mshash2, 16, 0, 0);
+			sha1(mshash2, 16, 0, s);
+			sha1(m->data+1, 8, sdigest, s);
+			memmove(ppp->key, sdigest, 16);
+			break;
+		}
+		len = 4 + 1 + nresp + strlen(ppp->chapname);
 		freeb(b);
-
-		/* send reply */
-		len = 4 + 1 + 16 + strlen(ppp->chapname);
-		b = alloclcp(Cresponse, md5buf[0], len, &m);
-		*b->wptr++ = 16;
-		md5((uchar*)md5buf, n, b->wptr, nil);
-		b->wptr += 16;
+		b = alloclcp(Cresponse, id, len, &m);
+		*b->wptr++ = nresp;
+		memmove(b->wptr, resp, nresp);
+		b->wptr += nresp;
 		memmove(b->wptr, ppp->chapname, strlen(ppp->chapname));
 		b->wptr += strlen(ppp->chapname);
 		hnputs(m->len, len);
+		netlog("PPP: sending response len %d\n", len);
 		putframe(ppp, Pchap, b);
 		break;
 	case Cresponse:
@@ -1874,12 +1975,12 @@ getchap(PPP *ppp, Block *b)
 			memmove(cr.resp, m->data+1, 16);
 			memset(uid, 0, sizeof(uid));
 			n = len-5-vlen;
-			if(n >= NAMELEN)
-				n = NAMELEN-1;
+			if(n >= PATH)
+				n = PATH-1;
 			memmove(uid, m->data+1+vlen, n);
-			memmove(cr.uid, uid, sizeof(cr.uid));
-			if(write(c->afd, &cr, sizeof(cr)) != sizeof(cr))
-				sysfatal("write to auth server failed: %r");
+			c->cs->user = uid;
+			c->cs->resp = &cr;
+			c->cs->nresp = sizeof cr;
 			break;
 		case APmschap:
 			if(vlen > len - 5 || vlen != 49) {
@@ -1899,30 +2000,34 @@ getchap(PPP *ppp, Block *b)
 					break;
 				}
 			}
-			if(n >= NAMELEN)
-				n = NAMELEN-1;
+			if(n >= PATH)
+				n = PATH-1;
 			memset(uid, 0, sizeof(uid));
 			memmove(uid, p, n);
-			memmove(mscr.uid, uid, sizeof(mscr.uid));
-			if(write(c->afd, &mscr, sizeof(mscr)) != sizeof(mscr))
-				sysfatal("write to auth server failed: %r");
+			c->cs->user = uid;
+			c->cs->resp = &mscr;
+			c->cs->nresp = sizeof mscr;
 			break;
 		} 
 
-		if(_asrdresp(c->afd, ticket, TICKETLEN+AUTHENTLEN) < 0){
+		syslog(0, LOG, ": remote=%I vlen %d proto %d response user %s nresp %d", ppp->remote, vlen, c->proto, c->cs->user, c->cs->nresp);
+		if((ai = auth_response(c->cs)) == nil || auth_chuid(ai, nil) < 0){
 			c->state = Cunauth;
 			code = Cfailure;
-			syslog(0, LOG, ": remote=%I: auth failed:, uid=%s", ppp->remote, uid);
-		} else {
+			syslog(0, LOG, ": remote=%I: auth failed: %r, uid=%s", ppp->remote, uid);
+		}else{
 			c->state = Cauthok;
 			code = Csuccess;
-			syslog(0, LOG, ": remote=%I: auth ok: uid=%s", ppp->remote, uid);
-			if(c->proto == APmschap)
-				if(read(c->afd, ppp->key, sizeof(ppp->key)) != sizeof(ppp->key))
+			syslog(0, LOG, ": remote=%I: auth ok: uid=%s nsecret=%d", ppp->remote, uid, ai->nsecret);
+			if(c->proto == APmschap){
+				if(ai->nsecret != sizeof(ppp->key))
 					sysfatal("could not get the encryption key");
+				memmove(ppp->key, ai->secret, sizeof(ppp->key));
+			}
 		}
-
-		close(c->afd);
+		auth_freeAI(ai);
+		auth_freechal(c->cs);
+		c->cs = nil;
 		freeb(b);
 
 		/* send reply */
@@ -2290,7 +2395,7 @@ connect(int fd, int cfd)
 		default:
 			n = write(fd, xbuf, 1);
 			if(n < 0) {
-				errstr(xbuf);
+				errstr(xbuf, sizeof(xbuf));
 				conndone = 1;
 				close(ctl);
 				print("[remote write error (%s)]\n", xbuf);
@@ -2300,7 +2405,6 @@ connect(int fd, int cfd)
 	}
 }
 
-int debug;
 int interactive;
 
 void
@@ -2322,9 +2426,9 @@ main(int argc, char **argv)
 
 	rfork(RFREND|RFMEM|RFNOTEG|RFNAMEG);
 
-	fmtinstall('I', eipconv);
-	fmtinstall('V', eipconv);
-	fmtinstall('E', eipconv);
+	fmtinstall('I', eipfmt);
+	fmtinstall('V', eipfmt);
+	fmtinstall('E', eipfmt);
 
 	dev = nil;
 	secret = nil;
@@ -2359,6 +2463,9 @@ main(int argc, char **argv)
 		break;
 	case 'f':
 		framing = 1;
+		break;
+	case 'F':
+		pppframing = 0;
 		break;
 	case 'm':
 		p = ARGF();
@@ -2477,18 +2584,14 @@ main(int argc, char **argv)
 void
 netlog(char *fmt, ...)
 {
-	char buf[128], *out;
 	va_list arg;
-	int n;
 
 	if(debug == 0)
 		return;
 
 	va_start(arg, fmt);
-	out = doprint(buf, buf+sizeof(buf), fmt, arg);
+	vfprint(2, fmt, arg);
 	va_end(arg);
-	n = out - buf;
-	write(2, buf, n);
 }
 
 /*
@@ -2512,15 +2615,16 @@ invalidate(Ipaddr addr)
 static int
 nipifcs(char *net)
 {
-	Ipifc *ifc, *tifc;
+	static Ipifc *ifc;
+	Ipifc *nifc;
+	Iplifc *lifc;
 	int n;
 
 	n = 0;
-	for(ifc = readipifc(net, nil); ifc != nil; ifc = tifc){
-		tifc = ifc->next;
-		n++;
-		free(ifc);
-	}
+	ifc = readipifc(net, ifc, -1);
+	for(nifc = ifc; nifc != nil; nifc = nifc->next)
+		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next)
+			n++;
 	return n;
 }
 

@@ -45,15 +45,13 @@ main(int argc, char **argv)
 		seek(fd, 0, 0);
 		if(write(fd, buf, n-1) != n-1)	/* n-1: no newline */
 			fprint(2, "write error: %r\n");
+		seek(fd, 0, 0);
+		n = read(fd, buf, sizeof buf);
+		if(n < 0)
+			fprint(2, "read error: %r\n");
 		else{
-			seek(fd, 0, 0);
-			n = read(fd, buf, sizeof buf);
-			if(n < 0)
-				fprint(2, "read error: %r\n");
-			else{
-				write(1, buf, n);
-				print("\n");
-			}
+			write(1, buf, n);
+			print("\n");
 		}
 	}
 }

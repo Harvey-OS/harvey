@@ -33,10 +33,14 @@ enum
 	Ocw3=		0x08,
 
 	EOI=		0x20,		/* non-specific end of interrupt */
+
+	Elcr1=		0x4D0,		/* Edge/Level Triggered Register */
+	Elcr2=		0x4D1,
 };
 
 int	int0mask = 0xff;	/* interrupts enabled for first 8259 */
 int	int1mask = 0xff;	/* interrupts enabled for second 8259 */
+int i8259elcr;				/* mask of level-triggered interrupts */
 
 /*
  *  trap/interrupt gates
@@ -101,7 +105,7 @@ setvec(int v, void (*r)(Ureg*, void*), void *arg)
 void
 trapinit(void)
 {
-	int i;
+	int i, x;
 
 	/*
 	 *  set all interrupts to panics
@@ -153,7 +157,7 @@ trapinit(void)
 	/*
 	 *  tell the hardware where the table is (and how long)
 	 */
-	putidt(ilt, sizeof(ilt));
+	putidt(ilt, sizeof(ilt)-1);
 
 	/*
 	 *  Set up the first 8259 interrupt processor.
@@ -191,6 +195,25 @@ trapinit(void)
 	 */
 	outb(Int0ctl, Ocw3|0x03);
 	outb(Int1ctl, Ocw3|0x03);
+
+	/*
+	 * Check for Edge/Level register.
+	 * This check may not work for all chipsets.
+	 * First try a non-intrusive test - the bits for
+	 * IRQs 13, 8, 2, 1 and 0 must be edge (0). If
+	 * that's OK try a R/W test.
+	 */
+	x = (inb(Elcr2)<<8)|inb(Elcr1);
+	if(!(x & 0x2107)){
+		outb(Elcr1, 0);
+		if(inb(Elcr1) == 0){
+			outb(Elcr1, 0x20);
+			if(inb(Elcr1) == 0x20)
+				i8259elcr = x;
+			outb(Elcr1, x & 0xFF);
+			print("ELCR: %4.4uX\n", i8259elcr);
+		}
+	}
 }
 
 /*
@@ -205,7 +228,7 @@ dumpregs(Ureg *ur)
 		ur->ax, ur->bx, ur->cx, ur->dx);
 	print("  SI %8.8lux  DI %8.8lux  BP %8.8lux\n",
 		ur->si, ur->di, ur->bp);
-	print("  CS %4.4ux DS %4.4ux  ES %4.4ux  FS %4.4ux  GS %4.4ux\n",
+	print("  CS %4.4lux DS %4.4lux  ES %4.4lux  FS %4.4lux  GS %4.4lux\n",
 		ur->cs & 0xFF, ur->ds & 0xFFFF, ur->es & 0xFFFF, ur->fs & 0xFFFF, ur->gs & 0xFFFF);
 	print("  CR0 %8.8lux CR2 %8.8lux CR3 %8.8lux\n",
 		getcr0(), getcr2(), getcr3());

@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 			print("can't open %s: %r\n", srv);
 			exits(0);
 		}
-		if(mount(fd, mtpt, MBEFORE, "") < 0){
+		if(mount(fd, -1, mtpt, MBEFORE, "") < 0){
 			print("can't mount(%s, %s): %r\n", srv, mtpt);
 			exits(0);
 		}

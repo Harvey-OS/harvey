@@ -134,6 +134,7 @@ enum {  /* flags */
 	POOL_DEBUGGING	= 1<<3,
 	POOL_LOGGING	= 1<<4,
 	POOL_TOLERANCE	= 1<<5,
+	POOL_NOREUSE	= 1<<6,
 };
 .EE
 .PP
@@ -287,8 +288,8 @@ is not nil,
 it will be called as well.
 This provides a mechanism for external programs to search for leaks.
 (See 
-.IR debugmalloc (2)
-for one such mechanism.)
+.IR leak (1)
+for one such program.)
 .PP
 The pool routines are strict about the amount of space callers use.
 If even a single byte is written past the end of the allotted space of a block, they
@@ -311,135 +312,18 @@ is set and a single NUL is found written past the end of a block,
 will be called with a notification, but
 .B panic
 will not be.
-.SH EXAMPLE
 .PP
-A complete example follows.
-.IP
-.EX
-.ta 4n +4n +4n +4n +4n +4n +4n
-static void*	sbrkalloc(ulong);
-static int	sbrkmerge(void*, void*);
-static void	plock(Pool*);
-static void	punlock(Pool*);
-static void	pprint(Pool*, char*, ...);
-static void	ppanic(Pool*, char*, ...);
-typedef struct Private	Private;
-struct Private {
-	Lock;
-	int fd;
-};
-static Private sbrkpriv;
-Pool sbrkmem = {
-	.name=	"sbrkmem",
-	.maxsize=	2*1024*1024*1024,
-	.minarena=	4*1024,
-	.quantum=	32,
-	.alloc=	sbrkalloc,
-	.merge=	sbrkmerge,
-	.flags=	0,
-
-	.lock=	plock,
-	.unlock=	punlock,
-	.print=	pprint,
-	.panic=	ppanic,
-	.private=	&sbrkpriv,
-};
-
-/* sbrk with minimal bookkeeping so we can handle merge calls */
-static void*
-sbrkalloc(ulong n)
-{
-	long *x;
-
-	n += 8;	/* two longs for us */
-	x = sbrk(n);
-	if((int)x == -1)
-		x = nil;
-	x[0] = (n+7)&~7;	/* sbrk rounds size up to mult. of 8 */
-	x[1] = 0xDeadBeef;
-	return x+2;
-}
-
-static int
-sbrkmerge(void *x, void *y)
-{
-	long *lx, *ly;
-
-	lx = x;
-	if(lx[-1] != 0xDeadBeef)
-		abort();
-
-	if((uchar*)lx+lx[-2] == (uchar*)y) {
-		ly = y;
-		lx[-2] += ly[-2];
-		return 1;
-	}
-	return 0;
-}
-
-static void
-plock(Pool *p)
-{
-	Private *priv = p->private;
-	lock(priv);
-}
-
-static void
-punlock(Pool *p)
-{
-	Private *priv = p->private;
-	unlock(priv);
-}
-
-static void
-pprint(Pool *p, char *fmt, ...)
-{
-	Private *priv = p->private;
-	int n;
-	va_list v;
-	char buf[128];
-
-	va_start(v, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, v)-buf;
-	va_end(v);
-	write(priv->fd, buf, n);
-}
-
-static void
-ppanic(Pool*, char *fmt, ...) 
-{
-	va_list v;
-	int n;
-	char buf[128];
-
-	va_start(v, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, v)-buf;
-	va_end(v);
-	write(2, "panic: ", 7);
-	write(2, buf, n);
-	write(2, "\n", 1);
-	abort();
-}
-
-void*
-malloc(ulong size)
-{
-	return poolalloc(&sbrkmem, size);
-}
-.EE
+When
+.B POOL_NOREUSE
+is set,
+.B poolfree
+fills the passed block with garbage rather than
+return it to the free pool.
 .SH SOURCE
 .B /sys/src/libc/port/pool.c
 .SH SEE ALSO
-.IR debugmalloc (2),
 .IR malloc (2),
 .IR brk (2)
-.SH BUGS
-The implementation of
-.B POOL_TOLERANCE
-is slightly incomplete \(em there exists one case
-in which the pool is still not tolerant of NUL bytes.
 .PP
-.I Errstr
-is not always set.
-.PP
-The example is too long.
+.B /sys/src/libc/port/malloc.c
+is a complete example.

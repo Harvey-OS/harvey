@@ -24,7 +24,7 @@ int  regexec(Reprog *prog, char *string, Resub *match, int msize)
 .PP
 .nf
 .B
-void regsub(char *source, char *dest, Resub *match, int msize)
+void regsub(char *source, char *dest, int dlen, Resub *match, int msize)
 .PP
 .nf
 .B
@@ -32,7 +32,7 @@ int  rregexec(Reprog *prog, Rune *string, Resub *match, int msize)
 .PP
 .nf
 .B
-void rregsub(Rune *source, Rune *dest, Resub *match, int msize)
+void rregsub(Rune *source, Rune *dest, int dlen, Resub *match, int msize)
 .PP
 .B
 void regerror(char *msg)
@@ -157,6 +157,8 @@ is replaced by the string delimited by
 .B match[0].sp
 and
 .BR match[0].ep .
+The substitution will always be null terminated and
+trimmed to fit into dlen bytes.
 .PP
 .IR Regerror ,
 called whenever an error is detected in

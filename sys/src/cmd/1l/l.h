@@ -206,12 +206,12 @@ extern	Optab	optab[];
 extern	char	mmsize[];
 extern	char*	anames[];
 
-int	Aconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Pconv(va_list*, Fconv*);
-int	Rconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
-int	Xconv(va_list*, Fconv*);
+int	Aconv(Fmt*);
+int	Dconv(Fmt*);
+int	Pconv(Fmt*);
+int	Rconv(Fmt*);
+int	Sconv(Fmt*);
+int	Xconv(Fmt*);
 void	addhist(long, int);
 int	andsize(Prog*, Adr*);
 void	asmb(void);

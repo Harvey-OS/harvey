@@ -19,7 +19,7 @@ _remaperror(char *fmt, ...)
 	char buf[256];
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof buf, fmt, arg);
+	vseprint(buf, buf+sizeof buf, fmt, arg);
 	va_end(arg);
 
 	werrstr(buf);
@@ -36,11 +36,11 @@ torgbv(Rawimage *i, int errdiff)
 	uchar *closest;
 	Rawimage *im;
 	int dx, dy;
-	char err[ERRLEN];
+	char err[ERRMAX];
 	uchar *cmap, *cm, *in, *out, *inp, *outp, cmap1[3*256], map[256], *rpic, *bpic, *gpic;
 
 	err[0] = '\0';
-	errstr(err);	/* throw it away */
+	errstr(err, sizeof err);	/* throw it away */
 	im = malloc(sizeof(Rawimage));
 	if(im == nil)
 		return nil;

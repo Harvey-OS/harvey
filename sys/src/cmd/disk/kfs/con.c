@@ -1,4 +1,5 @@
 #include	"all.h"
+#include	"9p1.h"
 
 static	char	elem[NAMELEN];
 static	Filsys*	cur_fs;
@@ -7,7 +8,6 @@ static	char	conline[100];
 void
 consserve(void)
 {
-	strncpy(cons.chan->whoname, "console", sizeof(cons.chan->whoname));
 	con_session();
 	cmd_exec("cfs");
 	cmd_exec("user");
@@ -78,13 +78,13 @@ void
 cmd_stats(void)
 {
 	cprint("work stats\n");
-	cprint("	work = %F rps\n", (Filta){&cons.work, 1});
-	cprint("	rate = %F tBps\n", (Filta){&cons.rate, 1000});
-	cprint("	hits = %F iops\n", (Filta){&cons.bhit, 1});
-	cprint("	read = %F iops\n", (Filta){&cons.bread, 1});
-	cprint("	init = %F iops\n", (Filta){&cons.binit, 1});
+	cprint("	work = %A rps\n", (Filta){&cons.work, 1});
+	cprint("	rate = %A tBps\n", (Filta){&cons.rate, 1000});
+	cprint("	hits = %A iops\n", (Filta){&cons.bhit, 1});
+	cprint("	read = %A iops\n", (Filta){&cons.bread, 1});
+	cprint("	init = %A iops\n", (Filta){&cons.binit, 1});
 /*	for(i = 0; i < MAXTAG; i++)
-		cprint("	tag %G = %F iops\n", i, (Filta){&cons.tags[i], 1});
+		cprint("	tag %G = %A iops\n", i, (Filta){&cons.tags[i], 1});
 */
 }
 
@@ -139,15 +139,21 @@ cmd_create(void)
 	char oelem[NAMELEN];
 	char name[NAMELEN];
 
-	if(con_clone(FID1, FID2))
+	if(err = con_clone(FID1, FID2)){
+		cprint("clone failed: %s\n", errstring[err]);
 		return;
-	if(skipbl(1))
+	}
+	if(skipbl(1)){
+		cprint("skipbl\n");
 		return;
+	}
 	oelem[0] = 0;
 	while(nextelem()) {
 		if(oelem[0])
-			if(con_walk(FID2, oelem))
+			if(err = con_walk(FID2, oelem)){
+				cprint("walk failed: %s\n", errstring[err]);
 				return;
+			}
 		memmove(oelem, elem, NAMELEN);
 	}
 	if(skipbl(1))
@@ -199,9 +205,10 @@ cmd_clri(void)
 void
 cmd_rename(void)
 {
+	ulong perm;
 	Dentry d;
 	char stat[DIRREC];
-	char oelem[NAMELEN], nxelem[NAMELEN];
+	char oelem[NAMELEN], noelem[NAMELEN], nxelem[NAMELEN];
 	int err;
 
 	if(con_clone(FID1, FID2))
@@ -217,20 +224,72 @@ cmd_rename(void)
 			}
 		memmove(oelem, elem, NAMELEN);
 	}
-	cname(nxelem);
-	if(!con_walk(FID2, nxelem))
-		cprint("file %s already exists\n", nxelem);
-	else if(con_walk(FID2, oelem))
-		cprint("file does not already exist\n");
-	else if(err = con_stat(FID2, stat))
-		cprint("can't stat file: %s\n", errstring[err]);
-	else{
-		convM2D(stat, &d);
-		strncpy(d.name, nxelem, NAMELEN);
-		convD2M(&d, stat);
-		if(err = con_wstat(FID2, stat))
-			cprint("can't move file: %s\n", errstring[err]);
-	}
+	if(skipbl(1))
+		return;
+	if(cons.arg[0]=='/'){
+		if(con_clone(FID1, FID3))
+			return;
+		noelem[0] = 0;
+		while(nextelem()){
+			if(noelem[0])
+				if(con_walk(FID3, noelem)){
+					cprint("target path %s does not exist", noelem);
+					return;
+				}
+			memmove(noelem, elem, NAMELEN);
+		}
+		if(!con_walk(FID3, elem)){
+			cprint("target %s already exists\n", elem);
+			return;
+		}
+		if(con_walk(FID2, oelem)){
+			cprint("src %s does not exist\n", oelem);
+			return;
+		}
+		/*
+		 * we know the target does not exist,
+		 * the source does exist.
+		 * to do the rename, create the target and then
+		 * copy the directory entry directly.  then remove the source.
+		 */
+		if(err = con_stat(FID2, stat)){
+			cprint("can't stat file: %s\n", errstring[err]);
+			return;
+		}
+		convM2D9p1(stat, &d);
+		perm = (d.mode&0777)|((d.mode&0x7000)<<17);
+		if(err = con_create(FID3, elem, d.uid, d.gid, perm, (d.mode&DDIR)?OREAD:ORDWR)){
+			cprint("can't create %s: %s\n", elem, errstring[err]);
+			return;
+		}
+		if(err = con_swap(FID2, FID3)){
+			cprint("can't swap data: %s\n", errstring[err]);
+			return;
+		}
+		if(err = con_remove(FID2)){
+			cprint("can't remove file: %s\n", errstring[err]);
+			return;
+		}		
+	}else{
+		cname(nxelem);
+		if(strchr(nxelem, '/')){
+			cprint("bad rename target: not full path, but contains slashes\n");
+			return;
+		}
+		if(!con_walk(FID2, nxelem))
+			cprint("file %s already exists\n", nxelem);
+		else if(con_walk(FID2, oelem))
+			cprint("file does not already exist\n");
+		else if(err = con_stat(FID2, stat))
+			cprint("can't stat file: %s\n", errstring[err]);
+		else{
+			convM2D9p1(stat, &d);
+			strncpy(d.name, nxelem, NAMELEN);
+			convD2M9p1(&d, stat);
+			if(err = con_wstat(FID2, stat))
+				cprint("can't move file: %s\n", errstring[err]);
+		}
+	}	
 }
 
 void
@@ -256,8 +315,10 @@ cmd_cfs(void)
 	if(*cons.arg != ' ') {
 		fs = &filesys[0];		/* default */
 	} else {
-		if(skipbl(1))
+		if(skipbl(1)){
+			cprint("skipbl\n");
 			return;
+		}
 		if(!nextelem())
 			fs = &filesys[0];	/* default */
 		else
@@ -270,6 +331,25 @@ cmd_cfs(void)
 	if(con_attach(FID1, "adm", fs->name))
 		panic("FID1 attach to root");
 	cur_fs = fs;
+}
+
+/*
+ * find out the length of a file
+ * given the mesg version of a stat buffer
+ * we call this because convM2D is different
+ * for the file system than in the os
+ */
+static uvlong
+statlen(char *ap)
+{
+	uchar *p;
+	ulong ll, hl;
+
+	p = (uchar*)ap;
+	p += 3*28+5*4;
+	ll = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
+	hl = p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24);
+	return ll | ((uvlong) hl << 32);
 }
 
 int
@@ -424,13 +504,13 @@ cmd_chat(void)
 }
 
 void
-cmd_nosync(void)
+cmd_atime(void)
 {
-	nosync = !nosync;
-	if(nosync)
-		cprint("sync timer off\n");
+	noatime = !noatime;
+	if(noatime)
+		cprint("atimes will not be updated\n");
 	else
-		cprint("sync timer on\n");
+		cprint("atimes will be updated\n");
 }
 
 void
@@ -441,19 +521,6 @@ cmd_noneattach(void)
 		cprint("none can attach to new connections\n");
 	else
 		cprint("none can only attach on authenticated connections\n");
-}
-
-void
-cmd_noauth(void)
-{
-	if (noauth) {
-		if (nvr.authid[0] == '\0' || nvr.authkey[0] == '\0')
-			cprint("auth configuration error\n");
-		else
-			noauth = 0;
-	} else
-		noauth = 1;
-	cprint("authentication %sabled\n", noauth? "dis" : "en");
 }
 
 void
@@ -476,6 +543,7 @@ Command	command[] =
 {
 	"allow",	cmd_allow,	"",
 	"allowoff",	cmd_disallow,	"",
+	"atime",		cmd_atime,	"",
 	"cfs",		cmd_cfs,	"[filesys]",
 	"chat",		cmd_chat,	"",
 	"check",	cmd_check,	"[rftRdPpw]",
@@ -486,9 +554,7 @@ Command	command[] =
 	"help",		cmd_help,	"",
 	"listen",		cmd_listen,	"[address]",
 	"newuser",	cmd_newuser,	"username",
-	"noauth",		cmd_noauth,	"",
-	"noneattach",	cmd_noneattach, "",
-	"nosync",		cmd_nosync,	"",
+	"noneattach",	cmd_noneattach,	"",
 	"remove",	cmd_remove,	"filename",
 	"rename",	cmd_rename,	"file newname",
 	"start",	cmd_start, "",
@@ -512,11 +578,10 @@ skipbl(int err)
 }
 
 char*
-cname(char *name)
+_cname(char *name)
 {
 	int i, c;
 
-	skipbl(0);
 	memset(name, 0, NAMELEN);
 	for(i=0;; i++) {
 		c = *cons.arg;
@@ -532,6 +597,13 @@ cname(char *name)
 		cons.arg++;
 	}
 	return 0;
+}
+
+char*
+cname(char *name)
+{
+	skipbl(0);
+	return _cname(name);
 }
 
 int

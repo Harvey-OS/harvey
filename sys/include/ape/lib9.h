@@ -37,9 +37,9 @@ enum
 	RFREND		= (1<<13)
 };
 
-extern	int	errstr(char*);
+extern	int	errstr(char*, unsigned int);
 extern	int	bind(char*, char*, int);
-extern	int	mount(int, char*, int, char*);
+extern	int	mount(int, int, char*, int, char*);
 extern	int	unmount(char*, char*);
 extern	int	rfork(int);
 extern	int	segattach(int, char*, void*, unsigned long);

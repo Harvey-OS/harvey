@@ -7,6 +7,7 @@ static	Flag	flag[35];
 static	void	installcmds(void);
 static	void	consserve1(void);
 static	char	statsdef[20];	/* default stats list */
+static	int	whoflag;
 
 void
 consserve(void)
@@ -218,12 +219,12 @@ cmd_stata(int, char *[])
 	int i;
 
 	print("cons stats\n");
-	print("	work =%7F%7F%7F rps\n", cons.work+0, cons.work+1, cons.work+2);
-	print("	rate =%7F%7F%7F tBps\n", cons.rate+0, cons.rate+1, cons.rate+2);
-	print("	hits =%7F%7F%7F iops\n", cons.bhit+0, cons.bhit+1, cons.bhit+2);
-	print("	read =%7F%7F%7F iops\n", cons.bread+0, cons.bread+1, cons.bread+2);
-	print("	rah  =%7F%7F%7F iops\n", cons.brahead+0, cons.brahead+1, cons.brahead+2);
-	print("	init =%7F%7F%7F iops\n", cons.binit+0, cons.binit+1, cons.binit+2);
+	print("	work =%7W%7W%7W rps\n", cons.work+0, cons.work+1, cons.work+2);
+	print("	rate =%7W%7W%7W tBps\n", cons.rate+0, cons.rate+1, cons.rate+2);
+	print("	hits =%7W%7W%7W iops\n", cons.bhit+0, cons.bhit+1, cons.bhit+2);
+	print("	read =%7W%7W%7W iops\n", cons.bread+0, cons.bread+1, cons.bread+2);
+	print("	rah  =%7W%7W%7W iops\n", cons.brahead+0, cons.brahead+1, cons.brahead+2);
+	print("	init =%7W%7W%7W iops\n", cons.binit+0, cons.binit+1, cons.binit+2);
 	print("	bufs =    %3ld sm %3ld lg %ld res\n",
 		cons.nsmall, cons.nlarge, cons.nreseq);
 
@@ -330,12 +331,11 @@ void
 cmd_who(int argc, char *argv[])
 {
 	Chan *cp;
-	ulong t;
 	int i, c;
 
 	c = 0;
 	for(cp = chans; cp; cp = cp->next) {
-		if(cp->whotime == 0) {
+		if(cp->whotime == 0 && !(cons.flags & whoflag)) {
 			c++;
 			continue;
 		}
@@ -348,23 +348,14 @@ cmd_who(int argc, char *argv[])
 				continue;
 			}
 		}
-		print("%3d: %10s %24s%7F%7F",
+		print("%3d: %10s %24s%7W%7W",
 			cp->chan,
-			cp->whoname,
+			cp->whoname ? cp->whoname: "<nowhoname>",
 			cp->whochan,
 			&cp->work,
 			&cp->rate);
-		switch(cp->type) {
-		case Devil:
-			t = MACHP(0)->ticks * (1000/HZ);
-			print(" (%d,%d)", cp->ilp.alloc, cp->ilp.state);
-			print(" (%ld,%ld,%ld)",
-				cp->ilp.timeout-t, cp->ilp.querytime-t,
-				cp->ilp.lastrecv-t);
-			print(" (%ld,%ld,%ld,%ld)", cp->ilp.rate, cp->ilp.delay,
-				cp->ilp.mdev, cp->ilp.unackedbytes);
-			break;
-		}
+		if(cp->whoprint)
+			cp->whoprint(cp);
 		print("\n");
 		prflush();
 	}
@@ -725,7 +716,7 @@ cmd_prof(int argc, char *argv[])
 		print("stop and write\n");
 		if(walkto("/adm/kprofdata"))
 			goto bad;
-		if(con_open(FID2, MWRITE|MTRUNC)) {
+		if(con_open(FID2, OWRITE|OTRUNC)) {
 		bad:
 			print("cant open /adm/kprofdata\n");
 			return;
@@ -840,12 +831,16 @@ installcmds(void)
 	cmd_install("who", "[user ...] -- print attaches", cmd_who);
 	cmd_install("hangup", "chan -- clunk files", cmd_hangup);
 	cmd_install("passwd", "passwd -- set passkey, id, and domain", cmd_passwd);
+	cmd_install("printconf", "-- print configuration", cmd_printconf);
 	cmd_install("noattach", "toggle noattach flag", cmd_noattach);
 	cmd_install("files", "report on files structure", cmd_files);
 
 	attachflag = flag_install("attach", "-- attach calls");
 	chatflag = flag_install("chat", "-- verbose");
 	errorflag = flag_install("error", "-- on errors");
+	whoflag = flag_install("allchans", "-- on who");
+	authdebugflag = flag_install("authdebug", "-- report authentications");
+//	authdisableflag = flag_install("authdisable", "-- disable authentication");
 }
 
 int

@@ -11,9 +11,6 @@
 
 #define MEMDEBUG	0
 
-#define PDX(va)		((((ulong)(va))>>22) & 0x03FF)
-#define PTX(va)		((((ulong)(va))>>12) & 0x03FF)
-
 enum {
 	MemUPA		= 0,		/* unbacked physical address */
 	MemRAM		= 1,		/* physical memory */
@@ -77,9 +74,19 @@ static RMap rmapumbrw = {
 };
 
 void
-memdebug(void)
+mapprint(RMap *rmap)
 {
 	Map *mp;
+
+	print("%s\n", rmap->name);	
+	for(mp = rmap->map; mp->size; mp++)
+		print("\t%8.8luX %8.8uX %8.8luX\n", mp->addr, mp->size, mp->addr+mp->size);
+}
+
+
+void
+memdebug(void)
+{
 	ulong maxpa, maxpa1, maxpa2;
 
 	if(MEMDEBUG == 0)
@@ -91,14 +98,10 @@ memdebug(void)
 	print("maxpa = %luX -> %luX, maxpa1 = %luX maxpa2 = %luX\n",
 		maxpa, MB+maxpa*KB, maxpa1, maxpa2);
 
-	for(mp = rmapram.map; mp->size; mp++)
-		print("%8.8luX %8.8uX %8.8luX\n", mp->addr, mp->size, mp->addr+mp->size);
-	for(mp = rmapumb.map; mp->size; mp++)
-		print("%8.8luX %8.8uX %8.8luX\n", mp->addr, mp->size, mp->addr+mp->size);
-	for(mp = rmapumbrw.map; mp->size; mp++)
-		print("%8.8luX %8.8uX %8.8luX\n", mp->addr, mp->size, mp->addr+mp->size);
-	for(mp = rmapupa.map; mp->size; mp++)
-		print("%8.8luX %8.8uX %8.8luX\n", mp->addr, mp->size, mp->addr+mp->size);
+	mapprint(&rmapram);
+	mapprint(&rmapumb);
+	mapprint(&rmapumbrw);
+	mapprint(&rmapupa);
 }
 
 void
@@ -225,6 +228,17 @@ umbscan(void)
 	 */
 	p = KADDR(0xC0000);
 	while(p < (uchar*)KADDR(0xE0000)){
+		/*
+		 * Test for 0x55 0xAA before poking obtrusively,
+		 * some machines (e.g. Thinkpad X20) seem to map
+		 * something dynamic here (cardbus?) causing weird
+		 * problems if it is changed.
+		 */
+		if(p[0] == 0x55 && p[1] == 0xAA){
+			p += p[2]*512;
+			continue;
+		}
+
 		p[0] = 0xCC;
 		p[2*KB-1] = 0xCC;
 		if(p[0] != 0xCC || p[2*KB-1] != 0xCC){
@@ -252,10 +266,23 @@ umbscan(void)
 	}
 }
 
+int
+touch(uchar *p, int n)
+{
+	int x;
+	int i;
+
+	x = 0;
+	for(i=0; i<n; i++)
+		x += p[i];
+	return x;
+}
+
+
 static void
 ramscan(ulong maxmem)
 {
-	ulong *k0, kzero, map, maxpa, pa, *pte, *table, *va, x;
+	ulong *k0, kzero, map, maxpa, pa, *pte, *table, *va, x, n;
 	int nvalid[NMemType];
 	uchar *bda;
 
@@ -273,11 +300,14 @@ ramscan(ulong maxmem)
 	 */
 	x = PADDR(CPU0MACH+BY2PG);
 	bda = (uchar*)KADDR(0x400);
-	mapfree(&rmapram, x, ((bda[0x14]<<8)|bda[0x13])*KB-x);
+	n = ((bda[0x14]<<8)|bda[0x13])*KB-x;
+	mapfree(&rmapram, x, n);
+	memset(KADDR(x), 0, n);		/* keep us honest */
 
 	x = PADDR(PGROUND((ulong)end));
 	pa = MemMinMB*MB;
 	mapfree(&rmapram, x, pa-x);
+	memset(KADDR(x), 0, pa-x);		/* keep us honest */
 
 	/*
 	 * Check if the extended memory size can be obtained from the CMOS.
@@ -352,7 +382,7 @@ ramscan(ulong maxmem)
 				pa += BY2PG;
 			}while(pa % MB);
 			mmuflushtlb(PADDR(m->pdb));
-//			memset(va, 0, MB);
+			/* memset(va, 0, MB); so damn slow to memset all of memory */
 		}
 		else if(pa < 16*MB){
 			nvalid[MemUMB] += MB/BY2PG;
@@ -395,6 +425,14 @@ ramscan(ulong maxmem)
 		mmuflushtlb(PADDR(m->pdb));
 		x += 0x3141526;
 	}
+
+	/*
+	 * If we didn't reach the end of the 4MB chunk, that part won't
+	 * be mapped.  Commit the already initialised space for the page table.
+	 */
+	if(pa % (4*MB))
+		map = 0;
+
 	if(map)
 		mapfree(&rmapram, map, BY2PG);
 	if(pa < maxmem)
@@ -407,10 +445,17 @@ ramscan(ulong maxmem)
 }
 
 void
-meminit(ulong maxmem)
+meminit(void)
 {
 	Map *mp, *xmp;
 	ulong pa, *pte;
+	ulong maxmem;
+	char *p;
+
+	if(p = getconf("*maxmem"))
+		maxmem = strtoul(p, 0, 0);
+	else
+		maxmem = 0;
 
 	/*
 	 * Set special attributes for memory between 640KB and 1MB:

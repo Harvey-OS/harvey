@@ -128,6 +128,68 @@ ulong	_div64by32(Vlong, ulong, ulong*);
 void	_mul64by32(Vlong*, Vlong, ulong);
 
 static void
+slowdodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
+{
+	ulong numlo, numhi, denhi, denlo, quohi, quolo, t;
+	int i;
+
+	numhi = num.hi;
+	numlo = num.lo;
+	denhi = den.hi;
+	denlo = den.lo;
+
+	/*
+	 * get a divide by zero
+	 */
+	if(denlo==0 && denhi==0) {
+		numlo = numlo / denlo;
+	}
+
+	/*
+	 * set up the divisor and find the number of iterations needed
+	 */
+	if(numhi >= SIGN(32)) {
+		quohi = SIGN(32);
+		quolo = 0;
+	} else {
+		quohi = numhi;
+		quolo = numlo;
+	}
+	i = 0;
+	while(denhi < quohi || (denhi == quohi && denlo < quolo)) {
+		denhi = (denhi<<1) | (denlo>>31);
+		denlo <<= 1;
+		i++;
+	}
+
+	quohi = 0;
+	quolo = 0;
+	for(; i >= 0; i--) {
+		quohi = (quohi<<1) | (quolo>>31);
+		quolo <<= 1;
+		if(numhi > denhi || (numhi == denhi && numlo >= denlo)) {
+			t = numlo;
+			numlo -= denlo;
+			if(numlo > t)
+				numhi--;
+			numhi -= denhi;
+			quolo |= 1;
+		}
+		denlo = (denlo>>1) | (denhi<<31);
+		denhi >>= 1;
+	}
+
+	if(q) {
+		q->lo = quolo;
+		q->hi = quohi;
+	}
+	if(r) {
+		r->lo = numlo;
+		r->hi = numhi;
+	}
+}
+
+static void
 dodiv(Vlong num, Vlong den, Vlong *qp, Vlong *rp)
 {
 	ulong n;
@@ -149,12 +211,12 @@ dodiv(Vlong num, Vlong den, Vlong *qp, Vlong *rp)
 		q.hi = 0;
 		n = num.hi/den.hi;
 		_mul64by32(&x, den, n);
-		if(x.hi > num.hi || (x.hi == num.hi && x.lo > num.lo)){
-			n--;
-			_mul64by32(&x, den, n);
+		if(x.hi > num.hi || (x.hi == num.hi && x.lo > num.lo))
+			slowdodiv(num, den, &q, &r);
+		else {
+			q.lo = n;
+			_subv(&r, num, x);
 		}
-		q.lo = n;
-		_subv(&r, num, x);
 	} else {
 		if(num.hi >= den.lo){
 			q.hi = n = num.hi/den.lo;

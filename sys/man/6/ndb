@@ -28,7 +28,7 @@ and no value exists in
 Within the
 .B database
 tuple,
-each tuple with attribute
+each pair with attribute
 .B file
 identifies a file to be included in the database.  The files are searched
 in the order they appear.
@@ -236,7 +236,7 @@ The file
 .B /lib/ndb/auth
 is used during authentication to decide who has the power to `speak for' other
 users; see
-.IR auth (6).
+.IR authsrv (6).
 .SH EXAMPLES
 .LP
 A tuple for the CPU server, spindle.

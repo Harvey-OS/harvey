@@ -1,18 +1,20 @@
 </$objtype/mkfile
 
-LIBS=lib9p\
+LIBS=\
+	lib9p\
 	libString\
 	libauth\
+	libauthsrv\
 	libbin\
 	libbio\
 	libc\
 	libcontrol\
-	libdebugmalloc\
 	libdisk\
 	libdraw\
 	libflate\
 	libframe\
 	libgeometry\
+	libhtml\
 	libhttpd\
 	libip\
 	liblex\
@@ -27,6 +29,7 @@ LIBS=lib9p\
 	libsec\
 	libstdio\
 	libthread\
+	libventi\
 
 
 CMDS=cmd\
@@ -73,3 +76,9 @@ libs:V:
 		mk clean
 	}
 	date
+
+cleanlibs:V:
+	for (i in $LIBS) @{
+		cd $i
+		mk clean
+	}

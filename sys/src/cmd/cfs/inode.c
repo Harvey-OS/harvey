@@ -5,6 +5,7 @@
 #include "bcache.h"
 #include "disk.h"
 #include "inode.h"
+#include "stats.h"
 
 /*
  *  read the inode blocks and make sure they
@@ -195,7 +196,7 @@ iget(Icache *ic, Qid qid)
 				/*
 				 *  our info is old, forget it
 				 */
-				DPRINT(2, "updating old file %lud.%lud\n",
+				DPRINT(2, "updating old file %llud.%lud\n",
 					qid.path, qid.vers);
 				m->qid = qid;
 				iupdate(ic, m - ic->map, qid);
@@ -216,19 +217,23 @@ iget(Icache *ic, Qid qid)
 	 */
 	m = (Imap*)ic->mlru.lnext;
 	if(m->inuse){
-		DPRINT(2, "superceding file %ld.%ld by %ld.%ld\n", m->qid.path,
+		DPRINT(2, "superceding file %llud.%ld by %llud.%ld\n", m->qid.path,
 			m->qid.vers, qid.path, qid.vers);
 		if(iremove(ic, m - ic->map) < 0)
 			return 0;
 	}
 
+	if(statson){
+		cfsstat.ninsert++;
+	}
 	/*
 	 *  init inode and write to disk
 	 */
-	DPRINT(2, "new file %ld.%ld ino %ld\n", qid.path, qid.vers, m - ic->map);
+	DPRINT(2, "new file %llud.%ld ino %ld\n", qid.path, qid.vers, m - ic->map);
 	b = ialloc(ic, m - ic->map);
 	b->inode.inuse = m->inuse = 1;
 	b->inode.qid = qid;
+	b->inode.length = 0x7fffffffffffffffLL;
 	m->qid = qid;
 	b->inode.ptr.bno = Notabno;
 	iwrite(ic, b);
@@ -322,6 +327,9 @@ iupdate(Icache *ic, ulong ino, Qid qid)
 	Imap *m;
 	Dptr d;
 
+	if(statson){
+		cfsstat.nupdate++;
+	}
 	b = iread(ic, ino);
 	if(b == 0)
 		return -1;
@@ -330,6 +338,7 @@ iupdate(Icache *ic, ulong ino, Qid qid)
 	 *  update inode and map
 	 */
 	b->inode.qid = qid;
+	b->inode.length = 0x7fffffffffffffffLL;	/* Set to maximum */
 	m = &ic->map[ino];
 	m->qid = qid;
 
@@ -356,6 +365,9 @@ iremove(Icache *ic, ulong ino)
 	Ibuf *b;
 	Imap *m;
 
+	if(statson){
+		cfsstat.ndelete++;
+	}
 	m = &ic->map[ino];
 
 	/*

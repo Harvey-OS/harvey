@@ -1,4 +1,0 @@
-TEXT _REMOVE(SB), 1, $0
-MOVL $25, R0
-TRAP $0
-RTS

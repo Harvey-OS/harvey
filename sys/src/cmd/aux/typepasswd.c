@@ -1,6 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
+#include <authsrv.h>
 
 int	readln(char*, char*, int);
 void	error(char*, ...);
@@ -10,7 +10,6 @@ void
 main(int argc, char *argv[])
 {
 	char np[64];
-	char statbuf[DIRLEN];
 
 	argc--;
 	argv0 = *argv;
@@ -18,7 +17,7 @@ main(int argc, char *argv[])
 		fprint(2, "usage: typepasswd\n");
 		exits("usage");
 	}
-	if(stat("#i/draw", statbuf) < 0){
+	if(access("#i/draw", AEXIST) < 0){
 		fprint(2, "typepasswd: must be run on a terminal\n");
 		exits("run typepasswd on a terminal");
 	}
@@ -101,7 +100,7 @@ error(char *fmt, ...)
 	s = buf;
 	s += sprint(s, "%s: ", argv0);
 	va_start(arg, fmt);
-	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
+	s = vseprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
 	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);

@@ -128,14 +128,14 @@ void	timeoutroutes(void);
 void
 fatal(int syserr, char *fmt, ...)
 {
-	char buf[ERRLEN], sysbuf[ERRLEN];
+	char buf[ERRMAX], sysbuf[ERRMAX];
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(syserr) {
-		errstr(sysbuf);
+		errstr(sysbuf, sizeof sysbuf);
 		fprint(2, "routed: %s: %s\n", buf, sysbuf);
 	}
 	else
@@ -262,8 +262,8 @@ main(int argc, char *argv[])
 		}
 
 
-	fmtinstall('E', eipconv);
-	fmtinstall('V', eipconv);
+	fmtinstall('E', eipfmt);
+	fmtinstall('V', eipfmt);
 
 	snprint(routefile, sizeof(routefile), "%s/iproute", netdir);
 	snprint(buf, sizeof(buf), "%s/iproute", netdir);
@@ -341,46 +341,49 @@ openport(void)
 	return rip;
 }
 
-Ipifc *ipifcs;
+Ipifc *ifcs;
 
 void
 readifcs(void)
 {
-	Ipifc *ipifc;
+	Ipifc *ifc;
+	Iplifc *lifc;
 	Ifc *ip;
 	Bnet *bn;
 	Route route;
 	int i;
 
-	ipifcs = readipifc(netdir, ipifcs);
+	ifcs = readipifc(netdir, ifcs, -1);
 	i = 0;
-	for(ipifc = ipifcs; ipifc && i < Nifc; ipifc = ipifc->next){
-		// ignore any interfaces that aren't v4
-		if(memcmp(ipifc->ip, v4prefix, IPaddrlen-IPv4addrlen) != 0)
-			continue;
-		ip = &ialloc.ifc[i++];
-		v6tov4(ip->addr, ipifc->ip);
-		v6tov4mask(ip->mask, ipifc->mask);
-		v6tov4(ip->net, ipifc->net);
-		ip->cmask = v4defmask(ip->net);
-		v4maskip(ip->net, ip->cmask, ip->cnet);
-		ip->bcast = 0;
-
-		/* add as a route */
-		memmove(route.mask, ip->mask, Pasize);
-		memmove(route.dest, ip->net, Pasize);
-		memset(route.gate, 0, Pasize);
-		route.metric = 0;
-		considerroute(&route);
-
-		/* mark as broadcast */
-		if(bnets == 0)
-			ip->bcast = 1;
-		else for(bn = bnets; bn; bn = bn->next)
-			if(memcmp(bn->addr, ip->net, Pasize) == 0){
+	for(ifc = ifcs; ifc != nil; ifc = ifc->next){
+		for(lifc = ifc->lifc; lifc != nil && i < Nifc; lifc = lifc->next){
+			// ignore any interfaces that aren't v4
+			if(memcmp(lifc->ip, v4prefix, IPaddrlen-IPv4addrlen) != 0)
+				continue;
+			ip = &ialloc.ifc[i++];
+			v6tov4(ip->addr, lifc->ip);
+			v6tov4mask(ip->mask, lifc->mask);
+			v6tov4(ip->net, lifc->net);
+			ip->cmask = v4defmask(ip->net);
+			v4maskip(ip->net, ip->cmask, ip->cnet);
+			ip->bcast = 0;
+	
+			/* add as a route */
+			memmove(route.mask, ip->mask, Pasize);
+			memmove(route.dest, ip->net, Pasize);
+			memset(route.gate, 0, Pasize);
+			route.metric = 0;
+			considerroute(&route);
+	
+			/* mark as broadcast */
+			if(bnets == 0)
 				ip->bcast = 1;
-				break;
-			}
+			else for(bn = bnets; bn; bn = bn->next)
+				if(memcmp(bn->addr, ip->net, Pasize) == 0){
+					ip->bcast = 1;
+					break;
+				}
+		}
 	}
 	ialloc.nifc = i;
 }

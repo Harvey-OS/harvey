@@ -8,7 +8,7 @@ _sha1block(uchar *p, ulong len, u32int *s)
 	u32int *wp, *wend;
 	u32int w[80];
 
-	/* at this point, we have a multple of 64 bytes */
+	/* at this point, we have a multiple of 64 bytes */
 	for(end = p+len; p < end;){
 		a = s[0];
 		b = s[1];

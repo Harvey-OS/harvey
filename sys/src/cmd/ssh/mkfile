@@ -1,12 +1,73 @@
 </$objtype/mkfile
 
-HFILES=include/ssh.h
+HFILES=ssh.h
 
-all:V:
-	@{ cd cmd; mk all}
-	@{ cd aux; mk all}
+TARG=\
+	scp\
+	ssh\
+	sshnet\
+	sshserve\
+	ssh_genkey\
 
-%:V:
-	@{ cd cmd; mk $stem}
-	@{ cd aux; mk $stem}
+AUTHOFILES=\
+	authpasswd.$O\
+	authrsa.$O\
+	authtis.$O\
 
+AUTHSRVOFILES=\
+	authsrvpasswd.$O\
+	authsrvtis.$O\
+
+CIPHEROFILES=\
+	cipher3des.$O\
+	cipherblowfish.$O\
+	cipherdes.$O\
+	ciphernone.$O\
+	cipherrc4.$O\
+	ciphertwiddle.$O\
+
+OFILES=\
+	msg.$O\
+	util.$O\
+
+HFILES=ssh.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkmany
+
+$O.ssh: \
+	$AUTHOFILES\
+	$CIPHEROFILES\
+	cmsg.$O\
+	pubkey.$O\
+
+$O.sshserve: \
+	$AUTHSRVOFILES\
+	$CIPHEROFILES\
+	smsg.$O\
+
+$O.sshnet: \
+	$AUTHOFILES\
+	$CIPHEROFILES\
+	cmsg.$O\
+	pubkey.$O\
+
+$BIN/sshserve:VQ: $BIN/aux/sshserve
+	;
+
+$BIN/ssh_genkey:VQ: $BIN/aux/ssh_genkey
+	;
+
+$BIN/aux/sshserve: $O.sshserve
+	cp $O.sshserve $BIN/aux/sshserve
+
+$BIN/aux/ssh_genkey: $O.ssh_genkey
+	cp $O.ssh_genkey $BIN/aux/ssh_genkey
+
+sshserve.safeinstall:
+	test -e $BIN/aux/sshserve && mv $BIN/aux/sshserve $BIN/aux/_sshserve
+	mk sshserve.install
+
+ssh_genkey.safeinstall:
+	test -e $BIN/aux/ssh_genkey && mv $BIN/aux/ssh_genkey $BIN/aux/_ssh_genkey
+	mk ssh_genkey.install

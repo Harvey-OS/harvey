@@ -54,7 +54,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 				b->bp = (char*)PADDR(GLLONG(ep->entry));
 				b->wp = b->bp;
 				b->ep = b->wp+GLLONG(ep->text);
-				print("%ld", GLLONG(ep->text));
+				print("%lud", GLLONG(ep->text));
 				break;
 			}
 

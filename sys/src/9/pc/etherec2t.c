@@ -18,12 +18,20 @@ enum {
 	Reset		= 0x1F,		/* offset from I/O base of reset port */
 };
 
-static char* ec2tpcmcia[] = {
-	"EC2T",				/* Linksys Combo PCMCIA EthernetCard */
-	"PCMPC100",			/* EtherFast 10/100 PC Card */
-	"EN2216",			/* Accton EtherPair-PCMCIA */
-	"FA410TX",			/* Netgear FA410TX */
-	nil,
+typedef struct Ec2t {
+	char*	name;
+	int	iochecksum;
+} Ec2t;
+
+static Ec2t ec2tpcmcia[] = {
+	{ "EC2T", 0, },			/* Linksys Combo PCMCIA EthernetCard */
+	{ "PCMPC100", 1, },		/* EtherFast 10/100 PC Card */
+	{ "EN2216", 0, },		/* Accton EtherPair-PCMCIA */
+	{ "FA410TX", 1, },		/* Netgear FA410TX */
+	{ "Network Everywhere", 0, },	/* Linksys NP10T 10BaseT Card */
+	{ "10/100 Port Attached", 1, },	/* SMC 8040TX */
+	{ "FA411", 0 },			/* Netgear FA411 PCMCIA */
+	{ nil, 0, },
 };
 
 static int
@@ -34,7 +42,7 @@ reset(Ether* ether)
 	Dp8390 *ctlr;
 	int i, slot;
 	uchar ea[Eaddrlen], sum, x;
-	char *type;
+	Ec2t *ec2t, tmpec2t;
 
 	/*
 	 * Set up the software configuration.
@@ -56,19 +64,21 @@ reset(Ether* ether)
 	if(ioalloc(ether->port, 0x20, 0, "ec2t") < 0)
 		return -1;
 	slot = -1;
-	type = nil;
-	for(i = 0; ec2tpcmcia[i] != nil; i++){
-		type = ec2tpcmcia[i];
-		if((slot = pcmspecial(type, ether)) >= 0)
+	for(ec2t = ec2tpcmcia; ec2t->name != nil; ec2t++){
+		if((slot = pcmspecial(ec2t->name, ether)) >= 0)
 			break;
 	}
-	if(ec2tpcmcia[i] == nil){
+	if(ec2t->name == nil){
+		ec2t = &tmpec2t;
+		ec2t->name = nil;
+		ec2t->iochecksum = 0;
 		for(i = 0; i < ether->nopt; i++){
-			if(cistrncmp(ether->opt[i], "id=", 3))
-				continue;
-			type = &ether->opt[i][3];
-			if((slot = pcmspecial(type, ether)) >= 0)
-				break;
+			if(cistrncmp(ether->opt[i], "id=", 3) == 0){
+				ec2t->name = &ether->opt[i][3];
+				slot = pcmspecial(ec2t->name, ether);
+			}
+			else if(cistrncmp(ether->opt[i], "iochecksum", 10) == 0)
+				ec2t->iochecksum = 1;
 		}
 	}
 	if(slot < 0){
@@ -116,9 +126,9 @@ reset(Ether* ether)
 	 */
 	dp8390reset(ether);
 	sum = 0;
-	if(cistrcmp(type, "PCMPC100") == 0 || cistrcmp(type, "FA410TX") == 0){
+	if(ec2t->iochecksum){
 		/*
-		 * The PCMPC100 has the ethernet address in I/O space.
+		 * These cards have the ethernet address in I/O space.
 		 * There's a checksum over 8 bytes which sums to 0xFF.
 		 */
 		for(i = 0; i < 8; i++){

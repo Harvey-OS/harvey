@@ -282,12 +282,12 @@ void	ieeedtod(Ieee*, double);
  * list
  */
 void	listinit(void);
-int	Pconv(va_list*, Fconv*);
-int	Aconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
-int	Nconv(va_list*, Fconv*);
-int	Bconv(va_list*, Fconv*);
+int	Pconv(Fmt*);
+int	Aconv(Fmt*);
+int	Dconv(Fmt*);
+int	Sconv(Fmt*);
+int	Nconv(Fmt*);
+int	Bconv(Fmt*);
 
 /*
  * reg.c

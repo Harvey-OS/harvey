@@ -31,6 +31,15 @@ query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts \- n
 ]
 .br
 .B ndb/csquery
+[
+.B -s
+]
+[
+.B server
+[
+.I addr...
+]
+]
 .br
 .B ndb/dns
 [
@@ -145,6 +154,19 @@ to see how it resolves addresses.
 prompts for addresses and prints out what
 .I ndb/cs
 returns.
+.I Server
+defaults to
+.BR /net/cs .
+If any
+.I addrs
+are specified,
+.I ndb/csquery
+prints their translations and immediately exits.
+The exit status will be nil only if all addresses 
+were successfully translated
+The
+.B -s
+flag sets exit status without printing any results.
 .PP
 .I Ndb/dns
 is a server used by
@@ -210,7 +232,7 @@ dom=C.ROOT-SERVERS.NET ip=192.33.4.12
 .EE
 The last three lines provide a mapping for the
 server names to their ip addresses.  This is only
-a hint and will be superceded from whatever is learned
+a hint and will be superseded from whatever is learned
 from servers owning the domain.
 .PP
 The root of a domain subtree served by the local database is indicated
@@ -244,7 +266,7 @@ and
 define the area refresh interval and the minimum TTL for
 records in this domain.
 .PP
-Delegation of a further subtree to another set of nameservers
+Delegation of a further subtree to another set of name servers
 is indicated by an
 .B soa=delegated
 attribute.
@@ -333,7 +355,7 @@ command returns query resolution to
 .IR dnsdebug .
 Finally, any command preceded by a
 .BI @ name-server
-sets the nameserver only for that command.
+sets the name server only for that command.
 .PP
 Normally
 .I dnsdebug

@@ -1418,7 +1418,7 @@ dostatus(void)
 		else if(strcmp(s, "err") == 0 || strcmp(s, "spu") == 0)
 			outrune(L'¶');
 		else if(strcmp(s, "xref") == 0)
-			/* nothing */;
+			{/* nothing */}
 		else if(debug)
 			err("status %ld %d %s", curentry.doff, cursize, s);
 	}

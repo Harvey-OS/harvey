@@ -2,23 +2,26 @@
 #include <libc.h>
 #include <bio.h>
 #include <thread.h>
+#include <fcall.h>
+#include <9p.h>
+#include <ctype.h>
 #include "dat.h"
 
 void	mainctl(void*);
-void	startcmd(char *[], int*, int*, int*);
+void	startcmd(char *[], int*);
 void	stdout2body(void*);
 
-int	stdin, stdout, notepg;
+int	debug;
+int	notepg;
 
-int dirty = 0;
+int	dirty = 0;
 
-Window *win;
-int		hostpt;
+Window *win;		/* the main window */
 
 void
 usage(void)
 {
-	threadprint(2, "usage: win [command]\n");
+	fprint(2, "usage: win [command]\n");
 	threadexitsall("usage");
 }
 
@@ -29,7 +32,13 @@ threadmain(int argc, char *argv[])
 	char *dir, *tag, *name;
 	char buf[1024], **av;
 
+	quotefmtinstall();
+	rfork(RFNAMEG);
 	ARGBEGIN{
+	case 'd':
+		debug = 1;
+		chatty9p =1;
+		break;
 	}ARGEND
 
 	if(argc == 0){
@@ -57,11 +66,10 @@ threadmain(int argc, char *argv[])
 	winname(win, tag);
 	wintagwrite(win, "Send Noscroll", 5+8);
 	threadcreate(mainctl, win, STACK);
+	mountcons();
+	threadcreate(fsloop, nil, STACK);
 	startpipe();
-
-	startcmd(av, &stdin, &stdout, &notepg);
-
-	proccreate(stdout2body, nil, STACK);
+	startcmd(av, &notepg);
 
 	strcpy(buf, "win");
 	j = 3;
@@ -110,55 +118,188 @@ command(Window *w, char *s)
 	return 0;
 }
 
+static long
+utfncpy(char *to, char *from, int n)
+{
+	char *end, *e;
+
+	e = to+n;
+	if(to >= e)
+		return 0;
+	end = memccpy(to, from, '\0', e - to);
+	if(end == nil){
+		end = e;
+		if(end[-1]&0x80){
+			if(end-2>=to && (end[-2]&0xE0)==0xC0)
+				return end-to;
+			if(end-3>=to && (end[-3]&0xF0)==0xE0)
+				return end-to;
+			while(end>to && (*--end&0xC0)==0x80)
+				;
+		}
+	}else
+		end--;
+	return end - to;
+}
+
+/* sendinput and fsloop run in the same proc (can't interrupt each other). */
+static Req *q;
+static Req **eq;
+static int
+_sendinput(Window *w, ulong q0, ulong q1)
+{
+	char *s, *t;
+	int n, nb, eofchar;
+	static int partial;
+	static char tmp[UTFmax];
+	Req *r;
+	Rune rune;
+
+	if(!q)
+		return 0;
+
+	r = q;
+	n = 0;
+	if(partial){
+	Partial:
+		nb = partial;
+		if(nb > r->ifcall.count)
+			nb = r->ifcall.count;
+		memmove(r->ofcall.data, tmp, nb);
+		if(nb!=partial)
+			memmove(tmp, tmp+nb, partial-nb);
+		partial -= nb;
+		q = r->aux;
+		if(q == nil)
+			eq = &q;
+		r->aux = nil;
+		r->ofcall.count = nb;
+		if(debug)
+			fprint(2, "satisfy read with partial\n");
+		respond(r, nil);
+		return n;
+	}
+	if(q0==q1)
+		return 0;
+	s = emalloc((q1-q0)*UTFmax+1);
+	n = winread(w, q0, q1, s);
+	s[n] = '\0';
+	t = strpbrk(s, "\n\004");
+	if(t == nil){
+		free(s);
+		return 0;
+	}
+	r = q;
+	eofchar = 0;
+	if(*t == '\004'){
+		eofchar = 1;
+		*t = '\0';
+	}else
+		*++t = '\0';
+	nb = utfncpy((char*)r->ofcall.data, s, r->ifcall.count);
+	if(nb==0 && s<t && r->ifcall.count > 0){
+		partial = utfncpy(tmp, s, UTFmax);
+		assert(partial > 0);
+		chartorune(&rune, tmp);
+		partial = runelen(rune);
+		free(s);
+		n = 1;
+		goto Partial;
+	}
+	n = utfnlen(r->ofcall.data, nb);
+	if(nb==strlen(s) && eofchar)
+		n++;
+	r->ofcall.count = nb;
+	q = r->aux;
+	if(q == nil)
+		eq = &q;
+	r->aux = nil;
+	if(debug)
+		fprint(2, "read returns %lud-%lud: %.*q\n", q0, q0+n, n, r->ofcall.data);
+	respond(r, nil);
+	return n;
+}
+
 int
 sendinput(Window *w, ulong q0, ulong q1)
 {
-	char *buf, *s, *t;
-	int nsent, m, n;
+	ulong n;
+	Req *oq;
 
-	buf = emalloc((q1-q0)*UTFmax+1);
-	n = winread(w, q0, q1, buf);
-	s = buf;
-	while(n > 0){
-		t = strpbrk(s, "\n\004");
-		if(t == nil)
-			break;
-		m = (t+1)-s;
-		if(*t == '\n')
-			write(stdin, s, m);
-		else
-			write(stdin, s, m-1);
-		n -= m;
-		s += m;
-	}
-	/* calculate number of runes sent */
-	*s = '\0';
-	nsent = utflen(buf);
-	free(buf);
-	return nsent;
+	n = 0;
+	do {
+		oq = q;
+		n += _sendinput(w, q0+n, q1);
+	} while(q != oq);
+	return n;
 }
+
+Event esendinput;
+void
+fsloop(void*)
+{
+	Fsevent e;
+	Req **l, *r;
+
+	eq = &q;
+	memset(&esendinput, 0, sizeof esendinput);
+	esendinput.c1 = 'C';
+	for(;;){
+		while(recv(fschan, &e) == -1)
+			;
+		r = e.r;
+		switch(e.type){
+		case 'r':
+			*eq = r;
+			r->aux = nil;
+			eq = &r->aux;
+			/* call sendinput with hostpt and endpt */
+			sendp(win->cevent, &esendinput);
+			break;
+		case 'f':
+			for(l=&q; *l; l=&(*l)->aux){
+				if(*l == r->oldreq){
+					*l = r->oldreq->aux;
+					if(*l == nil)
+						eq = l;
+					closereq(r->oldreq);
+					break;
+				}
+			}
+			respond(r, nil);
+			break;
+		}
+	}
+}	
 
 void
 sendit(char *s)
 {
-	int n;
-	char tmp[32];
+//	char tmp[32];
 
-	n = strlen(s);
-	write(win->body, s, n);
-	if(s[n-1]!='\n'  && s[n-1]!='\004')
-		write(win->body, "\n", 1);
-	winselect(win, "$", 1);
+	write(win->body, s, strlen(s));
+/*
+ * RSC: The problem here is that other procs can call sendit,
+ * so we lose our single-threadedness if we call sendinput.
+ * In fact, we don't even have the right queue memory,
+ * I think that we'll get a write event from the body write above,
+ * and we can do the sendinput then, from our single thread.
+ *
+ * I still need to figure out how to test this assertion for
+ * programs that use /srv/win*
+ *
+	winselect(win, "$", 0);
 	seek(win->addr, 0UL, 0);
 	if(read(win->addr, tmp, 2*12) == 2*12)
-		hostpt += sendinput(win, hostpt, atol(tmp));
+		hostpt += sendinput(win, hostpt, atol(tmp), );
+ */
 }
 
 void
 execevent(Window *w, Event *e, int (*command)(Window*, char*))
 {
 	Event *ea, *e2;
-	int na;
+	int n, na, len, needfree;
 	char *s, *t;
 
 	ea = nil;
@@ -171,25 +312,66 @@ execevent(Window *w, Event *e, int (*command)(Window*, char*))
 		recvp(w->cevent);
 	}else
 		na = 0;
+
+	needfree = 0;
 	s = e->b;
-	/* if it's a known command, do it */
-	if((e->flag&2) && e->nb==0)
+	if(e->nb==0 && (e->flag&2)){
 		s = e2->b;
-	if(na){
-		t = emalloc(strlen(s)+1+na+1);
-		sprint(t, "%s %s", s, ea->b);
-		s = t;
+		e->q0 = e2->q0;
+		e->q1 = e2->q1;
+		e->nb = e2->nb;
 	}
+	if(e->nb==0 && e->q0<e->q1){
+		/* fetch data from window */
+		s = emalloc((e->q1-e->q0)*UTFmax+2);
+		n = winread(w, e->q0, e->q1, s);
+		s[n] = '\0';
+		needfree = 1;
+	}else 
+	if(na){
+		t = emalloc(strlen(s)+1+na+2);
+		sprint(t, "%s %s", s, ea->b);
+		if(needfree)
+			free(s);
+		s = t;
+		needfree = 1;
+	}
+
+	/* if it's a known command, do it */
 	/* if it's a long message, it can't be for us anyway */
 	if(!command(w, s) && s[0]!='\0'){	/* send it as typed text */
 		/* if it's a built-in from the tag, send it back */
 		if(e->flag & 1)
-			threadprint(w->event, "%c%c%d %d\n", e->c1, e->c2, e->q0, e->q1);
-		else	/* send text to main window */
+			fprint(w->event, "%c%c%d %d\n", e->c1, e->c2, e->q0, e->q1);
+		else{	/* send text to main window */
+			len = strlen(s);
+			if(len>0 && s[len-1]!='\n' && s[len-1]!='\004'){
+				if(!needfree){
+					/* if(needfree), we left room for a newline before */
+					t = emalloc(len+2);
+					strcpy(t, s);
+					s = t;
+					needfree = 1;
+				}
+				s[len++] = '\n';
+				s[len] = '\0';
+			}
 			sendit(s);
+		}
 	}
-	if(na)
+	if(needfree)
 		free(s);
+}
+
+int
+hasboundary(Rune *r, int nr)
+{
+	int i;
+
+	for(i=0; i<nr; i++)
+		if(r[i]=='\n' || r[i]=='\004')
+			return 1;
+	return 0;
 }
 
 void
@@ -197,39 +379,88 @@ mainctl(void *v)
 {
 	Window *w;
 	Event *e;
-	int delta;
+	int delta, hostpt, endpt, pendingS, pendingK;
 	char tmp[32];
 
 	w = v;
 	proccreate(wineventproc, w, STACK);
 
 	hostpt = 0;
+	endpt = 0;
 	winsetaddr(w, "0", 0);
+	pendingS = 0;
+	pendingK = 0;
 	for(;;){
+		if(debug)
+			fprint(2, "input range %d-%d\n", hostpt, endpt);
 		e = recvp(w->cevent);
+		if(debug)
+			fprint(2, "msg: %C %C %d %d %d %d %q\n",
+				e->c1 ? e->c1 : ' ', e->c2 ? e->c2 : ' ', e->q0, e->q1, e->flag, e->nb, e->b);
 		switch(e->c1){
 		default:
 		Unknown:
-			threadprint(2, "unknown message %c%c\n", e->c1, e->c2);
+			fprint(2, "unknown message %c%c\n", e->c1, e->c2);
+			break;
+
+		case 'C':	/* input needed for /dev/cons */
+			if(pendingS)
+				pendingK = 1;
+			else
+				hostpt += sendinput(w, hostpt, endpt);
 			break;
 
 		case 'S':	/* output to stdout */
+			sprint(tmp, "#%d", hostpt);
+			winsetaddr(w, tmp, 0);
 			write(w->data, e->b, e->nb);
-			threadprint(w->ctl, "dot=addr\n");
-			hostpt += e->nr;
+			pendingS += utfnlen(e->b, e->nb);
 			break;
 	
-		case 'E':	/* write to body; can't affect us */
+		case 'E':	/* write to tag or body; body happens due to sendit */
+			delta = e->q1-e->q0;
+			if(e->c2=='I'){
+				endpt += delta;
+				if(e->q0 < hostpt)
+					hostpt += delta;
+				else
+					hostpt += sendinput(w, hostpt, endpt);
+				break;
+			}
+			if(!islower(e->c2))
+				fprint(2, "win msg: %C %C %d %d %d %d %q\n",
+					e->c1, e->c2, e->q0, e->q1, e->flag, e->nb, e->b);
 			break;
 	
-		case 'F':	/* generated by our actions; ignore */
+		case 'F':	/* generated by our actions (specifically case 'S' above) */
+			delta = e->q1-e->q0;
+			if(e->c2=='I'){
+				pendingS -= e->q1 - e->q0;
+				if(pendingS < 0)
+					fprint(2, "win: pendingS = %d\n", pendingS);
+				if(e->q0 != hostpt)
+					fprint(2, "win: insert at %d expected %d\n", e->q0, hostpt);
+				endpt += delta;
+				hostpt += delta;
+				sendp(writechan, nil);
+				if(pendingS == 0 && pendingK){
+					pendingK = 0;
+					hostpt += sendinput(w, hostpt, endpt);
+				}
+				break;
+			}
+			if(!islower(e->c2))
+				fprint(2, "win msg: %C %C %d %d %d %d %q\n",
+					e->c1, e->c2, e->q0, e->q1, e->flag, e->nb, e->b);
 			break;
-	
+
 		case 'K':
+			delta = e->q1-e->q0;
 			switch(e->c2){
 			case 'D':
+				endpt -= delta;
 				if(e->q1 < hostpt)
-					hostpt -= (e->q1-e->q0);
+					hostpt -= delta;
 				else if(e->q0 < hostpt)
 					hostpt = e->q0;
 				break;
@@ -237,24 +468,48 @@ mainctl(void *v)
 				if(e->nr>0 && e->r[e->nr-1]==0x7F){
 					/* do full reset of state, just in case we've lost track */
 					write(notepg, "interrupt", 9);
-					winselect(w, "$", 1);
-					ctlprint(w->ctl, "dot=addr");
+					winsetaddr(w, "$", 0);
 					tmp[0] = 0;
 					seek(w->addr, 0, 0);
 					read(w->addr, tmp, 24);
 					hostpt = atoi(tmp);
+					endpt = hostpt;
 					break;
 				}
 				delta = e->q1-e->q0;
-				if(e->q1 < hostpt)
+				endpt += delta;
+				if(e->q0 < hostpt)
 					hostpt += delta;
-				else if(e->q0>=hostpt && e->nr>0 && (e->r[e->nr-1]=='\n' || e->r[e->nr-1]=='\004'))
-					hostpt += sendinput(w, hostpt, e->q1);
+				else if(hasboundary(e->r, e->nr)){
+					/*
+					 * If we are between the S message (which
+					 * we processed by inserting text in the
+					 * window) and the F message notifying us
+					 * that the text has been inserted, then our
+					 * impression of the hostpt and acme's
+					 * may be different.  This could be seen if you
+					 * hit enter a bunch of times in a con
+					 * session.  To work around the unreliability,
+					 * only send input if we don't have an S pending.
+					 * The same race occurs between when a character
+					 * is typed and when we get notice of it, but
+					 * since characters tend to be typed at the end
+					 * of the buffer, we don't run into it.  There's
+					 * no workaround possible for this typing race,
+					 * since we can't tell when the user has typed
+					 * something but we just haven't been notified.
+					 */
+					if(pendingS)
+						pendingK = 1;
+					else
+						hostpt += sendinput(w, hostpt, endpt);
+				}
 				break;
 			}
 			break;
 	
-		case 'M':
+		case 'M':	/* mouse */
+			delta = e->q1-e->q0;
 			switch(e->c2){
 			case 'x':
 			case 'X':
@@ -269,15 +524,17 @@ mainctl(void *v)
 				break;
 	
 			case 'I':
-				if(e->q1 < hostpt)
-					hostpt += e->q1-e->q0;
+				endpt += delta;
+				if(e->q0 < hostpt)
+					hostpt += delta;
 				else
-					hostpt += sendinput(w, hostpt, e->q1);
+					hostpt += sendinput(w, hostpt, endpt);
 				break;
 
 			case 'D':
+				endpt -= delta;
 				if(e->q1 < hostpt)
-					hostpt -= (e->q1-e->q0);
+					hostpt -= delta;
 				else if(e->q0 < hostpt)
 					hostpt = e->q0;
 				break;
@@ -290,52 +547,6 @@ mainctl(void *v)
 			}
 		}
 	}
-}
-
-/* turn writes to stdout (seen as reads by us) into pseudo-events.  e->nr is set but not e->r */
-void
-stdout2body(void*)
-{
-	int i, j, w, n, partial, nb;
-	Event *e[4], *ep;
-	Rune r;
-	char *t, tmp[UTFmax];
-
-	for(i=0; i<nelem(e); i++){
-		e[i] = emalloc(sizeof(Event));
-		e[i]->c1 = 'S';
-	}
-	
-	n = 0;
-	partial = 0;
-	for(;;){
-		ep = e[n];
-		n = (n+1) % nelem(e);
-		nb = partial+read(stdout, ep->b+partial, EVENTSIZE-partial-1);	/* -1 to leave terminal \0 */
-		if(nb <= 0)
-			break;
-		if(strlen(ep->b) < nb){	/* nulls in data */
-			t = emalloc(nb+1);
-			for(i=j=0; i<nb; i++)
-				if(ep->b[i] != '\0')
-					t[j++] = ep->b[i];
-			memmove(ep->b, t, j);
-			nb = j;
-			free(t);
-		}
-		/* process bytes into runes, transferring terminal partial runes into next buffer */
-		for(i=j=0; i<nb && fullrune(ep->b+i, nb-i); i+=w,j++)
-			w = chartorune(&r, ep->b+i);
-		memmove(tmp, ep->b+i, nb-i);
-		ep->nb = i;
-		ep->nr = j;
-		ep->b[i] = '\0';
-		ep->r[j] = L'\0';
-		sendp(win->cevent, ep);
-		partial = nb-i;
-		memmove(e[n]->b, tmp, partial);
-	}
-	threadexitsall(nil);
 }
 
 enum
@@ -372,7 +583,7 @@ execproc(void *v)
 	Channel *cpid;
 
 	e = v;
-	rfork(RFFDG);
+	rfork(RFCFDG);
 	av = e->argv;
 	close(0);
 	open("/dev/cons", OREAD);
@@ -391,7 +602,7 @@ execproc(void *v)
 }
 
 void
-startcmd(char *argv[], int *stdin, int *stdout, int *notepg)
+startcmd(char *argv[], int *notepg)
 {
 	struct Exec *e;
 	Channel *cpid;
@@ -399,12 +610,11 @@ startcmd(char *argv[], int *stdin, int *stdout, int *notepg)
 	int pid;
 
 	e = emalloc(sizeof(struct Exec));
-	if(bind("#|", "/dev/acme", MREPL) < 0)
-		error("can't bind pipe: %r");
-	bind("/dev/acme/data", "/dev/cons", MREPL);
 	e->argv = argv;
 	cpid = chancreate(sizeof(ulong), 0);
 	e->cpid = cpid;
+	sprint(buf, "/mnt/wsys/%d", win->id);
+	bind(buf, "/dev/acme", MREPL);
 	proccreate(execproc, e, EXECSTACK);
 	do
 		pid = recvul(cpid);
@@ -415,8 +625,4 @@ startcmd(char *argv[], int *stdin, int *stdout, int *notepg)
 	}
 	sprint(buf, "/proc/%d/notepg", pid);
 	*notepg = open(buf, OWRITE);
-	*stdin = open("/dev/acme/data1", OWRITE);
-	*stdout = open("/dev/acme/data1", OREAD);
-	sprint(buf, "/mnt/wsys/%d", win->id);
-	bind(buf, "/dev/acme", MREPL);
 }

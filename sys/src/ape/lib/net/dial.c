@@ -63,6 +63,7 @@ int
 dial(char *dest, char *local, char *dir, int *cfdp)
 {
 	char net[128];
+	char netdir[128], csname[NETPATHLEN], *slp;
 	char clone[NAMELEN+12];
 	char *p;
 	int n;
@@ -78,13 +79,23 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 		net[sizeof(net)-1] = 0;
 	}
 
+	slp = strrchr(net, '/');
+	if (slp != 0) {
+		*slp++ = '\0';
+		strcpy(netdir, net);
+		memmove(net, slp, strlen(slp)+1);
+	} else
+		strcpy(netdir, "/net");
+ 
+
 	/* call the connection server */
-	fd = open("/net/cs", O_RDWR);
+	sprintf(csname, "%s/cs", netdir);
+	fd = open(csname, O_RDWR);
 	if(fd < 0){
 		/* no connection server, don't translate */
 		p = strchr(net, '!');
 		*p++ = 0;
-		sprintf(clone, "/net/%s/clone", net);
+		sprintf(clone, "%s/%s/clone", netdir, net);
 		return call(clone, p, cfdp, dir, local);
 	}
 

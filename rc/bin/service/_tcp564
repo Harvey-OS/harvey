@@ -1,2 +1,2 @@
 #!/bin/rc
-/bin/exportfs -Fs
+exec /bin/exportfs -s

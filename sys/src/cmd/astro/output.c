@@ -16,32 +16,28 @@ output(char *s, Obj1 *p)
 }
 
 int
-Rconv(va_list *arg, Fconv *f)
+Rconv(Fmt *f)
 {
-	char s[20];
 	double v;
 	int h, m, c;
 
-	v = va_arg(*arg, double);
+	v = va_arg(f->args, double);
 	v = fmod(v*12/pi, 24);		/* now hours */
 	h = floor(v);
 	v = fmod((v-h)*60, 60);		/* now leftover minutes */
 	m = floor(v);
 	v = fmod((v-m)*60, 60);		/* now leftover seconds */
 	c = floor(v);
-	sprint(s, "%2dh%.2dm%.2ds", h, m, c);
-	strconv(s, f);
-	return sizeof(v);
+	return fmtprint(f, "%2dh%.2dm%.2ds", h, m, c);
 }
 
 int
-Dconv(va_list *arg, Fconv *f1)
+Dconv(Fmt *f1)
 {
-	char s[20];
 	double v;
 	int h, m, c, f;
 
-	v = va_arg(*arg, double);
+	v = va_arg(f1->args, double);
 	v = fmod(v/radian, 360);	/* now degrees */
 	f = 0;
 	if(v > 180) {
@@ -53,7 +49,5 @@ Dconv(va_list *arg, Fconv *f1)
 	m = floor(v);
 	v = fmod((v-m)*60, 60);		/* now leftover seconds */
 	c = floor(v);
-	sprint(s, "%c%.2d°%.2d'%.2d\"", "+-"[f], h, m, c);
-	strconv(s, f1);
-	return sizeof(v);
+	return fmtprint(f1, "%c%.2d°%.2d'%.2d\"", "+-"[f], h, m, c);
 }

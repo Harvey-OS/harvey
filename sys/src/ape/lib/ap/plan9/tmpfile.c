@@ -12,14 +12,13 @@ tmpfile(void){
 	FILE *f;
 	static char name[]="/tmp/tf0000000000000";
 	char *p;
-	char db[DIRLEN];
 	int n;
 	for(f=_IO_stream;f!=&_IO_stream[FOPEN_MAX];f++)
 		if(f->state==CLOSED)
 			break;
 	if(f==&_IO_stream[FOPEN_MAX])
 		return NULL;
-	while(_STAT(name, db) >= 0){
+	while(access(name, 0) >= 0){
 		p = name+7;
 		while(*p == '9')
 			*p++ = '0';

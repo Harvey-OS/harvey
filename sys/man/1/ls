@@ -4,13 +4,13 @@ ls, lc \- list contents of directory
 .SH SYNOPSIS
 .B ls
 [
-.B -dlnpqrstuF
+.B -dlmnpqrstuFQ
 ]
 .I name ...
 .PP
 .B lc
 [
-.B -dlnqrstuF
+.B -dlmnqrstuFQ
 ]
 .I name ...
 .SH DESCRIPTION
@@ -47,6 +47,9 @@ the instance or subdevice number, owner, group,
 size in bytes, and time of last modification
 for each file.
 .TP
+.B -m
+List the name of the user who most recently modified the file.
+.TP
 .B  -n
 Don't sort the listing.
 .TP
@@ -58,7 +61,8 @@ List the
 .I qid
 (see
 .IR stat (2))
-of each file.
+of each file; the printed fields are in the order
+type, path, and version.
 .TP
 .B  -r
 Reverse the order of sort.
@@ -85,6 +89,13 @@ after all directory names
 and the character
 .B *
 after all executable files.
+.PP
+.B -Q
+By default, printed file names are quoted if they contain characters special to
+.IR rc (1).
+The
+.B -Q
+flag disables this behavior.
 .PP
 The mode printed under the
 .B -l

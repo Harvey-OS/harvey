@@ -128,12 +128,13 @@ The function
 .IR allocimage (2))
 aids the initialization of color values with non-trivial alpha.
 .PP
-The packing of pixels into bytes and words is set by the display.
-In all extant
-implementations the bits within a pixel byte are in big-endian order (leftmost pixel
-is most significant bits in byte), even though the processor
-may be a little-endian.
-For 16-bit VGAs on PCs, this can be especially confusing.
+The packing of pixels into bytes and words is odd.
+For compatibility with VGA frame buffers, the bits within a
+pixel byte are in big-endian order (leftmost pixel is most
+significant bits in byte), while bytes within a pixel are packed in little-endian
+order.  Pixels are stored in contiguous bytes.  This results
+in unintuitive pixel formats. For example, for the RGB24 format,
+the byte ordering is blue, green, red.
 .PP
 To maintain a constant external representation,
 the

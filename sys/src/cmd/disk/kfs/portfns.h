@@ -1,11 +1,9 @@
 void	accessdir(Iobuf*, Dentry*, int);
 void	addfree(Device, long, Superb*);
-int	authorize(Chan*, Fcall*, Fcall*);
 long	balloc(Device, int, long);
 void	bfree(Device, long, int);
 int	byname(void*, void*);
 int	byuid(void*, void*);
-int	Cconv(va_list*, Fconv*);
 int	checkname(char*);
 int	checktag(Iobuf*, int, long);
 void 	cmd_user(void);
@@ -18,32 +16,24 @@ int	con_path(int, char*);
 int	con_read(int, char*, long, int);
 int	con_remove(int);
 int	con_stat(int, char*);
+int	con_swap(int, int);
 int	con_clri(int);
 int	con_session(void);
 int	con_walk(int, char*);
 int	con_write(int, char*, long, int);
 int	con_wstat(int, char*);
-int	convD2M(Dentry*, char*);
-int	convnD2M(Dentry*, char*);
-int	convM2D(char*, Dentry*);
-int	convnM2D(char*, Dentry*);
-int	convM2S(char*, Fcall*, int);
-int	convS2M(Fcall*, char*);
 void	cprint(char*, ...);
-int	crack(File*, Fcall*);
 void	datestr(char*, long);
 void	dbufread(Iobuf*, Dentry*, long);
-int	Dconv(va_list*, Fconv*);
+Qid	dentryqid(Dentry*);
 int	devcmp(Device, Device);
 Iobuf*	dnodebuf(Iobuf*, Dentry*, long, int);
+Iobuf*	dnodebuf1(Iobuf*, Dentry*, long, int);
 void	dofilter(Filter*);
 int	doremove(File *, int);
 void	dtrunc(Iobuf*, Dentry*);
 void	exit(void);
-int	FFconv(va_list*, Fconv*);
-ulong	fakeqid(Dentry*);
 Float	famd(Float, int, int, int);
-int	fcallconv(va_list*, Fconv*);
 int	fchar(void);
 ulong	fdf(Float, int);
 void	fileinit(Chan*);
@@ -54,25 +44,6 @@ void	formatinit(void);
 void	freefp(File*);
 void	freewp(Wpath*);
 Filsys*	fsstr(char*);
-void	f_attach(Chan*, Fcall*, Fcall*);
-void	f_auth(Chan*, Fcall*, Fcall*);
-void	f_clone(Chan*, Fcall*, Fcall*);
-void	f_clunk(Chan*, Fcall*, Fcall*);
-void	f_create(Chan*, Fcall*, Fcall*);
-void	f_errstr(Chan*, Fcall*, Fcall*);
-void	f_nop(Chan*, Fcall*, Fcall*);
-void	f_flush(Chan*, Fcall*, Fcall*);
-void	f_open(Chan*, Fcall*, Fcall*);
-void	f_read(Chan*, Fcall*, Fcall*);
-void	f_remove(Chan*, Fcall*, Fcall*);
-void	f_session(Chan*, Fcall*, Fcall*);
-void	f_stat(Chan*, Fcall*, Fcall*);
-void	f_userstr(Chan*, Fcall*, Fcall*);
-void	f_walk(Chan*, Fcall*, Fcall*);
-void	f_clwalk(Chan*, Fcall*, Fcall*);
-void	f_write(Chan*, Fcall*, Fcall*);
-void	f_wstat(Chan*, Fcall*, Fcall*);
-int	Gconv(va_list*, Fconv*);
 Iobuf*	getbuf(Device, long, int);
 Dentry*	getdir(Iobuf*, int);
 long	getraddr(Device);
@@ -84,18 +55,28 @@ int	ingroup(int, int);
 void	iobufinit(void);
 int	leadgroup(int, int);
 void	mkchallenge(Chan*);
+void	mkqid(Qid*, Dentry*, int);
+int	mkqidcmp(Qid*, Dentry*);
+void	mkqid9p1(Qid9p1*, Qid*);
+void	mkqid9p2(Qid*, Qid9p1*, int);
 int	netserve(char*);
 File*	newfp(Chan*);
 Qid	newqid(Device);
 void	newstart(void);
 Wpath*	newwp(void);
-void	p9fcall(Chan*, Fcall*, Fcall*);
+int	oconvD2M(Dentry*, void*);
+int	oconvM2D(void*, Dentry*);
+int	ofcallfmt(Fmt*);
 void	panic(char*, ...);
 int	prime(long);
 void	putbuf(Iobuf*);
 void	putwp(Wpath*);
+long	qidpathgen(Device*);
 void	rootream(Device, long);
 void	settag(Iobuf*, int, long);
+void serve(Chan*);
+void	serve9p1(Chan*, uchar*, int);
+void	serve9p2(Chan*, uchar*, int);
 void	strrand(void*, int);
 int	strtouid(char*);
 int	strtouid1(char*);
@@ -103,7 +84,7 @@ int	superok(Device, long, int);
 void	superream(Device, long);
 void	sync(char*);
 int	syncblock(void);
-int	Tconv(va_list*, Fconv*);
+int	Tfmt(Fmt*);
 Tlock*	tlocked(Iobuf*, Dentry*);
 void	uidtostr(char*,int);
 void	uidtostr1(char*,int);
@@ -113,7 +94,10 @@ void	uidtostr1(char*,int);
 
 #pragma varargck	type	"C"	Chan*
 #pragma varargck	type	"D"	Device
-#pragma varargck	type "F"	Filta
+#pragma varargck	type 	"A"	Filta
 #pragma varargck	type	"G"	int
 #pragma varargck	type	"T"	long
-#pragma varargck	type	"A"	Fcall*
+#pragma varargck	type	"F"	Fcall*
+
+typedef struct Oldfcall Oldfcall;	/* needed for pragma */
+#pragma varargck	type	"O"	Oldfcall*

@@ -1,28 +1,46 @@
-/* Copyright (C) 1993, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1993, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: sfilter1.c,v 1.5.2.1 2000/11/02 15:05:07 igorm Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: sfilter1.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Filters included in Level 1 systems: NullEncode/Decode, PFBDecode, */
 /*   SubFileDecode. */
 #include "stdio_.h"		/* includes std.h */
 #include "memory_.h"
 #include "strimpl.h"
 #include "sfilter.h"
+
+/* ------ NullEncode/Decode ------ */
+
+/* Process a buffer */
+private int
+s_Null_process(stream_state * st, stream_cursor_read * pr,
+	       stream_cursor_write * pw, bool last)
+{
+    return stream_move(pr, pw);
+}
+
+/* Stream template */
+const stream_template s_NullE_template = {
+    &st_stream_state, NULL, s_Null_process, 1, 1
+};
+const stream_template s_NullD_template = {
+    &st_stream_state, NULL, s_Null_process, 1, 1
+};
 
 /* ------ PFBDecode ------ */
 
@@ -149,16 +167,14 @@ const stream_template s_PFBD_template = {
 
 private_st_SFD_state();
 
-/* Set default parameter values. */
+/* Set default parameter values (actually, just clear pointers). */
 private void
 s_SFD_set_defaults(stream_state * st)
 {
     stream_SFD_state *const ss = (stream_SFD_state *) st;
 
-    ss->count = 0;
     ss->eod.data = 0;
     ss->eod.size = 0;
-    ss->skip_count = 0;
 }
 
 /* Initialize the stream */
@@ -169,8 +185,6 @@ s_SFD_init(stream_state * st)
 
     ss->match = 0;
     ss->copy_count = 0;
-    ss->min_left = (ss->eod.size != 0);
-
     return 0;
 }
 
@@ -189,18 +203,8 @@ s_SFD_process(stream_state * st, stream_cursor_read * pr,
     if (ss->eod.size == 0) {	/* Just read, with no EOD pattern. */
 	int rcount = rlimit - p;
 	int wcount = wlimit - q;
-	int count;
+	int count = min(rcount, wcount);
 
-	if (rcount <= ss->skip_count) { /* skipping */
-	    ss->skip_count -= rcount;
-	    pr->ptr = rlimit;
-	    return 0;
-	} else if (ss->skip_count > 0) {
-	    rcount -= ss->skip_count;
-	    pr->ptr = p += ss->skip_count;
-	    ss->skip_count = 0;
-	}
-	count = min(rcount, wcount);
 	if (ss->count == 0)	/* no EOD limit */
 	    return stream_move(pr, pw);
 	else if (ss->count > count) {	/* not EOD yet */
@@ -208,12 +212,9 @@ s_SFD_process(stream_state * st, stream_cursor_read * pr,
 	    return stream_move(pr, pw);
 	} else {		/* We're going to reach EOD. */
 	    count = ss->count;
-	    if (count > 0) {
-		memcpy(q + 1, p + 1, count);
-		pr->ptr = p + count;
-		pw->ptr = q + count;
-	    }
-	    ss->count = -1;
+	    memcpy(q + 1, p + 1, count);
+	    pr->ptr = p + count;
+	    pw->ptr = q + count;
 	    return EOFC;
 	}
     } else {			/* Read looking for an EOD pattern. */
@@ -242,18 +243,12 @@ cp:
 
 	    if (c == pattern[match]) {
 		if (++match == ss->eod.size) {
-		    if (ss->skip_count > 0) {
-			q = pw->ptr; /* undo any writes */
-			ss->skip_count--;
-			match = 0;
-			continue;
-		    }
 		    /*
 		     * We use if/else rather than switch because the value
 		     * is long, which is not supported as a switch value in
 		     * pre-ANSI C.
 		     */
-		    if (ss->count <= 0) {
+		    if (ss->count == 0) {
 			status = EOFC;
 			goto xit;
 		    } else if (ss->count == 1) {
@@ -277,7 +272,10 @@ cp:
 
 		while (match > 0) {
 		    match--;
-		    if (!memcmp(pattern, pattern + end - match, match))
+		    if (!memcmp(pattern,
+				pattern + end - match,
+				match)
+			)
 			break;
 		}
 		/*
@@ -297,8 +295,7 @@ cp:
 	    *++q = c;
 	}
 xit:	pr->ptr = p;
-	if (ss->skip_count <= 0)
-	    pw->ptr = q;
+	pw->ptr = q;
 	ss->match = match;
     }
     return status;

@@ -74,7 +74,7 @@ int
 search(char *file, int flag)
 {
 	State *s, *ns;
-	int c, fid;
+	int c, fid, eof, nl, empty;
 	long count, lineno, n;
 	uchar *elp, *lp, *bol;
 
@@ -112,6 +112,9 @@ search(char *file, int flag)
 	s = state0;
 	lineno = 0;
 	count = 0;
+	eof = 0;
+	empty = 1;
+	nl = 0;
 	lp = u.buf;
 	bol = lp;
 
@@ -122,6 +125,21 @@ loop0:
 	memmove(u.buf-n, bol, n);
 	bol = u.buf-n;
 	n = read(fid, u.buf, sizeof(u.buf));
+	/* if file has no final newline, simulate one to emit matches to last line */
+	if(n > 0) {
+		empty = 0;
+		nl = u.buf[n-1]=='\n';
+	} else {
+		if(n < 0){
+			fprint(2, "grep: read error on %s: %r\n", file);
+			return count != 0;
+		}
+		if(!eof && !nl && !empty) {
+			u.buf[0] = '\n';
+			n = 1;
+			eof = 1;
+		}
+	}
 	if(n <= 0) {
 		close(fid);
 		if(flag & Cflag) {
@@ -166,7 +184,8 @@ loop:
 				Bprint(&bout, "%s:", file);
 			if(flag & Nflag)
 				Bprint(&bout, "%ld: ", lineno);
-			Bwrite(&bout, bol, lp-bol);
+			/* suppress extra newline at EOF unless we are labeling matches with file name */
+			Bwrite(&bout, bol, lp-bol-(eof && !(flag&Hflag)));
 			if(flag & Bflag)
 				Bflush(&bout);
 		}
@@ -204,7 +223,8 @@ loopi:
 				Bprint(&bout, "%s:", file);
 			if(flag & Nflag)
 				Bprint(&bout, "%ld: ", lineno);
-			Bwrite(&bout, bol, lp-bol);
+			/* suppress extra newline at EOF unless we are labeling matches with file name */
+			Bwrite(&bout, bol, lp-bol-(eof && !(flag&Hflag)));
 			if(flag & Bflag)
 				Bflush(&bout);
 		}

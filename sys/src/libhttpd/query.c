@@ -14,6 +14,9 @@ hparsequery(HConnect *c, char *search)
 
 	while((s = strchr(search, '?')) != nil)
 		search = s + 1;
+	s = search;
+	while((s = strchr(s, '+')) != nil)
+		*s++ = ' ';
 	q = nil;
 	while(*search){
 		tag = search;

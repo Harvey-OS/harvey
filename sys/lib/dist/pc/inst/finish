@@ -1,0 +1,14 @@
+#!/bin/rc
+
+# desc: finish the installation and reboot
+# prereq: bootsetup
+# mustdo: 
+
+switch($1) {
+case checkdone
+	finish=ready
+	export finish
+
+case go
+	stop go finished
+}

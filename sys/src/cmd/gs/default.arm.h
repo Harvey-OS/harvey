@@ -29,8 +29,8 @@
 
 	 /* ---------------- Cache sizes ---------------- */
 
-#define ARCH_CACHE1_SIZE 16384
-#define ARCH_CACHE2_SIZE 524288
+#define ARCH_CACHE1_SIZE 1048576
+#define ARCH_CACHE2_SIZE 1048576
 
 	 /* ---------------- Miscellaneous ---------------- */
 
@@ -38,5 +38,5 @@
 #define ARCH_PTRS_ARE_SIGNED 0
 #define ARCH_FLOATS_ARE_IEEE 1
 #define ARCH_ARITH_RSHIFT 2
-#define ARCH_CAN_SHIFT_FULL_LONG 0
+#define ARCH_CAN_SHIFT_FULL_LONG 1
 #define ARCH_DIV_NEG_POS_TRUNCATES 1

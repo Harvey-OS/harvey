@@ -346,6 +346,8 @@ PCArch arch164 = {
 	pcicfg2117x,
 	pcimem2117x,
 	intrenable164,
+	nil,
+	nil,
 
 	inb2117x,
 	ins2117x,

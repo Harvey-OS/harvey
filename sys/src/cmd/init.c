@@ -1,8 +1,9 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
+#include <authsrv.h>
 
-void	readenv(char*, char*, int);
+char*	readenv(char*);
 void	setenv(char*, char*);
 void	cpenv(char*, char*);
 void	closefds(void);
@@ -13,16 +14,17 @@ void	pass(int);
 
 char	*service;
 char	*cmd;
-char	cpu[NAMELEN];
-char	systemname[NAMELEN];
+char	*cpu;
+char	*systemname;
 int	manual;
 int	iscpu;
 
 void
 main(int argc, char *argv[])
 {
-	char user[NAMELEN];
-	int consctl, key;
+	char *user;
+	int fd;
+	char ctl[128];
 
 	closefds();
 
@@ -41,33 +43,29 @@ main(int argc, char *argv[])
 	}ARGEND
 	cmd = *argv;
 
-	readenv("#e/cputype", cpu, sizeof cpu);
+	snprint(ctl, sizeof(ctl), "#p/%d/ctl", getpid());
+	fd = open(ctl, OWRITE);
+	if(fd < 0)
+		print("init: warning: can't open %s: %r\n", ctl);
+	else
+		if(write(fd, "pri 10", 6) != 6)
+			print("init: warning: can't set priority: %r\n");
+	close(fd);
+
+	cpu = readenv("#e/cputype");
 	setenv("#e/objtype", cpu);
 	setenv("#e/service", service);
 	cpenv("/adm/timezone/local", "#e/timezone");
-	readenv("#c/user", user, sizeof user);
-	readenv("#c/sysname", systemname, sizeof systemname);
+	user = readenv("#c/user");
+	systemname = readenv("#c/sysname");
 
 	newns(user, 0);
-
 	iscpu = strcmp(service, "cpu")==0;
 
 	if(iscpu && manual == 0)
 		fexec(cpustart);
 
 	for(;;){
-		if(iscpu){
-			consctl = open("#c/consctl", OWRITE);
-			key = open("#c/key", OREAD);
-			if(consctl<0 || key<0 || write(consctl, "rawon", 5) != 5)
-				print("init: can't check password; insecure\n");
-			else{
-				/*pass(key);*/
-				write(consctl, "rawoff", 6);
-			}
-			close(consctl);
-			close(key);
-		}
 		print("\ninit: starting /bin/rc\n");
 		fexec(rcexec);
 		manual = 1;
@@ -85,7 +83,6 @@ pass(int fd)
 	int i;
 
 	for(;;){
-		readenv("#c/sysname", systemname, sizeof systemname);
 		print("\n%s password:", systemname);
 		for(i=0; i<sizeof typed; i++){
 			if(read(0, typed+i, 1) != 1){
@@ -118,8 +115,8 @@ pass(int fd)
 void
 fexec(void (*execfn)(void))
 {
-	Waitmsg w;
-	int pid, i;
+	Waitmsg *w;
+	int pid;
 
 	switch(pid=fork()){
 	case 0:
@@ -132,18 +129,25 @@ fexec(void (*execfn)(void))
 		exits("fork");
 	default:
 	casedefault:
-		i = wait(&w);
-		if(i == -1)
+		w = wait();
+		if(w == nil){
 			print("init: wait error: %r\n");
-		else if(i != pid)
+			break;
+		}
+		if(w->pid != pid){
+			free(w);
 			goto casedefault;
-		if(strcmp(w.msg, "exec") == 0){
+		}
+		if(strstr(w->msg, "exec error") != 0){
+			print("init: exit string %s\n", w->msg);
 			print("init: sleeping because exec failed\n");
+			free(w);
 			for(;;)
 				sleep(1000);
 		}
-		if(w.msg[0])
-			print("init: rc exit status: %s\n", w.msg);
+		if(w->msg[0])
+			print("init: rc exit status: %s\n", w->msg);
+		free(w);
 		break;
 	}
 }
@@ -167,22 +171,40 @@ cpustart(void)
 	execl("/bin/rc", "rc", "-c", "/rc/bin/cpurc", 0);
 }
 
-void
-readenv(char *name, char *val, int len)
+char*
+readenv(char *name)
 {
-	int f;
+	int f, len;
+	Dir *d;
+	char *val;
 
 	f = open(name, OREAD);
 	if(f < 0){
-		print("init: can't open %s\n", name);
-		return;	
+		print("init: can't open %s: %r\n", name);
+		return "*unknown*";	
 	}
-	len = read(f, val, len-1);
+	d = dirfstat(f);
+	if(d == nil){
+		print("init: can't stat %s: %r\n", name);
+		return "*unknown*";
+	}
+	len = d->length;
+	free(d);
+	if(len == 0)	/* device files can be zero length but have contents */
+		len = 64;
+	val = malloc(len+1);
+	if(val == nil){
+		print("init: can't malloc %s: %r\n", name);
+		return "*unknown*";
+	}
+	len = read(f, val, len);
 	close(f);
-	if(len < 0)
-		print("init: can't read %s\n", name);
-	else
+	if(len < 0){
+		print("init: can't read %s: %r\n", name);
+		return "*unknown*";
+	}else
 		val[len] = '\0';
+	return val;
 }
 
 void

@@ -15,8 +15,10 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
+	edf.$O\
 	fault.$O\
 	latin1.$O\
+	rebootcmd.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
@@ -55,9 +57,9 @@ LIB=\
 	/$objtype/lib/libmemlayer.a\
 	/$objtype/lib/libmemdraw.a\
 	/$objtype/lib/libdraw.a\
-	/$objtype/lib/libauth.a\
 	/$objtype/lib/libc.a\
 	/$objtype/lib/libsec.a\
+	/$objtype/lib/libip.a\
 
 size:VQ: $p$CONF
 	ls -l $p$CONF|sed 's/^[^ ]+ [^ ]+ [^ ]+ [^ ]+ [^ ]+ ([^ ]+).*/load ram 0xc0008000 \1/'
@@ -78,6 +80,7 @@ $p$CONF:	$OBJ $CONF.c $LIB /arm/inflate
 
 install:V:	$p$CONF
 	cp $p$CONF /$objtype/$p$CONF
+	9fs lookout && cp $p$CONF /n/lookout/$objtype/$p$CONF
 
 <../boot/bootmkfile
 <../port/portmkfile
@@ -100,15 +103,12 @@ fpimem.$O: fpi.h
 
 screen.$O: gamma.h
 
-ramdisk:V:
-	rm -fr armsac
-	mkdir armsac
-	cd armsac
-	disk/mkfs -a ../armsac.proto|disk/mkext -d .
-	disk/mksacfs -o ../fs.sac
+paqdisk:V:
+	rm -fr armpaq
+	mkdir armpaq
+	cd armpaq
+	disk/mkfs -a ../armpaq.proto|disk/mkext -d .
+	mkpaqfs -o ../paqdisk
 	cd ..
-	rm -fr armsac
-	tar c fs.sac > ramdisk
-	rm -fr fs.sac
 	echo load ramdisk
-	echo !xms /sys/src/9/bitsy/ramdisk
+	echo !xms /sys/src/9/bitsy/paqdisk

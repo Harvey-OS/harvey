@@ -22,7 +22,7 @@ getline(Edit *edit)
 	}
 	p = Brdline(&bin, '\n');
 	n = Blinelen(&bin);
-	if(p == nil || n <= 1){
+	if(p == nil || n < 1){
 		if(edit->changed)
 			fprint(2, "?warning: changes not written\n");
 		exits(0);
@@ -53,9 +53,9 @@ okname(Edit *edit, char *name)
 	if(name[0] == '\0')
 		return "partition has no name";
 
-	if(strlen(name) >= NAMELEN)
-		return "name too long";
-
+//	if(strlen(name) >= NAMELEN)
+//		return "name too long";
+//
 	for(i=0; i<edit->npart; i++) {
 		if(strcmp(name, edit->part[i]->name) == 0) {
 			sprint(msg, "already have partition with name \"%s\"", name);
@@ -77,8 +77,10 @@ addpart(Edit *edit, Part *p)
 
 	for(i=0; i<edit->npart; i++) {
 		if(p->start < edit->part[i]->end && edit->part[i]->start < p->end) {
-			sprint(msg, "\"%s\" overlaps with \"%s\"", p->name, edit->part[i]->name);
-			return msg;
+			sprint(msg, "\"%s\" %lld-%lld overlaps with \"%s\" %lld-%lld",
+				p->name, p->start, p->end,
+				edit->part[i]->name, edit->part[i]->start, edit->part[i]->end);
+		//	return msg;
 		}
 	}
 
@@ -340,6 +342,8 @@ runcmd(Edit *edit, char *cmd)
 		return;
 	}
 
+	if(nf < 1)
+		return;
 	if(strlen(f[0]) != 1) {
 		fprint(2, "?\n");
 		return;
@@ -369,8 +373,8 @@ ctlmkpart(char *name, vlong start, vlong end, int changed)
 	Part *p;
 
 	p = emalloc(sizeof(*p));
-	strcpy(p->name, name);
-	strcpy(p->ctlname, name);
+	p->name = estrdup(name);
+	p->ctlname = estrdup(name);
 	p->start = start;
 	p->end = end;
 	p->changed = changed;
@@ -447,6 +451,9 @@ ctlend(Part *p)
 static int
 areequiv(Part *p, Part *q)
 {
+	if(p->ctlname[0]=='\0' || q->ctlname[0]=='\0')
+		return 0;
+
 	return strcmp(p->ctlname, q->ctlname) == 0
 			&& ctlstart(p) == ctlstart(q) && ctlend(p) == ctlend(q);
 }

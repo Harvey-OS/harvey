@@ -77,6 +77,7 @@ struct line {
 	int value;
 } *file[2], line;
 int len[2];
+int binary;
 struct line *sfile[2];	/*shortened by pruning common prefix and suffix*/
 int slen[2];
 int pref, suff;	/*length of prefix and suffix*/
@@ -314,12 +315,59 @@ output(void)
 		change(1, 0, 1, len[1]);
 }
 
+#define BUF 4096
+static int
+cmp(Biobuf* b1, Biobuf* b2)
+{
+	int n;
+	uchar buf1[BUF], buf2[BUF];
+	int f1, f2;
+	vlong nc = 1;
+	uchar *b1s, *b1e, *b2s, *b2e;
+
+	f1 = Bfildes(b1);
+	f2 = Bfildes(b2);
+	seek(f1, 0, 0);
+	seek(f2, 0, 0);
+	b1s = b1e = buf1;
+	b2s = b2e = buf2;
+	for(;;){
+		if(b1s >= b1e){
+			if(b1s >= &buf1[BUF])
+				b1s = buf1;
+			n = read(f1, b1s,  &buf1[BUF] - b1s);
+			b1e = b1s + n;
+		}
+		if(b2s >= b2e){
+			if(b2s >= &buf2[BUF])
+				b2s = buf2;
+			n = read(f2, b2s,  &buf2[BUF] - b2s);
+			b2e = b2s + n;
+		}
+		n = b2e - b2s;
+		if(n > b1e - b1s)
+			n = b1e - b1s;
+		if(n <= 0)
+			break;
+		if(memcmp((void *)b1s, (void *)b2s, n) != 0){
+			return 1;
+		}		
+		nc += n;
+		b1s += n;
+		b2s += n;
+	}
+	if(b1e - b1s == b2e - b2s)
+		return 0;
+	return 1;	
+}
+
 void
 diffreg(char *f, char *t)
 {
 	Biobuf *b0, *b1;
 	int k;
 
+	binary = 0;
 	b0 = prepare(0, f);
 	if (!b0)
 		return;
@@ -327,6 +375,14 @@ diffreg(char *f, char *t)
 	if (!b1) {
 		FREE(file[0]);
 		Bterm(b0);
+		return;
+	}
+	if (binary){
+		// could use b0 and b1 but this is simpler.
+		if (cmp(b0, b1))
+			print("binary files %s %s differ\n", f, t);
+		Bterm(b0);
+		Bterm(b1);
 		return;
 	}
 	clen = 0;

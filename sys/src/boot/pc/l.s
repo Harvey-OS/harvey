@@ -112,11 +112,6 @@ TEXT _start8000(SB), $0
 _real:
 
 /*
- *	turn off interrupts
- */
-	CLI
-
-/*
  *	do things that need to be done in real mode.
  *	the results get written to CONFADDR (0x1200)
  *	in a series of <4-byte-magic-number><block-of-data>
@@ -131,9 +126,13 @@ _real:
 	LWI(0x1200, rDI)
 
 /*
+ *	turn off interrupts
+ */
+	CLI
+
+/*
  *	detect APM1.2 bios support
  */
-
 	/* save DI */
 	SW(rDI, rock(SB))
 
@@ -141,12 +140,13 @@ _real:
 	LWI(0x5304, rAX)
 	LWI(0x0000, rBX)
 	INT $0x15
-	
+
 	/* connect */
 	CLC
 	LWI(0x5303, rAX)
 	LWI(0x0000, rBX)
 	INT $0x15
+	CLI	/* apm put interrupts back? */
 
 	JC noapm
 
@@ -176,8 +176,9 @@ apmmove:
 	POPR(rAX)
 	STOSW
 	LOOP apmmove
-	
+
 noapm:
+
 /*
  *	end of real mode hacks: write terminator, put ES back.
  */
@@ -196,17 +197,21 @@ noapm:
 	 BYTE	$0x01
 	 BYTE	$0x16
 	 WORD	$tgdtptr(SB)
-	MOVL	CR0,AX
+
+	MOVL	$1,AX
+	/* MOV AX,MSW */
+	BYTE $0x0F; BYTE $0x01; BYTE $0xF0
+
+/*	MOVL	CR0,AX
 	ORL	$1,AX
 	MOVL	AX,CR0
-
+*/
 /*
  *	clear prefetch queue (weird code to avoid optimizations)
  */
-	CLC
-	JCC	flush
-	MOVL	AX,AX
-flush:
+	/* JMP .+2 */
+	BYTE $0xEB
+	BYTE $0x00
 
 /*
  *	set all segs
@@ -269,6 +274,9 @@ setpte:
 
 	/*
 	 *  point processor to top level page & turn on paging
+	 *
+	 *  this produces the apparently harmless "VMX|F(125):468 Dis 0x0:0x0"
+	 *  message in the VMware log.
 	 */
 	MOVL	AX,CR3
 	MOVL	CR0,AX

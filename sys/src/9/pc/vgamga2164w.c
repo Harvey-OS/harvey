@@ -86,7 +86,6 @@ static void
 mga2164wenable(VGAscr* scr)
 {
 	Pcidev *p;
-	Physseg seg;
 	int size, align, immio;
 	ulong aperture;
 
@@ -106,14 +105,7 @@ mga2164wenable(VGAscr* scr)
 	scr->io = upamalloc(p->mem[immio].bar & ~0x0F, p->mem[immio].size, 0);
 	if(scr->io == 0)
 		return;
-
-	memset(&seg, 0, sizeof(seg));
-	seg.attr = SG_PHYSICAL;
-	seg.name = smalloc(NAMELEN);
-	snprint(seg.name, NAMELEN, "mga2164wmmio");
-	seg.pa = scr->io;
-	seg.size = p->mem[immio].size;
-	addphysseg(&seg);
+	addvgaseg("mga2164wmmio", scr->io, p->mem[immio].size);
 
 	scr->io = (ulong)KADDR(scr->io);
 
@@ -124,13 +116,7 @@ mga2164wenable(VGAscr* scr)
 	if(aperture) {
 		scr->aperture = aperture;
 		scr->apsize = size;
-		memset(&seg, 0, sizeof(seg));
-		seg.attr = SG_PHYSICAL;
-		seg.name = smalloc(NAMELEN);
-		snprint(seg.name, NAMELEN, "mga2164wscreen");
-		seg.pa = aperture;
-		seg.size = size;
-		addphysseg(&seg);
+		addvgaseg("mga2164wscreen", aperture, size);
 	}
 }
 

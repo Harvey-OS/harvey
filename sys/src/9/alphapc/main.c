@@ -26,23 +26,34 @@ int	nconf;
 static void
 options(void)
 {
-	char *cp, *line[MAXCONF];
-	int i, n;
+	long i, n;
+	char *cp, *line[MAXCONF], *p, *q;
 
-	cp = bootconf->bootargs;
+	cp = bootargs;
+	strncpy(cp, bootconf->bootargs, BOOTARGSLEN);
 	cp[BOOTARGSLEN-1] = 0;
-	strcpy(bootargs, cp);
 
-	n = getcfields(bootargs, line, MAXCONF, "\n");
+	/*
+	 * Strip out '\r', change '\t' -> ' '.
+	 */
+	p = cp;
+	for(q = cp; *q; q++){
+		if(*q == '\r')
+			continue;
+		if(*q == '\t')
+			*q = ' ';
+		*p++ = *q;
+	}
+	*p = 0;
+
+	n = getfields(cp, line, MAXCONF, 1, "\n");
 	for(i = 0; i < n; i++){
 		if(*line[i] == '#')
 			continue;
 		cp = strchr(line[i], '=');
-		if(cp == 0)
+		if(cp == nil)
 			continue;
-		*cp++ = 0;
-		if(cp - line[i] >= NAMELEN+1)
-			*(line[i]+NAMELEN-1) = 0;
+		*cp++ = '\0';
 		confname[nconf] = line[i];
 		confval[nconf] = cp;
 		nconf++;
@@ -56,8 +67,8 @@ main(void)
 	hwrpb = (Hwrpb*)(KZERO|hwrpb->phys);
 	arginit();
 	machinit();
-	ioinit();
 	options();
+	ioinit();
 	clockinit();
 	confinit();
 	archinit();
@@ -69,28 +80,18 @@ main(void)
 	trapinit();
 	screeninit();
 	printinit();
-
-	/* console */
-	ns16552install();
-	ns16552special(0, 9600, 0, &printq, kbdcr2nl);
 	kbdinit();
+	i8250console();
+	quotefmtinstall();
+	print("\nPlan 9\n");
 
 	cpuidprint();
 	if(arch->corehello)
 		arch->corehello();
 
-#ifdef	NEVER
-	percpu = hwrpb + (hwrpb[40]>>2);
-//	percpu[32] |= 2;		/* restart capable */
-	percpu[32] &= ~1;		/* boot in progress - not */
-//	percpu[32] |= (3<<16);		/* warm boot requested */
-//	percpu[32] |= (2<<16);		/* cold boot requested */
-//	percpu[32] |= (4<<16);		/* stay halted */
-	percpu[32] |= (0<<16);		/* default action */
-#endif
-
 	procinit0();
 	initseg();
+	timersinit();
 	links();
 	chandevreset();
 	pageinit();
@@ -109,6 +110,7 @@ void
 machinit(void)
 {
 	int n;
+	Hwcpu *cpu;
 
 	icflush();
 	n = m->machno;
@@ -117,13 +119,19 @@ machinit(void)
 
 	active.exiting = 0;
 	active.machs = 1;
+
+	cpu = (Hwcpu*) ((ulong)hwrpb + hwrpb->cpuoff + n*hwrpb->cpulen);
+	cpu->state &= ~1;			/* boot in progress - not */
+/*	cpu->state |= (4<<16);		/* stay halted */
 }
 
 void
 init0(void)
 {
 	int i;
-	char buf[2*NAMELEN];
+	char tstr[32];
+
+	up->nerrlab = 0;
 
 	spllo();
 
@@ -134,22 +142,24 @@ init0(void)
 	up->slash = namec("#/", Atodir, 0, 0);
 	cnameclose(up->slash->name);
 	up->slash->name = newcname("/");
-	up->dot = cclone(up->slash, 0);
+	up->dot = cclone(up->slash);
 
 	chandevinit();
 
 	if(!waserror()){
-		ksetenv("cputype", "alpha");
-		sprint(buf, "alpha %s alphapc", conffile);
-		ksetenv("terminal", buf);
-		ksetenv("sysname", sysname);
+		ksetenv("cputype", "alpha", 0);
+		sprint(tstr, "alpha %s alphapc", conffile);
+		ksetenv("terminal", tstr, 0);
 		if(cpuserver)
-			ksetenv("service", "cpu");
+			ksetenv("service", "cpu", 0);
 		else
-			ksetenv("service", "terminal");
+			ksetenv("service", "terminal", 0);
 		for(i = 0; i < nconf; i++)
-			if(confname[i] && confname[i][0] != '*')
-				ksetenv(confname[i], confval[i]);
+			if(confname[i]){
+				if(confname[i][0] != '*')
+					ksetenv(confname[i], confval[i], 0);
+				ksetenv(confname[i], confval[i], 1);
+			}
 		poperror();
 	}
 
@@ -174,8 +184,9 @@ userinit(void)
 	p->rgrp = newrgrp();
 	p->procmode = 0640;
 
-	strcpy(p->text, "*init*");
-	strcpy(p->user, eve);
+	kstrdup(&eve, "");
+	kstrdup(&p->text, "*init*");
+	kstrdup(&p->user, eve);
 
 	procsetup(p);
 
@@ -183,7 +194,7 @@ userinit(void)
 	 * Kernel Stack
 	 */
 	p->sched.pc = (ulong)init0;
-	p->sched.sp = (ulong)p->kstack+KSTACK-(1+MAXSYSARG)*BY2WD;
+	p->sched.sp = (ulong)p->kstack+KSTACK-MAXSYSARG*BY2WD;
 	/*
 	 * User Stack, pass input arguments to boot process
 	 */
@@ -227,18 +238,8 @@ procsave(Proc *p)
 	if(p->fpstate == FPactive){
 		if(p->state == Moribund)
 			fpenab(0);
-		else{
-			/*
-			 * Fpsave() stores without handling pending
-			 * unmasked exeptions. Postnote() can't be called
-			 * here as sleep() already has up->rlock, so
-			 * the handling of pending exceptions is delayed
-			 * until the process runs again and generates an
-			 * emulation fault to activate the FPU.
-			 */
+		else
 			savefpregs(&up->fpsave);
-//print("PS=%lux+", up->fpsave.fpstatus);
-		}
 		p->fpstate = FPinactive;
 	}
 
@@ -250,6 +251,14 @@ procsave(Proc *p)
 	 * When this processor eventually has to get an entry from the
 	 * trashed page tables it will crash.
 	 */
+	mmupark();
+}
+
+/* still to do */
+void
+reboot(void*, void*, ulong)
+{
+	exit(0);
 }
 
 void
@@ -398,7 +407,7 @@ confinit(void)
 		imagmem->maxsize = kpages;
 	}
 
-	conf.monitor = 1;	/* BUG */
+//	conf.monitor = 1;	/* BUG */
 }
 
 void
@@ -454,29 +463,18 @@ getconf(char *name)
 int
 isaconfig(char *class, int ctlrno, ISAConf *isa)
 {
-	char cc[NAMELEN], *p, *q, *r;
-	int n;
+	char cc[32], *p;
+	int i, n;
 
-	sprint(cc, "%s%d", class, ctlrno);
+	snprint(cc, sizeof cc, "%s%d", class, ctlrno);
 	for(n = 0; n < nconf; n++){
-		if(cistrncmp(confname[n], cc, NAMELEN))
+		if(cistrcmp(confname[n], cc) != 0)
 			continue;
-		isa->nopt = 0;
-		p = confval[n];
-		while(*p){
-			while(*p == ' ' || *p == '\t')
-				p++;
-			if(*p == '\0')
-				break;
-			if(cistrncmp(p, "type=", 5) == 0){
-				p += 5;
-				for(q = isa->type; q < &isa->type[NAMELEN-1]; q++){
-					if(*p == '\0' || *p == ' ' || *p == '\t')
-						break;
-					*q = *p++;
-				}
-				*q = '\0';
-			}
+		isa->nopt = tokenize(confval[n], isa->opt, NISAOPT);
+		for(i = 0; i < isa->nopt; i++){
+			p = isa->opt[i];
+			if(cistrncmp(p, "type=", 5) == 0)
+				isa->type = p + 5;
 			else if(cistrncmp(p, "port=", 5) == 0)
 				isa->port = strtoul(p+5, &p, 0);
 			else if(cistrncmp(p, "irq=", 4) == 0)
@@ -489,18 +487,6 @@ isaconfig(char *class, int ctlrno, ISAConf *isa)
 				isa->size = strtoul(p+5, &p, 0);
 			else if(cistrncmp(p, "freq=", 5) == 0)
 				isa->freq = strtoul(p+5, &p, 0);
-			else if(isa->nopt < NISAOPT){
-				r = isa->opt[isa->nopt];
-				while(*p && *p != ' ' && *p != '\t'){
-					*r++ = *p++;
-					if(r-isa->opt[isa->nopt] >= ISAOPTLEN-1)
-						break;
-				}
-				*r = '\0';
-				isa->nopt++;
-			}
-			while(*p && *p != ' ' && *p != '\t')
-				p++;
 		}
 		return 1;
 	}

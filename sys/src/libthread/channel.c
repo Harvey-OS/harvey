@@ -1,587 +1,479 @@
 #include <u.h>
 #include <libc.h>
-#include "assert.h"
+#include <thread.h>
 #include "threadimpl.h"
 
-static Lock chanlock;		// Central channel access lock
+static Lock chanlock;		/* central channel access lock */
+
+static void enqueue(Alt*, Channel**);
+static void dequeue(Alt*);
+static int canexec(Alt*);
+static int altexec(Alt*, int);
 
 void
-chanfree(Channel *c) {
+chanfree(Channel *c)
+{
+	int i, inuse;
 
 	lock(&chanlock);
-	if (c->qused == 0) {
-		free(c);
-	} else {
+	inuse = 0;
+	for(i = 0; i < c->nentry; i++)
+		if(c->qentry[i])
+			inuse = 1;
+	if(inuse)
 		c->freed = 1;
+	else{
+		if(c->qentry)
+			free((void*)c->qentry);
+		free(c);
 	}
 	unlock(&chanlock);
 }
 
 int
-chaninit(Channel *c, int elemsize, int elemcnt) {
+chaninit(Channel *c, int elemsize, int elemcnt)
+{
 	if(elemcnt < 0 || elemsize <= 0 || c == nil)
 		return -1;
 	c->f = 0;
 	c->n = 0;
 	c->freed = 0;
-	c->qused = 0;
-	c->s = elemcnt;
 	c->e = elemsize;
-	_threaddebug(DBGCHAN, "chaninit %lux", c);
+	c->s = elemcnt;
+	_threaddebug(DBGCHAN, "chaninit %p", c);
 	return 1;
 }
 
-Channel *
-chancreate(int elemsize, int elemcnt) {
+Channel*
+chancreate(int elemsize, int elemcnt)
+{
 	Channel *c;
 
 	if(elemcnt < 0 || elemsize <= 0)
 		return nil;
-	c = _threadmalloc(sizeof(Channel) + elemcnt * elemsize);
-	if(c == nil)
-		return c;
-	c->f = 0;
-	c->n = 0;
-	c->freed = 0;
-	c->qused = 0;
-	c->s = elemcnt;
+	c = _threadmalloc(sizeof(Channel)+elemsize*elemcnt, 1);
 	c->e = elemsize;
-	_threaddebug(DBGCHAN, "chancreate %lux", c);
+	c->s = elemcnt;
+	_threaddebug(DBGCHAN, "chancreate %p", c);
 	return c;
 }
 
 int
-alt(Alt *alts) {
+alt(Alt *alts)
+{
 	Alt *a, *xa;
 	Channel *c;
-	uchar *v;
-	int i, n, entry;
-	Proc *p;
+	int n, s;
+	ulong r;
 	Thread *t;
 
+	/*
+	 * The point of going splhi here is that note handlers
+	 * might reasonably want to use channel operations,
+	 * but that will hang if the note comes while we hold the
+	 * chanlock.  Instead, we delay the note until we've dropped
+	 * the lock.
+	 */
+	t = _threadgetproc()->thread;
+	if(t->moribund || _threadexitsallstatus)
+		yield();	/* won't return */
+	s = _procsplhi();
 	lock(&chanlock);
-	
-	(*procp)->curthread->alt = alts;
-	(*procp)->curthread->call = Callalt;
-repeat:
+	t->alt = alts;
+	t->chan = Chanalt;
 
-	// Test which channels can proceed
-	n = 1;
+	/* test whether any channels can proceed */
+	n = 0;
 	a = nil;
-	entry = -1;
-	for (xa = alts; xa->op; xa++) {
-		if (xa->op == CHANNOP) continue;
-		if (xa->op == CHANNOBLK) {
-			if (a == nil) {
-				(*procp)->curthread->call = Callnil;
-				unlock(&chanlock);
-				return xa - alts;
-			} else
-				break;
-		}
 
+	for(xa=alts; xa->op!=CHANEND && xa->op!=CHANNOBLK; xa++){
+		xa->entryno = -1;
+		if(xa->op == CHANNOP)
+			continue;
+		
 		c = xa->c;
-		if ((xa->op == CHANSND && c->n < c->s) ||
-			(xa->op == CHANRCV && c->n)) {
-				// There's room to send in the channel
-				if (nrand(n) == 0) {
-					a = xa;
-					entry = -1;
-				}
-				n++;
-		} else {
-			// Test for blocked senders or receivers
-			for (i = 0; i < 32; i++) {
-				// Is it claimed?
-				if (
-					(c->qused & (1 << i))
-					&& xa->op == (CHANSND+CHANRCV) - c->qentry[i]->op
-							// complementary op
-					&& *c->qentry[i]->tag == nil
-				) {
-					// No
-					if (nrand(n) == 0) {
-						a = xa;
-						entry = i;
-					}
-					n++;
-					break;
-				}
-			}
-		}
+		if(c==nil)
+			sysfatal("alt: nil channel in entry %ld", xa-alts);
+		if(canexec(xa))
+			if(nrand(++n) == 0)
+				a = xa;
 	}
 
-	if (a == nil) {
-		// Nothing can proceed, enqueue on all channels
+	if(a==nil){
+		/* nothing can proceed */
+		if(xa->op == CHANNOBLK){
+			unlock(&chanlock);
+			_procsplx(s);
+			t->chan = Channone;
+			return xa - alts;
+		}
+
+		/* enqueue on all channels. */
 		c = nil;
-		for (a = alts; a->op; a++) {
-			Channel *cp;
-
-			if (a->op == CHANNOP || a->op == CHANNOBLK) continue;
-			cp = a->c;
-			a->tag = &c;
-			for (i = 0; i < 32; i++) {
-				if ((cp->qused & (1 << i)) == 0) {
-					cp->qentry[i] = a;
-					cp->qused |= a->q = 1 << i;
-					break;
-				}
-			}
-			threadassert(i != 32);
+		for(xa=alts; xa->op!=CHANEND; xa++){
+			if(xa->op==CHANNOP)
+				continue;
+			enqueue(xa, &c);
 		}
 
-		// And wait for the rendez vous
+		/*
+		 * wait for successful rendezvous.
+		 * we can't just give up if the rendezvous
+		 * is interrupted -- someone else might come
+		 * along and try to rendezvous with us, so
+		 * we need to be here.
+		 */
+	    Again:
 		unlock(&chanlock);
-		if (_threadrendezvous((ulong)&c, 0) == ~0) {
-			(*procp)->curthread->call = Callnil;
-			return -1;
-		}
-		
+		_procsplx(s);
+		r = _threadrendezvous((ulong)&c, 0);
+		s = _procsplhi();
 		lock(&chanlock);
 
-		/* We rendezed-vous on channel c, dequeue from all channels
-		 * and find the Alt struct to which c belongs
-		 */
+		if(r==~0){		/* interrupted */
+			if(c!=nil)		/* someone will meet us; go back */
+				goto Again;
+			c = (Channel*)~0;	/* so no one tries to meet us */
+		}
+
+		/* dequeue from channels, find selected one */
 		a = nil;
-		for (xa = alts; xa->op; xa++) {
-			Channel *xc;
-
-			if (xa->op == CHANNOP || xa->op == CHANNOBLK) continue;
-			xc = xa->c;
-			xc->qused &= ~xa->q;
-			if (xc == c)
+		for(xa=alts; xa->op!=CHANEND; xa++){
+			if(xa->op==CHANNOP)
+				continue;
+			if(xa->c == c)
 				a = xa;
-			
+			dequeue(xa);
 		}
-
-		if (c->s) {
-			// Buffered channel, try again
-			sleep(0);
-			goto repeat;
-		}
-
 		unlock(&chanlock);
-
-		if (c->freed) chanfree(c);
-
-		p = *procp;
-		t = p->curthread;
-		if (t->exiting)
-			threadexits(nil);
-		(*procp)->curthread->call = Callnil;
-		return a - alts;
-	}
-
-	c = a->c;
-	// Channel c can proceed
-
-	if (c->s) {
-		// Send or receive via the buffered channel
-		if (a->op == CHANSND) {
-			v = c->v + ((c->f + c->n) % c->s) * c->e;
-			if (a->v)
-				memmove(v, a->v, c->e);
-			else
-				memset(v, 0, c->e);
-			c->n++;
-		} else {
-			if (a->v) {
-				v = c->v + (c->f % c->s) * c->e;
-				memmove(a->v, v, c->e);
-			}
-			c->n--;
-			c->f++;
-		}
-	}
-	if (entry < 0)
-		for (i = 0; i < 32; i++) {
-			if (
-				(c->qused & (1 << i))
-				&& c->qentry[i]->op == (CHANSND+CHANRCV) - a->op
-				&& *c->qentry[i]->tag == nil
-			) {
-				// Unblock peer process
-				xa = c->qentry[i];
-				*xa->tag = c;
-
-				unlock(&chanlock);
-				if (_threadrendezvous((ulong)xa->tag, 0) == ~0) {
-					(*procp)->curthread->call = Callnil;
-					return -1;
-				}
-				(*procp)->curthread->call = Callnil;
-				return a - alts;
-			}
-		}
-	if (entry >= 0) {
-		xa = c->qentry[entry];
-		if (a->op == CHANSND) {
-			if (xa->v) {
-				if (a->v)
-					memmove(xa->v, a->v, c->e);
-				else
-					memset(xa->v, 0, c->e);
-			}
-		} else {
-			if (a->v) {
-				if (xa->v)
-					memmove(a->v, xa->v, c->e);
-				else
-					memset(a->v, 0, c->e);
-			}
-		}
-		*xa->tag = c;
-
-		unlock(&chanlock);
-		if (_threadrendezvous((ulong)xa->tag, 0) == ~0) {
-			(*procp)->curthread->call = Callnil;
+		_procsplx(s);
+		if(a == nil){	/* we were interrupted */
+			assert(c==(Channel*)~0);
 			return -1;
 		}
-		(*procp)->curthread->call = Callnil;
-		return a - alts;
+		if(c->freed)
+			chanfree(c);
+	}else{
+		altexec(a, s);	/* unlocks chanlock, does splx */
 	}
-	unlock(&chanlock);
-	yield();
-	(*procp)->curthread->call = Callnil;
+	_sched();
+	t->chan = Channone;
 	return a - alts;
 }
 
-int
-nbrecv(Channel *c, void *v) {
-	Alt *a;
-	int i;
-	
-	lock(&chanlock);
-	if (c->qused) // There's somebody waiting
-		for (i = 0; i < 32; i++) {
-			a = c->qentry[i];
-			if (
-				(c->qused & (1 << i))
-				&& a->op == CHANSND
-				&& *a->tag == nil
-			) {
-				*a->tag = c;
-				if (c->n) {
-					// There's an item to receive in the buffered channel
-					if (v)
-						memmove(v, c->v + (c->f % c->s) * c->e, c->e);
-					c->n--;
-					c->f++;
-				} else {
-					if (v) {
-						if (a->v)
-							memmove(v, a->v, c->e);
-						else
-							memset(v, 0, c->e);
-					}
-				}
+static int
+runop(int op, Channel *c, void *v, int nb)
+{
+	int r;
+	Alt a[2];
 
-				unlock(&chanlock);
-				if (_threadrendezvous((ulong)a->tag, 0) == ~0)
-					return -1;
-				return 1;
-			}
-		}
-	if (c->n) {
-		// There's an item to receive in the buffered channel
-		if (v)
-			memmove(v, c->v + (c->f % c->s) * c->e, c->e);
-		c->n--;
-		c->f++;
-		unlock(&chanlock);
-		yield();
+	/*
+	 * we could do this without calling alt,
+	 * but the only reason would be performance,
+	 * and i'm not convinced it matters.
+	 */
+	a[0].op = op;
+	a[0].c = c;
+	a[0].v = v;
+	a[1].op = CHANEND;
+	if(nb)
+		a[1].op = CHANNOBLK;
+	switch(r=alt(a)){
+	case -1:	/* interrupted */
+		return -1;
+	case 1:	/* nonblocking, didn't accomplish anything */
+		assert(nb);
+		return 0;
+	case 0:
 		return 1;
-	}
-	unlock(&chanlock);
-	return 0;
-}
-
-int
-recv(Channel *c, void *v) {
-	Alt a, *xa;
-	Channel *tag;
-	int i;
-	Proc *p;
-	Thread *t;
-
-	
-	lock(&chanlock);
-retry:
-	if (c->qused) // There's somebody waiting
-		for (i = 0; i < 32; i++) {
-			xa = c->qentry[i];
-			if (
-				(c->qused & (1 << i))
-				&& xa->op == CHANSND
-				&& *xa->tag == nil
-			) {
-				*xa->tag = c;
-				if (c->n) {
-					// There's an item to receive in the buffered channel
-					if (v)
-						memmove(v, c->v + (c->f % c->s) * c->e, c->e);
-					c->n--;
-					c->f++;
-				} else {
-					if (v) {
-						if (xa->v)
-							memmove(v, xa->v, c->e);
-						else
-							memset(v, 0, c->e);
-					}
-				}
-
-				unlock(&chanlock);
-				if (_threadrendezvous((ulong)xa->tag, 0) == ~0)
-					return -1;
-				return 1;
-			}
-	}
-	if (c->n) {
-		// There's an item to receive in the buffered channel
-		if (v)
-			memmove(v, c->v + (c->f % c->s) * c->e, c->e);
-		c->n--;
-		c->f++;
-		unlock(&chanlock);
-		yield();
-		return 1;
-	}
-	// Unbuffered, or buffered but empty
-	tag = nil;
-	a.c = c;
-	a.v = v;
-	a.tag = &tag;
-	a.op = CHANRCV;
-	p = *procp;
-	t = p->curthread;
-	t->alt = &a;
-	t->call = Callrcv;
-
-	// enqueue on the channel
-	for (i = 0; i < 32; i++)
-		if ((c->qused & (1 << i)) == 0) {
-			c->qentry[i] = &a;
-			c->qused |= a.q = 1 << i;
-			break;
-		}
-
-	unlock(&chanlock);
-	if (_threadrendezvous((ulong)&tag, 0) == ~0) {
-		t->call = Callnil;
+	default:
+		fprint(2, "ERROR: channel alt returned %d\n", r);
+		abort();
 		return -1;
 	}
-	lock(&chanlock);
-
-	// dequeue from the channel
-	c->qused &= ~a.q;
-	if (c->s) goto retry;	// Buffered channels: try the queue again
-	unlock(&chanlock);
-	if (c->freed) chanfree(c);
-	t->call = Callnil;
-	if (t->exiting)
-		threadexits(nil);
-	return 1;
 }
 
 int
-nbsend(Channel *c, void *v) {
-	Alt *a;
-	int i;
-
-	lock(&chanlock);
-	if (c->qused)	// Anybody waiting?
-		for (i = 0; i < 32; i++) {
-			a = c->qentry[i];
-			if (
-				(c->qused & (1 << i))
-				&& a->op == CHANRCV
-				&& *a->tag == nil
-			) {
-				*a->tag = c;
-				if (c->n < c->s) {
-					// There's room to send in the buffered channel
-					if (v)
-						memmove(c->v + ((c->f + c->n) % c->s) * c->e, v, c->e);
-					else
-						memset(c->v + ((c->f + c->n) % c->s) * c->e, 0, c->e);
-					c->n++;
-				} else {
-					if (a->v) {
-						if (v)
-							memmove(a->v, v, c->e);
-						else
-							memset(a->v, 0, c->e);
-					}
-				}
-
-				unlock(&chanlock);
-				if (_threadrendezvous((ulong)a->tag, 0) == ~0)
-					return -1;
-				return 1;
-			}
-	}
-	if (c->n < c->s) {
-		// There's room to send in the buffered channel
-		if (v)
-			memmove(c->v + ((c->f + c->n) % c->s) * c->e, v, c->e);
-		else
-			memset(c->v + ((c->f + c->n) % c->s) * c->e, 0, c->e);
-		c->n++;
-		unlock(&chanlock);
-		yield();
-		return 1;
-	}
-	unlock(&chanlock);
-	return 0;
+recv(Channel *c, void *v)
+{
+	return runop(CHANRCV, c, v, 0);
 }
 
 int
-send(Channel *c, void *v) {
-	Alt a, *xa;
-	Channel *tag;
-	int i;
-	Proc *p;
-	Thread *t;
-
-	lock(&chanlock);
-retry:
-	if (c->qused)	// Anybody waiting?
-		for (i = 0; i < 32; i++) {
-			xa = c->qentry[i];
-			threadassert(!(c->qused & (1 << i)) || xa != nil);
-			if (
-				(c->qused & (1 << i))
-				&& xa->op == CHANRCV
-				&& *xa->tag == nil
-			) {
-				*xa->tag = c;
-				if (c->n < c->s) {
-					// There's room to send in the buffered channel
-					if (v)
-						memmove(c->v + ((c->f + c->n) % c->s) * c->e, v, c->e);
-					else
-						memset(c->v + ((c->f + c->n) % c->s) * c->e, 0, c->e);
-					c->n++;
-				} else {
-					if (xa->v) {
-						if (v)
-							memmove(xa->v, v, c->e);
-						else
-							memset(xa->v, 0, c->e);
-					}
-				}
-
-				unlock(&chanlock);
-				if (_threadrendezvous((ulong)xa->tag, 0) == ~0)
-					return -1;
-				return 1;
-			}
-	}
-	if (c->n < c->s) {
-		// There's room to send in the buffered channel
-		if (v)
-			memmove(c->v + ((c->f + c->n) % c->s) * c->e, v, c->e);
-		else
-			memset(c->v + ((c->f + c->n) % c->s) * c->e, 0, c->e);
-		c->n++;
-		unlock(&chanlock);
-		yield();
-		return 1;
-	}
-	tag = nil;
-	a.c = c;
-	a.v = v;
-	a.tag = &tag;
-	a.op = CHANSND;
-	p = *procp;
-	t = p->curthread;
-	t->alt = &a;
-	t->call = Callsnd;
-
-	// enqueue on the channel
-	for (i = 0; i < 32; i++)
-		if ((c->qused & (1 << i)) == 0) {
-			c->qentry[i] = &a;
-			c->qused |= a.q = 1 << i;
-			break;
-		}
-	unlock(&chanlock);
-	if (_threadrendezvous((ulong)&tag, 0) == ~0) {
-		t->call = Callnil;
-		return -1;
-	}
-	// Unbuffered channels: data was transferred; dequeue
-	lock(&chanlock);
-	// dequeue from the channel
-	c->qused &= ~a.q;
-	if (c->s) goto retry;	// Buffered channels: try the queue again
-	unlock(&chanlock);
-	if (c->freed) chanfree(c);
-	t->call = Callnil;
-	if (t->exiting)
-		threadexits(nil);
-	return 1;
+nbrecv(Channel *c, void *v)
+{
+	return runop(CHANRCV, c, v, 1);
 }
 
 int
-sendul(Channel *c, ulong v) {
-	threadassert(c->e == sizeof(ulong));
+send(Channel *c, void *v)
+{
+	return runop(CHANSND, c, v, 0);
+}
+
+int
+nbsend(Channel *c, void *v)
+{
+	return runop(CHANSND, c, v, 1);
+}
+
+static void
+channelsize(Channel *c, int sz)
+{
+	if(c->e != sz){
+		fprint(2, "expected channel with elements of size %d, got size %d",
+			sz, c->e);
+		abort();
+	}
+}
+
+int
+sendul(Channel *c, ulong v)
+{
+	channelsize(c, sizeof(ulong));
 	return send(c, &v);
 }
 
 ulong
-recvul(Channel *c) {
+recvul(Channel *c)
+{
 	ulong v;
 
-	threadassert(c->e == sizeof(ulong));
-	recv(c, &v);
+	channelsize(c, sizeof(ulong));
+	if(recv(c, &v) < 0)
+		return ~0;
 	return v;
 }
 
 int
-sendp(Channel *c, void *v) {
-	threadassert(c->e == sizeof(void *));
+sendp(Channel *c, void *v)
+{
+	channelsize(c, sizeof(void*));
 	return send(c, &v);
 }
 
-void *
-recvp(Channel *c) {
-	void * v;
+void*
+recvp(Channel *c)
+{
+	void *v;
 
-	threadassert(c->e == sizeof(void *));
-	recv(c, &v);
+	channelsize(c, sizeof(void*));
+	if(recv(c, &v) < 0)
+		return nil;
 	return v;
 }
 
 int
-nbsendul(Channel *c, ulong v) {
-	threadassert(c->e == sizeof(ulong));
+nbsendul(Channel *c, ulong v)
+{
+	channelsize(c, sizeof(ulong));
 	return nbsend(c, &v);
 }
 
 ulong
-nbrecvul(Channel *c) {
+nbrecvul(Channel *c)
+{
 	ulong v;
 
-	threadassert(c->e == sizeof(ulong));
-	if (nbrecv(c, &v) == 0)
+	channelsize(c, sizeof(ulong));
+	if(nbrecv(c, &v) == 0)
 		return 0;
 	return v;
 }
 
 int
-nbsendp(Channel *c, void *v) {
-	threadassert(c->e == sizeof(void *));
+nbsendp(Channel *c, void *v)
+{
+	channelsize(c, sizeof(void*));
 	return nbsend(c, &v);
 }
 
-void *
-nbrecvp(Channel *c) {
-	void * v;
+void*
+nbrecvp(Channel *c)
+{
+	void *v;
 
-	threadassert(c->e == sizeof(void *));
-	if (nbrecv(c, &v) == 0)
+	channelsize(c, sizeof(void*));
+	if(nbrecv(c, &v) == 0)
 		return nil;
 	return v;
+}
+
+static int
+emptyentry(Channel *c)
+{
+	int i, extra;
+
+	assert((c->nentry==0 && c->qentry==nil) || (c->nentry && c->qentry));
+
+	for(i=0; i<c->nentry; i++)
+		if(c->qentry[i]==nil)
+			return i;
+
+	if(i==0)
+		extra=1;
+	else{
+		extra=i;
+		if(extra > 16)
+			extra = 16;
+	}
+	c->nentry += extra;
+	c->qentry = (volatile void*)realloc((void*)c->qentry, c->nentry*sizeof(c->qentry[0]));
+	if(c->qentry == nil)
+		sysfatal("realloc channel entries: %r");
+	memset((void*)&c->qentry[i], 0, extra*sizeof(c->qentry[0]));
+	return i;
+}
+
+static void
+enqueue(Alt *a, Channel **c)
+{
+	int i;
+
+	_threaddebug(DBGCHAN, "Queuing alt %p on channel %p", a, a->c);
+	a->tag = c;
+	i = emptyentry(a->c);
+	a->c->qentry[i] = a;
+}
+
+static void
+dequeue(Alt *a)
+{
+	int i;
+	Channel *c;
+
+	c = a->c;
+	for(i=0; i<c->nentry; i++)
+		if(c->qentry[i]==a){
+			_threaddebug(DBGCHAN, "Dequeuing alt %p from channel %p", a, a->c);
+			c->qentry[i] = nil;
+			return;
+		}
+}
+
+static int
+canexec(Alt *a)
+{
+	int i, otherop;
+	Channel *c;
+
+	c = a->c;
+	/* are there senders or receivers blocked? */
+	otherop = (CHANSND+CHANRCV) - a->op;
+	for(i=0; i<c->nentry; i++)
+		if(c->qentry[i] && c->qentry[i]->op==otherop && *c->qentry[i]->tag==nil){
+			_threaddebug(DBGCHAN, "can rendez alt %p chan %p", a, c);
+			return 1;
+		}
+
+	/* is there room in the channel? */
+	if((a->op==CHANSND && c->n < c->s)
+	|| (a->op==CHANRCV && c->n > 0)){
+		_threaddebug(DBGCHAN, "can buffer alt %p chan %p", a, c);
+		return 1;
+	}
+
+	return 0;
+}
+
+static void*
+altexecbuffered(Alt *a, int willreplace)
+{
+	uchar *v;
+	Channel *c;
+
+	c = a->c;
+	/* use buffered channel queue */
+	if(a->op==CHANRCV && c->n > 0){
+		_threaddebug(DBGCHAN, "buffer recv alt %p chan %p", a, c);
+		v = c->v + c->e*(c->f%c->s);
+		if(!willreplace)
+			c->n--;
+		c->f++;
+		return v;
+	}
+	if(a->op==CHANSND && c->n < c->s){
+		_threaddebug(DBGCHAN, "buffer send alt %p chan %p", a, c);
+		v = c->v + c->e*((c->f+c->n)%c->s);
+		if(!willreplace)
+			c->n++;
+		return v;
+	}
+	abort();
+	return nil;
+}
+
+static void
+altcopy(void *dst, void *src, int sz)
+{
+	if(dst){
+		if(src)
+			memmove(dst, src, sz);
+		else
+			memset(dst, 0, sz);
+	}
+}
+
+static int
+altexec(Alt *a, int spl)
+{
+	volatile Alt *b;
+	int i, n, otherop;
+	Channel *c;
+	void *me, *waiter, *buf;
+
+	c = a->c;
+
+	/* rendezvous with others */
+	otherop = (CHANSND+CHANRCV) - a->op;
+	n = 0;
+	b = nil;
+	me = a->v;
+	for(i=0; i<c->nentry; i++)
+		if(c->qentry[i] && c->qentry[i]->op==otherop && *c->qentry[i]->tag==nil)
+			if(nrand(++n) == 0)
+				b = c->qentry[i];
+	if(b != nil){
+		_threaddebug(DBGCHAN, "rendez %s alt %p chan %p alt %p", a->op==CHANRCV?"recv":"send", a, c, b);
+		waiter = b->v;
+		if(c->s && c->n){
+			/*
+			 * if buffer is full and there are waiters
+			 * and we're meeting a waiter,
+			 * we must be receiving.
+			 *
+			 * we use the value in the channel buffer,
+			 * copy the waiter's value into the channel buffer
+			 * on behalf of the waiter, and then wake the waiter.
+			 */
+			if(a->op!=CHANRCV)
+				abort();
+			buf = altexecbuffered(a, 1);
+			altcopy(me, buf, c->e);
+			altcopy(buf, waiter, c->e);
+		}else{
+			if(a->op==CHANRCV)
+				altcopy(me, waiter, c->e);
+			else
+				altcopy(waiter, me, c->e);
+		}
+		*b->tag = c;	/* commits us to rendezvous */
+		_threaddebug(DBGCHAN, "unlocking the chanlock");
+		unlock(&chanlock);
+		_procsplx(spl);
+		_threaddebug(DBGCHAN, "chanlock is %lud", *(ulong*)&chanlock);
+		while(_threadrendezvous((ulong)b->tag, 0) == ~0)
+			;
+		return 1;
+	}
+
+	buf = altexecbuffered(a, 0);
+	if(a->op==CHANRCV)
+		altcopy(me, buf, c->e);
+	else
+		altcopy(buf, me, c->e);
+
+	unlock(&chanlock);
+	_procsplx(spl);
+	return 1;
 }

@@ -170,7 +170,7 @@ again:
 		fprint(2, "Calibration ok: %P -> %P\n", pts[4], pens[4]);
 	}
 
-	fprint(1, "calibrate='%ld %ld %ld %ld'\n",
+	print("calibrate='%ld %ld %ld %ld'\n",
 		(long)cal.scalex, (long)cal.scaley, (long)cal.transx, (long)cal.transy);
 
 	if (debug)

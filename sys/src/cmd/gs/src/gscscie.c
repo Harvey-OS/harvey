@@ -1,22 +1,22 @@
-/* Copyright (C) 1998, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gscscie.c,v 1.3 2000/09/19 19:00:27 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gscscie.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* CIE color space management */
 #include "math_.h"
 #include "gx.h"
@@ -53,7 +53,7 @@ private cs_proc_adjust_cspace_count(gx_adjust_cspace_CIEDEFG);
 const gs_color_space_type gs_color_space_type_CIEDEFG = {
     gs_color_space_index_CIEDEFG, true, true,
     &st_color_space_CIEDEFG, gx_num_components_4,
-    gx_no_base_space, gx_cspace_not_equal,
+    gx_no_base_space,
     gx_init_CIE, gx_restrict_CIEDEFG,
     gx_concrete_space_CIE,
     gx_concretize_CIEDEFG, NULL,
@@ -69,7 +69,7 @@ private cs_proc_adjust_cspace_count(gx_adjust_cspace_CIEDEF);
 const gs_color_space_type gs_color_space_type_CIEDEF = {
     gs_color_space_index_CIEDEF, true, true,
     &st_color_space_CIEDEF, gx_num_components_3,
-    gx_no_base_space, gx_cspace_not_equal,
+    gx_no_base_space,
     gx_init_CIE, gx_restrict_CIEDEF,
     gx_concrete_space_CIE,
     gx_concretize_CIEDEF, NULL,
@@ -85,7 +85,7 @@ private cs_proc_adjust_cspace_count(gx_adjust_cspace_CIEABC);
 const gs_color_space_type gs_color_space_type_CIEABC = {
     gs_color_space_index_CIEABC, true, true,
     &st_color_space_CIEABC, gx_num_components_3,
-    gx_no_base_space, gx_cspace_not_equal,
+    gx_no_base_space,
     gx_init_CIE, gx_restrict_CIEABC,
     gx_concrete_space_CIE,
     gx_concretize_CIEABC, NULL,
@@ -101,7 +101,7 @@ private cs_proc_adjust_cspace_count(gx_adjust_cspace_CIEA);
 const gs_color_space_type gs_color_space_type_CIEA = {
     gs_color_space_index_CIEA, true, true,
     &st_color_space_CIEA, gx_num_components_1,
-    gx_no_base_space, gx_cspace_not_equal,
+    gx_no_base_space,
     gx_init_CIE, gx_restrict_CIEA,
     gx_concrete_space_CIE,
     gx_concretize_CIEA, NULL,

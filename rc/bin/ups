@@ -1,0 +1,28 @@
+#!/bin/rc
+
+rfork n
+
+# lucent web proxy caches the page; defeat it
+if(! test -d /net.alt/tcp) import achille /net.alt
+
+if(! ~ $#* 1) {
+	echo usage: ups 1ZA41W190338680961 >[1=2]
+	exit usage
+}
+
+rfork e
+hget -x /net.alt 'http://wwwapps.ups.com/etracking/tracking.cgi?track=Track&InquiryNumber1='^$1^ \
+	'&TypeOfInquiryNumber=T' >/tmp/ups.1
+
+cat /tmp/ups.1 |
+x=`{sed -n 's/^<INPUT TYPE="HIDDEN" NAME="([^"]+)" VALUE="([^"]+)">.*/\1=\2/p' |
+tr ' 	' ++}
+x=$"x
+x=`{echo $x | sed 's/ /\&/g'}
+x=$"x
+x=$x^'&tdts1.x=19&tdts1.y=7'
+hget -x /net.alt -p $x http://wwwapps.ups.com/etracking/tracking.cgi >/tmp/ups.2
+</tmp/ups.2 tr -d '' | sed 's/<[^>]*>//g' | 
+	sed 's/\&quot;/"/g;s/\&lt;/</g;s/\&gt;/>/g;s/\&amp;/\&/g;s/\&nbsp;/ /g' | 
+	sed 's/[ 	]*$//' | sed '/Tracking results provided by UPS/q' | uniq
+

@@ -5,10 +5,6 @@
 #include <thread.h>
 #include "9p.h"
 
-struct Fidpool {
-	Intmap	*map;
-};
-
 static void
 incfidref(void *v)
 {
@@ -20,33 +16,36 @@ incfidref(void *v)
 }
 
 Fidpool*
-allocfidpool(void)
+allocfidpool(void (*destroy)(Fid*))
 {
 	Fidpool *f;
 
-	if((f = mallocz(sizeof *f, 1)) == nil)
-		return nil;
-	if((f->map = allocmap(incfidref)) == nil){
-		free(f);
-		return nil;
-	}
+	f = emalloc9p(sizeof *f);
+	f->map = allocmap(incfidref);
+	f->destroy = destroy;
 	return f;
 }
 
+void
+freefidpool(Fidpool *p)
+{
+	freemap(p->map, (void(*)(void*))p->destroy);
+	free(p);
+}
+
 Fid*
-allocfid(Fidpool *fpool, ulong fid)
+allocfid(Fidpool *pool, ulong fid)
 {
 	Fid *f;
 
-	if((f = mallocz(sizeof *f, 1)) == nil)
-		return nil;
-
+	f = emalloc9p(sizeof *f);
 	f->fid = fid;
 	f->omode = -1;
-	f->pool = fpool;
+	f->pool = pool;
 
 	incfidref(f);
-	if(!caninsertkey(fpool->map, fid, f)){
+	incfidref(f);
+	if(caninsertkey(pool->map, fid, f) == 0){
 		closefid(f);
 		return nil;
 	}
@@ -54,41 +53,29 @@ allocfid(Fidpool *fpool, ulong fid)
 	return f;
 }
 
-int
-closefid(Fid *f)
+Fid*
+lookupfid(Fidpool *pool, ulong fid)
 {
-	int n;
-	int fid;
-
-	fid = f->fid;
-	if((n = decref(&f->ref)) == 0) {
-		if(f->file)
-			fclose(f->file);
-		free(f);
-	}
-if(lib9p_chatty)
-	fprint(2, "closefid %d %p: %ld refs\n", fid, f, n ? f->ref.ref : n);
-	return n;
+	return lookupkey(pool->map, fid);
 }
 
 void
-freefid(Fid *f)
+closefid(Fid *f)
 {
-	Fid *nf;
-
-	if(f == nil)
-		return;
-
-	nf = deletekey(f->pool->map, f->fid);
-	assert(f == nf);
-
-	if(closefid(f) == 0)	/* can't be last one; we have one more */
-		abort();
-	closefid(f);
+	if(decref(&f->ref) == 0) {
+		if(f->rdir)
+			closedirfile(f->rdir);
+		if(f->pool->destroy)
+			f->pool->destroy(f);
+		if(f->file)
+			closefile(f->file);
+		free(f->uid);
+		free(f);
+	}
 }
 
 Fid*
-lookupfid(Fidpool *fpool, ulong fid)
+removefid(Fidpool *pool, ulong fid)
 {
-	return lookupkey(fpool->map, fid);
+	return deletekey(pool->map, fid);
 }

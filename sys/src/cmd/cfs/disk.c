@@ -14,19 +14,23 @@ int	icformat(Disk*, ulong);
 int
 dinit(Disk *d, int f, int psize)
 {
-	Dir	dir;
+	Dir	*dir;
 	char	buf[1024];
 	Dalloc	*ba;
+	uvlong	length;
 	ulong	i;
 	Bbuf	*b;
 
 	/*
 	 *  get disk size
 	 */
-	if(dirfstat(f, &dir) < 0){
+	dir = dirfstat(f);
+	if(dir == nil){
 		perror("dinit: stat");
 		return -1;
 	}
+	length = dir->length;
+	free(dir);
 
 	/*
 	 *  read first physical block to get logical block size, number of inodes,
@@ -51,7 +55,7 @@ dinit(Disk *d, int f, int psize)
 		return -1;
 	}
 	d->bsize = ba->bsize;
-	d->nb = dir.length/d->bsize;
+	d->nb = length/d->bsize;
 	d->b2b = (d->bsize - sizeof(Dahdr))*8;
 	d->nab = (d->nb+d->b2b-1)/d->b2b;
 	d->p2b = d->bsize/sizeof(Dptr);
@@ -100,7 +104,8 @@ int
 dformat(Disk *d, int f, char *name, ulong bsize, ulong psize)
 {
 	int	i;
-	Dir	dir;
+	Dir	*dir;
+	uvlong	length;
 	Bbuf	*b;
 	Dalloc	*ba;
 	Dptr	dptr;
@@ -110,14 +115,16 @@ dformat(Disk *d, int f, char *name, ulong bsize, ulong psize)
 	/*
 	 *  calculate basic numbers
 	 */
-	if(dirfstat(f, &dir) < 0)
+	dir = dirfstat(f);
+	if(dir == nil)
 		return -1;
+	length = dir->length;
 	d->bsize = bsize;
 	if((d->bsize % psize) != 0){
 		fprint(2, "cfs: logical bsize not multiple of physical\n");
 		return -1;
 	}
-	d->nb = dir.length/d->bsize;
+	d->nb = length/d->bsize;
 	d->b2b = (d->bsize - sizeof(Dahdr))*8;
 	d->nab = (d->nb+d->b2b-1)/d->b2b;
 	d->p2b = d->bsize/sizeof(Dptr);

@@ -1,7 +1,7 @@
 </$objtype/mkfile
 
 LIBS=common
-PROGS=smtp alias fs ned misc q send scanmail mime ed
+PROGS=smtp alias fs ned misc q send scanmail pop3 ml marshal vf
 #libs must be made first
 DIRS=$LIBS $PROGS
 
@@ -43,6 +43,20 @@ installall:V:
 		mk clean
 	}
 
+safeinstallall:V:
+	for (i in $LIBS) @{
+		cd $i
+		mk installall
+	}
+	for (i in $PROGS) @{
+		cd $i
+		mk safeinstallall
+	}
+	for (i in $DIRS) @{
+		cd $i
+		mk clean
+	}
+
 #
 # setup the mail directories.  this should be done by the administrator since
 # he/she will own everything.  the following files must be altered to reflect
@@ -66,5 +80,7 @@ setup:V:
 	mkdir /mail/queue
 	mkdir /mail/box
 	mkdir /mail/tmp
-	cmhod 777 /mail/queue /mail/box /mail/tmp
+	chmod 777 /mail/queue /mail/box /mail/tmp
+	mkdir /mail/ml
+	chmod 775 /mail/ml
 	cp misc/rewrite misc/qmail misc/remotemail misc/namefiles /mail/lib

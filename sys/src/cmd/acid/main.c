@@ -6,6 +6,8 @@
 #include "acid.h"
 #include "y.tab.h"
 
+extern int _ifmt(Fmt*);
+
 static Biobuf	bioout;
 static char	prog[128];
 static char*	lm[16];
@@ -13,7 +15,7 @@ static int	nlm;
 static char*	mtype;
 
 static	int attachfiles(char*, int);
-int	xconv(va_list*, Fconv*);
+int	xfmt(Fmt*);
 int	isnumeric(char*);
 void	die(void);
 
@@ -27,7 +29,6 @@ usage(void)
 void
 main(int argc, char *argv[])
 {
-	Dir db;
 	Lsym *l;
 	Node *n;
 	char buf[128], *s;
@@ -91,8 +92,8 @@ main(int argc, char *argv[])
 	if(remote)
 		aout = "/mips/bcarrera";
 
-	fmtinstall('x', xconv);
-	fmtinstall('L', Lconv);
+	fmtinstall('x', xfmt);
+	fmtinstall('L', Lfmt);
 	Binit(&bioout, 1, OWRITE);
 	bout = &bioout;
 
@@ -110,7 +111,7 @@ main(int argc, char *argv[])
 
 	loadmodule("/sys/lib/acid/port");
 	for(i = 0; i < nlm; i++) {
-		if(dirstat(lm[i], &db) >= 0)
+		if(access(lm[i], AREAD) >= 0)
 			loadmodule(lm[i]);
 		else {
 			sprint(buf, "/sys/lib/acid/%s", lm[i]);
@@ -240,9 +241,10 @@ loadmodule(char *s)
 void
 readtext(char *s)
 {
-	Dir d;
+	Dir *d;
 	Lsym *l;
 	Value *v;
+	ulong length;
 	Symbol sym;
 	extern Machdata mipsmach;
 
@@ -250,9 +252,13 @@ readtext(char *s)
 		symmap = newmap(0, 1);
 		if(symmap == 0)
 			print("%s: (error) loadmap: cannot make symbol map\n", argv0);
-		if(dirfstat(text, &d) < 0)
-			d.length = 1<<24;
-		setmap(symmap, text, 0, d.length, 0, "binary");
+		length = 1<<24;
+		d = dirfstat(text);
+		if(d != nil){
+			length = d->length;
+			free(d);
+		}
+		setmap(symmap, text, 0, length, 0, "binary");
 		return;
 	}
 
@@ -347,7 +353,7 @@ fatal(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s: %L (fatal problem) %s\n", argv0, buf);
 	exits(buf);
@@ -364,7 +370,7 @@ yyerror(char *fmt, ...)
 		return;
 	}
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%L: %s\n", buf);
 }
@@ -483,24 +489,31 @@ void
 checkqid(int f1, int pid)
 {
 	int fd;
-	Dir d1, d2;
+	Dir *d1, *d2;
 	char buf[128];
 
 	if(kernel)
 		return;
 
-	if(dirfstat(f1, &d1) < 0)
+	d1 = dirfstat(f1);
+	if(d1 == nil)
 		fatal("checkqid: (qid not checked) dirfstat: %r");
 
 	sprint(buf, "/proc/%d/text", pid);
+	SET(d2);
 	fd = open(buf, OREAD);
-	if(fd < 0 || dirfstat(fd, &d2) < 0)
+	if(fd < 0 || (d2 = dirfstat(fd)) == nil)
 		fatal("checkqid: (qid not checked) dirstat %s: %r", buf);
 
 	close(fd);
 
-	if(memcmp(&d1.qid, &d2.qid, sizeof(d2.qid)))
-		print("warning: image does not match text\n");
+	if(d1->qid.path != d2->qid.path || d1->qid.vers != d2->qid.vers || d1->qid.type != d2->qid.type){
+		print("path %llux %llux vers %lud %lud type %d %d\n",
+			d1->qid.path, d2->qid.path, d1->qid.vers, d2->qid.vers, d1->qid.type, d2->qid.type);
+		print("warning: image does not match text for pid %d\n", pid);
+	}
+	free(d1);
+	free(d2);
 }
 
 void
@@ -553,8 +566,8 @@ isnumeric(char *s)
 }
 
 int
-xconv(va_list *arg, Fconv *f)
+xfmt(Fmt *f)
 {
-	f->f3 |= 1<<2;
-	return numbconv(arg, f);
+	f->flags ^= FmtSharp;
+	return _ifmt(f);
 }

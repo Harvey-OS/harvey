@@ -1,0 +1,75 @@
+s=/sys/lib/dist/pc
+x=`{bind -b /sys/lib/dist/bin/$cputype /bin}
+default:V: ndisk
+	ls -l ndisk
+
+SUB=`{ls sub inst}
+boot.bz2:Q: proto $SUB
+	rm -rf boot
+	mkdir boot
+	bind /dev/null /sys/log/timesync
+	# make files writable for now.
+	cat proto | sed 's!d000!d775!;s!000!664!;s!555!775!;s!444!664!' >proto.cp
+	disk/mkfs -a proto.cp | disk/mkext -d boot
+	@{
+		cd boot/386
+		strip init
+		cd bin
+		strip * */* >[2]/dev/null || status=''
+	}
+	cat proto | sed 's!/.*!!' >proto.cp
+	disk/mkfs -a -s boot proto.cp | tee >{wc -c >[1=2]} | 
+		touchfs 1000000000 |
+		bflz -n 32 | bzip2 -9 >$target
+	# rm -rf boot proto.cp
+	ls -l boot.bz2
+
+root.bz2:Q: boot.bz2
+	{
+		echo bzfilesystem
+		cat boot.bz2
+		dd -if /dev/zero -bs 1024 -count 1 >[2]/dev/null
+	} >$target
+	ls -l $target
+
+/sys/src/9/pc/9pcflop.gz: root.bz2
+	@{
+		cd /sys/src/9/pc
+		mk 'CONF=pcflop' 9pcflop.gz
+	}
+
+/sys/src/9/pc/9pccd.gz:
+	@{
+		cd /sys/src/9/pc
+		mk 'CONF=pccd' 9pccd.gz
+	}
+
+9load: /386/9loadlite
+	cp $prereq $target
+	cp /386/9loadlitedebug 9loaddebug
+
+ndisk: 9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
+	dd -if /dev/zero -of ndisk -bs 1024 -count 1440 >[2]/dev/null
+	disk/format -f -b /386/pbs -d ndisk \
+		9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
+	ls -l ndisk
+
+cddisk:D: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb /sys/src/9/pc/9pccd.gz
+	rfork n
+	bind plan9.ini.cd plan9.ini
+	dd -if /dev/zero -of cddisk -bs 1024 -count 2880 >[2]/dev/null
+	disk/format -t 3½QD -f -b /386/pbs -d cddisk \
+		9load /sys/src/9/pc/9pcflop.gz /sys/src/9/pc/9pccd.gz plan9.ini /lib/vgadb
+	ls -l cddisk
+
+clean:V:
+	rm -rf boot boot.bz2 root.bz2 9pcflop ndisk 9load cddisk proto.cp 9loaddebug
+
+install:V: ndisk 9loaddebug
+	cp 9loaddebug ../web.protect
+	cp ndisk ../web.protect/disk
+	#mk clean
+
+test:V: ndisk 9loaddebug
+	cp 9loaddebug ../web.protect/n9loaddebug
+	cp ndisk ../web.protect/ndisk

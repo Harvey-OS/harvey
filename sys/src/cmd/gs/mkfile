@@ -1,6 +1,6 @@
 #
 # This Plan 9 mkfile is for ``easy'' building.
-# It worked for Ghostscript 5.70 - 6.32
+# It worked for Ghostscript 5.70 - 5.91
 #
 # This mkfile consists of two parts: the first part builds the gs executable,
 # the second unpacks the gs distribution and sets configuration parameters.
@@ -41,6 +41,10 @@ DRIVERS=\
 	bj10e\
 	bjc600\
 	bjc800\
+	cdj1600\
+	cdj670\
+	cdj850\
+	cdj890\
 	dfaxlow\
 	epswrite\
 	jpeg\
@@ -61,6 +65,7 @@ DRIVERS=\
 	ppm\
 	ppmraw\
 	pswrite\
+	stcolor\
 	tiffg32d\
 	tiffg3\
 	tiffg4\
@@ -77,8 +82,6 @@ CC=pcc
 CFLAGS=-c -DPlan9 -D_POSIX_SOURCE -D_BSD_EXTENSION\
 	-I. -Isrc -Ijpeg -Izlib -DT$objtype '-DGS_INIT="gs_init.ps"'
 
-# stripping the binary (-s) reduces it from 8MB to 1.5MB
-LDFLAGS=-s
 
 obj/gconfig.$O obj/gconf.$O obj/gscdef.$O\
  obj/gscdefs.$O obj/iconf.$O obj/iconfig.$O: src/gconfig.h
@@ -96,12 +99,12 @@ obj/%.$O:	src/%.c
 #if not, try to use a default header for the target architecture.
 $objtype.h:	$O.genarch
 	if(~ $objtype $cputype) {
-		$O.genarch $target
+		./$O.genarch $target
 		rm -f $O.genarch
 	}
 	if not {
 		if (test -r default.$objtype.h)
-			cp default.$objtype.h $target
+			cp default.$objtype.h $target && chmod 664 $target
 		if not {
 			echo 'no default header file for target architecture'
 			echo 'run mk on the target architecture to build one'

@@ -5,9 +5,9 @@ static struct
 {
 	int	fd;
 	int	consfd;
-	char	name[NAMELEN];
-	Dir	d;
-	Dir	consd;
+	char	*name;
+	Dir	*d;
+	Dir	*consd;
 	Lock;
 } sl =
 {
@@ -38,37 +38,55 @@ syslog(int cons, char *logname, char *fmt, ...)
 	char *ctim, *p;
 	va_list arg;
 	int n;
-	Dir d;
-	char err[ERRLEN];
+	Dir *d;
+	char err[ERRMAX];
 
-	errstr(err);
+	err[0] = '\0';
+	errstr(err, sizeof err);
 	lock(&sl);
 
 	/*
 	 *  paranoia makes us stat to make sure a fork+close
 	 *  hasn't broken our fd's
 	 */
+	d = dirfstat(sl.fd);
 	if(sl.fd < 0
+	   || sl.name == nil
 	   || strcmp(sl.name, logname)!=0
-	   || dirfstat(sl.fd, &d) < 0
-	   || d.dev != sl.d.dev
-	   || d.type != sl.d.type
-	   || d.qid.path != sl.d.qid.path){
-		strncpy(sl.name, logname, NAMELEN-1);
-		_syslogopen();
-		if(sl.fd < 0)
+	   || sl.d == nil
+	   || d == nil
+	   || d->dev != sl.d->dev
+	   || d->type != sl.d->type
+	   || d->qid.path != sl.d->qid.path){
+		free(sl.name);
+		sl.name = strdup(logname);
+		if(sl.name == nil)
 			cons = 1;
-		sl.d = d;
-	}
-	if(cons)
-		if(sl.consfd < 0
-		   || dirfstat(sl.consfd, &d) < 0
-		   || d.dev != sl.consd.dev
-		   || d.type != sl.consd.type
-		   || d.qid.path != sl.consd.qid.path){
-			sl.consfd = open("#c/cons", OWRITE|OCEXEC);
-			sl.consd = d;
+		else{
+			_syslogopen();
+			if(sl.fd < 0)
+				cons = 1;
+			free(sl.d);
+			sl.d = d;
+			d = nil;	/* don't free it */
 		}
+	}
+	free(d);
+	if(cons){
+		d = dirfstat(sl.consfd);
+		if(sl.consfd < 0
+		   || d == nil
+		   || sl.consd == nil
+		   || d->dev != sl.consd->dev
+		   || d->type != sl.consd->type
+		   || d->qid.path != sl.consd->qid.path){
+			sl.consfd = open("#c/cons", OWRITE|OCEXEC);
+			free(sl.consd);
+			sl.consd = d;
+			d = nil;	/* don't free it */
+		}
+		free(d);
+	}
 
 	if(fmt == nil){
 		unlock(&sl);
@@ -82,7 +100,7 @@ syslog(int cons, char *logname, char *fmt, ...)
 	p += 15;
 	*p++ = ' ';
 	va_start(arg, fmt);
-	p = doprint(p, buf+sizeof(buf)-1, fmt, arg);
+	p = vseprint(p, buf+sizeof(buf)-1, fmt, arg);
 	va_end(arg);
 	*p++ = '\n';
 	n = p - buf;

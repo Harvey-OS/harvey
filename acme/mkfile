@@ -7,3 +7,4 @@ all install clean nuke installall:V:
 	@{cd bin/source; mk $target}
 	@{cd mail/src; mk $target}
 	@{cd news/src; mk $target}
+	@{cd wiki/src; mk $target}

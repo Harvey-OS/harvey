@@ -205,6 +205,6 @@ extern	double	sunel(double);
 extern	void	venus(void);
 extern	int	vis(double, double, double, double);
 extern	void	comet(void);
-extern	int	Rconv(va_list*, Fconv*);
-extern	int	Dconv(va_list*, Fconv*);
+extern	int	Rconv(Fmt*);
+extern	int	Dconv(Fmt*);
 extern	double	etdate(long, int, double);

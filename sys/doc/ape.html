@@ -1,0 +1,533 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>APE &#173; The ANSI/POSIX Environment
+</H1>
+<DL><DD><I>Howard Trickey<br>
+howard@plan9.bell-labs.com<br>
+</I></DL>
+<H4>Introduction
+</H4>
+<P>
+When a large or frequently-updated program must be ported
+to or from Plan 9, the ANSI/POSIX environment known as APE can be useful.
+APE combines the set of headers and object code libraries specified by
+the ANSI C standard (ANSI X3.159-1989) with the POSIX operating system
+interface standard (IEEE 1003.1-1990, ISO 9945-1), the part of POSIX
+defining the basic operating system functions.
+Using APE will cause slower compilation and marginally slower execution speeds,
+so if the importing or exporting happens only infrequently, due consideration
+should be given to using the usual Plan 9 compilation environment instead.
+Another factor to consider is that the Plan 9 header organization is
+much simpler to remember and use.
+</P>
+<P>
+There are some aspects of required POSIX behavior that are impossible or
+very hard to simulate in Plan 9.  They are described below.
+Experience has shown, however, that the simulation is adequate for the
+vast majority of programs.  A much more common problem is that
+many programs use functions or headers not defined by POSIX.
+APE has some extensions to POSIX to help in this regard.
+Extensions must be explicitly enabled with an appropriate
+<TT>#define</TT>,
+in order that the APE environment be a good aid for testing
+ANSI/POSIX compliance of programs.
+</P>
+<H4>Pcc
+</H4>
+<P>
+The
+<TT>pcc</TT>
+command acts as a front end to the Plan 9 C compilers and loaders.
+It runs an ANSI C preprocessor over source files, using the APE
+headers to satisfy
+<TT>#include <<I>file</I>></TT>
+directives; then it runs a Plan 9 C compiler; finally, it may load
+with APE libraries to produce an executable program.
+The document
+<I>How to Use the Plan 9 C Compiler</I>
+explains how environment variables are used by convention to
+handle compilation for differing architectures.
+The environment variable
+<TT>$objtype</TT>
+controls which Plan 9 compiler and loader are used by
+<TT>pcc</TT>,
+as well as the location of header and library files.
+For example, if
+<TT>$objtype</TT>
+is
+<TT>mips</TT>,
+then
+<TT>pcc</TT>
+has
+<TT>cpp</TT>
+look for headers in
+<TT>/mips/include/ape</TT>
+followed by
+<TT>/sys/include/ape</TT>;
+then
+<TT>pcc</TT>
+uses
+<TT>vc</TT>
+to create
+<TT>.v</TT>
+object files;
+finally,
+<TT>vl</TT>
+is used to create an executable using libraries in
+<TT>/mips/lib/ape</TT>.
+</P>
+<H4>Psh and Cc
+</H4>
+<P>
+The
+<TT>pcc</TT>
+command is intended for uses where the source code is
+ANSI/POSIX, but the programs are built in the usual Plan 9
+manner &#173; with
+<TT>mk</TT>
+and producing object files with names ending in
+<TT>.v</TT>,
+etc.
+Sometimes it is best to use the standard POSIX
+<TT>make</TT>
+and
+<TT>cc</TT>
+(which produces object files with names ending in
+<TT>.o</TT>,
+and automatically calls the loader unless
+<TT>-c</TT>
+is specified).
+Under these circumstances, execute the command:
+<DL><DT><DD><TT><PRE>
+<TT>ape/psh</TT>
+</PRE></TT></DL>
+This starts a POSIX shell, with an environment that
+includes the POSIX commands
+<TT>ar89</TT>,
+<TT>c89</TT>,
+<TT>cc</TT>,
+<TT>basename</TT>,
+<TT>dirname</TT>,
+<TT>expr</TT>,
+<TT>false</TT>,
+<TT>grep</TT>,
+<TT>kill</TT>,
+<TT>make</TT>,
+<TT>rmdir</TT>,
+<TT>sed</TT>,
+<TT>sh</TT>,
+<TT>stty</TT>,
+<TT>true</TT>,
+<TT>uname</TT>,
+and
+<TT>yacc</TT>.
+There are also a few placeholders for commands that cannot be
+implemented in Plan 9:
+<TT>chown</TT>,
+<TT>ln</TT>,
+and
+<TT>umask</TT>.
+</P>
+<P>
+The
+<TT>cc</TT>
+command accepts the options mandated for
+the POSIX command
+<TT>c89</TT>,
+as specified in the C-Language Development Utilities Option
+annex of the POSIX Shell and Utilities standard.
+It also accepts the following nonstandard options:
+<TT>-v</TT>
+for echoing the commands for each pass to stdout;
+<TT>-A</TT>
+to turn on ANSI prototype warnings;
+<TT>-S</TT>
+to leave assembly language in
+<I>file</I>.s;
+<TT>-Wp,<I>args</I></TT>
+to pass
+<I>args</I>
+to the
+<TT>cpp</TT>;
+<TT>-W0,<I>args</I></TT>
+to pass
+<I>args</I>
+to 2c, etc.;
+and
+<TT>-Wl,<I>args</I></TT>
+to pass
+<I>args</I>
+to 2l, etc.
+</P>
+<P>
+The
+<TT>sh</TT>
+command is pdksh, a mostly POSIX-compliant public domain Korn Shell.
+The Plan 9 implementation does not include
+the emacs and vi editing modes.
+</P>
+<P>
+The
+<TT>stty</TT>
+command only has effect if the
+<TT>ape/ptyfs</TT>
+command has been started to interpose a pseudo-tty interface
+between
+<TT>/dev/cons</TT>
+and the running command.
+None of the distributed commands do this automatically.
+</P>
+<H4>Symbols
+</H4>
+<P>
+The C and POSIX standards require that certain symbols be
+defined in headers.
+They also require that certain other classes of symbols not
+be defined in the headers, and specify certain other
+symbols that may be defined in headers at the discretion
+of the implementation.
+POSIX defines
+<I>feature test macros</I>,
+which are preprocessor symbols beginning with an underscore
+and then a capital letter;  if the program
+<TT>#defines</TT>
+a feature test macro before the inclusion of any headers,
+then it is requesting that certain symbols be visible in the headers.
+The most important feature test macro is
+<TT>_POSIX_SOURCE</TT>:
+when it is defined, exactly the symbols required by POSIX are
+visible in the appropriate headers.
+Consider
+<TT><signal.h></TT>
+for example:
+ANSI defines some names that must be defined in
+<TT><signal.h></TT>,
+but POSIX defines others, such as
+<TT>sigset_t</TT>,
+which are not allowed according to ANSI.
+The solution is to make the additional symbols visible only when
+<TT>_POSIX_SOURCE</TT>
+is defined.
+</P>
+<P>
+To export a program, it helps to know whether it fits
+in one of the following categories:
+</P>
+<DL COMPACT>
+<DT>1.<DD>
+Strictly conforming ANSI C program. It only uses features of the language,
+libraries, and headers explicitly required by the C standard.  It does not
+depend on unspecified, undefined, or implementation-dependent behavior,
+and does not exceed any minimum implementation limit.
+<DT>2.<DD>
+Strictly conforming POSIX program. Similar, but for the POSIX standard as well.
+<DT>3.<DD>
+Some superset of POSIX, with extensions.  Each extension
+is selected by a feature test macro, so it is clear which extensions
+are being used.
+</dl>
+<P>
+With APE, if headers are always included to declare any library functions
+used, then the set of feature test macros defined by a program will
+show which of the above categories the program is in.
+To accomplish this, no symbol is defined in a header if it is not required
+by the C or POSIX standard, and those required by the POSIX standard
+are protected by
+<TT>#ifdef _POSIX_SOURCE</TT>.
+For example,
+<TT><errno.h></TT>
+defines
+<TT>EDOM</TT>,
+<TT>ERANGE</TT>,
+and
+<TT>errno</TT>,
+as required by the C standard.
+The C standard allows more names beginning with
+<TT>E</TT>,
+but our header defines only those unless
+<TT>_POSIX_SOURCE</TT>
+is defined, in which case the symbols required by POSIX are also defined.
+This means that a program that uses
+<TT>ENAMETOOLONG</TT>
+cannot masquerade as a strictly conforming ANSI C program.
+</P>
+<P>
+<TT>Pcc</TT>
+and
+<TT>cc</TT>
+do not predefine any preprocessor symbols except those required by
+the ANSI C standard:
+<TT>__STDC__</TT>,
+<TT>__LINE__</TT>,
+<TT>__FILE__</TT>,
+<TT>__DATE__</TT>,
+and
+<TT>__TIME__</TT>.
+Any others must be defined in the program itself or by using
+<TT>-D</TT>
+on the command line.
+</P>
+<H4>Extensions
+</H4>
+<P>
+The discipline enforced by putting only required
+names in the headers is useful for exporting programs,
+but it gets in the way when importing programs.
+The compromise is to allow additional symbols in headers,
+additional headers, and additional library functions,
+but only under control of extension feature test macros.
+The following extensions are provided; unless otherwise
+specified, the additional library functions are in the
+default APE library.
+</P>
+<DL COMPACT>
+<DT>   -<DD>
+<TT>_LIBG_EXTENSION</TT>.
+This allows the use of the Plan 9 graphics library.
+The functions are as described in the Plan 9 manual (see
+<A href="/magic/man2html/2/graphics"><I>graphics</I>(2))
+</A>except that
+<TT>div</TT>
+had to be renamed
+<TT>ptdiv</TT>.
+Include the
+<TT><libg.h></TT>
+header to declare the needed types and functions.
+<DT>   -<DD>
+<TT>_LIMITS_EXTENSION</TT>.
+POSIX does not require that names such as
+<TT>PATH_MAX</TT>
+and
+<TT>OPEN_MAX</TT>
+be defined in
+<TT><limits.h></TT>,
+but many programs assume they are defined there.
+If
+<TT>_LIMITS_EXTENSION</TT>
+is defined, those names will all be defined when
+<TT><limits.h></TT>
+is included.
+<DT>   -<DD>
+<TT>_BSD_EXTENSION</TT>.
+This extension includes not only Berkeley Unix routines,
+but also a grab bag of other miscellaneous routines often
+found in Unix implementations.
+The extension allows the inclusion of any of:
+<TT><bsd.h></TT>
+for
+<TT>bcopy()</TT>,
+<TT>bcmp()</TT>,
+and similar Berkeley functions;
+<TT><netdb.h></TT>
+for
+<TT>gethostbyname()</TT>,
+etc.,
+and associated structures;
+<TT><select.h></TT>
+for the Berkeley
+<TT>select</TT>
+function and associated types and macros
+for dealing with multiple input sources;
+<TT><sys/ioctl.h></TT>
+for the
+<TT>ioctl</TT>
+function (minimally implemented);
+<TT><sys/param.h></TT>
+for
+<TT>NOFILES_MAX</TT>;
+<TT><sys/pty.h></TT>
+for pseudo-tty support via the
+<TT>ptsname(int)</TT>
+and
+<TT>ptmname(int)</TT>
+functions;
+<TT><sys/resource.h></TT>;
+<TT><sys/socket.h></TT>
+for socket structures, constants, and functions;
+<TT><sys/time.h></TT>
+for definitions of the
+<TT>timeval</TT>
+and
+<TT>timezone</TT>
+structures;
+and
+<TT><sys/uio.h></TT>
+for the
+<TT>iovec</TT>
+structure and the
+<TT>writev</TT>
+and
+<TT>readv</TT>
+functions used for scatter/gather I/O.
+Defining
+<TT>_BSD_EXTENSION</TT>
+also enables various extra definitions in
+<TT><ctype.h></TT>,
+<TT><signal.h></TT>,
+<TT><stdio.h></TT>,
+<TT><unistd.h></TT>,
+<TT><sys/stat.h></TT>,
+and
+<TT><sys/times.h></TT>.
+<DT>   -<DD>
+<TT>_NET_EXTENSION</TT>.
+This extension allows inclusion of
+<TT><libnet.h></TT>,
+which defines the networking functions described in the Plan 9 manual page
+<A href="/magic/man2html/2/dial"><I>dial</I>(2).
+</A><DT>   -<DD>
+<TT>_REGEXP_EXTENSION</TT>.
+This extension allows inclusion of
+<TT><regexp.h></TT>,
+which defines the regular expression matching functions described
+in the Plan 9 manual page
+<A href="/magic/man2html/2/regexp"><I>regexp</I>(2).
+</A><DT>   -<DD>
+<TT>_RESEARCH_SOURCE</TT>.
+This extension enables a small library of functions from the Tenth Edition Unix
+Research System (V10).
+These functions and the types needed to use them are all defined in the
+<TT><libv.h></TT>
+header.
+The provided functions are:
+<TT>srand</TT>,
+<TT>rand</TT>,
+<TT>nrand</TT>,
+<TT>lrand</TT>,
+and
+<TT>frand</TT>
+(better random number generators);
+<TT>getpass</TT>,
+<TT>tty_echoon</TT>,
+<TT>tty_echooff</TT>
+(for dealing with the common needs for mucking with terminal
+characteristics);
+<TT>min</TT>
+and
+<TT>max</TT>;
+<TT>nap</TT>;
+and
+<TT>setfields</TT>,
+<TT>getfields</TT>,
+and
+<TT>getmfields</TT>
+(for parsing a line into fields).
+See the Research Unix System Programmer's Manual, Tenth Edition, for a description
+of these functions.
+</dl>
+<H4>Common Problems
+</H4>
+<P>
+Some large systems, including X11, have been ported successfully
+to Plan 9 using APE
+(the X11 port is not included in the distribution, however,
+because supporting it properly is too big a job).
+The problems encountered fall into three categories:
+(1) non-ANSI C/POSIX features used; (2) inadequate simulation of POSIX functions;
+and (3) compiler/loader bugs.
+By far the majority of problems are in the first category.
+</P>
+<P>
+POSIX is just starting to be a target for programmers.
+Most existing code is written to work with one or both of a BSD or a System V Unix.
+System V is fairly close to POSIX, but there are some differences.
+Also, many System V systems have imported some BSD features that are
+not part of POSIX.
+A good strategy for porting external programs is to first try using
+<TT>CFLAGS=-D_POSIX_SOURCE</TT>;
+if that doesn't work, try adding
+<TT>_D_BSD_EXTENSION</TT>
+and perhaps include
+<TT><bsd.h></TT>
+in source files.
+Here are some solutions to problems that might remain:
+</P>
+<DL COMPACT>
+<DT>   -<DD>
+Third (environment) argument to
+<TT>main</TT>.
+Use the
+<TT>environ</TT>
+global instead.
+<DT>   -<DD>
+<TT>OPEN_MAX</TT>,
+<TT>PATH_MAX</TT>,
+etc., assumed in
+<TT><limits.h></TT>.
+Rewrite to call
+<TT>sysconf</TT>
+or define
+<TT>_LIMITS_EXTENSION</TT>.
+<DT>   -<DD>
+<TT><varargs.h></TT>.
+Rewrite to use
+<TT><stdarg.h></TT>.
+</dl>
+<P>
+The second class of problems has to do with inadequacies in the Plan 9
+simulation of POSIX functions.
+These shortcomings have rarely gotten in the way
+(except, perhaps, for the
+<TT>link</TT>
+problem).
+</P>
+<DL COMPACT>
+<DT>   -<DD>
+Functions for setting the userid, groupid, effective userid and effective groupid
+do not do anything useful.  The concept is impossible to simulate in Plan 9.
+<TT>Chown</TT>
+also does nothing.
+<DT>   -<DD>
+<TT>execlp</TT>
+and the related functions do not look at the
+<TT>PATH</TT>
+environment variable.  They just try the current directory and
+<TT>/bin</TT>
+if the pathname is not absolute.
+<DT>   -<DD>
+Advisory locking via
+<TT>fcntl</TT>
+is not implemented.
+<DT>   -<DD>
+<TT>isatty</TT>
+is hard to do correctly.
+The approximation used is only sometimes correct.
+<DT>   -<DD>
+<TT>link</TT>
+always fails.
+<DT>   -<DD>
+With
+<TT>open</TT>,
+the
+<TT>O_NOCTTY</TT>
+option has no effect.
+The concept of a controlling tty is foreign to Plan 9.
+<DT>   -<DD>
+<TT>setsid</TT>
+forks the name space and note group,
+which is only approximately the right behavior.
+<DT>   -<DD>
+The functions dealing with stacking signals,
+<TT>sigpending</TT>,
+<TT>sigprocmask</TT>
+and
+<TT>sigsuspend</TT>,
+do not work.
+<DT>   -<DD>
+<TT>umask</TT>
+has no effect, as there is no such concept in Plan 9.
+<DT>   -<DD>
+code that does
+<TT>getenv("HOME")</TT>
+should be changed to
+<TT>getenv("home")</TT>
+on Plan 9.
+
+</dl>
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

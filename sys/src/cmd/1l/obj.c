@@ -499,7 +499,7 @@ dosym:
 void
 addlib(char *obj)
 {
-	char name[MAXHIST*NAMELEN], comp[4*NAMELEN], *p;
+	char name[1024], comp[256], *p;
 	int i;
 
 	if(histfrogp <= 0)
@@ -513,12 +513,15 @@ addlib(char *obj)
 		sprint(name, ".");
 		i = 0;
 	} else {
-		sprint(name, "/%s/lib", thestring);
+		if(debug['9'])
+			sprint(name, "/%s/lib", thestring);
+		else
+			sprint(name, "/usr/%clib", thechar);
 		i = 0;
 	}
 
 	for(; i<histfrogp; i++) {
-		snprint(comp, 2*NAMELEN, histfrog[i]->name+1);
+		snprint(comp, sizeof comp, histfrog[i]->name+1);
 		for(;;) {
 			p = strstr(comp, "$O");
 			if(p == 0)
@@ -530,14 +533,14 @@ addlib(char *obj)
 			p = strstr(comp, "$M");
 			if(p == 0)
 				break;
-			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
-			memmove(p, thestring, strlen(thestring));
-			if(strlen(comp) > NAMELEN) {
+			if(strlen(comp)+strlen(thestring)-2+1 >= sizeof comp) {
 				diag("library component too long");
 				return;
 			}
+			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
+			memmove(p, thestring, strlen(thestring));
 		}
-		if(strlen(comp) > NAMELEN || strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
+		if(strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
 			diag("library component too long");
 			return;
 		}

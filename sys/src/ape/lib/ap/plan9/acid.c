@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <lock.h>
 #include <sys/time.h>
-#include <select.h>
+#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -24,8 +24,8 @@
 #include <math.h>
 #include <float.h>
 #include <sys/utsname.h>
-#include "lib.h"
-#include "sys9.h"
+/* #include "lib.h" buf.c below */
+/* #include "sys9.h" buf.c below */
+#include "_buf.c"
 #include "dir.h"
 #include "fcall.h"
-#include "_buf.c"

@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
+#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -74,7 +74,7 @@ number(Mntdir *md, Text *t, Range r, int line, int dir, int size, int *evalp)
 		q1 = 0;
 	Forward:
 		while(line>0 && q1<t->file->nc)
-			if(textreadc(t, q1++) == '\n')
+			if(textreadc(t, q1++) == '\n' || q1==t->file->nc)
 				if(--line > 0)
 					q0 = q1;
 		if(line > 0)
@@ -149,7 +149,7 @@ Range
 address(Mntdir *md, Text *t, Range lim, Range ar, void *a, uint q0, uint q1, int (*getc)(void*, uint),  int *evalp, uint *qp)
 {
 	int dir, size, npat;
-	int prevc, c, n;
+	int prevc, c, nc, n;
 	uint q;
 	Rune *pat;
 	Range r, nr;
@@ -182,10 +182,9 @@ address(Mntdir *md, Text *t, Range lim, Range ar, void *a, uint q0, uint q1, int
 			return r;
 		case '+':
 		case '-':
-			if(*evalp && (prevc=='+' || prevc=='-')){
-				if((*getc)(a, q) != '#')
+			if(*evalp && (prevc=='+' || prevc=='-'))
+				if((nc=(*getc)(a, q))!='#' && nc!='/' && nc!='?')
 					r = number(md, t, r, 1, prevc, Line, evalp);	/* do previous one */
-			}
 			dir = c;
 			break;
 		case '.':
@@ -227,6 +226,9 @@ address(Mntdir *md, Text *t, Range lim, Range ar, void *a, uint q0, uint q1, int
 			dir = None;
 			size = Line;
 			break;
+		case '?':
+			dir = Back;
+			/* fall through */
 		case '/':
 			npat = 0;
 			pat = nil;

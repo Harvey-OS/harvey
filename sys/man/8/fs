@@ -74,7 +74,7 @@ fs, exsort \- file server maintenance
 .B route
 .I subcommand
 .PP
-.BR stat [ acdejklw ]
+.BR stat [ adesw ]
 .PP
 .B stats
 .RB [[ - ]
@@ -193,6 +193,17 @@ Rebuild the list of free blocks
 with all blocks that are not referenced.
 This option is only useful on non-cache/WORM
 file systems.
+If the filesystem was modified, the summary printed
+at the conclusion of the check may not reflect the true
+state of the freelist and may also print a list of
+.I missing
+blocks.
+These
+.I missing
+blocks are actually on the free list and the true
+state of the filesystem can be determined by running
+.I check
+with no arguments.
 .TP
 .B bad
 Each block address that is out of range or duplicate is cleared.
@@ -486,10 +497,10 @@ will enable normal behavior.
 sets the machine's password and writes it in non-volatile RAM.
 .PP
 .I Profile
-.B 0
+.B 1
 clears the profiling buffer and enables profiling;
 .I profile
-.B 1
+.B 0
 stops profiling and writes the data to
 .B /adm/kprofdata
 for use by
@@ -533,24 +544,15 @@ The
 .I stat
 commands are connected with a service or device identified by the
 last character of the name:
-.BR c ,
-Cyclone fiber link;
 .BR d ,
 SCSI targets;
 .BR e ,
-Eagle Ethernet controller;
-.BR j ,
-Jaguar SCSI/VME disk controller;
-.BR l ,
-LANCE Ethernet controller;
+Ethernet controllers;
 .BR w ,
 cached WORM.
 The
-.I Statp
-command prints statistics about processes; an optional argument identifies the
-process to be displayed;
 .I stata
-prints overall statistics about the file system.
+command prints overall statistics about the file system.
 The
 .I stats
 command takes an optional argument identifying the characters

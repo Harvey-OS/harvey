@@ -88,7 +88,7 @@ variable length.
 .PP
 The
 .B type
-field is one of the following characters:
+field is one of the following characters with the high bit set:
 .RS
 .TP
 .B T

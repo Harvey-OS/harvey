@@ -13,7 +13,7 @@ logit(HConnect *c, char *fmt, ...)
 	HSPriv *p;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	p = nil;
 	if(c != nil)
@@ -49,7 +49,7 @@ writelog(HConnect *c, char *fmt, ...)
 	bufp = seprint(bufp, bufe, "RemoteIP: %s\n", p->remotesys);
 	bufp = seprint(bufp, bufe, "Port: %s\n", p->remoteserv);
 	va_start(arg, fmt);
-	bufp = doprint(bufp, bufe, fmt, arg);
+	bufp = vseprint(bufp, bufe, fmt, arg);
 	va_end(arg);
 	if(c->req.uri != nil && c->req.uri[0] != 0)
 		bufp = seprint(bufp, bufe, "FinalURI: %s\n", c->req.uri);

@@ -1,181 +1,143 @@
+#pragma	src	"/sys/src/libauth"
 #pragma	lib	"libauth.a"
 
-typedef struct	Ticket		Ticket;
-typedef struct	Ticketreq	Ticketreq;
-typedef struct	Authenticator	Authenticator;
-typedef struct	Nvrsafe		Nvrsafe;
-typedef struct	Passwordreq	Passwordreq;
+/*
+ * Interface for typical callers.
+ */
+
+typedef struct	AuthInfo	AuthInfo;
 typedef struct	Chalstate	Chalstate;
-typedef struct	Apopchalstate	Apopchalstate;
-typedef struct	Apopchalstate	Cramchalstate;
-typedef struct	VNCchalstate	VNCchalstate;
 typedef struct	Chapreply	Chapreply;
 typedef struct	MSchapreply	MSchapreply;
+typedef struct	UserPasswd	UserPasswd;
+typedef struct	AuthRpc		AuthRpc;
 
 enum
 {
-	DOMLEN=		48,		/* length of an authentication domain name */
-	DESKEYLEN=	7,		/* length of a des key for encrypt/decrypt */
-	CHALLEN=	8,		/* length of a challenge */
-	NETCHLEN=	16,		/* max network challenge length	*/
-	CONFIGLEN=	14,
-	SECRETLEN=	32,		/* max length of a secret */
-	APOPCHLEN=	256,
-	VNCCHLEN=	256,		/* max possible vnc challenge */
+	MAXCHLEN=	256,		/* max challenge length	*/
+	MAXNAMELEN=	256,		/* maximum name length */
 	MD5LEN=		16,
 
-	KEYDBOFF=	8,		/* length of random data at the start of key file */
-	OKEYDBLEN=	NAMELEN+DESKEYLEN+4+2,	/* length of an entry in old key file */
-	KEYDBLEN=	OKEYDBLEN+SECRETLEN,	/* length of an entry in key file */
+	ARok = 0,			/* rpc return values */
+	ARdone,
+	ARerror,
+	ARneedkey,
+	ARbadkey,
+	ARwritenext,
+	ARtoosmall,
+	ARtoobig,
+	ARrpcfailure,
+	ARphase,
+
+	AuthRpcMax = 4096,
 };
 
-/* encryption numberings (anti-replay) */
-enum
+struct AuthRpc
 {
-	AuthTreq=1,	/* ticket request */
-	AuthChal=2,	/* challenge box request */
-	AuthPass=3,	/* change password */
-	AuthOK=4,	/* fixed length reply follows */
-	AuthErr=5,	/* error follows */
-	AuthMod=6,	/* modify user */
-	AuthApop=7,	/* apop authentication for pop3 */
-	AuthOKvar=9,	/* variable length reply follows */
-	AuthChap=10,	/* chap authentication for ppp */
-	AuthMSchap=11,	/* MS chap authentication for ppp */
-	AuthCram=12,	/* CRAM verification for IMAP (RFC2195 & rfc2104) */
-	AuthHttp=13,	/* http domain login */
-	AuthVNC=14,	/* http domain login */
-
-
-	AuthTs=64,	/* ticket encrypted with server's key */
-	AuthTc,		/* ticket encrypted with client's key */
-	AuthAs,		/* server generated authenticator */
-	AuthAc,		/* client generated authenticator */
-	AuthTp,		/* ticket encrypted with client's key for password change */
-	AuthHr,		/* http reply */
+	int afd;
+	char ibuf[AuthRpcMax];
+	char obuf[AuthRpcMax];
+	char *arg;
+	uint narg;
 };
 
-struct Ticketreq
+struct AuthInfo
 {
-	char	type;
-	char	authid[NAMELEN];	/* server's encryption id */
-	char	authdom[DOMLEN];	/* server's authentication domain */
-	char	chal[CHALLEN];		/* challenge from server */
-	char	hostid[NAMELEN];	/* host's encryption id */
-	char	uid[NAMELEN];		/* uid of requesting user on host */
-};
-#define	TICKREQLEN	(3*NAMELEN+CHALLEN+DOMLEN+1)
-
-struct Ticket
-{
-	char	num;			/* replay protection */
-	char	chal[CHALLEN];		/* server challenge */
-	char	cuid[NAMELEN];		/* uid on client */
-	char	suid[NAMELEN];		/* uid on server */
-	char	key[DESKEYLEN];		/* nonce DES key */
-};
-#define	TICKETLEN	(CHALLEN+2*NAMELEN+DESKEYLEN+1)
-
-struct Authenticator
-{
-	char	num;			/* replay protection */
-	char	chal[CHALLEN];
-	ulong	id;			/* authenticator id, ++'d with each auth */
-};
-#define	AUTHENTLEN	(CHALLEN+4+1)
-
-struct Passwordreq
-{
-	char	num;
-	char	old[NAMELEN];
-	char	new[NAMELEN];
-	char	changesecret;
-	char	secret[SECRETLEN];	/* new secret */
-};
-#define	PASSREQLEN	(2*NAMELEN+1+1+SECRETLEN)
-
-struct Nvrsafe
-{
-	char	machkey[DESKEYLEN];
-	uchar	machsum;
-	char	authkey[DESKEYLEN];
-	uchar	authsum;
-	char	config[CONFIGLEN];
-	uchar	configsum;
-	char	authid[NAMELEN];
-	uchar	authidsum;
-	char	authdom[DOMLEN];
-	uchar	authdomsum;
+	char	*cuid;		/* caller id */
+	char	*suid;		/* server id */
+	char	*cap;		/* capability (only valid on server side) */
+	int	nsecret;	/* length of secret */
+	uchar	*secret;	/* secret */
 };
 
 struct Chalstate
 {
-	int	afd;			/* /dev/authenticate */
-	int	asfd;			/* authdial() */
-	char	chal[NETCHLEN];		/* challenge/response */
+	char	*user;
+	char	chal[MAXCHLEN];
+	int	nchal;
+	void	*resp;
+	int	nresp;
+
+/* for implementation only */
+	int	afd;			/* to factotum */
+	AuthRpc	*rpc;			/* to factotum */
+	char	userbuf[MAXNAMELEN];	/* temp space if needed */
+	int	userinchal;		/* user was sent to obtain challenge */
 };
 
-struct Apopchalstate
-{
-	int	afd;			/* /dev/authenticate */
-	int	asfd;			/* authdial() */
-	char	chal[APOPCHLEN];	/* challenge/response */
-};
-
-struct	Chapreply
+struct	Chapreply		/* for protocol "chap" */
 {
 	uchar	id;
-	char	uid[NAMELEN];
 	char	resp[MD5LEN];
 };
 
-struct	MSchapreply
+struct	MSchapreply	/* for protocol "mschap" */
 {
-	char	uid[NAMELEN];
 	char	LMresp[24];		/* Lan Manager response */
 	char	NTresp[24];		/* NT response */
 };
 
-struct VNCchalstate
+struct	UserPasswd
 {
-	int	afd;			/* /dev/authenticate */
-	int	asfd;			/* authdial() */
-	uchar	chal[VNCCHLEN];		/* challenge/response */
-	int	challen;
+	char	*user;
+	char	*passwd;
 };
 
-extern	int	convT2M(Ticket*, char*, char*);
-extern	void	convM2T(char*, Ticket*, char*);
-extern	void	convM2Tnoenc(char*, Ticket*);
-extern	int	convA2M(Authenticator*, char*, char*);
-extern	void	convM2A(char*, Authenticator*, char*);
-extern	int	convTR2M(Ticketreq*, char*);
-extern	void	convM2TR(char*, Ticketreq*);
-extern	int	convPR2M(Passwordreq*, char*, char*);
-extern	void	convM2PR(char*, Passwordreq*, char*);
-extern	uchar	nvcsum(void*, int);
-extern	int	opasstokey(char*, char*);
-extern	int	passtokey(char*, char*);
-extern	int	authenticate(int, int);
 extern	int	newns(char*, char*);
 extern	int	addns(char*, char*);
-extern	int	authdial(void);
-extern	int	auth(int);
-extern	int	authnonce(int, uchar*);
-extern	int	srvauth(int, char*);
-extern	int	srvauthnonce(int, char*, uchar*);
-extern	int	getchal(Chalstate*, char*);
-extern	int	chalreply(Chalstate*, char*);
-extern	int	amount(int, char*, int, char*);
-extern	int	apopchal(Apopchalstate*);
-extern	int	apopreply(Apopchalstate*, char*, char*);
-extern	int	vncchal(VNCchalstate*, char*);
-extern	int	vncreply(VNCchalstate*, uchar*);
-extern	int	cramchal(Cramchalstate*);
-extern	int	cramreply(Cramchalstate*, char*, char*);
-extern	int	login(char*, char*, char*);
-extern	int	sslnegotiate(int, Ticket*, char**, char**);
-extern	int	srvsslnegotiate(int, Ticket*, char**, char**);
-extern	int	httpauth(char*, char*);
-extern	int	noworld(char*);
 
+extern	int	noworld(char*);
+extern	int	amount(int, char*, int, char*);
+
+/* these two may get generalized away -rsc */
+extern	int	login(char*, char*, char*);
+extern	int	httpauth(char*, char*);
+
+typedef struct Attr Attr;
+typedef struct String String;
+enum {
+	AttrNameval,		/* name=val -- when matching, must have name=val */
+	AttrQuery,		/* name? -- when matching, must be present */
+	AttrDefault,		/* name:=val -- when matching, if present must match INTERNAL */
+};
+struct Attr
+{
+	int type;
+	Attr *next;
+	String *name;
+	String *val;
+};
+
+typedef int AuthGetkey(char*);
+
+int	_attrfmt(Fmt*);
+Attr	*_copyattr(Attr*);
+Attr	*_delattr(Attr*, char*);
+Attr	*_findattr(Attr*, char*);
+void	_freeattr(Attr*);
+Attr	*_mkattr(int, char*, char*, Attr*);
+Attr	*_parseattr(char*);
+char	*_str_findattr(Attr*, char*);
+#pragma varargck type "A" Attr*
+
+extern AuthInfo*	fauth_proxy(int, AuthRpc *rpc, AuthGetkey *getkey, char *params);
+extern AuthInfo*	auth_proxy(int fd, AuthGetkey *getkey, char *fmt, ...);
+extern int		auth_getkey(char*);
+extern int		(*amount_getkey)(char*);
+extern void		auth_freeAI(AuthInfo *ai);
+extern int		auth_chuid(AuthInfo *ai, char *ns);
+extern Chalstate	*auth_challenge(char*, ...);
+extern AuthInfo*	auth_response(Chalstate*);
+extern int		auth_respond(void*, uint, char*, uint, void*, uint, AuthGetkey *getkey, char*, ...);
+extern void		auth_freechal(Chalstate*);
+extern AuthInfo*	auth_userpasswd(char *user, char *passwd);
+extern UserPasswd*	auth_getuserpasswd(AuthGetkey *getkey, char*, ...);
+extern AuthInfo*	auth_getinfo(AuthRpc *rpc);
+extern AuthRpc*		auth_allocrpc(int afd);
+extern Attr*		auth_attr(AuthRpc *rpc);
+extern void		auth_freerpc(AuthRpc *rpc);
+extern uint		auth_rpc(AuthRpc *rpc, char *verb, void *a, int n);
+#pragma varargck argpos auth_proxy 3
+#pragma varargck argpos auth_challenge 1
+#pragma varargck argpos auth_respond 3
+#pragma varargck argpos auth_getuserpasswd 2

@@ -7,8 +7,13 @@
 #include <libc.h>
 #include <bio.h>
 #include "httpd.h"
+#include "httpsrv.h"
 
 #define LOG "wiki"
+
+HConnect *hc;
+HSPriv *hp;
+
 
 /* go from possibly-latin1 url with escapes to utf */
 char *
@@ -19,7 +24,7 @@ _urlunesc(char *s)
 	int c, n;
 
 	/* unescape */
-	u = halloc(strlen(s)+1);
+	u = halloc(hc, strlen(s)+1);
 	for(t = u; c = *s; s++){
 		if(c == '%'){
 			n = s[1];
@@ -49,7 +54,7 @@ _urlunesc(char *s)
 	*t = 0;
 
 	/* latin1 heuristic */
-	v = halloc(UTFmax*strlen(u) + 1);
+	v = halloc(hc, UTFmax*strlen(u) + 1);
 	s = u;
 	t = v;
 	while(*s){
@@ -110,62 +115,65 @@ unhttp(char *s)
 }
 
 void
-mountwiki(Connect *c, char *service)
+mountwiki(HConnect *c, char *service)
 {
-	char buf[2*NAMELEN];
+	char buf[64];
 	int fd;
 
 	snprint(buf, sizeof buf, "/srv/wiki.%s", service);
 	if((fd = open(buf, ORDWR)) < 0){
-		syslog(0, LOG, "%s open %s failed: %r", buf, c->remotesys);
-		fail(c, NotFound);
+		syslog(0, LOG, "%s open %s failed: %r", buf, hp->remotesys);
+		hfail(c, HNotFound);
 		exits("failed");
 	}
-	if(mount(fd, "/mnt/wiki", MREPL, "") < 0){
-		syslog(0, LOG, "%s mount /mnt/wiki failed: %r", c->remotesys);
-		fail(c, NotFound);
+	if(mount(fd, -1, "/mnt/wiki", MREPL, "") < 0){
+		syslog(0, LOG, "%s mount /mnt/wiki failed: %r", hp->remotesys);
+		hfail(c, HNotFound);
 		exits("failed");
 	}
 	close(fd);
 }
 
 char*
-dowiki(Connect *c, char *title, char *author, char *comment, char *base, ulong version, char *text)
+dowiki(HConnect *c, char *title, char *author, char *comment, char *base, ulong version, char *text)
 {
 	int fd, l, n, err;
-	char *p, tmp[40];
+	char *p, tmp[256];
+int i;
 
 	if((fd = open("/mnt/wiki/new", ORDWR)) < 0){
-		syslog(0, LOG, "%s open /mnt/wiki/new failed: %r", c->remotesys);
-		fail(c, NotFound);
+		syslog(0, LOG, "%s open /mnt/wiki/new failed: %r", hp->remotesys);
+		hfail(c, HNotFound);
 		exits("failed");
 	}
 
-	if(fprint(fd, "%s\nD%lud\nA%s (%s)\n", title, version, author, c->remotesys) < 0
-	|| (comment && comment[0] && fprint(fd, "C%s\n", comment) < 0)
-	|| fprint(fd, "\n") < 0
-	|| (text[0] && write(fd, text, strlen(text)) != strlen(text))){
-		syslog(0, LOG, "%s write failed: %r", c->remotesys);
-		fail(c, Internal);
+i=0;
+	if((i++,fprint(fd, "%s\nD%lud\nA%s (%s)\n", title, version, author, hp->remotesys) < 0)
+	|| (i++,(comment && comment[0] && fprint(fd, "C%s\n", comment) < 0))
+	|| (i++,fprint(fd, "\n") < 0)
+	|| (i++,(text[0] && (n=write(fd, text, strlen(text))) != strlen(text)))){
+		syslog(0, LOG, "%s write failed %d %ld fd %d: %r", hp->remotesys, i, strlen(text), fd);
+		hfail(c, HInternal);
 		exits("failed");
 	}
 
 	err = write(fd, "", 0);
 	if(err)
-		syslog(0, LOG, "%s commit failed %d: %r", c->remotesys, err);
+		syslog(0, LOG, "%s commit failed %d: %r", hp->remotesys, err);
 
 	seek(fd, 0, 0);
 	if((n = read(fd, tmp, sizeof(tmp)-1)) <= 0){
-		syslog(0, LOG, "%s read failed: %r", c->remotesys);
-		fail(c, Internal);
+		if(n == 0)
+			werrstr("short read");
+		syslog(0, LOG, "%s read failed: %r", hp->remotesys);
+		hfail(c, HInternal);
 		exits("failed");
 	}
 
 	tmp[n] = '\0';
-	n = atoi(tmp);
 
-	p = halloc(l=strlen(base)+40);
-	snprint(p, l, "%s/%d/%s.html", base, n, err ? "werror" : "index");
+	p = halloc(c, l=strlen(base)+strlen(tmp)+40);
+	snprint(p, l, "%s/%s/%s.html", base, tmp, err ? "werror" : "index");
 	return p;
 }
 
@@ -173,54 +181,55 @@ dowiki(Connect *c, char *title, char *author, char *comment, char *base, ulong v
 void
 main(int argc, char **argv)
 {
-	Connect *c;
 	Hio *hin, *hout;
 	char *s, *t, *p, *f[10];
 	char *text, *title, *service, *base, *author, *comment, *url;
 	int i, nf;
 	ulong version;
 
-	c = init(argc, argv);
+	hc = init(argc, argv);
+	hp = hc->private;
 
-	if(dangerous(c->req.uri)){
-		fail(c, Syntax);
+	if(dangerous(hc->req.uri)){
+		hfail(hc, HSyntax);
 		exits("failed");
 	}
 
-	if(httpheaders(c) < 0)
+	if(hparseheaders(hc, HSTIMEOUT) < 0)
 		exits("failed");
-	hout = &c->hout;
-	if(c->head.expectother){
-		fail(c, ExpectFail, nil);
+	hout = &hc->hout;
+	if(hc->head.expectother){
+		hfail(hc, HExpectFail, nil);
 		exits("failed");
 	}
-	if(c->head.expectcont){
+	if(hc->head.expectcont){
 		hprint(hout, "100 Continue\r\n");
 		hprint(hout, "\r\n");
 		hflush(hout);
 	}
 
 	s = nil;
-	if(strcmp(c->req.meth, "POST") == 0){
-		hin = hbodypush(&c->hin, c->head.contlen, c->head.transenc);
+	if(strcmp(hc->req.meth, "POST") == 0){
+		hin = hbodypush(&hc->hin, hc->head.contlen, hc->head.transenc);
 		if(hin != nil){
 			alarm(15*60*1000);
 			s = hreadbuf(hin, hin->pos);
 			alarm(0);
 		}
 		if(s == nil){
-			fail(c, BadReq, nil);
+			hfail(hc, HBadReq, nil);
 			exits("failed");
 		}
 		t = strchr(s, '\n');
 		if(t != nil)
 			*t = '\0';
 	}else{
-		unallowed(c, "GET, HEAD, PUT");
+		hunallowed(hc, "GET, HEAD, PUT");
 		exits("unallowed");
+	}
 
 	if(s == nil){
-		fail(c, NoData, "wiki");
+		hfail(hc, HNoData, "wiki");
 		exits("failed");
 	}
 
@@ -253,7 +262,7 @@ main(int argc, char **argv)
 	}
 
 	syslog(0, LOG, "%s post s %s t '%s' v %ld a %s c %s b %s t 0x%p",
-		c->remotesys, service, title, (long)version, author, comment, base, text);
+		hp->remotesys, service, title, (long)version, author, comment, base, text);
 
 	title = unhttp(title);
 	comment = unhttp(comment);
@@ -264,20 +273,20 @@ main(int argc, char **argv)
 
 	if(title==nil || version==~0 || text==nil || text[0]=='\0' || base == nil 
 	|| service == nil || strchr(title, '\n') || strchr(comment, '\n')
-	|| dangerous(service) || strchr(service, '/') || strlen(service)>NAMELEN){
-		syslog(0, LOG, "%s failed dangerous", c->remotesys);
-		fail(c, Syntax);
+	|| dangerous(service) || strchr(service, '/') || strlen(service)>20){
+		syslog(0, LOG, "%s failed dangerous", hp->remotesys);
+		hfail(hc, HSyntax);
 		exits("failed");
 	}
 
 	syslog(0, LOG, "%s post s %s t '%s' v %ld a %s c %s",
-		c->remotesys, service, title, (long)version, author, comment);
+		hp->remotesys, service, title, (long)version, author, comment);
 
 	if(strlen(text) > MaxLog)
 		text[MaxLog] = '\0';
 
-	mountwiki(c, service);
-	url = dowiki(c, title, author, comment, base, version, text);
-	redirected(c, "303 See Other", url);
+	mountwiki(hc, service);
+	url = dowiki(hc, title, author, comment, base, version, text);
+	hredirected(hc, "303 See Other", url);
 	exits(nil);
 }

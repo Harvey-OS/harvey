@@ -3,7 +3,7 @@
 #include <auth.h>
 #include <fcall.h>
 #include <thread.h>
-#include "9p.h"
+#include <9p.h>
 
 enum {
 	NHASH = 128
@@ -40,7 +40,7 @@ allocmap(void (*inc)(void*))
 {
 	Intmap *m;
 
-	m = mallocz(sizeof(Intmap), 1);
+	m = emalloc9p(sizeof(*m));
 	if(inc == nil)
 		inc = nop;
 	m->inc = inc;
@@ -48,8 +48,21 @@ allocmap(void (*inc)(void*))
 }
 
 void
-freemap(Intmap *map)
+freemap(Intmap *map, void (*destroy)(void*))
 {
+	int i;
+	Intlist *p, *nlink;
+
+	if(destroy == nil)
+		destroy = nop;
+	for(i=0; i<NHASH; i++){
+		for(p=map->hash[i]; p; p=nlink){
+			nlink = p->link;
+			destroy(p->aux);
+			free(p);
+		}
+	}
+			
 	free(map);
 }
 
@@ -97,13 +110,10 @@ insertkey(Intmap *map, ulong id, void *v)
 	if(f = *llookup(map, id)){
 		/* no decrement for ov because we're returning it */
 		ov = f->aux;
-		map->inc(v);
 		f->aux = v;
-	}else if((f = mallocz(sizeof *f, 1)) == nil)
-		ov = nil;
-	else{
+	}else{
+		f = emalloc9p(sizeof(*f));
 		f->id = id;
-		map->inc(v);
 		f->aux = v;
 		h = hashid(id);
 		f->link = map->hash[h];
@@ -124,11 +134,9 @@ caninsertkey(Intmap *map, ulong id, void *v)
 	wlock(map);
 	if(*llookup(map, id))
 		rv = 0;
-	else if((f = mallocz(sizeof *f, 1)) == nil)
-		rv = 0;
 	else{
+		f = emalloc9p(sizeof *f);
 		f->id = id;
-		map->inc(v);
 		f->aux = v;
 		h = hashid(id);
 		f->link = map->hash[h];
@@ -147,12 +155,10 @@ deletekey(Intmap *map, ulong id)
 
 	wlock(map);
 	if(f = *(lf = llookup(map, id))){
-		/* no decrement because we're returning it */
 		ov = f->aux;
 		*lf = f->link;
 		free(f);
-	}
-	else
+	}else
 		ov = nil;
 	wunlock(map);
 	return ov;

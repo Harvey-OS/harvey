@@ -577,11 +577,15 @@ setsource(char *name, int fd, char *str)
 		s->inp = s->inb;
 		strncpy((char *)s->inp, str, len);
 	} else {
-		Dir d;
+		Dir *d;
 		int junk;
-		if (dirfstat(fd, &d) < 0)
-			d.length = 0;
-		junk = d.length;
+		ulong length = 0;
+		d = dirfstat(fd);
+		if (d != nil) {
+			length = d->length;
+			free(d);
+		}
+		junk = length;
 		if (junk<INS)
 			junk = INS;
 		s->inb = domalloc((junk)+4);

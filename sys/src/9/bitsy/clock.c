@@ -9,17 +9,38 @@
 
 typedef struct OSTimer
 {
-	ulong	osmr[4];	/* match registers */
-	ulong	oscr;		/* counter register */
-	ulong	ossr;		/* status register */
-	ulong	ower;		/* watchdog enable register */
-	ulong	oier;		/* timer interrupt enable register */
+	ulong		osmr[4];	/* match registers */
+	volatile ulong	oscr;		/* counter register */
+	ulong		ossr;		/* status register */
+	ulong		ower;	/* watchdog enable register */
+	ulong		oier;		/* timer interrupt enable register */
 } OSTimer;
 
-static OSTimer *timerregs = (OSTimer*)OSTIMERREGS;
+OSTimer *timerregs = (OSTimer*)OSTIMERREGS;
 static int clockinited;
 
-static void	clockintr(Ureg*, void*);
+static void		clockintr(Ureg*, void*);
+static uvlong	when;	/* scheduled time of next interrupt */
+
+long	timeradjust;
+
+enum
+{
+	Minfreq = ClockFreq/HZ,		/* At least one interrupt per HZ (50 ms) */
+	Maxfreq = ClockFreq/10000,	/* At most one interrupt every 100 µs */
+};
+
+void
+clockpower(int on)
+{
+
+	if (on){
+		timerregs->ossr |= 1<<0;
+		timerregs->oier = 1<<0;
+		timerregs->osmr[0] = timerregs->oscr + Minfreq;
+	}
+	clockinited = on;
+}
 
 void
 clockinit(void)
@@ -47,7 +68,10 @@ clockinit(void)
 		(id>>16)&0xff, (id>>4)&0xfff, id&0xf);
 
 	/* post interrupt 1/HZ secs from now */
-	timerregs->osmr[0] = timerregs->oscr + ClockFreq/HZ;
+	when = timerregs->oscr + Minfreq;
+	timerregs->osmr[0] = when;
+
+	timersinit();
 
 	clockinited = 1;
 }
@@ -56,10 +80,10 @@ clockinit(void)
  *  us at least once a second and we overflow once every 1165
  *  seconds, we won't miss an overflow.
  */
-vlong
+uvlong
 fastticks(uvlong *hz)
 {
-	static vlong high;
+	static uvlong high;
 	static ulong last;
 	ulong x;
 
@@ -72,17 +96,32 @@ fastticks(uvlong *hz)
 	return high+x;
 }
 
+void
+timerset(uvlong v)
+{
+	ulong next, tics;	/* Must be unsigned! */
+	static int count;
+
+	next = v;
+
+	/* post next interrupt: calculate # of tics from now */
+	tics = next - timerregs->oscr - Maxfreq;
+	if (tics > Minfreq){
+		timeradjust++;
+		next = timerregs->oscr + Maxfreq;
+	}
+	timerregs->osmr[0] = next;
+}
+
 static void
 clockintr(Ureg *ureg, void*)
 {
 	/* reset previous interrupt */
 	timerregs->ossr |= 1<<0;
+	when += Minfreq;
+	timerregs->osmr[0] = when;	/* insurance */
 
-	/* post interrupt 1/HZ secs from now */
-	timerregs->osmr[0] = timerregs->oscr + ClockFreq/HZ;
-
-	drawactive(0);	/* screen saver */
-	portclock(ureg);
+	timerintr(ureg, when);
 }
 
 void
@@ -106,14 +145,15 @@ delay(int ms)
 }
 
 void
-µdelay(int µs)
+µdelay(ulong µs)
 {
 	ulong start;
 	int i;
 
+	µs++;
 	if(clockinited){
 		start = timerregs->oscr;
-		while(timerregs->oscr - start < (µs*ClockFreq)/1000000)
+		while(timerregs->oscr - start < 1UL+(µs*ClockFreq)/1000000UL)
 			;
 	} else {
 		while(µs-- > 0){
@@ -121,4 +161,17 @@ void
 				;
 		}
 	}
+}
+
+ulong
+TK2MS(ulong ticks)
+{
+	uvlong t, hz;
+
+	t = ticks;
+	hz = HZ;
+	t *= 1000L;
+	t = t/hz;
+	ticks = t;
+	return ticks;
 }

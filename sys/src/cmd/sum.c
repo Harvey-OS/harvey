@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 
-typedef ulong	Sumfn(ulong, void*, int);
+typedef ulong	Sumfn(ulong, void*, uvlong);
 extern Sumfn	sumr, sum5, sum32;
 char		*sumfile(char*, Sumfn*);
 
@@ -44,12 +44,12 @@ sumfile(char *file, Sumfn *fn)
 	int fd;
 	int n;
 	ulong sum;
-	int fsize;
+	uvlong fsize;
 	char buf[8*1024];
 
 	if(file){
 		if((fd = open(file, OREAD)) < 0){
-			errstr(buf);
+			errstr(buf, sizeof buf);
 			fprint(2, "%s: %s: %s\n", argv0, file, buf);
 			return "can't open";
 		}
@@ -62,7 +62,7 @@ sumfile(char *file, Sumfn *fn)
 		sum = (*fn)(sum, buf, n);
 	}
 	if(n < 0){
-		errstr(buf);
+		errstr(buf, sizeof buf);
 		fprint(2, "%s: %s: read error: %s\n", argv0, file? file:"<stdin>", buf);
 		if(file)
 			close(fd);
@@ -80,15 +80,17 @@ sumfile(char *file, Sumfn *fn)
 #define	VBSIZE		512		/* system v */
 
 ulong
-sum5(ulong sum, void *buf, int n)
+sum5(ulong sum, void *buf, uvlong uvn)
 {
 	uchar *s, *send;
+	int n;
 
 	if(buf == 0){
 		sum = ((sum>>16)+sum) & 0xFFFF;
-		print("%.5lud%6d", sum, (n+(VBSIZE-1))/VBSIZE);
+		print("%.5lud%6lld", sum, (uvn+(VBSIZE-1))/VBSIZE);
 		return 0;
 	}
+	n = uvn;
 	for(s=buf, send=s+n; s<send; s++)
 		sum += 0xffff & *s;
 	return sum;
@@ -97,15 +99,17 @@ sum5(ulong sum, void *buf, int n)
 #define	RBSIZE		1024		/* research */
 
 ulong
-sumr(ulong sum, void *buf, int n)
+sumr(ulong sum, void *buf, uvlong uvn)
 {
 	uchar *s, *send;
+	int n;
 
 	if(buf == 0){
 		sum &= 0xFFFF;
-		print("%.5lud%6d", sum, (n+(RBSIZE-1))/RBSIZE);
+		print("%.5lud%6lld", sum, (uvn+(RBSIZE-1))/RBSIZE);
 		return 0;
 	}
+	n = uvn;
 	for(s=buf, send=s+n; s<send; s++)
 		if(sum & 1)
 			sum = 0xffff & ((sum>>1)+*s+0x8000);
@@ -117,11 +121,13 @@ sumr(ulong sum, void *buf, int n)
 extern ulong crc_table[256];
 
 ulong
-sum32(ulong lcrc, void *buf, int n)
+sum32(ulong lcrc, void *buf, uvlong uvn)
 {
 	uchar *s = buf;
 	ulong crc = lcrc;
+	int n;
 
+	n = uvn;
 	if(buf == 0){
 		char x[4];
 
@@ -130,7 +136,7 @@ sum32(ulong lcrc, void *buf, int n)
 		x[2] = (n>>8)^0xCC;
 		x[3] = (n)^0x55;
 		crc = sum32(lcrc, x, 4);
-		print("%.8lux %6d", crc, n);
+		print("%.8lux %6lld", crc, uvn);
 		return 0;
 	}
 	while(n-- > 0)

@@ -1,0 +1,11 @@
+PCCFILES=`{builtin cd ../pc;echo *.c | sed 's/ /|/g; s/\.c//g'}
+PCSFILES=`{builtin cd ../pc;echo *.s | sed 's/ /|/g; s/\.s//g'}
+^($PCCFILES)\.$O:R:	'../pc/\1.c'
+	$CC $CFLAGS ../pc/$stem1.c
+
+^($PCSFILES)\.$O:R:	'../pc/\1.s'
+	$AS ../pc/$stem1.s
+
+$ETHER:	../pc/etherif.h
+
+dosfs.$O nvr.$O:	../pc/dosfs.h

@@ -4,14 +4,13 @@ telnetd, rlogind, rexexec, ftpd, imap4d \- Internet remote access daemons
 .SH SYNOPSIS
 .PP
 .B ip/telnetd
-.RB [ -adnpt ]
+.RB [ -adnptN ]
 .RB [ -u
 .IR user ]
 .PP
 .B ip/rlogind
 .PP
 .B ip/rexexec
-.RB [ -a ]
 .PP
 .B ip/ftpd
 .RB [ -adp ]
@@ -92,6 +91,9 @@ trusted, that is, don't authenticate
 use
 .I user
 as the local account name
+.TP
+.B N
+permit connections by `noworld' users only.
 .PD
 .PP
 .I Rlogind
@@ -105,13 +107,7 @@ after completing its initial handshake.
 .I Rexexec
 executes a command locally for a remote client.  It uses the
 standard Plan 9 authentication (see
-.IR auth (6)).
-Its only option:
-.TP
-.BR a
-allow anonymous access by
-.BR none .
-.PD
+.IR authsrv (6)).
 .PP
 .I Ftpd
 runs the Internet file transfer protocol.  Users may transfer

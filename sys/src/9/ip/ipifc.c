@@ -173,6 +173,7 @@ ipifcunbind(Ipifc *ifc)
 		(*ifc->m->unbind)(ifc);
 	memset(ifc->dev, 0, sizeof(ifc->dev));
 	ifc->arg = nil;
+	ifc->reassemble = 0;
 
 	/* hangup queues to stop queuing of packets */
 	qhangup(ifc->conv->rq, "unbind");
@@ -288,6 +289,7 @@ ipifccreate(Conv *c)
 	ifc->conv = c;
 	ifc->unbinding = 0;
 	ifc->m = nil;
+	ifc->reassemble = 0;
 }
 
 /* 
@@ -405,9 +407,9 @@ ipifcadd(Ipifc *ifc, char **argv, int argc)
 		type |= Rptpt;
 	}
 	if(isv4(ip))
-		v4addroute(f, tifc, rem+IPv4off, mask+IPv4off, ip+IPv4off, type);
+		v4addroute(f, tifc, rem+IPv4off, mask+IPv4off, rem+IPv4off, type);
 	else
-		v6addroute(f, tifc, rem, mask, ip, type);
+		v6addroute(f, tifc, rem, mask, rem, type);
 
 	addselfcache(f, ifc, lifc, ip, Runi);
 
@@ -502,6 +504,8 @@ ipifcrem(Ipifc *ifc, char **argv, int argc, int dolock)
 			wunlock(ifc);
 		return "address not on this interface";
 	}
+
+	ifc->ifcid++;
 
 	/* disassociate any addresses */
 	while(lifc->link)
@@ -634,7 +638,10 @@ ipifcctl(Conv* c, char**argv, int argc)
 		return ipifcleavemulti(ifc, argv, argc);
 	else if(strcmp(argv[0], "mtu") == 0)
 		return ipifcsetmtu(ifc, argv, argc);
-	else if(strcmp(argv[0], "iprouting") == 0){
+	else if(strcmp(argv[0], "reassemble") == 0){
+		ifc->reassemble = 1;
+		return nil;
+	} else if(strcmp(argv[0], "iprouting") == 0){
 		i = 1;
 		if(argc > 1)
 			i = atoi(argv[1]);
@@ -875,31 +882,29 @@ out:
 }
 
 static char *stformat = "%-32.32I %2.2d %4.4s\n";
-enum
-{
-	Nstformat= 41,
-};
 
 long
 ipselftabread(Fs *f, char *cp, ulong offset, int n)
 {
-	int i, m, nifc;
+	int i, m, nifc, off;
 	Ipself *p;
 	Iplink *link;
 	char state[8];
 
 	m = 0;
+	off = offset;
 	qlock(f->self);
 	for(i = 0; i < NHASH && m < n; i++){
 		for(p = f->self->hash[i]; p != nil && m < n; p = p->next){
-			if(offset == 0){
-				nifc = 0;
-				for(link = p->link; link; link = link->selflink)
-					nifc++;
-				routetype(p->type, state);
-				m += snprint(cp + m, n - m, stformat, p->a, nifc, state);
+			nifc = 0;
+			for(link = p->link; link; link = link->selflink)
+				nifc++;
+			routetype(p->type, state);
+			m += snprint(cp + m, n - m, stformat, p->a, nifc, state);
+			if(off > 0){
+				off -= m;
+				m = 0;
 			}
-			offset -= Nstformat;
 		}
 	}
 	qunlock(f->self);

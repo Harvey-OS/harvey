@@ -160,7 +160,7 @@ and
 converts the number into a printable message.
 .I FlateOk
 is defined to be zero,
-the sucessful return value for
+the successful return value for
 .IR deflateinit ,
 .IR deflate ,
 .IR deflatezlib ,

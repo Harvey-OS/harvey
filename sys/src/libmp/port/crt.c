@@ -4,7 +4,7 @@
 
 // chinese remainder theorem
 //
-// handbook of applied cryptography, menezes et al, pp 610 - 613
+// handbook of applied cryptography, menezes et al, 1997, pp 610 - 613
 
 struct CRTpre
 {
@@ -24,6 +24,8 @@ crtpre(int n, mpint **m)
 	mpint *u;
 
 	crt = malloc(sizeof(CRTpre)+sizeof(mpint)*3*n);
+	if(crt == nil)
+		sysfatal("crtpre: %r");
 	crt->m = crt->a;
 	crt->c = crt->a+n;
 	crt->p = crt->c+n;
@@ -77,6 +79,8 @@ crtin(CRTpre *crt, mpint *x)
 	CRTres *res;
 
 	res = malloc(sizeof(CRTres)+sizeof(mpint)*crt->n);
+	if(res == nil)
+		sysfatal("crtin: %r");
 	res->n = crt->n;
 	for(i = 0; i < res->n; i++){
 		res->r[i] = mpnew(0);

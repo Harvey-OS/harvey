@@ -15,7 +15,7 @@
 % requires that the copyright notice and this notice be preserved on all
 % copies.
 
-% $Id: gs_cidcm.ps,v 1.1 2000/11/02 19:09:30 lpd Exp $
+% $Id: gs_cidcm.ps,v 1.2 2001/03/03 15:09:12 igorm Exp $
 % Extending Font resource category with CIDFont-CMap fonts.
 
 languagelevel 2 .setlanguagelevel currentglobal true setglobal
@@ -292,19 +292,24 @@ currentpacking false setpacking
   % This is a pattern for enumeration procedure to be built dynamically,
   % using Bind with a temporary dictionary.
   % The following names will be replaced with specific objects
-  % during Bind : en_local_dict, scr, proc, Fonts .
-  
-  0 1 2 {
-    en_local_dict exch /status exch put
-    Fonts {                                            
-      en_local_dict /status get eq {            
-        scr cvs                           % ... (Font)
-        proc exec                         %
-      } {
-        pop
-      } ifelse                            % ...
-    } forall
-  } for                                   % ...
+  % during Bind : en_local_dict, scr, proc, Fonts, Category .
+
+  end % Category
+  { 
+    0 1 2 {
+      en_local_dict exch /status exch put
+      Fonts {                                            
+        en_local_dict /status get eq {            
+          scr cvs                           % ... (Font)
+          proc exec                         %
+        } {
+          pop
+        } ifelse                            % ...
+      } forall
+    } for                                   % ...
+  } stopped
+  Category begin
+  { stop } if
 } bind def
 
 setpacking
@@ -466,7 +471,9 @@ setpacking
   % bind it dynamically with a temporary dictionary, which contains
   % local variables for the currently executing instance of resourceforall.
 
-  5 dict begin % the temporary dictionary
+  currentdict
+  6 dict begin % the temporary dictionary
+    /Category exch def
     /Fonts exch def
     /scr exch def
     /proc exch def

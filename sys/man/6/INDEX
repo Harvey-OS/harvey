@@ -2,8 +2,8 @@
 intro 0intro
 a.out a.out
 ar ar
-auth auth
-ticket auth
+authsrv authsrv
+ticket authsrv
 color color
 face face
 font font
@@ -22,10 +22,12 @@ regexp regexp
 rewrite rewrite
 smtpd smtpd
 snap snap
+thumbprint thumbprint
 users users
 ASCII utf
 UTF utf
 Unicode utf
 rune utf
 utf utf
+venti.conf venti.conf
 vgadb vgadb

@@ -114,7 +114,7 @@ mkstatic(Sym *s)
 
 	if(s->class != CLOCAL)
 		return s;
-	snprint(symb, NSYMB, "%s$%d", s->name, (char)s->block);
+	snprint(symb, NSYMB, "%s$%d", s->name, s->block);
 	s1 = lookup();
 	if(s1->class != CSTATIC) {
 		s1->type = s->type;
@@ -1466,6 +1466,11 @@ contig(Sym *s, Node *n, long v)
 	Node *p, *r, *q, *m;
 	long w;
 
+	if(debug['i']) {
+		print("contig v = %ld; s = %s\n", v, s->name);
+		prtree(n, "doinit value");
+	}
+
 	if(n == Z)
 		goto no;
 	w = s->type->width;
@@ -1487,6 +1492,10 @@ contig(Sym *s, Node *n, long v)
 		goto no;
 	if(n->op == OAS)
 		diag(Z, "oops in contig");
+/*ZZZ this appears incorrect
+need to check if the list completely covers the data.
+if not, bail
+ */
 	if(n->op == OLIST)
 		goto no;
 	if(n->op == OASI)

@@ -1,100 +1,4 @@
-// print system calls
-defn printstring(s)
-{
-	print("\"", s, "\"");
-}
-
-defn printsyscall(name, fmt, arg) {
-	local f, i, a, argp, sl;
-
-	print(name, "(");
-	i = 0;
-	a = eval arg;
-	while fmt[i] != 0 do {
-		if fmt[i] == 's' then {
-			if *a == 0 then
-				print("nil");
-			else
-				printstring(*(*a\s));
-		} else if fmt[i] == 'S' then {
-			argp = *a;
-			argl = {};
-			while *argp != 0 do {
-				argl = append argl, *(*argp\s);
-				argp++;
-			}
-			print(argl);
-		} else
-			print(fmt(*a, fmt[i]));
-		if fmt[i+1] != 0 then
-			print(", ");
-		i = i+1;
-		a++;
-	}
-	print(")\n");
-}
-
-defn code(*e) { return e; }
-
-syscalls = {
-	{ 0, {"sysr1",		"s",		code(0)}},
-	{ 1, {"errstr",		"s",		code(*syserrstr:arg)}},
-	{ 2, {"bind",		"ssX",		code(*sysbind:arg)}},
-	{ 3, {"chdir",		"s",		code(*sysbind:arg)}},
-	{ 4, {"close",		"D",		code(*sysclose:arg)}},
-	{ 5, {"dup",		"DD",		code(*sysdup:arg)}},
-	{ 6, {"alarm",		"D",		code(*sysalarm:arg)}},
-	{ 7, {"exec",		"sS",		code(*sysexec:arg)}},
-	{ 8, {"exits",		"s",		code(*sysexits:arg)}},
-	{ 9, {"fsession",	"DX",		code(*sysfsession:arg)}},
-	{10, {"fauth",		"DX",		code(*sysfauth:arg)}},
-	{11, {"fstat",		"DX",		code(*sysfstat:arg)}},
-	{12, {"segbrk",		"XX",		code(*syssegbrk:arg)}},
-	{13, {"mount",		"DsXs",		code(*sysmount:arg)}},
-	{14, {"open",		"sD",		code(*sysopen:arg)}},
-	{15, {"read",		"DXD",		code(*sysread:arg)}},
-	{16, {"oseek",		"DDD",		code(*sysoseek:arg)}},
-	{17, {"sleep",		"D",		code(*syssleep:arg)}},
-	{18, {"stat",		"sX",		code(*sysstat:arg)}},
-	{19, {"rfork",		"X",		code(*sysstat:arg)}},
-	{20, {"write",		"DXD",		code(*syswrite:arg)}},
-	{21, {"pipe",		"X",		code(*syspipe:arg)}},
-	{22, {"create",		"sDO",		code(*syscreate:arg)}},
-	{23, {"fd2path",	"DXD",		code(*sysfd2path:arg)}},
-	{24, {"brk_",		"X",		code(*sysbrk_:arg)}},
-	{25, {"remove",		"s",		code(*sysremove:arg)}},
-	{26, {"wstat",		"sX",		code(*syswstat:arg)}},
-	{27, {"fwstat",		"DX",		code(*sysfwstat:arg)}},
-	{28, {"notify",		"X",		code(*sysnotify:arg)}},
-	{29, {"noted",		"D",		code(*sysnoted:arg)}},
-	{30, {"segattach",	"DsXD",		code(*syssegattach:arg)}},
-	{31, {"segdetach",	"X",		code(*syssegdetach:arg)}},
-	{32, {"segfree",	"XD",		code(*syssegfree:arg)}},
-	{33, {"segflush",	"XD",		code(*syssegflush:arg)}},
-	{34, {"rendezvous",	"XX",		code(*sysrendezvous:arg)}},
-	{35, {"unmount",	"ss",		code(*sysunmount:arg)}},
-	{36, {"wait",		"X",		code(*syswait:arg)}},
-	{37, {"read9p",		"DXD",		code(*sysread9p:arg)}},
-	{38, {"write9p",	"DXD",		code(*syswrite9p:arg)}},
-	{39, {"seek",		"DZD",		code(*sysseek:arg)}},
-};
-
-defn syscall() {
-	local n, sl, h, p;
-
-	map({"*data", 0, 0xffffffff, 0});
-	n = *syscall:scallnr;
-	sl = syscalls;
-	while sl != {} do {
-		h = head sl;
-		sl = tail sl;
-
-		if n == h[0] then {
-			p = h[1];
-			printsyscall(p[0], p[1], p[2]);
-		}
-	}
-}
+include("/sys/lib/acid/syscall");
 
 // print various /proc files
 defn fd() {
@@ -117,7 +21,7 @@ defn qid(qid) {
 defn cname(c) {
 	complex Cname c;
 	if c != 0 then {
-		return c.s;
+		return *(c.s\s);
 	} else
 		return "<null>";
 }
@@ -142,6 +46,34 @@ defn imagecache() {
 	}
 }
 
+// dump channels
+defn chan(c) {
+	local d, q;
+
+	c = (Chan)c;
+	d=(Dev)(*(devtab+4*c.type));
+	q=c.qid;
+	print(c\X, " ref=", c.ref\D, " #", d.dc\r, c.dev\D, " (", q.path, " ", q.vers\D, " ", q.type\X, ")");
+	print(" fid=", c.fid\D, " iounit=", c.iounit\D);
+	if c.ref != 0 then {
+		print(" ", cname(c.name), " mchan=", c.mchan\X);
+		if c.mchan != 0 then {
+			print(" ", cname(c.mchan.name));
+		}
+	}
+	print("\n");
+}
+
+defn chans() {
+	local c;
+
+	c = (Chan)chanalloc.list;
+	while c != 0 do {
+		chan(c);
+		c=(Chan)c.link;
+	}
+}
+
 // manipulate processes
 defn proctab(x) {
 	return procalloc.arena+sizeofProc*x;
@@ -162,11 +94,76 @@ defn proc(p) {
 	}
 }
 
+defn procenv(p) {
+	complex Proc p;
+	local e, v;
+
+	e = p.egrp;
+	complex Egrp e;
+	v = e.entries;
+	while v != 0 do {
+		complex Evalue v;
+		print(*(v.name\s), "=");
+		printstringn(v.value, v.len);
+		print("\n");
+		v = v.link;
+	}
+}
+
+KSTACK=4096;
+
+defn procstksize(p) {
+	complex Proc p;
+	local top, sp;
+
+	if p.state != 0 then {	// 0 is Dead
+		top = p.kstack+KSTACK;
+		sp = *p.sched;
+		print(top-sp\D, "\n");
+	}
+}
+
+defn procstk(p) {
+	complex Proc p;
+	local l;
+
+	if p.state != 0 then {	// 0 is Dead
+		l = p.sched;
+		if objtype=="386" then
+			_stk(gotolabel, *l, linkreg(0), 0);
+		else
+			_stk(*(l+4), *l, linkreg(0), 0);
+	}
+}
+
 defn procs() {
 	local i;
 
 	i=0; loop 1,conf.nproc do {
 		proc(proctab(i));
+		i = i+1;
+	}
+}
+
+defn stacks() {
+	local i, p;
+
+	i=0; loop 1,conf.nproc do {
+		p = (Proc)proctab(i);
+		if p.state != 0 then {
+			print("=========================================================\n");
+			proc(p);
+			procstk(p);
+		}
+		i = i+1;
+	}
+}
+
+defn stacksizes() {
+	local i;
+
+	i=0; loop 1,conf.nproc do {
+		procstksize(proctab(i));
 		i = i+1;
 	}
 }
@@ -177,13 +174,13 @@ defn procsegs(p) {
 	local i;
 
 	i=0; loop 1,NSEG do {
-		segment(p.seg[i]);
+		psegment(p.seg[i]);
 		i = i+1;
 	}
 }
 
 segtypes = { "text", "data", "bss", "stack", "shared", "physical", "shdata", "map" };
-defn segment(s) {
+defn psegment(s) {
 	complex Segment s;
 
 	if s != 0 then {
@@ -252,6 +249,23 @@ defn up() {
 	return mach.externup;
 }
 
-
-
 print("/sys/lib/acid/kernel");
+
+if (map()[2]) != {} then {	// map has more than two elements -> active proc
+	if objtype == "386" then {
+		map({"*data", 0x80000000, 0xffffffff, 0x80000000});
+		print("\trc(\"cd /sys/src/9/pc; mk proc.acid\");");
+		print("\tinclude(\"/sys/src/9/pc/proc.acid\")");
+	}
+	
+	if (objtype == "mips" || objtype == "mips2") then {
+		print("\trc(\"cd /sys/src/9/ch; mk proc.acid\");");
+		print("\tinclude(\"/sys/src/9/ch/proc.acid\")");
+	}
+	if objtype == "alpha" then {
+		map({"*data", 0x80000000, 0xffffffff, 0x80000000});
+		print("\trc(\"cd /sys/src/9/alphapc; mk proc.acid\");");
+		print("\tinclude(\"/sys/src/9/alphapc/proc.acid\")");
+	}
+}
+

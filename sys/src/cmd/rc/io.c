@@ -5,6 +5,7 @@
 int pfmtnest=0;
 void pfmt(io *f, char *fmt, ...){
 	va_list ap;
+	char err[ERRMAX];
 	va_start(ap, fmt);
 	pfmtnest++;
 	for(;*fmt;fmt++)
@@ -17,6 +18,7 @@ void pfmt(io *f, char *fmt, ...){
 		case 'p': phex(f, (long)va_arg(ap, char *)); break; /*unportable*/
 		case 'Q': pquo(f, va_arg(ap, char *)); break;
 		case 'q': pwrd(f, va_arg(ap, char *)); break;
+		case 'r': errstr(err, sizeof err); pstr(f, err); break;
 		case 's': pstr(f, va_arg(ap, char *)); break;
 		case 't': pcmd(f, va_arg(ap, struct tree *)); break;
 		case 'v': pval(f, va_arg(ap, struct word *)); break;

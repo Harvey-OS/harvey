@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>How to build Ghostscript from source code</title>
-<!-- $Id: Make.htm,v 1.15.2.2 2000/11/28 01:31:25 raph Exp $ -->
+<!-- $Id: Make.htm,v 1.7 2000/03/17 17:42:59 lpd Exp $ -->
 <!-- Originally: make.txt -->
 </head>
 
@@ -79,7 +79,7 @@ How to build Ghostscript from source code
 <li><a href="#Digital_Unix">Digital Unix (Alpha)</a>
 <li><a href="#FreeBSD">FreeBSD</a>
 <li><a href="#Linux">Linux</a>
-<li><a href="#NeXTSTEP">NeXTSTEP / OpenSTEP</a>
+<li><a href="#NeXTSTEP">NeXTSTEP</a>
 <li><a href="#SCO">SCO Unix/Xenix</a>
 <li><a href="#SVR4">SVR4 Unix</a>
 <li><a href="#System_V">System V Unix platforms</a>
@@ -170,10 +170,10 @@ the source code for some third-party libraries that Ghostscript uses.
 <h2><a name="Ghostscript_source"></a>Ghostscript source code</h2>
 
 <p><a name="Authoritative_distribution_site"></a>
-There are two kinds of Ghostscript distributions available, called "AFPL
+There are two kinds of Ghostscript distributions available, called "Aladdin
 Ghostscript" and "GNU Ghostscript"; the distinction between them is
 explained in the <a href="Commprod.htm">conditions for distributing
-Ghostscript</a>.  The authoritative distribution site for AFPL
+Ghostscript</a>.  The authoritative distribution site for Aladdin
 Ghostscript is
 
 <blockquote>
@@ -200,7 +200,7 @@ files:
 <b><tt>ghostscript-fonts-other-</tt></b>#.##<b><tt>.tar.gz</tt></b>
 </blockquote>
 
-<p>For recent versions of AFPL Ghostscript -- <b><em>not</em></b> GNU
+<p>For recent versions of Aladdin Ghostscript -- <b><em>not</em></b> GNU
 Ghostscript -- there are also zip files (each zipped file fits onto a
 single 1.44MB diskette):
 
@@ -750,14 +750,14 @@ alone.
 <h3><a name="GNU_readline"></a>GNU readline</h3>
 
 <p>
-AFPL Ghostscript does not include an interface to GNU readline.  A user
+Aladdin Ghostscript does not include an interface to GNU readline.  A user
 contributed code for this purpose, which we spent significant time debugging
 and then updating to track internal architectural changes in Ghostscript.
 The contributor was willing to assign the copyright to Aladdin Enterprises,
 and to allow the code to be distributed with the Aladdin Free Public License
 (AFPL) as well as the GNU License (GPL).  However, even though the GPL
 allows linking GPLed code (such as the GNU readline library package) with
-non-GPLed code (such as all the rest of AFPL Ghostscript) if one doesn't
+non-GPLed code (such as all the rest of Aladdin Ghostscript) if one doesn't
 distribute the result, the Free Software Foundation, creators of the GPL,
 have told us that in their opinion, the GPL forbids distributing non-GPLed
 code that is merely <em>intended</em> to be linked with GPLed code.  We
@@ -775,7 +775,7 @@ versions before the 6.0 release), we removed it from the Aladdin Ghostscript
 
 <p>
 GNU Ghostscript distributions will include support for GNU readline.  As
-with other GNU Ghostscript components that are not included in AFPL
+with other GNU Ghostscript components that are not included in Aladdin
 Ghostscript, Aladdin will not attempt to run, link, or even compile this
 code, or keep it current across changes in the rest of Ghostscript.  We
 will, however, welcome bug fixes or updates, and distribute them with
@@ -797,8 +797,8 @@ the letter) of the GPL.
 We put considerable work into making it possible for Ghostscript to use GNU
 readline, including the creation and adjustment of internal software
 interfaces specifically to serve this purpose.  In principle, we should have
-undone this work in AFPL Ghostscript, lest FSF object to it too as
-intended to facilitate linking AFPL Ghostscript with GNU readline (as the
+undone this work in Aladdin Ghostscript, lest FSF object to it too as
+intended to facilitate linking Aladdin Ghostscript with GNU readline (as the
 U.S. government has been said to do for code that merely provides APIs where
 encryption may be added).  However, we are willing to take this risk rather
 than spend the time to undo the interface changes.
@@ -806,11 +806,9 @@ than spend the time to undo the interface changes.
 <p>
 If you have comments or questions about this situation, please feel free to
 contact the Free Software Foundation, authors of the GPL and copyright
-holders of GNU readline, at <a href="mailto:gnu@gnu.org">gnu@gnu.org</a>;
-Aladdin Enterprises, original and principal author of Ghostscript, at <a
-href="mailto:ghost@aladdin.com">ghost@aladdin.com</a>; and/or artofcode LLC,
-copyright holder of Ghostscript, at <a
-href="mailto:raph@artofcode.com">raph@artofcode.com</a>.
+holders of GNU readline, at <a href="mailto:gnu@gnu.org">gnu@gnu.org</a>,
+and Aladdin Enterprises, author and copyright holder of Ghostscript, at
+<a href="mailto:ghost@aladdin.com">ghost@aladdin.com</a>.
 
 <h2><a name="Makefile_setup"></a>Setting up "makefile"</h2>
 
@@ -1573,11 +1571,7 @@ the non-standard definition
 
 <p>
 and since shared versions of this library will not have been compiled this
-way, you will get errors on some valid PostScript and PDF input files.  Note
-also that because not all the JPEG library header files that Ghostscript
-uses are normally installed in <b><tt>/usr/include</tt></b>, you must have
-the source code for this library available even if you set
-<b><tt>SHARE_JPEG</tt></b> to 1.
+way, you awill get errors on some valid PostScript and PDF input files.
 
 <p>
 If the X11 client header files are located in some directory which your
@@ -1691,10 +1685,6 @@ Unix, users have reported that the proper flags are
 
 <p>
 again, optionally omitting the <b><tt>-g3</tt></b>.
-
-<li>If you get compiler error messages about "ANSI aliasing rules", please
-see the section about <a href="#VMS_build">building under OpenVMS</a> below.
-
 </ul>
 
 <h3><a name="FreeBSD"></a>FreeBSD</h3>
@@ -1810,7 +1800,7 @@ all the source and font kits and patches needed:
 <a href="ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10-Extra/">ftp://ykbsb2.yk.psu.edu/pub/ghost/GS-5.10-Extra/</a>
 </blockquote>
 
-<h3><a name="NeXTSTEP"></a>NeXTSTEP / OpenSTEP</h3>
+<h3><a name="NeXTSTEP"></a>NeXTSTEP</h3>
 
 <ul>
 <li>If you are using a NeXTSTEP version before 3.3, please get a no-cost
@@ -1824,23 +1814,11 @@ following changes:
 are using only the library) change the definition of <b><tt>INCLUDE</tt></b>
 to "<b><tt>INCLUDE=/usr/include/bsd</tt></b>";
 
-<li>in <b><tt>unix-gcc.mak</tt></b>:
-
-<ul>
-<li>change <b><tt>CC=gcc</tt></b> to <b><tt>CC=cc</tt></b>;
-
-<li>change the definition of <b><tt>STDLIBS</tt></b> to only
-<b><tt>-lm</tt></b>;
-
-<li>change <b><tt>SYNC=posync</tt></b> to <b><tt>SYNC=nosync</tt></b>;
-
-<li>add <b><tt>-D_POSIX_SOURCE</tt></b> to <b><tt>CFLAGS</tt></b> and remove
-<b><tt>-g</tt></b>;
-
-<li>remove <b><tt>-Wstrict-prototypes</tt></b> from <b><tt>GCFLAGS</tt></b>,
-and if you are using NeXTSTEP 3.3 (with gcc 2.5.8), also remove
-<b><tt>-Wmissing-declarations</tt></b>;
-</ul>
+<li>in <b><tt>unix-gcc.mak</tt></b>, change <b><tt>CC=gcc</tt></b> to
+<b><tt>CC=cc</tt></b>, change the definition of <b><tt>STDLIBS</tt></b> to
+only <b><tt>-lm</tt></b>, add <b><tt>-D_POSIX_SOURCE</tt></b> to
+<b><tt>CFLAGS</tt></b> and remove <b><tt>-g</tt></b>, and remove
+<b><tt>-Wstrict-prototypes</tt></b> from <b><tt>GCFLAGS</tt></b>; and
 
 <li>to the end of <b><tt>Fontmap.GS</tt></b> add the line
 "<b><tt>/Ohlfs&nbsp;/Courier&nbsp;;</tt></b>".
@@ -2435,11 +2413,6 @@ Now, if you wish, you can edit OS2.MAK to suit your needs, and then perform
 
 <h1><a name="VMS_build"></a>How to build Ghostscript from source (OpenVMS version)</h1>
 
-<p>The DECC6.2-003 compiler has an optimization problem that may lead to
-warnings about the "ANSI aliasing rules".  DEC (Compaq) can provide a fix
-for this problem.  The DECC6.2-006 compiler apparently does not have the
-problem.
-
 <p>
 DEC C runtime library versions 5.5 and newer have an <b><tt>exit</tt></b>
 function that is compatible with all other C systems, but some older ones
@@ -2728,15 +2701,15 @@ to begin
 
 <font size=2>
 
-<p>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights reserved.
+<p>Copyright &copy; 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of AFPL Ghostscript.  See the
+<p>This file is part of Aladdin Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.
+Aladdin Ghostscript.
 
 <p>
-Ghostscript version 6.32, 27 November 2000
+Ghostscript version 6.0, 3 February 2000
 
 </font>
 

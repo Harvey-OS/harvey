@@ -9,20 +9,20 @@
 char*
 subfontname(char *cfname, char *fname, int maxdepth)
 {
-	char *t, *u, tmp1[256], tmp2[256];
+	char *t, *u, tmp1[64], tmp2[64];
 	int i;
 
 	if(strcmp(cfname, "*default*") == 0)
 		return strdup(cfname);
 	t = cfname;
 	if(t[0] != '/'){
-		strcpy(tmp2, fname);
+		snprint(tmp2, sizeof tmp2, "%s", fname);
 		u = utfrrune(tmp2, '/');
 		if(u)
 			u[0] = 0;
 		else
 			strcpy(tmp2, ".");
-		sprint(tmp1, "%s/%s", tmp2, t);
+		snprint(tmp1, sizeof tmp1, "%s/%s", tmp2, t);
 		t = tmp1;
 	}
 

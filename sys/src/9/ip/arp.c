@@ -27,6 +27,12 @@ char *arpstate[] =
 	"WAIT",
 };
 
+enum
+{
+	CMadd,
+	CMflush,
+};
+
 /*
  *  one per Fs
  */
@@ -36,6 +42,13 @@ struct Arp
 	Fs	*f;
 	Arpent	*hash[NHASH];
 	Arpent	cache[NCACHE];
+};
+
+static
+Cmdtab arpcmd[] =
+{
+	CMadd,	"add",	0,
+	CMflush,	"flush",	1,
 };
 
 char *Ebadarp = "bad arp";
@@ -256,23 +269,50 @@ arpwrite(Fs *fs, char *s, int len)
 	Arp *arp;
 	Block *bp;
 	Arpent *a;
+	Cmdbuf *cb;
+	Cmdtab *ct;
 	Medium *m;
-	char *f[4], buf[256];
 	uchar ip[IPaddrlen], mac[MAClen];
 
 	arp = fs->arp;
 
-	if(len == 0)
-		error(Ebadarp);
-	if(len >= sizeof(buf))
-		len = sizeof(buf)-1;
-	strncpy(buf, s, len);
-	buf[len] = 0;
-	if(len > 0 && buf[len-1] == '\n')
-		buf[len-1] = 0;
+	cb = parsecmd(s, len);
+	if(waserror()){
+		free(cb);
+		nexterror();
+	}
 
-	n = getfields(buf, f, 4, 1, " ");
-	if(strcmp(f[0], "flush") == 0){
+	ct = lookupcmd(cb, arpcmd, nelem(arpcmd));
+
+	switch(ct->index){
+	case CMadd:
+		switch(cb->nf) {
+		default:
+			cmderror(cb, Ecmdargs);
+		case 3:
+			parseip(ip, cb->f[1]);
+			r = v4lookup(fs, ip+IPv4off);
+			if(r == nil)
+				error("destination unreachable");
+			m = r->ifc->m;
+			n = parsemac(mac, cb->f[2], m->maclen);
+			break;
+		case 4:
+			m = ipfindmedium(cb->f[1]);
+			if(m == nil)
+				error(Ebadarp);
+			parseip(ip, cb->f[2]);
+			n = parsemac(mac, cb->f[3], m->maclen);
+			break;
+		}
+
+		if(m->ares == nil)
+			error(Ebadarp);
+
+		m->ares(fs, V6, ip, mac, n, 0);
+		break;
+
+	case CMflush:
 		qlock(arp);
 		for(a = arp->cache; a < &arp->cache[NCACHE]; a++){
 			memset(a->ip, 0, sizeof(a->ip));
@@ -288,34 +328,11 @@ arpwrite(Fs *fs, char *s, int len)
 		}
 		memset(arp->hash, 0, sizeof(arp->hash));
 		qunlock(arp);
-	} else if(strcmp(f[0], "add") == 0) {
-		switch(n) {
-		default:
-			error(Ebadarg);
-		case 3:
-			parseip(ip, f[1]);
-			r = v4lookup(fs, ip+IPv4off);
-			if(r == nil)
-				error("Destination unreachable");
-			m = r->ifc->m;
-			n = parsemac(mac, f[2], m->maclen);
-			break;
-		case 4:
-			m = ipfindmedium(f[1]);
-			if(m == nil)
-				error(Ebadarp);
-			parseip(ip, f[2]);
-			n = parsemac(mac, f[3], m->maclen);
-			break;
-		}
+		break;
+	}
 
-		if(m->ares == nil)
-			error(Ebadarp);
-
-		m->ares(fs, V6, ip, mac, n, 0);
-	} else
-		error(Ebadarp);
-
+	poperror();
+	free(cb);
 	return len;
 }
 

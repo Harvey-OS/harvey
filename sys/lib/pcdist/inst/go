@@ -1,7 +1,0 @@
-#!/bin/rc
-
-cd /bin/dist
-echo blanktime 0 >/dev/vgactl
-. defs
-
-startwin 640 480

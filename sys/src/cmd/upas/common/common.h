@@ -13,6 +13,13 @@ extern char *FROMRE;
 extern int SENDERMATCH;
 extern int DATEMATCH;
 
+enum
+{
+	Elemlen= 28,
+	Errlen=	128,
+	Pathlen= 256,
+};
+
 /*
  *  routines in mail.c
  */

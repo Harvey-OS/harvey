@@ -1,9 +1,10 @@
 #include	"all.h"
 
+Lock wpathlock;
+
 struct {
 	Lock	flock;
 	File*	ffree;		/* free file structures */
-	Lock	wlock;
 	Wpath*	wfree;
 } suballoc;
 
@@ -88,6 +89,7 @@ loop:
 			goto out;
 		}
 	}
+else print("cannot find %p.%d (list=%p)\n", cp, fid, cp->flist);
 	unlock(&cp->flock);
 	return 0;
 
@@ -105,11 +107,11 @@ void
 sublockinit(void)
 {
 	lock(&suballoc.flock);
-	lock(&suballoc.wlock);
+	lock(&wpathlock);
 	conf.nfile = 0;
 	conf.nwpath = 0;
 	unlock(&suballoc.flock);
-	unlock(&suballoc.wlock);
+	unlock(&wpathlock);
 }	
 
 /*
@@ -131,6 +133,8 @@ retry:
 		f->next = cp->flist;
 		f->wpath = 0;
 		f->tlock = 0;
+		f->dslot = 0;
+		f->doffset = 0;
 		cp->flist = f;
 		return f;
 	}
@@ -190,17 +194,17 @@ newwp(void)
 	Wpath *w, *e;
 
 retry:
-	lock(&suballoc.wlock);
+	lock(&wpathlock);
 	w = suballoc.wfree;
 	if(w != nil){
 		suballoc.wfree = w->list;
-		unlock(&suballoc.wlock);
+		unlock(&wpathlock);
 		memset(w, 0, sizeof(*w));
 		w->refs = 1;
 		w->up = 0;
 		return w;
 	}
-	unlock(&suballoc.wlock);
+	unlock(&wpathlock);
 
 	if(conf.nwpath > Wmax){
 		print("out of wpaths\n");
@@ -212,13 +216,13 @@ retry:
 	 */
 	w = malloc(Winc*sizeof(*w));
 	memset(w, 0, Winc*sizeof(*w));
-	lock(&suballoc.wlock);
+	lock(&wpathlock);
 	for(e = w+Winc; w < e; w++){
 		w->list = suballoc.wfree;
 		suballoc.wfree = w;
 	}
 	conf.nwpath += Winc;
-	unlock(&suballoc.wlock);
+	unlock(&wpathlock);
 	goto retry;
 }
 
@@ -230,10 +234,10 @@ getwp(Wpath *w)
 {
 	Wpath *nw;
 
-	lock(&suballoc.wlock);
+	lock(&wpathlock);
 	for(nw = w; nw; nw=nw->up)
 		nw->refs++;
-	unlock(&suballoc.wlock);
+	unlock(&wpathlock);
 	return w;
 }
 
@@ -243,7 +247,7 @@ getwp(Wpath *w)
 void
 freewp(Wpath *w)
 {
-	lock(&suballoc.wlock);
+	lock(&wpathlock);
 	for(; w; w=w->up){
 		w->refs--;
 		if(w->refs == 0){
@@ -251,7 +255,7 @@ freewp(Wpath *w)
 			suballoc.wfree = w;
 		}
 	}
-	unlock(&suballoc.wlock);
+	unlock(&wpathlock);
 }
 
 /*
@@ -260,13 +264,13 @@ freewp(Wpath *w)
 void
 putwp(Wpath *w)
 {
-	lock(&suballoc.wlock);
+	lock(&wpathlock);
 	w->refs--;
 	if(w->refs == 0){
 		w->list = suballoc.wfree;
 		suballoc.wfree = w;
 	}
-	unlock(&suballoc.wlock);
+	unlock(&wpathlock);
 }
 
 int
@@ -274,6 +278,7 @@ iaccess(File *f, Dentry *d, int m)
 {
 	if(wstatallow)
 		return 0;
+
 	/*
 	 * other is easiest
 	 */
@@ -488,81 +493,57 @@ addfree(Device dev, long addr, Superb *sb)
 }
 
 int
-Cconv(va_list *arg, Fconv *f1)
+Cfmt(Fmt *f1)
 {
 	Chan *cp;
-	char s[20];
 
-	cp = va_arg(*arg, Chan*);
-	sprint(s, "C%d.%.3d", cp->type, cp->chan);
-	strconv(s, f1);
-	return sizeof(cp);
+	cp = va_arg(f1->args, Chan*);
+	return fmtprint(f1, "C%d.%.3d", cp->type, cp->chan);
 }
 
 int
-Dconv(va_list *arg, Fconv *f1)
+Dfmt(Fmt *f1)
 {
 	Device d;
-	char s[20];
 
-	d = va_arg(*arg, Device);
-	sprint(s, "D%d.%d.%d.%d", d.type, d.ctrl, d.unit, d.part);
-	strconv(s, f1);
-	return sizeof(d);
+	d = va_arg(f1->args, Device);
+	return fmtprint(f1, "D%d.%d.%d.%d", d.type, d.ctrl, d.unit, d.part);
 }
 
 int
-FFconv(va_list *arg, Fconv *f1)
+Afmt(Fmt *f1)
 {
 	Filta a;
-	char s[30];
 
-	a = va_arg(*arg, Filta);
-
-	sprint(s, "%6lud %6lud %6lud",
+	a = va_arg(f1->args, Filta);
+	return fmtprint(f1, "%6lud %6lud %6lud",
 		fdf(a.f->filter[0], a.scale*60),
 		fdf(a.f->filter[1], a.scale*600),
 		fdf(a.f->filter[2], a.scale*6000));
-	strconv(s, f1);
-	return sizeof(Filta);
 }
 
 int
-Gconv(va_list *arg, Fconv *f1)
+Gfmt(Fmt *f1)
 {
 	int t;
-	char s[20];
 
-	t = va_arg(*arg, int);
-	strcpy(s, "<badtag>");
+	t = va_arg(f1->args, int);
 	if(t >= 0 && t < MAXTAG)
-		sprint(s, "%s", tagnames[t]);
-	strconv(s, f1);
-	return sizeof(t);
-}
-
-int
-errconv(va_list*, Fconv *f1)
-{
-	char buf[64];
-
-	buf[0] = 0;
-	errstr(buf);
-	strconv(buf, f1);
-	return 0;
+		return fmtstrcpy(f1, tagnames[t]);
+	else
+		return fmtprint(f1, "<badtag %d>", t);
 }
 
 void
 formatinit(void)
 {
 
-	fmtinstall('C', Cconv);	/* print channels */
-	fmtinstall('D', Dconv);	/* print devices */
-	fmtinstall('F', FFconv);	/* print filters */
-	fmtinstall('G', Gconv);	/* print tags */
-	fmtinstall('T', Tconv);	/* print times */
-	fmtinstall('A', fcallconv);	/* print fcall stuff */
-	fmtinstall('r', errconv);	/* print fcall stuff */
+	fmtinstall('C', Cfmt);	/* print channels */
+	fmtinstall('D', Dfmt);	/* print devices */
+	fmtinstall('A', Afmt);	/* print filters */
+	fmtinstall('G', Gfmt);	/* print tags */
+	fmtinstall('T', Tfmt);	/* print times */
+	fmtinstall('O', ofcallfmt);	/* print old fcalls */
 }
 int
 devcmp(Device d1, Device d2)
@@ -593,7 +574,7 @@ rootream(Device dev, long addr)
 		((DREAD|DWRITE|DEXEC) << 6) |
 		((DREAD|DWRITE|DEXEC) << 3) |
 		((DREAD|DWRITE|DEXEC) << 0);
-	d->qid = QID(QPROOT|QPDIR,0);
+	d->qid = QID9P1(QPROOT|QPDIR,0);
 	d->atime = time(0);
 	d->mtime = d->atime;
 	putbuf(p);
@@ -676,3 +657,21 @@ hexdump(void *a, int n)
 	if(s1[0])
 		print("%s\n", s1);
 }
+
+long
+qidpathgen(Device *dev)
+{
+	Iobuf *p;
+	Superb *sb;
+	long path;
+
+	p = getbuf(*dev, superaddr((*dev)), Bread|Bmod);
+	if(!p || checktag(p, Tsuper, QPSUPER))
+		panic("newqid: super block");
+	sb = (Superb*)p->iobuf;
+	sb->qidgen++;
+	path = sb->qidgen;
+	putbuf(p);
+	return path;
+}
+

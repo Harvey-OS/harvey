@@ -1,4 +1,6 @@
+typedef	struct Ioclust	Ioclust;
 typedef	struct Iobuf	Iobuf;
+typedef	struct Isofile	Isofile;
 typedef struct Xdata	Xdata;
 typedef struct Xfile	Xfile;
 typedef struct Xfs	Xfs;
@@ -6,17 +8,26 @@ typedef struct Xfsub	Xfsub;
 
 enum
 {
-	Sectorsize = 2048
+	Sectorsize = 2048,
+	Maxname = 256,
 };
 
 struct Iobuf
 {
-	Xdata*	dev;
+	Ioclust*	clust;
 	long	addr;
-	Iobuf*	next;
-	Iobuf*	prev;
-	Iobuf*	hash;
+	uchar*	iobuf;
+};
+
+struct Ioclust
+{
+	long	addr;
+	Xdata*	dev;
+	Ioclust*	next;
+	Ioclust*	prev;
 	int	busy;
+	int	nbuf;
+	Iobuf*	buf;
 	uchar*	iobuf;
 };
 
@@ -40,7 +51,7 @@ struct Xfsub
 	void	(*walk)(Xfile*, char*);
 	void	(*open)(Xfile*, int);
 	void	(*create)(Xfile*, char*, long, int);
-	long	(*readdir)(Xfile*, char*, long, long);
+	long	(*readdir)(Xfile*, uchar*, long, long);
 	long	(*read)(Xfile*, char*, long, long);
 	long	(*write)(Xfile*, char*, long, long);
 	void	(*clunk)(Xfile*);
@@ -59,7 +70,7 @@ struct Xfs
 	int	isrock;	/* Rock Ridge format */
 	int	isplan9;	/* has Plan 9-specific directory info */
 	Qid	rootqid;
-	void*	ptr;		/* private data */
+	Isofile*	ptr;		/* private data */
 };
 
 struct Xfile
@@ -70,7 +81,7 @@ struct Xfile
 	ulong	flags;
 	Qid	qid;
 	int	len;		/* of private data */
-	void*	ptr;
+	Isofile*	ptr;
 };
 
 enum

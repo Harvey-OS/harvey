@@ -109,6 +109,8 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 		switch(t = Bgetc(b)) {
 		case 'z':
 			pp[i] = datapage(zero, len);
+			if(debug)
+				fprint(2, "0x%.8lux all zeros\n", s->offset+i*Pagesize);
 			break;
 		case 'm':
 		case 't':
@@ -119,11 +121,15 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 			pp[i] = findpage(plist, pid, t, off);
 			if(pp[i] == nil)
 				panic("bad page reference in snapshot");
+			if(debug)
+				fprint(2, "0x%.8lux same as %s pid %lud 0x%.8lux\n", s->offset+i*Pagesize, t=='m'?"mem":"text", pid, off);
 			break;
 		case 'r':
 			if(Bread(b, buf, len) != len)
 				panic("error reading segment");
 			pp[i] = datapage(buf, len);
+			if(debug)
+				fprint(2, "0x%.8lux is raw data\n", s->offset+i*Pagesize);
 			break;
 		default:
 			panic("error reading segment");

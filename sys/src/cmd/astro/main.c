@@ -135,7 +135,6 @@ args(int argc, char *argv[])
 		flags[ARGC()]++;
 		break;
 	} ARGEND
-	if(argc);
 	if(*argv){
 		fprint(2, "usage: astro [-dlpsatokm] [-c nday] [-e obj1 obj2]\n");
 		exits("usage");

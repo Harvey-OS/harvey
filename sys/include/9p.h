@@ -1,158 +1,200 @@
 #pragma src "/sys/src/lib9p"
 #pragma lib "lib9p.a"
 
+/*
+ * Maps from ulongs to void*s.
+ */
+typedef struct Intmap	Intmap;
+
+Intmap*	allocmap(void (*inc)(void*));
+void		freemap(Intmap*, void (*destroy)(void*));
+void*	lookupkey(Intmap*, ulong);
+void*	insertkey(Intmap*, ulong, void*);
+int		caninsertkey(Intmap*, ulong, void*);
+void*	deletekey(Intmap*, ulong);
+
+/*
+ * Fid and Request structures.
+ */
 typedef struct Fid		Fid;
+typedef struct Req		Req;
 typedef struct Fidpool	Fidpool;
+typedef struct Reqpool	Reqpool;
 typedef struct File		File;
 typedef struct Filelist	Filelist;
-typedef struct Req		Req;
-typedef struct Reqpool	Reqpool;
-typedef struct Intmap	Intmap;
-typedef struct Srv		Srv;
 typedef struct Tree		Tree;
+typedef struct Readdir	Readdir;
+typedef struct Srv Srv;
 
 struct Fid
 {
 	ulong	fid;
-	char	omode;	/* -1 = not open */
+	char		omode;	/* -1 = not open */
 	File*		file;
-	char		uid[NAMELEN];
+	char*	uid;
 	Qid		qid;
 	void*	aux;
 
 /* below is implementation-specific; don't use */
+	Readdir*	rdir;
 	Ref		ref;
 	Fidpool*	pool;
+	vlong	diroffset;
+	long		dirindex;
 };
 
 struct Req
 {
-	Lock		taglock;
 	ulong	tag;
 	void*	aux;
-	Fcall		fcall;
+	Fcall		ifcall;
 	Fcall		ofcall;
+	Dir		d;
+	Req*		oldreq;
+	Fid*		fid;
+	Fid*		afid;
+	Fid*		newfid;
+	Srv*		srv;
 
 /* below is implementation-specific; don't use */
 	Ref		ref;
 	Reqpool*	pool;
-	char*	buf;
+	uchar*	buf;
 	uchar	type;
 	uchar	responded;
-	Dir		d;
 	char*	error;
-	Fid*		fid;
-	Fid*		newfid;
-	Req*		oldreq;
 	void*	rbuf;
 };
 
-struct Srv {
-	Tree*	tree;
-	void		(*attach)(Req*, Fid*, char*, Qid*);
-	void		(*session)(Req*, char*, char*, char*);
-	void		(*clone)(Req*, Fid*, Fid*);
-	void		(*walk)(Req*, Fid*, char*, Qid*);
-	void		(*open)(Req*, Fid*, int, Qid*);
-	void		(*create)(Req*, Fid*, char*, int, ulong, Qid*);
-	void		(*read)(Req*, Fid*, void*, long*, vlong);
-	void		(*write)(Req*, Fid*, void*, long*, vlong);
-	void		(*remove)(Req*, Fid*);
-	void		(*stat)(Req*, Fid*, Dir*);
-	void		(*wstat)(Req*, Fid*, Dir*);
-	void		(*flush)(Req*, Req*);
-	void		(*clunkaux)(Fid*);
+/*
+ * Pools to maintain Fid <-> fid and Req <-> tag maps.
+ */
 
-/* below is implementation-specific; don't use */
-	Fidpool*	fpool;
-	Reqpool*	rpool;
-	int	fd;
-
-	void		*aux;
+struct Fidpool {
+	Intmap	*map;
+	void		(*destroy)(Fid*);
+	Srv		*srv;
 };
 
+struct Reqpool {
+	Intmap	*map;
+	void		(*destroy)(Req*);
+	Srv		*srv;
+};
+
+Fidpool*	allocfidpool(void (*destroy)(Fid*));
+void		freefidpool(Fidpool*);
+Fid*		allocfid(Fidpool*, ulong);
+Fid*		lookupfid(Fidpool*, ulong);
+void		closefid(Fid*);
+Fid*		removefid(Fidpool*, ulong);
+
+Reqpool*	allocreqpool(void (*destroy)(Req*));
+void		freereqpool(Reqpool*);
+Req*		allocreq(Reqpool*, ulong);
+Req*		lookupreq(Reqpool*, ulong);
+void		closereq(Req*);
+Req*		removereq(Reqpool*, ulong);
+
+typedef	int	Dirgen(int, Dir*, void*);
+void		dirread9p(Req*, Dirgen*, void*);
+
+/*
+ * File trees.
+ */
 struct File {
+	Ref;
 	Dir;
 	File *parent;
 	void *aux;
 
 /* below is implementation-specific; don't use */
-	Ref		ref;
-	QLock;
+	RWLock;
 	Filelist *filelist;
 	Tree *tree;
+	int nchild;
+	int allocd;
 };
 
 struct Tree {
 	File *root;
-	void	(*rmaux)(File *file);
+	void	(*destroy)(File *file);
 
 /* below is implementation-specific; don't use */
+	Lock genlock;
 	ulong qidgen;
 	ulong dirqidgen;
 };
 
-/* fid.c */
-Fidpool*	allocfidpool(void);
-Fid*		allocfid(Fidpool*, ulong);
-int		closefid(Fid*);
-void		freefid(Fid*);
-Fid*		lookupfid(Fidpool*, ulong);
+Tree*	alloctree(char*, char*, ulong, void(*destroy)(File*));
+void		freetree(Tree*);
+File*		createfile(File*, char*, char*, ulong, void*);
+int		removefile(File*);
+void		closefile(File*);
+File*		walkfile(File*, char*);
+Readdir*	opendirfile(File*);
+long		readdirfile(Readdir*, uchar*, long);
+void		closedirfile(Readdir*);
 
-/* file.c */
-File*		fcreate(File*, char*, char*, char*, ulong);
-void		fremove(File*);
-File*		fwalk(File*, char*);
-void		fdump(File*, int);
-Tree*	mktree(char*, char*, ulong);
-char*	fdirread(File*, char*, long*, vlong);
-int		fclose(File*);
+/*
+ * File service loop.
+ */
+struct Srv {
+	Tree*	tree;
+	void		(*destroyfid)(Fid*);
+	void		(*destroyreq)(Req*);
+	void		(*end)(Srv*);
+	void*	aux;
 
-/* intmap.c */
-Intmap*	allocmap(void (*inc)(void*));
-void		freemap(Intmap*);
-void*	lookupkey(Intmap*, ulong);
-void*	insertkey(Intmap*, ulong, void*);
-void*	lookupkey(Intmap*, ulong);
-int		caninsertkey(Intmap*, ulong, void*);
-void*	deletekey(Intmap*, ulong);
+	void		(*attach)(Req*);
+	void		(*auth)(Req*);
+	void		(*open)(Req*);
+	void		(*create)(Req*);
+	void		(*read)(Req*);
+	void		(*write)(Req*);
+	void		(*remove)(Req*);
+	void		(*flush)(Req*);
+	void		(*stat)(Req*);
+	void		(*wstat)(Req*);
+	void		(*walk)(Req*);
+	char*	(*clone)(Fid*, Fid*);
+	char*	(*walk1)(Fid*, char*, Qid*);
 
-/* req.c */
-Reqpool*	allocreqpool(void);
-Req*		allocreq(Reqpool*, ulong);
-int		closereq(Req*);
-void		freereq(Req*);
-Req*		lookupreq(Reqpool*, ulong);
+	int		infd;
+	int		outfd;
+	int		nopipe;
+	int		srvfd;
 
-/* srv.c */
-void		srv(Srv*, int);
+/* below is implementation-specific; don't use */
+	Fidpool*	fpool;
+	Reqpool*	rpool;
+	uint		msize;
+
+	uchar*	rbuf;
+	QLock	rlock;
+	uchar*	wbuf;
+	QLock	wlock;
+};
+
+void		srv(Srv*);
 void		postmountsrv(Srv*, char*, char*, int);
-int		lib9p_chatty;
+int 		postfd(char*, int);
+int		chatty9p;
 void		respond(Req*, char*);
-
-/* threadsrv.c */
 void		threadpostmountsrv(Srv*, char*, char*, int);
 
-/* uid.c */
+/*
+ * Helper.  Assumes user is same as group.
+ */
 int		hasperm(File*, char*, int);
 
-/* util.c */
-void*	_lib9p_emalloc(ulong);
-void*	_lib9p_erealloc(void*, ulong);
-char*	_lib9p_estrdup(char*);
+void*	emalloc9p(ulong);
+void*	erealloc9p(void*, ulong);
+char*	estrdup9p(char*);
 
 enum {
 	OMASK = 3
 };
 
-void readstr(vlong, void*, long*, char*);
-void readbuf(vlong, void*, long*, void*, long);
-
-/* crummy hack; need to work out better way */
-extern void (*endsrv)(void*);
-
-struct Reqpool {
-	Intmap	*map;
-	Srv		*srv;
-};
-
+void readstr(Req*, char*);
+void readbuf(Req*, void*, long);

@@ -53,7 +53,7 @@ sched(Prog *p0, Prog *pe)
 		s->p = *p;
 		regsused(s, p);
 		if(debug['X']) {
-			Bprint(&bso, "%P%|set", &s->p, 40);
+			Bprint(&bso, "%P\t\tset", &s->p);
 			dumpbits(s, &s->set);
 			Bprint(&bso, "; used");
 			dumpbits(s, &s->used);

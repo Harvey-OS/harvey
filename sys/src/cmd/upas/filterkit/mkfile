@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+TARG=\
+	token\
+	list\
+	deliver\
+
+BIN=/$objtype/bin/upas
+OFILES=readaddrs.$O
+</sys/src/cmd/mkmany
+CFLAGS=$CFLAGS -I../common
+

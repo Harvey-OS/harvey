@@ -64,56 +64,64 @@ devroot.$O:	errstr.h
 trap.$O:	/$objtype/include/ureg.h
 devproc.$O:	/$objtype/include/ureg.h
 main.$O:	init.h
-segment.$O:	segment.h
 trap.$O:	../port/systab.h
-devns16552.$O:	ns16552.h
-devns16552.$O devpipe.$O netif.$O:	../port/netif.h
+devpipe.$O:	../port/netif.h
+netif.$O:	../port/netif.h
+devuart.$O:	../port/netif.h
 devmouse.$O:	screen.h
+devdraw.$O:	screen.h
+screen.$O:	screen.h
 latin1.$O:	../port/latin1.h
+thwack.$O:	../port/thwack.h
+unthwack.$O:	../port/thwack.h
+devsdp.$O:	../port/thwack.h
+devrealtime.$O edf.$O: ../port/edf.h
 
-kfs.root.s:	/$objtype/bin/disk/kfs
-	cp $prereq kfs.out
-	strip kfs.out
-	../port/mkroot kfs kfs
+nkfs.root.s:	/$objtype/bin/disk/nkfs
+	cp $prereq nkfs.out
+	../port/mkroot nkfs kfs
 
-cfs.root.s:	/$objtype/bin/cfs
-	cp /$objtype/bin/cfs cfs.out
-	strip cfs.out
-	../port/mkroot cfs cfs
+dossrv.root.s:	/$objtype/bin/dossrv
+	cp $prereq dossrv.out
+	../port/mkroot dossrv kfs
 
-ppp.root.s:	/$objtype/bin/ip/ppp
-	cp /$objtype/bin/ip/ppp ppp.out
-	strip ppp.out
-	../port/mkroot ppp ppp
-
-ls.root.s:	/$objtype/bin/ls
-	cp /$objtype/bin/ls ls.out
-	../port/mkroot ls ls
-
-ipconfig.root.s:	/$objtype/bin/ip/ipconfig
-	cp /$objtype/bin/ip/ipconfig ipconfig.out
-	strip ipconfig.out
-	../port/mkroot ipconfig ipconfig
-
-vdfs.root.s: /sys/lib/pcdist/bin/$objtype/vdfs
-	cp $prereq vdfs.out
-	strip vdfs.out
-	../port/mkroot vdfs kfs
-
-bzfs.root.s: /sys/lib/pcdist/bin/$objtype/bzfs
+bzfs.root.s: /sys/lib/dist/bin/$objtype/bzfs
 	cp $prereq bzfs.out
-	strip bzfs.out
 	../port/mkroot bzfs kfs
 
-bzroot.root.s: /sys/lib/pcdist/disk/root.bz2
-	aux/data2s bzroot < /sys/lib/pcdist/disk/root.bz2 > bzroot.root.s
+bzroot.root.s: /sys/lib/dist/pc/root.bz2
+	aux/data2s bzroot < /sys/lib/dist/pc/root.bz2 > bzroot.root.s
 
 9660srv.root.s: /$objtype/bin/9660srv
-	strip < /$objtype/bin/9660srv >9660srv.out
+	cp $prereq 9660srv.out	
 	../port/mkroot 9660srv kfs
+
+factotum.root.s:	/$objtype/bin/auth/factotum
+	cp $prereq factotum.out
+	../port/mkroot factotum factotum
+
+nfactotum.root.s: /$objtype/bin/auth/nfactotum
+	cp $prereq nfactotum.out
+	../port/mkroot nfactotum factotum
+
+rcmain.root.s: /rc/lib/rcmain
+	cp /rc/lib/rcmain rcmain.out
+	../port/mkroot rcmain rcmain
+
+%.root.s:	/$objtype/bin/%
+	cp $prereq $stem.out
+	../port/mkroot $stem $stem
+
+%.root.s:	/$objtype/bin/disk/%
+	cp $prereq $stem.out
+	../port/mkroot $stem $stem
+
+%.root.s:	/$objtype/bin/ip/%
+	cp $prereq $stem.out
+	../port/mkroot $stem $stem
 
 boot$CONF.root.s: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c
 	$CC $CFLAGS boot$CONF.c
-	$LD -o boot$CONF.out -s boot$CONF.$O $BOOTLIB print.$O
+	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB print.$O
 	../port/mkroot boot$CONF boot

@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
+#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"

@@ -42,7 +42,7 @@ mpkaratsuba(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *p)
 	// room for the partial products
 	t = mallocz(Dbytes*5*(2*n+1), 1);
 	if(t == nil)
-		sysfatal("mpkaratsuba");
+		sysfatal("mpkaratsuba: %r");
 	u0v0 = t;
 	u1v1 = t + (2*n+1);
 	diffprod = t + 2*(2*n+1);

@@ -71,12 +71,12 @@ static int
 readbyte(int fd)
 {
 	uchar c;
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
 	alarm(200);
 	if(read(fd, &c, sizeof(c)) == -1){
 		alarm(0);
-		errstr(buf);
+		errstr(buf, sizeof buf);
 		if(strcmp(buf, "interrupted") == 0)
 			return -1;
 		fprint(2, "%s: readbyte failed - %s\n", argv0, buf);

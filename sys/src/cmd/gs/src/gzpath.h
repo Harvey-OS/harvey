@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1995, 1997, 1998 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gzpath.h,v 1.3 2000/09/19 19:00:40 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gzpath.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
 /* Structure and internal procedure definitions for paths */
 /* Requires gxfixed.h */
 
@@ -311,22 +311,17 @@ struct gx_path_s {
     gx_path_segments *segments;
     gs_fixed_rect bbox;		/* bounding box (in device space) */
     segment *box_last;		/* bbox incorporates segments */
-				/* up to & including this one */
+    /* up to & including this one */
 #define first_subpath segments->contents.subpath_first	/* (hack) */
 #define current_subpath segments->contents.subpath_current	/* (ditto) */
-    /*
-     * Note: because of bugs in the AIX 4.3.1 xlc compiler, the byte-valued
-     * members must not be the last ones in the structure.
-     */
-    byte /*gx_path_state_flags*/ start_flags;		/* flags of moveto */
-    byte /*gx_path_state_flags*/ state_flags;		/* (see above) */
-    byte /*bool*/ bbox_set;	/* true if setbbox is in effect */
-    byte _pad;			/* just in case the compiler doesn't do it */
     int subpath_count;
     int curve_count;
     gs_fixed_point position;	/* current position */
     gs_point outside_position;	/* position if outside_range is set */
     gs_point outside_start;	/* outside_position of last moveto */
+             byte /*gx_path_state_flags */ start_flags;		/* flags of moveto */
+             byte /*gx_path_state_flags */ state_flags;		/* (see above) */
+             byte /*bool */ bbox_set;	/* true if setbbox is in effect */
 };
 
 /* st_path should be private, but it's needed for the clip_path subclass. */

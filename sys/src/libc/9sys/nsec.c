@@ -17,7 +17,7 @@ be2vlong(vlong *to, uchar *f)
 }
 
 /*
- *  after a fork with fd's copied, both fd's are pointing to
+ *  After a fork with fd's copied, both fd's are pointing to
  *  the same Chan structure.  Since the offset is kept in the Chan
  *  structure, the seek's and read's in the two processes can
  *  compete at moving the offset around.  Hence the retry loop.

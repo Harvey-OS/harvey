@@ -36,7 +36,7 @@ and macros that identify its contents.
 .PP
 The
 .B fcr
-contains bits that, when set, enable exceptions:
+contains bits that, when set, halt execution upon exceptions:
 .B FPINEX
 (enable inexact exceptions),
 .B FPOVFL

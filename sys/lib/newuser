@@ -2,7 +2,7 @@
 
 user=`{cat /dev/user}
 home=/usr/$user
-if(test -d $user/tmp){
+if(test -f $home/lib/profile){
 	echo user directories already made
 	exit no
 }
@@ -10,6 +10,9 @@ cd $home
 x='$'
 mkdir bin bin/rc bin/mips bin/386
 mkdir lib tmp
+mkdir /cron/$user
+chmod 775 /cron/$user
+chgrp $user /cron/$user
 bind -c $home/tmp /tmp
 
 cat > lib/profile <<!

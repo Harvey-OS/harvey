@@ -50,7 +50,7 @@ main(int argc, char **argv)
 {
 	int data = -1;
 	int ctl = -1;
-	char cname[3*NAMELEN];
+	char *cname;
 
 	ARGBEGIN{
 	case 'p':
@@ -73,8 +73,10 @@ main(int argc, char **argv)
 			fprint(2, "hayes: %r opening %s\n", argv[1]);
 			exits("hayes");
 		}
+		cname = malloc(strlen(argv[1])+4);
 		sprint(cname, "%sctl", argv[1]);
 		ctl = open(cname, ORDWR);
+		free(cname);
 		break;
 	default:
 		usage();
@@ -92,7 +94,7 @@ send(int fd, char *x)
 void
 godial(int data, int ctl, char *number)
 {
-	char dialstr[2*NAMELEN];
+	char *dialstr;
 	int m;
 	int baud;
 
@@ -127,9 +129,13 @@ godial(int data, int ctl, char *number)
 	sleep(1000);
 
 	/* godial */
+	dialstr = malloc(6+strlen(number));
 	sprint(dialstr, "ATD%c%s\r", pulsed ? 'P' : 'T', number);
-	if(send(data, dialstr) < 0)
+	if(send(data, dialstr) < 0) {
+		free(dialstr);
 		punt("failed write");
+	}
+	free(dialstr);
 	m = readmsg(data, 60);
 	if(m != Success)
 		punt("dial failed: %s", msgbuf);
@@ -147,18 +153,20 @@ readmsg(int f, int secs)
 	ulong start;
 	char *p;
 	int len;
-	Dir d;
+	Dir *d;
 	Msg *pp;
 
 	p = msgbuf;
 	len = sizeof(msgbuf) - 1;
 	for(start = time(0); time(0) <= start+secs;){
-		if(dirfstat(f, &d) < 0)
+		if((d = dirfstat(f)) == nil)
 			punt("failed read");
-		if(d.length == 0){
+		if(d->length == 0){
+			free(d);
 			sleep(100);
 			continue;
 		}
+		free(d);
 		if(read(f, p, 1) <= 0)
 			punt("failed read");
 		if(*p == '\n' || *p == '\r' || len == 0){
@@ -224,7 +232,7 @@ punt(char *fmt, ...)
 
 	strcpy(buf, "hayes: ");
 	va_start(arg, fmt);
-	n = doprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 	buf[n] = '\n';
 	write(2, buf, n+1);

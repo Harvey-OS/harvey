@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <stdlib.h>
 #include "sys9.h"
 #include "dir.h"
 
@@ -11,9 +12,8 @@ rename(const char *from, const char *to)
 {
 	int n, i;
 	char *f, *t;
-	Dir d;
+	Dir *d;
 	long mode;
-	char cd[DIRLEN];
 
 	if(access(to, 0) >= 0){
 		if(_REMOVE(to) < 0){
@@ -21,15 +21,15 @@ rename(const char *from, const char *to)
 			return -1;
 		}
 	}
-	if(_STAT(to, cd) >= 0){
+	if((d = _dirstat(to)) != nil){
+		free(d);
 		errno = EEXIST;
 		return -1;
 	}
-	if(_STAT(from, cd) < 0){
+	if((d = _dirstat(from)) == nil){
 		_syserrno();
 		return -1;
 	}
-	convM2D(cd, &d);
 	f = strrchr(from, '/');
 	t = strrchr(to, '/');
 	f = f? f+1 : from;
@@ -38,16 +38,10 @@ rename(const char *from, const char *to)
 	if(f-from==t-to && strncmp(from, to, f-from)==0){
 		/* from and to are in same directory (we miss some cases) */
 		i = strlen(t);
-		if(i > NAMELEN){
-			errno = EINVAL;
+		d->name = t;
+		if(_dirwstat(from, d) < 0){
+			_syserrno();
 			n = -1;
-		}else{
-			strcpy(d.name, t);
-			convD2M(&d, cd);
-			if(_WSTAT(from, cd) < 0){
-				_syserrno();
-				n = -1;
-			}
 		}
 	}else{
 		/* different directories: have to copy */
@@ -55,7 +49,7 @@ rename(const char *from, const char *to)
 		char buf[8192];
 
 		if((ffd = _OPEN(from, 0)) < 0 ||
-		   (tfd = _CREATE(to, 1, d.mode)) < 0){
+		   (tfd = _CREATE(to, 1, d->mode)) < 0){
 			_CLOSE(ffd);
 			_syserrno();
 			n = -1;
@@ -76,5 +70,6 @@ rename(const char *from, const char *to)
 			}
 		}
 	}
+	free(d);
 	return n;
 }

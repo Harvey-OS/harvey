@@ -6,47 +6,104 @@
 #include "io.h"
 #include "ureg.h"
 
-void (*kproftimer)(ulong);
+typedef struct Timers Timers;
 
-typedef struct Clock0link Clock0link;
-typedef struct Clock0link {
-	void		(*clock)(void);
-	Clock0link*	link;
-} Clock0link;
-
-static Clock0link *clock0link;
-static Lock clock0lock;
-
-void
-addclock0link(void (*clock)(void))
+struct Timers
 {
-	Clock0link *lp;
+	Lock;
+	Timer	*head;
+};
 
-	if((lp = malloc(sizeof(Clock0link))) == 0){
-		print("addclock0link: too many links\n");
-		return;
+static Timers timers[MAXMACH];
+
+ulong intrcount[MAXMACH];
+ulong fcallcount[MAXMACH];
+
+static uvlong
+tadd(Timers *tt, Timer *nt)
+{
+	Timer *t, **last, *pt;
+
+	pt = nil;
+	for(last = &tt->head; t = *last; last = &t->next){
+		if(t == nt){
+			*last = t->next;
+			break;
+		}
+		if (t->period == nt->period)
+			pt = t;
 	}
-	ilock(&clock0lock);
-	lp->clock = clock;
-	lp->link = clock0link;
-	clock0link = lp;
-	iunlock(&clock0lock);
+
+	if(nt->when == 0){
+		/* Try to synchronize periods to reduce # of interrupts */
+		assert(nt->period);
+		if(pt)
+			nt->when = pt->when;
+		else
+			nt->when = (uvlong)fastticks(nil) + nt->period;
+	}
+	
+	for(last = &tt->head; t = *last; last = &t->next){
+		if(t->when > nt->when)
+			break;
+	}
+	nt->next = *last;
+	*last = nt;
+	if (last == &tt->head)
+		return nt->when;
+	else
+		return 0;
+}
+
+/* add of modify a timer */
+void
+timeradd(Timer *nt)
+{
+	Timers *tt;
+	uvlong when;
+
+	tt = &timers[m->machno];
+	ilock(tt);
+	when = tadd(tt, nt);
+	if (when)
+		timerset(when);
+	iunlock(tt);
 }
 
 void
-portclock(Ureg *ur)
+timerdel(Timer *dt)
 {
-	Clock0link *lp;
+	Timer *t, **last;
+	Timers *tt;
 
+	tt = &timers[m->machno];
+	ilock(tt);
+	for(last = &tt->head; t = *last; last = &t->next){
+		if(t == dt){
+			*last = t->next;
+			break;
+		}
+	}
+	if (last == &tt->head && tt->head)
+		timerset(tt->head->when);
+	iunlock(tt);
+}
+
+void
+hzclock(Ureg *ur)
+{
 	m->ticks++;
 	if(m->proc)
 		m->proc->pc = ur->pc;
 
-	if(m->inclockintr)
-		return;		/* interrupted ourself */
-	m->inclockintr = 1;
+	if(m->flushmmu){
+		if(up)
+			flushmmu();
+		m->flushmmu = 0;
+	}
 
 	accounttime();
+	kmapinval();
 
 	if(kproftimer != nil)
 		kproftimer(ur->pc);
@@ -60,27 +117,95 @@ portclock(Ureg *ur)
 	}
 
 	checkalarms();
-	if(m->machno == 0){
-		if(canlock(&clock0lock))
-			for(lp = clock0link; lp; lp = lp->link){
-				lp->clock();
-				splhi();
-			}
-		unlock(&clock0lock);
-	}
 
-	if(up == 0 || up->state != Running){
-		m->inclockintr = 0;
+	if(up == 0 || up->state != Running)
 		return;
-	}
 
-	if(anyready())
+	/* i.e. don't deschedule an EDF process here! */
+	if(anyready() && !isedf(up)){
 		sched();
+		splhi();
+	}
 
 	/* user profiling clock */
 	if(userureg(ur)) {
 		(*(ulong*)(USTKTOP-BY2WD)) += TK2MS(1);
 		segclock(ur->pc);
 	}
-	m->inclockintr = 0;
+}
+
+void
+timerintr(Ureg *u, uvlong)
+{
+	Timer *t;
+	Timers *tt;
+	uvlong when, now;
+	int callhzclock;
+
+	intrcount[m->machno]++;
+	callhzclock = 0;
+	tt = &timers[m->machno];
+	now = fastticks(nil);
+	ilock(tt);
+	while(t = tt->head){
+		when = t->when;
+		if(when > now){
+			iunlock(tt);
+			timerset(when);
+			if(callhzclock)
+				hzclock(u);
+			return;
+		}
+		tt->head = t->next;
+		fcallcount[m->machno]++;
+		iunlock(tt);
+		if (t->f){
+			(*t->f)(u, t);
+			splhi();
+		} else
+			callhzclock++;
+		ilock(tt);
+		if(t->period){
+			t->when += t->period;
+			tadd(tt, t);
+		}
+	}
+	iunlock(tt);
+}
+
+uvlong hzperiod;
+
+void
+timersinit(void)
+{
+	Timer *t;
+
+	hzperiod = ms2fastticks(1000/HZ);
+
+	t = malloc(sizeof(*t));
+	t->when = 0;
+	t->period = hzperiod;
+	t->f = nil;
+	timeradd(t);
+}
+
+void
+addclock0link(void (*f)(void))
+{
+	Timer *nt;
+
+	/* Synchronize this to hztimer: reduces # of interrupts */
+	nt = malloc(sizeof(Timer));
+	nt->when = 0;
+	if (hzperiod == 0)
+		hzperiod = ms2fastticks(1000/HZ);
+	nt->period = hzperiod;
+	nt->f = (void (*)(Ureg*, Timer*))f;
+
+	ilock(&timers[0]);
+	tadd(&timers[0], nt);
+	/* no need to restart timer:
+	 * this one's synchronized with hztimer which is already running
+	 */
+	iunlock(&timers[0]);
 }

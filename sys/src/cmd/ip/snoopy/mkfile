@@ -1,0 +1,62 @@
+</$objtype/mkfile
+
+TARG=snoopy
+PROTOS=\
+	ether\
+	ip\
+	ip6\
+	dump\
+	arp\
+	rarp\
+	udp\
+	bootp\
+	dhcp\
+	tcp\
+	il\
+	icmp\
+	icmp6\
+	ninep\
+	ospf\
+	ppp\
+	ppp_ccp\
+	ppp_lcp\
+	ppp_chap\
+	ppp_ipcp\
+
+POBJS=${PROTOS:%=%.$O}
+
+OFILES=	main.$O\
+	y.tab.$O\
+	protos.$O\
+	$POBJS
+
+HFILES=dat.h\
+	protos.h\
+	y.tab.h\
+
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+protos.h: mkfile
+	{
+		for(i in $PROTOS){
+			echo extern Proto $i';'
+		}
+	} > protos.h
+
+protos.c: mkfile
+	{
+		echo '#include <u.h>'
+		echo '#include <libc.h>'
+		echo '#include "dat.h"'
+		echo '#include "protos.h"'
+		echo 'Proto *protos[] ='
+		echo '{'
+		for(i in $PROTOS)
+			echo '	&'$i','
+		echo '	0,'
+		echo '};'
+	} > protos.c
+
+y.tab.c: filter.y

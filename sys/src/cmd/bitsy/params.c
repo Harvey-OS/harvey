@@ -69,7 +69,7 @@ main(int argc, char **argv)
 	if(argc)
 		part = argv[0];
 	else
-		part = "/dev/flash/params";
+		part = "/dev/flash/user";
 
 	if(from){
 		params = readfile(part);

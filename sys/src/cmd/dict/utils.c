@@ -306,7 +306,7 @@ err(char *fmt, ...)
 	va_list v;
 
 	va_start(v, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, v);
+	vsnprint(buf, sizeof(buf), fmt, v);
 	va_end(v);
 	fprint(2, "%s: %s\n", argv0, buf);
 }
@@ -365,7 +365,7 @@ outprint(char *fmt, ...)
 	va_list v;
 
 	va_start(v, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, v);
+	vsnprint(buf, sizeof(buf), fmt, v);
 	va_end(v);
 	outchars(buf);
 }

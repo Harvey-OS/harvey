@@ -17,4 +17,3 @@ OFILES=\
 HFILES=/sys/include/flate.h
 
 </sys/src/cmd/mksyslib
-

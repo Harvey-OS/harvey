@@ -1,15 +1,17 @@
 </$objtype/mkfile
 
 TARG=\
+	9pcon\
 	accupoint\
 	acidleak\
 	apm\
 	astarld\
+	cddb\
 	clog\
 	consolefs\
 	data2s\
 	depend\
-	fcall\
+	lines\
 	listen\
 	mklatinkbd\
 	ms2\
@@ -29,6 +31,7 @@ BIN=/$objtype/bin/aux
 </sys/src/cmd/mkmany
 
 DIRS=mnihongo\
+	flashfs\
 	na\
 	vga
 

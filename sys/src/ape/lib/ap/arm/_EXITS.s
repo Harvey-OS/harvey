@@ -1,4 +1,0 @@
-TEXT _EXITS(SB), 1, $-4
-MOVW $8, R0
-SWI 0
-RET

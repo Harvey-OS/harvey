@@ -58,6 +58,19 @@ enum {
 	RMenu = 3,
 };
 
+void
+unhide(void)
+{
+	static int wctl = -1;
+
+	if(wctl < 0)
+		wctl = open("/dev/wctl", OWRITE);
+	if(wctl < 0)
+		return;
+
+	write(wctl, "unhide", 6);
+}
+
 int 
 max(int a, int b)
 {
@@ -491,6 +504,7 @@ viewer(Document *dd)
 			}
 			if((i = doc->addpage(doc, s)) >= 0) {
 				page = i;
+				unhide();
 				showpage(page, &menu);
 			}
 			free(s);
@@ -802,7 +816,7 @@ newwin(void)
 		wexits("no srv");
 	}
 	sprint(spec, "new -pid %d", pid);
-	if(mount(srvfd, "/mnt/wsys", 0, spec) == -1){
+	if(mount(srvfd, -1, "/mnt/wsys", 0, spec) == -1){
 		fprint(2, "page: can't mount /mnt/wsys: %r (spec=%s)\n", spec);
 		wexits("no mount");
 	}

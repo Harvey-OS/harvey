@@ -1,10 +1,10 @@
 .TH PPP 8
 .SH NAME
-ppp, pptpd \- point to point protocol
+ppp, pppoe, pptp, pptpd \- point to point protocol
 .SH SYNOPSIS
 .B ip/ppp
 [
-.B -cCdufSP
+.B -CPScdfu
 ][
 .B -b
 .I baud
@@ -29,6 +29,48 @@ ppp, pptpd \- point to point protocol
 [
 .I remote
 ] ]
+.PP
+.B ip/pppoe
+[
+.B -m
+.I mtu
+]
+[
+.B -P
+]
+[
+.B -d
+]
+[
+.B -s
+.IR username : secret
+]
+[
+.B -x
+.I pppnetmntpt
+]
+.I etherdir
+.PP
+.B ip/pptp
+[
+.B -P
+]
+[
+.B -d
+]
+[
+.B -s
+.IR username : secret
+]
+[
+.B -w
+.I window
+]
+[
+.B -x
+.I pppnetmntpt
+]
+.I server
 .PP
 .B ip/pptpd
 [
@@ -120,6 +162,7 @@ disallow packet compression
 .TP
 .B C
 disallow ip header compression
+.PD
 .PP
 If both the
 .I local
@@ -128,6 +171,75 @@ and
 addresses are specified, don't ask the other end for either
 or believe it if it supplies one.  If either is missing, get
 it from the remote end.
+.PP
+.I Pppoe
+is a PPP over ethernet (PPPoE) client.
+It invokes
+.I ppp
+to start a PPP conversation which is
+tunneled in PPPoE packets on 
+the ethernet device mounted at 
+.I etherdir
+(default
+.BR /net/ether0 ).
+The options are:
+.TP
+.B A
+insist on an access concentrator named
+.I acname
+during PPPoE discovery
+.TP
+.B S
+insist on a service named
+.I srvname
+during PPPoE discovery
+.TP
+.B d
+write debugging output to standard error,
+and pass
+.B -d
+to 
+.I ppp
+.TP
+.B m
+pass
+.B -m
+.I mtu
+to 
+.IR ppp ,
+default 1492
+.TP
+.B s
+pass
+.B -s
+.IR username : secret
+to
+.I ppp
+.TP
+.B x
+pass
+.B -x
+.I pppnetmntpt
+to 
+.I ppp
+.PD
+.PP
+.I Pptp
+is a client for a PPTP encrypted tunnel.
+.I Server
+is the name of the server to dial.
+.I Pptp
+takes the same options as
+.IR pppoe ,
+except for the lack of a
+.B -m
+option and the addition of a
+.B -w
+option.
+The
+.B -w
+option specifies the local send window size
+(default 16) in packets.
 .PP
 .I Pptpd
 is the server side of a PPTP encrypted tunnel.
@@ -154,5 +266,10 @@ set the receive window to
 drop
 .I fraction
 of the received packets.  This is used for testing.
+.PD
 .SH SOURCE
 .B /sys/src/cmd/ip/ppp
+.br
+.B /sys/src/cmd/ip/pptpd.c
+.br
+.B /sys/src/cmd/ip/pppoe.c

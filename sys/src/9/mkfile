@@ -1,6 +1,6 @@
 ARCH=\
 	alphapc\
-	mpc\
+	mtx\
 	pc\
 	
 all:V:
@@ -9,21 +9,14 @@ all:V:
 		mk
 	}
 
-installall:V:
+installall install:V:
 	for(i in $ARCH) @{
 		cd $i
-		mk installall
+		mk install
 	}
 
 clean:V:
-	@{ cd boot; mk clean }
 	for(i in $ARCH) @{
 		cd $i
 		mk clean
 	}
-
-backup:V: clean
-	9fs bootes
-	disk/kfscmd allow
-	disk/mkfs -s /n/bootes /sys/src/9/proto
-	disk/ksync

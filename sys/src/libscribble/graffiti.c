@@ -131,12 +131,12 @@ recognize (Scribble *s)
 		rune = c;
 		if (s->ctrlShift) 
 		{
-			s->ctrlShift = 0;
 			if (c < 'a' || 'z' < c)
 			{
 				if(ScribbleDebug)fprint(2, "(default) character = %c (0x%x)\n", rune, rune);
 				return rune;
 			}
+			rune = rune & 0x1f;
 		} else if ((s->capsLock && !s->tmpShift) || 
 				 (!s->capsLock && s->tmpShift)) 
 		{
@@ -145,6 +145,7 @@ recognize (Scribble *s)
 		} 
 		s->tmpShift = 0;
 		s->puncShift = 0;
+		s->ctrlShift = 0;
 		if(ScribbleDebug)fprint(2, "(default) character = %c (0x%x)\n", rune, rune);
 	}
 	return rune;

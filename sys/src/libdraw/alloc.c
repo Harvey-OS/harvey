@@ -2,31 +2,6 @@
 #include <libc.h>
 #include <draw.h>
 
-extern ulong
-drawld2chan[] = {
-	GREY1,
-	GREY2,
-	GREY4,
-	CMAP8,
-};
-
-int log2[] = { -1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1, 4 /* BUG */, -1, -1, -1, -1, -1, -1, -1, 5 };
-
-ulong
-setalpha(ulong color, uchar alpha)
-{
-	int red, green, blue;
-
-	red = (color >> 3*8) & 0xFF;
-	green = (color >> 2*8) & 0xFF;
-	blue = (color >> 1*8) & 0xFF;
-	/* ignore incoming alpha */
-	red = (red * alpha)/255;
-	green = (green * alpha)/255;
-	blue = (blue * alpha)/255;
-	return (red<<3*8) | (green<<2*8) | (blue<<1*8) | (alpha<<0*8);
-}
-
 Image*
 allocimage(Display *d, Rectangle r, ulong chan, int repl, ulong val)
 {
@@ -157,8 +132,9 @@ namedimage(Display *d, char *name)
 	if(flushimage(d, 0) < 0)
 		goto Error;
 
-	if(read(d->ctlfd, buf, sizeof buf) < 12*12)
+	if(pread(d->ctlfd, buf, sizeof buf, 0) < 12*12)
 		goto Error;
+	buf[12*12] = '\0';
 
 	i = malloc(sizeof(Image));
 	if(i == nil){
@@ -174,7 +150,7 @@ namedimage(Display *d, char *name)
 	i->display = d;
 	i->id = id;
 	if((chan=strtochan(buf+2*12))==0){
-		werrstr("bad channel from devdraw");
+		werrstr("bad channel '%.12s' from devdraw", buf+2*12);
 		goto Error1;
 	}
 	i->chan = chan;

@@ -85,6 +85,15 @@ error_s(Err s, char *a)
 }
 
 void
+error_r(Err s, char *a)
+{
+	char buf[512];
+
+	sprint(buf, "?%s \"%s\": %r", emsg[s], a);
+	hiccough(buf);
+}
+
+void
 error_c(Err s, int c)
 {
 	char buf[512];

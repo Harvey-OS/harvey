@@ -1,0 +1,29 @@
+</$objtype/mkfile
+BIN=/$objtype/bin
+
+TARG=webfs
+
+SCHEMEOFILES=\
+	file.$O\
+	ftp.$O\
+	http.$O\
+
+OFILES=\
+	buf.$O\
+	client.$O\
+	cookies.$O\
+	fs.$O\
+	http.$O\
+	io.$O\
+	main.$O\
+	plumb.$O\
+	url.$O\
+	util.$O\
+#	$SCHEMEOFILES
+
+HFILES=\
+	dat.h\
+	fns.h\
+
+</sys/src/cmd/mkone
+

@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
-#include "authsrv.h"
+#include <authsrv.h>
+#include "authcmdlib.h"
 
 void	install(char*, char*, int);
 void	usage(void);
@@ -14,7 +14,7 @@ main(int argc, char *argv[])
 	char keybuf[DESKEYLEN];
 
 	argv0 = "printnetkey";
-	fmtinstall('K', keyconv);
+	fmtinstall('K', keyfmt);
 
 	ARGBEGIN{
 	default:
@@ -24,13 +24,13 @@ main(int argc, char *argv[])
 		usage();
 
 	u = argv[0];
-	fmtinstall('K', keyconv);
+	fmtinstall('K', keyfmt);
 	
 	if(argc != 1){
 		fprint(2, "usage: printnetkey user\n");
 		exits("usage");
 	}
-	if(memchr(u, '\0', NAMELEN) == 0)
+	if(memchr(u, '\0', ANAMELEN) == 0)
 		error("bad user name");
 	key = findkey(NETKEYDB, u, keybuf);
 	if(!key)

@@ -14,13 +14,17 @@
 -  PC bootstrap program
 <DD><TT> 9load, ld</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/9pcon">9pcon</A>
+-  9P to text translator
+<DD><TT> 9pcon</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/apm">apm</A>
 -  Advanced Power Management 1.2 BIOS interface
 <DD><TT> apm</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/auth">auth</A>
 -  maintain authentication databases
-<DD><TT> changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv, login</TT>
+<DD><TT> changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv, login, disable, enable</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/boot">boot</A>
 -  connect to the root file server
@@ -29,6 +33,18 @@
 <DT><A HREF="/magic/man2html/8/booting">booting</A>
 -  bootstrapping procedures
 <DD><TT> booting</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/buildindex">buildindex</A>
+-  rebuild a Venti index
+<DD><TT> buildindex</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/checkarenas">checkarenas</A>
+-  check the integrity, and optionally fix, Venti arenas
+<DD><TT> checkarenas</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/checkindex">checkindex</A>
+-  check the integrity and optionally fix a Venti index
+<DD><TT> checkindex</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/cpurc">cpurc</A>
 -  boot script
@@ -45,6 +61,18 @@
 <DT><A HREF="/magic/man2html/8/drawterm">drawterm</A>
 -  connect to Plan 9 CPU servers from other operating systems
 <DD><TT> drawterm</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/fmtarenas">fmtarenas</A>
+-  format a file into a number of Venti arenas
+<DD><TT> fmtarenas</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/fmtindex">fmtindex</A>
+-  format a Venti index
+<DD><TT> fmtindex</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/fmtisect">fmtisect</A>
+-  format a Venti index section
+<DD><TT> fmtisect</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/fs">fs</A>
 -  file server maintenance
@@ -84,11 +112,15 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/mk9660">mk9660</A>
 -  create an ISO-9660 CD image
-<DD><TT> mk9660</TT>
+<DD><TT> dump9660, mk9660</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/mkfs">mkfs</A>
 -  archive or update a file system
 <DD><TT> mkfs, mkext</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/mkpaqfs">mkpaqfs</A>
+-  make a compressed read-only file system
+<DD><TT> mkpaqfs</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/mksacfs">mksacfs</A>
 -  make a compressed file system
@@ -120,7 +152,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/ping">ping</A>
 -  probe the Internet
-<DD><TT> ping, gping, traceroute</TT>
+<DD><TT> ping, gping, traceroute, hogports</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/plan9.ini">plan9.ini</A>
 -  configuration file for PCs
@@ -128,7 +160,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/ppp">ppp</A>
 -  point to point protocol
-<DD><TT> ppp, pptpd</TT>
+<DD><TT> ppp, pppoe, pptp, pptpd</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/prep">prep</A>
 -  prepare hard and floppy diskettes, flashes
@@ -138,9 +170,17 @@
 -  queue management for spooled files
 <DD><TT> qer, runq</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/rdarena">rdarena</A>
+-  extract a Venti arena
+<DD><TT> rdarena</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/reboot">reboot</A>
 -  reboot the system upon loss of remote file server connection
 <DD><TT> reboot</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/replica">replica</A>
+-  simple client-server replica management
+<DD><TT> applychanges, applylog, compactdb, updatedb</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/scanmail">scanmail</A>
 -  spam filters
@@ -150,13 +190,17 @@
 -  SCSI target control
 <DD><TT> scuzz</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/secstore">secstore</A>
+-  secstore commands
+<DD><TT> secstored, secuser</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/securenet">securenet</A>
 -  Digital Pathways SecureNet Key remote authentication box
 <DD><TT> securenet</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/snoopy">snoopy</A>
--  spy on Ethernet packets
-<DD><TT> sniffer, snoopy</TT>
+-  spy on network packets
+<DD><TT> snoopy</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/stats">stats</A>
 -  display graphs of system activity
@@ -170,6 +214,10 @@
 -  synchronize the system clock to a time source
 <DD><TT> timesync</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/tlssrv">tlssrv</A>
+-  TLS server
+<DD><TT> tlssrv</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/udpecho">udpecho</A>
 -  echo UDP packets
 <DD><TT> udpecho</TT>
@@ -178,12 +226,12 @@
 -  administration for local file systems
 <DD><TT> bootfloppy, bootplan9, bootwin9x, bootwinnt, personalize, setup.9fat, setup.disk, setup.kfs, update</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/venti">venti</A>
+-  an archival block storage server
+<DD><TT> venti</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/vga">vga</A>
 -  configure a VGA card
 <DD><TT> vga</TT>
-</DT>
-<DT><A HREF="/magic/man2html/8/wrap">wrap</A>
--  software package preparation
-<DD><TT> wrap, create, info, inst, wdiff</TT>
 </DT>
 </DL>

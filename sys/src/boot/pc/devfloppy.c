@@ -88,7 +88,7 @@ static void	floppypos(FDrive*,long);
 static int	floppyrecal(FDrive*);
 static int	floppyresult(void);
 static void	floppyrevive(void);
-static long	pcfloppyseek(FDrive*, long);
+static vlong	pcfloppyseek(FDrive*, vlong);
 static int	floppysense(void);
 static void	floppywait(int);
 static long	floppyxfer(FDrive*, int, void*, long, long);
@@ -129,6 +129,18 @@ floppysetdef(FDrive *dp)
 		}
 }
 
+static void
+_floppydetach(void)
+{
+	/*
+	 *  stop the motors
+	 */
+	fl.motor = 0;
+	delay(10);
+	outb(Pdor, fl.motor | Fintena | Fena);
+	delay(10);
+}
+
 int
 floppyinit(void)
 {
@@ -138,7 +150,7 @@ floppyinit(void)
 	int mask;
 
 	dmainit(DMAchan);
-	
+
 	floppysetup0(&fl);
 
 	/*
@@ -155,13 +167,8 @@ floppyinit(void)
 
 	fl.selected = fl.d;
 
-	/*
-	 *  stop the motors
-	 */
-	fl.motor = 0;
-	delay(10);
-	outb(Pdor, fl.motor | Fintena | Fena);
-	delay(10);
+	floppydetach = _floppydetach;
+	floppydetach();
 
 	/*
 	 *  init drives
@@ -196,7 +203,17 @@ floppyinit(void)
 void
 floppyinitdev(int i, char *name)
 {
+	if(i >= fl.ndrive)
+		panic("floppyinitdev");
 	sprint(name, "fd%d", i);
+}
+
+void
+floppyprintdevs(int i)
+{
+	if(i >= fl.ndrive)
+		panic("floppyprintdevs");
+	print(" fd%d", i);
 }
 
 int
@@ -211,13 +228,17 @@ floppyboot(int dev, char *file, Boot *b)
 		return -1;
 	}
 
-	dos = floppygetdospart(dev, "dos");
-	if(dos == nil) {
-		print("no such FAT partition fd%d!dos\n", dev);
+	dos = floppygetdospart(dev, "dos", 1);
+	if(dos == nil)
 		return -1;
-	}
 
 	return dosboot(dos, file, b);
+}
+
+void
+floppyprintbootdevs(int dev)
+{
+	print(" fd%d", dev);
 }
 
 /*
@@ -342,12 +363,15 @@ floppyread(Dos *dos, void *a, long n)
 }
 
 void*
-floppygetdospart(int i, char *name)
+floppygetdospart(int i, char *name, int chatty)
 {
 	static Dos dos;
 
-	if(strcmp(name, "dos") != 0)
+	if(strcmp(name, "dos") != 0){
+		if(chatty)
+			print("unknown partition fd%d!%s (use fd%d!dos)\n", i, name, i);
 		return nil;
+	}
 
 	dos.dev = i;
 	dos.read = floppyread;
@@ -355,8 +379,11 @@ floppygetdospart(int i, char *name)
 	dos.start = 0;
 
 	/* sometimes we get spurious errors and doing it again works */
-	if(dosinit(&dos) < 0 && dosinit(&dos) < 0)
+	if(dosinit(&dos) < 0 && dosinit(&dos) < 0){
+		if(chatty)
+			print("fd%d!%s does not contain a FAT file system\n", i, name);
 		return nil;
+	}
 	return &dos;
 }
 
@@ -653,8 +680,8 @@ floppyrevive(void)
  *
  *	interrupt, no results
  */
-static long
-pcfloppyseek(FDrive *dp, long off)
+static vlong
+pcfloppyseek(FDrive *dp, vlong off)
 {
 	floppypos(dp, off);
 	if(dp->cyl == dp->tcyl){
@@ -753,9 +780,9 @@ floppyxfer(FDrive *dp, int cmd, void *a, long off, long n)
 			continue;
 		}
 		if((fl.stat[0] & Codemask)!=0 || fl.stat[1] || fl.stat[2]){
-			DPRINT("xfer: failed %lux %lux %lux\n", fl.stat[0],
+			DPRINT("xfer: failed %ux %ux %ux\n", fl.stat[0],
 				fl.stat[1], fl.stat[2]);
-			DPRINT("offset %lud len %d\n", off, dp->len);
+			DPRINT("offset %lud len %ld\n", off, dp->len);
 			if((fl.stat[0]&Codemask)==Cmdexec && fl.stat[1]==Overrun){
 				DPRINT("DMA overrun: retry\n");
 			} else

@@ -1,6 +1,6 @@
 .TH PING 8
 .SH NAME
-ping, gping, traceroute \- probe the Internet
+ping, gping, traceroute, hogports \- probe the Internet
 .SH SYNOPSIS
 .B ping
 [
@@ -39,6 +39,9 @@ ping, gping, traceroute \- probe the Internet
 .I tries
 ]
 .I dest
+.PP
+.B hogports
+.B [\fImtpt\fP/]\fIproto\fP!\fIaddress\fP!\fIstartport\fP[-\fIendport\fP]
 .SH DESCRIPTION
 .I Ping
 sends ICMP echo requests to a system and returns the time
@@ -123,9 +126,21 @@ look up the names of the routers.
 send
 .I tries
 packets at each TTL value (default 1).
+.PP
+.I Hogports
+announces on a range of ports to keep them from other processes.
+For example, to keep anyone from making a vncserver visible on
+the network mounted at
+.BR /net.alt :
+.EX
+
+	ip/hogports /net.alt/tcp!*!5900-5950
+.EE
 .SH SOURCE
 .B /sys/src/cmd/ip/ping.c
 .br
 .B /sys/src/cmd/ip/gping.c
 .br
 .B /sys/src/cmd/ip/traceroute.c
+.br
+.B /sys/src/cmd/ip/hogports.c

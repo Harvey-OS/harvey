@@ -29,6 +29,7 @@ enum {
 static int
 reset(Ether* ether)
 {
+	static int first;
 	ushort buf[16];
 	ulong port;
 	Dp8390 *ctlr;

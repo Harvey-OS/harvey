@@ -1,6 +1,8 @@
 bind -a $home/bin/rc /bin
 bind -a $home/bin/$cputype /bin
 bind -c tmp /tmp
+if(! syscall open /tmp/xxx 1 >[2]/dev/null)
+	ramfs	# in case we're running off a cd
 font = /lib/font/bit/pelm/euro.9.font
 upas/fs
 switch($service){

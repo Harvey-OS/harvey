@@ -34,7 +34,7 @@ etherconfig(int on, char *spec, DevConf *cf)
 {
 	Ether *ether;
 	int n, ctlrno;
-	char name[NAMELEN], buf[128];
+	char name[32], buf[128];
 	char *p, *e;
 
 	/* can't unconfigure yet */
@@ -87,7 +87,7 @@ etherconfig(int on, char *spec, DevConf *cf)
 		if(ether->mem)
 			p = seprint(p, e, " addr 0x%luX", PADDR(ether->mem));
 		if(ether->size)
-			p = seprint(p, e, " size 0x%luX", ether->size);
+			p = seprint(p, e, " size 0x%X", ether->size);
 		p = seprint(p, e, ": %2.2uX%2.2uX%2.2uX%2.2uX%2.2uX%2.2uX",
 			ether->ea[0], ether->ea[1], ether->ea[2],
 			ether->ea[3], ether->ea[4], ether->ea[5]);
@@ -98,6 +98,8 @@ etherconfig(int on, char *spec, DevConf *cf)
 		return 0;
 	}
 
+	if (ether->type)
+		free(ether->type);
 	free(ether);
 	return -1;
 }
@@ -127,16 +129,16 @@ etherattach(char* spec)
 	return chan;
 }
 
-static int
-etherwalk(Chan* chan, char* name)
+static Walkqid*
+etherwalk(Chan* chan, Chan* nchan, char** name, int nname)
 {
-	return netifwalk(etherxx[chan->dev], chan, name);
+	return netifwalk(etherxx[chan->dev], chan, nchan, name, nname);
 }
 
-static void
-etherstat(Chan* chan, char* dp)
+static int
+etherstat(Chan* chan, uchar* dp, int n)
 {
-	netifstat(etherxx[chan->dev], chan, dp);
+	return netifstat(etherxx[chan->dev], chan, dp, n);
 }
 
 static Chan*
@@ -163,7 +165,7 @@ etherread(Chan* chan, void* buf, long n, vlong off)
 	ulong offset = off;
 
 	ether = etherxx[chan->dev];
-	if((chan->qid.path & CHDIR) == 0 && ether->ifstat){
+	if((chan->qid.type & QTDIR) == 0 && ether->ifstat){
 		/*
 		 * With some controllers it is necessary to reach
 		 * into the chip to extract statistics.
@@ -183,15 +185,10 @@ etherbread(Chan* chan, long n, ulong offset)
 	return netifbread(etherxx[chan->dev], chan, n, offset);
 }
 
-static void
-etherremove(Chan*)
+static int
+etherwstat(Chan* chan, uchar* dp, int n)
 {
-}
-
-static void
-etherwstat(Chan* chan, char* dp)
-{
-	netifwstat(etherxx[chan->dev], chan, dp);
+	return netifwstat(etherxx[chan->dev], chan, dp, n);
 }
 
 static void
@@ -448,8 +445,8 @@ Dev etherdevtab = {
 
 	etherreset,
 	devinit,
+	devshutdown,
 	etherattach,
-	devclone,
 	etherwalk,
 	etherstat,
 	etheropen,
@@ -459,7 +456,7 @@ Dev etherdevtab = {
 	etherbread,
 	etherwrite,
 	etherbwrite,
-	etherremove,
+	devremove,
 	etherwstat,
 	nil,		/* no power management */
 	etherconfig,

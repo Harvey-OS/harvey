@@ -1,0 +1,1653 @@
+<html>
+
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Rc &#173; The Plan 9 Shell
+</H1>
+<DL><DD><I>Tom Duff<br>
+td@plan9.bell-labs.com<br>
+</I></DL>
+<DL><DD><H4>ABSTRACT</H4>
+<I>Rc</I>
+is a command interpreter for Plan 9 that
+provides similar facilities to UNIX's
+Bourne shell,
+with some small additions and less idiosyncratic syntax.
+This paper uses numerous examples to describe
+<I>rc</I>'s
+features, and contrasts
+<I>rc</I>
+with the Bourne shell, a model that many readers will be familiar with.
+</DL>
+<H4>1 Introduction
+</H4>
+<P>
+<I>Rc</I>
+is similar in spirit but different in detail from UNIX's
+Bourne shell.  This paper describes
+<I>rc</I>'s
+principal features with many small examples and a few larger ones.
+It assumes familiarity with the Bourne shell.
+</P>
+<H4>2 Simple commands
+</H4>
+<P>
+For the simplest uses
+<I>rc</I>
+has syntax familiar to Bourne-shell users.
+All of the following behave as expected:
+<DL><DT><DD><TT><PRE>
+date
+cat /lib/news/build
+who &#62;user.names
+who &#62;&#62;user.names
+wc &#60;file
+echo [a-f]*.c
+who | wc
+who; date
+vc *.c &amp;
+mk &amp;&amp; v.out /*/bin/fb/*
+rm -r junk || echo rm failed!
+</PRE></TT></DL>
+</P>
+<H4>3 Quotation
+</H4>
+<P>
+An argument that contains a space or one of
+<I>rc</I>'s
+other syntax characters must be enclosed in apostrophes
+(<TT>'</TT>):
+<DL><DT><DD><TT><PRE>
+rm 'odd file name'
+</PRE></TT></DL>
+An apostrophe in a quoted argument must be doubled:
+<DL><DT><DD><TT><PRE>
+echo 'How''s your father?'
+</PRE></TT></DL>
+</P>
+<H4>4 Patterns
+</H4>
+<P>
+An unquoted argument that contains any of the characters
+<TT>*</TT>
+<TT>?</TT>
+<TT>[</TT>
+is a pattern to be matched against file names.
+A
+<TT>*</TT>
+character matches any sequence of characters,
+<TT>?</TT>
+matches any single character, and
+<TT>[<I>class</I>]</TT>
+matches any character in the
+<TT>class</TT>,
+unless the first character of
+<I>class</I>
+is
+<TT>~</TT>,
+in which case the class is complemented.
+The
+<I>class</I>
+may also contain pairs of characters separated by
+<TT>-</TT>,
+standing for all characters lexically between the two.
+The character
+<TT>/</TT>
+must appear explicitly in a pattern, as must the path name components
+<TT>.</TT>
+and
+<TT>..</TT>.
+A pattern is replaced by a list of arguments, one for each path name matched,
+except that a pattern matching no names is not replaced by the empty list;
+rather it stands for itself.
+</P>
+<H4>5 Variables
+</H4>
+<P>
+UNIX's Bourne shell offers string-valued variables.
+<I>Rc</I>
+provides variables whose values are lists of arguments &#173;
+that is, arrays of strings.  This is the principal difference
+between
+<I>rc</I>
+and traditional UNIX command interpreters.
+Variables may be given values by typing, for example:
+<DL><DT><DD><TT><PRE>
+path=(. /bin)
+user=td
+font=/lib/font/bit/pelm/ascii.9.font
+</PRE></TT></DL>
+The parentheses indicate that the value assigned to
+<TT>path</TT>
+is a list of two strings. The variables
+<TT>user</TT>
+and
+<TT>font</TT>
+are assigned lists containing a single string.
+</P>
+<P>
+The value of a variable can be substituted into a command by
+preceding its name with a
+<TT>$</TT>,
+like this:
+<DL><DT><DD><TT><PRE>
+echo $path
+</PRE></TT></DL>
+If
+<TT>path</TT>
+had been set as above, this would be equivalent to
+<DL><DT><DD><TT><PRE>
+echo . /bin
+</PRE></TT></DL>
+Variables may be subscripted by numbers or lists of numbers,
+like this:
+<DL><DT><DD><TT><PRE>
+echo $path(2)
+echo $path(2 1 2)
+</PRE></TT></DL>
+These are equivalent to
+<DL><DT><DD><TT><PRE>
+echo /bin
+echo /bin . /bin
+</PRE></TT></DL>
+There can be no space separating the variable's name from the
+left parenthesis; otherwise, the subscript would be considered
+a separate parenthesized list.
+</P>
+<P>
+The number of strings in a variable can be determined by the
+<TT>$#</TT>
+operator.  For example,
+<DL><DT><DD><TT><PRE>
+echo $#path
+</PRE></TT></DL>
+would print 2 for this example.
+</P>
+<P>
+The following two assignments are subtly different:
+<DL><DT><DD><TT><PRE>
+empty=()
+null=''
+</PRE></TT></DL>
+The first sets
+<TT>empty</TT>
+to a list containing no strings.
+The second sets
+<TT>null</TT>
+to a list containing a single string,
+but the string contains no characters.
+</P>
+<P>
+Although these may seem like more or less
+the same thing (in Bourne's shell, they are
+indistinguishable), they behave differently
+in almost all circumstances.
+Among other things
+<DL><DT><DD><TT><PRE>
+echo $#empty
+</PRE></TT></DL>
+prints 0, whereas
+<DL><DT><DD><TT><PRE>
+echo $#null
+</PRE></TT></DL>
+prints 1.
+</P>
+<P>
+All variables that have never been set have the value
+<TT>()</TT>.
+</P>
+<P>
+Occasionally, it is convenient to treat a variable's value
+as a single string.  The elements of a string are concatenated
+into a single string, with spaces between the elements, by
+the
+<TT>$"</TT>
+operator.
+Thus, if we set
+<DL><DT><DD><TT><PRE>
+list=(How now brown cow)
+string=$"list
+</PRE></TT></DL>
+then both
+<DL><DT><DD><TT><PRE>
+echo $list
+</PRE></TT></DL>
+and
+<DL><DT><DD><TT><PRE>
+echo $string
+</PRE></TT></DL>
+cause the same output, viz:
+<DL><DT><DD><TT><PRE>
+How now brown cow
+</PRE></TT></DL>
+but
+<DL><DT><DD><TT><PRE>
+echo $#list $#string
+</PRE></TT></DL>
+will output
+<DL><DT><DD><TT><PRE>
+4 1
+</PRE></TT></DL>
+because
+<TT>$list</TT>
+has four members, but
+<TT>$string</TT>
+has a single member, with three spaces separating its words.
+</P>
+<H4>6 Arguments
+</H4>
+<P>
+When
+<I>rc</I>
+is reading its input from a file, the file has access
+to the arguments supplied on
+<I>rc</I>'s
+command line.  The variable
+<TT>$*</TT>
+initially has the list of arguments assigned to it.
+The names
+<TT>$1</TT>,
+<TT>$2</TT>,
+etc. are synonyms for
+<TT>$*(1)</TT>,
+<TT>$*(2)</TT>,
+etc.
+In addition,
+<TT>$0</TT>
+is the name of the file from which
+<I>rc</I>'s
+input is being read.
+</P>
+<H4>7 Concatenation
+</H4>
+<P>
+<I>Rc</I>
+has a string concatenation operator, the caret 
+<TT>^</TT>,
+to build arguments out of pieces.
+<DL><DT><DD><TT><PRE>
+echo hully^gully
+</PRE></TT></DL>
+is exactly equivalent to
+<DL><DT><DD><TT><PRE>
+echo hullygully
+</PRE></TT></DL>
+Suppose variable
+<TT>i</TT>
+contains the name of a command.
+Then
+<DL><DT><DD><TT><PRE>
+vc $i^.c
+vl -o $1 $i^.v
+</PRE></TT></DL>
+might compile the command's source code, leaving the
+result in the appropriate file.
+</P>
+<P>
+Concatenation distributes over lists. The following
+<DL><DT><DD><TT><PRE>
+echo (a b c)^(1 2 3)
+src=(main subr io)
+cc $src^.c
+</PRE></TT></DL>
+are equivalent to
+<DL><DT><DD><TT><PRE>
+echo a1 b2 c3
+cc main.c subr.c io.c
+</PRE></TT></DL>
+In detail, the rule is: if both operands of
+<TT>^</TT>
+are lists of the same non-zero number of strings, they are concatenated
+pairwise.  Otherwise, if one of the operands is a single string,
+it is concatenated with each member of the other operand in turn.
+Any other combination of operands is an error.
+</P>
+<H4>8 Free carets
+</H4>
+<P>
+User demand has dictated that
+<I>rc</I>
+insert carets in certain places, to make the syntax
+look more like the Bourne shell.  For example, this:
+<DL><DT><DD><TT><PRE>
+cc -$flags $stems.c
+</PRE></TT></DL>
+is equivalent to
+<DL><DT><DD><TT><PRE>
+cc -^$flags $stems^.c
+</PRE></TT></DL>
+In general,
+<I>rc</I>
+will insert
+<TT>^</TT>
+between two arguments that are not separated by white space.
+Specifically, whenever one of
+<TT>$'`</TT>
+follows a quoted or unquoted word, or an unquoted word follows
+a quoted word with no intervening blanks or tabs, an implicit
+<TT>^</TT>
+is inserted between the two.  If an unquoted word immediately following a
+<TT>$</TT>
+contains a character other than an alphanumeric, underscore or
+<TT>*</TT>,
+a
+<TT>^</TT>
+is inserted before the first such character.
+</P>
+<H4>9 Command substitution
+</H4>
+<P>
+It is often useful to build an argument list from the output of a command.
+<I>Rc</I>
+allows a command, enclosed in braces and preceded by a left quote,
+<TT>`{...}</TT>,
+anywhere that an argument is required.  The command is executed and its
+standard output captured.
+The characters stored in the variable
+<TT>ifs</TT>
+are used to split the output into arguments.
+For example,
+<DL><DT><DD><TT><PRE>
+cat `{ls -tr|sed 10q}
+</PRE></TT></DL>
+will concatenate the ten oldest files in the current directory in temporal order, given the
+default
+<TT>ifs</TT>
+setting of space, tab, and newline.
+</P>
+<H4>10 Pipeline branching
+</H4>
+<P>
+The normal pipeline notation is general enough for almost all cases.
+Very occasionally it is useful to have pipelines that are not linear.
+Pipeline topologies more general than trees can require arbitrarily large pipe buffers,
+or worse, can cause deadlock.
+<I>Rc</I>
+has syntax for some kinds of non-linear but treelike pipelines.
+For example,
+<DL><DT><DD><TT><PRE>
+	cmp &#60;{old} &#60;{new}
+</PRE></TT></DL>
+will regression-test a new version of a command.
+<TT><</TT>
+or
+<TT>></TT>
+followed by a command in braces causes the command to be run with
+its standard output or input attached to a pipe.  The parent command
+(<TT>cmp</TT>
+in the example)
+is started with the other end of the pipe attached to some file descriptor
+or other, and with an argument that will connect to the pipe when opened
+(e.g.,
+<TT>/dev/fd/6</TT>).
+Some commands are unprepared to deal with input files that turn out not to be seekable.
+For example
+<TT>diff</TT>
+needs to read its input twice.
+</P>
+<H4>11 Exit status
+</H4>
+<P>
+When a command exits it returns status to the program that executed it.
+On Plan 9 status is a character string describing an error condition.
+On normal termination it is empty.
+</P>
+<P>
+<I>Rc</I>
+captures command exit status in the variable
+<TT>$status</TT>.
+For a simple command the value of
+<TT>$status</TT>
+is just as described above.  For a pipeline
+<TT>$status</TT>
+is set to the concatenation of the statuses of the pipeline components with
+<TT>|</TT>
+characters for separators.
+</P>
+<P>
+<I>Rc</I>
+has a several kinds of control flow,
+many of them conditioned by the status returned from previously
+executed commands.  Any
+<TT>$status</TT>
+containing only
+<TT>0</TT>'s
+and
+<TT>|</TT>'s
+has boolean value
+<I>true</I>.
+Any other status is
+<I>false</I>.
+</P>
+<H4>12 Command grouping
+</H4>
+<P>
+A sequence of commands enclosed in
+<TT>{}</TT>
+may be used anywhere a command is required.
+For example:
+<DL><DT><DD><TT><PRE>
+{sleep 3600;echo 'Time''s up!'}&amp;
+</PRE></TT></DL>
+will wait an hour in the background, then print a message.
+Without the braces,
+<DL><DT><DD><TT><PRE>
+sleep 3600;echo 'Time''s up!'&amp;
+</PRE></TT></DL>
+would lock up the terminal for an hour,
+then print the message in the background.
+</P>
+<H4>13 Control flow &#173; <TT>for</TT>
+</H4>
+<P>
+A command may be executed once for each member of a list
+by typing, for example:
+<DL><DT><DD><TT><PRE>
+for(i in printf scanf putchar) look $i /usr/td/lib/dw.dat
+</PRE></TT></DL>
+This looks for each of the words
+<TT>printf</TT>,
+<TT>scanf</TT>
+and
+<TT>putchar</TT>
+in the given file.
+The general form is
+<DL><DT><DD><TT><PRE>
+for(<I>name</I> in <I>list</I>) <I>command</I>
+</PRE></TT></DL>
+or
+<DL><DT><DD><TT><PRE>
+for(<I>name</I>) <I>command</I>
+</PRE></TT></DL>
+In the first case
+<I>command</I>
+is executed once for each member of
+<I>list</I>
+with that member assigned to variable
+<I>name</I>.
+If the clause
+``<TT>in</TT>
+<I>list</I>''
+is missing,
+``<TT>in</TT>
+<TT>$*</TT>''
+is assumed.
+</P>
+<H4>14 Conditional execution &#173; <TT>if</TT>
+</H4>
+<P>
+<I>Rc</I>
+also provides a general if-statement.  For example:
+<DL><DT><DD><TT><PRE>
+for(i in *.c) if(cpp $i &#62;/tmp/$i) vc /tmp/$i
+</PRE></TT></DL>
+runs the C compiler on each C source program that
+cpp processes without error.
+An `if not' statement provides a two-tailed conditional.
+For example:
+<DL><DT><DD><TT><PRE>
+for(i){
+    if(test -f /tmp/$i) echo $i already in /tmp
+    if not cp $i /tmp
+}
+</PRE></TT></DL>
+This loops over each file in
+<TT>$*</TT>,
+copying to
+<TT>/tmp</TT>
+those that do not already appear there, and
+printing a message for those that do.
+</P>
+<H4>15 Control flow &#173; <TT>while</TT>
+</H4>
+<P>
+<I>Rc</I>'s
+while statement looks like this:
+<DL><DT><DD><TT><PRE>
+while(newer subr.v subr.c) sleep 5
+</PRE></TT></DL>
+This waits until
+<TT>subr.v</TT>
+is newer than
+<TT>subr.c</TT>,
+presumably because the C compiler finished with it.
+</P>
+<P>
+If the controlling command is empty, the loop will not terminate.
+Thus,
+<DL><DT><DD><TT><PRE>
+while() echo y
+</PRE></TT></DL>
+emulates the
+<I>yes</I>
+command.
+</P>
+<H4>16 Control flow &#173; <TT>switch</TT>
+</H4>
+<P>
+<I>Rc</I>
+provides a switch statement to do pattern-matching on
+arbitrary strings.  Its general form is
+<DL><DT><DD><TT><PRE>
+switch(<I>word</I>){
+case <I>pattern ...</I>
+    <I>commands</I>
+case <I>pattern ...</I>
+    <I>commands</I>
+...
+}
+</PRE></TT></DL>
+<I>Rc</I>
+attempts to match the word against the patterns in each case statement in turn.
+Patterns are the same as for filename matching, except that
+<TT>/</TT>
+and
+<TT>.</TT>
+and
+<TT>..</TT>
+need not be matched explicitly.
+</P>
+<P>
+If any pattern matches, the
+commands following that case up to
+the next case (or the end of the switch)
+are executed, and execution of the switch
+is complete.  For example,
+<DL><DT><DD><TT><PRE>
+switch($#*){
+case 1
+    cat &#62;&#62;$1
+case 2
+    cat &#62;&#62;$2 &#60;$1
+case *
+    echo 'Usage: append [from] to'
+}
+</PRE></TT></DL>
+is an append command.  Called with one file argument,
+it appends its standard input to the named file.  With two, the
+first is appended to the second.  Any other number
+elicits an error message.
+</P>
+<P>
+The built-in
+<TT>~</TT>
+command also matches patterns, and is often more concise than a switch.
+Its arguments are a string and a list of patterns.  It sets
+<TT>$status</TT>
+to true if and only if any of the patterns matches the string.
+The following example processes option arguments for the
+<A href="/magic/man2html/1/man"><I>man</I>(1)
+</A>command:
+<DL><DT><DD><TT><PRE>
+opt=()
+while(~ $1 -* [1-9] 10){
+    switch($1){
+    case [1-9] 10
+        sec=$1 secn=$1
+    case -f
+        c=f s=f
+    case -[qwnt]
+        cmd=$1
+    case -T*
+        T=$1
+    case -*
+        opt=($opt $1)
+    }
+    shift
+}
+</PRE></TT></DL>
+</P>
+<H4>17 Functions
+</H4>
+<P>
+Functions may be defined by typing
+<DL><DT><DD><TT><PRE>
+fn <I>name</I> { <I>commands</I> }
+</PRE></TT></DL>
+Subsequently, whenever a command named
+<I>name</I>
+is encountered, the remainder of the command's
+argument list will assigned to
+<TT>$*</TT>
+and
+<I>rc</I>
+will execute the
+<I>commands</I>.
+The value of
+<TT>$*</TT>
+will be restored on completion.
+For example:
+<DL><DT><DD><TT><PRE>
+fn g {
+    grep $1 *.[hcyl]
+}
+</PRE></TT></DL>
+defines
+<TT>g</TT><I> pattern</I>n(Sf
+to look for occurrences of
+<I>pattern</I>
+in all program source files in the current directory.
+</P>
+<P>
+Function definitions are deleted by writing
+<DL><DT><DD><TT><PRE>
+fn <I>name</I>
+</PRE></TT></DL>
+with no function body.
+</P>
+<H4>18 Command execution
+</H4>
+<P>
+<I>Rc</I>
+does one of several things to execute a simple command.
+If the command name is the name of a function defined using
+<TT>fn</TT>,
+the function is executed.
+Otherwise, if it is the name of a built-in command, the
+built-in is executed directly by
+<I>rc</I>.
+Otherwise, directories mentioned in the variable
+<TT>$path</TT>
+are searched until an executable file is found.
+Extensive use of the
+<TT>$path</TT>
+variable is discouraged in Plan 9.  Instead, use the default
+<TT>(.</TT>
+<TT>/bin)</TT>
+and bind what you need into
+<TT>/bin</TT>.
+</P>
+<H4>19 Built-in commands
+</H4>
+<P>
+Several commands are executed internally by
+<I>rc</I>
+because they are difficult to implement otherwise.
+</P>
+<DL COMPACT>
+<DT></TT><TT>. [-i] <I>file ...</I><TT></TT><DD>
+Execute commands from
+</TT><I>file</I><TT>.
+</TT><TT>$*</TT><TT>
+is set for the duration to the reminder of the argument list following
+</TT><I>file</I><TT>.
+</TT><TT>$path</TT><TT>
+is used to search for
+</TT><I>file</I><TT>.
+Option
+</TT><TT>-i</TT><TT>
+indicates interactive input &#173; a prompt
+(found in
+</TT><TT>$prompt</TT><TT>)
+is printed before each command is read.
+<DT></TT><TT>builtin </TT><I>command ...</I><TT></TT><DD>
+Execute
+</TT><I>command</I><TT>
+as usual except that any function named
+</TT><I>command</I><TT>
+is ignored.
+For example,
+<DL><DT><DD><TT><PRE>
+fn cd{
+    builtin cd $* &amp;&amp; pwd
+}
+</PRE></TT></DL>
+defines a replacement for the
+</TT><TT>cd</TT><TT>
+built-in (see below) that announces the full name of the new directory.
+<DT></TT><TT>cd [</TT><I>dir</I><TT>]</TT><DD>
+Change the current directory to
+</TT><I>dir</I><TT>.
+The default argument is
+</TT><TT>$home</TT><TT>.
+</TT><TT>$cdpath</TT><TT>
+is a list of places in which to search for
+</TT><I>dir</I><TT>.
+<DT></TT><TT>eval [</TT><I>arg ...</I><TT>]</TT><DD>
+The arguments are concatenated (separated by spaces) into a string, read as input to
+</TT><I>rc</I><TT>,
+and executed.  For example,
+<DL><DT><DD><TT><PRE>
+x='$y'
+y=Doody
+eval echo Howdy, $x
+</PRE></TT></DL>
+would echo
+<DL><DT><DD><TT><PRE>
+Howdy, Doody
+</PRE></TT></DL>
+since the arguments of
+</TT><TT>eval</TT><TT>
+would be
+<DL><DT><DD><TT><PRE>
+echo Howdy, $y
+</PRE></TT></DL>
+after substituting for
+</TT><TT>$x</TT><TT>.
+<DT></TT><TT>exec [</TT><I>command ...</I><TT>]</TT><DD>
+</TT><I>Rc</I><TT>
+replaces itself with the given
+</TT><I>command</I><TT>.
+This is like a
+</TT><I>goto</I><TT>
+&#173;
+</TT><I>rc</I><TT>
+does not wait for the command to exit, and does not return to read any more commands.
+<DT></TT><TT>exit [</TT><I>status</I><TT>]</TT><DD>
+</TT><I>Rc</I><TT>
+exits immediately with the given status.  If none is given, the current value of
+</TT><TT>$status</TT><TT>
+is used.
+<DT></TT><TT>flag </TT><I>f</I><TT> [+-]</TT><DD>
+This command manipulates and tests the command line flags (described below).
+<DL><DT><DD><TT><PRE>
+flag </TT><I>f</I><TT> +
+</PRE></TT></DL>
+sets flag
+</TT><I>f</I><TT>.
+<DL><DT><DD><TT><PRE>
+flag </TT><I>f</I><TT> -
+</PRE></TT></DL>
+clears flag
+</TT><I>f</I><TT>.
+<DL><DT><DD><TT><PRE>
+flag </TT><I>f</I><TT>
+</PRE></TT></DL>
+tests flag
+</TT><I>f</I><TT>,
+setting
+</TT><TT>$status</TT><TT>
+appropriately.
+Thus
+<DL><DT><DD><TT><PRE>
+if(flag x) flag v +
+</PRE></TT></DL>
+sets the
+</TT><TT>-v</TT><TT>
+flag if the
+</TT><TT>-x</TT><TT>
+flag is already set.
+<DT></TT><TT>rfork [nNeEsfF]</TT><DD>
+This uses the Plan 9
+</TT><I>rfork</I><TT>
+system entry to put
+</TT><I>rc</I><TT>
+into a new process group with the following attributes:
+<br><img src="data.11230.gif"><br>
+Section
+<A href="/magic/man2html/2/fork"></TT><I>fork</I><TT>(2)
+</A>of the Programmer's Manual describes these attributes in more detail.
+<DT></TT><TT>shift [</TT><I>n</I><TT>]</TT><DD>
+Delete the first
+</TT><I>n</I><TT>
+(default 1) elements of
+</TT><TT>$*</TT><TT>.
+<DT></TT><TT>wait [</TT><I>pid</I><TT>]</TT><DD>
+Wait for the process with the given
+</TT><I>pid</I><TT>
+to exit.  If no
+</TT><I>pid</I><TT>
+is given, all outstanding processes are waited for.
+<DT></TT><TT>whatis </TT><I>name ...</I><TT></TT><DD>
+Print the value of each
+</TT><I>name</I><TT>
+in a form suitable for input to
+</TT><I>rc</I><TT>.
+The output is an assignment to a variable, the definition of a function,
+a call to
+</TT><TT>builtin</TT><TT>
+for a built-in command, or the path name of a binary program.
+For example,
+<DL><DT><DD><TT><PRE>
+whatis path g cd who
+</PRE></TT></DL>
+might print
+<DL><DT><DD><TT><PRE>
+path=(. /bin)
+fn g {gre -e $1 *.[hycl]}
+builtin cd
+/bin/who
+</PRE></TT></DL>
+<DT></I><TT>~ </TT><I>subject pattern ...</TT><DD>
+The
+</TT><I>subject</I><TT>
+is matched against each
+</TT><I>pattern</I><TT>
+in turn.  On a match,
+</TT><TT>$status</TT><TT>
+is set to true.
+Otherwise, it is set to 
+</TT><TT>'no match'</TT><TT>.
+Patterns are the same as for filename matching.
+The
+</TT><I>patterns</I><TT>
+are not subjected to filename replacement before the
+</TT><TT>~</TT><TT>
+command is executed, so they need not be enclosed in
+quotation marks, unless of course, a literal match for
+</TT><TT>*</TT><TT>
+</TT><TT>[</TT><TT>
+or
+</TT><TT>?</TT><TT>
+is required.
+For example
+<DL><DT><DD><TT><PRE>
+~ $1 ?
+</PRE></TT></DL>
+matches any single character, whereas
+<DL><DT><DD><TT><PRE>
+~ $1 '?'
+</PRE></TT></DL>
+only matches a literal question mark.
+</dl>
+</TT><H4>20 Advanced I/O Redirection
+</H4>
+<P>
+<I>Rc</I>
+allows redirection of file descriptors other than 0 and 1
+(standard input and output) by specifying the file descriptor
+in square brackets
+<TT>[ ]</TT>
+after the
+<TT><</TT>
+or
+<TT>></TT>.
+For example,
+<DL><DT><DD><TT><PRE>
+vc junk.c &#62;[2]junk.diag
+</PRE></TT></DL>
+saves the compiler's diagnostics from standard error in
+<TT>junk.diag</TT>.
+</P>
+<P>
+File descriptors may be replaced by a copy, in the sense of
+<A href="/magic/man2html/2/dup"><I>dup</I>(2),
+</A>of an already-open file by typing, for example
+<DL><DT><DD><TT><PRE>
+vc junk.c &#62;[2=1]
+</PRE></TT></DL>
+This replaces file descriptor 2 with a copy of file descriptor 1.
+It is more useful in conjunction with other redirections, like this
+<DL><DT><DD><TT><PRE>
+vc junk.c &#62;junk.out &#62;[2=1]
+</PRE></TT></DL>
+Redirections are evaluated from left to right, so this redirects
+file descriptor 1 to
+<TT>junk.out</TT>,
+then points file descriptor 2 at the same file.
+By contrast,
+<DL><DT><DD><TT><PRE>
+vc junk.c &#62;[2=1] &#62;junk.out
+</PRE></TT></DL>
+redirects file descriptor 2 to a copy of file descriptor 1
+(presumably the terminal), and then directs file descriptor 1
+to a file.  In the first case, standard and diagnostic output
+will be intermixed in
+<TT>junk.out</TT>.
+In the second, diagnostic output will appear on the terminal,
+and standard output will be sent to the file.
+</P>
+<P>
+File descriptors may be closed by using the duplication notation
+with an empty right-hand side.
+For example,
+<DL><DT><DD><TT><PRE>
+vc junk.c &#62;[2=]
+</PRE></TT></DL>
+will discard diagnostics from the compilation.
+</P>
+<P>
+Arbitrary file descriptors may be sent through
+a pipe by typing, for example,
+<DL><DT><DD><TT><PRE>
+vc junk.c |[2] grep -v '^$'
+</PRE></TT></DL>
+This deletes blank lines
+from the C compiler's error output.  Note that the output
+of
+<TT>grep</TT>
+still appears on file descriptor 1.
+</P>
+<P>
+Occasionally you may wish to connect the input side of
+a pipe to some file descriptor other than zero.
+The notation
+<DL><DT><DD><TT><PRE>
+cmd1 |[5=19] cmd2
+</PRE></TT></DL>
+creates a pipeline with
+<TT>cmd1</TT>'s
+file descriptor 5 connected through a pipe to
+<TT>cmd2</TT>'s
+file descriptor 19.
+</P>
+<H4>21 Here documents
+</H4>
+<P>
+<I>Rc</I>
+procedures may include data, called ``here documents'',
+to be provided as input to commands, as in this version of the
+<I>tel</I>
+command
+<DL><DT><DD><TT><PRE>
+for(i) grep $i &#60;&#60;!
+...
+tor 2T-402 2912
+kevin 2C-514 2842
+bill 2C-562 7214
+...
+!
+</PRE></TT></DL>
+A here document is introduced by the redirection symbol
+<TT><<</TT>,
+followed by an arbitrary EOF marker
+(<TT>!</TT>
+in the example).  Lines following the command,
+up to a line containing only the EOF marker are saved
+in a temporary file that is connected to the command's
+standard input when it is run.
+</P>
+<P>
+<I>Rc</I>
+does variable substitution in here documents.  The following command:
+<DL><DT><DD><TT><PRE>
+ed $3 &#60;&#60;EOF
+g/$1/s//$2/g
+w
+EOF
+</PRE></TT></DL>
+changes all occurrences of
+<TT>$1</TT>
+to
+<TT>$2</TT>
+in file
+<TT>$3</TT>.
+To include a literal
+<TT>$</TT>
+in a here document, type
+<TT>$$</TT>.
+If the name of a variable is followed immediately by
+<TT>^</TT>,
+the caret is deleted.
+</P>
+<P>
+Variable substitution can be entirely suppressed by enclosing
+the EOF marker following
+<TT><<</TT>
+in quotation marks, as in
+<TT><<'EOF'</TT>.
+</P>
+<P>
+Here documents may be provided on file descriptors other than 0 by typing, for example,
+<DL><DT><DD><TT><PRE>
+cmd &#60;&#60;[4]End
+...
+End
+</PRE></TT></DL>
+</P>
+<P>
+If a here document appears within a compound block, the contents of the document
+must be after the whole block:
+<DL><DT><DD><TT><PRE>
+for(i in $*){
+	mail $i &#60;&#60;EOF
+}
+words to live by
+EOF
+</PRE></TT></DL>
+</P>
+<H4>22 Catching Notes
+</H4>
+<P>
+<I>Rc</I>
+scripts normally terminate when an interrupt is received from the terminal.
+A function with the name of a UNIX signal, in lower case, is defined in the usual way,
+but called when
+<I>rc</I>
+receives the corresponding note.
+The
+<A href="/magic/man2html/2/notify"><I>notify</I>(2)
+</A>section of the Programmer's Manual discusses notes in some detail.
+Notes of interest are:
+</P>
+<DL COMPACT>
+<DT><TT>sighup</TT><DD>
+The note was `hangup'.
+Plan 9 sends this when the terminal has disconnected from
+<I>rc</I>.
+<DT><TT>sigint</TT><DD>
+The note was `interrupt', usually sent when
+the interrupt character (ASCII DEL) is typed on the terminal.
+<DT><TT>sigterm</TT><DD>
+The note was `kill', normally sent by
+<A href="/magic/man2html/1/kill"><I>kill</I>(1).
+</A><DT><TT>sigexit</TT><DD>
+An artificial note sent when
+<I>rc</I>
+is about to exit.
+</dl>
+<P>
+As an example,
+<DL><DT><DD><TT><PRE>
+fn sigint{
+    rm /tmp/junk
+    exit
+}
+</PRE></TT></DL>
+sets a trap for the keyboard interrupt that
+removes a temporary file before exiting.
+</P>
+<P>
+Notes will be ignored if the note routine is set to
+<TT>{}</TT>.
+Signals revert to their default behavior when their handlers'
+definitions are deleted.
+</P>
+<H4>23 Environment
+</H4>
+<P>
+The environment is a list of name-value pairs made available to
+executing binaries.
+On Plan 9, the environment is stored in a file system named
+<TT>#e</TT>,
+normally mounted on
+<TT>/env</TT>.
+The value of each variable is stored in a separate file, with components
+terminated by zero bytes.
+(The file system is
+maintained entirely in core, so no disk or network access is involved.)
+The contents of
+<TT>/env</TT>
+are shared on a per-process group basis - when a new process group is
+created it effectively attaches
+<TT>/env</TT>
+to a new file system initialized with a copy of the old one.
+A consequence of this organization is that commands can change environment
+entries and see the changes reflected in
+<I>rc</I>.
+</P>
+<P>
+Functions also appear in the environment, named by prefixing
+<TT>fn#</TT>
+to their names, like
+<TT>/env/fn#roff</TT>.
+</P>
+<H4>24 Local Variables
+</H4>
+<P>
+It is often useful to set a variable for the duration
+of a single command.  An assignment followed by a command
+has this effect.  For example
+<DL><DT><DD><TT><PRE>
+a=global
+a=local echo $a
+echo $a
+</PRE></TT></DL>
+will print
+<DL><DT><DD><TT><PRE>
+local
+global
+</PRE></TT></DL>
+This works even for compound commands, like
+<DL><DT><DD><TT><PRE>
+f=/fairly/long/file/name {
+    { wc $f; spell $f; diff $f.old $f } |
+      pr -h 'Facts about '$f | lp -dfn
+}
+</PRE></TT></DL>
+</P>
+<H4>25 Examples &#173; <I>cd, pwd</I>
+</H4>
+<P>
+Here is a pair of functions that provide
+enhanced versions of the standard
+<TT>cd</TT>
+and
+<TT>pwd</TT>
+commands.  (Thanks to Rob Pike for these.)
+<DL><DT><DD><TT><PRE>
+ps1='% '	# default prompt
+tab='	'	# a tab character
+fn cd{
+  builtin cd $1 &amp;&amp;
+  switch($#*){
+  case 0
+    dir=$home
+    prompt=($ps1 $tab)
+  case *
+    switch($1)
+    case /*
+      dir=$1
+      prompt=(`{basename `{pwd}}^$ps1 $tab)
+    case */* ..*
+      dir=()
+      prompt=(`{basename `{pwd}}^$ps1 $tab)
+    case *
+      dir=()
+      prompt=($1^$ps1 $tab)
+    }
+  }
+}
+fn pwd{
+  if(~ $#dir 0)
+    dir=`{/bin/pwd}
+  echo $dir
+}
+</PRE></TT></DL>
+Function
+<TT>pwd</TT>
+is a version of the standard
+<TT>pwd</TT>
+that caches its value in variable
+<TT>$dir</TT>,
+because the genuine
+<TT>pwd</TT>
+can be quite slow to execute.
+(Recent versions of Plan 9 have very fast implementations of
+<TT>pwd</TT>,
+reducing the advantage of the
+<TT>pwd</TT>
+function.)
+</P>
+<P>
+Function
+<TT>cd</TT>
+calls the
+<TT>cd</TT>
+built-in, and checks that it was successful.
+If so, it sets
+<TT>$dir</TT>
+and
+<TT>$prompt</TT>.
+The prompt will include the last component of the
+current directory (except in the home directory,
+where it will be null), and
+<TT>$dir</TT>
+will be reset either to the correct value or to
+<TT>()</TT>,
+so that the
+<TT>pwd</TT>
+function will work correctly.
+</P>
+<H4>26 Examples &#173; <I>man</I>
+</H4>
+<P>
+The
+<I>man</I>
+command prints pages of the Programmer's Manual.
+It is called, for example, as
+<DL><DT><DD><TT><PRE>
+man 2 sinh
+man rc
+man -t cat
+</PRE></TT></DL>
+In the first case, the page for
+<I>sinh</I>
+in section 2 is printed.
+In the second case, the manual page for
+<I>rc</I>
+is printed.  Since no manual section is specified,
+all sections are searched for the page, and it is found
+in section 1.
+In the third case, the page for
+<I>cat</I>
+is typeset (the
+<TT>-t</TT>
+option).
+<DL><DT><DD><TT><PRE>
+cd /sys/man || {
+  echo $0: No manual! &#62;[1=2]
+  exit 1
+}
+NT=n  # default nroff
+s='*' # section, default try all
+for(i) switch($i){
+case -t
+  NT=t
+case -n
+  NT=n
+case -*
+  echo Usage: $0 '[-nt] [section] page ...' &#62;[1=2]
+  exit 1
+case [1-9] 10
+  s=$i
+case *
+  eval 'pages='$s/$i
+  for(page in $pages){
+    if(test -f $page)
+      $NT^roff -man $page
+    if not
+      echo $0: $i not found &#62;[1=2]
+  }
+}
+</PRE></TT></DL>
+Note the use of
+<TT>eval</TT>
+to make a list of candidate manual pages.
+Without
+<TT>eval</TT>,
+the
+<TT>*</TT>
+stored in
+<TT>$s</TT>
+would not trigger filename matching
+&#173; it's enclosed in quotation marks,
+and even if it weren't, it would be expanded
+when assigned to
+<TT>$s</TT>.
+Eval causes its arguments
+to be re-processed by
+<I>rc</I>'s
+parser and interpreter, effectively delaying
+evaluation of the
+<TT>*</TT>
+until the assignment to
+<TT>$pages</TT>.
+</P>
+<H4>27 Examples &#173; <I>holmdel</I>
+</H4>
+<P>
+The following
+<I>rc</I>
+script plays the deceptively simple game
+<I>holmdel</I>,
+in which the players alternately name Bell Labs locations,
+the winner being the first to mention Holmdel.
+<DL><DT><DD><TT><PRE>
+t=/tmp/holmdel$pid
+fn read{
+	$1=`{awk '{print;exit}'}
+}
+ifs='
+'	# just a newline
+fn sigexit sigint sigquit sighup{
+	rm -f $t
+	exit
+}
+cat &#60;&#60;'!' &#62;$t
+Allentown 
+Atlanta
+Cedar Crest
+Chester
+Columbus
+Elmhurst
+Fullerton
+Holmdel
+Indian Hill
+Merrimack Valley
+Morristown
+Neptune
+Piscataway
+Reading
+Short Hills
+South Plainfield
+Summit
+Whippany
+West Long Branch
+!
+while(){
+   lab=`{fortune $t}
+   echo $lab
+   if(~ $lab Holmdel){
+      echo You lose.
+      exit
+   }
+   while(read lab; ! grep -i -s $lab $t) echo No such location.
+   if(~ $lab [hH]olmdel){
+      echo You win.
+      exit
+   }
+}
+</PRE></TT></DL>
+</P>
+<P>
+This script is worth describing in detail
+(rather, it would be if it weren't so silly.)
+</P>
+<P>
+Variable
+<TT>$t</TT>
+is an abbreviation for the name of a temporary file.
+Including
+<TT>$pid</TT>,
+initialized by
+<I>rc</I>
+to its process-id,
+in the names of temporary files insures that their
+names won't collide, in case more than one instance
+of the script is running at a time.
+</P>
+<P>
+Function
+<TT>read</TT>'s
+argument is the name of a variable into which a
+line gathered from standard input is read.
+<TT>$ifs</TT>
+is set to just a newline.  Thus
+<TT>read</TT>'s
+input is not split apart at spaces, but the terminating
+newline is deleted.
+</P>
+<P>
+A handler is set to catch
+<TT>sigint</TT>,
+<TT>sigquit</TT>,
+and
+<TT>sighup,</TT>
+and the artificial
+<TT>sigexit</TT>
+signal.  It just removes the temporary file and exits.
+</P>
+<P>
+The temporary file is initialized from a here
+document containing a list of Bell Labs locations, and
+the main loop starts.
+</P>
+<P>
+First, the program guesses a location (in
+<TT>$lab</TT>)
+using the
+<TT>fortune</TT>
+program to pick a random line from the location list.
+It prints the location, and if it guessed Holmdel, prints
+a message and exits.
+</P>
+<P>
+Then it uses the
+<TT>read</TT>
+function to get lines from standard input and validity-check
+them until it gets a legal name.
+Note that the condition part of a
+<TT>while</TT>
+can be a compound command.  Only the exit status of the
+last command in the sequence is checked.
+</P>
+<P>
+Again, if the result
+is Holmdel, it prints a message and exits.
+Otherwise it goes back to the top of the loop.
+</P>
+<H4>28 Design Principles
+</H4>
+<P>
+<I>Rc</I>
+draws heavily from Steve Bourne's
+<TT>/bin/sh</TT>.
+Any successor of the Bourne shell is bound to
+suffer in comparison.  I have tried to fix its
+best-acknowledged shortcomings and to simplify things
+wherever possible, usually by omitting inessential features.
+Only when irresistibly tempted have I introduced novel ideas.
+Obviously I have tinkered extensively with Bourne's syntax.
+</P>
+<P>
+The most important principle in
+<I>rc</I>'s
+design is that it's not a macro processor.  Input is never
+scanned more than once by the lexical and syntactic analysis
+code (except, of course, by the
+<TT>eval</TT>
+command, whose
+<I>raison d'&ecirc;tre</I>
+is to break the rule).
+</P>
+<P>
+Bourne shell scripts can often be made
+to run wild by passing them arguments containing spaces.
+These will be split into multiple arguments using
+<TT>IFS</TT>,
+often at inopportune times.
+In
+<I>rc</I>,
+values of variables, including command line arguments, are not re-read
+when substituted into a command.
+Arguments have presumably been scanned in the parent process, and ought
+not to be re-read.
+</P>
+<P>
+Why does Bourne re-scan commands after variable substitution?
+He needs to be able to store lists of arguments in variables whose values are
+character strings.
+If we eliminate re-scanning, we must change the type of variables, so that
+they can explicitly carry lists of strings.
+</P>
+<P>
+This introduces some
+conceptual complications.  We need a notation for lists of words.
+There are two different kinds of concatenation, for strings &#173;
+<TT>$a^$b</TT>,
+and lists &#173;
+<TT>($a $b)</TT>.
+The difference between
+<TT>()</TT>
+and
+<TT>''</TT>
+is confusing to novices,
+although the distinction is arguably sensible &#173;
+a null argument is not the same as no argument.
+</P>
+<P>
+Bourne also rescans input when doing command substitution.
+This is because the text enclosed in back-quotes is not
+a string, but a command.  Properly, it ought to
+be parsed when the enclosing command is, but this makes
+it difficult to
+handle nested command substitutions, like this:
+<DL><DT><DD><TT><PRE>
+size=`wc -l \`ls -t|sed 1q\``
+</PRE></TT></DL>
+The inner back-quotes must be escaped
+to avoid terminating the outer command.
+This can get much worse than the above example;
+the number of
+<TT>r</TT>'s
+equired is exponential in the nesting depth.
+<I>Rc</I>
+fixes this by making the backquote a unary operator
+whose argument is a command, like this:
+<DL><DT><DD><TT><PRE>
+size=`{wc -l `{ls -t|sed 1q}}
+</PRE></TT></DL>
+No escapes are ever required, and the whole thing
+is parsed in one pass.
+</P>
+<P>
+For similar reasons
+<I>rc</I>
+defines signal handlers as though they were functions,
+instead of associating a string with each signal, as Bourne does,
+with the attendant possibility of getting a syntax error message
+in response to typing the interrupt character.  Since
+<I>rc</I>
+parses input when typed, it reports errors when you make them.
+</P>
+<P>
+For all this trouble, we gain substantial semantic simplifications.
+There is no need for the distinction between
+<TT>$*</TT>
+and
+<TT>$@</TT>.
+There is no need for four types of quotation, nor the
+extremely complicated rules that govern them.  In
+<I>rc</I>
+you use quotation marks when you want a syntax character
+to appear in an argument, or an argument that is the empty string,
+and at no other time.
+<TT>IFS</TT>
+is no longer used, except in the one case where it was indispensable:
+converting command output into argument lists during command substitution.
+</P>
+<P>
+This also avoids an important UNIX security hole.
+In UNIX, the
+<I>system</I>
+and
+<I>popen</I>
+functions call
+<TT>/bin/sh</TT>
+to execute a command.  It is impossible to use either
+of these routines with any assurance that the specified command will
+be executed, even if the caller of
+<I>system</I>
+or
+<I>popen</I>
+specifies a full path name for the command.  This can be devastating
+if it occurs in a set-userid program.
+The problem is that
+<TT>IFS</TT>
+is used to split the command into words, so an attacker can just
+set
+<TT>IFS=/</TT>
+in his environment and leave a Trojan horse
+named
+<TT>usr</TT>
+or
+<TT>bin</TT>
+in the current working directory before running the privileged program.
+<I>Rc</I>
+fixes this by never rescanning input for any reason.
+</P>
+<P>
+Most of the other differences between
+<I>rc</I>
+and the Bourne shell are not so serious.  I eliminated Bourne's
+peculiar forms of variable substitution, like
+<DL><DT><DD><TT><PRE>
+echo ${a=b} ${c-d} ${e?error}
+</PRE></TT></DL>
+because they are little used, redundant and easily
+expressed in less abstruse terms.
+I deleted the builtins
+<TT>export</TT>,
+<TT>readonly</TT>,
+<TT>break</TT>,
+<TT>continue</TT>,
+<TT>read</TT>,
+<TT>return</TT>,
+<TT>set</TT>,
+<TT>times</TT>
+and
+<TT>unset</TT>
+because they seem redundant or
+only marginally useful.
+</P>
+<P>
+Where Bourne's syntax draws from Algol 68,
+<I>rc</I>'s
+is based on C or Awk.  This is harder to defend.
+I believe that, for example
+<DL><DT><DD><TT><PRE>
+if(test -f junk) rm junk
+</PRE></TT></DL>
+is better syntax than
+<DL><DT><DD><TT><PRE>
+if test -f junk; then rm junk; fi
+</PRE></TT></DL>
+because it is less cluttered with keywords,
+it avoids the semicolons that Bourne requires
+in odd places,
+and the syntax characters better set off the
+active parts of the command.
+</P>
+<P>
+The one bit of large-scale syntax that Bourne
+unquestionably does better than
+<I>rc</I>
+is the
+<TT>if</TT>
+statement with
+<TT>else</TT>
+clause.
+<I>Rc</I>'s
+<TT>if</TT>
+has no terminating
+<TT>fi</TT>-like
+bracket.  As a result, the parser cannot
+tell whether or not to expect an
+<TT>else</TT>
+clause without looking ahead in its input.
+The problem is that after reading, for example
+<DL><DT><DD><TT><PRE>
+if(test -f junk) echo junk found
+</PRE></TT></DL>
+in interactive mode,
+<I>rc</I>
+cannot decide whether to execute it immediately and print
+<TT>$prompt(1)</TT>,
+or to print
+<TT>$prompt(2)</TT>
+and wait for the
+<TT>else</TT>
+to be typed.
+In the Bourne shell, this is not a problem, because the
+<TT>if</TT>
+command must end with
+<TT>fi</TT>,
+regardless of whether it contains an
+<TT>else</TT>
+or not.
+</P>
+<P>
+<I>Rc</I>'s
+admittedly feeble solution is to declare that the
+<TT>else</TT>
+clause is a separate statement, with the semantic
+proviso that it must immediately follow an
+<TT>if</TT>,
+and to call it
+<TT>if not</TT>
+rather than
+<TT>else</TT>,
+as a reminder that something odd is going on.
+The only noticeable consequence of this is that
+the braces are required in the construction
+<DL><DT><DD><TT><PRE>
+for(i){
+    if(test -f $i) echo $i found
+    if not echo $i not found
+}
+</PRE></TT></DL>
+and that
+<I>rc</I>
+resolves the ``dangling else'' ambiguity in opposition
+to most people's expectations.
+</P>
+<P>
+It is remarkable that in the four most recent editions of the UNIX system
+programmer's manual the Bourne shell grammar described in the manual page
+does not admit the command
+<TT>who|wc</TT>.
+This is surely an oversight, but it suggests something darker:
+nobody really knows what the Bourne shell's grammar is.  Even examination
+of the source code is little help.  The parser is implemented by recursive
+descent, but the routines corresponding to the syntactic categories all
+have a flag argument that subtly changes their operation depending on the
+context.
+<I>Rc</I>'s
+parser is implemented using
+<I>yacc</I>,
+so I can say precisely what the grammar is.
+</P>
+<H4>29 Acknowledgements
+</H4>
+<P>
+Rob Pike, Howard Trickey and other Plan 9 users have been insistent, incessant
+sources of good ideas and criticism.  Some examples in this document are plagiarized
+from [Bourne],
+as are most of
+<I>rc</I>'s
+good features.
+</P>
+<H4>30 Reference
+</H4>
+<br>&#32;<br>
+S. R. Bourne,
+UNIX Time-Sharing System: The UNIX Shell,
+Bell System Technical Journal, Volume 57 number 6, July-August 1978
+
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

@@ -1,6 +1,6 @@
 .TH BIO 2
 .SH NAME
-Bopen, Binit, Binits, Brdline, Bgetc, Bgetrune, Bgetd, Bungetc, Bungetrune, Bread, Bseek, Boffset, Bfildes, Blinelen, Bputc, Bputrune, Bprint, Bwrite, Bflush, Bterm, Bbuffered \- buffered input/output
+Bopen, Binit, Binits, Brdline, Brdstr, Bgetc, Bgetrune, Bgetd, Bungetc, Bungetrune, Bread, Bseek, Boffset, Bfildes, Blinelen, Bputc, Bputrune, Bprint, Bvprint, Bwrite, Bflush, Bterm, Bbuffered \- buffered input/output
 .SH SYNOPSIS
 .ta \w'Biobuf* 'u
 .B #include <u.h>
@@ -25,7 +25,13 @@ int	Bterm(Biobufhdr *bp)
 int	Bprint(Biobufhdr *bp, char *format, ...)
 .PP
 .B
+int	Bvprint(Biobufhdr *bp, char *format, va_list arglist);
+.PP
+.B
 void*	Brdline(Biobufhdr *bp, int delim)
+.PP
+.B
+char*	Brdstr(Biobufhdr *bp, int delim, int nulldelim)
 .PP
 .B
 int	Blinelen(Biobufhdr *bp)
@@ -151,6 +157,26 @@ returns the length (including the delimiter)
 of the most recent string returned by
 .IR Brdline .
 .PP
+.I Brdstr
+returns a
+.IR malloc (2)-allocated
+buffer containing the next line of input delimited by
+.IR delim ,
+terminated by a NUL (0) byte.
+Unlike
+.IR Brdline ,
+which returns when its buffer is full even if no delimiter has been found,
+.I Brdstr
+will return an arbitrarily long line in a single call.
+If
+.I nulldelim
+is set, the terminal delimiter will be overwritten with a NUL.
+After a successful call to
+.IR Brdstr ,
+the return value of
+.I Blinelen
+will be the length of the returned buffer, excluding the NUL.
+.PP
 .I Bgetc
 returns the next character from
 .IR bp ,
@@ -246,6 +272,10 @@ a negative value
 .RB ( Beof )
 is returned.
 Otherwise, the number of bytes output is returned.
+.I Bvprint
+does the same except it takes as argument a
+.B va_list
+parameter, so it can be called within a variadic function.
 .PP
 .I Bwrite
 outputs
@@ -307,6 +337,9 @@ in these cases.
 In the case of a true end-of-file,
 .I Blinelen
 will return zero.
+At the cost of allocating a buffer,
+.I Brdstr
+sidesteps these issues.
 .PP
 The data returned by
 .I Brdline

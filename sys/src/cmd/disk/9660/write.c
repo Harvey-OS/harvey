@@ -71,7 +71,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 	DigestState *s;
 	Dumpdir *dd;
 
-	if(direc->mode & CHDIR) {
+	if(direc->mode & DMDIR) {
 		for(i=0; i<direc->nchild; i++)
 			writefiles(d, cd, &direc->child[i]);
 		return;
@@ -80,7 +80,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 	assert(direc->block == 0);
 
 	if((b = Bopen(direc->srcfile, OREAD)) == nil){
-		fprint(2, "warning: cannot open '%s': %r", direc->srcfile);
+		fprint(2, "warning: cannot open '%s': %r\n", direc->srcfile);
 		direc->block = 0;
 		direc->length = 0;
 		return;
@@ -130,7 +130,7 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 	int i, l, ll;
 	ulong start, next;
 
-	if((d->mode & CHDIR) == 0)
+	if((d->mode & DMDIR) == 0)
 		return;
 
 	for(i=0; i<d->nchild; i++)
@@ -162,7 +162,7 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 	rewritedotdot(cd, d, d);
 
 	for(i=0; i<d->nchild; i++)
-		if(d->child[i].mode & CHDIR)
+		if(d->child[i].mode & DMDIR)
 			rewritedotdot(cd, &d->child[i], d);
 }
 
@@ -193,7 +193,7 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 	case 0:
 		/* write root, list of years, also conform.map */
 		for(i=0; i<d->nchild; i++)
-			if(d->child[i].mode & CHDIR)
+			if(d->child[i].mode & DMDIR)
 				_writedumpdirs(cd, &d->child[i], put, level+1);
 		chat("write dump root dir at %lud\n", cd->nextblock);
 		goto Writedir;
@@ -221,7 +221,7 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 		rewritedotdot(cd, d, d);
 
 		for(i=0; i<d->nchild; i++)
-			if(d->child[i].mode & CHDIR)
+			if(d->child[i].mode & DMDIR)
 				rewritedotdot(cd, &d->child[i], d);
 		break;
 
@@ -297,7 +297,7 @@ genputdir(Cdimg *cd, Direc *d, int dot, int joliet, int dowrite, int offset)
 	long o;
 
 	f = 0;
-	if(dot != DTiden || (d->mode & CHDIR))
+	if(dot != DTiden || (d->mode & DMDIR))
 		f |= 2;
 
 	n = 1;
@@ -339,7 +339,7 @@ genputdir(Cdimg *cd, Direc *d, int dot, int joliet, int dowrite, int offset)
 	Cputc(cd, l);			/* length of directory record */
 	Cputc(cd, 0);			/* extended attribute record length */
 	if(d) {
-		if((d->mode & CHDIR) == 0)
+		if((d->mode & DMDIR) == 0)
 			assert(d->length == 0 || d->block >= 18);
 
 		Cputn(cd, d->block, 4);		/* location of extent */

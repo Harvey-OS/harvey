@@ -569,7 +569,7 @@ yyerror(char *a, ...)
 	}
 	prfile(lineno);
 	va_start(arg, a);
-	doprint(buf, buf+sizeof(buf), a, arg);
+	vseprint(buf, buf+sizeof(buf), a, arg);
 	va_end(arg);
 	print("%s\n", buf);
 	nerrors++;

@@ -1330,18 +1330,19 @@ bprint(Instr *ip, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	ip->curr = doprint(ip->curr, ip->end, fmt, arg);
+	ip->curr = vseprint(ip->curr, ip->end, fmt, arg);
 	va_end(arg);
 }
 
 /*
- *	if 32-bit registers are to be named E<rr>, macro ANAME should
- *	always return ip->asize and ONAME should return a 'E' when
- *	when ip->osize == 'L'.  The macros should return a null character
- *	when 32-bit registers are ddesignated by <rr>.
+ *  if we want to call 16 bit regs AX,BX,CX,...
+ *  and 32 bit regs EAX,EBX,ECX,... then
+ *  change the defs of ANAME and ONAME to:
+ *  #define	ANAME(ip)	((ip->asize == 'E' ? "E" : "")
+ *  #define	ONAME(ip)	((ip)->osize == 'L' ? "E" : "")
  */
-#define	ANAME(ip)	0
-#define	ONAME(ip)	((ip)->osize == 'L' ? 0 : 0)
+#define	ANAME(ip)	""
+#define	ONAME(ip)	""
 
 static char *reg[] =  {
 [AX]	"AX",
@@ -1392,7 +1393,7 @@ pea(Instr *ip)
 		if (ip->osize == 'B')
 			bprint(ip, breg[ip->base]);
 		else
-			bprint(ip, "%c%s", ANAME(ip), reg[ip->base]);
+			bprint(ip, "%s%s", ANAME(ip), reg[ip->base]);
 		return;
 	}
 	if (ip->segment)
@@ -1402,10 +1403,10 @@ pea(Instr *ip)
 	else {
 		bprint(ip,"%lux", ip->disp);
 		if (ip->base >= 0)
-			bprint(ip,"(%c%s)", ANAME(ip), reg[ip->base]);
+			bprint(ip,"(%s%s)", ANAME(ip), reg[ip->base]);
 	}
 	if (ip->index >= 0)
-		bprint(ip,"(%c%s*%d)", ANAME(ip), reg[ip->index], 1<<ip->ss);
+		bprint(ip,"(%s%s*%d)", ANAME(ip), reg[ip->index], 1<<ip->ss);
 }
 
 static void
@@ -1443,7 +1444,7 @@ prinstr(Instr *ip, char *fmt)
 			*ip->curr++ = '%';
 			break;
 		case 'A':
-			bprint(ip, "%c", ANAME(ip));
+			bprint(ip, "%s", ANAME(ip));
 			break;
 		case 'C':
 			bprint(ip, "CR%d", ip->reg);
@@ -1459,14 +1460,14 @@ prinstr(Instr *ip, char *fmt)
 			immediate(ip, ip->imm2);
 			break;
 		case 'O':
-			bprint(ip,"%c", ONAME(ip));
+			bprint(ip,"%s", ONAME(ip));
 			break;
 		case 'i':
 			bprint(ip, "$");
 			immediate(ip,ip->imm);
 			break;
 		case 'R':
-			bprint(ip, "%c%s", ONAME(ip), reg[ip->reg]);
+			bprint(ip, "%s%s", ONAME(ip), reg[ip->reg]);
 			break;
 		case 'S':
 			bprint(ip, "%c", ip->osize);
@@ -1530,10 +1531,7 @@ i386inst(Map *map, ulong pc, char modifier, char *buf, int n)
 	USED(modifier);
 	op = mkinstr(map, &instr, pc);
 	if (op == 0) {
-		if (n >= ERRLEN)
-			errstr(buf);
-		else
-			snprint(buf,n,"%r");
+		errstr(buf, n);
 		return -1;
 	}
 	instr.curr = buf;
@@ -1549,10 +1547,7 @@ i386das(Map *map, ulong pc, char *buf, int n)
 	int i;
 
 	if (mkinstr(map, &instr, pc) == 0) {
-		if (n >= ERRLEN)
-			errstr(buf);
-		else
-			snprint(buf,n,"%r");
+		errstr(buf, n);
 		return -1;
 	}
 	for(i = 0; i < instr.n && n > 2; i++) {

@@ -32,13 +32,15 @@ frinittick(Frame *f)
 	Image *b;
 	Font *ft;
 
-	b = f->display->image;
+	b = f->display->screenimage;
 	ft = f->font;
 	if(f->tick)
-		free(f->tick);
+		freeimage(f->tick);
 	f->tick = allocimage(f->display, Rect(0, 0, FRTICKW, ft->height), b->chan, 0, DWhite);
 	if(f->tick == nil)
 		return;
+	if(f->tickback)
+		freeimage(f->tickback);
 	f->tickback = allocimage(f->display, f->tick->r, b->chan, 0, DWhite);
 	if(f->tickback == 0){
 		freeimage(f->tick);

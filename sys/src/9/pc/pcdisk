@@ -2,6 +2,7 @@ dev
 	root
 	cons
 	arch
+	pnp		pci
 	env
 	pipe
 	proc
@@ -10,28 +11,30 @@ dev
 	dup
 	rtc
 	ssl
-	bridge
-	loopback
+	tls
+	cap
 	kprof
 
-	ether	netif
-	ip	arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	ether		netif
+	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
-	draw	screen vga vgax
-	mouse	mouse
+	draw		screen vga vgax
+	mouse		mouse
 	vga
 
 	sd
-	floppy	dma
-
-	audio	dma
-	i82365	cis
+	floppy		dma
 	lpt
-	ns16552
 
-
+	audio		dma
+	pccard
+	i82365		cis
+	uart
+	usb
 
 link
+	devpccard
+	devi82365
 	apm		apmjump
 	ether2000	ether8390
 	ether2114x	pci
@@ -41,22 +44,27 @@ link
 	ether82557	pci
 	etherec2t	ether8390
 	etherelnk3	pci
-	etherwavelan
+	ethersink
+	etherwavelan	devi82365 cis pci
 	ethermedium
-	loopbackmedium
 	pcmciamodem
+	netdevmedium
+	usbuhci
 
 misc
+	edf
 	archmp		mp apic
 
-	cfs.root
-	kfs.root
-	ppp.root
 	ipconfig.root
+	kfs.root
+	factotum.root
+	cfs.root
 
 	sdata		pci sdscsi
-	sd53c8xx	pci sdscsi
+	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
+
+	uarti8250
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
@@ -65,7 +73,9 @@ misc
 	vgaclgd546x	+cur
 	vgact65545	+cur
 	vgacyber938x	+cur
+	vgaet4000	+cur
 	vgahiqvideo	+cur
+	vgai81x	+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
 	vganeomagic	+cur
@@ -74,16 +84,15 @@ misc
 	vgat2r4		+cur
 	vgatvp3020	=cur
 	vgatvp3026	=cur
+	vgavmware	+cur
+	vganvidia	+cur
 
 ip
 	il
 	tcp
 	udp
-	rudp
 	ipifc
 	icmp
-	gre
-	ipmux
 
 port
 	int cpuserver = 0;

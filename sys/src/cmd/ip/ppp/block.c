@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
+#include <auth.h>
 #include "ppp.h"
 
 enum

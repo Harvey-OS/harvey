@@ -1,47 +1,42 @@
 /* pop (%!) .skipeof
 
-   Copyright (C) 1989, 1995, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+   Copyright (C) 1989, 1995 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: bench.c,v 1.3.2.1 2000/11/10 00:04:02 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: bench.c,v 1.1 2000/03/09 08:40:40 lpd Exp $ */
 /* Simple hardware benchmarking suite (C and PostScript) */
-#include "stdio_.h"
+#include <stdio.h>
 #include <stdlib.h>
+
+/*
+ * Read the CPU time (in seconds since an implementation-defined epoch)
+ * into ptm[0], and fraction (in nanoseconds) into ptm[1].
+ */
+extern void gp_get_usertime(long ptm[2]);
 
 /* Patchup for GS externals */
 FILE *gs_stdout;
 FILE *gs_stderr;
-FILE *gs_debug_out;
 const char gp_scratch_file_name_prefix[] = "gs_";
-static void
-capture_stdio(void)
+void 
+gp_init_console()
 {
-    gs_stdout = stdout;
-    gs_stderr = stderr;
-    gs_debug_out = stderr;
 }
-#include "gsio.h"
-#undef gs_stdout
-#undef gs_stderr
-#undef stdout
-#define stdout gs_stdout
-#undef stderr
-#define stderr gs_stderr
 FILE *
 gp_open_scratch_file(const char *prefix, char *fname, const char *mode)
 {
@@ -52,26 +47,15 @@ gp_set_printer_binary(int prnfno, int binary)
 {
 }
 void 
-gs_exit(int n)
+gs_exit(n)
 {
     exit(n);
 }
-#define eprintf_program_ident(f, pn, rn) (void)0
 void 
 lprintf_file_and_line(FILE * f, const char *file, int line)
 {
     fprintf(f, "%s(%d): ", file, line);
 }
-
-/*
- * Read the CPU time (in seconds since an implementation-defined epoch)
- * into ptm[0], and fraction (in nanoseconds) into ptm[1].
- */
-#include "gp_unix.c"
-#undef stdout
-#define stdout gs_stdout
-#undef stderr
-#define stderr gs_stderr
 
 /* Loop unrolling macros */
 #define do10(x) x;x;x;x;x; x;x;x;x;x
@@ -198,7 +182,8 @@ main(int argc, const char *argv[])
     int i;
     int *mem = malloc(1100000);
 
-    capture_stdio();
+    gs_stdout = stdout;
+    gs_stderr = stderr;
     for (i = 0;; ++i) {
 	long t0[2], t1[2];
 	char *msg;
@@ -238,8 +223,8 @@ main(int argc, const char *argv[])
 		exit(0);
 	}
 	gp_get_usertime(t1);
-	fprintf(stdout, "Time for %9d %s = %g ms\n", n, msg,
-		(t1[0] - t0[0]) * 1000.0 + (t1[1] - t0[1]) / 1000000.0);
+	printf("Time for %9d %s = %g ms\n", n, msg,
+	       (t1[0] - t0[0]) * 1000.0 + (t1[1] - t0[1]) / 1000000.0);
 	fflush(stdout);
     }
 }

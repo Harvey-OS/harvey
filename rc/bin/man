@@ -11,24 +11,32 @@ d=0
 
 fn roff {
 	preproc=()
-	if (~ $2 $S/1/eqn) preproc=eqn
-	if (~ $2 $S/6/auth) preproc=eqn
-	if (~ $2 $S/1/tbl) preproc=tbl
+	x=`{doctype $2}
 	if (~ $1 t) {
-		if (~ $2 $S/1/pic) preproc=pic
-		if (~ $2 $S/1/grap) preproc=(grap pic)
+		if(~ $x *grap*)
+			preproc=($preproc grap)
+		if(~ $x *pic*)
+			preproc=($preproc pic)
 		Nflag=-Tutf
 	}
 	if not {
 		Nflag=-N
 	}
+	if(~ $x *eqn*)
+		preproc=($preproc eqn)
+	if(~ $x *tbl*)
+		preproc=($preproc tbl)
 	switch($#preproc) {
 		case 0
 			{echo -n $FONTS; cat $2< /dev/null} | troff $Nflag -$MAN 
 		case 1
 			{echo -n $FONTS; cat $2< /dev/null} | $preproc | troff $Nflag -$MAN
-		case *
+		case 2
 			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | troff $Nflag -$MAN
+		case 3
+			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | $preproc(3) | | troff $Nflag -$MAN
+		case *
+			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | $preproc(3) | | $preproc(4) | troff $Nflag -$MAN
 	}
 }
 
@@ -72,7 +80,7 @@ if(~ $#fils 0) {
 	}
 	if(~ $#fils 0) {
 		echo 'man: no manual page' >[1=2]
-		exit
+		exit 'no man'
 	}
 }
 for(i in $fils) {

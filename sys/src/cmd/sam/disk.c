@@ -5,14 +5,13 @@ static	Block	*blist;
 static int
 tempdisk(void)
 {
-	char dir[DIRLEN];
 	char buf[128];
 	int i, fd;
 
 	snprint(buf, sizeof buf, "/tmp/X%d.%.4ssam", getpid(), getuser());
 	for(i='A'; i<='Z'; i++){
 		buf[5] = i;
-		if(stat(buf, dir) == 0)
+		if(access(buf, AEXIST) == 0)
 			continue;
 		fd = create(buf, ORDWR|ORCLOSE|OCEXEC, 0600);
 		if(fd >= 0)

@@ -1,4 +1,0 @@
-TEXT _WRITE(SB), 1, $0
-MOVL $20, R0
-TRAP $0
-RTS

@@ -229,7 +229,7 @@ emenuhit(int but, Mouse *m, Menu *menu)
 	draw(b, menur, screen, nil, menur.min);
 	draw(screen, menur, back, nil, ZP);
 	border(screen, menur, Blackborder, bord, ZP);
-	save = allocimage(display, menurect(textr, 0), display->chan, 0, -1);
+	save = allocimage(display, menurect(textr, 0), screen->chan, 0, -1);
 	r = menurect(textr, lasti);
 	emoveto(divpt(addpt(r.min, r.max), 2));
 	menupaint(menu, textr, off, nitemdrawn);

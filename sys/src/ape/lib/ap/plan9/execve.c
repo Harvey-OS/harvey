@@ -14,7 +14,7 @@ execve(const char *name, const char *argv[], const char *envp[])
 	char **e, *ss, *se;
 	Fdinfo *fi;
 	unsigned long flags;
-	char nam[NAMELEN+5];
+	char nam[256+5];
 	char buf[1000];
 
 	_RFORK(RFCENVG);
@@ -76,8 +76,8 @@ execve(const char *name, const char *argv[], const char *envp[])
 			if(!se || ss==se)
 				continue;	/* what is name? value? */
 			n = se-ss;
-			if(n > NAMELEN-1)
-				n = NAMELEN-1;
+			if(n >= sizeof(nam)-3)
+				n = sizeof(nam)-3-1;
 			memcpy(nam+3, ss, n);
 			nam[3+n] = 0;
 			f = _CREATE(nam, OWRITE, 0666);

@@ -1,4 +1,0 @@
-TEXT _UNMOUNT(SB), 1, $-4
-MOVW $35, R0
-SWI 0
-RET

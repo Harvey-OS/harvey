@@ -107,7 +107,7 @@ is a small editor used to configure parameters when a Bitsy boots.
 It displays the file and starts up a keyboard and scribble pad for
 input.
 Clicking with the stylus in the text selects where input characters will go.
-Typing the
+Pressing Button 5 (top left side of the Bitsy) or typing the
 .B Esc
 key on the keyboard causes
 .I prompter

@@ -20,8 +20,8 @@ scrtemps(void)
 		return;
 	if(screensize(0, &h) == 0)
 		h = 2048;
-	scrtmp = allocimage(display, Rect(0, 0, 32, h), display->chan, 0, 0);
-	scrback = allocimage(display, Rect(0, 0, 32, h), display->chan, 0, 0);
+	scrtmp = allocimage(display, Rect(0, 0, 32, h), screen->chan, 0, 0);
+	scrback = allocimage(display, Rect(0, 0, 32, h), screen->chan, 0, 0);
 	if(scrtmp==0 || scrback==0)
 		panic("scrtemps");
 }

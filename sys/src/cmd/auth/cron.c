@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <auth.h>
-#include "authsrv.h"
+#include <authsrv.h>
+#include "authcmdlib.h"
 
 char CRONLOG[] = "cron";
 
@@ -19,7 +19,7 @@ struct Time{			/* bit masks for each valid time */
 };
 
 struct Job{
-	char	host[NAMELEN];		/* where ... */
+	char	*host;		/* where ... */
 	Time	time;			/* when ... */
 	char	*cmd;			/* and what to execute */
 	Job	*next;
@@ -27,7 +27,7 @@ struct Job{
 
 struct User{
 	Qid	lastqid;			/* of last read /cron/user/cron */
-	char	name[NAMELEN];		/* who ... */
+	char	*name;			/* who ... */
 	Job	*jobs;			/* wants to execute these jobs */
 };
 
@@ -43,7 +43,7 @@ ulong	lexval;
 void	rexec(User*, Job*);
 void	readalljobs(void);
 Job	*readjobs(char*, User*);
-int	getname(char*);
+int	getname(char**);
 ulong	gettime(int, int);
 int	gettok(int, int);
 void	pushtok(void);
@@ -127,18 +127,18 @@ void
 createuser(void)
 {
 	Dir d;
-	char file[3*NAMELEN], *user;
+	char file[128], *user;
 	int fd;
 
 	user = getuser();
 	sprint(file, "/cron/%s", user);
-	fd = create(file, OREAD, 0755|CHDIR);
+	fd = create(file, OREAD, 0755|DMDIR);
 	if(fd < 0){
 		fprint(2, "couldn't create %s: %r\n", file);
 		exits("create");
 	}
-	dirfstat(fd, &d);
-	strncpy(d.gid, user, NAMELEN);
+	nulldir(&d);
+	d.gid = user;
 	dirfwstat(fd, &d);
 	close(fd);
 	sprint(file, "/cron/%s/cron", user);
@@ -147,8 +147,8 @@ createuser(void)
 		fprint(2, "couldn't create %s: %r\n", file);
 		exits("create");
 	}
-	dirfstat(fd, &d);
-	strncpy(d.gid, user, NAMELEN);
+	nulldir(&d);
+	d.gid = user;
 	dirfwstat(fd, &d);
 	close(fd);
 }
@@ -157,15 +157,14 @@ void
 readalljobs(void)
 {
 	User *u;
-	Dir d[64], db;
-	char file[3*NAMELEN];
+	Dir *d, *du;
+	char file[128];
 	int i, n, fd;
 
 	fd = open("/cron", OREAD);
 	if(fd < 0)
 		error("can't open /cron\n");
-	while((n = dirread(fd, d, sizeof d)) > 0){
-		n /= sizeof d[0];
+	while((n = dirread(fd, &d)) > 0){
 		for(i = 0; i < n; i++){
 			if(strcmp(d[i].name, "log") == 0)
 				continue;
@@ -175,13 +174,14 @@ readalljobs(void)
 			}
 			u = newuser(d[i].name);
 			sprint(file, "/cron/%s/cron", d[i].name);
-			if(dirstat(file, &db) < 0)
-				continue;
-			if(qidcmp(u->lastqid, d[i].qid) != 0){
+			du = dirstat(file);
+			if(du == nil || qidcmp(u->lastqid, du->qid) != 0){
 				freejobs(u->jobs);
 				u->jobs = readjobs(file, u);
 			}
+			free(du);
 		}
+		free(d);
 	}
 	close(fd);
 }
@@ -195,15 +195,20 @@ readjobs(char *file, User *user)
 {
 	Biobuf *b;
 	Job *j, *jobs;
-	Dir d;
+	Dir *d;
 	int line;
 
-	b = Bopen(file, OREAD);
-	if(!b)
+	d = dirstat(file);
+	if(!d)
 		return nil;
+	b = Bopen(file, OREAD);
+	if(!b){
+		free(d);
+		return nil;
+	}
 	jobs = nil;
-	dirstat(file, &d);
-	user->lastqid = d.qid;
+	user->lastqid = d->qid;
+	free(d);
 	for(line = 1; savec = Brdline(b, '\n'); line++){
 		savec[Blinelen(b) - 1] = '\0';
 		while(*savec == ' ' || *savec == '\t')
@@ -220,7 +225,7 @@ readjobs(char *file, User *user)
 		&& (j->time.mday = gettime(1, 31))
 		&& (j->time.mon = gettime(1, 12))
 		&& (j->time.wday = gettime(0, 6))
-		&& getname(j->host)){
+		&& getname(&j->host)){
 			j->cmd = emalloc(strlen(savec) + 1);
 			strcpy(j->cmd, savec);
 			j->next = jobs;
@@ -265,9 +270,11 @@ newuser(char *name)
 		users = erealloc(users, maxuser * sizeof *users);
 	}
 	memset(&users[nuser], 0, sizeof(users[nuser]));
-	strcpy(users[nuser].name, name);
+	users[nuser].name = strdup(name);
 	users[nuser].jobs = 0;
-	users[nuser].lastqid = (Qid) {-1, -1};
+	users[nuser].lastqid.type = QTFILE;
+	users[nuser].lastqid.path = ~0LL;
+	users[nuser].lastqid.vers = ~0L;
 	return &users[nuser++];
 }
 
@@ -278,31 +285,36 @@ freejobs(Job *j)
 
 	for(; j; j = next){
 		next = j->next;
-		if(j->cmd != nil)
-			free(j->cmd);
+		free(j->cmd);
+		free(j->host);
 		free(j);
 	}
 }
 
 int
-getname(char *name)
+getname(char **namep)
 {
 	int c;
-	int i;
+	char buf[64], *p;
 
 	if(!savec)
 		return 0;
 	while(*savec == ' ' || *savec == '\t')
 		savec++;
-	for(i = 0; (c = *savec) && c != ' ' && c != '\t'; i++){
-		if(i == NAMELEN - 1)
+	for(p = buf; (c = *savec) && c != ' ' && c != '\t'; p++){
+		if(p >= buf+sizeof buf -1)
 			return 0;
-		name[i] = *savec++;
+		*p = *savec++;
 	}
-	name[i] = '\0';
+	*p = '\0';
+	*namep = strdup(buf);
+	if(*namep == 0){
+		syslog(0, CRONLOG, "internal error: strdup failure");
+		_exits(0);
+	}
 	while(*savec == ' ' || *savec == '\t')
 		savec++;
-	return i;
+	return p > buf;
 }
 
 /*
@@ -427,7 +439,7 @@ mkcmd(char *cmd, char *buf, int len)
 void
 rexec(User *user, Job *j)
 {
-	char buf[8*1024], key[DESKEYLEN], err[ERRLEN];
+	char buf[8*1024], key[DESKEYLEN];
 	int n, fd;
 
 	switch(rfork(RFPROC|RFNOWAIT|RFNAMEG|RFENVG|RFFDG)){
@@ -464,8 +476,7 @@ rexec(User *user, Job *j)
 	}
 syslog(0, CRONLOG, "%s: called %s on %s", user->name, j->cmd, j->host);
 	if(myauth(fd, user->name) < 0){
-		errstr(err);
-		syslog(0, CRONLOG, "%s: can't auth %s on %s: %s", user->name, j->cmd, j->host, err);
+		syslog(0, CRONLOG, "%s: can't auth %s on %s: %r", user->name, j->cmd, j->host);
 		_exits(0);
 	}
 syslog(0, CRONLOG, "%s: authenticated %s on %s", user->name, j->cmd, j->host);
@@ -533,8 +544,8 @@ myauth(int fd, char *user)
 	/* create ticket+authenticator and send to destination */
 	memset(&t, 0, sizeof t);
 	memmove(t.chal, tr.chal, CHALLEN);
-	strcpy(t.cuid, user);
-	strcpy(t.suid, user);
+	strncpy(t.cuid, user, sizeof(t.cuid));
+	strncpy(t.suid, user, sizeof(t.suid));
 	srand(time(0));
 	for(i = 0; i < DESKEYLEN; i++)
 		t.key[i] = nrand(256);

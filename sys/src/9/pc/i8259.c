@@ -95,7 +95,7 @@ i8259init(void)
 			if(inb(Elcr1) == 0x20)
 				i8259elcr = x;
 			outb(Elcr1, x & 0xFF);
-			//print("ELCR: %4.4uX\n", i8259elcr);
+			print("ELCR: %4.4uX\n", i8259elcr);
 		}
 	}
 	iunlock(&i8259lock);
@@ -165,12 +165,35 @@ i8259enable(Vctl* v)
 	return VectorPIC+irq;
 }
 
-void
-i8259dump(void)
+int
+i8259vecno(int irq)
 {
-	uchar aux0, aux1;
+	return VectorPIC+irq;
+}
 
-	aux0 = inb(Int0aux);
-	aux1 = inb(Int1aux);
-	print("i8269: %ux %2.2ux %2.2ux\n", i8259mask, aux0, aux1);
+int
+i8259disable(int irq)
+{
+	int irqbit;
+
+	/*
+	 * Given an IRQ, disable the corresponding interrupt
+	 * in the 8259.
+	 */
+	if(irq < 0 || irq > MaxIrqPIC){
+		print("i8259disable: irq %d out of range\n", irq);
+		return -1;
+	}
+	irqbit = 1<<irq;
+
+	ilock(&i8259lock);
+	if(!(i8259mask & irqbit)){
+		i8259mask |= irqbit;
+		if(irq < 8)
+			outb(Int0aux, i8259mask & 0xFF);
+		else
+			outb(Int1aux, (i8259mask>>8) & 0xFF);
+	}
+	iunlock(&i8259lock);
+	return 0;
 }

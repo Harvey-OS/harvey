@@ -1,52 +1,34 @@
 </$objtype/mkfile
 
-TARG=`{ls *.[cyl] | sed 's/..$//' }
+TARG=`{ls *.[cy] | sed 's/..$//' }
 HFILES=/$objtype/include/u.h /sys/include/libc.h /sys/include/bio.h
 BIN=/$objtype/bin
 PROGS=${TARG:%=$O.%}
 LDFLAGS=
 YFLAGS=-d
 
-NOTSYS=sml|dup|411
-BUGGERED=dwb|unix|gc|opq|lmlvideo
-NOMK=$NOTSYS|$BUGGERED
+NOTSYS=sml|dup
+BUGGERED=gc|lmlvideo|dwb|unix|perl|celp|mosml
+OUTOFDATE=old|ssls
+
+NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
 
 cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
 
 none:VQ:
-	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
+	echo usage: mk cmds, dirs, all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
 
-all:V:	$PROGS
+cmds:V:	$PROGS
 
-ar\.[$OS]:R:	/sys/include/ar.h
-cpu\.[$OS]:R:	/sys/include/auth.h
-ed\.[$OS]:R:	/sys/include/regexp.h
-file\.[$OS]:R:	/sys/include/ctype.h /sys/include/mach.h
-fmt\.[$OS]:R:	/sys/include/ctype.h
-grep\.[$OS]:R:	/sys/include/regexp.h
-import\.[$OS]:R:	/sys/include/fcall.h /sys/include/auth.h
-init\.[$OS]:R:	/sys/include/auth.h
-kprof\.[$OS]:R:	/sys/include/mach.h
-ls\.[$OS]:R:	/sys/include/fcall.h
-mc\.[$OS]:R:	/sys/include/draw.h
-netstat\.[$OS]:R:	/sys/include/ip.h /sys/include/ndb.h
-nm\.[$OS]:R:	/sys/include/ar.h /sys/include/mach.h
-pr\.[$OS]:R:	/sys/include/ctype.h
-prof\.[$OS]:R:	/sys/include/mach.h
-ramfs\.[$OS]:R:	/sys/include/fcall.h
-rx\.[$OS]:R:	/sys/include/auth.h
-sed\.[$OS]:R:	/sys/include/regexp.h
-size\.[$OS]:R:	/sys/include/mach.h
-split\.[$OS]:R:	/sys/include/regexp.h
-srv\.[$OS]:R:	/sys/include/fcall.h /sys/include/ndb.h
-stats\.[$OS]:R:	/sys/include/draw.h
-strip\.[$OS]:R:	/sys/include/a.out.h
-tail\.[$OS]:R:	/sys/include/ctype.h
-tar\.[$OS]:R:	/sys/include/fcall.h
-tweak\.[$OS]:R:	/sys/include/draw.h
-uniq\.[$OS]:R:	/sys/include/ctype.h
-yacc\.[$OS]:R:	/sys/include/ctype.h
+dirs:V:
+	for(i in cc $DIRS) @{
+		cd $i
+		echo mk $i
+		mk $MKFLAGS all
+	}
+
+all:V:	$PROGS dirs
 
 ^([$OS])\.(.*):R:	\2.\1
 	$stem1^l $LDFLAGS -o $target $stem2.$stem1
@@ -63,6 +45,12 @@ yacc\.[$OS]:R:	/sys/include/ctype.h
 	$YACC $YFLAGS -s $stem $prereq
 
 %.install:V: $BIN/%
+
+%.safeinstall:	$O.%
+	test -e $cpuobjtype._cp || cp /bin/cp $cpuobjtype._cp
+	test -e $cpuobjtype._mv || cp /bin/mv $cpuobjtype._mv
+	test -e $BIN/$stem && $cpuobjtype._mv $BIN/$stem $BIN/_$stem
+	$cpuobjtype._cp $prereq $BIN/$stem
 
 $BIN/%:	$O.%
 	test -e $cpuobjtype._cp || cp /bin/cp $cpuobjtype._cp
@@ -83,6 +71,9 @@ directories:V:	install.directories
 
 cleanfiles:V:
 	rm -f [$OS].out *.[$OS] y.tab.? y.debug y.output [$OS].$TARG [$OS].units.tab $TARG bc.c bc.tab.h units.tab.h units.c [$OS]._cp
+
+%.clean:V:
+	rm -f [$OS].$stem $stem.[$OS]
 
 install:V:
 	test -e $cpuobjtype._cp || cp /bin/cp $cpuobjtype._cp
@@ -110,3 +101,6 @@ installall:V:
 
 $BIN/init:	$O.init
 	cp $prereq /$objtype/init
+
+$O.cj:	cj.$O
+		$LD $LDFLAGS -o $O.cj cj.$O /$objtype/lib/libjpg.a

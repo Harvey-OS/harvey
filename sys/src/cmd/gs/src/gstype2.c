@@ -1,22 +1,22 @@
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gstype2.c,v 1.7.2.1 2000/11/09 21:28:19 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gstype2.c,v 1.2 2000/03/10 04:29:37 lpd Exp $ */
 /* Adobe Type 2 charstring interpreter */
 #include "math_.h"
 #include "memory_.h"
@@ -224,7 +224,7 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_const_string * str,
 		return_error(gs_error_invalidfont);
 	    case c_callsubr:
 		c = fixed2int_var(*csp) + pdata->subroutineNumberBias;
-		code = (*pdata->procs.subr_data)
+		code = (*pdata->procs->subr_data)
 		    (pfont, c, false, &ipsp[1].char_string);
 	      subr:if (code < 0)
 		    return_error(code);
@@ -248,18 +248,6 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_const_string * str,
 	    case cx_vstem:
 		goto vstem;
 	    case cx_vmoveto:
-		/*
-		 * Type 2 CharStrings, unlike Type 1, insert an explicit
-		 * closepath before a moveto rather than an implicit one.
-		 * (This makes a difference for charpath.)  Note that if
-		 * we are just getting the glyph info, sppath may be 0:
-		 * this is OK, because check_first_operator will return.
-		 */
-		if (pfont->PaintType != 1 && sppath != 0) {
-		    code = gx_path_close_subpath(sppath);
-		    if (code < 0)
-			return code;
-		}
 		check_first_operator(csp > cstack);
 		accum_y(*csp);
 	      move:if ((pcis->hint_next != 0 || path_is_drawing(sppath)))
@@ -303,15 +291,6 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_const_string * str,
 		goto pp;
 	    case cx_endchar:
 		/*
-		 * See vmoveto above re closing the subpath.  Note that
-		 * sppath may be 0 if we are just getting the glyph info.
-		 */
-		if (pfont->PaintType != 1 && sppath != 0) {
-		    code = gx_path_close_subpath(sppath);
-		    if (code < 0)
-			return code;
-		}
-		/*
 		 * It is an undocumented (!) feature of Type 2 CharStrings
 		 * that if endchar is invoked with 4 or 5 operands, it is
 		 * equivalent to the Type 1 seac operator!  In this case,
@@ -349,22 +328,10 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_const_string * str,
 		}
 		return code;
 	    case cx_rmoveto:
-		/* See vmoveto above re closing the subpath. */
-		if (pfont->PaintType != 1 && sppath != 0) {
-		    code = gx_path_close_subpath(sppath);
-		    if (code < 0)
-			return code;
-		}
 		check_first_operator(csp > cstack + 1);
 		accum_xy(csp[-1], *csp);
 		goto move;
 	    case cx_hmoveto:
-		/* See vmoveto above re closing the subpath. */
-		if (pfont->PaintType != 1 && sppath != 0) {
-		    code = gx_path_close_subpath(sppath);
-		    if (code < 0)
-			return code;
-		}
 		check_first_operator(csp > cstack);
 		accum_x(*csp);
 		goto move;
@@ -546,7 +513,7 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_const_string * str,
 		goto pushed;
 	    case c2_callgsubr:
 		c = fixed2int_var(*csp) + pdata->gsubrNumberBias;
-		code = (*pdata->procs.subr_data)
+		code = (*pdata->procs->subr_data)
 		    (pfont, c, true, &ipsp[1].char_string);
 		goto subr;
 	    case cx_escape:
@@ -700,7 +667,7 @@ gs_type2_interpret(gs_type1_state * pcis, const gs_const_string * str,
 		    case ce2_hflex:
 			csp[6] = fixed_half;	/* fd/100 */
 			csp[4] = *csp, csp[5] = 0;	/* dx6, dy6 */
-			csp[2] = csp[-1], csp[3] = -csp[-4];	/* dx5, dy5 */
+			csp[2] = csp[-1], csp[3] = -csp[-5];	/* dx5, dy5 */
 			*csp = csp[-2], csp[1] = 0;	/* dx4, dy4 */
 			csp[-2] = csp[-3], csp[-1] = 0;		/* dx3, dy3 */
 			csp[-3] = csp[-4], csp[-4] = csp[-5];	/* dx2, dy2 */

@@ -1,25 +1,25 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gsdevice.c,v 1.7 2000/09/19 19:00:27 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gsdevice.c,v 1.2 2000/03/18 01:45:16 lpd Exp $ */
 /* Device operators for Ghostscript library */
 #include "ctype_.h"
-#include "memory_.h"		/* for memchr, memcpy */
+#include "memory_.h"		/* for memcpy */
 #include "string_.h"
 #include "gx.h"
 #include "gp.h"
@@ -237,23 +237,21 @@ gx_device_make_struct_type(gs_memory_struct_type_t *st,
 
 /* Clone an existing device. */
 int
-gs_copydevice2(gx_device ** pnew_dev, const gx_device * dev, bool keep_open,
-	       gs_memory_t * mem)
+gs_copydevice(gx_device ** pnew_dev, const gx_device * dev, gs_memory_t * mem)
 {
     gx_device *new_dev;
     const gs_memory_struct_type_t *std = dev->stype;
     const gs_memory_struct_type_t *new_std;
-    gs_memory_struct_type_t *a_std = 0;
-    int code;
 
     if (dev->stype_is_dynamic) {
 	/*
 	 * We allocated the stype for this device previously.
 	 * Just allocate a new stype and copy the old one into it.
 	 */
-	a_std = (gs_memory_struct_type_t *)
+	gs_memory_struct_type_t *a_std = (gs_memory_struct_type_t *)
 	    gs_alloc_bytes_immovable(&gs_memory_default, sizeof(*std),
 				     "gs_copydevice(stype)");
+
 	if (!a_std)
 	    return_error(gs_error_VMerror);
 	*a_std = *std;
@@ -263,9 +261,10 @@ gs_copydevice2(gx_device ** pnew_dev, const gx_device * dev, bool keep_open,
 	new_std = std;
     } else {
 	/* We need to figure out or adjust the stype. */
-	a_std = (gs_memory_struct_type_t *)
+	gs_memory_struct_type_t *a_std = (gs_memory_struct_type_t *)
 	    gs_alloc_bytes_immovable(&gs_memory_default, sizeof(*std),
 				     "gs_copydevice(stype)");
+
 	if (!a_std)
 	    return_error(gs_error_VMerror);
 	gx_device_make_struct_type(a_std, dev);
@@ -282,29 +281,9 @@ gs_copydevice2(gx_device ** pnew_dev, const gx_device * dev, bool keep_open,
     gx_device_init(new_dev, dev, mem, false);
     new_dev->stype = new_std;
     new_dev->stype_is_dynamic = new_std != std;
-    /*
-     * keep_open is very dangerous.  On the other hand, so is copydevice in
-     * general, since it just copies the bits without any regard to pointers
-     * (including self-pointers) that they may contain.  We handle this by
-     * making the default finish_copydevice forbid copying of anything other
-     * than the device prototype.
-     */
-    new_dev->is_open = dev->is_open && keep_open;
-    fill_dev_proc(new_dev, finish_copydevice, gx_default_finish_copydevice);
-    code = dev_proc(new_dev, finish_copydevice)(new_dev, dev);
-    if (code < 0) {
-	gs_free_object(mem, new_dev, "gs_copydevice(device)");
-	if (a_std)
-	    gs_free_object(&gs_memory_default, a_std, "gs_copydevice(stype)");
-	return code;
-    }
+    new_dev->is_open = false;
     *pnew_dev = new_dev;
     return 0;
-}
-int
-gs_copydevice(gx_device ** pnew_dev, const gx_device * dev, gs_memory_t * mem)
-{
-    return gs_copydevice2(pnew_dev, dev, false, mem);
 }
 
 /* Open a device if not open already.  Return 0 if the device was open, */
@@ -656,7 +635,7 @@ int
 gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const char **pfmt,
 			  const char *fname, uint fnlen)
 {
-    int code;
+    int code = gs_parse_file_name(pfn, fname, fnlen);
     bool have_format = false, field = 0;
     int width[2], int_width = sizeof(int) * 3, w = 0;
     uint i;
@@ -669,21 +648,8 @@ gx_parse_output_file_name(gs_parsed_file_name_t *pfn, const char **pfmt,
 	pfn->len = 0;
 	return 0;
     }
-    /*
-     * If the file name begins with a %, it might be either an IODevice
-     * or a %nnd format.  Distinguish the two by searching for a second %.
-     */
-    if (fname[0] == '%' && !memchr(fname + 1, '%', fnlen - 1)) {
-	/* This is a file name starting with a format. */
-	pfn->memory = 0;
-	pfn->iodev = NULL;
-	pfn->fname = fname;
-	pfn->len = fnlen;
-    } else {
-	code = gs_parse_file_name(pfn, fname, fnlen);
-	if (code < 0)
-	    return code;
-    }
+    if (code < 0)
+	return code;
     if (!pfn->iodev) {
 	if (!strcmp(pfn->fname, "-")) {
 	    pfn->iodev = gs_findiodevice((const byte *)"%stdout", 7);
@@ -756,7 +722,7 @@ gx_device_open_output_file(const gx_device * dev, char *fname,
     if (parsed.iodev && !strcmp(parsed.iodev->dname, "%stdout%")) {
 	if (parsed.fname)
 	    return_error(gs_error_undefinedfilename);
-	*pfile = gs_stdout;
+	*pfile = stdout;
 	/* Force stdout to binary. */
 	return gp_setmode_binary(*pfile, true);
     }

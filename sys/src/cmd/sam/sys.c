@@ -15,11 +15,11 @@ resetsys(void)
 void
 syserror(char *a)
 {
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
 	if(!inerror){
 		inerror=TRUE;
-		errstr(buf);
+		errstr(buf, sizeof buf);
 		dprint("%s: ", a);
 		error_s(Eio, buf);
 	}
@@ -28,12 +28,12 @@ syserror(char *a)
 int
 Read(int f, void *a, int n)
 {
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
 	if(read(f, (char *)a, n)!=n) {
 		if (lastfile)
 			lastfile->rescuing = 1;
-		errstr(buf);
+		errstr(buf, sizeof buf);
 		if (downloaded)
 			fprint(2, "read error: %s\n", buf);
 		rescue();

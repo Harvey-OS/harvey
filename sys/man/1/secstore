@@ -1,0 +1,107 @@
+.TH SECSTORE 1
+.SH NAME
+aescbc, secstore \- secstore commands
+.SH SYNOPSIS
+.B auth/secstore
+[-c] [-s
+.I server
+] [ -(g|G)
+.I getfile
+] [ -p
+.I putfile
+] [ -r
+.I rmfile
+] [ -u
+.I user
+]
+.br
+.B auth/aescbc
+-e
+.I password
+.I cleartext
+.I cryptext
+.br
+.B auth/aescbc
+-d
+.I password
+.I cryptext
+.I cleartext
+.PP
+.SH DESCRIPTION
+.PP
+.I Secstore
+authenticates to the server
+using a password and optionally a hardware token,
+then saves or retrieves a file.
+This is intended to be a credentials store (public/private keypairs,
+passwords, and other secrets) for a factotum.
+.PP
+Option
+.B -p
+stores a file on the secstore.
+.PP
+Option
+.B -g
+retrieves a file to the local directory;
+option
+.B -G
+writes it to standard output instead.
+Specifying
+.I getfile
+of . will send to standard output
+a list of remote files with dates, lengths and SHA1 hashes.
+.PP
+Option
+.B -r
+removes a file from the secstore.
+.PP
+Option
+.B -v
+produces more verbose output, in particular providing a few
+bits of feedback to help the user detect mistyping.
+.PP
+Option
+.B -c
+prompts for a password change.
+.PP
+The server is
+.BR tcp!$auth!5356 ,
+or the server specified by option
+.BR -s .
+.PP
+For example, to add a secret to the default file read by
+.IR factotum (4)
+at startup, open a new window and 
+.sp
+.EX
+  % ramfs -p; cd /tmp
+  % auth/secstore -g factotum
+  secstore password:
+  % echo 'proto=apop dom=x.com user=ehg !password=y~1' >> factotum
+  % auth/secstore -p factotum
+  secstore password:
+  % read -m factotum > /mnt/factotum/ctl
+.EE
+and delete the window.
+The first line an ephemeral memory-resident workspace,
+invisible to others and automatically removed when the window is deleted.
+The next three commands fetch the persistent copy of the secrets,
+append a new secret,
+and save the updated file back to secstore.
+The final command loads the new secret into the running factotum.
+.PP
+.I Aescbc
+encrypts and decrypts using AES (Rijndael) in cipher
+block chaining (CBC) mode.  This is the file encryption
+used internally by
+.IR secstore .
+.SH SOURCE
+.B /sys/src/cmd/auth/secstore
+.SH SEE ALSO
+.IR factotum (4),
+.IR secstore (8)
+.SH BUGS
+There is deliberately no backup of files on the secstore, so
+.B -r
+(or a disk crash) is irrevocable.  You are advised to store
+important secrets in a second location.

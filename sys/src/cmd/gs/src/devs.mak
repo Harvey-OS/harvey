@@ -1,21 +1,21 @@
 #    Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This file is part of Aladdin Ghostscript.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+# or distributor accepts any responsibility for the consequences of using it,
+# or for whether it serves any particular purpose or works at all, unless he
+# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+# License (the "License") for full details.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# Every copy of Aladdin Ghostscript must include a copy of the License,
+# normally in a plain ASCII text file named PUBLIC.  The License grants you
+# the right to copy, modify and redistribute Aladdin Ghostscript, but only
+# under certain conditions described in the License.  Among other things, the
+# License requires that the copyright notice and this notice be preserved on
+# all copies.
 
-# $Id: devs.mak,v 1.35 2000/09/23 04:52:56 lpd Exp $
+# $Id: devs.mak,v 1.2 2000/03/17 02:59:26 lpd Exp $
 # makefile for Aladdin's device drivers.
 
 # Define the name of this makefile.
@@ -75,7 +75,7 @@ GDEV=$(AK) $(ECHOGS_XE) $(GDEVH)
 #   ****** NOTE: For direct frame buffer addressing under SCO Unix or Xenix,
 #   ****** edit the definition of EGAVGA below.
 # *	lvga256  Linux vgalib, 256-color VGA modes  [Linux only]
-# +	vgalib	Linux vgalib, 16-color VGA modes   [Linux only]
+# +	vgalib	Linux PC with VGALIB   [Linux only]
 #	x11	X Windows version 11, release >=4   [Unix and VMS only]
 #	x11alpha  X Windows masquerading as a device with alpha capability
 #	x11cmyk  X Windows masquerading as a 1-bit-per-plane CMYK device
@@ -88,9 +88,7 @@ GDEV=$(AK) $(ECHOGS_XE) $(GDEVH)
 #	x11rg16x  X Windows with G5/B5/R6 pixel layout for testing.
 #	x11rg32x  X Windows with G11/B10/R11 pixel layout for testing.
 # Printers:
-# +	atx23	Practical Automation ATX-23 label printer
-# +	atx24	Practical Automation ATX-24 label printer
-# +	atx38	Practical Automation ATX-38 label printer
+# *	cljet5	H-P Color LaserJet 5/5M (see below for some notes)
 # +	deskjet  H-P DeskJet and DeskJet Plus
 #	djet500  H-P DeskJet 500; use -r600 for DJ 600 series
 # +	fs600	Kyocera FS-600 (600 dpi)
@@ -108,11 +106,11 @@ GDEV=$(AK) $(ECHOGS_XE) $(GDEVH)
 # *	lp2563	H-P 2563B line printer
 # *	oce9050  OCE 9050 printer
 #	(pxlmono) H-P black-and-white PCL XL printers (LaserJet 5 and 6 family)
-#	(pxlcolor) H-P color PCL XL printers (e.g. Color LaserJet 4500)
+#	(pxlcolor) H-P color PCL XL printers (none available yet)
 # Fax file format:
 #   ****** NOTE: all of these drivers normally adjust the page size to match
 #   ****** one of the three CCITT standard sizes (U.S. letter with A4 width,
-#   ****** A4, or B4).  To suppress this, use -dAdjustWidth=0.
+#   ****** A4, or B4).  To suppress this, use 
 #	faxg3	Group 3 fax, with EOLs but no header or EOD
 #	faxg32d  Group 3 2-D fax, with EOLs but no header or EOD
 #	faxg4	Group 4 fax, with EOLs but no header or EOD
@@ -242,10 +240,7 @@ gdevdcrd_h=$(GLSRC)gdevdcrd.h
 gdevpccm_h=$(GLSRC)gdevpccm.h
 gdevpcfb_h=$(GLSRC)gdevpcfb.h $(dos__h)
 gdevpcl_h=$(GLSRC)gdevpcl.h
-gdevpsu_h=$(GLSRC)gdevpsu.h
 gdevsvga_h=$(GLSRC)gdevsvga.h
-# Out of order
-gdevdljm_h=$(GLSRC)gdevdljm.h $(gdevpcl_h)
 
 ###### ----------------------- Device support ----------------------- ######
 
@@ -270,12 +265,6 @@ $(GLOBJ)gdevdcrd.$(OBJ) : $(GLSRC)gdevdcrd.c $(AK)\
  $(gscrd_h) $(gscrdp_h) $(gserrors_h) $(gsparam_h) $(gscspace_h)\
  $(gx_h) $(gxdevcli_h) $(gdevdcrd_h)
 	$(GLCC) $(GLO_)gdevdcrd.$(OBJ) $(C_) $(GLSRC)gdevdcrd.c
-
-# Support for writing PostScript (high- or low-level).
-$(GLOBJ)gdevpsu.$(OBJ) : $(GLSRC)gdevpsu.c $(GX) $(math__h) $(time__h)\
- $(gdevpsu_h) $(gscdefs_h) $(gxdevice_h)\
- $(spprint_h) $(stream_h)
-	$(GLCC) $(GLO_)gdevpsu.$(OBJ) $(C_) $(GLSRC)gdevpsu.c
 
 ###### ------------------- MS-DOS display devices ------------------- ######
 
@@ -382,14 +371,13 @@ $(GLOBJ)gdevs3ga.$(OBJ) : $(GLSRC)gdevs3ga.c $(GDEV) $(gdevpcfb_h) $(gdevsvga_h)
 ###       Ludger Kunz (ludger.kunz@fernuni-hagen.de).                     ###
 ### For questions about the vgalib driver, please contact                 ###
 ###       Erik Talvola (talvola@gnu.ai.mit.edu).                          ###
-### Note that the vgalib device supports only 16-color VGA modes.         ###
 
 lvga256_=$(GLOBJ)gdevl256.$(OBJ)
 $(DD)lvga256.dev : $(DEVS_MAK) $(lvga256_)
 	$(SETDEV) $(DD)lvga256 $(lvga256_)
 	$(ADDMOD) $(DD)lvga256 -lib vga vgagl
 
-$(GLOBJ)gdevl256.$(OBJ) : $(GLSRC)gdevl256.c $(GDEV) $(memory__h)
+$(GLOBJ)gdevl256.$(OBJ) : $(GLSRC)gdevl256.c $(GDEV)
 	$(GLCC) $(GLO_)gdevl256.$(OBJ) $(C_) $(GLSRC)gdevl256.c
 
 vgalib_=$(GLOBJ)gdevvglb.$(OBJ) $(GLOBJ)gdevpccm.$(OBJ)
@@ -499,22 +487,6 @@ $(GLOBJ)gdevxalt.$(OBJ) : $(GLSRC)gdevxalt.c $(GDEVX) $(math__h) $(memory__h)\
 
 ###### --------------- Memory-buffered printer devices --------------- ######
 
-### ---------------- Practical Automation label printers ---------------- ###
-
-atx_=$(GLOBJ)gdevatx.$(OBJ)
-
-$(DD)atx23.dev : $(DEVS_MAK) $(atx_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)atx23 $(atx_)
-
-$(DD)atx24.dev : $(DEVS_MAK) $(atx_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)atx24 $(atx_)
-
-$(DD)atx38.dev : $(DEVS_MAK) $(atx_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)atx38 $(atx_)
-
-$(GLOBJ)gdevatx.$(OBJ) : $(GLSRC)gdevatx.c $(PDEVH) $(math__h)
-	$(GLCC) $(GLO_)gdevatx.$(OBJ) $(C_) $(GLSRC)gdevatx.c
-
 ### ----------- The H-P DeskJet and LaserJet printer devices ----------- ###
 
 ### These are essentially the same device.
@@ -526,16 +498,12 @@ $(GLOBJ)gdevatx.$(OBJ) : $(GLSRC)gdevatx.c $(PDEVH) $(math__h)
 ### Peter Schildmann (peter.schildmann@etechnik.uni-rostock.de).          ###
 
 HPPCL=$(GLOBJ)gdevpcl.$(OBJ)
-HPDLJM=$(GLOBJ)gdevdljm.$(OBJ) $(HPPCL)
-HPMONO=$(GLOBJ)gdevdjet.$(OBJ) $(HPDLJM)
+HPMONO=$(GLOBJ)gdevdjet.$(OBJ) $(HPPCL)
 
 $(GLOBJ)gdevpcl.$(OBJ) : $(GLSRC)gdevpcl.c $(PDEVH) $(gdevpcl_h)
 	$(GLCC) $(GLO_)gdevpcl.$(OBJ) $(C_) $(GLSRC)gdevpcl.c
 
-$(GLOBJ)gdevdljm.$(OBJ) : $(GLSRC)gdevdljm.c $(PDEVH) $(gdevdljm_h)
-	$(GLCC) $(GLO_)gdevdljm.$(OBJ) $(C_) $(GLSRC)gdevdljm.c
-
-$(GLOBJ)gdevdjet.$(OBJ) : $(GLSRC)gdevdjet.c $(PDEVH) $(gdevdljm_h)
+$(GLOBJ)gdevdjet.$(OBJ) : $(GLSRC)gdevdjet.c $(PDEVH) $(gdevpcl_h)
 	$(GLCC) $(GLO_)gdevdjet.$(OBJ) $(C_) $(GLSRC)gdevdjet.c
 
 $(DD)deskjet.dev : $(DEVS_MAK) $(HPMONO) $(GLD)page.dev
@@ -585,6 +553,38 @@ $(DD)lp2563.dev : $(DEVS_MAK) $(HPMONO) $(GLD)page.dev
 $(DD)oce9050.dev : $(DEVS_MAK) $(HPMONO) $(GLD)page.dev
 	$(SETPDEV2) $(DD)oce9050 $(HPMONO)
 
+### -------------------- The H-P Color LaserJet 5/5M -------------------- ###
+
+### There are two different drivers for this device.
+### For questions about the cljet5/cljet5pr (more general) driver, contact
+###	Jan Stoeckenius <jan@orimp.com>
+### For questions about the cljet5c (simple) driver, contact
+###	Henry Stiles <henrys@meerkat.dimensional.com>
+### Note that this is a long-edge-feed device, so the default page size is
+### wider than it is high.  To print portrait pages, specify the page size
+### explicitly, e.g. -c letter or -c a4 on the command line.
+
+cljet5_=$(GLOBJ)gdevclj.$(OBJ) $(HPPCL)
+
+$(DD)cljet5.dev : $(DEVS_MAK) $(cljet5_) $(GLD)page.dev
+	$(SETPDEV) $(DD)cljet5 $(cljet5_)
+
+# The cljet5pr driver has hacks for trying to handle page rotation.
+# The hacks only work with one special PCL interpreter.  Don't use it!
+$(DD)cljet5pr.dev : $(DEVS_MAK) $(cljet5_) $(GLD)page.dev
+	$(SETPDEV) $(DD)cljet5pr $(cljet5_)
+
+$(GLOBJ)gdevclj.$(OBJ) : $(GLSRC)gdevclj.c $(math__h) $(PDEVH)\
+ $(gx_h) $(gsparam_h) $(gdevpcl_h)
+	$(GLCC) $(GLO_)gdevclj.$(OBJ) $(C_) $(GLSRC)gdevclj.c
+
+cljet5c_=$(GLOBJ)gdevcljc.$(OBJ) $(HPPCL)
+$(DD)cljet5c.dev : $(DEVS_MAK) $(cljet5c_) $(GLD)page.dev
+	$(SETPDEV) $(DD)cljet5c $(cljet5c_)
+
+$(GLOBJ)gdevcljc.$(OBJ) : $(GLSRC)gdevcljc.c $(math__h) $(PDEVH) $(gdevpcl_h)
+	$(GLCC) $(GLO_)gdevcljc.$(OBJ) $(C_) $(GLSRC)gdevcljc.c
+
 ### ------------------ The H-P LaserJet 5 and 6 devices ----------------- ###
 
 ### These drivers use H-P's new PCL XL printer language, like H-P's
@@ -625,12 +625,11 @@ gdevpsdf_h=$(GLSRC)gdevpsdf.h $(gdevvec_h) $(gsparam_h)\
  $(sa85x_h) $(scfx_h) $(spsdf_h) $(strimpl_h)
 gdevpsds_h=$(GLSRC)gdevpsds.h $(strimpl_h)
 
-psdf_1=$(GLOBJ)gdevpsdi.$(OBJ) $(GLOBJ)gdevpsdp.$(OBJ)
-psdf_2=$(GLOBJ)gdevpsds.$(OBJ) $(GLOBJ)gdevpsdu.$(OBJ)
+psdf_1=$(GLOBJ)gdevpsd1.$(OBJ) $(GLOBJ)gdevpsdf.$(OBJ) $(GLOBJ)gdevpsdi.$(OBJ)
+psdf_2=$(GLOBJ)gdevpsdp.$(OBJ) $(GLOBJ)gdevpsds.$(OBJ) $(GLOBJ)gdevpsdt.$(OBJ)
 psdf_3=$(GLOBJ)scfparam.$(OBJ) $(GLOBJ)sdcparam.$(OBJ) $(GLOBJ)sdeparam.$(OBJ)
 psdf_4=$(GLOBJ)spprint.$(OBJ) $(GLOBJ)spsdf.$(OBJ) $(GLOBJ)sstring.$(OBJ)
-psdf_5=$(GLOBJ)gsparamx.$(OBJ)
-psdf_=$(psdf_1) $(psdf_2) $(psdf_3) $(psdf_4) $(psdf_5)
+psdf_=$(psdf_1) $(psdf_2) $(psdf_3) $(psdf_4)
 psdf_inc1=$(GLD)vector.dev $(GLD)pngp.dev $(GLD)seexec.dev
 psdf_inc2=$(GLD)sdcte.dev $(GLD)slzwe.dev $(GLD)szlibe.dev
 psdf_inc=$(psdf_inc1) $(psdf_inc2)
@@ -639,14 +638,25 @@ $(DD)psdf.dev : $(DEVS_MAK) $(ECHOGS_XE) $(psdf_) $(psdf_inc)
 	$(ADDMOD) $(DD)psdf -obj $(psdf_2)
 	$(ADDMOD) $(DD)psdf -obj $(psdf_3)
 	$(ADDMOD) $(DD)psdf -obj $(psdf_4)
-	$(ADDMOD) $(DD)psdf -obj $(psdf_5)
 	$(ADDMOD) $(DD)psdf -include $(psdf_inc1)
 	$(ADDMOD) $(DD)psdf -include $(psdf_inc2)
 
+$(GLOBJ)gdevpsd1.$(OBJ) : $(GLSRC)gdevpsd1.c $(GXERR) $(memory__h)\
+ $(gsccode_h) $(gsmatrix_h) $(gxfixed_h) $(gxfont_h) $(gxfont1_h)\
+ $(sfilter_h) $(stream_h) $(sstring_h)\
+ $(gdevpsdf_h) $(spprint_h)
+	$(GLCC) $(GLO_)gdevpsd1.$(OBJ) $(C_) $(GLSRC)gdevpsd1.c
+
+$(GLOBJ)gdevpsdf.$(OBJ) : $(GLSRC)gdevpsdf.c $(GXERR) $(memory__h)\
+ $(gxfont_h)\
+ $(sa85x_h) $(scanchar_h) $(scfx_h) $(sstring_h) $(strimpl_h)\
+ $(gdevpsdf_h) $(spprint_h)
+	$(GLCC) $(GLO_)gdevpsdf.$(OBJ) $(C_) $(GLSRC)gdevpsdf.c
+
 $(GLOBJ)gdevpsdi.$(OBJ) : $(GLSRC)gdevpsdi.c $(GXERR)\
- $(jpeglib__h) $(math__h) $(stdio__h)\
+ $(math__h) $(jpeglib__h)\
  $(gscspace_h)\
- $(scfx_h) $(sdct_h) $(sjpeg_h) $(slzwx_h) $(srlx_h) $(spngpx_h)\
+ $(scfx_h) $(sdct_h) $(slzwx_h) $(srlx_h) $(spngpx_h)\
  $(strimpl_h) $(szlibx_h)\
  $(gdevpsdf_h) $(gdevpsds_h)
 	$(GLJCC) $(GLO_)gdevpsdi.$(OBJ) $(C_) $(GLSRC)gdevpsdi.c
@@ -661,16 +671,15 @@ $(GLOBJ)gdevpsds.$(OBJ) : $(GLSRC)gdevpsds.c $(GX) $(memory__h)\
  $(gdevpsds_h) $(gserrors_h) $(gxdcconv_h)
 	$(GLCC) $(GLO_)gdevpsds.$(OBJ) $(C_) $(GLSRC)gdevpsds.c
 
-$(GLOBJ)gdevpsdu.$(OBJ) : $(GLSRC)gdevpsdu.c $(GXERR)\
- $(jpeglib__h) $(memory__h) $(stdio__h)\
- $(gxfont_h)\
- $(sa85x_h) $(scanchar_h) $(scfx_h) $(sdct_h) $(sjpeg_h) $(sstring_h) $(strimpl_h)\
- $(gdevpsdf_h) $(spprint_h)
-	$(GLJCC) $(GLO_)gdevpsdu.$(OBJ) $(C_) $(GLSRC)gdevpsdu.c
+$(GLOBJ)gdevpsdt.$(OBJ) : $(GLSRC)gdevpsdt.c $(GXERR) $(memory__h)\
+ $(gsmatrix_h) $(gsutil_h) $(gxfont_h) $(gxfont42_h)\
+ $(spprint_h) $(stream_h)\
+ $(gdevpsdf_h)
+	$(GLCC) $(GLO_)gdevpsdt.$(OBJ) $(C_) $(GLSRC)gdevpsdt.c
 
 # PostScript and EPS writers
 
-pswrite_=$(GLOBJ)gdevps.$(OBJ) $(GLOBJ)gdevpsu.$(OBJ) $(GLOBJ)scantab.$(OBJ) $(GLOBJ)sfilter2.$(OBJ)
+pswrite_=$(GLOBJ)gdevps.$(OBJ) $(GLOBJ)scantab.$(OBJ) $(GLOBJ)sfilter2.$(OBJ)
 $(DD)epswrite.dev : $(DEVS_MAK) $(ECHOGS_XE) $(pswrite_) $(GLD)psdf.dev
 	$(SETDEV2) $(DD)epswrite $(pswrite_)
 	$(ADDMOD) $(DD)epswrite -include $(GLD)psdf
@@ -684,116 +693,69 @@ $(GLOBJ)gdevps.$(OBJ) : $(GLSRC)gdevps.c $(GDEV)\
  $(gscdefs_h) $(gscspace_h) $(gsline_h) $(gsparam_h) $(gsiparam_h) $(gsmatrix_h)\
  $(gxdcolor_h) $(gxpath_h)\
  $(sa85x_h) $(sstring_h) $(strimpl_h)\
- $(gdevpsdf_h) $(gdevpsu_h) $(spprint_h)
+ $(gdevpsdf_h) $(spprint_h)
 	$(GLCC) $(GLO_)gdevps.$(OBJ) $(C_) $(GLSRC)gdevps.c
 
 # PDF writer
 # Note that gs_pdfwr.ps will only actually be loaded if the configuration
 # includes a PostScript interpreter.
 
-# We reserve slots here for gdevpdfa...z, just in case we need them.
-pdfwrite1_=$(GLOBJ)gdevpdf.$(OBJ) $(GLOBJ)gdevpdfb.$(OBJ)
-pdfwrite2_=$(GLOBJ)gdevpdfc.$(OBJ) $(GLOBJ)gdevpdfd.$(OBJ) $(GLOBJ)gdevpdfe.$(OBJ)
-pdfwrite3_=$(GLOBJ)gdevpdff.$(OBJ) $(GLOBJ)gdevpdfg.$(OBJ)
-pdfwrite4_=$(GLOBJ)gdevpdfi.$(OBJ) $(GLOBJ)gdevpdfj.$(OBJ)
-pdfwrite5_=$(GLOBJ)gdevpdfm.$(OBJ)
-pdfwrite6_=$(GLOBJ)gdevpdfo.$(OBJ) $(GLOBJ)gdevpdfp.$(OBJ)
-pdfwrite7_=$(GLOBJ)gdevpdfr.$(OBJ) $(GLOBJ)gdevpdft.$(OBJ)
-pdfwrite8_=$(GLOBJ)gdevpdfu.$(OBJ) $(GLOBJ)gdevpdfv.$(OBJ) $(GLOBJ)gdevpdfw.$(OBJ)
-pdfwrite9_=
-pdfwrite10_=$(GLOBJ)gsflip.$(OBJ)
-pdfwrite11_=$(GLOBJ)scantab.$(OBJ) $(GLOBJ)sfilter2.$(OBJ)
-pdfwrite_=$(pdfwrite1_) $(pdfwrite2_) $(pdfwrite3_) $(pdfwrite4_)\
- $(pdfwrite5_) $(pdfwrite6_) $(pdfwrite7_) $(pdfwrite8_) $(pdfwrite9_)\
- $(pdfwrite10_) $(pdfwrite11_)
+pdfwrite1_=$(GLOBJ)gdevpdf.$(OBJ) $(GLOBJ)gdevpdfd.$(OBJ)
+pdfwrite2_=$(GLOBJ)gdevpdff.$(OBJ) $(GLOBJ)gdevpdfi.$(OBJ) $(GLOBJ)gdevpdfm.$(OBJ)
+pdfwrite3_=$(GLOBJ)gdevpdfo.$(OBJ) $(GLOBJ)gdevpdfp.$(OBJ) $(GLOBJ)gdevpdfr.$(OBJ)
+pdfwrite4_=$(GLOBJ)gdevpdft.$(OBJ) $(GLOBJ)gdevpdfu.$(OBJ) $(GLOBJ)gdevpdfw.$(OBJ)
+pdfwrite5_=$(GLOBJ)gsflip.$(OBJ) $(GLOBJ)gsparamx.$(OBJ)
+pdfwrite6_=$(GLOBJ)scantab.$(OBJ) $(GLOBJ)sfilter2.$(OBJ)
+pdfwrite_=$(pdfwrite1_) $(pdfwrite2_) $(pdfwrite3_) $(pdfwrite4_) $(pdfwrite5_) $(pdfwrite6_)
 $(DD)pdfwrite.dev : $(DEVS_MAK) $(ECHOGS_XE) $(pdfwrite_)\
- $(GLD)cmyklib.dev $(GLD)cfe.dev $(GLD)lzwe.dev\
- $(GLD)rle.dev $(GLD)sdcte.dev $(GLD)sdeparam.dev $(GLD)smd5.dev\
- $(GLD)szlibe.dev $(GLD)psdf.dev $(GLD)psf.dev $(PSD)macglyph.dev
+ $(GLD)cmyklib.dev $(GLD)cfe.dev $(GLD)lzwe.dev $(GLD)rle.dev\
+ $(GLD)sdcte.dev $(GLD)sdeparam.dev $(GLD)szlibe.dev $(GLD)psdf.dev
 	$(SETDEV2) $(DD)pdfwrite $(pdfwrite1_)
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite2_)
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite3_)
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite4_)
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite5_)
 	$(ADDMOD) $(DD)pdfwrite $(pdfwrite6_)
-	$(ADDMOD) $(DD)pdfwrite $(pdfwrite7_)
-	$(ADDMOD) $(DD)pdfwrite $(pdfwrite8_)
-	$(ADDMOD) $(DD)pdfwrite $(pdfwrite9_)
-	$(ADDMOD) $(DD)pdfwrite $(pdfwrite10_)
-	$(ADDMOD) $(DD)pdfwrite $(pdfwrite11_)
 	$(ADDMOD) $(DD)pdfwrite -ps gs_pdfwr
-	$(ADDMOD) $(DD)pdfwrite -ps gs_css_e gs_lgo_e gs_lgx_e gs_mex_e
-	$(ADDMOD) $(DD)pdfwrite -ps gs_wan_e
+	$(ADDMOD) $(DD)pdfwrite -ps gs_lgo_e gs_lgx_e gs_mex_e
+	$(ADDMOD) $(DD)pdfwrite -ps gs_mgl_e gs_mro_e gs_wan_e
 	$(ADDMOD) $(DD)pdfwrite -include $(GLD)cmyklib $(GLD)cfe $(GLD)lzwe
 	$(ADDMOD) $(DD)pdfwrite -include $(GLD)rle $(GLD)sdcte $(GLD)sdeparam
-	$(ADDMOD) $(DD)pdfwrite -include $(GLD)smd5 $(GLD)szlibe
-	$(ADDMOD) $(DD)pdfwrite -include $(GLD)psdf $(GLD)psf $(PSD)macglyph
+	$(ADDMOD) $(DD)pdfwrite -include $(GLD)szlibe $(GLD)psdf
 
 gdevpdff_h=$(GLSRC)gdevpdff.h
-gdevpdfg_h=$(GLSRC)gdevpdfg.h $(gscspace_h)
-gdevpdfo_h=$(GLSRC)gdevpdfo.h $(gsparam_h)
+gdevpdfo_h=$(GLSRC)gdevpdfo.h
 gdevpdfx_h=$(GLSRC)gdevpdfx.h\
  $(gsparam_h) $(gsuid_h) $(gxdevice_h) $(gxfont_h) $(gxline_h)\
  $(spprint_h) $(stream_h) $(gdevpsdf_h)
 
 $(GLOBJ)gdevpdf.$(OBJ) : $(GLSRC)gdevpdf.c $(GDEVH)\
  $(memory__h) $(string__h)\
- $(gscdefs_h) $(gdevpdff_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)
+ $(gscdefs_h) $(gdevpdff_h) $(gdevpdfo_h) $(gdevpdfx_h)
 	$(GLCC) $(GLO_)gdevpdf.$(OBJ) $(C_) $(GLSRC)gdevpdf.c
 
-$(GLOBJ)gdevpdfb.$(OBJ) : $(GLSRC)gdevpdfb.c\
- $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gserrors_h) $(gxcspace_h)
-	$(GLCC) $(GLO_)gdevpdfb.$(OBJ) $(C_) $(GLSRC)gdevpdfb.c
-
-$(GLOBJ)gdevpdfc.$(OBJ) : $(GLSRC)gdevpdfc.c $(GXERR) $(math__h) $(memory__h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gscie_h) $(gscindex_h) $(gscspace_h) $(gscdevn_h) $(gscsepr_h)\
- $(sstring_h) $(stream_h) $(strimpl_h)
-	$(GLCC) $(GLO_)gdevpdfc.$(OBJ) $(C_) $(GLSRC)gdevpdfc.c
-
 $(GLOBJ)gdevpdfd.$(OBJ) : $(GLSRC)gdevpdfd.c $(math__h)\
- $(gdevpdfg_h) $(gdevpdfx_h)\
+ $(gdevpdfx_h)\
  $(gx_h) $(gxdevice_h) $(gxfixed_h) $(gxistate_h) $(gxpaint_h)\
  $(gzcpath_h) $(gzpath_h)
 	$(GLCC) $(GLO_)gdevpdfd.$(OBJ) $(C_) $(GLSRC)gdevpdfd.c
 
-$(GLOBJ)gdevpdfe.$(OBJ) : $(GLSRC)gdevpdfe.c\
- $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfx_h) $(gdevpsf_h)\
- $(gserrors_h) $(gsmatrix_h)\
- $(gxfcid_h) $(gxfont_h) $(gxfont0_h)\
- $(scommon_h)
-	$(GLCC) $(GLO_)gdevpdfe.$(OBJ) $(C_) $(GLSRC)gdevpdfe.c
-
 $(GLOBJ)gdevpdff.$(OBJ) : $(GLSRC)gdevpdff.c\
  $(ctype__h) $(math__h) $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfo_h) $(gdevpdfx_h) $(gdevpsf_h)\
+ $(gdevpdff_h) $(gdevpdfo_h) $(gdevpdfx_h)\
  $(gserrors_h) $(gsmalloc_h) $(gsmatrix_h) $(gspath_h) $(gsutil_h)\
  $(gxfcache_h) $(gxfixed_h) $(gxfont_h) $(gxpath_h)\
  $(scommon_h)
 	$(GLCC) $(GLO_)gdevpdff.$(OBJ) $(C_) $(GLSRC)gdevpdff.c
 
-$(GLOBJ)gdevpdfg.$(OBJ) : $(GLSRC)gdevpdfg.c $(GXERR) $(math__h) $(string__h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gsfunc0_h) $(gsstate_h)\
- $(gxbitmap_h) $(gxdht_h) $(gxfmap_h) $(gxht_h) $(gxistate_h) $(gzht_h)\
- $(szlibx_h)
-	$(GLCC) $(GLO_)gdevpdfg.$(OBJ) $(C_) $(GLSRC)gdevpdfg.c
-
 $(GLOBJ)gdevpdfi.$(OBJ) : $(GLSRC)gdevpdfi.c\
- $(gx_h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gsdevice_h) $(gserrors_h) $(gsflip_h) $(gsiparm4_h)\
- $(gxcspace_h) $(gximage3_h) $(gximag3x_h)
-	$(GLCC) $(GLO_)gdevpdfi.$(OBJ) $(C_) $(GLSRC)gdevpdfi.c
-
-$(GLOBJ)gdevpdfj.$(OBJ) : $(GLSRC)gdevpdfj.c\
- $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gserrors_h) $(gsiparm4_h) $(gxcspace_h)
-	$(GLJCC) $(GLO_)gdevpdfj.$(OBJ) $(C_) $(GLSRC)gdevpdfj.c
+ $(math__h) $(memory__h) $(string__h) $(jpeglib__h) $(gx_h)\
+ $(gdevpdff_h) $(gdevpdfo_h) $(gdevpdfx_h)\
+ $(gscie_h) $(gscolor2_h) $(gserrors_h) $(gsflip_h)\
+ $(gxcspace_h) $(gxistate_h)\
+ $(sa85x_h) $(scfx_h) $(sdct_h) $(slzwx_h) $(spngpx_h) $(srlx_h) $(strimpl_h)\
+ $(szlibx_h)
+	$(GLJCC) $(GLO_)gdevpdfi.$(OBJ) $(C_) $(GLSRC)gdevpdfi.c
 
 $(GLOBJ)gdevpdfm.$(OBJ) : $(GLSRC)gdevpdfm.c\
  $(math__h) $(memory__h) $(string__h) $(gx_h)\
@@ -802,8 +764,8 @@ $(GLOBJ)gdevpdfm.$(OBJ) : $(GLSRC)gdevpdfm.c\
 
 $(GLOBJ)gdevpdfo.$(OBJ) : $(GLSRC)gdevpdfo.c $(memory__h) $(string__h)\
  $(gx_h)\
- $(gdevpdfo_h) $(gdevpdfx_h) $(gserrors_h) $(gsparam_h) $(gsutil_h)\
- $(sa85x_h) $(slzwx_h) $(sstring_h) $(strimpl_h) $(szlibx_h)
+ $(gdevpdfo_h) $(gdevpdfx_h) $(gserrors_h) $(gsutil_h)\
+ $(sstring_h) $(strimpl_h)
 	$(GLCC) $(GLO_)gdevpdfo.$(OBJ) $(C_) $(GLSRC)gdevpdfo.c
 
 $(GLOBJ)gdevpdfp.$(OBJ) : $(GLSRC)gdevpdfp.c $(memory__h) $(gx_h)\
@@ -818,33 +780,25 @@ $(GLOBJ)gdevpdfr.$(OBJ) : $(GLSRC)gdevpdfr.c $(memory__h) $(string__h)\
 
 $(GLOBJ)gdevpdft.$(OBJ) : $(GLSRC)gdevpdft.c\
  $(math__h) $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfg_h) $(gdevpdfx_h)\
- $(gserrors_h) $(gsmatrix_h) $(gsutil_h)\
- $(gxfcache_h) $(gxfcid_h) $(gxfixed_h) $(gxfont_h) $(gxfont0_h) $(gxfont1_h)\
+ $(gdevpdff_h) $(gdevpdfx_h) $(gserrors_h) $(gsmatrix_h) $(gsutil_h)\
+ $(gxfcache_h) $(gxfixed_h) $(gxfont_h) $(gxfont0_h) $(gxfont1_h)\
  $(gxfont42_h) $(gxpath_h)\
  $(scommon_h)
 	$(GLCC) $(GLO_)gdevpdft.$(OBJ) $(C_) $(GLSRC)gdevpdft.c
 
-$(GLOBJ)gdevpdfu.$(OBJ) : $(GLSRC)gdevpdfu.c $(GXERR)\
- $(jpeglib__h) $(memory__h) $(string__h)\
+$(GLOBJ)gdevpdfu.$(OBJ) : $(GLSRC)gdevpdfu.c $(GDEVH)\
+ $(math__h) $(memory__h) $(string__h) $(time__h)\
+ $(gp_h)\
  $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gsdsrc_h) $(gsfunc_h)\
- $(sa85x_h) $(scanchar_h) $(scfx_h) $(sdct_h) $(slzwx_h) $(spngpx_h)\
- $(srlx_h) $(sstring_h) $(strimpl_h) $(szlibx_h)
+ $(gxfixed_h) $(gxistate_h) $(gxpaint_h)\
+ $(gzcpath_h) $(gzpath_h)\
+ $(scanchar_h) $(scfx_h) $(slzwx_h) $(sstring_h) $(strimpl_h) $(szlibx_h)
 	$(GLCC) $(GLO_)gdevpdfu.$(OBJ) $(C_) $(GLSRC)gdevpdfu.c
-
-$(GLOBJ)gdevpdfv.$(OBJ) : $(GLSRC)gdevpdfv.c $(GXERR) $(math__h) $(string__h)\
- $(gdevpdfg_h) $(gdevpdfo_h) $(gdevpdfx_h)\
- $(gscindex_h) $(gscoord_h) $(gsiparm3_h) $(gsmatrix_h) $(gsptype2_h)\
- $(gxcolor2_h) $(gxdcolor_h) $(gxpcolor_h) $(gxshade_h)\
- $(szlibx_h)
-	$(GLCC) $(GLO_)gdevpdfv.$(OBJ) $(C_) $(GLSRC)gdevpdfv.c
 
 $(GLOBJ)gdevpdfw.$(OBJ) : $(GLSRC)gdevpdfw.c\
  $(memory__h) $(string__h) $(gx_h)\
- $(gdevpdff_h) $(gdevpdfx_h) $(gdevpsf_h)\
- $(gsbittab_h) $(gserrors_h) $(gsmalloc_h) $(gsmatrix_h) $(gsutil_h)\
- $(gxfcid_h) $(gxfont_h) $(gxfont0_h)\
+ $(gdevpdff_h) $(gdevpdfx_h)\
+ $(gserrors_h) $(gsmalloc_h) $(gsmatrix_h) $(gsutil_h) $(gxfont_h)\
  $(scommon_h)
 	$(GLCC) $(GLO_)gdevpdfw.$(OBJ) $(C_) $(GLSRC)gdevpdfw.c
 
@@ -905,28 +859,28 @@ $(GLOBJ)gdevbmpc.$(OBJ) : $(GLSRC)gdevbmpc.c $(PDEVH) $(gdevbmp_h)
 	$(GLCC) $(GLO_)gdevbmpc.$(OBJ) $(C_) $(GLSRC)gdevbmpc.c
 
 $(DD)bmpmono.dev : $(DEVS_MAK) $(bmp_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)bmpmono $(bmp_)
+	$(SETPDEV) $(DD)bmpmono $(bmp_)
 
 $(DD)bmpgray.dev : $(DEVS_MAK) $(bmp_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)bmpgray $(bmp_)
+	$(SETPDEV) $(DD)bmpgray $(bmp_)
 
 $(DD)bmpsep1.dev : $(DEVS_MAK) $(bmp_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)bmpsep1 $(bmp_)
+	$(SETPDEV) $(DD)bmpsep1 $(bmp_)
 
 $(DD)bmpsep8.dev : $(DEVS_MAK) $(bmp_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)bmpsep8 $(bmp_)
+	$(SETPDEV) $(DD)bmpsep8 $(bmp_)
 
 $(DD)bmp16.dev : $(DEVS_MAK) $(bmp_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)bmp16 $(bmp_)
+	$(SETPDEV) $(DD)bmp16 $(bmp_)
 
 $(DD)bmp256.dev : $(DEVS_MAK) $(bmp_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)bmp256 $(bmp_)
+	$(SETPDEV) $(DD)bmp256 $(bmp_)
 
 $(DD)bmp16m.dev : $(DEVS_MAK) $(bmp_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)bmp16m $(bmp_)
+	$(SETPDEV) $(DD)bmp16m $(bmp_)
 
 $(DD)bmp32b.dev : $(DEVS_MAK) $(bmp_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)bmp32b $(bmp_)
+	$(SETPDEV) $(DD)bmp32b $(bmp_)
 
 ### ------------- BMP driver that serves as demo of async rendering ---- ###
 
@@ -938,31 +892,31 @@ $(GLOBJ)gdevbmpa.$(OBJ) : $(GLSRC)gdevbmpa.c $(AK) $(stdio__h)\
 	$(GLCC) $(GLO_)gdevbmpa.$(OBJ) $(C_) $(GLSRC)gdevbmpa.c
 
 $(DD)bmpamono.dev : $(DEVS_MAK) $(bmpa_) $(GLD)page.dev $(GLD)async.dev
-	$(SETPDEV2) $(DD)bmpamono $(bmpa_)
+	$(SETPDEV) $(DD)bmpamono $(bmpa_)
 	$(ADDMOD) $(DD)bmpamono -include $(GLD)async
 
 $(DD)bmpasep1.dev : $(DEVS_MAK) $(bmpa_) $(GLD)page.dev $(GLD)async.dev
-	$(SETPDEV2) $(DD)bmpasep1 $(bmpa_)
+	$(SETPDEV) $(DD)bmpasep1 $(bmpa_)
 	$(ADDMOD) $(DD)bmpasep1 -include $(GLD)async
 
 $(DD)bmpasep8.dev : $(DEVS_MAK) $(bmpa_) $(GLD)page.dev $(GLD)async.dev
-	$(SETPDEV2) $(DD)bmpasep8 $(bmpa_)
+	$(SETPDEV) $(DD)bmpasep8 $(bmpa_)
 	$(ADDMOD) $(DD)bmpasep8 -include $(GLD)async
 
 $(DD)bmpa16.dev : $(DEVS_MAK) $(bmpa_) $(GLD)page.dev $(GLD)async.dev
-	$(SETPDEV2) $(DD)bmpa16 $(bmpa_)
+	$(SETPDEV) $(DD)bmpa16 $(bmpa_)
 	$(ADDMOD) $(DD)bmpa16 -include $(GLD)async
 
 $(DD)bmpa256.dev : $(DEVS_MAK) $(bmpa_) $(GLD)page.dev $(GLD)async.dev
-	$(SETPDEV2) $(DD)bmpa256 $(bmpa_)
+	$(SETPDEV) $(DD)bmpa256 $(bmpa_)
 	$(ADDMOD) $(DD)bmpa256 -include $(GLD)async
 
 $(DD)bmpa16m.dev : $(DEVS_MAK) $(bmpa_) $(GLD)page.dev $(GLD)async.dev
-	$(SETPDEV2) $(DD)bmpa16m $(bmpa_)
+	$(SETPDEV) $(DD)bmpa16m $(bmpa_)
 	$(ADDMOD) $(DD)bmpa16m -include $(GLD)async
 
 $(DD)bmpa32b.dev : $(DEVS_MAK) $(bmpa_) $(GLD)page.dev $(GLD)async.dev
-	$(SETPDEV2) $(DD)bmpa32b $(bmpa_)
+	$(SETPDEV) $(DD)bmpa32b $(bmpa_)
 	$(ADDMOD) $(DD)bmpa32b -include $(GLD)async
 
 ### -------------------------- CGM file format ------------------------- ###
@@ -1065,7 +1019,7 @@ pxm_=$(GLOBJ)gdevpbm.$(OBJ) $(GLOBJ)gdevppla.$(OBJ) $(GLOBJ)gdevmpla.$(OBJ)
 
 $(GLOBJ)gdevpbm.$(OBJ) : $(GLSRC)gdevpbm.c $(PDEVH)\
  $(gdevmpla_h) $(gdevplnx_h) $(gdevppla_h)\
- $(gscdefs_h) $(gscspace_h) $(gxgetbit_h) $(gxiparam_h) $(gxlum_h)
+ $(gscdefs_h) $(gxgetbit_h) $(gxlum_h)
 	$(GLCC) $(GLO_)gdevpbm.$(OBJ) $(C_) $(GLSRC)gdevpbm.c
 
 ### Portable Bitmap (PBM, plain or raw format, magic numbers "P1" or "P4")
@@ -1169,14 +1123,12 @@ $(DD)png16m.dev : $(DEVS_MAK) $(libpng_dev) $(png_) $(GLD)page.dev
 ###   format.  They also can convert big, complex color PostScript files  ###
 ###   to (often) smaller and more easily printed bitmaps.                 ###
 
+# Monochrome, Level 1 output
+
 psim_=$(GLOBJ)gdevpsim.$(OBJ)
 
-$(GLOBJ)gdevpsim.$(OBJ) : $(GLSRC)gdevpsim.c $(PDEVH)\
- $(gdevpsu_h)\
- $(sa85x_h) $(srlx_h) $(stream_h) $(strimpl_h)
+$(GLOBJ)gdevpsim.$(OBJ) : $(GLSRC)gdevpsim.c $(PDEVH)
 	$(GLCC) $(GLO_)gdevpsim.$(OBJ) $(C_) $(GLSRC)gdevpsim.c
-
-# Monochrome, Level 1 output
 
 $(DD)psmono.dev : $(DEVS_MAK) $(psim_) $(GLD)page.dev
 	$(SETPDEV2) $(DD)psmono $(psim_)
@@ -1186,54 +1138,48 @@ $(DD)psgray.dev : $(DEVS_MAK) $(psim_) $(GLD)page.dev
 
 # RGB, Level 2 output
 
-$(DD)psrgb.dev : $(DEVS_MAK) $(psim_) $(GLD)page.dev
-	$(SETPDEV2) $(DD)psrgb $(psim_)
+psci_=$(GLOBJ)gdevpsci.$(OBJ)
 
-### ---------------- Fax encoding ---------------- ###
+$(GLOBJ)gdevpsci.$(OBJ) : $(GLSRC)gdevpsci.c $(PDEVH)\
+ $(srlx_h) $(stream_h) $(strimpl_h)
+	$(GLCC) $(GLO_)gdevpsci.$(OBJ) $(C_) $(GLSRC)gdevpsci.c
 
-# By default, these drivers recognize 3 page sizes -- (U.S.) letter, A4, and
-# B4 -- and adjust the page width to the nearest legal value for real fax
-# systems (1728 or 2048 pixels).  To suppress this, set the device parameter
-# AdjustWidth to 0 (e.g., -dAdjustWidth=0 on the command line).
-
-gdevfax_h=$(GLSRC)gdevfax.h
-
-fax_=$(GLOBJ)gdevfax.$(OBJ)
-$(DD)fax.dev : $(DEVS_MAK) $(fax_) $(GLD)cfe.dev
-	$(SETMOD) $(DD)fax $(fax_)
-	$(ADDMOD) $(DD)fax -include $(GLD)cfe
-
-$(GLOBJ)gdevfax.$(OBJ) : $(GLSRC)gdevfax.c $(PDEVH)\
- $(gdevfax_h) $(scfx_h) $(strimpl_h)
-	$(GLCC) $(GLO_)gdevfax.$(OBJ) $(C_) $(GLSRC)gdevfax.c
-
-$(DD)faxg3.dev : $(DEVS_MAK) $(DD)fax.dev
-	$(SETDEV2) $(DD)faxg3 -include $(DD)fax
-
-$(DD)faxg32d.dev : $(DEVS_MAK) $(DD)fax.dev
-	$(SETDEV2) $(DD)faxg32d -include $(DD)fax
-
-$(DD)faxg4.dev : $(DEVS_MAK) $(DD)fax.dev
-	$(SETDEV2) $(DD)faxg4 -include $(DD)fax
+$(DD)psrgb.dev : $(DEVS_MAK) $(psci_) $(GLD)page.dev
+	$(SETPDEV2) $(DD)psrgb $(psci_)
 
 ### -------------------- Plain or TIFF fax encoding --------------------- ###
 ###    Use -sDEVICE=tiffg3 or tiffg4 and				  ###
 ###	  -r204x98 for low resolution output, or			  ###
 ###	  -r204x196 for high resolution output				  ###
 
+# By default, these drivers recognize 3 page sizes -- (U.S.) letter, A4, and
+# B4 -- and adjust the page width to the nearest legal value for real fax
+# systems (1728 or 2048 pixels).  To suppress this, set the device parameter
+# AdjustWidth to 0 (e.g., -dAdjustWidth=0 on the command line).
+
 gdevtifs_h=$(GLSRC)gdevtifs.h
 gdevtfax_h=$(GLSRC)gdevtfax.h
 
 tfax_=$(GLOBJ)gdevtfax.$(OBJ)
-$(DD)tfax.dev : $(DEVS_MAK) $(tfax_) $(GLD)cfe.dev $(GLD)lzwe.dev $(GLD)rle.dev $(DD)fax.dev $(DD)tiffs.dev
+$(DD)tfax.dev : $(DEVS_MAK) $(tfax_) $(GLD)cfe.dev $(GLD)lzwe.dev $(GLD)rle.dev $(DD)tiffs.dev
 	$(SETMOD) $(DD)tfax $(tfax_)
 	$(ADDMOD) $(DD)tfax -include $(GLD)cfe $(GLD)lzwe $(GLD)rle
-	$(ADDMOD) $(DD)tfax -include $(DD)fax $(DD)tiffs
+	$(ADDMOD) $(DD)tfax -include $(DD)tiffs
 
 $(GLOBJ)gdevtfax.$(OBJ) : $(GLSRC)gdevtfax.c $(PDEVH)\
- $(gdevfax_h) $(gdevtfax_h) $(gdevtifs_h)\
- $(scfx_h) $(slzwx_h) $(srlx_h) $(strimpl_h)
+ $(gdevtifs_h) $(gdevtfax_h) $(scfx_h) $(slzwx_h) $(srlx_h) $(strimpl_h)
 	$(GLCC) $(GLO_)gdevtfax.$(OBJ) $(C_) $(GLSRC)gdevtfax.c
+
+### Plain G3/G4 fax with no header
+
+$(DD)faxg3.dev : $(DEVS_MAK) $(DD)tfax.dev
+	$(SETDEV2) $(DD)faxg3 -include $(DD)tfax
+
+$(DD)faxg32d.dev : $(DEVS_MAK) $(DD)tfax.dev
+	$(SETDEV2) $(DD)faxg32d -include $(DD)tfax
+
+$(DD)faxg4.dev : $(DEVS_MAK) $(DD)tfax.dev
+	$(SETDEV2) $(DD)faxg4 -include $(DD)tfax
 
 ### ---------------------------- TIFF formats --------------------------- ###
 

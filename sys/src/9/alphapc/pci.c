@@ -16,6 +16,16 @@ enum {
 	MaxUBN		= 255,
 };
 
+enum
+{					/* command register */
+	IOen		= (1<<0),
+	MEMen		= (1<<1),
+	MASen		= (1<<2),
+	MemWrInv	= (1<<4),
+	PErrEn		= (1<<6),
+	SErrEn		= (1<<8),
+};
+
 static Lock pcicfglock;
 static Lock pcicfginitlock;
 static int pcicfgmode = -1;
@@ -320,6 +330,21 @@ pcimatch(Pcidev* prev, int vid, int did)
 	return prev;
 }
 
+Pcidev*
+pcimatchtbdf(int tbdf)
+{
+	Pcidev *pcidev;
+
+	if(pcicfgmode == -1)
+		pcicfginit();
+
+	for(pcidev = pcilist; pcidev != nil; pcidev = pcidev->list) {
+		if(pcidev->tbdf == tbdf)
+			break;
+	}
+	return pcidev;
+}
+
 void
 pcihinv(Pcidev* p)
 {
@@ -373,6 +398,16 @@ pcisetbme(Pcidev* p)
 	int pcr;
 
 	pcr = pcicfgr16(p, PciPCR);
-	pcr |= 0x0004;
+	pcr |= MASen;
+	pcicfgw16(p, PciPCR, pcr);
+}
+
+void
+pciclrbme(Pcidev* p)
+{
+	int pcr;
+
+	pcr = pcicfgr16(p, PciPCR);
+	pcr &= ~MASen;
 	pcicfgw16(p, PciPCR, pcr);
 }

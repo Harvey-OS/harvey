@@ -88,17 +88,17 @@ memdebug(void)
 	maxpa = (nvramread(0x18)<<8)|nvramread(0x17);
 	maxpa1 = (nvramread(0x31)<<8)|nvramread(0x30);
 	maxpa2 = (nvramread(0x16)<<8)|nvramread(0x15);
-	print("maxpa = %uX -> %uX, maxpa1 = %uX maxpa2 = %uX\n",
+	print("maxpa = %luX -> %luX, maxpa1 = %luX maxpa2 = %luX\n",
 		maxpa, MB+maxpa*KB, maxpa1, maxpa2);
 
 	for(mp = rmapram.map; mp->size; mp++)
-		print("%8.8uX %8.8uX %8.8uX\n", mp->addr, mp->size, mp->addr+mp->size);
+		print("%8.8luX %8.8luX %8.8luX\n", mp->addr, (ulong)mp->size, mp->addr+mp->size);
 	for(mp = rmapumb.map; mp->size; mp++)
-		print("%8.8uX %8.8uX %8.8uX\n", mp->addr, mp->size, mp->addr+mp->size);
+		print("%8.8luX %8.8luX %8.8luX\n", mp->addr, (ulong)mp->size, mp->addr+mp->size);
 	for(mp = rmapumbrw.map; mp->size; mp++)
-		print("%8.8uX %8.8uX %8.8uX\n", mp->addr, mp->size, mp->addr+mp->size);
+		print("%8.8luX %8.8luX %8.8luX\n", mp->addr, (ulong)mp->size, mp->addr+mp->size);
 	for(mp = rmapupa.map; mp->size; mp++)
-		print("%8.8uX %8.8uX %8.8uX\n", mp->addr, mp->size, mp->addr+mp->size);
+		print("%8.8luX %8.8luX %8.8luX\n", mp->addr, (ulong)mp->size, mp->addr+mp->size);
 }
 
 void
@@ -107,7 +107,7 @@ mapfree(RMap* rmap, ulong addr, ulong size)
 	Map *mp;
 	ulong t;
 
-	if(size <= 0)
+	if(size == 0)
 		return;
 
 	lock(rmap);
@@ -132,7 +132,7 @@ mapfree(RMap* rmap, ulong addr, ulong size)
 		}
 		else do{
 			if(mp >= rmap->mapend){
-				print("mapfree: %s: losing 0x%uX, %d\n",
+				print("mapfree: %s: losing 0x%luX, %lud\n",
 					rmap->name, addr, size);
 				break;
 			}
@@ -171,9 +171,9 @@ mapalloc(RMap* rmap, ulong addr, int size, int align)
 			 */
 			if(maddr > addr)
 				break;
-			if(maddr+mp->size < addr)
+			if(mp->size < addr - maddr)	/* maddr+mp->size < addr, but no overflow */
 				continue;
-			if(addr+size > maddr+mp->size)
+			if(addr - maddr > mp->size - size)	/* addr+size > maddr+mp->size, but no overflow */
 				break;
 			maddr = addr;
 		}
@@ -225,6 +225,14 @@ umbscan(void)
 	 */
 	p = KADDR(0xD0000);	/*RSC: changed from 0xC0000 */
 	while(p < (uchar*)KADDR(0xE0000)){
+		if (p[0] == 0x55 && p[1] == 0xAA) {
+			/* Skip p[2] chunks of 512 bytes.  Test for 0x55 AA before
+			     poking obtrusively, or else the Thinkpad X20 dies when
+			     setting up the cardbus (PB) */
+			p += p[2] * 512;
+			continue;
+		}
+
 		p[0] = 0xCC;
 		p[2*KB-1] = 0xCC;
 		if(p[0] != 0xCC || p[2*KB-1] != 0xCC){
@@ -256,7 +264,14 @@ umbscan(void)
 void
 meminit(ulong)
 {
+	/* A hack to initialize unbacked physical memory.  It's assumed PCI space is assigned by 
+	     the BIOS in the 0xF0000000 range and 9load never needs more than 0x2000... to run. These
+	     values leave ample space for memory allocations for uninitialized PCI cards (e.g. cardbus 
+	     cards).  (pb) */
+	ulong maxmem = 0x40000000;
+
 	umbscan();
+	mapfree(&rmapupa, maxmem, 0x00000000-maxmem);
 	if(MEMDEBUG)
 		memdebug();
 }
@@ -455,14 +470,19 @@ mmukmap(ulong pa, ulong va, int size)
 ulong
 upamalloc(ulong addr, int size, int align)
 {
-	ulong ae;
+	ulong ae, a;
 
 	USED(align);
+
+	if((a = mapalloc(&rmapupa, addr, size, align)) == 0){
+		memdebug();
+		return 0;
+	}
 
 	/*
 	 * This is a travesty, but they all are.
 	 */
-	ae = mmukmap(addr, 0, size);
+	ae = mmukmap(a, 0, size);
 
 	/*
 	 * Should check here that it was all delivered
@@ -473,7 +493,7 @@ upamalloc(ulong addr, int size, int align)
 	/*
 	 * Be very careful this returns a PHYSICAL address.
 	 */
-	return addr;
+	return a;
 }
 
 void
@@ -481,3 +501,4 @@ upafree(ulong pa, int size)
 {
 	USED(pa, size);
 }
+

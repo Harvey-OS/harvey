@@ -167,7 +167,7 @@ armclass(long w)
 		if(w & (1<<4))
 			op += 32;
 		else
-		if(w & (31<<7))
+		if((w & (31<<7)) || (w & (1<<5)))
 			op += 16;
 		break;
 	case 1:	/* data processing i,r,r */
@@ -218,7 +218,7 @@ bprint(Instr *i, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	i->curr = doprint(i->curr, i->end, fmt, arg);
+	i->curr = vseprint(i->curr, i->end, fmt, arg);
 	va_end(arg);
 }
 

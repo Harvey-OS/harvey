@@ -1,19 +1,12 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
+#include <mp.h>
+#include <libsec.h>
 #include "httpd.h"
 #include "httpsrv.h"
 
-typedef struct Endpoints	Endpoints;
 typedef struct Strings		Strings;
-
-struct Endpoints
-{
-	char	*lsys;
-	char	*lserv;
-	char	*rsys;
-	char	*rserv;
-};
 
 struct Strings
 {
@@ -36,7 +29,10 @@ static	int		send(HConnect*);
 static	Strings		stripmagic(HConnect*, char*);
 static	char*		stripprefix(char*, char*);
 static	char*		sysdom(void);
-static	Endpoints*	getendpoints(char*);
+static	int		notfound(HConnect *c, char *url);
+
+uchar *certificate;
+int certlen;	
 
 void
 usage(void)
@@ -54,10 +50,15 @@ main(int argc, char **argv)
 	address = nil;
 	hmydomain = nil;
 	netdir = "/net";
-	fmtinstall('D', hdateconv);
-	fmtinstall('H', httpconv);
-	fmtinstall('U', hurlconv);
+	fmtinstall('D', hdatefmt);
+	fmtinstall('H', httpfmt);
+	fmtinstall('U', hurlfmt);
 	ARGBEGIN{
+	case 'c':
+		certificate = readcert(ARGF(), &certlen);
+		if(certificate == nil)
+			sysfatal("reading certificat: %r");
+		break;
 	case 'n':
 		namespace = ARGF();
 		break;
@@ -81,7 +82,7 @@ main(int argc, char **argv)
 	if(namespace == nil)
 		namespace = "/lib/namespace.httpd";
 	if(address == nil)
-		address = "tcp!*!http";
+		address = "*";
 	if(webroot == nil)
 		webroot = "/usr/web";
 	else{
@@ -114,7 +115,7 @@ main(int argc, char **argv)
 	statsinit();
 
 	becomenone(namespace);
-	dolisten(address);
+	dolisten(netmkaddr(address, "tcp", certificate == nil ? "http" : "https"));
 	exits(nil);
 }
 
@@ -159,15 +160,18 @@ dolisten(char *address)
 {
 	HSPriv *hp;
 	HConnect *c;
-	Endpoints *ends;
+	NetConnInfo *nci;
 	char ndir[NETPATHLEN], dir[NETPATHLEN], *p;
 	int ctl, nctl, data, t, ok, spotchk;
+	TLSconn conn;
 
 	spotchk = 0;
 	syslog(0, HTTPLOG, "httpd starting");
 	ctl = announce(address, dir);
 	if(ctl < 0){
 		syslog(0, HTTPLOG, "can't announce on %s: %r", address);
+fprint(2, "failed: %d\n", getpid());
+for(;;)sleep(1000);
 		return;
 	}
 	strcpy(netdirb, dir);
@@ -205,6 +209,12 @@ dolisten(char *address)
 			 *  see if we know the service requested
 			 */
 			data = accept(ctl, ndir);
+			if(data >= 0 && certificate != nil){
+				memset(&conn, 0, sizeof(conn));
+				conn.cert = certificate;
+				conn.certlen = certlen;
+				data = tlsServer(data, &conn);
+			}
 			if(data < 0){
 				syslog(0, HTTPLOG, "can't open %s/data: %r", ndir);
 				exits(nil);
@@ -216,11 +226,11 @@ dolisten(char *address)
 			close(ctl);
 			close(nctl);
 
-			ends = getendpoints(ndir);
+			nci = getnetconninfo(ndir, -1);
 			c = mkconnect();
 			hp = mkhspriv();
-			hp->remotesys = ends->rsys;
-			hp->remoteserv = ends->rserv;
+			hp->remotesys = nci->rsys;
+			hp->remoteserv = nci->rserv;
 			c->private = hp;
 
 			hinit(&c->hin, 0, Hread);
@@ -235,6 +245,8 @@ dolisten(char *address)
 				if(hparsereq(c, t) <= 0)
 					exits(nil);
 				ok = doreq(c);
+
+				hflush(&c->hout);
 
 				if(c->head.closeit || ok < 0)
 					exits(nil);
@@ -284,8 +296,10 @@ doreq(HConnect *c)
 		snprint(logfd1, sizeof(logfd1), "%d", logall[1]);
 		snprint(vers, sizeof(vers), "HTTP/%d.%d", c->req.vermaj, c->req.vermin);
 		hb = hunload(&c->hin);
-		if(hb == nil)
+		if(hb == nil){
 			hfail(c, HInternal);
+			return -1;
+		}
 		hp = c->private;
 		execl(c->xferbuf, magic, "-d", hmydomain, "-w", webroot, "-r", hp->remotesys, "-N", netdir, "-b", hb,
 			"-L", logfd0, logfd1, "-R", c->header,
@@ -326,8 +340,8 @@ doreq(HConnect *c)
 static int
 send(HConnect *c)
 {
-	Dir dir;
-	char *w, *p;
+	Dir *dir;
+	char *w, *p, *masque;
 	int fd, fd1, n, force301, ok;
 
 	if(c->req.search)
@@ -337,27 +351,35 @@ send(HConnect *c)
 	if(c->head.expectother || c->head.expectcont)
 		return hfail(c, HExpectFail);
 
-	ok = authcheck(c);
-	if(ok <= 0)
-		return ok;
+	masque = masquerade(c->head.host);
 
 	/*
 	 * check for directory/file mismatch with trailing /,
 	 * and send any redirections.
 	 */
-	n = strlen(webroot) + strlen(c->req.uri) + STRLEN("/index.html") + 1;
+	n = strlen(webroot) + strlen(masque) + strlen(c->req.uri) +
+		STRLEN("/index.html") + STRLEN("/.httplogin") + 1;
 	w = halloc(c, n);
 	strcpy(w, webroot);
+	strcat(w, masque);
 	strcat(w, c->req.uri);
 	fd = open(w, OREAD);
+	if(fd < 0 && strlen(masque)>0 && strncmp(c->req.uri, masque, strlen(masque)) == 0){
+		// may be a URI from before virtual hosts;  try again without masque
+		strcpy(w, webroot);
+		strcat(w, c->req.uri);
+		fd = open(w, OREAD);
+	}
 	if(fd < 0)
 		return notfound(c, c->req.uri);
-	if(dirfstat(fd, &dir) < 0){
+	dir = dirfstat(fd);
+	if(dir == nil){
 		close(fd);
 		return hfail(c, HInternal);
 	}
 	p = strchr(w, '\0');
-	if(dir.mode & CHDIR){
+	if(dir->mode & DMDIR){
+		free(dir);
 		if(p > w && p[-1] == '/'){
 			strcat(w, "index.html");
 			force301 = 0;
@@ -370,7 +392,7 @@ send(HConnect *c)
 			close(fd);
 			return notfound(c, c->req.uri);
 		}
-		c->req.uri = w + strlen(webroot);
+		c->req.uri = w + strlen(webroot) + strlen(masque);
 		if(force301 && c->req.vermaj){
 			close(fd);
 			close(fd1);
@@ -378,17 +400,26 @@ send(HConnect *c)
 		}
 		close(fd);
 		fd = fd1;
-		if(dirfstat(fd, &dir) < 0){
+		dir = dirfstat(fd);
+		if(dir == nil){
 			close(fd);
 			return hfail(c, HInternal);
 		}
 	}else if(p > w && p[-1] == '/'){
+		free(dir);
 		close(fd);
 		*strrchr(c->req.uri, '/') = '\0';
 		return hmoved(c, c->req.uri);
 	}
 
-	return sendfd(c, fd, &dir, nil, nil);
+	ok = authorize(c, w);
+	if(ok <= 0){
+		free(dir);
+		close(fd);
+		return ok;
+	}
+
+	return sendfd(c, fd, dir, nil, nil);
 }
 
 static Strings
@@ -426,6 +457,22 @@ stripprefix(char *pre, char *str)
 		if(*str++ != *pre++)
 			return nil;
 	return str;
+}
+
+/*
+ * couldn't open a file
+ * figure out why and return and error message
+ */
+static int
+notfound(HConnect *c, char *url)
+{
+	c->xferbuf[0] = 0;
+	errstr(c->xferbuf, sizeof c->xferbuf);
+	if(strstr(c->xferbuf, "file does not exist") != nil)
+		return hfail(c, HNotFound, url);
+	if(strstr(c->xferbuf, "permission denied") != nil)
+		return hfail(c, HUnauth, url);
+	return hfail(c, HNotFound, url);
 }
 
 static char*
@@ -477,47 +524,4 @@ csquery(char *attr, char *val, char *rattr)
 	}
 	close(fd);
 	return nil;
-}
-
-static void
-getendpoint(char *dir, char *file, char **sysp, char **servp)
-{
-	int fd, n;
-	char buf[128];
-	char *sys, *serv;
-
-	sys = serv = nil;
-
-	snprint(buf, sizeof buf, "%s/%s", dir, file);
-	fd = open(buf, OREAD);
-	if(fd >= 0){
-		n = read(fd, buf, sizeof(buf)-1);
-		if(n>0){
-			buf[n-1] = 0;
-			serv = strchr(buf, '!');
-			if(serv){
-				*serv++ = 0;
-				serv = estrdup(serv);
-			}
-			sys = estrdup(buf);
-		}
-		close(fd);
-	}
-	if(serv == nil)
-		serv = estrdup("unknown");
-	if(sys == nil)
-		sys = estrdup("unknown");
-	*servp = serv;
-	*sysp = sys;
-}
-
-static Endpoints*
-getendpoints(char *dir)
-{
-	Endpoints *ep;
-
-	ep = ezalloc(sizeof(*ep));
-	getendpoint(dir, "local", &ep->lsys, &ep->lserv);
-	getendpoint(dir, "remote", &ep->rsys, &ep->rserv);
-	return ep;
 }

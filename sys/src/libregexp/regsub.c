@@ -6,12 +6,14 @@
 extern	void
 regsub(char *sp,	/* source string */
 	char *dp,	/* destination string */
+	int dlen,
 	Resub *mp,	/* subexpression elements */
 	int ms)		/* number of elements pointed to by mp */
 {
-	char *ssp;
+	char *ssp, *ep;
 	int i;
 
+	ep = dp+dlen-1;
 	while(*sp != '\0'){
 		if(*sp == '\\'){
 			switch(*++sp){
@@ -30,16 +32,19 @@ regsub(char *sp,	/* source string */
 					for(ssp = mp[i].sp;
 					     ssp < mp[i].ep;
 					     ssp++)
-						*dp++ = *ssp;
+						if(dp < ep)
+							*dp++ = *ssp;
 				break;
 			case '\\':
-				*dp++ = '\\';
+				if(dp < ep)
+					*dp++ = '\\';
 				break;
 			case '\0':
 				sp--;
 				break;
 			default:
-				*dp++ = *sp;
+				if(dp < ep)
+					*dp++ = *sp;
 				break;
 			}
 		}else if(*sp == '&'){				
@@ -47,9 +52,12 @@ regsub(char *sp,	/* source string */
 			if(mp[0].sp != 0)
 				for(ssp = mp[0].sp;
 				     ssp < mp[0].ep; ssp++)
-					*dp++ = *ssp;
-		}else
-			*dp++ = *sp;
+					if(dp < ep)
+						*dp++ = *ssp;
+		}else{
+			if(dp < ep)
+				*dp++ = *sp;
+		}
 		sp++;
 	}
 	*dp = '\0';

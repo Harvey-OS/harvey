@@ -5,6 +5,24 @@
 #include "imap4d.h"
 
 void
+debuglog(char *fmt, ...)
+{
+	va_list arg;
+	static int logfd;
+
+	if(debug == 0)
+		return;
+	if(logfd == 0)
+		logfd = open("/sys/log/imap4d", OWRITE);
+	if(logfd > 0){
+		va_start(arg, fmt);
+		fprint(logfd, "%s: ", username);
+		vfprint(logfd, fmt, arg);
+		va_end(arg);
+	}
+}
+
+void
 boxVerify(Box *box)
 {
 	Msg *m;
@@ -42,18 +60,22 @@ boxVerify(Box *box)
 void
 openfiles(void)
 {
-	Dir d;
+	Dir *d;
 	int i;
 
-	for(i = 0; i < 20; i++)
-		if(dirfstat(i, &d) >= 0)
-			fprint(2, "fd[%d]='%s' type=%c dev=%d user='%s group='%s'\n", i, d.name, d.type, d.dev, d.uid, d.gid);
+	for(i = 0; i < 20; i++){
+		d = dirfstat(i);
+		if(d != nil){
+			fprint(2, "fd[%d]='%s' type=%c dev=%d user='%s group='%s'\n", i, d->name, d->type, d->dev, d->uid, d->gid);
+			free(d);
+		}
+	}
 }
 
 void
 ls(char *file)
 {
-	Dir d[NDirs];
+	Dir *d;
 	int fd, i, nd;
 
 	fd = open(file, OREAD);
@@ -64,20 +86,23 @@ ls(char *file)
 	 * read box to find all messages
 	 * each one has a directory, and is in numerical order
 	 */
-	if(dirfstat(fd, d) < 0){
+	d = dirfstat(fd);
+	if(d == nil){
 		close(fd);
 		return;
 	}
-	if(!(d->mode & CHDIR)){
+	if(!(d->mode & DMDIR)){
 		fprint(2, "file %s\n", file);
+		free(d);
 		close(fd);
 		return;
 	}
-	while((nd = dirread(fd, d, sizeof(Dir) * NDirs)) >= sizeof(Dir)){
-		nd /= sizeof(Dir);
+	free(d);
+	while((nd = dirread(fd, &d)) > 0){
 		for(i = 0; i < nd; i++){
-			fprint(2, "%s/%s %c\n", file, d[i].name, "-d"[(d[i].mode & CHDIR) == CHDIR]);
+			fprint(2, "%s/%s %c\n", file, d[i].name, "-d"[(d[i].mode & DMDIR) == DMDIR]);
 		}
+		free(d);
 	}
 	close(fd);
 }

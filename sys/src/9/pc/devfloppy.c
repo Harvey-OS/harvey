@@ -92,7 +92,7 @@ FController	fl;
  *  predeclared
  */
 static int	cmddone(void*);
-static void	floppyformat(FDrive*, char*);
+static void	floppyformat(FDrive*, Cmdbuf*);
 static void	floppykproc(void*);
 static void	floppypos(FDrive*,long);
 static int	floppyrecal(FDrive*);
@@ -104,6 +104,7 @@ static void	floppywait(int);
 static long	floppyxfer(FDrive*, int, void*, long, long);
 
 Dirtab floppydir[]={
+	".",		{Qdir, 0, QTDIR},	0,	0550,
 	"fd0disk",		{Qdata + 0},	0,	0660,
 	"fd0ctl",		{Qctl + 0},	0,	0660,
 	"fd1disk",		{Qdata + 1},	0,	0660,
@@ -114,6 +115,22 @@ Dirtab floppydir[]={
 	"fd3ctl",		{Qctl + 3},	0,	0660,
 };
 #define NFDIR	2	/* directory entries/drive */
+
+enum
+{
+	CMdebug,
+	CMeject,
+	CMformat,
+	CMreset,
+};
+
+static Cmdtab floppyctlmsg[] =
+{
+	CMdebug,	"debug",	1,
+	CMeject,	"eject",	1,
+	CMformat,	"format",	0,
+	CMreset,	"reset",	1,
+};
 
 static void
 fldump(void)
@@ -133,7 +150,7 @@ floppysetdef(FDrive *dp)
 	for(t = floppytype; t < &floppytype[nelem(floppytype)]; t++)
 		if(dp->dt == t->dt){
 			dp->t = t;
-			floppydir[NFDIR*dp->dev].length = dp->t->cap;
+			floppydir[1+NFDIR*dp->dev].length = dp->t->cap;
 			break;
 		}
 }
@@ -216,22 +233,22 @@ floppyattach(char *spec)
 	return devattach('f', spec);
 }
 
-static int
-floppywalk(Chan *c, char *name)
+static Walkqid*
+floppywalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c, name, floppydir, fl.ndrive*NFDIR, devgen);
+	return devwalk(c, nc, name, nname, floppydir, 1+fl.ndrive*NFDIR, devgen);
 }
 
-static void
-floppystat(Chan *c, char *dp)
+static int
+floppystat(Chan *c, uchar *dp, int n)
 {
-	devstat(c, dp, floppydir, fl.ndrive*NFDIR, devgen);
+	return devstat(c, dp, n, floppydir, 1+fl.ndrive*NFDIR, devgen);
 }
 
 static Chan*
 floppyopen(Chan *c, int omode)
 {
-	return devopen(c, omode, floppydir, fl.ndrive*NFDIR, devgen);
+	return devopen(c, omode, floppydir, 1+fl.ndrive*NFDIR, devgen);
 }
 
 static void
@@ -296,7 +313,7 @@ changed(Chan *c, FDrive *dp)
 				if(dp->dt == dp->t->dt)
 					break;
 			}
-			floppydir[NFDIR*dp->dev].length = dp->t->cap;
+			floppydir[1+NFDIR*dp->dev].length = dp->t->cap;
 
 			/* floppyon will fail if there's a controller but no drive */
 			if(floppyon(dp) < 0)
@@ -351,8 +368,8 @@ floppyread(Chan *c, void *a, long n, vlong off)
 	uchar *aa;
 	ulong offset = off;
 
-	if(c->qid.path == CHDIR)
-		return devdirread(c, a, n, floppydir, fl.ndrive*NFDIR, devgen);
+	if(c->qid.type & QTDIR)
+		return devdirread(c, a, n, floppydir, 1+fl.ndrive*NFDIR, devgen);
 
 	rv = 0;
 	dp = &fl.d[c->qid.path & ~Qmask];
@@ -395,14 +412,14 @@ floppyread(Chan *c, void *a, long n, vlong off)
 	return rv;
 }
 
-#define SNCMP(a, b) strncmp(a, b, sizeof(b)-1)
 static long
 floppywrite(Chan *c, void *a, long n, vlong off)
 {
 	FDrive *dp;
 	long rv, i;
 	char *aa = a;
-	char ctlmsg[64];
+	Cmdbuf *cb;
+	Cmdtab *ct;
 	ulong offset = off;
 
 	rv = 0;
@@ -432,28 +449,36 @@ floppywrite(Chan *c, void *a, long n, vlong off)
 		break;
 	case Qctl:
 		rv = n;
+		cb = parsecmd(a, n);
+		if(waserror()){
+			free(cb);
+			nexterror();
+		}
 		qlock(&fl);
 		if(waserror()){
 			qunlock(&fl);
 			nexterror();
 		}
-		if(n >= sizeof(ctlmsg))
-			n = sizeof(ctlmsg) - 1;
-		memmove(ctlmsg, aa, n);
-		ctlmsg[n] = 0;
-		if(SNCMP(ctlmsg, "eject") == 0){
+		ct = lookupcmd(cb, floppyctlmsg, nelem(floppyctlmsg));
+		switch(ct->index){
+		case CMeject:
 			floppyeject(dp);
-		} else if(SNCMP(ctlmsg, "reset") == 0){
+			break;
+		case CMformat:
+			floppyformat(dp, cb);
+			break;
+		case CMreset:
 			fl.confused = 1;
 			floppyon(dp);
-		} else if(SNCMP(ctlmsg, "format") == 0){
-			floppyformat(dp, ctlmsg);
-		} else if(SNCMP(ctlmsg, "debug") == 0){
+			break;
+		case CMdebug:
 			floppydebug = 1;
-		} else
-			error(Ebadctl);
+			break;
+		}
 		poperror();
 		qunlock(&fl);
+		poperror();
+		free(cb);
 		break;
 	default:
 		panic("floppywrite: bad qid");
@@ -892,30 +917,32 @@ floppyxfer(FDrive *dp, int cmd, void *a, long off, long n)
  *  format a track
  */
 static void
-floppyformat(FDrive *dp, char *params)
+floppyformat(FDrive *dp, Cmdbuf *cb)
 {
  	int cyl, h, sec;
 	ulong track;
 	uchar *buf, *bp;
 	FType *t;
-	char *f[3];
 
 	/*
 	 *  set the type
 	 */
-	if(getfields(params, f, 3, 1, " ") > 1){
+	if(cb->nf == 2){
 		for(t = floppytype; t < &floppytype[nelem(floppytype)]; t++){
-			if(strcmp(f[1], t->name)==0 && t->dt==dp->dt){
+			if(strcmp(cb->f[1], t->name)==0 && t->dt==dp->dt){
 				dp->t = t;
-				floppydir[NFDIR*dp->dev].length = dp->t->cap;
+				floppydir[1+NFDIR*dp->dev].length = dp->t->cap;
 				break;
 			}
 		}
 		if(t >= &floppytype[nelem(floppytype)])
 			error(Ebadarg);
-	} else {
+	} else if(cb->nf == 1){
 		floppysetdef(dp);
 		t = dp->t;
+	} else {
+		cmderror(cb, "invalid floppy format command");
+		SET(t);
 	}
 
 	/*
@@ -1034,8 +1061,8 @@ Dev floppydevtab = {
 
 	floppyreset,
 	devinit,
+	devshutdown,
 	floppyattach,
-	devclone,
 	floppywalk,
 	floppystat,
 	floppyopen,

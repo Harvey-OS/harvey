@@ -1,13 +1,13 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
+#include <authsrv.h>
 #include <ctype.h>
-#include "authsrv.h"
+#include "authcmdlib.h"
 
 void
 main(int argc, char **argv)
 {
-	char user[NAMELEN];
+	char user[ANAMELEN];
 	char p9pass[32];
 	char key[DESKEYLEN];
 	int fd;
@@ -17,13 +17,13 @@ main(int argc, char **argv)
 
 	switch(argc){
 	case 2:
-		strncpy(user, argv[0], NAMELEN);
-		user[NAMELEN-1] = 0;
+		strncpy(user, argv[0], ANAMELEN);
+		user[ANAMELEN-1] = 0;
 		passtokey(key, argv[1]);
 		break;
 	case 1:
-		strncpy(user, argv[0], NAMELEN);
-		user[NAMELEN-1] = 0;
+		strncpy(user, argv[0], ANAMELEN);
+		user[ANAMELEN-1] = 0;
 		getpass(key, p9pass, 0, 0);
 		break;
 	case 0:

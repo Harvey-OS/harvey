@@ -6,7 +6,6 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include "dat.h"
 #include "fns.h"

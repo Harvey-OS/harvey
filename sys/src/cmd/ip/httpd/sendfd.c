@@ -17,47 +17,6 @@ static	void		printtype(Hio *hout, HContent *type, HContent *enc);
 #define BADRANGE	"No bytes are avaible for the range you requested.\n"
 
 /*
- * check for authorization for some parts of the server tree
- * the user name supplied with the authorization request is ignored;
- * instead, we authenticate as the realm's user.
- *
- * authorization should be done before opening any files so that
- * unauthorized users don't get to validate file names.
- *
- * returns 1 if authorized, 0 if unauthorized, -1 for io failure.
- */
-int
-authcheck(HConnect *c)
-{
-	char *p;
-	Hio *hout;
-
-	p = authrealm(c, c->req.uri);
-	if(p == nil
-	|| c->head.authuser != nil && httpauth(p, c->head.authpass) >= 0)
-		return 1;
-
-	hout = &c->hout;
-	hprint(hout, "%s 401 Unauthorized\r\n", hversion);
-	hprint(hout, "Server: Plan9\r\n");
-	hprint(hout, "Date: %D\r\n", time(nil));
-	hprint(hout, "WWW-Authenticate: Basic realm=\"%s\"\r\n", p);
-	hprint(hout, "Content-Type: text/html\r\n");
-	hprint(hout, "Content-Length: %d\r\n", STRLEN(UNAUTHED));
-	if(c->head.closeit)
-		hprint(hout, "Connection: close\r\n");
-	else if(!http11(c))
-		hprint(hout, "Connection: Keep-Alive\r\n");
-	hprint(hout, "\r\n");
-	if(strcmp(c->req.meth, "HEAD") != 0)
-		hprint(hout, "%s", UNAUTHED);
-	writelog(c, "Reply: 401 Unauthorized\n");
-	if(c->head.closeit)
-		exits(nil);
-	return hflush(hout);
-}
-
-/*
  * fd references a file which has been authorized & checked for relocations.
  * send back the headers & it's contents.
  * includes checks for conditional requests & ranges.
@@ -65,15 +24,21 @@ authcheck(HConnect *c)
 int
 sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 {
+	Qid qid;
 	HRange *r;
 	HContents conts;
 	Hio *hout;
 	char *boundary, etag[32];
+	long mtime;
 	ulong tr;
 	int n, nw, multir, ok;
-	vlong wrote;
+	vlong wrote, length;
 
 	hout = &c->hout;
+	length = dir->length;
+	mtime = dir->mtime;
+	qid = dir->qid;
+	free(dir);
 
 	/*
 	 * figure out the type of file and send headers
@@ -100,8 +65,8 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		if(type == nil)
 			type = hmkcontent(c, "application", "octet-stream", nil);
 
-		snprint(etag, sizeof(etag), "\"%luxv%lux\"", dir->qid.path, dir->qid.vers);
-		ok = checkreq(c, type, enc, dir->mtime, etag);
+		snprint(etag, sizeof(etag), "\"%lluxv%lux\"", qid.path, qid.vers);
+		ok = checkreq(c, type, enc, mtime, etag);
 		if(ok <= 0){
 			close(fd);
 			return ok;
@@ -112,20 +77,20 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		 */
 		if(c->head.range == nil
 		|| c->head.ifrangeetag != nil && !etagmatch(1, c->head.ifrangeetag, etag)
-		|| c->head.ifrangedate != 0 && c->head.ifrangedate != dir->mtime){
+		|| c->head.ifrangedate != 0 && c->head.ifrangedate != mtime){
 			c->head.range = nil;
 			c->head.ifrangeetag = nil;
 			c->head.ifrangedate = 0;
 		}
 
 		if(c->head.range != nil){
-			c->head.range = fixrange(c->head.range, dir->length);
+			c->head.range = fixrange(c->head.range, length);
 			if(c->head.range == nil){
 				if(c->head.ifrangeetag == nil && c->head.ifrangedate == 0){
 					hprint(hout, "%s 416 Request range not satisfiable\r\n", hversion);
 					hprint(hout, "Date: %D\r\n", time(nil));
 					hprint(hout, "Server: Plan9\r\n");
-					hprint(hout, "Content-Range: bytes */%lld\r\n", dir->length);
+					hprint(hout, "Content-Range: bytes */%lld\r\n", length);
 					hprint(hout, "Content-Length: %d\r\n", STRLEN(BADRANGE));
 					hprint(hout, "Content-Type: text/html\r\n");
 					if(c->head.closeit)
@@ -135,7 +100,9 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 					hprint(hout, "\r\n");
 					if(strcmp(c->req.meth, "HEAD") != 0)
 						hprint(hout, "%s", BADRANGE);
+					hflush(hout);
 					writelog(c, "Reply: 416 Request range not satisfiable\n");
+					close(fd);
 					return 1;
 				}
 				c->head.ifrangeetag = nil;
@@ -157,16 +124,16 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		 */
 		r = c->head.range;
 		if(r == nil)
-			hprint(hout, "Content-Length: %lld\r\n", dir->length);
+			hprint(hout, "Content-Length: %lld\r\n", length);
 		else if(r->next == nil)
-			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, dir->length);
+			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, length);
 		else{
 			multir = 1;
 			boundary = hmkmimeboundary(c);
 			hprint(hout, "Content-Type: multipart/byteranges; boundary=%s\r\n", boundary);
 		}
 		if(c->head.ifrangeetag == nil){
-			hprint(hout, "Last-Modified: %D\r\n", dir->mtime);
+			hprint(hout, "Last-Modified: %D\r\n", mtime);
 			if(!multir)
 				printtype(hout, type, enc);
 			if(c->head.fresh_thresh)
@@ -184,6 +151,7 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 			writelog(c, "Reply: 200 file 0\n");
 		else
 			writelog(c, "Reply: 206 file 0\n");
+		hflush(hout);
 		close(fd);
 		return 1;
 	}
@@ -196,10 +164,10 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 
 		wrote = 0;
 		if(n > 0)
-			wrote = write(1, c->xferbuf, n);
+			wrote = write(hout->fd, c->xferbuf, n);
 		if(n <= 0 || wrote == n){
 			while((n = read(fd, c->xferbuf, HBufSize)) > 0){
-				nw = write(1, c->xferbuf, n);
+				nw = write(hout->fd, c->xferbuf, n);
 				if(nw != n){
 					if(nw > 0)
 						wrote += nw;
@@ -208,9 +176,9 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 				wrote += nw;
 			}
 		}
-		writelog(c, "Reply: 200 file %lld %lld\n", dir->length, wrote);
+		writelog(c, "Reply: 200 file %lld %lld\n", length, wrote);
 		close(fd);
-		if(dir->length == wrote)
+		if(length == wrote)
 			return 1;
 		return -1;
 	}
@@ -226,7 +194,7 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 		if(multir){
 			hprint(hout, "\r\n--%s\r\n", boundary);
 			printtype(hout, type, enc);
-			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, dir->length);
+			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, length);
 			hprint(hout, "\r\n");
 		}
 		hflush(hout);
@@ -243,7 +211,7 @@ sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc)
 				ok = -1;
 				goto breakout;
 			}
-			nw = write(1, c->xferbuf, n);
+			nw = write(hout->fd, c->xferbuf, n);
 			if(nw != n){
 				if(nw > 0)
 					wrote += nw;
@@ -259,9 +227,9 @@ breakout:;
 			hprint(hout, "--%s--\r\n", boundary);
 			hflush(hout);
 		}
-		writelog(c, "Reply: 206 partial content %lld %lld\n", dir->length, wrote);
+		writelog(c, "Reply: 206 partial content %lld %lld\n", length, wrote);
 	}else
-		writelog(c, "Reply: 206 partial content, early termination %lld %lld\n", dir->length, wrote);
+		writelog(c, "Reply: 206 partial content, early termination %lld %lld\n", length, wrote);
 	close(fd);
 	return ok;
 }
@@ -489,22 +457,4 @@ fixrange(HRange *h, long length)
 			r = rr;
 	}
 	return h;
-}
-
-/*
- * couldn't open a file
- * figure out why and return and error message
- */
-int
-notfound(HConnect *c, char *url)
-{
-	char buf[ERRLEN];
-
-	buf[0] = 0;
-	errstr(buf);
-	if(strstr(buf, "file does not exist") != nil)
-		return hfail(c, HNotFound, url);
-	if(strstr(buf, "permission denied") != nil)
-		return hfail(c, HUnauth, url);
-	return hfail(c, HNotFound, url);
 }

@@ -29,15 +29,11 @@ main(int argc, char *argv[])
 	group = argv[0];
 	errs = 0;
 	for(i=1; i<argc; i++){
-		if(dirstat(argv[i], &dir) == -1) {
-			fprint(2, "chgrp: can't stat %s: %r\n", argv[i]);
-			errs = "can't stat";
-			continue;
-		}
+		nulldir(&dir);
 		if(uflag)
-			strncpy(dir.uid, group, sizeof(dir.uid));
+			dir.uid = group;
 		else
-			strncpy(dir.gid, group, sizeof(dir.gid));
+			dir.gid = group;
 		if(dirwstat(argv[i], &dir) == -1) {
 			fprint(2, "chgrp: can't wstat %s: %r\n", argv[i]);
 			errs = "can't wstat";

@@ -24,7 +24,7 @@ main(int argc, char **argv)
 {
 	int i, j, verb, vflag, fflag, Tflag, nargc;
 	char *p, *file, **nargv, *cpu, flagbuf[10], execbuf[128];
-	Waitmsg w;
+	Waitmsg *w;
 
 	argv++, argc--;
 	if(argc < 1)
@@ -73,6 +73,8 @@ main(int argc, char **argv)
 		case 'm':
 			Tflag = 0;
 			break;
+		case 'p':		/* pretend nothing's wrong */
+			break;
 		}
 	}
 
@@ -113,11 +115,13 @@ main(int argc, char **argv)
 		fprint(2, "exec %s fails: %r\n", execbuf);
 		_exits("exec");
 	default:
-		wait(&w);
-		if(w.msg[0] == '\0')
+		w = wait();
+		if(w == nil)
+			exits("wait failed");
+		if(w->msg[0] == '\0')
 			exits(nil);
 		else
-			exits(w.msg);
+			exits(w->msg);
 	}
 	assert(0);
 }

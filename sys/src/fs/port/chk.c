@@ -166,13 +166,10 @@ cmd_check(int argc, char *argv[])
 			oldblock = 0;
 		print("oldblock = %ld\n", oldblock);
 	}
-	if(amark(sbaddr))
-		;
+	amark(sbaddr);
 	if(cwflag) {
-		if(amark(sb->roraddr))
-			;
-		if(amark(sb->next))
-			;
+		amark(sb->roraddr);
+		amark(sb->next);
 	}
 
 	print("checking filsys: %s\n", fs->name);
@@ -181,8 +178,7 @@ cmd_check(int argc, char *argv[])
 
 	d = maked(raddr, 0, QPROOT);
 	if(d) {
-		if(amark(raddr))
-			;
+		amark(raddr);
 		if(fsck(d))
 			modd(raddr, 0, d);
 		depth--;
@@ -242,7 +238,13 @@ fsck(Dentry *d)
 	depth++;
 	if(depth >= maxdepth) {
 		maxdepth = depth;
-		if(maxdepth >= 100) {
+		/*
+		 * On a 386 each recursion costs 72 bytes or thereabouts,
+		 * for some slop bump it up to 100.
+		 * Alternatives here might be to give the check process
+		 * a much bigger stack or rewrite it without recursion.
+		 */
+		if(maxdepth >= MAXSTACK/100) {
 			print("max depth exceeded: %s\n", name);
 			return 0;
 		}

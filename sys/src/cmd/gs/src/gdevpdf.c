@@ -1,31 +1,31 @@
 /* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gdevpdf.c,v 1.21.2.1 2000/11/09 20:34:17 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevpdf.c,v 1.2 2000/03/16 01:21:24 lpd Exp $ */
 /* PDF-writing driver */
 #include "memory_.h"
 #include "string_.h"
 #include "gx.h"
 #include "gserrors.h"
+#include "gscdefs.h"
 #include "gxdevice.h"
 #include "gdevpdfx.h"
 #include "gdevpdff.h"
-#include "gdevpdfg.h"		/* only for pdf_reset_graphics */
 #include "gdevpdfo.h"
 
 /* Define the default language level and PDF compatibility level. */
@@ -57,9 +57,6 @@ ENUM_PTRS_WITH(device_pdfwrite_enum_ptrs, gx_device_pdf *pdev)
     if (index < PDF_NUM_STD_FONTS)
 	ENUM_RETURN(pdev->std_fonts[index].font);
     index -= PDF_NUM_STD_FONTS;
-    if (index < PDF_NUM_STD_FONTS)
-	ENUM_RETURN(pdev->std_fonts[index].pfd);
-    index -= PDF_NUM_STD_FONTS;
     if (index < NUM_RESOURCE_TYPES * NUM_RESOURCE_CHAINS)
 	ENUM_RETURN(pdev->resources[index / NUM_RESOURCE_CHAINS].chains[index % NUM_RESOURCE_CHAINS]);
     index -= NUM_RESOURCE_TYPES * NUM_RESOURCE_CHAINS;
@@ -90,10 +87,8 @@ private RELOC_PTRS_WITH(device_pdfwrite_reloc_ptrs, gx_device_pdf *pdev)
     {
 	int i, j;
 
-	for (i = 0; i < PDF_NUM_STD_FONTS; ++i) {
+	for (i = 0; i < PDF_NUM_STD_FONTS; ++i)
 	    RELOC_PTR(gx_device_pdf, std_fonts[i].font);
-	    RELOC_PTR(gx_device_pdf, std_fonts[i].pfd);
-	}
 	for (i = 0; i < NUM_RESOURCE_TYPES; ++i)
 	    for (j = 0; j < NUM_RESOURCE_CHAINS; ++j)
 		RELOC_PTR(gx_device_pdf, resources[i].chains[j]);
@@ -164,13 +159,13 @@ const gx_device_pdf gs_pdfwrite_device =
   NULL,				/* fill_parallelogram */
   NULL,				/* fill_triangle */
   NULL,				/* draw_thin_line */
-  NULL,				/* begin_image */
+  gdev_pdf_begin_image,
   NULL,				/* image_data */
   NULL,				/* end_image */
   gdev_pdf_strip_tile_rectangle,
   NULL,				/* strip_copy_rop */
   NULL,				/* get_clipping_box */
-  gdev_pdf_begin_typed_image,
+  NULL,				/* begin_typed_image */
   NULL,				/* get_bits_rectangle */
   NULL,				/* map_color_rgb_alpha */
   NULL,				/* create_compositor */
@@ -179,34 +174,27 @@ const gx_device_pdf gs_pdfwrite_device =
  },
  psdf_initial_values(PSDF_VERSION_INITIAL, 0 /*false */ ),  /* (!ASCII85EncodePages) */
  PDF_COMPATIBILITY_LEVEL_INITIAL,  /* CompatibilityLevel */
- -1,				/* EndPage */
- 1,				/* StartPage */
- 1 /*true*/,			/* Optimize */
+#ifdef POST60
+ 0 /*false*/,			/* Optimize */
  0 /*false*/,			/* ParseDSCCommentsForDocInfo */
- 1 /*true*/,			/* ParseDSCComments */
+ 0 /*false*/,			/* ParseDSCComments */
  0 /*false*/,			/* EmitDSCWarnings */
  0 /*false*/,			/* CreateJobTicket */
  0 /*false*/,			/* PreserveEPSInfo */
- 1 /*true*/,			/* AutoPositionEPSFiles */
- 1 /*true*/,			/* PreserveCopyPage */
+ 0 /*false*/,			/* AutoPositionEPSFile */
+ 0 /*false*/,			/* PreserveCopyPage */
  0 /*false*/,			/* UsePrologue */
- 1 /*true*/,			/* ReAssignCharacters */
- 1 /*true*/,			/* ReEncodeCharacters */
+#endif
+ 1 /*true */ ,			/* ReAssignCharacters */
+ 1 /*true */ ,			/* ReEncodeCharacters */
  1,				/* FirstObjectNumber */
- 0 /*false*/,			/* fill_overprint */
- 0 /*false*/,			/* stroke_overprint */
- 0,				/* overprint_mode */
- gs_no_id,			/* halftone_id */
- {gs_no_id, gs_no_id, gs_no_id, gs_no_id}, /* transfer_ids */
- gs_no_id,			/* black_generation_id */
- gs_no_id,			/* undercolor_removal_id */
  pdf_compress_none,		/* compression */
  {{0}},				/* xref */
  {{0}},				/* asides */
  {{0}},				/* streams */
  {{0}},				/* pictures */
  0,				/* open_font */
- 0 /*false*/,			/* use_open_font */
+ {0},				/* open_font_name */
  0,				/* embedded_encoding_id */
  0,				/* next_id */
  0,				/* Catalog */
@@ -222,13 +210,12 @@ const gx_device_pdf gs_pdfwrite_device =
  {pdf_text_state_default},	/* text */
  {{0}},				/* std_fonts */
  {0},				/* space_char_ids */
- {{0}},				/* text_rotation */
  0,				/* pages */
  0,				/* num_pages */
  {
      {
 	 {0}}},			/* resources */
- {0},				/* cs_Patterns */
+ 0,				/* cs_Pattern */
  0,				/* last_resource */
  {
      {
@@ -295,7 +282,7 @@ pdf_reset_page(gx_device_pdf * pdev)
     pdev->contents_id = 0;
     pdf_reset_graphics(pdev);
     pdev->procsets = NoMarks;
-    memset(pdev->cs_Patterns, 0, sizeof(pdev->cs_Patterns));	/* simplest to create for each page */
+    pdev->cs_Pattern = 0;	/* simplest to create one for each page */
     {
 	static const pdf_text_state_t text_default = {
 	    pdf_text_state_default
@@ -347,7 +334,7 @@ void
 pdf_initialize_ids(gx_device_pdf * pdev)
 {
     gs_param_string nstr;
-    char buf[PDF_MAX_PRODUCER];
+    char buf[200];
 
     pdev->next_id = pdev->FirstObjectNumber;
 
@@ -360,9 +347,9 @@ pdf_initialize_ids(gx_device_pdf * pdev)
 
     param_string_from_string(nstr, "{DocInfo}");
     pdf_create_named_dict(pdev, &nstr, &pdev->Info, 0L);
-    pdf_store_default_Producer(buf);
-    cos_dict_put_c_key_string(pdev->Info, "/Producer", (byte *)buf,
-			      strlen(buf));
+    sprintf(buf, ((gs_revision % 100) == 0 ? "(%s %1.1f)" : "(%s %1.2f)"),
+	    gs_product, gs_revision / 100.0);
+    cos_dict_put_c_strings(pdev->Info, pdev, "/Producer", buf);
 
     /* Allocate the root of the pages tree. */
 
@@ -394,21 +381,6 @@ pdf_set_process_color_model(gx_device_pdf * pdev)
     }
 }
 
-/*
- * Reset the text state parameters to initial values.  This isn't a very
- * good place for this procedure, but the alternatives seem worse.
- */
-void
-pdf_reset_text(gx_device_pdf * pdev)
-{
-    pdev->text.character_spacing = 0;
-    pdev->text.font = NULL;
-    pdev->text.size = 0;
-    pdev->text.word_spacing = 0;
-    pdev->text.leading = 0;
-    pdev->text.use_leading = false;
-}
-
 /* Open the device. */
 private int
 pdf_open(gx_device * dev)
@@ -427,7 +399,6 @@ pdf_open(gx_device * dev)
     if (code < 0)
 	goto fail;
     gdev_vector_init((gx_device_vector *) pdev);
-    pdev->fill_options = pdev->stroke_options = gx_path_type_optimize;
     /* Set in_page so the vector routines won't try to call */
     /* any vector implementation procedures. */
     pdev->in_page = true;
@@ -435,7 +406,7 @@ pdf_open(gx_device * dev)
      * pdf_initialize_ids allocates some named objects, so we must
      * initialize the named objects list now.
      */
-    pdev->named_objects = cos_dict_alloc(pdev, "pdf_open(named_objects)");
+    pdev->named_objects = cos_dict_alloc(mem, "pdf_open(named_objects)");
     pdf_initialize_ids(pdev);
     pdev->outlines_id = 0;
     pdev->next_page = 0;
@@ -489,61 +460,6 @@ pdf_ferror(gx_device_pdf *pdev)
 	ferror(pdev->pictures.file);
 }
 
-/* Compute the dominant text orientation of a page. */
-private int
-pdf_dominant_rotation(const pdf_text_rotation_t *ptr)
-{
-    int i, imax = 0;
-    long max_count = ptr->counts[0];
-    static const int angles[] = { pdf_text_rotation_angle_values };
-
-    for (i = 1; i < countof(ptr->counts); ++i) {
-	long count = ptr->counts[i];
-
-	if (count > max_count)
-	    imax = i, max_count = count;
-    }
-    return angles[imax];
-}
-
-/*
- * Write and release the Cos objects for page-specific resources.
- * We must write all the objects before freeing any of them, because
- * they might refer to each other.
- */
-private int
-pdf_write_resource_objects(gx_device_pdf *pdev, pdf_resource_type_t rtype)
-{
-    int j;
-
-    /* Write objects. */
-    for (j = 0; j < NUM_RESOURCE_CHAINS; ++j) {
-	pdf_resource_t *pres = pdev->resources[rtype].chains[j];
-
-	for (; pres != 0; pres = pres->next)
-	    if (!pres->named && !pres->object->written)
-		cos_write_object(pres->object, pdev);
-    }
-
-    /* Free unnamed objects, which can't be used again. */
-    for (j = 0; j < NUM_RESOURCE_CHAINS; ++j) {
-	pdf_resource_t **prev = &pdev->resources[rtype].chains[j];
-	pdf_resource_t *pres;
-
-	while ((pres = *prev) != 0) {
-	    if (pres->named) {	/* named, don't free */
-		prev = &pres->next;
-	    } else {
-		cos_free(pres->object, "pdf_write_resource_objects");
-		pres->object = 0;
-		*prev = pres->next;
-	    }
-	}
-    }
-
-    return 0;
-}
-
 /* Close the current page. */
 private int
 pdf_close_page(gx_device_pdf * pdev)
@@ -555,10 +471,8 @@ pdf_close_page(gx_device_pdf * pdev)
      * If the very first page is blank, we need to open the document
      * before doing anything else.
      */
-
     pdf_open_document(pdev);
     pdf_close_contents(pdev, true);
-
     /*
      * We can't write the page object or the annotations array yet, because
      * later pdfmarks might add elements to them.  Write the other objects
@@ -566,16 +480,13 @@ pdf_close_page(gx_device_pdf * pdev)
      *
      * Start by making sure the pages array element exists.
      */
-
     pdf_page_id(pdev, page_num);
     page = &pdev->pages[page_num - 1];
     page->MediaBox.x = (int)(pdev->MediaSize[0]);
     page->MediaBox.y = (int)(pdev->MediaSize[1]);
     page->procsets = pdev->procsets;
     page->contents_id = pdev->contents_id;
-
     /* Write out any resource dictionaries. */
-
     {
 	int i;
 
@@ -585,9 +496,10 @@ pdf_close_page(gx_device_pdf * pdev)
 	    int j;
 
 	    for (j = 0; j < NUM_RESOURCE_CHAINS; ++j) {
-		pdf_resource_t *pres = pdev->resources[i].chains[j];
+		pdf_resource_t **prev = &pdev->resources[i].chains[j];
+		pdf_resource_t *pres;
 
-		for (; pres != 0; pres = pres->next) {
+		while ((pres = *prev) != 0) {
 		    if (pres->used_on_page) {
 			long id = pres->object->id;
 
@@ -599,22 +511,20 @@ pdf_close_page(gx_device_pdf * pdev)
 			}
 			pprintld2(s, "/R%ld\n%ld 0 R", id, id);
 		    }
+		    if (pres->named) {
+			/* Named resource, might be used again. */
+			prev = &pres->next;
+		    } else
+			*prev = pres->next;
 		}
 	    }
 	    if (any) {
 		pputs(s, ">>\n");
 		pdf_end_obj(pdev);
-		pdf_write_resource_objects(pdev, i);
 	    }
 	}
     }
-
-    /* Write out Functions. */
-
-    pdf_write_resource_objects(pdev, resourceFunction);
-
     /* Record references to just those fonts used on this page. */
-
     {
 	bool any = false;
 	stream *s;
@@ -659,20 +569,7 @@ pdf_close_page(gx_device_pdf * pdev)
      * add additional characters on subsequent pages.
      */
     if (pdev->CompatibilityLevel <= 1.2)
-	pdev->use_open_font = false;
-
-    /* Accumulate text rotation. */
-
-    page->text_rotation.Rotate =
-	(pdev->params.AutoRotatePages == arp_PageByPage ?
-	 pdf_dominant_rotation(&page->text_rotation) : -1);
-    {
-	int i;
-
-	for (i = 0; i < countof(page->text_rotation.counts); ++i)
-	    pdev->text_rotation.counts[i] += page->text_rotation.counts[i];
-    }
-
+	pdev->open_font = 0;
     pdf_reset_page(pdev);
     return (pdf_ferror(pdev) ? gs_note_error(gs_error_ioerror) : 0);
 }
@@ -683,14 +580,13 @@ pdf_write_page(gx_device_pdf *pdev, int page_num)
 {
     long page_id = pdf_page_id(pdev, page_num);
     pdf_page_t *page = &pdev->pages[page_num - 1];
+    gs_memory_t *mem = pdev->pdf_memory;
     stream *s;
 
     pdf_open_obj(pdev, page_id);
     s = pdev->strm;
     pprintd2(s, "<</Type/Page/MediaBox [0 0 %d %d]\n",
 	     page->MediaBox.x, page->MediaBox.y);
-    if (page->text_rotation.Rotate >= 0)
-	pprintd1(s, "/Rotate %d", page->text_rotation.Rotate);
     pprintld1(s, "/Parent %ld 0 R\n", pdev->Pages->id);
     pputs(s, "/Resources<</ProcSet[/PDF");
     if (page->procsets & ImageB)
@@ -720,7 +616,7 @@ pdf_write_page(gx_device_pdf *pdev, int page_num)
     if (page->Annots) {
 	pputs(s, "/Annots");
 	COS_WRITE(page->Annots, pdev);
-	COS_FREE(page->Annots, "pdf_write_page(Annots)");
+	COS_FREE(page->Annots, mem, "pdf_write_page(Annots)");
 	page->Annots = 0;
     }
     if (page->contents_id == 0)
@@ -804,9 +700,6 @@ pdf_close(gx_device * dev)
 	    pprintld1(s, "%ld 0 R\n", pdev->pages[i].Page->id);
     }
     pprintd1(s, "] /Count %d\n", pdev->next_page);
-    if (pdev->params.AutoRotatePages == arp_All)
-	pprintd1(s, "/Rotate %d\n",
-		 pdf_dominant_rotation(&pdev->text_rotation));
     cos_dict_elements_write(pdev->Pages, pdev);
     pputs(s, ">>\n");
     pdf_end_obj(pdev);
@@ -814,10 +707,7 @@ pdf_close(gx_device * dev)
     /* Close outlines and articles. */
 
     if (pdev->outlines_id != 0) {
-	/* depth > 0 is only possible for an incomplete outline tree. */
-	while (pdev->outline_depth > 0)
-	    pdfmark_close_outline(pdev);
-	pdfmark_close_outline(pdev);
+	pdfmark_close_outline(pdev);	/* depth must be zero! */
 	pdf_open_obj(pdev, pdev->outlines_id);
 	pprintd1(s, "<< /Count %d", pdev->outlines_open);
 	pprintld2(s, " /First %ld 0 R /Last %ld 0 R >>\n",
@@ -853,7 +743,7 @@ pdf_close(gx_device * dev)
 	while ((part = pdev->articles) != 0) {
 	    pdev->articles = part->next;
 	    pprintld1(s, "%ld 0 R\n", part->contents->id);
-	    COS_FREE(part->contents, "pdf_close(article contents)");
+	    COS_FREE(part->contents, mem, "pdf_close(article contents)");
 	    gs_free_object(mem, part, "pdf_close(article)");
 	}
 	pputs(s, "]\n");
@@ -873,12 +763,11 @@ pdf_close(gx_device * dev)
     pputs(s, ">>\n");
     pdf_end_obj(pdev);
     if (pdev->Dests) {
-	COS_FREE(pdev->Dests, "pdf_close(Dests)");
+	COS_FREE(pdev->Dests, mem, "pdf_close(Dests)");
 	pdev->Dests = 0;
     }
 
     /* Prevent writing special named objects twice. */
-
     pdev->Catalog->id = 0;
     /*pdev->Info->id = 0;*/	/* Info should get written */
     pdev->Pages->id = 0;
@@ -896,7 +785,13 @@ pdf_close(gx_device * dev)
      * XObjects, and eventually images named by NI.
      */
 
-    cos_dict_objects_write(pdev->named_objects, pdev);
+    {
+	const cos_dict_element_t *pcde = pdev->named_objects->elements;
+
+	for (; pcde; pcde = pcde->next)
+	    if (pcde->value.contents.object->id)
+		cos_write_object(pcde->value.contents.object, pdev);
+    }
 
     /* Copy the resources into the main file. */
 
@@ -960,11 +855,18 @@ pdf_close(gx_device * dev)
 
     /* Free named objects. */
 
-    cos_dict_objects_delete(pdev->named_objects);
-    COS_FREE(pdev->named_objects, "pdf_close(named_objects)");
-    pdev->named_objects = 0;
+    {
+	cos_dict_element_t *pcde = pdev->named_objects->elements;
 
-    /* Wrap up. */
+	/*
+	 * Delete the objects' IDs so that freeing the dictionary will
+	 * free them.
+	 */
+	for (; pcde; pcde = pcde->next)
+	    pcde->value.contents.object->id = 0;
+	COS_FREE(pdev->named_objects, mem, "pdf_close(named_objects)");
+	pdev->named_objects = 0;
+    }
 
     gs_free_object(mem, pdev->pages, "pages");
     pdev->pages = 0;

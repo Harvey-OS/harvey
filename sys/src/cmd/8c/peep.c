@@ -168,6 +168,11 @@ subprop(Reg *r0)
 		case ACALL:
 			return 0;
 
+		case AIMULL:
+		case AIMULW:
+			if(p->to.type != D_NONE)
+				break;
+
 		case ADIVB:
 		case ADIVL:
 		case ADIVW:
@@ -175,8 +180,6 @@ subprop(Reg *r0)
 		case AIDIVL:
 		case AIDIVW:
 		case AIMULB:
-		case AIMULL:
-		case AIMULW:
 		case AMULB:
 		case AMULL:
 		case AMULW:
@@ -531,6 +534,14 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case AWAIT:
 		break;
 
+	case AIMULL:
+	case AIMULW:
+		if(p->to.type != D_NONE) {
+			if(copyas(&p->to, v))
+				return 2;
+			goto caseread;
+		}
+
 	case ADIVB:
 	case ADIVL:
 	case ADIVW:
@@ -538,8 +549,6 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case AIDIVL:
 	case AIDIVW:
 	case AIMULB:
-	case AIMULL:
-	case AIMULW:
 	case AMULB:
 	case AMULL:
 	case AMULW:

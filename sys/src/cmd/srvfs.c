@@ -4,7 +4,7 @@
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-d] [-f dbfile] [-p perm] srvname rootdir\n", argv0);
+	fprint(2, "usage: %s [-dS] [-e exportfs] [-p perm] srvname path\n", argv0);
 	exits("usage");
 }
 
@@ -13,22 +13,20 @@ main(int argc, char **argv)
 {
 	char *ename, *arglist[16], **argp;
 	int n, fd, pipefd[2];
-	char buf[2*NAMELEN];
+	char buf[64];
 	int perm = 0600;
 
 	argp = arglist;
 	ename = "/bin/exportfs";
 	*argp++ = "exportfs";
 	ARGBEGIN{
+	default:
+		usage();
 	case 'd':
 		*argp++ = "-d";
 		break;
 	case 'e':
 		ename = ARGF();
-		break;
-	case 'f':
-		*argp++ = "-f";
-		*argp++ = ARGF();
 		break;
 	case 'p':
 		perm = strtol(ARGF(), 0, 8);

@@ -204,8 +204,8 @@ checktag(Iobuf *p, int tag, long qpath)
 	t = (Tag*)(p->iobuf+BUFSIZE);
 	if(t->tag != tag) {
 		if(1 || CHAT(0))
-			print("	tag = %G; expected %G\n",
-				t->tag, tag);
+			print("	tag = %G; expected %G; addr = %lud\n",
+				t->tag, tag, p->addr);
 		return 2;
 	}
 	if(qpath != QPNONE) {

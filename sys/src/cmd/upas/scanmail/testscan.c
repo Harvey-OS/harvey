@@ -151,23 +151,28 @@ main(int argc, char *argv[])
 char*
 canon(Biobuf *bp, char *header, char *body, int *n)
 {
-	int hsize;
+	int hsize, base64;
 
 	static char *raw;
 
 	hsize = 0;
+	base64 = 0;
 	*header = 0;
 	*body = 0;
 	if(raw == 0){
 		raw = readmsg(bp, &hsize, n);
 		if(raw)
-			convert(raw, raw+hsize, header, Hdrsize, 0);
+			base64 = convert(raw, raw+hsize, header, Hdrsize, 0);
 	} else {
 		free(raw);
 		raw = readmsg(bp, 0, n);
 	}
-	if(raw)
-		convert(raw+hsize, raw+*n, body, Bodysize, 1);
+	if(raw){
+		if(base64)
+			conv64(raw+hsize, raw+*n, body, Bodysize);
+		else
+			convert(raw+hsize, raw+*n, body, Bodysize, 1);
+	}
 	return raw;
 }
 

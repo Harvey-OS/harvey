@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
+#include "pci.h"
 #include "vga.h"
 
 int curprintindex;
@@ -43,8 +44,7 @@ inportb(long port)
 	if(iobfd == -1)
 		iobfd = devopen("#P/iob", ORDWR);
 
-	seek(iobfd, port, 0);
-	if(read(iobfd, &data, sizeof(data)) != sizeof(data))
+	if(pread(iobfd, &data, sizeof(data), port) != sizeof(data))
 		error("inportb(0x%4.4lx): %r\n", port);
 	return data;
 }
@@ -55,8 +55,7 @@ outportb(long port, uchar data)
 	if(iobfd == -1)
 		iobfd = devopen("#P/iob", ORDWR);
 
-	seek(iobfd, port, 0);
-	if(write(iobfd, &data, sizeof(data)) != sizeof(data))
+	if(pwrite(iobfd, &data, sizeof(data), port) != sizeof(data))
 		error("outportb(0x%4.4lx, 0x%2.2uX): %r\n", port, data);
 }
 
@@ -68,8 +67,7 @@ inportw(long port)
 	if(iowfd == -1)
 		iowfd = devopen("#P/iow", ORDWR);
 
-	seek(iowfd, port, 0);
-	if(read(iowfd, &data, sizeof(data)) != sizeof(data))
+	if(pread(iowfd, &data, sizeof(data), port) != sizeof(data))
 		error("inportw(0x%4.4lx): %r\n", port);
 	return data;
 }
@@ -80,8 +78,7 @@ outportw(long port, ushort data)
 	if(iowfd == -1)
 		iowfd = devopen("#P/iow", ORDWR);
 
-	seek(iowfd, port, 0);
-	if(write(iowfd, &data, sizeof(data)) != sizeof(data))
+	if(pwrite(iowfd, &data, sizeof(data), port) != sizeof(data))
 		error("outportw(0x%4.4lx, 0x%2.2uX): %r\n", port, data);
 }
 
@@ -93,8 +90,7 @@ inportl(long port)
 	if(iolfd == -1)
 		iolfd = devopen("#P/iol", ORDWR);
 
-	seek(iolfd, port, 0);
-	if(read(iolfd, &data, sizeof(data)) != sizeof(data))
+	if(pread(iolfd, &data, sizeof(data), port) != sizeof(data))
 		error("inportl(0x%4.4lx): %r\n", port);
 	return data;
 }
@@ -105,8 +101,7 @@ outportl(long port, ulong data)
 	if(iolfd == -1)
 		iolfd = devopen("#P/iol", ORDWR);
 
-	seek(iolfd, port, 0);
-	if(write(iolfd, &data, sizeof(data)) != sizeof(data))
+	if(pwrite(iolfd, &data, sizeof(data), port) != sizeof(data))
 		error("outportl(0x%4.4lx, 0x%2.2luX): %r\n", port, data);
 }
 
@@ -135,9 +130,10 @@ vgactlinit(void)
 	for(nl = strchr(ctlbuf, '\n'); nl; nl = strchr(nl, '\n')){
 
 		*nl = '\0';
-		if(p = strtok(vp, ": ")){
-			attr[nattr].attr = p;
-			if((p = strtok(0, " \t")) == 0)
+		if(p = strchr(vp, ' ')){
+			*p++ = '\0';
+			attr[nattr].attr = vp;
+			if(*p == '\0')
 				error("vgactlr: bad format: <%s>\n", vp);
 			attr[nattr].val = p;
 		}
@@ -204,12 +200,12 @@ setpalette(int p, int r, int g, int b)
 static long
 doreadbios(char* buf, long len, long offset)
 {
-	char file[2*NAMELEN];
+	char file[64];
 
 	if(biosfd == -1)
 		biosfd = open("#v/vgabios", OREAD);
 	if(biosfd == -1) {
-		sprint(file, "#p/%d/mem", getpid());
+		snprint(file, sizeof file, "#p/%d/mem", getpid());
 		biosfd = devopen(file, OREAD);
 	}
 

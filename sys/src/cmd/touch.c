@@ -2,64 +2,60 @@
 #include <libc.h>
 
 int touch(int, char *);
+ulong now;
+
+void
+usage(void)
+{
+	fprint(2, "usage: touch [-c] [-t time] files\n");
+	exits("usage");
+}
 
 void
 main(int argc, char **argv)
 {
-	int force = 1;
+	int nocreate = 0;
 	int status = 0;
 
+	now = time(0);
 	ARGBEGIN{
-	case 'c':	force = 0; break;
-	default:	goto usage; break;
+	case 't':
+		now = strtoul(EARGF(usage()), 0, 0);
+		break;
+	case 'c':
+		nocreate = 1;
+		break;
+	default:	
+		usage();
 	}ARGEND
-	if(!*argv){
-usage:
-		fprint(2, "usage: touch [-c] files\n");
-		exits("usage");
-	}
+
+	if(!*argv)
+		usage();
 	while(*argv)
-		status += touch(force, *argv++);
+		status += touch(nocreate, *argv++);
 	if(status)
 		exits("touch");
 	exits(0);
 }
 
-touch(int force, char *name)
+touch(int nocreate, char *name)
 {
 	Dir stbuff;
-	char junk[1];
 	int fd;
 
-	stbuff.length = 0;
-	stbuff.mode = 0666;
-	if (dirstat(name, &stbuff) < 0 && force == 0) {
-		fprint(2, "touch: %s: cannot stat: %r\n", name);
-		return 1;
-	}
-	if (stbuff.length == 0) {
-		if ((fd = create(name, 0, stbuff.mode)) < 0) {
-			fprint(2, "touch: %s: cannot create: %r\n", name);
-			return 1;
-		}
-		close(fd);
+	nulldir(&stbuff);
+	stbuff.mtime = now;
+	if(dirwstat(name, &stbuff) >= 0)
 		return 0;
-	}
-	if ((fd = open(name, ORDWR)) < 0) {
-		fprint(2, "touch: %s: cannot open: %r\n", name);
+	if(nocreate){
+		fprint(2, "touch: %s: cannot wstat: %r\n", name);
 		return 1;
 	}
-	if(read(fd, junk, 1) < 1) {
-		fprint(2, "touch: %s: read error: %r\n", name);
-		close(fd);
+	if ((fd = create(name, OREAD, 0666)) < 0) {
+		fprint(2, "touch: %s: cannot create: %r\n", name);
 		return 1;
 	}
-	seek(fd, 0L, 0);
-	if(write(fd, junk, 1) < 1 ) {
-		fprint(2, "touch: %s: write error: %r\n", name);
-		close(fd);
-		return 1;
-	}
+	dirfwstat(fd, &stbuff);
 	close(fd);
 	return 0;
 }

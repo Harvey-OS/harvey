@@ -170,6 +170,9 @@ tweakdate(char *d)
 	char e[8];
 
 	/* d, date = "Mon Aug  2 23:46:55 EDT 1999" */
+
+	if(strlen(d) < strlen("Mon Aug  2 23:46:55 EDT 1999"))
+		return estrdup("");
 	if(strncmp(date, d, 4+4+3) == 0)
 		snprint(e, sizeof e, "%.5s", d+4+4+3);	/* 23:46 */
 	else
@@ -251,8 +254,9 @@ dirface(char *dir, char *num)
 {
 	Face *f;
 	char *from, *date;
-	char buf[1024], pwd[1024], info[4096], *p, *digest;
+	char buf[1024], pwd[1024], *info, *p, *digest;
 	int n, fd;
+	ulong len;
 
 	/*
 	 * loadmbox leaves us in maildir, so we needn't
@@ -263,13 +267,19 @@ dirface(char *dir, char *num)
 		sprint(buf, "%s/info", num);
 	else
 		sprint(buf, "%s/%s/info", dir, num);
+	len = dirlen(buf);
+	if(len <= 0)
+		return nil;
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		return nil;
-	n = read(fd, info, sizeof info-1);
+	info = emalloc(len+1);
+	n = readn(fd, info, len);
 	close(fd);
-	if(n < 0)
+	if(n < 0){
+		free(info);
 		return nil;
+	}
 	info[n] = '\0';
 	f = emalloc(sizeof(Face));
 	from = iline(info, &p);	/* from */
@@ -287,5 +297,6 @@ dirface(char *dir, char *num)
 	iline(p, &p);	/* filename */
 	digest = iline(p, &p);	/* digest */
 	f->str[Sdigest] = estrdup(digest);
+	free(info);
 	return f;
 }

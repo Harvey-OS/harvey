@@ -6,17 +6,16 @@
 #pragma	varargck	type	"M"	uchar*
 
 static int
-sha1conv(va_list *va, Fconv *fp)
+digestfmt(Fmt *fmt)
 {
 	char buf[SHA1dlen*2+1];
 	uchar *p;
 	int i;
 
-	p = va_arg(*va, uchar*);
+	p = va_arg(fmt->args, uchar*);
 	for(i=0; i<SHA1dlen; i++)
 		sprint(buf+2*i, "%.2ux", p[i]);
-	strconv(buf, fp);
-	return 0;
+	return fmtstrcpy(fmt, buf);
 }
 
 static void
@@ -47,7 +46,7 @@ main(int argc, char *argv[])
 		exits("usage");
 	}ARGEND
 
-	fmtinstall('M', sha1conv);
+	fmtinstall('M', digestfmt);
 
 	if(argc == 0)
 		sum(0, nil);

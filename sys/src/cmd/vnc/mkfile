@@ -1,0 +1,52 @@
+</$objtype/mkfile
+
+TARG=vncs vncv
+BIN=/$objtype/bin
+
+
+OFILES=\
+	proto.$O\
+	auth.$O\
+
+SOFILES=\
+	devdraw.$O\
+	devmouse.$O\
+	devcons.$O\
+	screen.$O\
+	exporter.$O\
+	dev.$O\
+	chan.$O\
+	compat.$O\
+	exportfs.$O\
+	kbd.$O\
+	latin1.$O\
+	rre.$O\
+	region.$O\
+
+COFILES=\
+	draw.$O\
+	kbd_vwr.$O\
+	color.$O\
+	wsys.$O\
+
+HFILES=\
+	vnc.h\
+	screen.h\
+	compat.h\
+	errstr.h\
+	kbd.h\
+	latin1.h\
+	region.h\
+	vncv.h\
+	vncs.h\
+
+default:V:	all
+
+</sys/src/cmd/mkmany
+
+$O.vncs:	$SOFILES
+
+$O.vncv:	$COFILES
+
+errstr.h:	error.h
+	sed 's/extern //;s,;.*/\* (.*) \*/, = "\1";,' < error.h > errstr.h

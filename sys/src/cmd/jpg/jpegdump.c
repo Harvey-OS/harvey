@@ -146,11 +146,41 @@ void get_com (int kind) {
 }
 
 void get_app (int kind) {
-	int l;
+	int l, c, first;
+	char buf[6];
+	int nbuf, nok;
 	l = get2();
 	printf ("APP%d len=%d\n", kind - 0xe0, l);
-	for (l -= 2; l > 0; l--)
-		get1();
+	nbuf = 0;
+	nok = 0;
+	first = 1;
+	/* dump printable strings in comment */
+	for (l -= 2; l > 0; l--){
+		c = get1();
+		if(isprint(c)){
+			if(nbuf >= sizeof buf){
+				if(!first && nbuf == nok)
+					printf(" ");
+				printf("%.*s", nbuf, buf);
+				nbuf = 0;
+				first = 0;
+			}
+			buf[nbuf++] = c;
+			nok++;
+		}else{
+			if(nok >= sizeof buf)
+				if(nbuf > 0)
+					printf("%.*s", nbuf, buf);
+			nbuf = 0;
+			nok = 0;
+		}
+	}
+	if(nok >= sizeof buf)
+		if(nbuf > 0){
+			if(!first && nbuf == nok)
+				printf(" ");
+			printf("%.*s", nbuf, buf);
+		}
 }
 
 void get_dac (int kind) {

@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+TARG=execnet
+
+OFILES=\
+	client.$O\
+	fs.$O\
+	io.$O\
+	main.$O\
+	note.$O\
+
+HFILES=dat.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

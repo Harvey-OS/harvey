@@ -11,6 +11,10 @@ dhcpd, rarpd, tftpd \- Internet booting
 .IR netmtpt ]
 .RB [ -M
 .IR secs ]
+[
+.I address
+.I n
+]*
 .PP
 .B ip/rarpd
 .RB [ -d ]
@@ -48,6 +52,48 @@ This information comes from attribute/value pairs in the network database
 .IR ndb (6)
 and
 .IR ndb (8)).
+DHCP requests are honored both for static addresses found in
+the NDB and for dynamic addresses listed in the command line.
+DHCP requests are honored if either:
+.br
+\- there exists an NDB entry
+containing both the ethernet address of the requester and
+an IP address on the originating network or subnetwork.
+.br
+\- a free dynamic address exists on the originating network or subnetwork.
+.PP
+A BOOTP request is honored it all of the following are true:
+.br
+\- there exists an NDB entry
+containing both the ethernet address of the requester and
+an IP address on the originating network or subnetwork.
+.br
+\- the entry contains a
+.B bootf=
+attribute
+.br
+\- the file in the
+.B bootf=
+attribute is readable.
+.PP
+Dynamic addresses are specified on the command line as a list
+of addresses and number pairs.
+For example,
+.EX
+	ip/dhcpd 10.1.1.12 10 10.2.1.70 12
+.EE
+directs
+.I dhcpd
+to return dynamic addresses 10.1.1.12 through 10.1.1.21 inclusive
+and 10.2.1.70 through 10.2.1.81 inclusive.
+.PP
+.I Dhcpd
+maintains a record of all dynamic addresses in the directory
+.BR /lib/ndb/dhcp ,
+one file per address.
+If multiple servers have access to this common directory,
+they will correctly coordinate their actions.
+.PP
 Attributes come from either the NDB entry for the system, the entry for its
 subnet, or the entry for its network.  The system entry has precedence,
 then the subnet, then the network.
@@ -218,6 +264,8 @@ supports only octet mode.
 Restricts access to only those files rooted in the
 .IR homedir .
 .PD
+.SH FILES
+.BR /lib/ndb/dhcp "    directory of dynamic address files
 .SH SOURCE
 .B /sys/src/cmd/ip
 .SH "SEE ALSO"

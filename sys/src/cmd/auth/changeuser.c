@@ -1,8 +1,8 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
+#include <authsrv.h>
 #include <ctype.h>
-#include "authsrv.h"
+#include "authcmdlib.h"
 
 void	install(char*, char*, char*, long, int);
 int	exists (char*, char*);
@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 	Fs *f;
 
 	srand(getpid()*time(0));
-	fmtinstall('K', keyconv);
+	fmtinstall('K', keyfmt);
 
 	which = 0;
 	ARGBEGIN{
@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 	if(argc != 1)
 		usage();
 	u = *argv;
-	if(memchr(u, '\0', NAMELEN) == 0)
+	if(memchr(u, '\0', ANAMELEN) == 0)
 		error("bad user name");
 
 	if(!which)
@@ -103,12 +103,12 @@ main(int argc, char *argv[])
 void
 install(char *db, char *u, char *key, long t, int newkey)
 {
-	char buf[KEYDBBUF+NAMELEN+20];
+	char buf[KEYDBBUF+ANAMELEN+20];
 	int fd;
 
 	if(!exists(db, u)){
 		sprint(buf, "%s/%s", db, u);
-		fd = create(buf, OREAD, 0777|CHDIR);
+		fd = create(buf, OREAD, 0777|DMDIR);
 		if(fd < 0)
 			error("can't create user %s: %r", u);
 		close(fd);
@@ -134,7 +134,7 @@ install(char *db, char *u, char *key, long t, int newkey)
 int
 exists(char *db, char *u)
 {
-	char buf[KEYDBBUF+NAMELEN+6];
+	char buf[KEYDBBUF+ANAMELEN+6];
 
 	sprint(buf, "%s/%s/expire", db, u);
 	if(access(buf, 0) < 0)

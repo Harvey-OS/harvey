@@ -1,9 +1,9 @@
 #include <lib9.h>
 
-extern	int	_ERRSTR(char*);
+extern	int	_ERRSTR(char*, unsigned int);
 
 int
-errstr(char *err)
+errstr(char *err, unsigned int nerr)
 {
-	return _ERRSTR(err);
+	return _ERRSTR(err, nerr);
 }

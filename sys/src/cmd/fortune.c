@@ -15,7 +15,7 @@ main(int argc, char *argv[])
 	int ix, nix;
 	int newindex, oldindex;
 	char *p;
-	Dir fbuf, ixbuf;
+	Dir *fbuf, *ixbuf;
 	Biobuf *f, g;
 
 	newindex = 0;
@@ -25,13 +25,18 @@ main(int argc, char *argv[])
 		print("Misfortune!\n");
 		exits("misfortune");
 	}
+	ixbuf = nil;
 	if(argc == 1){
 		ix = open(index, OREAD);
 		if(ix>=0){
 			oldindex = 1;
-			dirfstat(ix, &ixbuf);
-			dirfstat(Bfildes(f), &fbuf);
-			if(fbuf.mtime > ixbuf.mtime){
+			ixbuf = dirfstat(ix);
+			fbuf = dirfstat(Bfildes(f));
+			if(ixbuf == nil || fbuf == nil){
+				print("Misfortune?\n");
+				exits("misfortune");
+			}
+			if(fbuf->mtime > ixbuf->mtime){
 				nix = create(index, OWRITE, 0666);
 				if(nix >= 0){
 					close(ix);
@@ -47,7 +52,7 @@ main(int argc, char *argv[])
 		}
 	}
 	if(oldindex){
-		seek(ix, fastrand()%(ixbuf.length/sizeof(offs))*sizeof(offs), 0);
+		seek(ix, fastrand()%(ixbuf->length/sizeof(offs))*sizeof(offs), 0);
 		read(ix, off, sizeof(off));
 		Bseek(f, off[0]|(off[1]<<8)|(off[2]<<16)|(off[3]<<24), 0);
 		p = Brdline(f, '\n');

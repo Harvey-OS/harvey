@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "vga.h"
 #include "pci.h"
+#include "vga.h"
 
 /*
  * Laguna Visual Media Accelerators Family CL-GD546x.

@@ -89,7 +89,7 @@ procalarm(ulong time)
 		up->alarm = 0;
 		return old;
 	}
-	when = MS2TK(time)+MACHP(0)->ticks;
+	when = ms2tk(time)+MACHP(0)->ticks;
 
 	qlock(&alarms);
 	l = &alarms.head;

@@ -30,8 +30,10 @@ an interface to the APM 1.2 BIOS
 (see
 .IR apm (3))
 .I device
-(default
-.BR /dev/apm ).
+(the default is to try
+.BR /dev/apm ,
+followed by
+.BR #P/apm ).
 If a
 .I service
 is specified, the interface will be
@@ -98,6 +100,8 @@ A large enough read is guaranteed to return
 an integral number of textual event descriptions, one per line.
 .SH SOURCE
 .B /sys/src/cmd/aux/apm.c
+.br
+.B /acme/bin/Battery
 .SH BUGS
 The verbs
 .B suspend

@@ -162,7 +162,6 @@ prdate(void)
 		print("%T - %ld\n", t, -tim.bias);
 }
 
-static	int	sunday(Tm *t, int d);
 static	int	dysize(int);
 static	void	ct_numb(char*, int);
 void		localtime(ulong, Tm*);
@@ -186,7 +185,7 @@ static	struct
 	short	dayle;
 } daytab[] =
 {
-	87,	999,	97,	303,
+	87,	999,	90,	303,
 	76,	86,	119,	303,
 	75,	75,	58,	303,
 	74,	74,	5,	333,
@@ -202,6 +201,28 @@ static struct
 	5*60, 1
 };
 
+static
+prevsunday(Tm *t, int d)
+{
+	if(d >= 58)
+		d += dysize(t->year) - 365;
+	return d - (d - t->yday + t->wday + 700) % 7;
+}
+
+static
+succsunday(Tm *t, int d)
+{
+	int dd;
+
+	if(d >= 58)
+		d += dysize(t->year) - 365;
+	dd = (d - t->yday + t->wday + 700) % 7;
+	if(dd == 0)
+		return d;
+	else
+		return d + 7 - dd;
+}
+
 void
 localtime(ulong tim, Tm *ct)
 {
@@ -214,8 +235,8 @@ localtime(ulong tim, Tm *ct)
 	for(i=0;; i++)
 		if(ct->year >= daytab[i].yrfrom &&
 		   ct->year <= daytab[i].yrto) {
-			daylbegin = sunday(ct, daytab[i].daylb);
-			daylend = sunday(ct, daytab[i].dayle);
+			daylbegin = succsunday(ct, daytab[i].daylb);
+			daylend = prevsunday(ct, daytab[i].dayle);
 			break;
 		}
 	if(timezone.dsttime &&
@@ -225,19 +246,6 @@ localtime(ulong tim, Tm *ct)
 		gmtime(copyt, ct);
 		ct->isdst++;
 	}
-}
-
-/*
- * The argument is a 0-origin day number.
- * The value is the day number of the last
- * Sunday before or after the day.
- */
-static
-sunday(Tm *t, int d)
-{
-	if(d >= 58)
-		d += dysize(t->year) - 365;
-	return d - (d - t->yday + t->wday + 700) % 7;
 }
 
 void
@@ -308,18 +316,16 @@ datestr(char *s, ulong t)
 }
 
 int
-Tconv(Op *o)
+Tfmt(Fmt* fmt)
 {
 	char s[30];
 	char *cp;
 	ulong t;
 	Tm tm;
 
-	t = *(ulong*)o->argp;
-	if(t == 0) {
-		strcpy(s, "The Epoch");
-		goto out;
-	}
+	t = va_arg(fmt->args, ulong);
+	if(t == 0)
+		return fmtstrcpy(fmt, "The Epoch");
 
 	localtime(t, &tm);
 	strcpy(s, "Day Mon 00 00:00:00 1900");
@@ -341,9 +347,7 @@ Tconv(Op *o)
 	}
 	ct_numb(s+22, tm.year+100);
 
-out:
-	strconv(s, o, o->f1, o->f2);
-	return sizeof(t);
+	return fmtstrcpy(fmt, s);
 }
 
 static

@@ -41,5 +41,5 @@ int	bcsync(Bcache*);
 int	bread(Bcache*, ulong, void*);
 int	bwrite(Bcache*, ulong, void*);
 int	bref(Bcache*, Bbuf*);
-void	error(char*);
+void	error(char*, ...);
 void	warning(char*);

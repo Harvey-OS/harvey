@@ -38,6 +38,8 @@ void	Ilwc1(ulong);
 void	Icop1(ulong);
 void	Ilwl(ulong);
 void	Ilwr(ulong);
+void	Ill(ulong);
+void	Isc(ulong);
 
 Inst itab[] = {
 	{ Ispecial,	0 },
@@ -88,7 +90,7 @@ Inst itab[] = {
 	{ undef,	"" },
 	{ undef,	"" },
 	{ undef,	"" },
-	{ undef,	"" },
+	{ Ill,			"ll",			Iload},
 	{ Ilwc1,		"lwc1",		Ifloat },
 	{ undef,	"" },
 	{ undef,	"" },
@@ -96,7 +98,7 @@ Inst itab[] = {
 	{ undef,	"" },
 	{ undef,	"" },
 	{ undef,	"" },
-	{ undef,	"" },
+	{ Isc,		"sc",		Istore },
 	{ Iswc1,	"swc1",		Ifloat },
 	{ undef,	"" },
 	{ undef,	"" },
@@ -136,6 +138,7 @@ Bflush(bioout);
 void
 undef(ulong inst)
 {
+
 /*
 	if((reg.ir>>26) == 0)
 		Bprint(bioout, "special=%d,%d table=%d\n",
@@ -144,6 +147,7 @@ undef(ulong inst)
 		Bprint(bioout, "code=%d,%d table=%d\n",
 		reg.ir>>29, (reg.ir>>26)&0x7, reg.ir>>26);
 */
+
 	Bprint(bioout, "Undefined Instruction Trap IR %.8lux\n", inst);
 	longjmp(errjmp, 0);
 }
@@ -735,6 +739,48 @@ Isltiu(ulong inst)
 		itrace("sltiu\tr%d,r%d,#0x%x", rt, rs, imm);
 
 	reg.r[rt] = (ulong)reg.r[rs] < (ulong)imm ? 1 : 0;
+}
+
+/* ll and sc are implemented as lw and sw, since we simulate a uniprocessor */
+
+void
+Ill(ulong inst)
+{
+	int rt, rb;
+	int off;
+	ulong v, va;
+
+	Getrbrt(rb, rt, inst);
+	off = (short)(inst&0xffff);
+
+	va = reg.r[rb]+off;
+
+	if(trace) {
+		v = 0;
+		if(!badvaddr(va, 4))
+			v = getmem_w(va);
+		itrace("ll\tr%d,0x%x(r%d) %lux=%lux", rt, off, rb, va, v);
+	}
+
+	reg.r[rt] = getmem_w(va);
+}
+
+void
+Isc(ulong inst)
+{
+	int rt, rb;
+	int off;
+	ulong v;
+
+	Getrbrt(rb, rt, inst);
+	off = (short)(inst&0xffff);
+
+	v = reg.r[rt];
+	if(trace)
+		itrace("sc\tr%d,0x%x(r%d) %lux=%lux",
+				rt, off, rb, reg.r[rb]+off, v);
+
+	putmem_w(reg.r[rb]+off, v);
 }
 
 enum

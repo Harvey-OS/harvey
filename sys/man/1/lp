@@ -88,7 +88,7 @@ before running this command.
 .PP
 The remaining options may be used to affect the output at a given device.
 These options may not be applicable to all devices.
-.TF -p\ \fIproc\fP
+.TF "-p\ \fIproc\fP"
 .TP
 .BI -c " n"
 Print

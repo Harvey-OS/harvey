@@ -13,16 +13,53 @@ enum
  *  for reading /net/ipifc
  */
 typedef struct Ipifc Ipifc;
+typedef struct Iplifc Iplifc;
+typedef struct Ipv6rp Ipv6rp;
 
-struct Ipifc
+/* local address */
+struct Iplifc
 {
-	char	dev[64];
+	Iplifc	*next;
+
+	/* per address on the ip interface */
 	uchar	ip[IPaddrlen];
 	uchar	mask[IPaddrlen];
 	uchar	net[IPaddrlen];		/* ip & mask */
-	int	mtu;
-	int	index;			/* number of interface in ipifc dir */
+	ulong	preflt;			/* preferred lifetime */
+	ulong	validlt;		/* valid lifetime */
+};
+
+/* default values, one per stack */
+struct Ipv6rp
+{
+	int	mflag;
+	int	oflag;
+	int 	maxraint;
+	int	minraint;
+	int	linkmtu;
+	int	reachtime;
+	int	rxmitra;
+	int	ttl;
+	int	routerlt;	
+};
+
+/* actual interface */
+struct Ipifc
+{
 	Ipifc	*next;
+	Iplifc	*lifc;
+
+	/* per ip interface */
+	int	index;			/* number of interface in ipifc dir */
+	char	dev[64];
+	uchar	sendra6;		/* on == send router adv */
+	uchar	recvra6;		/* on == rcv router adv */
+	int	mtu;
+	ulong	pktin;
+	ulong	pktout;
+	ulong	errin;
+	ulong	errout;
+	Ipv6rp	rp;
 };
 
 /*
@@ -44,7 +81,7 @@ struct Udphdr
 
 uchar*	defmask(uchar*);
 void	maskip(uchar*, uchar*, uchar*);
-int	eipconv(va_list*, Fconv*);
+int	eipfmt(Fmt*);
 int	isv4(uchar*);
 ulong	parseip(uchar*, char*);
 ulong	parseipmask(uchar*, char*);
@@ -55,12 +92,13 @@ int	myipaddr(uchar*, char*);
 int	myetheraddr(uchar*, char*);
 int	equivip(uchar*, uchar*);
 
-Ipifc*	readipifc(char*, Ipifc*);
+Ipifc*	readipifc(char*, Ipifc*, int);
 
 void	hnputl(void*, uint);
 void	hnputs(void*, ushort);
 uint	nhgetl(void*);
 ushort	nhgets(void*);
+ushort	ptclbsum(uchar*, int);
 
 int	v6tov4(uchar*, uchar*);
 void	v4tov6(uchar*, uchar*);

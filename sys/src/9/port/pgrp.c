@@ -12,9 +12,9 @@ void
 pgrpnote(ulong noteid, char *a, long n, int flag)
 {
 	Proc *p, *ep;
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
-	if(n >= ERRLEN-1)
+	if(n >= ERRMAX-1)
 		error(Etoobig);
 
 	memmove(buf, a, n);
@@ -142,13 +142,7 @@ pgrpcpy(Pgrp *to, Pgrp *from)
 			l = &mh->hash;
 			link = &mh->mount;
 			for(m = f->mount; m; m = m->next) {
-				n = smalloc(sizeof(Mount));
-				n->to = m->to;
-				incref(n->to);
-				n->head = mh;
-				n->flag = m->flag;
-				if(m->spec[0] != 0)
-					strncpy(n->spec, m->spec, NAMELEN);
+				n = newmount(mh, m->to, m->mflag, m->spec);
 				m->copy = n;
 				pgrpinsert(&order, m);
 				*link = n;
@@ -237,9 +231,9 @@ newmount(Mhead *mh, Chan *to, int flag, char *spec)
 	m->head = mh;
 	incref(to);
 	m->mountid = incref(&mountid);
-	m->flag = flag;
+	m->mflag = flag;
 	if(spec != 0)
-		strncpy(m->spec, spec, NAMELEN);
+		kstrdup(&m->spec, spec);
 
 	return m;
 }
@@ -253,6 +247,7 @@ mountfree(Mount *m)
 		f = m->next;
 		cclose(m->to);
 		m->mountid = 0;
+		free(m->spec);
 		free(m);
 		m = f;
 	}

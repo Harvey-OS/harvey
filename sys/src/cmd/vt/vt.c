@@ -11,6 +11,13 @@
  *
  * 4. We ignore the ESC#n codes, so that we don't do double-width nor 
  * 	double-height lines, nor the ``fill the screen with E's'' confidence check.
+ *
+ * 5. Cursor key sequences aren't selected by keypad application mode.
+ *
+ * 6. "VT220" mode (-2) currently just switches the default cursor key
+ *	functions (same as -a); it's still just a VT100 emulation.
+ *
+ * 7. VT52 mode and a few other rarely used features are not implemented.
  */
 
 #include <u.h>
@@ -115,6 +122,9 @@ emulate(void)
 	yscrmax = ymax;
 	saveattribute = 0;
 	saveisgraphics = 0;
+	/* set initial tab stops to DEC-standard 8-column spacing */
+	for(c=0; (c+=8)<nelem(tabcol);)
+		tabcol[c] = 1;
 
 	for (;;) {
 		if (y > ymax) {
@@ -143,13 +153,13 @@ emulate(void)
 				--x;
 			break;
 
-		case '\011':		/* tab to next tab stop; if none, tab modulo 8 */
+		case '\011':		/* tab to next tab stop; if none, to right margin */
 			for(c=x+1; c<nelem(tabcol) && !tabcol[c]; c++)
 				;
 			if(c < nelem(tabcol))
 				x = c;
 			else
-				x = (x|7)+1;
+				x = xmax;
 			break;
 
 		case '\012':		/* linefeed */
@@ -183,8 +193,8 @@ emulate(void)
 		case '\025':	/* NAK */
 		case '\026':	/* SYN */
 		case '\027':	/* ETB */
-		case '\030':	/* CAN: cancel escape sequence */
-		case '\031':	/* EM: cancel escape sequence, display checkerboard */
+		case '\030':	/* CAN: cancel escape sequence, display checkerboard (not implemented) */
+		case '\031':	/* EM */
 		case '\032':	/* SUB: same as CAN */
 			goto Default;
 ;
@@ -199,6 +209,18 @@ emulate(void)
 
 		case '\033':
 			switch(get_next_char()){
+			/*
+			 * 1 - graphic processor option on (no-op; not installed)
+			 */
+			case '1':
+				break;
+
+			/*
+			 * 2 - graphic processor option off (no-op; not installed)
+			 */
+			case '2':
+				break;
+
 			/*
 			 * 7 - save cursor position.
 			 */
@@ -230,6 +252,7 @@ emulate(void)
 
 			/*
 			 * D - active position down a line, scroll if at bottom margin.
+			 * (Original VT100 had a bug: tracked new-line/line-feed mode.)
 			 */
 			case 'D':
 				if(++y > yscrmax) {
@@ -251,7 +274,7 @@ emulate(void)
 
 			/*
 			 * H - set tab stop at current column.
-			 * (This is move to home in some VT100 docs, but that use seems deprecated.  -rsc)
+			 * (This is cursor home in VT52 mode (not implemented).)
 			 */
 			case 'H':
 				if(x < nelem(tabcol))
@@ -275,7 +298,8 @@ emulate(void)
 			 */
 			case 'Z':
 			Ident:
-				sendnchars2(5, "\033[?6c");
+				sendnchars2(7, "\033[?1;2c");	/* VT100 with AVO option */
+//				sendnchars2(5, "\033[?6c");	/* VT102 (insert/delete-char, etc.) */
 				break;
 
 			/*
@@ -285,13 +309,13 @@ emulate(void)
 				break;
 
 			/*
-			 * > - set numeric keypad mode on
+			 * > - set numeric keypad mode on (not implemented)
 			 */
 			case '>':
 				break;
 
 			/*
-			 * = - set numeric keypad mode off
+			 * = - set numeric keypad mode off (not implemented)
 			 */
 			case '=':
 				break;
@@ -303,7 +327,9 @@ emulate(void)
 				switch(get_next_char()){
 				case '3':		/* Top half of double-height line */
 				case '4':		/* Bottom half of double-height line */
+				case '5':		/* Single-width single-height line */
 				case '6':		/* Double-width line */
+				case '7':		/* Screen print */
 				case '8':		/* Fill screen with E's */
 					break;
 				}
@@ -346,7 +372,7 @@ emulate(void)
 				 */
 				switch(buf[0]){
 					/*
-					 * c - same as ESC Z: who are you?
+					 * c - same as ESC Z: what are you?
 					 */
 					case 'c':
 						goto Ident;
@@ -375,18 +401,14 @@ emulate(void)
 							case 20:	/* set line feed mode */
 								ttystate[cs->raw].nlcr = 0;
 								break;
-							case 25:	/* cursor off */
-								cursoron = 0;
-								cursoff();
-								break;
-							case 30:	/* screen invisible */
+							case 30:	/* screen invisible (? not supported through VT220) */
 								break;
 							}
-						}else if(noperand == 2){
-							switch(operand[1]){
-							case 1:	/* set cursor key to cursor */
+						}else while(--noperand > 0){
+							switch(operand[noperand]){
+							case 1:	/* set cursor keys to send ANSI functions: ESC [ A..D */
 								break;
-							case 2:	/* set VT52 */
+							case 2:	/* set VT52 mode (not implemented) */
 								break;
 							case 3:	/* set 80 columns */
 								setdim(-1, 80);
@@ -398,6 +420,7 @@ emulate(void)
 							case 6:	/* set origin to absolute */
 print("OL\n");
 								originrelative = 0;
+								x = y = 0;
 								break;
 							case 7:	/* reset auto-wrap mode */
 								wraparound = 0;
@@ -405,6 +428,10 @@ print("OL\n");
 							case 8:	/* reset auto-repeat mode */
 								break;
 							case 9:	/* reset interlacing mode */
+								break;
+							case 25:	/* text cursor off (VT220) */
+								cursoron = 0;
+								cursoff();
 								break;
 							}
 						}
@@ -420,16 +447,12 @@ print("OL\n");
 							case 20:	/* set newline mode */
 								ttystate[cs->raw].nlcr = 1;
 								break;
-							case 25:	/* cursor on */
-								cursoron = 1;
-								curson(0);
-								break;
-							case 30:	/* screen visible */
+							case 30:	/* screen visible (? not supported through VT220) */
 								break;
 							}
-						}else if(noperand == 2){
-							switch(operand[1]){
-							case 1:	/* set cursor key to application */
+						}else while(--noperand > 0){
+							switch(operand[noperand]){
+							case 1:	/* set cursor keys to send application function: ESC O A..D */
 								break;
 							case 2:	/* set ANSI */
 								break;
@@ -438,10 +461,12 @@ print("OL\n");
 							break;
 							case 4:	/* set smooth scrolling */
 								break;
-							case 5:	/* set reverse video on screen */
+							case 5:	/* set screen to reverse video (not implemented) */
 								break;
 							case 6:	/* set origin to relative */
 								originrelative = 1;
+								x = 0;
+								y = yscrmin;
 								break;
 							case 7:	/* set auto-wrap mode */
 								wraparound = 1;
@@ -449,6 +474,10 @@ print("OL\n");
 							case 8:	/* set auto-repeat mode */
 								break;
 							case 9:	/* set interlacing mode */
+								break;
+							case 25:	/* text cursor on (VT220) */
+								cursoron = 1;
+								curson(0);
 								break;
 							}
 						}
@@ -462,10 +491,25 @@ print("OL\n");
 						break;
 
 					/*
-					 * Turn on list of LEDs; turn off others.
+					 * n - request various reports
+					 */
+					case 'n':
+						switch(operand[0]){
+						case 5:	/* status */
+							sendnchars2(4, "\033[0n");	/* terminal ok */
+							break;
+						case 6:	/* cursor position */
+							sendnchars2(sprint(buf, "\033[%d;%dR",
+								originrelative ? y+1 - yscrmin : y+1, x+1), buf);
+							break;
+						}
+						break;
+
+					/*
+					 * q - turn on list of LEDs; turn off others.
 					 */
 					case 'q':
-						print("LED\n");
+//						print("LED\n");
 						break;
 
 					/*
@@ -479,6 +523,8 @@ print("OL\n");
 						switch(noperand){
 						case 2:
 							yscrmax = operand[1]-1;
+							if(yscrmax > ymax)
+								yscrmax = ymax;
 						case 1:
 							yscrmin = operand[0]-1;
 							if(yscrmin < 0)
@@ -486,6 +532,19 @@ print("OL\n");
 						}
 						x = 0;
 						y = yscrmin;
+						break;
+
+					/*
+					 * x - report terminal parameters
+					 */
+					case 'x':
+						sendnchars2(20, "\033[3;1;1;120;120;1;0x");
+						break;
+
+					/*
+					 * y - invoke confidence test
+					 */
+					case 'y':
 						break;
 
 					/*
@@ -514,7 +573,7 @@ print("OL\n");
 						break;
 					
 					/*
-					 * C - cursor right.
+					 * C - cursor right
 					 */
 					case 'C':
 						if(operand[0] == 0)
@@ -529,7 +588,7 @@ print("OL\n");
 						break;
 
 					/*
-					 * D - cursor left (I think)
+					 * D - cursor left
 					 */
 					case 'D':
 						if(operand[0] == 0)
@@ -541,7 +600,7 @@ print("OL\n");
 
 					/*
 					 * H and f - cursor motion.  operand[0] is row and
-					 * operand[1] the row, origin 1.
+					 * operand[1] is column, origin 1.
 					 */
 					case 'H':
 					case 'f':
@@ -578,7 +637,7 @@ print("OL\n");
 							 * operand 1: start of screen to active position, inclusive.
 							 */
 							case 1:
-								clear(Rpt(pt(0, 0), pt(x, ymax+1)));
+								clear(Rpt(pt(0, 0), pt(xmax+1, y)));
 								clear(Rpt(pt(0, y), pt(x+1, y+1)));
 								break;
 							/*
@@ -600,7 +659,7 @@ print("OL\n");
 							 * operand 2: whole line.
 							 */
 							case 2:
-								clear(Rpt(pt(x, y), pt(xmax+1, y+1)));
+								clear(Rpt(pt(0, y), pt(xmax+1, y+1)));
 								break;
 							/*
 							 * operand 1: start of line to active position, inclusive.
@@ -618,20 +677,20 @@ print("OL\n");
 						break;
 
 					/*
-					 * L - insert a line at cursor position
+					 * L - insert a line at cursor position (VT102 and later)
 					 */
 					case 'L':
 						scroll(y, yscrmax, y+1, y);
 						break;
 
 					/*
-					 * M - delete a line at the cursor position
+					 * M - delete a line at cursor position (VT102 and later)
 					 */
 					case 'M':
 						scroll(y+1, yscrmax+1, y, yscrmax);
 						break;
 
-					case '=':
+					case '=':	/* ? not supported through VT220 */
 						number(buf, nil);
 						switch(buf[0]) {
 						case 'h':
@@ -647,6 +706,13 @@ print("OL\n");
 						break;
 				}
 
+				break;
+
+			/*
+			 * Collapse multiple '\033' to one.
+			 */
+			case '\033':
+				peekc = '\033';
 				break;
 
 			/*

@@ -10,20 +10,20 @@ char	*myname;
 int	cmdfd;
 int	writeallow;	/* never on; for compatibility with fs */
 int	wstatallow;
-int	noauth;
-int	nosync;
-Nvrsafe	nvr;
+int	allownone;
+int	noatime;
 int	srvfd(char*, int, int);
 void	usage(void);
 void	confinit(void);
 Chan	*chaninit(char*);
 void	consinit(void);
+void	forkserve(void);
 
 void
 main(int argc, char *argv[])
 {
 	Filsys *fs;
-	int i, ream, fsok;
+	int ream, fsok;
 	int newbufsize, nocheck;
 	char buf[NAMELEN];
 
@@ -125,153 +125,16 @@ main(int argc, char *argv[])
 	if(!nocheck && !ream && !fsok)
 		cmd_exec("check fq");
 
-	/*
-	 * start up procs
-	 */
-	for(i=0; i<conf.nserve; i++)
-		startproc(serve, "srv");
-
+	startproc(forkserve, "srv");
 	startproc(syncproc, "sync");
 
 	exits(0);
 }
 
-Chan *
-getmsg(Chan *chan, char *buf, Fcall *f, int *n)
-{
-	int fd;
-
-	fd = chan->chan;
-	for(;;){
-		*n = read(fd, buf, MAXMSG + MAXDAT);
-		if(chat)
-			print("read msg %d\n", *n);
-		if(*n == 0){
-			if(chan != cons.srvchan)
-				return 0;
-			continue;
-		}
-		if(*n < 0)
-			return 0;
-		if(convM2S(buf, f, *n))
-			return chan;
-		if(chat)
-			print("bad convM2S\n");
-	}
-	return 0;
-}
-
 void
-send(Chan *c, char *buf, int n)
+forkserve(void)
 {
-	int fd, m;
-
-	fd = c->chan;
-	for(;;){
-		m = write(fd, buf, n);
-		if(m == n)
-			return;
-	}
-}
-
-/*
- * main filesystem server loop.
- * entered by many processes.
- * they wait for messages and
- * then process them.
- */
-void
-doserve(Chan* chan)
-{
-	Chan *cp;
-	Fcall fi, fo;
-	char msgbuf[MAXMSG + MAXDAT];
-	int t, n;
-
-loop:
-	cp = getmsg(chan, msgbuf, &fi, &n);
-	if(!cp){
-		if(chan == cons.chan || chan == cons.srvchan)
-			panic("input channel read error");
-		return;
-	}
-
-	if(chat)
-		print("%A\n", &fi);
-
-	/*
-	 * simple syntax checks.
-	 */
-	t = fi.type;
-	if(t < 0 || t >= MAXSYSCALL || (t&1) || !p9call[t]){
-		print("bad message type\n");
-		fo.tag = fi.tag;
-		fo.type = Terror+1;
-		strncpy(fo.ename, "unknown message type", sizeof(fo.ename));
-		goto reply;
-	}
-
-	/*
-	 * set up reply message
-	 */
-	fo.err = 0;
-	if(t == Tread)
-		fo.data = msgbuf + 8;
-
-	/*
-	 * stats
-	 */
-	cons.work.count++;
-	cons.rate.count += n;
-
-	/*
-	 * call the file system
-	 */
-	rlock(&mainlock);
-	rlock(&cp->reflock);
-
-	(*p9call[t])(cp, &fi, &fo);
-
-	runlock(&cp->reflock);
-	runlock(&mainlock);
-
-	fo.type = t + 1;
-	fo.tag = fi.tag;
-
-	if(fo.err) {
-		if(CHAT(cp))
-			print("	error: %s\n", errstring[fo.err]);
-		fo.type = Terror+1;
-		strncpy(fo.ename, errstring[fo.err], sizeof(fo.ename));
-	}
-
-reply:
-	if(chat)
-		print("%A\n", &fo);
-	n = convS2M(&fo, msgbuf);
-	if(!n) {
-		print("bad S2M convers\n");
-		print("type=%d count=%d\n", msgbuf[0], n);
-		print(" %.2x %.2x %.2x %.2x\n",
-			msgbuf[1]&0xff, msgbuf[2]&0xff,
-			msgbuf[3]&0xff, msgbuf[4]&0xff);
-		print(" %.2x %.2x %.2x %.2x\n",
-			msgbuf[5]&0xff, msgbuf[6]&0xff,
-			msgbuf[7]&0xff, msgbuf[8]&0xff);
-		print(" %.2x %.2x %.2x %.2x\n",
-			msgbuf[9]&0xff, msgbuf[10]&0xff,
-			msgbuf[11]&0xff, msgbuf[12]&0xff);
-	}else{
-		send(cp, msgbuf, n);
-		cons.rate.count += n;
-	}
-	goto loop;
-}
-
-void
-serve(void)
-{
-	doserve(chan);
+	serve(chan);
 }
 
 static
@@ -326,10 +189,7 @@ syncproc(void)
 
 	t = time(nil);
 	for(;;){
-		if(nosync)
-			i = 0;	/* sleep longer */
-		else
-			i = syncblock();
+		i = syncblock();
 		alarmed = 0;
 		alarm(i ? 1000: 10000);
 		n = read(cmdfd, buf, sizeof buf - 1);
@@ -390,19 +250,14 @@ startproc(void (*f)(void), char *name)
 	}
 	procname = name;
 	f();
+	_exits(nil);
 }
 
 void
 confinit(void)
 {
+/*
 	int fd;
-
-	conf.niobuf = 0;
-	conf.nuid = 600;
-	conf.nserve = 2;
-	conf.uidspace = conf.nuid*6;
-	conf.gidspace = conf.nuid*3;
-	cons.flags = 0;
 
 	if ((fd = open("#c/hostowner", OREAD)) > 0) {
 		read(fd, nvr.authid, sizeof(nvr.authid));
@@ -416,14 +271,19 @@ confinit(void)
 		read(fd, nvr.authkey, sizeof(nvr.authkey));
 		close(fd);
 	}
-
+*/
+	conf.niobuf = 0;
+	conf.nuid = 600;
+	conf.nserve = 2;
+	conf.uidspace = conf.nuid*6;
+	conf.gidspace = conf.nuid*3;
+	cons.flags = 0;
 }
 
 static void
 dochaninit(Chan *cp, int fd)
 {
 	cp->chan = fd;
-	strncpy(cp->whoname, "<none>", sizeof(cp->whoname));
 	fileinit(cp);
 	wlock(&cp->reflock);
 	wunlock(&cp->reflock);
@@ -458,7 +318,7 @@ netserve(char *netaddr)
 {
 	int afd, lfd, fd;
 	char adir[2*NAMELEN], ldir[2*NAMELEN];
-	Chan netchan;
+	Chan *netchan;
 
 	if(access("/net/il/clone", 0) < 0)
 		bind("#I", "/net", MAFTER);
@@ -485,16 +345,18 @@ netserve(char *netaddr)
 			close(lfd);
 			continue;
 		}
-		memset(&netchan, 0, sizeof(netchan));
-		dochaninit(&netchan, fd);
+		netchan = mallocz(sizeof(Chan), 1);
+		if(netchan == nil)
+			panic("out of memory");
+		dochaninit(netchan, fd);
 		switch (rfork(RFMEM|RFFDG|RFPROC)) {
 		case -1:
 			panic("can't fork");
 		case 0:
 			close(afd);
 			close(lfd);
-			doserve(&netchan);
-			fileinit(&netchan);
+			serve(netchan);
+			free(netchan);
 			exits(0);
 		default:
 			close(fd);
@@ -511,17 +373,16 @@ srvfd(char *s, int mode, int sfd)
 	int fd;
 	char buf[32];
 
-	fd = create(s, OWRITE, mode);
+	fd = create(s, ORCLOSE|OWRITE, mode);
 	if(fd < 0){
 		remove(s);
-		fd = create(s, OWRITE, mode);
+		fd = create(s, ORCLOSE|OWRITE, mode);
 		if(fd < 0)
 			panic(s);
 	}
 	sprint(buf, "%d", sfd);
 	if(write(fd, buf, strlen(buf)) != strlen(buf))
 		panic("srv write");
-	close(fd);
 	return sfd;
 }
 

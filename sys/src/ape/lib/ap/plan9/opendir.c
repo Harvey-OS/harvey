@@ -16,13 +16,14 @@ opendir(const char *filename)
 	int f;
 	DIR *d;
 	struct stat sb;
-	char cd[DIRLEN];
+	Dir *d9;
 
-	if(_STAT(filename, cd) < 0){
+	if((d9 = _dirstat(filename)) == nil){
 		_syserrno();
 		return NULL;
 	}
-	_dirtostat(&sb, cd, 0);
+	_dirtostat(&sb, d9, 0);
+	free(d9);
 	if(S_ISDIR(sb.st_mode) == 0) {
 		errno = ENOTDIR;
 		return NULL;
@@ -43,6 +44,9 @@ opendir(const char *filename)
 	d->dd_fd = f;
 	d->dd_loc = 0;
 	d->dd_size = 0;
+	d->dirs = nil;
+	d->dirsize = 0;
+	d->dirloc = 0;
 	return d;
 }
 
@@ -55,6 +59,7 @@ closedir(DIR *d)
 	}
 	if(close(d->dd_fd) < 0)
 		return -1;
+	free(d->dirs);
 	free(d);
 	return 0;
 }
@@ -67,19 +72,17 @@ rewinddir(DIR *d)
 
 	d->dd_loc = 0;
 	d->dd_size = 0;
+	d->dirsize = 0;
+	d->dirloc = 0;
+	free(d->dirs);
+	d->dirs = nil;
 	if(!d){
 		return;
 	}
-	/* seeks aren't allowed on directories, so reopen */
-	strncpy(dname, _fdinfo[d->dd_fd].name, sizeof(dname));
-	close(d->dd_fd);
-	 f = open(dname, O_RDONLY);
-	if (f < 0) {
+	if(_SEEK(d->dd_fd, 0, 0) < 0){
 		_syserrno();
 		return;
 	}
-	_fdinfo[f].flags |= FD_CLOEXEC;
-	d->dd_fd = f;
 }
 
 struct dirent *
@@ -87,26 +90,28 @@ readdir(DIR *d)
 {
 	int i, n;
 	struct dirent *dr;
-	Dir dirs[DBLOCKSIZE];
-	Dir td;
+	Dir *dirs;
 
 	if(!d){
 		errno = EBADF;
 		return NULL;
 	}
 	if(d->dd_loc >= d->dd_size){
-		n = read(d->dd_fd, (char *)dirs, sizeof dirs);
-		if(n <= 0)
+		if(d->dirloc >= d->dirsize){
+			free(d->dirs);
+			d->dirsize = _dirread(d->dd_fd, &d->dirs);
+			d->dirloc = 0;
+		}
+		if(d->dirs == NULL)
 			return NULL;
-		n = n/sizeof(Dir);
 		dr = (struct dirent *)(d->dd_buf);
-		for(i=0; i<n; i++, dr++){
-			convM2D((char *)&dirs[i], &td);
-			strncpy(dr->d_name, td.name, MAXNAMLEN);
-			dr->d_name[MAXNAMLEN] = 0;
+		dirs = d->dirs;
+		for(i=0; i<DBLOCKSIZE && d->dirloc < d->dirsize; i++){
+			strncpy(dr[i].d_name, dirs[d->dirloc++].name, MAXNAMLEN);
+			dr[i].d_name[MAXNAMLEN] = 0;
 		}
 		d->dd_loc = 0;
-		d->dd_size = n*sizeof(struct dirent);
+		d->dd_size = i*sizeof(struct dirent);
 	}
 	dr = (struct dirent*)(d->dd_buf+d->dd_loc);
 	d->dd_loc += sizeof(struct dirent);

@@ -125,22 +125,25 @@ proc_start(char *cmd, stream *inp, stream *outp, stream *errp, int newpg, char *
 extern int
 proc_wait(process *pp)
 {
-	Waitmsg status;
-	int pid;
-	char err[ERRLEN];
+	Waitmsg *status;
+	char err[Errlen];
 
 	for(;;){
-		pid = wait(&status);
-		if(pid < 0){
-			errstr(err);
+		status = wait();
+		if(status == nil){
+			errstr(err, sizeof(err));
 			if(strstr(err, "interrupt") == 0)
 				break;
 		}
-		if (pid==pp->pid)
+		if (status->pid==pp->pid)
 			break;
 	}
 	pp->pid = -1;
-	pp->status = status.msg[0];
+	if(status == nil)
+		pp->status = -1;
+	else
+		pp->status = status->msg[0];
+	free(status);
 	return pp->status;
 }
 
@@ -155,9 +158,8 @@ proc_free(process *pp)
 	for (i = 0; i < 3; i++)
 		if (pp->std[i])
 			stream_free(pp->std[i]);
-	if (pp->pid >= 0){
-		USE(proc_wait(pp));
-	}
+	if (pp->pid >= 0)
+		proc_wait(pp);
 	free((char *)pp);
 	return 0;
 }

@@ -349,7 +349,7 @@ edit(File *f, int cmd)
 	if((io = open(genc, OREAD))<0) {
 		if (curfile && curfile->unread)
 			curfile->unread = FALSE;
-		error_s(Eopen, genc);
+		error_r(Eopen, genc);
 	}
 	p = readio(f, &nulls, empty, TRUE);
 	closeio((cmd=='e' || cmd=='I')? -1 : p);

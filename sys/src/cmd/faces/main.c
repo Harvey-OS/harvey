@@ -93,7 +93,7 @@ init(void)
 
 	/* make background color */
 	bgrnd = allocimagemix(display, DPalebluegreen, DWhite);
-	blue = allocimage(display, Rect(0,0,1,1), display->chan, 1, 0x008888FF);	/* blue-green */
+	blue = allocimage(display, Rect(0,0,1,1), screen->chan, 1, 0x008888FF);	/* blue-green */
 	left = allocimage(display, leftright, GREY1, 0, DWhite);
 	right = allocimage(display, leftright, GREY1, 0, DWhite);
 	if(bgrnd==nil || blue==nil || left==nil || right==nil){
@@ -332,13 +332,17 @@ void
 loadmboxfaces(char *maildir)
 {
 	int dirfd;
-	Dir d;
+	Dir *d;
+	int i, n;
 
 	dirfd = open(maildir, OREAD);
 	if(dirfd >= 0){
 		chdir(maildir);
-		while(dirread(dirfd, &d, sizeof d) > 0)
-			addface(dirface(maildir, d.name));
+		while((n = dirread(dirfd, &d)) > 0){
+			for(i=0; i<n; i++)
+				addface(dirface(maildir, d[i].name));
+			free(d);
+		}
 		close(dirfd);
 	}
 }

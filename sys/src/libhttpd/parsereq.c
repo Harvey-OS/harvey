@@ -240,9 +240,9 @@ abspath(HConnect *cc, char *origpath, char *curdir)
 				if(c == '/')
 					break;
 			}
-		} else if(strcmp(path, ".") == 0)
+		}else if(strcmp(path, ".") == 0){
 			;
-		else if(n == 1)
+		}else if(n == 1)
 			n += snprint(rpath+n, len-n, "%s", path);
 		else
 			n += snprint(rpath+n, len-n, "/%s", path);

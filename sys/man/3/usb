@@ -1,0 +1,235 @@
+.TH USB 3 
+.SH NAME
+usb \- USB Host Controller Interface
+.SH SYNOPSIS
+.nf
+.B bind -a #U /dev
+
+.BI /dev/usb m
+.BI /dev/usb m /new
+.BI /dev/usb m /port
+.BI /dev/usb m / n 
+.BI /dev/usb m / n /ctl
+.BI /dev/usb m / n /status
+.BI /dev/usb m / n /setup
+.BI /dev/usb m / n /ep k\fLdata
+\&...
+
+.fi
+.SH DESCRIPTION
+The Universal Serial Bus is a popular bus for connecting slow and medium speed
+devices, such as mice, keyboards, printers, and scanners to a PC.  It is
+a four-wire tree-shaped bus that provides both communication and (limited)
+power to devices.  Branching points in the tree are provided by devices
+called
+.IR hubs .
+.PP
+Most PCs have a two-slot hub built in, accommodating two USB devices.  To
+attach more devices, one or more hubs have to be plugged in to the USB
+slots of the PC.  The topology of the network is a tree with at most
+127 nodes, counting both internal and leaf nodes.
+.PP
+The USB bus is fully controlled by the host; all devices are polled.
+Hubs are passive in the sense that they do not poll the devices attached
+to them.  The host polls those devices and the hubs merely route the
+messages.
+.PP
+When a device is attached, the host queries it to determine its type
+and its speed.  The querying process is standardized.  The first level
+of querying is the same for all devices, the next is somewhat specialized
+for particular classes of devices (such as mice, keyboards, or audio devices).
+Specialization continues as subclasses and subsubclasses are explored.
+.PP
+For each connected device there is a directory in
+.BI #U/usb n\fR.
+Reading
+.BI #U/usb n /*/status
+yields the state, class, subclass and proto of each device in the
+first line.  The remaining lines give the state of each of the
+interfaces.
+.PP
+To find a mouse, for example, scan the status files for the line
+.IP
+.EX
+.BR "Enabled 0x020103"
+.EE
+.PP
+A mouse belongs to class 3 (in the least significant byte),
+.IR "human interface device" ,
+subclass 1,
+.IR boot ,
+proto 2,
+.I mouse
+(proto 1 would be the keyboard).
+USB class, subclass and proto codes can be found on
+.BR www.usb.org .
+.PP
+The control interface for each device is
+.I "``endpoint 0''"
+and is named
+.BI #U/usb n /*/setup \fR.
+The control interface of the device is accessed by reading and writing
+this file.
+.PP
+There is a separate
+.I "control interface
+named
+.BI #U/usb n /*/ctl
+which is used to configure the USB device
+.IR driver .
+By writing to this
+file, driver endpoints can be created and configured for communication with a
+device's data streams.  A mouse, for example, has one control interface
+and one data interface.  By communicating with the control interface,
+one can find out the device type (i.e., `mouse'), power consumption, number
+on interfaces, etc.
+.IR Usbd (4)
+will extract all this information and, in verbose mode, print it.
+.PP
+By sending an `endpoint message' to the
+.I ctl
+file, new driver endpoints can be created.  The syntax of these messages
+is
+.PP
+.B ep
+.I n
+.B bulk
+.I "mode maxpkt nbuf
+.PP
+or
+.PP
+.B ep
+.I "n period mode samplesize hz
+.PP
+The first form configures a non-real-time stream, the second an
+.I isochronous
+(real-time) stream.
+In both forms,
+.I n
+is the endpoint to be configured, and
+.I mode
+is
+.B r
+for read only, or
+.B w
+for reading and writing.
+In the first form,
+.I maxpkt
+is the maximum packet size to be used (between 1 and 2048),
+and
+.I nbuf
+is the number of buffers to be allocated by the driver.
+.PP
+In the second form,
+.I period
+is the number of milliseconds between packets.  This number is usually
+dictated by the device.  It must be between 1 and 1000.
+The
+.I samplesize
+is the size in bytes of the data units making up packets, and
+.I hz
+is the number of data units transmitted or received per second.
+.PP
+The data rate is thus
+.IR hz × samplesize
+bytes per second, and the packet size used will vary between
+⌊(\f2period\fP×\f2hz\fP)/1000⌋×\f2samplesize\fP
+and
+⌈(\f2period\fP×\f2hz\fP)/1000⌉×\f2samplesize\fP.
+.PP
+The mouse, which produces 3-byte samples, is configured with
+.BR "ep 1 bulk r 3 32" :
+endpoint 1 is configured for non-real-time read-only 3-byte messages
+and allows 32 of them to be outstanding.
+.PP
+A usb audio output device at 44.1 KHz, 2 channels, 16-bit samples, on endpoint
+4 will be configured with
+.BR "ep 4 1 w 4 44100" .
+.PP
+If the configuration is successful, a file named
+.BI ep n data
+is created which can be read and/or written depending on
+configuration.  Configuration is not allowed when the data endpoint
+is open.
+.PP
+Forward
+.I seek
+operations on isochronous endpoints
+can be used to start the I/O at a specific time.
+The usb status file provides information that can be used to map file
+offsets to points in time:  For each endpoint, the status file produces a line
+of the form:
+.PP
+.B "4 0x000201 \f2nnn\fP bytes \f2nnn\fP blocks
+.PP
+The fields are, from left to right,
+endpoint number, class/subclass/proto (as a six-digit hex number with class in the
+least significant byte), number of bytes read/written, number of blocks read/written.
+.PP
+For isochronous devices only, an additional line is produced of the
+form:
+.PP
+.B "bufsize \f2s\fP buffered \f2b\fP offset \f2o\fP time \f2t\fP
+.PP
+.I S
+is the size of the DMA operations on the device (i.e., the minimum useful size
+for reads and writes),
+.I b
+is the number of bytes currently buffered for input or output, and
+.I o
+and
+.I t
+should be interpreted to mean that byte offset
+.I o
+was/will be reached at time
+.I t
+(nanoseconds since the epoch).
+.PP
+To play or record samples exactly at some predetermined time, use
+.I o
+and
+.I t
+with the sampling rate to calculate the offset to seek to.
+.PP
+The number of bytes buffered can also be obtained using
+.IR stat (2)
+on the endpoint file.  See also
+.IR audio (3).
+.sp
+.SH FILES
+.TF "#U/usb n /*/status"
+.TP
+.BI #U/usb n /*/status
+USB device status file, class, subclass and proto are found in line one
+.TP
+.BI #U/usb n /*/ctl
+USB
+.I driver
+control file, used to create driver endpoints, control debugging, etc.
+.TP
+.BI #U/usb n /*/setup
+USB
+.I device
+control file, used to exchange messages with a device's control channel.
+.B setup
+may be viewed as a preconfigured
+.B ep0data
+file.
+.TP
+.BI #U/usb n /*/ep k data
+USB device data channel for the
+.IR k 'th
+configuration.
+.SH "SEE ALSO"
+.IR usb (4),
+.IR usbd (4),
+.IR plan9.ini (8)
+.SH BUGS
+OpenHCI USB cards are not yet supported.
+.PP
+The interface for configuring endpoints is at variance with the standard.
+.PP
+The notion that the endpoints themselves have a class and subclass
+is a distortion of the standard.
+It would be better to leave all handling of the notions of class to the
+user-level support programs, and remove it from the driver.

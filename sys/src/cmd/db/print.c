@@ -9,8 +9,6 @@
 extern	int	infile;
 extern	int	outfile;
 extern	int	maxpos;
-extern	char	lastc;
-
 
 /* general printing routines ($) */
 
@@ -150,7 +148,7 @@ printtrace(int modif)
 	case 'e':
 		for (i = 0; globalsym(&s, i); i++) {
 			if (get4(cormap, s.value, &v) > 0)
-				dprint("%s/%12t%lux\n", s.name,	v);
+				dprint("%s/%12t%#lux\n", s.name,	v);
 		}
 		break;
 
@@ -261,7 +259,7 @@ printmap(char *s, Map *map)
 		dprint("%s\n", s);
 	for (i = 0; i < map->nsegs; i++) {
 		if (map->seg[i].inuse)
-			dprint("%s%8t%-16lux %-16lux %-16lux\n", map->seg[i].name,
+			dprint("%s%8t%-16#lux %-16#lux %-16#lux\n", map->seg[i].name,
 				map->seg[i].b, map->seg[i].e, map->seg[i].f);
 	}
 }
@@ -279,11 +277,11 @@ printsym(void)
 		switch(sp->type) {
 		case 't':
 		case 'l':
-			dprint("%8lux t %s\n", sp->value, sp->name);
+			dprint("%8#lux t %s\n", sp->value, sp->name);
 			break;
 		case 'T':
 		case 'L':
-			dprint("%8lux T %s\n", sp->value, sp->name);
+			dprint("%8#lux T %s\n", sp->value, sp->name);
 			break;
 		case 'D':
 		case 'd':
@@ -292,7 +290,7 @@ printsym(void)
 		case 'a':
 		case 'p':
 		case 'm':
-			dprint("%8lux %c %s\n", sp->value, sp->type, sp->name);
+			dprint("%8#lux %c %s\n", sp->value, sp->type, sp->name);
 			break;
 		default:
 			break;
@@ -326,7 +324,7 @@ printpc(void)
 		symoff(buf, sizeof(buf), (long)dot, CTEXT);
 		dprint("%s/", buf);
 		if (machdata->das(cormap, dot, 'i', buf, sizeof(buf)) < 0)
-				error("%r");
+			error("%r");
 		dprint("%16t%s\n", buf);
 	}
 }
@@ -343,7 +341,7 @@ printlocals(Symbol *fn, ADDR fp)
 		if (s.class != CAUTO)
 			continue;
 		if (get4(cormap, fp-s.value, &val) > 0)
-			dprint("%8t%s.%s/%10t%lux\n", fn->name, s.name, val);
+			dprint("%8t%s.%s/%10t%#lux\n", fn->name, s.name, val);
 		else
 			dprint("%8t%s.%s/%10t?\n", fn->name, s.name);
 	}

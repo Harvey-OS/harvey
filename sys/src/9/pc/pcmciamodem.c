@@ -21,9 +21,10 @@ enum {
 
 static char* modems[] = {
 	"IBM 33.6 Data/Fax/Voice Modem",
-	"CM-56G",				/* Xircom CreditCard Modem 56 - GlobalACCESS */
+	"CM-56G",			/* Xircom CreditCard Modem 56 - GlobalACCESS */
 	"KeepInTouch",
 	"CEM56",
+	"MONTANA V.34 FAX/MODEM",	/* Motorola */
 	0,
 };
 
@@ -31,7 +32,7 @@ void
 pcmciamodemlink(void)
 {
 	ISAConf isa;
-	int i, j, slot, com2used;
+	int i, j, slot, com2used, usingcom2;
 
 	i = 0;
 	com2used = 0;
@@ -46,18 +47,23 @@ pcmciamodemlink(void)
 			memset(&isa, 0, sizeof(isa));
 		}
 
+		usingcom2 = 0;
 		if (isa.irq == 0 && isa.port == 0) {
 			if (com2used == 0) {
 				/* default is COM2 */
 				isa.irq = 3;
 				isa.port = 0x2F8;
-				com2used++;
+				usingcom2 = 1;
 			} else
 				break;
 		}
 
 		slot = pcmspecial(modems[j], &isa);
 		if(slot >= 0){
+			if(usingcom2)
+				com2used = 1;
+			if(ioalloc(isa.port, 8, 0, modems[j]) < 0)
+				print("%s port %lux already in use\n", modems[j], isa.port);
 			print("%s in pcmcia slot %d port 0x%lux irq %lud\n",
 				modems[j], slot, isa.port, isa.irq);
 		}

@@ -68,7 +68,7 @@ accept(int fd, void *a, int *alen)
 		}
 
 		/* get remote address */
-		ip = (struct sockaddr_in*)&r->raddr;
+		ip = (struct sockaddr_in*)&nr->raddr;
 		_sock_ingetaddr(nr, ip, &n, "remote");
 		if(a){
 			memmove(a, ip, sizeof(struct sockaddr_in));

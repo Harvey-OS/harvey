@@ -1,5 +1,10 @@
 #include	"l.h"
 
+static	Sym*	sym_div;
+static	Sym*	sym_divu;
+static	Sym*	sym_mod;
+static	Sym*	sym_modu;
+
 void
 noops(void)
 {
@@ -352,15 +357,19 @@ noops(void)
 			switch(o) {
 			case ADIV:
 				p->cond = prog_div;
+				p->to.sym = sym_div;
 				break;
 			case ADIVU:
 				p->cond = prog_divu;
+				p->to.sym = sym_divu;
 				break;
 			case AMOD:
 				p->cond = prog_mod;
+				p->to.sym = sym_mod;
 				break;
 			case AMODU:
 				p->cond = prog_modu;
+				p->to.sym = sym_modu;
 				break;
 			}
 
@@ -405,6 +414,16 @@ noops(void)
 	}
 }
 
+static Sym *
+sdiv(Sym *s)
+{
+	if(s->type == STEXT)
+		undefsym(s);
+	else
+		diag("undefined: %s\n", s->name);
+	return s;
+}
+
 void
 initdiv(void)
 {
@@ -415,6 +434,17 @@ initdiv(void)
 	s3 = lookup("_divu", 0);
 	s4 = lookup("_mod", 0);
 	s5 = lookup("_modu", 0);
+	if(reloc) {
+		sym_div = sdiv(s2);
+		sym_divu = sdiv(s3);
+		sym_mod = sdiv(s4);
+		sym_modu = sdiv(s5);
+		prog_div = UP;
+		prog_divu = UP;
+		prog_mod = UP;
+		prog_modu = UP;
+		return;
+	}
 	for(p = firstp; p != P; p = p->link)
 		if(p->as == ATEXT) {
 			if(p->from.sym == s2)

@@ -11,8 +11,16 @@
 <DD><TT> intro</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/9p">9p</A>
--  9P file server functions
-<DD><TT> Fid, File, Req, Srv, Tree, allocmap, allocfid, allocfidpool, allocreq, allocreqpool, caninsertkey, closefid, deletekey, fcreate, freefid, freemap, freereq, fremove, fwalk, mktree, fdirread, insertkey, lookupfid, lookupkey, lookupreq, srv, postmountsrv, readbuf, readstr, respond, threadpostmountsrv, _lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup</TT>
+-  9P file service
+<DD><TT> Srv, dirread9p, emalloc9p, erealloc9p, estrdup9p, postfd, postmountsrv, readbuf, readstr, respond, threadpostmountsrv, srv</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/9pfid">9pfid</A>
+-  9P fid, request tracking
+<DD><TT> Fid, Fidpool, allocfidpool, freefidpool, allocfid, closefid, lookupfid, removefid, Req, Reqpool, allocreqpool, freereqpool, allocreq, closereq, lookupreq, removereq</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/9pfile">9pfile</A>
+-  in-memory file hierarchy
+<DD><TT> Tree, alloctree, freetree, File, createfile, closefile, removefile, walkfile, opendirfile, readdirfile, closedirfile, hasperm</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/abort">abort</A>
 -  generate a fault
@@ -29,6 +37,10 @@
 <DT><A HREF="/magic/man2html/2/addpt">addpt</A>
 -  arithmetic on points and rectangles
 <DD><TT> addpt, subpt, mulpt, divpt, rectaddpt, rectsubpt, insetrect, canonrect, eqpt, eqrect, ptinrect, rectinrect, rectXrect, rectclip, combinerect, Dx, Dy, Pt, Rect, Rpt</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/aes">aes</A>
+-  advanced encryption standard (rijndael)
+<DD><TT> setupAESstate, aesCBCencrypt, aesCBCdecrypt</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/allocimage">allocimage</A>
 -  allocating, freeing, reading, writing images
@@ -51,8 +63,12 @@
 <DD><TT> atof, atoi, atol, atoll, charstod, strtod, strtol, strtoll, strtoul, strtoull</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/auth">auth</A>
--  network authentication
-<DD><TT> auth, amount, srvauth, authnonce, srvauthnonce, authenticate, getchal, chalreply, vncchal, vncreply, apopchal, apopreply, cramchal, cramreply, newns, addns, authdial, passtokey, nvcsum, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, login, httpauth, noworld</TT>
+- 
+<DD><TT> amount, newns, addns, login, noworld, auth_proxy, fauth_proxy, auth_allocrpc, auth_freerpc, auth_rpc, auth_getkey, amount_getkey, auth_freeAI, auth_chuid, auth_challenge, auth_response, auth_freechal, auth_respond, auth_userpasswd, auth_getuserpasswd, auth_getinfo\- routines for authenticating users</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/authsrv">authsrv</A>
+-  routines for communicating with authentication servers
+<DD><TT> authdial, passtokey, nvcsum, readnvram, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, _asgetticket, _asrdresp</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/bin">bin</A>
 -  grouped memory allocation
@@ -64,7 +80,11 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/bio">bio</A>
 -  buffered input/output
-<DD><TT> Bopen, Binit, Binits, Brdline, Bgetc, Bgetrune, Bgetd, Bungetc, Bungetrune, Bread, Bseek, Boffset, Bfildes, Blinelen, Bputc, Bputrune, Bprint, Bwrite, Bflush, Bterm, Bbuffered</TT>
+<DD><TT> Bopen, Binit, Binits, Brdline, Brdstr, Bgetc, Bgetrune, Bgetd, Bungetc, Bungetrune, Bread, Bseek, Boffset, Bfildes, Blinelen, Bputc, Bputrune, Bprint, Bvprint, Bwrite, Bflush, Bterm, Bbuffered</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/blowfish">blowfish</A>
+-  blowfish encryption
+<DD><TT> setupBFstate, bfCBCencrypt, bfCBCdecrypt, bfECBencrypt, bfECBdecrypt</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/brk">brk</A>
 -  change memory allocation
@@ -88,7 +108,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/control">control</A>
 -  interactive graphical controls
-<DD><TT> Control, Controlset, activate, closecontrol, closecontrolset, controlcalled, controlwire, createbox, createbutton, createentry, createkeyboard, createlabel, createradiobutton, createscribble, createslider, createtext, createtextbutton, ctlerror, ctlmalloc, ctlrealloc, ctlstrdup, deactivate, freectlfont, freectlimage, initcontrols, namectlfont, namectlimage, newcontrolset, printctl, resizecontrolset</TT>
+<DD><TT> Control, Controlset, activate, closecontrol, closecontrolset, controlcalled, controlwire, createbox, createboxbox, createbutton, createcolumn, createentry, createkeyboard, createlabel, createmenu, createradiobutton, createrow, createscribble, createslider, createstack, createtab, createtext, createtextbutton, ctlerror, ctlmalloc, ctlrealloc, ctlstrdup, ctlprint, deactivate, freectlfont, freectlimage, initcontrols, namectlfont, namectlimage, newcontrolset, resizecontrolset</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/cputime">cputime</A>
 -  cpu time in this process and children
@@ -106,21 +126,21 @@
 -  machine-independent debugger functions
 <DD><TT> cisctrace, risctrace, ciscframe, riscframe, localaddr, symoff, fpformat, beieee80ftos, beieeesftos, beieeedftos, leieee80ftos, leieeesftos, leieeedftos, ieeesftos, ieeedftos</TT>
 </DT>
-<DT><A HREF="/magic/man2html/2/debugmalloc">debugmalloc</A>
--  debugging memory allocator
-<DD><TT> showleak, malloc, mallocz, free, realloc, calloc, msize, setmalloctag, setrealloctag, getmalloctag, getrealloctag, malloctopoolblock</TT>
+<DT><A HREF="/magic/man2html/2/des">des</A>
+-  single and triple digital encryption standard
+<DD><TT> setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher,</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/dial">dial</A>
 -  make and break network connections
-<DD><TT> dial, hangup, announce, listen, accept, reject, netmkaddr, setnetmtpt</TT>
+<DD><TT> dial, hangup, announce, listen, accept, reject, netmkaddr, setnetmtpt, getnetconninfo, freenetconninfo</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/dirread">dirread</A>
 -  read directory
-<DD><TT> dirread</TT>
+<DD><TT> dirread, dirreadall</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/disk">disk</A>
 -  generic disk device interface
-<DD><TT> opendisk, biosfake</TT>
+<DD><TT> opendisk, Disk</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/draw">draw</A>
 -  graphics functions
@@ -130,13 +150,21 @@
 -  duplicate an open file descriptor
 <DD><TT> dup</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/elgamal">elgamal</A>
+-  elgamal encryption
+<DD><TT> eggen, egencrypt, egdecrypt, egsign, egverify, egalloc, egfree, egpuballoc, egpubfree, egprivalloc, egprivfree, egsigalloc, egsigfree, egprivtopub</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/encode">encode</A>
+-  encoding byte arrays as strings
+<DD><TT> dec64, enc64, dec32, enc32, dec16, enc16, encodefmt</TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/encrypt">encrypt</A>
 -  DES encryption
 <DD><TT> encrypt, decrypt, netcrypt</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/errstr">errstr</A>
 -  description of last system call error
-<DD><TT> errstr, werrstr</TT>
+<DD><TT> errstr, rerrstr, werrstr</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/event">event</A>
 -  graphics events
@@ -154,9 +182,13 @@
 -  exponential, logarithm, power, square root
 <DD><TT> exp, log, log10, pow, pow10, sqrt</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/fauth">fauth</A>
+-  set up authentication on a file descriptor to a file server
+<DD><TT> fauth</TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/fcall">fcall</A>
 -  interface to Plan 9 File protocol
-<DD><TT> Fcall, convS2M, convD2M, convM2S, convM2D, getS, fcallconv, dirconv, dirmodeconv</TT>
+<DD><TT> Fcall, convS2M, convD2M, convM2S, convM2D, fcallfmt, dirfmt, dirmodefmt, read9pmsg, statcheck, sizeD2M</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/fd2path">fd2path</A>
 -  return file name associated with file descriptor
@@ -173,6 +205,10 @@
 <DT><A HREF="/magic/man2html/2/floor">floor</A>
 -  absolute value, remainder, floor, ceiling functions
 <DD><TT> fabs, fmod, floor, ceil</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/fmtinstall">fmtinstall</A>
+-  support for user-defined print formats and output routines
+<DD><TT> fmtinstall, dofmt, dorfmt, fmtprint, fmtvprint, fmtrune, fmtstrcpy, fmtrunestrcpy, fmtfdinit, fmtfdflush, fmtstrinit, fmtstrflush, runefmtstrinit, runefmtstrflush, errfmt</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/fopen">fopen</A>
 -  standard buffered input/output package
@@ -198,9 +234,13 @@
 -  scan formatted input
 <DD><TT> fscanf, scanf, sscanf, vfscanf</TT>
 </DT>
-<DT><A HREF="/magic/man2html/2/fsession">fsession</A>
--  set up authentication on a file descriptor to a file server
-<DD><TT> fsession, fauth</TT>
+<DT><A HREF="/magic/man2html/2/fversion">fversion</A>
+-  initialize 9P connection and negotiate version
+<DD><TT> fversion</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/genrandom">genrandom</A>
+-  random number generation
+<DD><TT> genrandom, prng</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/getcallerpc">getcallerpc</A>
 -  fetch return PC of current function
@@ -216,7 +256,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/getfields">getfields</A>
 -  break a string into fields
-<DD><TT> getfields, tokenize</TT>
+<DD><TT> getfields, gettokens, tokenize</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/getpid">getpid</A>
 -  get process ids
@@ -232,15 +272,31 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/graphics">graphics</A>
 -  interactive graphics
-<DD><TT> Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pconv, Rconv, strtochan, chantostr, chantodepth</TT>
+<DD><TT> Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pfmt, Rfmt, strtochan, chantostr, chantodepth</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/html">html</A>
+-  HTML parser
+<DD><TT> parsehtml, printitems, validitems, freeitems, freedocinfo, dimenkind, dimenspec, targetid, targetname, fromStr, toStr</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/httpd">httpd</A>
+-  routines for creating an http server
+<DD><TT> HConnect, HContent, HContents, HETag, HFields, Hio, Htmlesc, HttpHead, HttpReq, HRange, HSPairs, hmydomain, hversion, htmlesc, halloc, hbodypush, hbuflen, hcheckcontent, hclose, hdate2sec, hdatefmt, hfail, hflush, hgetc, hgethead, hinit, hiserror, hload, hlower, hmkcontent, hmkhfields, hmkmimeboundary, hmkspairs, hmoved, hokheaders, hparseheaders, hparsequery, hparsereq, hprint, hputc, hreadbuf, hredirected, hreqcleanup, hrevhfields, hrevspairs, hstrdup, http11, httpfmt, httpunesc, hunallowed, hungetc, hunload, hurlfmt, hurlunesc, hwrite, hxferenc,</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/hypot">hypot</A>
 -  Euclidean distance
 <DD><TT> hypot</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/intmap">intmap</A>
+-  integer to data structure maps
+<DD><TT> Intmap, allocmap, freemap, insertkey, caninsertkey, lookupkey, deletekey</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/iounit">iounit</A>
+-  return size of atomic I/O unit for file descriptor
+<DD><TT> iounit</TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/ip">ip</A>
 -  Internet protocol
-<DD><TT> eipconv, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myetheraddr, maskip, equivip, defmask, isv4, v4tov6, v6tov4, nhgetl, nhgets, hnputl, hnputs, readipifc</TT>
+<DD><TT> eipfmt, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myetheraddr, maskip, equivip, defmask, isv4, v4tov6, v6tov4, nhgetl, nhgets, hnputl, hnputs, ptclbsum, readipifc</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/isalpharune">isalpharune</A>
 -  Unicode character classes and cases
@@ -250,13 +306,9 @@
 -  keyboard control
 <DD><TT> initkeyboard, ctlkeyboard, closekeyboard</TT>
 </DT>
-<DT><A HREF="/magic/man2html/2/libsec">libsec</A>
--  cryptographic security library
-<DD><TT> setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher, md4, md5, sha1, hmac_md5, hmac_sha1, dec64, enc64, dec32, enc32, genrandom, prng, genprime, gensafeprime, genstrongprime, DSAprimes, probably_prime, smallprimetest, setupRC4state, rc4, rc4skip, rc4back, crtpre, crtin, crtout, crtprefree, crtresfree, rsagen, rsaencrypt, rsadecrypt, rsaalloc, rsafree, rsapuballoc, rsapubfree, rsaprivalloc, rsaprivfree, rsaprivtopub, X509toRSApub, eggen, egencrypt, egdecrypt, egsign, egverify, egalloc, egfree, egpuballoc, egpubfree, egprivalloc, egprivfree, egsigalloc, egsigfree, egprivtopub</TT>
-</DT>
 <DT><A HREF="/magic/man2html/2/lock">lock</A>
 -  shared memory spin locks, rendez-vous locks, reader-writer locks, and atomic increment and decrement
-<DD><TT> lock, canlock, unlock, qlock, canqlock, qunlock, rlock, runlock, wlock, wunlock, incref, decref</TT>
+<DD><TT> lock, canlock, unlock, qlock, canqlock, qunlock, rlock, runlock, canrlock, wlock, wunlock, canwlock, incref, decref</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/mach">mach</A>
 -  machine-independent access to executable files
@@ -292,7 +344,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/mp">mp</A>
 -  extended precision arithmetic
-<DD><TT> mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, mpconv,mptoa, betomp, mptobe, letomp, mptole, mptoui, uitomp, mptoi, itomp, uvtomp, mptouv, vtomp, mptov, mpdigdiv, mpadd, mpsub, mpleft, mpright, mpmul, mpexp, mpmod, mpdiv, mpcmp, mpextendedgcd, mpinvert, mpsignif, mplowbits0, mpvecdigmuladd, mpvecdigmulsub, mpvecadd, mpvecsub, mpveccmp, mpvecmul, mpmagcmp, mpmagadd, mpmagsub, crtpre, crtin, crtout, crtprefree, crtresfree</TT>
+<DD><TT> mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, mpfmt,mptoa, betomp, mptobe, letomp, mptole, mptoui, uitomp, mptoi, itomp, uvtomp, mptouv, vtomp, mptov, mpdigdiv, mpadd, mpsub, mpleft, mpright, mpmul, mpexp, mpmod, mpdiv, mpcmp, mpextendedgcd, mpinvert, mpsignif, mplowbits0, mpvecdigmuladd, mpvecdigmulsub, mpvecadd, mpvecsub, mpveccmp, mpvecmul, mpmagcmp, mpmagadd, mpmagsub, crtpre, crtin, crtout, crtprefree, crtresfree</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/muldiv">muldiv</A>
 -  high-precision multiplication and division
@@ -328,7 +380,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/plumb">plumb</A>
 -  plumb messages
-<DD><TT> eplumb, plumbfree, plumbopen, plumbsend, plumblookup, plumbpack, plumbpackattr, plumbaddattr, plumbdelattr, plumbrecv, plumbunpack, plumbunpackpartial, plumbunpackattr, Plumbmsg</TT>
+<DD><TT> eplumb, plumbfree, plumbopen, plumbsend, plumbsendtext, plumblookup, plumbpack, plumbpackattr, plumbaddattr, plumbdelattr, plumbrecv, plumbunpack, plumbunpackpartial, plumbunpackattr, Plumbmsg</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/pool">pool</A>
 -  general memory management routines
@@ -338,9 +390,13 @@
 -  send a note to a process or process group
 <DD><TT> postnote</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/prime">prime</A>
+-  prime number generation
+<DD><TT> genprime, gensafeprime, genstrongprime, DSAprimes, probably_prime, smallprimetest</TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/print">print</A>
 -  print formatted output
-<DD><TT> print, fprint, sprint, snprint, seprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint</TT>
+<DD><TT> print, fprint, sprint, snprint, seprint, smprint, runesprint, runesnprint, runeseprint, runesmprint, vfprint, vsnprint, vseprint, vsmprint, runevsnprint, runevseprint, runevsmprint</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/privalloc">privalloc</A>
 -  per-process private storage management
@@ -353,6 +409,10 @@
 <DT><A HREF="/magic/man2html/2/pushssl">pushssl</A>
 -  attach SSL version 2 encryption to a communication channel
 <DD><TT> pushssl</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/pushtls">pushtls</A>
+-  attach TLS1 or SSL3 encryption to a communication channel
+<DD><TT> pushtls, tlsClient, tlsServer, initThumbprints, freeThumbprints, okThumbprint, readcert</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/qball">qball</A>
 -  3-d rotation controller
@@ -368,19 +428,27 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/quote">quote</A>
 -  quoted character strings
-<DD><TT> quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrconv, quoterunestrconv, quotefmtinstall, doquote</TT>
+<DD><TT> quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrfmt, quoterunestrfmt, quotefmtinstall, doquote</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/rand">rand</A>
 -  random number generator
-<DD><TT> rand, lrand, frand, nrand, lnrand, srand, truerand, n_truerand, fastrand</TT>
+<DD><TT> rand, lrand, frand, nrand, lnrand, srand, truerand, ntruerand, fastrand, nfastrand</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/rc4">rc4</A>
+-  alleged rc4 encryption
+<DD><TT> setupRC4state, rc4, rc4skip, rc4back</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/read">read</A>
 -  read or write file
-<DD><TT> read, readn, write, pread, pwrite, read9p, write9p</TT>
+<DD><TT> read, readn, write, pread, pwrite</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/readcolmap">readcolmap</A>
 -  access display color map
 <DD><TT> RGB, readcolmap, writecolmap</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/readv">readv</A>
+-  scatter/gather read and write
+<DD><TT> readv, writev, preadv, pwritev</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/regexp">regexp</A>
 -  regular expression
@@ -394,9 +462,13 @@
 -  user level process synchronization
 <DD><TT> rendezvous</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/rsa">rsa</A>
+- 
+<DD><TT></TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/rune">rune</A>
 -  rune/UTF conversion
-<DD><TT> runetochar, chartorune, runelen, runenlen, fullrune, utflen, utfnlen, utfrune, utfrrune, utfutf</TT>
+<DD><TT> runetochar, chartorune, runelen, runenlen, fullrune, utfecpy, utflen, utfnlen, utfrune, utfrrune, utfutf</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/runestrcat">runestrcat</A>
 -  rune string operations
@@ -409,6 +481,10 @@
 <DT><A HREF="/magic/man2html/2/scsi">scsi</A>
 -  SCSI device operations
 <DD><TT> openscsi, scsiready, scsi, scsicmd, scsierror</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/sechash">sechash</A>
+-  cryptographically secure hashes
+<DD><TT> md4, md5, sha1, hmac_md5, hmac_sha1, md5pickle, md5unpickle, sha1pickle, sha1unpickle</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/seek">seek</A>
 -  change file offset
@@ -444,7 +520,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/stat">stat</A>
 -  get and put file status
-<DD><TT> stat, fstat, wstat, fwstat, dirstat, dirfstat, dirwstat, dirfwstat</TT>
+<DD><TT> stat, fstat, wstat, fwstat, dirstat, dirfstat, dirwstat, dirfwstat, nulldir</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/strcat">strcat</A>
 -  string operations
@@ -468,7 +544,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/thread">thread</A>
 -  thread and proc management
-<DD><TT> alt, chancreate, chanfree, chaninit, proccreate, procdata, procexec, procexecl, procrfork, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, threadchdir, threadcreate, threaddata, threadexits, threadexitsall, threadgetgrp, threadgetname, threadkill, threadkillgrp, threadmain, threadnonotes, threadpid, threadprint, threadsetgrp, threadsetname, threadwaitchan, yield</TT>
+<DD><TT> alt, chancreate, chanfree, chaninit, chanprint, mainstacksize, proccreate, procdata, procexec, procexecl, procrfork, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, threadcreate, threaddata, threadexits, threadexitsall, threadgetgrp, threadgetname, threadint, threadintgrp, threadkill, threadkillgrp, threadmain, threadnotify, threadid, threadpid, threadprint, threadsetgrp, threadsetname, threadwaitchan, yield</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/time">time</A>
 -  time in seconds and nanoseconds since epoch
@@ -480,7 +556,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/wait">wait</A>
 -  wait for a process to exit
-<DD><TT> wait</TT>
+<DD><TT> await, wait, waitpid</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/window">window</A>
 -  window management

@@ -51,19 +51,16 @@ disdig(int c)
 }
 
 int
-hdateconv(va_list *arg, Fconv *f)
+hdatefmt(Fmt *f)
 {
 	Tm *tm;
-	char buf[128];
 	ulong t;
 
-	t = va_arg(*arg, ulong);
+	t = va_arg(f->args, ulong);
 	tm = gmtime(t);
-	snprint(buf, sizeof(buf), "%s, %.2d %s %.4d %.2d:%.2d:%.2d GMT",
+	return fmtprint(f, "%s, %.2d %s %.4d %.2d:%.2d:%.2d GMT",
 		wdayname[tm->wday], tm->mday, monname[tm->mon], tm->year+1900,
 		tm->hour, tm->min, tm->sec);
-	strconv(buf, f);
-	return 0;
 }
 
 static char*

@@ -7,10 +7,10 @@
 #include "defs.h"
 #include "fns.h"
 
-char	line[LINSIZ];
+Rune	line[LINSIZ];
 extern	int	infile;
-char	*lp;
-char	peekc,lastc = EOR;
+Rune	*lp;
+int	peekc,lastc = EOR;
 int	eof;
 
 /* input routines */
@@ -44,9 +44,23 @@ clrinp(void)
 }
 
 int
+readrune(int fd, Rune *r)
+{
+	char buf[UTFmax];
+	int i;
+
+	for(i=0; i<UTFmax && !fullrune(buf, i); i++)
+		if(read(fd, buf+i, 1) <= 0)
+			return -1;
+	chartorune(r, buf);
+	return 1;
+}
+
+int
 readchar(void)
 {
-	char *p;
+	Rune *p;
+
 	if (eof)
 		lastc=0;
 	else if (peekc) {
@@ -56,7 +70,7 @@ readchar(void)
 	else {
 		if (lp==0) {
 			for (p = line; p < &line[LINSIZ-1]; p++) {
-				eof = read(infile, p, 1) <= 0;
+				eof = readrune(infile, p) <= 0;
 				if (mkfault) {
 					eof = 0;
 					error(0);
@@ -106,12 +120,16 @@ getformat(char *deformat)
 {
 	char *fptr;
 	BOOL	quote;
+	Rune r;
 
 	fptr=deformat;
 	quote=FALSE;
-	while ((quote ? readchar()!=EOR : !eol(readchar())))
-		if ((*fptr++ = lastc)=='"')
+	while ((quote ? readchar()!=EOR : !eol(readchar()))){
+		r = lastc;
+		fptr += runetochar(fptr, &r);
+		if (lastc == '"')
 			quote = ~quote;
+	}
 	lp--;
 	if (fptr!=deformat)
 		*fptr = '\0';
@@ -129,7 +147,7 @@ getformat(char *deformat)
 int
 isfileref(void)
 {
-	char *cp;
+	Rune *cp;
 
 	for (cp = lp-1; *cp && !strchr(CMD_VERBS, *cp); cp++)
 		if (*cp == '\\' && cp[1])	/* escape next char */

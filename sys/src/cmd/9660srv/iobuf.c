@@ -5,116 +5,168 @@
 #include "dat.h"
 #include "fns.h"
 
-#define	NIOBUF		100
-#define	HIOB		(NIOBUF/3)
+/*
+ * We used to use 100 i/o buffers of size 2kb (Sectorsize).
+ * Unfortunately, reading 2kb at a time often hopping around
+ * the disk doesn't let us get near the disk bandwidth.
+ *
+ * Based on a trace of iobuf address accesses taken while
+ * tarring up a Plan 9 distribution CD, we now use 16 128kb
+ * buffers.  This works for ISO9660 because data is required
+ * to be laid out contiguously; effectively we're doing agressive
+ * readahead.  Because the buffers are so big and the typical 
+ * disk accesses so concentrated, it's okay that we have so few
+ * of them.
+ *
+ * If this is used to access multiple discs at once, it's not clear
+ * how gracefully the scheme degrades, but I'm not convinced
+ * it's worth worrying about.		-rsc
+ */
 
-static Iobuf*	hiob[HIOB];		/* hash buckets */
-static Iobuf	iobuf[NIOBUF];		/* buffer headers */
-static Iobuf*	iohead;
-static Iobuf*	iotail;
+#define	BUFPERCLUST	64	/* 64*Sectorsize = 128kb */
+#define	NCLUST		16
 
-Iobuf*
-getbuf(Xdata *dev, long addr)
-{
-	Iobuf *p, *h, **l, **f;
-
-	l = &hiob[(ulong)addr%HIOB];
-	for(p = *l; p; p = p->next) {
-		if(p->addr == addr && p->dev == dev) {
-			p->busy++;
-			return p;
-		}
-	}
-
-	/* Find a non-busy buffer from the tail */
-	for(p = iotail; p && p->busy; p = p->prev)
-		;
-	if(p == 0)
-		panic(0, "all buffers busy");
-
-	/* Delete from hash chain */
-	f = &hiob[(ulong)p->addr%HIOB];
-	for(h = *f; h; h = h->next) {
-		if(h == p) {
-			*f = p->hash;
-			break;
-		}
-		f = &h->hash;
-	}
-
-	/* Hash and fill */
-	p->hash = *l;
-	*l = p;
-	p->addr = addr;
-	p->dev = dev;
-	p->busy++;
-	if(waserror()) {
-		p->addr = 0;	/* stop caching */
-		putbuf(p);
-		nexterror();
-	}
-	xread(p);
-	poperror();
-	return p;
-}
+static Ioclust*	iohead;
+static Ioclust*	iotail;
+static Ioclust*	getclust(Xdata*, long);
+static void	putclust(Ioclust*);
+static void xread(Ioclust*);
 
 void
-putbuf(Iobuf *p)
+iobuf_init(void)
 {
-	if(p->busy <= 0)
-		panic(0, "putbuf");
+	int i, j, n;
+	Ioclust *c;
+	Iobuf *b;
+	uchar *mem;
 
-	p->busy--;
-	if(p == iohead)
-		return;
+	n = NCLUST*sizeof(Ioclust)+NCLUST*BUFPERCLUST*(sizeof(Iobuf)+Sectorsize);
+	mem = sbrk(n);
+	if((long)mem == -1)
+		panic(0, "iobuf_init");
+	memset(mem, 0, n);
 
-	/* Link onto head for lru */
-	if(p->prev) 
-		p->prev->next = p->next;
-	else
-		iohead = p->next;
+	for(i=0; i<NCLUST; i++){
+		c = (Ioclust*)mem;
+		mem += sizeof(Ioclust);
+		c->addr = -1;
+		c->prev = iotail;
+		if(iotail)
+			iotail->next = c;
+		iotail = c;
+		if(iohead == nil)
+			iohead = c;
 
-	if(p->next)
-		p->next->prev = p->prev;
-	else
-		iotail = p->prev;
-
-	p->prev = 0;
-	p->next = iohead;
-	iohead->prev = p;
-	iohead = p;
+		c->buf = (Iobuf*)mem;
+		mem += BUFPERCLUST*sizeof(Iobuf);
+		c->iobuf = mem;
+		mem += BUFPERCLUST*Sectorsize;
+		for(j=0; j<BUFPERCLUST; j++){
+			b = &c->buf[j];
+			b->clust = c;
+			b->addr = -1;
+			b->iobuf = c->iobuf+j*Sectorsize;
+		}
+	}
 }
 
 void
 purgebuf(Xdata *dev)
 {
-	Iobuf *p;
+	Ioclust *p;
 
-	for(p=&iobuf[0]; p<&iobuf[NIOBUF]; p++)
+	for(p=iohead; p!=nil; p=p->next)
 		if(p->dev == dev)
 			p->busy = 0;
+}
 
-	/* Blow hash chains */
-	memset(hiob, 0, sizeof(hiob));
+static Ioclust*
+getclust(Xdata *dev, long addr)
+{
+	Ioclust *c, *f;
+
+	f = nil;
+	for(c=iohead; c; c=c->next){
+		if(!c->busy)
+			f = c;
+		if(c->addr == addr && c->dev == dev){
+			c->busy++;
+			return c;
+		}
+	}
+
+	if(f == nil)
+		panic(0, "out of buffers");
+
+	f->addr = addr;
+	f->dev = dev;
+	f->busy++;
+	if(waserror()){
+		f->addr = -1;	/* stop caching */
+		putclust(f);
+		nexterror();
+	}
+	xread(f);
+	poperror();
+	return f;
+}
+
+static void
+putclust(Ioclust *c)
+{
+	if(c->busy <= 0)
+		panic(0, "putbuf");
+	c->busy--;
+
+	/* Link onto head for LRU */
+	if(c == iohead)
+		return;
+	c->prev->next = c->next;
+
+	if(c->next)
+		c->next->prev = c->prev;
+	else
+		iotail = c->prev;
+
+	c->prev = nil;
+	c->next = iohead;
+	iohead->prev = c;
+	iohead = c;
+}
+
+Iobuf*
+getbuf(Xdata *dev, long addr)
+{
+	int off;
+	Ioclust *c;
+
+	off = addr%BUFPERCLUST;
+	c = getclust(dev, addr - off);
+	if(c->nbuf < off){
+		c->busy--;
+		error("I/O read error");
+	}
+	return &c->buf[off];
 }
 
 void
-iobuf_init(void)
+putbuf(Iobuf *b)
 {
-	Iobuf *p;
+	putclust(b->clust);
+}
 
-	iohead = iobuf;
-	iotail = iobuf+NIOBUF-1;
+static void
+xread(Ioclust *c)
+{
+	int n;
+	vlong addr;
+	Xdata *dev;
 
-	for(p = iobuf; p <= iotail; p++) {
-		p->next = p+1;
-		p->prev = p-1;
-
-		p->iobuf = sbrk(Sectorsize);
-		if((long)p->iobuf == -1)
-			panic(0, "iobuf_init");
-	}
-
-	iohead->prev = 0;
-	iotail->next = 0;
+	dev = c->dev;
+	addr = c->addr;
+	seek(dev->dev, addr*Sectorsize, 0);
+	n = readn(dev->dev, c->iobuf, BUFPERCLUST*Sectorsize);
+	if(n < Sectorsize)
+		error("I/O read error");
+	c->nbuf = n/Sectorsize;
 }

@@ -5,7 +5,7 @@
 int
 cloadimage(Image *i, Rectangle r, uchar *data, int ndata)
 {
-	int m, nb, miny, maxy;
+	int m, nb, miny, maxy, ncblock;
 	uchar *a;
 
 	if(!rectinrect(r, i->r)){
@@ -15,6 +15,7 @@ cloadimage(Image *i, Rectangle r, uchar *data, int ndata)
 
 	miny = r.min.y;
 	m = 0;
+	ncblock = _compblocksize(r, i->depth);
 	while(miny != r.max.y){
 		maxy = atoi((char*)data+0*12);
 		nb = atoi((char*)data+1*12);
@@ -25,7 +26,7 @@ cloadimage(Image *i, Rectangle r, uchar *data, int ndata)
 		data += 2*12;
 		ndata -= 2*12;
 		m += 2*12;
-		if(nb<=0 || NCBLOCK<nb || nb>ndata){
+		if(nb<=0 || ncblock<nb || nb>ndata){
 			werrstr("creadimage: bad count %d", nb);
 			return -1;
 		}

@@ -2,11 +2,12 @@
 #include <libc.h>
 #include <bio.h>
 
+#include "pci.h"
 #include "vga.h"
 
 Biobuf stdout;
 
-static int iflag, lflag, pflag;
+static int iflag, lflag, pflag, rflag;
 static char *usage =
 	"usage: aux/vga [ -BcdilpvV ] [ -b bios-id ] [ -m monitor ] [ -x db ] [ mode [ virtualsize ] ]\n";
 
@@ -17,9 +18,13 @@ static void
 dump(Vga* vga)
 {
 	Ctlr *ctlr;
-
+	Attr *attr;
+	
 	if(vga->mode)
 		dbdumpmode(vga->mode);
+
+	for(attr = vga->attr; attr; attr = attr->next)
+		Bprint(&stdout, "vga->attr: %s=%s\n", attr->attr, attr->val);
 
 	for(ctlr = vga->link; ctlr; ctlr = ctlr->link){
 		if(ctlr->dump == 0)
@@ -128,7 +133,7 @@ chanstr[32+1] = {
 void
 main(int argc, char** argv)
 {
-	char *bios, buf[256], *p, *vsize, *psize, *type;
+	char *bios, buf[256], sizeb[256], *p, *vsize, *psize, *type;
 	int virtual, len;
 	Ctlr *ctlr;
 	Vga *vga;
@@ -172,6 +177,13 @@ main(int argc, char** argv)
 
 	case 'p':
 		pflag = 1;
+		break;
+
+	case 'r':
+		/*
+		 * rflag > 1 means "leave me alone, I know what I'm doing."
+		 */
+		rflag++;
 		break;
 
 	case 'v':
@@ -262,15 +274,23 @@ main(int argc, char** argv)
 			vga->virty = atoi(p+1);
 			if(vga->virtx < vga->mode->x || vga->virty < vga->mode->y)
 				error("virtual size smaller than physical size\n");
-		}else{
+			vga->panning = 1;
+		}
+		else{
 			vga->virtx = vga->mode->x;
 			vga->virty = vga->mode->y;
+			vga->panning = 0;
 		}
 
-		trace("vmf %d vmdf %d vf1 %lud vbw %lud\n", vga->mode->frequency, vga->mode->deffrequency, vga->f[1], vga->mode->videobw);
+		trace("vmf %d vmdf %d vf1 %lud vbw %lud\n",
+			vga->mode->frequency, vga->mode->deffrequency,
+			vga->f[1], vga->mode->videobw);
 		if(vga->mode->frequency == 0 && vga->mode->videobw != 0 && vga->f[1] != 0){
-			/* boost clock as much as possible subject to video and memory bandwidth constraints */
-			ulong freq, membw;
+			/*
+			 * boost clock as much as possible subject
+			 * to video and memory bandwidth constraints
+			 */
+			ulong bytes, freq, membw;
 			double rr;
 
 			freq = vga->mode->videobw;
@@ -280,18 +300,21 @@ main(int argc, char** argv)
 			rr = (double)freq/(vga->mode->ht*vga->mode->vt);
 			if(rr > 85.0)		/* >85Hz is ridiculous */
 				rr = 85.0;
-			
-			membw = rr*((vga->mode->x*vga->mode->y*vga->mode->z)/8);
+
+			bytes = (vga->mode->x*vga->mode->y*vga->mode->z)/8;
+			membw = rr*bytes;
 			if(vga->membw != 0 && membw > vga->membw){
 				membw = vga->membw;
-				rr = (double)membw/((vga->mode->x*vga->mode->y*vga->mode->z)/8);
+				rr = (double)membw/bytes;
 			}
 
 			freq = rr*(vga->mode->ht*vga->mode->vt);
 			vga->mode->frequency = freq;
 
-			trace("using frequency %lud rr %.2f membw %lud\n", freq, rr, membw);
-		}else if(vga->mode->frequency == 0)
+			trace("using frequency %lud rr %.2f membw %lud\n",
+				freq, rr, membw);
+		}
+		else if(vga->mode->frequency == 0)
 			vga->mode->frequency = vga->mode->deffrequency;
 
 		for(ctlr = vga->link; ctlr; ctlr = ctlr->link){
@@ -340,15 +363,17 @@ main(int argc, char** argv)
 			 */
 			linear(vga);
 
-			/*
-			 * We can't depend on virtx and virty if not virtual, since
-			 * some cards (mga2164w) can change the x and y in the mode.
-			 */
-			if(virtual)
-				sprint(buf, "%ludx%ludx%d %s", vga->virtx, vga->virty, vga->mode->z, vga->mode->chan);
+			sprint(buf, "%ludx%ludx%d %s",
+				vga->virtx, vga->virty,
+				vga->mode->z, vga->mode->chan);
+			if(rflag){
+				vgactlr("size", sizeb);
+				if(rflag < 2 && strcmp(buf, sizeb) != 0)
+					error("bad refresh: %s != %s\n",
+						buf, sizeb);
+			}
 			else
-				sprint(buf, "%s %s", vga->mode->size, vga->mode->chan);
-			vgactlw("size", buf);
+				vgactlw("size", buf);
 
 			/*
 			 * Turn off the display during the load.
@@ -371,9 +396,11 @@ main(int argc, char** argv)
 			else
 				vgactlw("hwgc", vga->hwgc->name);
 
-			if(virtual){
+			if(vga->virtx != vga->mode->x || vga->virty != vga->mode->y){
 				sprint(buf, "%dx%d", vga->mode->x, vga->mode->y);
 				vgactlw("actualsize", buf);
+				if(vga->panning)
+					vgactlw("panning", "on");
 			}
 
 			if(pflag)

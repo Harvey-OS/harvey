@@ -1005,7 +1005,7 @@ diag(Node *n, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
@@ -1031,7 +1031,7 @@ warn(Node *n, char *fmt, ...)
 	if(debug['w']) {
 		print("warning: ");
 		va_start(arg, fmt);
-		doprint(buf, buf+sizeof(buf), fmt, arg);
+		vseprint(buf, buf+sizeof(buf), fmt, arg);
 		va_end(arg);
 		print("%L %s\n", (n==Z)? nearln: n->lineno, buf);
 
@@ -1055,7 +1055,7 @@ yyerror(char *fmt, ...)
 		return;
 	}
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%L %s\n", lineno, buf);
 	nerrors++;
@@ -1757,4 +1757,64 @@ tinit(void)
 		urk("trel", nelem(trel), p->code);
 		trel[p->code] = p->value;
 	}
+}
+
+static int
+deadhead(Node *n, int caseok)
+{
+loop:
+	if(n == Z)
+		return 1;
+	switch(n->op) {
+	case OLIST:
+		if(!deadhead(n->left, caseok))
+			return 0;
+	rloop:
+		n = n->right;
+		goto loop;
+
+	case ORETURN:
+		break;
+
+	case OLABEL:
+		return 0;
+
+	case OGOTO:
+		break;
+
+	case OCASE:
+		if(!caseok)
+			return 0;
+		goto rloop;
+
+	case OSWITCH:
+		return deadhead(n->right, 1);
+
+	case OWHILE:
+	case ODWHILE:
+		goto rloop;
+
+	case OFOR:
+		goto rloop;
+
+	case OCONTINUE:
+		break;
+
+	case OBREAK:
+		break;
+
+	case OIF:
+		return deadhead(n->right->left, caseok) && deadhead(n->right->right, caseok);
+
+	case OSET:
+	case OUSED:
+		break;
+	}
+	return 1;
+}
+
+int
+deadheads(Node *c)
+{
+	return deadhead(c->left, 0) && deadhead(c->right, 0);
 }

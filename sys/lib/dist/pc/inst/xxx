@@ -1,0 +1,9 @@
+#!/bin/rc
+
+ip/ipconfig
+echo '	auth=204.178.31.3
+	authdom=cs.bell-labs.com' >>/net/ndb
+ndb/cs
+auth/factotum
+bind -a /bin/auth /
+cpu -e clear -h tcp!204.178.31.2

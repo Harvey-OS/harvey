@@ -41,7 +41,7 @@ and the first two words of the block.
 Usually, the first two words of the block
 contain the malloc and realloc tags
 (see
-.IR debugmalloc (2)),
+.IR malloc (2)),
 useful for finding who allocated the leaked blocks.
 .PP
 If the

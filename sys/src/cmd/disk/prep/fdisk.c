@@ -14,14 +14,14 @@ enum {
 	Mpart = 64,
 };
 
-static void rdpart(Edit*, ulong);
-static void	findmbr(Edit*);
+static void rdpart(Edit*, ulong, ulong);
+static void findmbr(Edit*);
 static void autopart(Edit*);
 static void wrpart(Edit*);
 static void blankpart(Edit*);
 static void cmdnamectl(Edit*);
 static void recover(Edit*);
-static int Dconv(va_list*, Fconv*);
+static int Dfmt(Fmt*);
 static int blank;
 static int dowrite;
 static int file;
@@ -40,7 +40,7 @@ static char 	*cmdext(Edit*, int, char**);
 static char 	*cmdhelp(Edit*);
 static char 	*cmdokname(Edit*, char*);
 static char 	*cmdwrite(Edit*);
-static void		cmdprintctl(Edit*, int);
+static void	cmdprintctl(Edit*, int);
 
 #pragma varargck type "D" uchar*
 
@@ -67,7 +67,7 @@ sysfatal(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(argv0)
 		fprint(2, "%s: %s\n", argv0, buf);
@@ -127,7 +127,7 @@ main(int argc, char **argv)
 		break;
 	}ARGEND;
 
-	fmtinstall('D', Dconv);
+	fmtinstall('D', Dfmt);
 
 	if(argc != 1)
 		usage();
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 	if(blank)
 		blankpart(&edit);
 	else
-		rdpart(&edit, 0);
+		rdpart(&edit, 0, 0);
 
 	if(doauto)
 		autopart(&edit);
@@ -225,6 +225,7 @@ enum {
 	TypeMINIX	= 0x81,		/* Minix v1.5+ */
 	TypeLINUXSWAP	= 0x82,
 	TypeLINUX	= 0x83,
+	TypeLINUXEXT	= 0x85,
 	TypeAMOEBA	= 0x93,
 	TypeAMOEBABB	= 0x94,
 	TypeBSD386	= 0xA5,
@@ -297,6 +298,7 @@ static Type types[256] = {
 	[TypeMINIX]		{ "MINIXV1.5", "minix15" },
 	[TypeLINUXSWAP]		{ "LINUXSWAP", "linuxswap" },
 	[TypeLINUX]		{ "LINUX", "linux" },
+	[TypeLINUXEXT]		{ "LINUXEXTENDED", "" },
 	[TypeAMOEBA]		{ "AMOEBA", "amoeba" },
 	[TypeAMOEBABB]		{ "AMOEBABB", "amoebaboot" },
 	[TypeBSD386]		{ "BSD386", "bsd386" },
@@ -351,7 +353,7 @@ putle32(void* v, u32int i)
 static void
 diskread(Disk *disk, void *data, int ndata, u32int sec, u32int off)
 {
-	if(seek(disk->fd, sec*disk->secsize+off, 0) != sec*disk->secsize+off)
+	if(seek(disk->fd, (vlong)sec*disk->secsize+off, 0) != (vlong)sec*disk->secsize+off)
 		sysfatal("diskread seek %lud.%lud: %r", (ulong)sec, (ulong)off);
 	if(readn(disk->fd, data, ndata) != ndata)
 		sysfatal("diskread %lud at %lud.%lud: %r", (ulong)ndata, (ulong)sec, (ulong)off);
@@ -361,7 +363,7 @@ static int
 diskwrite(Disk *disk, void *data, int ndata, u32int sec, u32int off)
 {
 	written = 1;
-	if(seek(disk->wfd, sec*disk->secsize+off, 0) != sec*disk->secsize+off)
+	if(seek(disk->wfd, (vlong)sec*disk->secsize+off, 0) != (vlong)sec*disk->secsize+off)
 		goto Error;
 	if(write(disk->wfd, data, ndata) != ndata)
 		goto Error;
@@ -379,11 +381,12 @@ mkpart(char *name, int primary, u32int lba, u32int size, Tentry *t)
 	Dospart *p;
 
 	p = emalloc(sizeof(*p));
-
 	if(name)
-		strecpy(p->name, p->name+sizeof(p->name), name);
-	else
+		p->name = estrdup(name);
+	else{
+		p->name = emalloc(20);
 		sprint(p->name, "%c%d", primary ? 'p' : 's', ++n);
+	}
 
 	if(t)
 		p->Tentry = *t;
@@ -464,12 +467,15 @@ recover(Edit *edit)
  * from the disk into the part array.
  */
 static void
-rdpart(Edit *edit, ulong lba)
+rdpart(Edit *edit, ulong lba, ulong xbase)
 {
 	char *err;
 	Table table;
 	Tentry *tp, *ep;
 	Dospart *p;
+
+	if(xbase == 0)
+		xbase = lba;
 
 	diskread(edit->disk, &table, sizeof table, mbroffset+lba, Toffset);
 	addrecover(table, mbroffset+lba);
@@ -485,7 +491,8 @@ rdpart(Edit *edit, ulong lba)
 			break;
 		case TypeEXTENDED:
 		case TypeEXTHUGE:
-			rdpart(edit, lba+getle32(tp->xlba));
+		case TypeLINUXEXT:
+			rdpart(edit, xbase+getle32(tp->xlba), xbase);
 			break;
 		default:
 			p = mkpart(nil, lba==0, lba+getle32(tp->xlba), getle32(tp->xsize), tp);
@@ -520,8 +527,9 @@ findmbr(Edit *edit)
 static int
 haveroom(Edit *edit, int primary, vlong start)
 {
-	int i, foundslot, n, lastsec;
-	Dospart *p;
+	int i, lastsec, n;
+	Dospart *p, *q;
+	ulong pend, qstart;
 
 	if(primary) {
 		/*
@@ -535,9 +543,7 @@ haveroom(Edit *edit, int primary, vlong start)
 			p = (Dospart*)edit->part[i];
 			if(p->primary)
 				n++, lastsec=0;
-			else if(lastsec)
-				;
-			else
+			else if(!lastsec)
 				n++, lastsec=1;
 		}
 		return n<4;
@@ -549,25 +555,24 @@ haveroom(Edit *edit, int primary, vlong start)
 	 * otherwise, we can put a new secondary partition next
 	 * to a secondary partition no problem.
 	 */
-	foundslot = 0;
-	lastsec = 0;
 	n = 0;
-	for(i=0; i<edit->npart; i++) {
+	for(i=0; i<=edit->npart; i++){
 		p = (Dospart*)edit->part[i];
 		if(p->primary)
-			n++, lastsec=0;
-		else if(lastsec)
-			;
-		else
-			n++, lastsec=1;
-		if(!foundslot && start < p->start) {
-			/* next to a secondary in either direction */
-			foundslot=1;
-			if(lastsec)
-				return 1;
-			if(p->primary==0)
-				return 1;
+			n++;
+		pend = p->end;
+		if(i+1<edit->npart){
+			q = (Dospart*)edit->part[i+1];
+			qstart = q->start;
+		}else{
+			qstart = edit->end;
+			q = nil;
 		}
+		if(start < pend || start >= qstart)
+			continue;
+		/* we go between these two */
+		if(p->primary==0 || (q && q->primary==0))
+			return 1;
 	}
 	/* not next to a secondary, need a new primary */
 	return n<4;
@@ -633,7 +638,7 @@ autopart(Edit *edit)
 
 typedef struct Name Name;
 struct Name {
-	char name[NAMELEN];
+	char *name;
 	Name *link;
 };
 Name *namelist;
@@ -641,17 +646,14 @@ static void
 plan9print(Dospart *part, int fd)
 {
 	int i, ok;
-	char name[NAMELEN], *vname;
+	char *name, *vname;
 	Name *n;
 	vlong start, end;
 	char *sep;
 
 	vname = types[part->type].name;
-	if(vname == nil)
-		return;
-
-	if(strcmp(vname, "") == 0) {
-		strcpy(part->ctlname, "");	
+	if(vname==nil || strcmp(vname, "")==0) {
+		part->ctlname = "";
 		return;
 	}
 
@@ -666,6 +668,8 @@ plan9print(Dospart *part, int fd)
 		sep = "";
 
 	i = 0;
+	name = emalloc(strlen(vname)+10);
+
 	sprint(name, "%s", vname);
 	do {
 		ok = 1;
@@ -678,13 +682,11 @@ plan9print(Dospart *part, int fd)
 		}
 	} while(ok == 0);
 
-	n = malloc(sizeof(*n));
-	assert(n != nil);
-	strcpy(n->name, name);
+	n = emalloc(sizeof(*n));
+	n->name = name;
 	n->link = namelist;
 	namelist = n;
-
-	strcpy(part->ctlname, name);
+	part->ctlname = name;
 
 	if(fd >= 0)
 		print("part %s %lld %lld\n", name, start, end);
@@ -781,7 +783,11 @@ cmdadd(Edit *edit, char *name, vlong start, vlong end)
 
 	if(!haveroom(edit, name[0]=='p', start))
 		return "no room for partition";
-	p = mkpart(name, name[0]=='p', start*sec2cyl, (end-start)*sec2cyl, nil);
+	start *= sec2cyl;
+	end *= sec2cyl;
+	if(start == 0)
+		start = edit->disk->s;
+	p = mkpart(name, name[0]=='p', start, end-start, nil);
 	p->changed = 1;
 	return addpart(edit, p);
 }
@@ -820,6 +826,9 @@ cmdactive(Edit *edit, int nf, char **f)
 
 	if(nf != 2)
 		return "args";
+
+	if(f[1][0] != 'p')
+		return "cannot set secondary partition active";
 
 	if((p = (Dospart*)findpart(edit, f[1])) == nil)
 		return "unknown partition";
@@ -923,21 +932,20 @@ cmdext(Edit *edit, int nf, char **f)
 }
 
 static int
-Dconv(va_list *va, Fconv *fp)
+Dfmt(Fmt *f)
 {
 	char buf[60];
 	uchar *p;
 	int c, h, s;
 
-	p = va_arg(*va, uchar*);
+	p = va_arg(f->args, uchar*);
 	h = p[0];
 	c = p[2];
 	c |= (p[1]&0xC0)<<2;
 	s = (p[1] & 0x3F);
 
 	sprint(buf, "%d/%d/%d", c, h, s);
-	strconv(buf, fp);
-	return 0;
+	return fmtstrcpy(f, buf);
 }
 
 static void
@@ -961,17 +969,17 @@ writechs(Disk *disk, uchar *p, vlong lba)
 }
 
 static void
-wrtentry(Disk *disk, Tentry *tp, int type, u32int lbabase, u32int lba, u32int size)
+wrtentry(Disk *disk, Tentry *tp, int type, u32int xbase, u32int lba, u32int end)
 {
 	tp->type = type;
-	writechs(disk, &tp->starth, lbabase+lba);
-	writechs(disk, &tp->endh, lbabase+lba+size-1);
-	putle32(tp->xlba, lba);
-	putle32(tp->xsize, size);
+	writechs(disk, &tp->starth, lba);
+	writechs(disk, &tp->endh, end-1);
+	putle32(tp->xlba, lba-xbase);
+	putle32(tp->xsize, end-lba);
 }
 
 static int
-wrextend(Edit *edit, int i, vlong lbabase, vlong *endlba)
+wrextend(Edit *edit, int i, vlong xbase, vlong startlba, vlong *endlba)
 {
 	int ni;
 	Table table;
@@ -979,28 +987,46 @@ wrextend(Edit *edit, int i, vlong lbabase, vlong *endlba)
 	Dospart *p;
 	Disk *disk;
 
-	if(i == edit->npart)
+	if(i == edit->npart){
+		*endlba = edit->disk->secs;
+	Finish:
+		if(startlba < *endlba){
+			disk = edit->disk;
+			diskread(disk, &table, sizeof table, mbroffset+startlba, Toffset);
+			tp = table.entry;
+			ep = tp+NTentry;
+			for(; tp<ep; tp++)
+				memset(tp, 0, sizeof *tp);
+			table.magic[0] = Magic0;
+			table.magic[1] = Magic1;
+
+			if(diskwrite(edit->disk, &table, sizeof table, mbroffset+startlba, Toffset) < 0)
+				recover(edit);
+		}
 		return i;
+	}
 
 	p = (Dospart*)edit->part[i];
-	if(p->primary)
-		return i;
+	if(p->primary){
+		*endlba = (vlong)p->start*sec2cyl;
+		goto Finish;
+	}
 
 	disk = edit->disk;
-	diskread(disk, &table, sizeof table, mbroffset+lbabase, Toffset);
+	diskread(disk, &table, sizeof table, mbroffset+startlba, Toffset);
 	tp = table.entry;
 	ep = tp+NTentry;
 
-	ni = wrextend(edit, i+1, p->end*sec2cyl, endlba);
+	ni = wrextend(edit, i+1, xbase, p->end*sec2cyl, endlba);
 
-	assert(p->start*sec2cyl == lbabase);
+	assert(p->start*sec2cyl == startlba);
 	*tp = p->Tentry;
-	wrtentry(disk, tp, p->type, lbabase, disk->s, p->end*sec2cyl-disk->s-lbabase);
+	wrtentry(disk, tp, p->type, startlba, startlba+disk->s, p->end*sec2cyl);
 	tp++;
 
-	if(ni != i+1) {
+	if(p->end*sec2cyl != *endlba){
 		memset(tp, 0, sizeof *tp);
-		wrtentry(disk, tp, TypeEXTENDED, lbabase, p->end*sec2cyl-lbabase, *endlba-p->end*sec2cyl);
+		wrtentry(disk, tp, TypeEXTENDED, xbase, p->end*sec2cyl, *endlba);
 		tp++;
 	}
 
@@ -1010,7 +1036,7 @@ wrextend(Edit *edit, int i, vlong lbabase, vlong *endlba)
 	table.magic[0] = Magic0;
 	table.magic[1] = Magic1;
 
-	if(diskwrite(edit->disk, &table, sizeof table, mbroffset+lbabase, Toffset) < 0)
+	if(diskwrite(edit->disk, &table, sizeof table, mbroffset+startlba, Toffset) < 0)
 		recover(edit);
 	return ni;
 }	
@@ -1018,7 +1044,7 @@ wrextend(Edit *edit, int i, vlong lbabase, vlong *endlba)
 static void
 wrpart(Edit *edit)
 {	
-	int i, ni;
+	int i, ni, t;
 	Table table;
 	Tentry *tp, *ep;
 	Disk *disk;
@@ -1039,13 +1065,17 @@ wrpart(Edit *edit)
 			s = p->start*sec2cyl;
 		if(p->primary) {
 			*tp = p->Tentry;
-			wrtentry(disk, tp, p->type, 0, s, p->end*sec2cyl-s);
+			wrtentry(disk, tp, p->type, 0, s, p->end*sec2cyl);
 			tp++;
 			i++;
 		} else {
-			ni = wrextend(edit, i, p->start*sec2cyl, &endlba);
+			ni = wrextend(edit, i, p->start*sec2cyl, p->start*sec2cyl, &endlba);
 			memset(tp, 0, sizeof *tp);
-			wrtentry(disk, tp, TypeEXTENDED, 0, s, endlba-s);
+			if(endlba >= 1024*sec2cyl)
+				t = TypeEXTHUGE;
+			else
+				t = TypeEXTENDED;
+			wrtentry(disk, tp, t, 0, s, endlba);
 			tp++;
 			i = ni;
 		}

@@ -1,17 +1,21 @@
-BUILTINS=
-NPROC=1
-SYSH=/sys/src/libc/9syscall/sys.h
+APE=/sys/src/ape
+<$APE/config
+LIB=/$objtype/lib/ape/libap.a
+OFILES=\
+	divl.$O\
+	divq.$O\
+	getfcr.$O\
+	lock.$O\
+	main9.$O\
+	main9p.$O\
+	memcpy.$O\
+	memmove.$O\
+	memset.$O\
+	notetramp.$O\
+	setjmp.$O\
+	tas.$O\
 
-all:V:
-	SYS=`{sed 's/#define.([A-Z0-9_]*).*/\1/' $SYSH}
-	for(I in $SYS) {
-		n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' $SYSH}
-		echo TEXT _$I'(SB)', 1, '$0' > _$I.s
-		echo MOVL R0, '0(FP)' >> _$I.s
-		echo MOVQ '$'$n, R0 >> _$I.s
-		echo CALL_PAL '$'0x83 >> _$I.s
-		echo RET >> _$I.s
-	}
+</sys/src/cmd/mksyslib
 
-clean:V:
-	rm -f _*.s
+CFLAGS=-c -D_POSIX_SOURCE -D_PLAN9_SOURCE
+

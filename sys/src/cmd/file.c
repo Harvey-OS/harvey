@@ -9,11 +9,11 @@
  */
 #define	LENDIAN(p)	((p)[0] | ((p)[1]<<8) | ((p)[2]<<16) | ((p)[3]<<24))
 
-uchar	buf[6000];
+uchar	buf[6001];
 short	cfreq[140];
 short	wfreq[50];
 int	nbuf;
-Dir	mbuf;
+Dir*	mbuf;
 int	fd;
 char 	*fname;
 char	*slash;
@@ -149,6 +149,7 @@ int	iscint(void);
 int	isenglish(void);
 int	ishp(void);
 int	ishtml(void);
+int	isrfc822(void);
 int	islimbo(void);
 int	ismung(void);
 int	isp9bit(void);
@@ -158,7 +159,6 @@ int	long0(void);
 int	p9bitnum(uchar*);
 int	p9subfont(uchar*);
 void	print_utf(void);
-int	short0(void);
 void	type(char*, int);
 int	utf_count(void);
 void	wordfreq(void);
@@ -166,9 +166,9 @@ void	wordfreq(void);
 int	(*call[])(void) =
 {
 	long0,		/* recognizable by first 4 bytes */
-	short0,		/* recognizable by first 2 bytes */
 	istring,	/* recognizable by first string */
 	ishtml,		/* html keywords */
+	isrfc822,	/* email file */
 	iscint,		/* compiler/assembler intermediate */
 	islimbo,	/* limbo source */
 	isc,		/* c & alef compiler key words */
@@ -255,20 +255,22 @@ filetype(int fd)
 	int i, f, n;
 	char *p, *eob;
 
-	if(dirfstat(fd, &mbuf) < 0) {
-		print("cannot stat\n");
+	free(mbuf);
+	mbuf = dirfstat(fd);
+	if(mbuf == nil){
+		print("cannot stat: %r\n");
 		return;
 	}
-	if(mbuf.mode & CHDIR) {
+	if(mbuf->mode & DMDIR) {
 		print(mime ? "text/directory\n" : "directory\n");
 		return;
 	}
-	if(mbuf.type != 'M' && mbuf.type != '|') {
+	if(mbuf->type != 'M' && mbuf->type != '|') {
 		print(mime ? OCTET : "special file #%c/%s\n",
-			mbuf.type, mbuf.name);
+			mbuf->type, mbuf->name);
 		return;
 	}
-	nbuf = read(fd, buf, sizeof(buf));
+	nbuf = read(fd, buf, sizeof(buf)-1);
 
 	if(nbuf < 0) {
 		print("cannot read\n");
@@ -278,6 +280,7 @@ filetype(int fd)
 		print(mime ? PLAIN : "empty file\n");
 		return;
 	}
+	buf[nbuf] = 0;
 
 	/*
 	 * build histogram table
@@ -492,6 +495,38 @@ wordfreq(void)
 	}
 }
 
+typedef struct Filemagic Filemagic;
+struct Filemagic {
+	ulong x;
+	ulong mask;
+	char *desc;
+	char *mime;
+};
+
+Filemagic long0tab[] = {
+	0xF16DF16D,	0xFFFFFFFF,	"pac1 audio file\n",	OCTET,
+	0x31636170,	0xFFFFFFFF,	"pac3 audio file\n",	OCTET,
+	0x32636170,	0xFFFF00FF,	"pac4 audio file\n",	OCTET,
+	0xBA010000,	0xFFFFFFFF,	"mpeg system stream\n",	OCTET,
+	0x30800CC0,	0xFFFFFFFF,	"inferno .dis executable\n", OCTET,
+	0x04034B50,	0xFFFFFFFF,	"zip archive\n", OCTET,
+	070707,		0xFFFF,		"cpio archive\n", OCTET,
+	0x2F7,		0xFFFF,		"tex dvi\n", OCTET,
+};
+
+int
+filemagic(Filemagic *tab, int ntab, ulong x)
+{
+	int i;
+
+	for(i=0; i<ntab; i++)
+		if((x&tab[i].mask) == tab[i].x){
+			print(mime ? tab[i].mime : tab[i].desc);
+			return 1;
+		}
+	return 0;
+}
+	
 int
 long0(void)
 {
@@ -504,43 +539,9 @@ long0(void)
 		return 1;
 	}
 	x = LENDIAN(buf);
-	switch(x) {
-	case 0xf16df16d:
-		print(mime ? OCTET : "pac1 audio file\n");
+	if(filemagic(long0tab, nelem(long0tab), x))
 		return 1;
-	case 0x31636170:
-		print(mime ? OCTET : "pac3 audio file\n");
-		return 1;
-	case 0xba010000:
-		print(mime ? OCTET : "mpeg system stream\n");
-		return 1;
-	case 0x30800cc0:
-		print(mime ? OCTET : "inferno .dis executable\n");
-		return 1;
-	}
-	if(((x ^ 0x32636170) & 0xffff00ff) == 0) {
-		print(mime ? OCTET : "pac4 audio file\n");
-		return 1;
-	}
 	return 0;
-}
-
-int
-short0(void)
-{
-
-	switch(LENDIAN(buf) & 0xffff) {
-	case 070707:
-		print(mime ? OCTET : "cpio archive\n");
-		break;
-
-	case 0x02f7:
-		print(mime ? OCTET : "tex dvi\n");
-		break;
-	default:
-		return 0;
-	}
-	return 1;
 }
 
 /*
@@ -569,6 +570,7 @@ struct	FILE_STRING
 	"GIF",			"GIF image", 			3,	"image/gif",
 	"\0PC Research, Inc\0",	"ghostscript fax file",		18,	"application/ghostscript",
 	"%PDF",			"PDF",				4,	"application/pdf",
+	"From ",		"mail box",			5, "text/plain",
 	"<html>\n",		"HTML file",			7,	"text/html",
 	"<HTML>\n",		"HTML file",			7,	"text/html",
 	"compressed\n",		"Compressed image or subfont",	11,	"application/octet-stream",
@@ -578,7 +580,6 @@ struct	FILE_STRING
 	"\377\330\377\341",	"jpeg",				4,	"image/jpeg",
 	"\377\330\377\333",	"jpeg",				4,	"image/jpeg",
 	"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",	"microsoft office document",	8,	"application/octet-stream",
-
 	0,0,0,0
 };
 
@@ -666,27 +667,47 @@ ishtml(void)
 	return 0;
 }
 
-/*
- *  case independent string compare
- */
-int
-cistrncmp(char *s1, char *s2, int n)
+char*	rfc822_string[] =
 {
-	int c1, c2;
+	"from:",
+	"date:",
+	"to:",
+	"subject:",
+	"received:",
+	0,
+};
 
-	for(; n > 0; n--){
-		c1 = *s1++;
-		c2 = *s2++;
-		if(isupper(c1))
-			c1 = tolower(c1);
-		if(isupper(c2))
-			c2 = tolower(c2);
-		if(c2 != c1)
+int
+isrfc822(void)
+{
+
+	char *p, *q, *r;
+	int i, count;
+
+	count = 0;
+	p = (char*)buf;
+	for(;;) {
+		q = strchr(p, '\n');
+		if(q == nil)
 			break;
-		if(c1 == 0)
-			return 0;
+		if(*p != '\t' && *p != ' '){
+			r = strchr(p, ':');
+			if(r == 0 || r > q)
+				break;
+			for(i = 0; rfc822_string[i]; i++) {
+				if(cistrncmp(p, rfc822_string[i], strlen(rfc822_string[i])) == 0){
+					count++;
+					break;
+				}
+			}
+		}
+		p = q+1;
 	}
-	return 1;
+	if(count >= 3){
+		print(mime ? "message/rfc822\n" : "email file\n");
+		return 1;
+	}
+	return 0;
 }
 
 int
@@ -958,16 +979,16 @@ isp9bit(void)
 	 * for /dev/window and /dev/screen the length is always zero
 	 * for subfont, the subfont header should follow immediately.
 	 */
-	if (len != 0 && mbuf.length == 0) {
+	if (len != 0 && mbuf->length == 0) {
 		print("%splan 9 image\n", newlabel);
 		return 1;
 	}
-	if (mbuf.length == len) {
+	if (mbuf->length == len) {
 		print("%splan 9 image\n", newlabel);
 		return 1;
 	}
 	/* Ghostscript sometimes produces a little extra on the end */
-	if (mbuf.length < len+P9BITLEN) {
+	if (mbuf->length < len+P9BITLEN) {
 		print("%splan 9 image\n", newlabel);
 		return 1;
 	}
@@ -1006,7 +1027,6 @@ isp9font(void)
 {
 	uchar *cp, *p;
 	int i, n;
-	char dbuf[DIRLEN];
 	char pathname[1024];
 
 	cp = buf;
@@ -1035,7 +1055,7 @@ isp9font(void)
 			memcpy(pathname+n, p, cp-p);
 			n += cp-p;
 			pathname[n] = 0;
-			if (stat(pathname, dbuf) < 0)
+			if (access(pathname, AEXIST) < 0)
 				return 0;
 		}
 	}

@@ -104,6 +104,15 @@ An image must have either a greyscale channel; a color mapped channel;
 or red, green, and blue channels.
 If the alpha channel is present, it must be at least as deep as any other channel.
 .PP
+The channel string defines the format of the pixels in the file,
+and should not be confused with ordering of bytes in the file.
+In particular
+.B 'r8g8b8'
+pixels have byte ordering blue, green, and red within the file.
+See
+.IR color (6)
+for more details of the pixel format.
+.PP
 A venerable yet deprecated format replaces the channel string
 with a decimal
 .IR ldepth ,

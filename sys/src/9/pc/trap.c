@@ -21,14 +21,20 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	int vno;
 	Vctl *v;
 
+	if(f == nil){
+		print("intrenable: nil handler for %d, tbdf 0x%uX for %s\n",
+			irq, tbdf, name);
+		return;
+	}
+
 	v = xalloc(sizeof(Vctl));
 	v->isintr = 1;
 	v->irq = irq;
 	v->tbdf = tbdf;
 	v->f = f;
 	v->a = a;
-	strncpy(v->name, name, NAMELEN-1);
-	v->name[NAMELEN-1] = 0;
+	strncpy(v->name, name, KNAMELEN-1);
+	v->name[KNAMELEN-1] = 0;
 
 	ilock(&vctllock);
 	vno = arch->intrenable(v);
@@ -50,10 +56,41 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	iunlock(&vctllock);
 }
 
+void
+intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
+{
+	Vctl **pv, *v;
+	int vno;
+
+	/*
+	 * For now, none of this will work with the APIC code,
+	 * there is no mapping between irq and vector as the IRQ
+	 * is pretty meaningless.
+	 */
+	if(arch->intrvecno == nil)
+		return;
+	vno = arch->intrvecno(irq);
+	ilock(&vctllock);
+	pv = &vctl[vno];
+	while (*pv && 
+		  ((*pv)->irq != irq || (*pv)->tbdf != tbdf || (*pv)->f != f || (*pv)->a != a ||
+		   strcmp((*pv)->name, name)))
+		pv = &((*pv)->next);
+	assert(*pv);
+
+	v = *pv;
+	*pv = (*pv)->next;	/* Link out the entry */
+	
+	if (vctl[vno] == nil && arch->intrdisable != nil)
+		arch->intrdisable(irq);
+	iunlock(&vctllock);
+	xfree(v);
+}
+
 static long
 irqallocread(Chan*, void *vbuf, long n, vlong offset)
 {
-	char *buf, *p, str[11+1+NAMELEN+1];
+	char *buf, *p, str[11+1+KNAMELEN+1];
 	int m, vno;
 	long oldn;
 	Vctl *v;
@@ -65,7 +102,7 @@ irqallocread(Chan*, void *vbuf, long n, vlong offset)
 	buf = vbuf;
 	for(vno=0; vno<nelem(vctl); vno++){
 		for(v=vctl[vno]; v; v=v->next){
-			m = snprint(str, sizeof str, "%11d %11d %.*s\n", vno, v->irq, NAMELEN, v->name);
+			m = snprint(str, sizeof str, "%11d %11d %.*s\n", vno, v->irq, KNAMELEN, v->name);
 			if(m <= offset)	/* if do not want this, skip entry */
 				offset -= m;
 			else{
@@ -100,8 +137,8 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	v->tbdf = BUSUNKNOWN;
 	v->f = f;
 	v->a = a;
-	strncpy(v->name, name, NAMELEN);
-	v->name[NAMELEN-1] = 0;
+	strncpy(v->name, name, KNAMELEN);
+	v->name[KNAMELEN-1] = 0;
 
 	lock(&vctllock);
 	if(vctl[vno])
@@ -214,7 +251,7 @@ void
 trap(Ureg* ureg)
 {
 	int i, vno, user;
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 	Vctl *ctl, *v;
 	Mach *mach;
 
@@ -274,9 +311,29 @@ trap(Ureg* ureg)
 		 * the corresponding bit in the ISR isn't set.
 		 * In fact, just ignore all such interrupts.
 		 */
-		print("cpu%d: spurious interrupt %d, last %d",
+
+		/* call all interrupt routines, just in case */
+		for(i = VectorPIC; i <= MaxIrqLAPIC; i++){
+			ctl = vctl[i];
+			if(ctl == nil)
+				continue;
+			if(!ctl->isintr)
+				continue;
+			for(v = ctl; v != nil; v = v->next){
+				if(v->f)
+					v->f(ureg, v->a);
+			}
+			/* should we do this? */
+			if(ctl->eoi)
+				ctl->eoi(i);
+		}
+
+		/* clear the interrupt */
+		i8259isr(vno);
+			
+		if(0)print("cpu%d: spurious interrupt %d, last %d",
 			m->machno, vno, m->lastintr);
-		for(i = 0; i < conf.nmach; i++){
+		for(i = 0; i < 32; i++){
 			if(!(active.machs & (1<<i)))
 				continue;
 			mach = MACHP(i);
@@ -377,28 +434,31 @@ callwithureg(void (*fn)(Ureg*))
 static void
 _dumpstack(Ureg *ureg)
 {
-	ulong l, v, i;
-	uchar *p;
+	ulong l, v, i, estack;
 	extern ulong etext;
-
-	if(up == 0)
-		return;
 
 	print("ktrace /kernel/path %.8lux %.8lux\n", ureg->pc, ureg->sp);
 	i = 0;
-	for(l=(ulong)&l; l<(ulong)(up->kstack+KSTACK); l+=4){
+	if(up
+	&& (ulong)&l >= (ulong)up->kstack
+	&& (ulong)&l <= (ulong)up->kstack+KSTACK)
+		estack = (ulong)up->kstack+KSTACK;
+	else if((ulong)&l >= (ulong)m->stack
+	&& (ulong)&l <= (ulong)m+BY2PG)
+		estack = (ulong)m+MACHSIZE;
+	else
+		return;
+
+	for(l=(ulong)&l; l<estack; l+=4){
 		v = *(ulong*)l;
 		if(KTZERO < v && v < (ulong)&etext){
 			/*
-			 * Pick off general CALL (0xE8) and CALL indirect
-			 * through AX (0xFFD0).
+			 * we could Pick off general CALL (((uchar*)v)[-5] == 0xE8)
+			 * and CALL indirect through AX (((uchar*)v)[-2] == 0xFF && ((uchar*)v)[-2] == 0xD0),
+			 * but this is too clever and misses faulting address.
 			 */
-			p = (uchar*)v;
-			if(*(p-5) == 0xE8
-			|| (*(p-2) == 0xFF && *(p-1) == 0xD0)){
-				print("%.8lux=%.8lux ", l, v);
-				i++;
-			}
+			print("%.8lux=%.8lux ", l, v);
+			i++;
 		}
 		if(i == 4){
 			i = 0;
@@ -418,7 +478,7 @@ dumpstack(void)
 static void
 debugbpt(Ureg* ureg, void*)
 {
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
 	if(up == 0)
 		panic("kernel bpt");
@@ -433,13 +493,15 @@ fault386(Ureg* ureg, void*)
 {
 	ulong addr;
 	int read, user, n, insyscall;
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
 	addr = getcr2();
 	user = (ureg->cs & 0xFFFF) == UESEL;
 	if(!user && mmukmapsync(addr))
 		return;
 	read = !(ureg->ecode & 2);
+	if(up == nil)
+		panic("what? up is zero pc 0x%8.8lux\n", ureg->pc);
 	insyscall = up->insyscall;
 	up->insyscall = 1;
 	n = fault(addr, read);
@@ -466,12 +528,14 @@ fault386(Ureg* ureg, void*)
 void
 syscall(Ureg* ureg)
 {
+	char *e;
 	ulong	sp;
 	long	ret;
-	int	i, scallnr;
+	int	i;
+	ulong scallnr;
 
 	if((ureg->cs & 0xFFFF) != UESEL)
-		panic("syscall: cs 0x%4.4uX\n", ureg->cs);
+		panic("syscall: cs 0x%4.4luX\n", ureg->cs);
 
 	m->syscall++;
 	up->insyscall = 1;
@@ -490,7 +554,7 @@ syscall(Ureg* ureg)
 	up->nerrlab = 0;
 	ret = -1;
 	if(!waserror()){
-		if(scallnr >= nsyscall){
+		if(scallnr >= nsyscall || systab[scallnr] == 0){
 			pprint("bad sys call number %d pc %lux\n",
 				scallnr, ureg->pc);
 			postnote(up, 1, "sys: bad sys call", NDebug);
@@ -505,9 +569,14 @@ syscall(Ureg* ureg)
 
 		ret = systab[scallnr](up->s.args);
 		poperror();
+	}else{
+		/* failure: save the error buffer for errstr */
+		e = up->syserrstr;
+		up->syserrstr = up->errstr;
+		up->errstr = e;
 	}
 	if(up->nerrlab){
-		print("bad errstack [%d]: %d extra\n", scallnr, up->nerrlab);
+		print("bad errstack [%uld]: %d extra\n", scallnr, up->nerrlab);
 		for(i = 0; i < NERR; i++)
 			print("sp=%lux pc=%lux\n",
 				up->errlab[i].sp, up->errlab[i].pc);
@@ -556,8 +625,8 @@ notify(Ureg* ureg)
 	n = &up->note[0];
 	if(strncmp(n->msg, "sys:", 4) == 0){
 		l = strlen(n->msg);
-		if(l > ERRLEN-15)	/* " pc=0x12345678\0" */
-			l = ERRLEN-15;
+		if(l > ERRMAX-15)	/* " pc=0x12345678\0" */
+			l = ERRMAX-15;
 		sprint(n->msg+l, " pc=0x%.8lux", ureg->pc);
 	}
 
@@ -582,7 +651,7 @@ notify(Ureg* ureg)
 	sp -= sizeof(Ureg);
 
 	if(!okaddr((ulong)up->notify, 1, 0)
-	|| !okaddr(sp-ERRLEN-4*BY2WD, sizeof(Ureg)+ERRLEN+4*BY2WD, 1)){
+	|| !okaddr(sp-ERRMAX-4*BY2WD, sizeof(Ureg)+ERRMAX+4*BY2WD, 1)){
 		pprint("suicide: bad address in notify\n");
 		qunlock(&up->debug);
 		pexit("Suicide", 0);
@@ -592,8 +661,8 @@ notify(Ureg* ureg)
 	memmove((Ureg*)sp, ureg, sizeof(Ureg));
 	*(Ureg**)(sp-BY2WD) = up->ureg;	/* word under Ureg is old up->ureg */
 	up->ureg = (void*)sp;
-	sp -= BY2WD+ERRLEN;
-	memmove((char*)sp, up->note[0].msg, ERRLEN);
+	sp -= BY2WD+ERRMAX;
+	memmove((char*)sp, up->note[0].msg, ERRMAX);
 	sp -= 3*BY2WD;
 	*(ulong*)(sp+2*BY2WD) = sp+3*BY2WD;	/* arg 2 is string */
 	*(ulong*)(sp+1*BY2WD) = (ulong)up->ureg;	/* arg 1 is ureg* */
@@ -677,7 +746,7 @@ noted(Ureg* ureg, ulong arg0)
 			pexit("Suicide", 0);
 		}
 		qunlock(&up->debug);
-		sp = oureg-4*BY2WD-ERRLEN;
+		sp = oureg-4*BY2WD-ERRMAX;
 		splhi();
 		ureg->sp = sp;
 		((ulong*)sp)[1] = oureg;	/* arg 1 0(FP) is ureg* */

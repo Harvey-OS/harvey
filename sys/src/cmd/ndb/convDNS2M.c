@@ -236,6 +236,9 @@ convRR2M(RR *rp, uchar *p, uchar *ep, Dict *dp)
 	case Ttxt:
 		STRING(rp->txt->name);
 		break;
+	case Tnull:
+		BYTES(rp->null->data, rp->null->dlen);
+		break;
 	case Trp:
 		NAME(rp->rmb->name);
 		NAME(rp->txt->name);

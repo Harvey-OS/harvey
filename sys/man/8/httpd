@@ -105,14 +105,20 @@ then
 .I domain
 is the host name used in the redirection.
 .PP
-The redirection table also maps a URI into an authentication realm.
-If a prefix of the URI matches a realm,
-the server negotiates a basic authentication with the client.
-The client's credentials are checked by calling
-.B httpauth
-(see
-.IR auth (2)),
-passing the realm and the client's supplied password as arguments.
+Before opening any file,
+.I httpd
+looks for a file in the same directory called
+.BR .httplogin .
+If the file exists, the directory is considered
+locked and the client must specify a user name
+and password machine a pair in the file.
+.B .httplogin
+contains a list of space or newline separated tokens, each
+possibly delimited by single quotes.  The first
+is a domain name presented to the HTTP client.
+The rest are pairs of user name and password.
+Thus, there can be many user name/password pairs
+valid for a directory.
 .PP
 If the requested URI begins with
 .BI  /magic/ server /\f1,

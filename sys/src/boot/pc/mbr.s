@@ -207,6 +207,7 @@ _BIOSputsret:
 	POPA
 	RET
 
+/* "No active entry in MBR" */
 TEXT noentry(SB), $0
 	BYTE $'N'; BYTE $'o'; BYTE $' '; BYTE $'a';
 	BYTE $'c'; BYTE $'t'; BYTE $'i'; BYTE $'v';
@@ -216,24 +217,28 @@ TEXT noentry(SB), $0
 	BYTE $'B'; BYTE $'R';
 	BYTE $'\z';
 
+/* "Invalid MBR" */
 TEXT invalidMBR(SB), $0
 	BYTE $'I'; BYTE $'n'; BYTE $'v'; BYTE $'a';
 	BYTE $'l'; BYTE $'i'; BYTE $'d'; BYTE $' ';
 	BYTE $'M'; BYTE $'B'; BYTE $'R';
 	BYTE $'\z';
 
+/* "I/O error" */
 TEXT ioerror(SB), $0
 	BYTE $'I'; BYTE $'/'; BYTE $'O'; BYTE $' ';
 	BYTE $'e'; BYTE $'r'; BYTE $'r'; BYTE $'o';
 	BYTE $'r';
 	BYTE $'\z';
 
+/* "Invalid PBS" */
 TEXT invalidPBS(SB), $0
 	BYTE $'I'; BYTE $'n'; BYTE $'v'; BYTE $'a';
 	BYTE $'l'; BYTE $'i'; BYTE $'d'; BYTE $' ';
 	BYTE $'P'; BYTE $'B'; BYTE $'S';
 	BYTE $'\z';
 
+/* "\r\nPress almost any key to reboot..." */
 TEXT reboot(SB), $0
 	BYTE $'\r';BYTE $'\n';
 	BYTE $'P'; BYTE $'r'; BYTE $'e'; BYTE $'s';
@@ -247,6 +252,7 @@ TEXT reboot(SB), $0
 	BYTE $'.';
 	BYTE $'\z';
 
+/* "MBR..." */
 TEXT confidence(SB), $0
 	BYTE $'M'; BYTE $'B'; BYTE $'R'; BYTE $'.';
 	BYTE $'.'; BYTE $'.';

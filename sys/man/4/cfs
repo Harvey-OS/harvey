@@ -4,14 +4,14 @@ cfs \- cache file system
 .SH SYNOPSIS
 .B cfs
 .B -s
-.RB [ -rd ]
+.RB [ -rdS ]
 .RB [ -f
 .IR partition ]
 .PP
 .B cfs 
 .B -a
 .I netaddr
-.RB [ -rd ]
+.RB [ -rdS ]
 .RB [ -f
 .IR partition ]
 .RI [ mtpt ]
@@ -53,7 +53,14 @@ to connect to a remote file server.
 reformat the cache disk partition.
 .TP
 .B d
-turn on debugging
+turn on debugging.
+.TP
+.B S
+turn on statistics gathering.  A file called
+.B cfsctl
+at the root of the caching file system can be read to get
+statistics concerning number of calls/bytes on client and server
+sides and latencies.
 .TP
 .BI "f " partition
 use file

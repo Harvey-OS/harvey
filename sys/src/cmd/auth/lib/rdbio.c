@@ -2,8 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <ctype.h>
-#include <auth.h>
-#include "authsrv.h"
+#include "authcmdlib.h"
 
 void
 clrbio(Acctbio *a)

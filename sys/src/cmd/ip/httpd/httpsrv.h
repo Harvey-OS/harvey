@@ -27,7 +27,6 @@ int			authcheck(HConnect *c);
 int			checkreq(HConnect *c, HContent *type, HContent *enc, long mtime, char *etag);
 int			etagmatch(int, HETag*, char*);
 HRange			*fixrange(HRange *h, long length);
-int			notfound(HConnect *c, char *url);
 int			sendfd(HConnect *c, int fd, Dir *dir, HContent *type, HContent *enc);
 
 /* content.c */
@@ -53,6 +52,7 @@ vlong			Bfilelen(void*);
 /* redirect.c */
 void			redirectinit(void);
 char*			redirect(HConnect *hc, char*);
+char*			masquerade(char*);
 char*			authrealm(HConnect *hc, char *path);
 
 /* log.c */
@@ -60,3 +60,6 @@ void			logit(HConnect*, char*, ...);
 #pragma	varargck	argpos	logit	2
 void			writelog(HConnect*, char*, ...);
 #pragma	varargck	argpos	writelog	2
+
+/* authorize.c */
+int authorize(HConnect*, char*);

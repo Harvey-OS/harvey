@@ -12,12 +12,13 @@ typedef struct Dinode	Dinode;
 
 enum
 {
-	Amagic= 	0xfaafaa,	/* allocation block magic */
-	Imagic=		0xdeadbeef,	/* inode block magic */
+	Amagic= 		0xbebedded,	/* allocation block magic */
+	Imagic=		0xbadc0c0a,	/* inode block magic */
 	BtoUL=		8*sizeof(ulong),/* bits in a ulong */
+	KNAMELEN=	28	/* old NAMELEN: BUG */
 };
 #define	Indbno		0x80000000	/* indirect block */
-#define Notabno		0xFFFFFFFF	/* not a block number */
+#define	Notabno		0xFFFFFFFF	/* not a block number */
 
 /*
  *  Allocation blocks at the begining of the disk.  There are
@@ -28,7 +29,7 @@ struct Dahdr
 {
 	ulong	magic;
 	ulong	bsize;		/* logical block size */
-	char	name[NAMELEN];
+	char	name[KNAMELEN];
 	short	nab;		/* number of allocation blocks */
 };
 struct Dalloc
@@ -53,9 +54,10 @@ struct Dptr
  */
 struct Inode
 {
-	Qid	qid;
-	Dptr	ptr;		/* pointer page */	
-	char	inuse;
+	Qid		qid;
+	vlong	length;
+	Dptr		ptr;		/* pointer page */	
+	char		inuse;
 };
 
 /*

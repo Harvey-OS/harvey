@@ -257,6 +257,14 @@ cgen(Node *n, Node *nn)
 		}
 		if(typefd[n->type->etype])
 			goto fop;
+		if(o == OMUL && r->op == OCONST) {
+			regalloc(&nod, l, nn);
+			cgen(l, &nod);
+			gopcode(o, n->type, r, &nod);
+			gmove(&nod, nn);
+			regfree(&nod);
+			break;
+		}
 		/*
 		 * get nod to be D_AX
 		 * get nod1 to be D_DX
@@ -433,6 +441,22 @@ cgen(Node *n, Node *nn)
 			goto asbitop;
 		if(typefd[n->type->etype])
 			goto asfop;
+		if(o == OASMUL && r->op == OCONST) {
+			if(hardleft)
+				reglcgen(&nod2, l, Z);
+			else
+				nod2 = *l;
+			regalloc(&nod, l, nn);
+			cgen(&nod2, &nod);
+			gopcode(o, l->type, r, &nod);
+			gmove(&nod, &nod2);
+			if(nn != Z)
+				gmove(&nod, nn);
+			if(hardleft)
+				regfree(&nod2);
+			regfree(&nod);
+			break;
+		}
 		/*
 		 * get nod to be D_AX
 		 * get nod1 to be D_DX

@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 {
 	int fd;
 	long i, j, k, n;
-	Dir d;
+	Dir *d;
 	char *name;
 	ulong *data;
 	ulong tbase, sum;
@@ -77,15 +77,16 @@ main(int argc, char *argv[])
 	fd = open(file, OREAD);
 	if(fd < 0)
 		error(1, file);
-	if(dirfstat(fd, &d) < 0)
+	d = dirfstat(fd);
+	if(d == nil)
 		error(1, "stat");
-	n = d.length/sizeof(data[0]);
+	n = d->length/sizeof(data[0]);
 	if(n < 2)
 		error(0, "data file too short");
-	data = malloc(d.length);
+	data = malloc(d->length);
 	if(data == 0)
 		error(1, "malloc");
-	if(read(fd, data, d.length) < 0)
+	if(read(fd, data, d->length) < 0)
 		error(1, "text read");
 	close(fd);
 

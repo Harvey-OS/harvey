@@ -1,0 +1,19 @@
+</$objtype/mkfile
+
+LIB=usb.a$O
+OFILES=\
+	config.$O\
+	device.$O\
+	dump.$O\
+	fmt.$O\
+	setup.$O\
+	util.$O\
+
+HFILES=\
+	usb.h\
+	usbproto.h\
+
+</sys/src/cmd/mklib
+
+install safeinstall:V:	$LIB
+	date

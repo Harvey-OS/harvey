@@ -6,7 +6,6 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -19,6 +18,7 @@ void	mousethread(void*);
 void	keyboardthread(void*);
 void	waitthread(void*);
 void	xfidallocthread(void*);
+void	newwindowthread(void*);
 void plumbproc(void*);
 
 Reffont	**fontcache;
@@ -112,6 +112,8 @@ threadmain(int argc, char *argv[])
 	}
 	if(maxtab == 0)
 		maxtab = 4; 
+	if(loadfile)
+		rowloadfonts(loadfile);
 	putenv("font", fontnames[0]);
 	snarffd = open("/dev/snarf", OREAD|OCEXEC);
 	if(cputype){
@@ -121,9 +123,9 @@ threadmain(int argc, char *argv[])
 	bind("/acme/bin", "/bin", MBEFORE);
 	getwd(wdir, sizeof wdir);
 
-	if(geninitdraw(nil, derror, nil, "acme", nil, Refnone) < 0){
+	if(geninitdraw(nil, derror, fontnames[0], "acme", nil, Refnone) < 0){
 		fprint(2, "acme: can't open display: %r\n");
-		exits("font");
+		exits("geninitdraw");
 	}
 	d = display;
 	font = d->defaultfont;
@@ -145,6 +147,7 @@ threadmain(int argc, char *argv[])
 	ckill = chancreate(sizeof(Rune*), 0);
 	cxfidalloc = chancreate(sizeof(Xfid*), 0);
 	cxfidfree = chancreate(sizeof(Xfid*), 0);
+	cnewwindow = chancreate(sizeof(Channel*), 0);
 	cerr = chancreate(sizeof(char*), 0);
 	cedit = chancreate(sizeof(int), 0);
 	cexit = chancreate(sizeof(int), 0);
@@ -215,8 +218,9 @@ threadmain(int argc, char *argv[])
 	threadcreate(mousethread, nil, STACK);
 	threadcreate(waitthread, nil, STACK);
 	threadcreate(xfidallocthread, nil, STACK);
+	threadcreate(newwindowthread, nil, STACK);
 
-	atnotify(shutdown, 1);
+	threadnotify(shutdown, 1);
 	recvul(cexit);
 	killprocs();
 	threadexitsall(nil);
@@ -246,21 +250,19 @@ char *oknotes[] ={
 	"delete",
 	"hangup",
 	"kill",
-	"kilall",
 	"exit",
 	nil
 };
 
 int	dumping;
 
-void
-shutdown1(void*, char *msg)
+int
+shutdown(void*, char *msg)
 {
 	int i;
 
-	notify(nil);
 	killprocs();
-	if(!dumping && strcmp(msg, "kill")!=0 && strcmp(msg, "exit")!=0 && strcmp(msg, "kilall")!=0 && getpid()==mainpid){
+	if(!dumping && strcmp(msg, "kill")!=0 && strcmp(msg, "exit")!=0 && getpid()==mainpid){
 		dumping = TRUE;
 		rowdump(&row, nil);
 	}
@@ -269,13 +271,7 @@ shutdown1(void*, char *msg)
 			threadexitsall(msg);
 	print("acme: %s\n", msg);
 	abort();
-}
-
-int
-shutdown(void *a, char *msg)	/* extra call to get stack trace on 386 */
-{
-	shutdown1(a, msg);
-	return 1;
+	return 0;
 }
 
 void
@@ -284,8 +280,8 @@ killprocs(void)
 	Command *c;
 
 	fsysclose();
-	if(display)
-		flushimage(display, 1);
+//	if(display)
+//		flushimage(display, 1);
 
 	for(c=command; c; c=c->next)
 		postnote(PNGROUP, c->pid, "hangup");
@@ -389,7 +385,7 @@ keyboardthread(void *)
 		casekeyboard:
 			typetext = rowtype(&row, r, mouse->xy);
 			t = typetext;
-			if(t!=nil && t->col!=nil)
+			if(t!=nil && t->col!=nil && !(r==Kdown || r==Kleft || r==Kright))	/* scrolling doesn't change activecol */
 				activecol = t->col;
 			if(t!=nil && t->w!=nil)
 				t->w->body.file->curtext = &t->w->body;
@@ -420,6 +416,7 @@ mousethread(void *)
 	uint q0, q1;
 	Window *w;
 	Plumbmsg *pm;
+	Mouse m;
 	char *act;
 	enum { MResize, MMouse, MPlumb, NMALT };
 	static Alt alts[NMALT+1];
@@ -459,8 +456,14 @@ mousethread(void *)
 			plumbfree(pm);
 			break;
 		case MMouse:
+			/*
+			 * Make a copy so decisions are consistent; mousectl changes
+			 * underfoot.  Can't just receive into m because this introduces
+			 * another race; see /sys/src/libdraw/mouse.c.
+			 */
+			m = mousectl->Mouse;
 			qlock(&row);
-			t = rowwhich(&row, mouse->xy);
+			t = rowwhich(&row, m.xy);
 			if(t!=mousetext && mousetext!=nil && mousetext->w!=nil){
 				winlock(mousetext->w, 'M');
 				mousetext->eq0 = ~0;
@@ -471,17 +474,17 @@ mousethread(void *)
 			if(t == nil)
 				goto Continue;
 			w = t->w;
-			if(t==nil || mouse->buttons==0)
+			if(t==nil || m.buttons==0)
 				goto Continue;
 			but = 0;
-			if(mouse->buttons == 1)
+			if(m.buttons == 1)
 				but = 1;
-			else if(mouse->buttons == 2)
+			else if(m.buttons == 2)
 				but = 2;
-			else if(mouse->buttons == 4)
+			else if(m.buttons == 4)
 				but = 3;
 			barttext = t;
-			if(t->what==Body && ptinrect(mouse->xy, t->scrollr)){
+			if(t->what==Body && ptinrect(m.xy, t->scrollr)){
 				if(but){
 					winlock(w, 'M');
 					t->eq0 = ~0;
@@ -490,7 +493,7 @@ mousethread(void *)
 				}
 				goto Continue;
 			}
-			if(ptinrect(mouse->xy, t->scrollr)){
+			if(ptinrect(m.xy, t->scrollr)){
 				if(but){
 					if(t->what == Columntag)
 						rowdragcol(&row, t->col, but);
@@ -504,7 +507,7 @@ mousethread(void *)
 				}
 				goto Continue;
 			}
-			if(mouse->buttons){
+			if(m.buttons){
 				if(w)
 					winlock(w, 'M');
 				t->eq0 = ~0;
@@ -512,7 +515,7 @@ mousethread(void *)
 					wincommit(w, t);
 				else
 					textcommit(t, TRUE);
-				if(mouse->buttons & 1){
+				if(m.buttons & 1){
 					textselect(t);
 					if(w)
 						winsettag(w);
@@ -522,10 +525,10 @@ mousethread(void *)
 						activecol = t->col;	/* button 1 only */
 					if(t->w!=nil && t==&t->w->body)
 						activewin = t->w;
-				}else if(mouse->buttons & 2){
+				}else if(m.buttons & 2){
 					if(textselect2(t, &q0, &q1, &argt))
 						execute(t, q0, q1, FALSE, argt);
-				}else if(mouse->buttons & 4){
+				}else if(m.buttons & 4){
 					if(textselect3(t, &q0, &q1))
 						look3(t, q0, q1, FALSE);
 				}
@@ -549,14 +552,14 @@ typedef struct Pid Pid;
 struct Pid
 {
 	int	pid;
-	char	msg[ERRLEN];
+	char	msg[ERRMAX];
 	Pid	*next;
 };
 
 void
 waitthread(void *)
 {
-	Waitmsg w;
+	Waitmsg *w;
 	Command *c, *lc;
 	uint pid;
 	int found, ncmd;
@@ -609,7 +612,7 @@ waitthread(void *)
 			free(cmd);
 			break;
 		case WWait:
-			pid = atoi(w.pid);
+			pid = w->pid;
 			lc = nil;
 			for(c=command; c; c=c->next){
 				if(c->pid == pid){
@@ -626,10 +629,10 @@ waitthread(void *)
 			textcommit(t, TRUE);
 			if(c == nil){
 				/* helper processes use this exit status */
-				if(strncmp(w.msg, "libthread", 9) != 0){
+				if(strncmp(w->msg, "libthread", 9) != 0){
 					p = emalloc(sizeof(Pid));
 					p->pid = pid;
-					strncpy(p->msg, w.msg, sizeof(p->msg));
+					strncpy(p->msg, w->msg, sizeof(p->msg));
 					p->next = pids;
 					pids = p;
 				}
@@ -638,17 +641,17 @@ waitthread(void *)
 					textdelete(t, t->q0, t->q1, TRUE);
 					textsetselect(t, 0, 0);
 				}
-				if(w.msg[0])
-					warning(c->md, "%s\n", w.msg);
+				if(w->msg[0])
+					warning(c->md, "%s\n", w->msg);
 				flushimage(display, 1);
 			}
 			qunlock(&row);
+			free(w);
     Freecmd:
 			if(c){
 				if(c->iseditcmd)
 					sendul(cedit, 0);
 				free(c->text);
-				free(c->av);
 				free(c->name);
 				fsysdelid(c->md);
 				free(c);
@@ -723,6 +726,23 @@ xfidallocthread(void*)
 	}
 }
 
+/* this thread, in the main proc, allows fsysproc to get a window made without doing graphics */
+void
+newwindowthread(void*)
+{
+	Window *w;
+
+	threadsetname("newwindowthread");
+
+	for(;;){
+		/* only fsysproc is talking to us, so synchronization is trivial */
+		recvp(cnewwindow);
+		w = newwindow(nil);
+		winsettag(w);
+		sendp(cnewwindow, w);
+	}
+}
+
 Reffont*
 rfget(int fix, int save, int setfont, char *name)
 {
@@ -757,6 +777,7 @@ rfget(int fix, int save, int setfont, char *name)
 		if(reffonts[fix])
 			rfclose(reffonts[fix]);
 		reffonts[fix] = r;
+		free(fontnames[fix]);
 		fontnames[fix] = name;
 	}
 	if(setfont){
@@ -812,15 +833,15 @@ iconinit(void)
 
 	/* Blue */
 	tagcols[BACK] = allocimagemix(display, DPalebluegreen, DWhite);
-	tagcols[HIGH] = allocimage(display, Rect(0,0,1,1), display->chan, 1, DPalegreygreen);
-	tagcols[BORD] = allocimage(display, Rect(0,0,1,1), display->chan, 1, DPurpleblue);
+	tagcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPalegreygreen);
+	tagcols[BORD] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPurpleblue);
 	tagcols[TEXT] = display->black;
 	tagcols[HTEXT] = display->black;
 
 	/* Yellow */
 	textcols[BACK] = allocimagemix(display, DPaleyellow, DWhite);
-	textcols[HIGH] = allocimage(display, Rect(0,0,1,1), display->chan, 1, DDarkyellow);
-	textcols[BORD] = allocimage(display, Rect(0,0,1,1), display->chan, 1, DYellowgreen);
+	textcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkyellow);
+	textcols[BORD] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DYellowgreen);
 	textcols[TEXT] = display->black;
 	textcols[HTEXT] = display->black;
 
@@ -831,26 +852,26 @@ iconinit(void)
 	}
 
 	r = Rect(0, 0, Scrollwid+2, font->height+1);
-	button = allocimage(display, r, display->chan, 0, DNofill);
+	button = allocimage(display, r, screen->chan, 0, DNofill);
 	draw(button, r, tagcols[BACK], nil, r.min);
 	r.max.x -= 2;
 	border(button, r, 2, tagcols[BORD], ZP);
 
 	r = button->r;
-	modbutton = allocimage(display, r, display->chan, 0, DNofill);
+	modbutton = allocimage(display, r, screen->chan, 0, DNofill);
 	draw(modbutton, r, tagcols[BACK], nil, r.min);
 	r.max.x -= 2;
 	border(modbutton, r, 2, tagcols[BORD], ZP);
 	r = insetrect(r, 2);
-	tmp = allocimage(display, Rect(0,0,1,1), display->chan, 1, DMedblue);
+	tmp = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DMedblue);
 	draw(modbutton, r, tmp, nil, ZP);
 	freeimage(tmp);
 
 	r = button->r;
-	colbutton = allocimage(display, r, display->chan, 0, DPurpleblue);
+	colbutton = allocimage(display, r, screen->chan, 0, DPurpleblue);
 
-	but2col = allocimage(display, r, display->chan, 1, 0xAA0000FF);
-	but3col = allocimage(display, r, display->chan, 1, 0x006600FF);
+	but2col = allocimage(display, r, screen->chan, 1, 0xAA0000FF);
+	but3col = allocimage(display, r, screen->chan, 1, 0x006600FF);
 }
 
 /*

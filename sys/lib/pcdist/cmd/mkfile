@@ -1,8 +1,0 @@
-</$objtype/mkfile
-CPUS=386
-
-TARG=touchfs cdsh tailfsrv bargraph
-OFILES=
-BIN=/sys/lib/pcdist/bin/$objtype
-
-</sys/src/cmd/mkmany

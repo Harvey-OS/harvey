@@ -22,13 +22,14 @@ struct{
 	char	*port;
 	char *suffix;
 } ports[] = {
-	"text/",			"edit",	"txt", /* must be first for plumbport() */
-	"image/gif",		"image",	"gif",
-	"image/jpeg",		"image",	"jpg",
-	"application/postscript",	"postscript",	"ps",
-	"application/pdf",	"postscript",	"pdf",
-	"application/msword",	"msword",	"doc",
-	"application/rtf",	"msword",	"rtf",
+	"text/",			"edit",	".txt", /* must be first for plumbport() */
+	"image/gif",		"image",	".gif",
+	"image/jpeg",		"image",	".jpg",
+	"image/jpeg",		"image",	".jpeg",
+	"application/postscript",	"postscript",	".ps",
+	"application/pdf",	"postscript",	".pdf",
+	"application/msword",	"msword",	".doc",
+	"application/rtf",	"msword",	".rtf",
 	nil,	nil
 };
 
@@ -51,6 +52,16 @@ struct{
 	nil, nil
 };
 
+char *okheaders[] =
+{
+	"From:",
+	"Date:",
+	"To:",
+	"CC:",
+	"Subject:",
+	nil
+};
+
 char*
 line(char *data, char **pp)
 {
@@ -70,9 +81,9 @@ line(char *data, char **pp)
 void
 scanheaders(Message *m, char *dir)
 {
-	char *s, *t, *u;
+	char *s, *t, *u, *f;
 
-	s = readfile(dir, "header", nil);
+	s = f = readfile(dir, "header", nil);
 	if(s != nil)
 		while(*s){
 			t = line(s, &s);
@@ -89,6 +100,7 @@ scanheaders(Message *m, char *dir)
 		}
 	if(m->fromcolon == nil)
 		m->fromcolon = estrdup(m->from);
+	free(f);
 }
 
 int
@@ -131,22 +143,15 @@ isnumeric(char *s)
 }
 
 Dir*
-loaddir(char *name)
+loaddir(char *name, int *np)
 {
-	int m, n, fd;
+	int fd;
 	Dir *dp;
 
 	fd = open(name, OREAD);
 	if(fd < 0)
-		error("can't open %s: %r\n", name);
-	dp = nil;
-	for(n=0; ; n+=m){
-		dp = realloc(dp, n+DIRCHUNK);
-		memset(dp+n/sizeof(Dir), 0, DIRCHUNK);
-		m = dirread(fd, dp+n/sizeof(Dir), DIRCHUNK);
-		if(m <= 0)
-			break;
-	}
+		return nil;
+	*np = dirreadall(fd, &dp);
 	close(fd);
 	return dp;
 }
@@ -156,12 +161,17 @@ readmbox(Message *mbox, char *dir, char *subdir)
 {
 	char *name;
 	Dir *d, *dirp;
+	int i, n;
 
 	name = estrstrdup(dir, subdir);
-	dirp = loaddir(name);
-	for(d=dirp; d->name[0]!='\0'; d++)
-		if(isnumeric(d->name))
-			mesgadd(mbox, name, d, nil);
+	dirp = loaddir(name, &n);
+	mbox->recursed = 1;
+	if(dirp)
+		for(i=0; i<n; i++){
+			d = &dirp[i];
+			if(isnumeric(d->name))
+				mesgadd(mbox, name, d, nil);
+		}
 	free(dirp);
 	free(name);
 }
@@ -178,6 +188,8 @@ mesgadd(Message *mbox, char *dir, Dir *d, char *digest)
 	m->name = estrstrdup(d->name, "/");
 	m->next = nil;
 	m->prev = mbox->tail;
+	m->level= mbox->level+1;
+	m->recursed = 0;
 	name = estrstrdup(dir, m->name);
 	loaded = loadinfo(m, name);
 	free(name);
@@ -192,7 +204,11 @@ mesgadd(Message *mbox, char *dir, Dir *d, char *digest)
 	mbox->tail = m;
 	if(mbox->head == nil)
 		mbox->head = m;
-	readmbox(m, dir, m->name);
+
+	if (m->level != 1){
+		m->recursed = 1;
+		readmbox(m, dir, m->name); 
+	}
 	return 1;
 }
 
@@ -242,8 +258,8 @@ char*
 readfile(char *dir, char *name, int *np)
 {
 	char *file, *data;
-	int fd;
-	Dir d;
+	int fd, len;
+	Dir *d;
 
 	if(np != nil)
 		*np = 0;
@@ -251,13 +267,17 @@ readfile(char *dir, char *name, int *np)
 	fd = open(file, OREAD);
 	if(fd < 0)
 		return nil;
-	dirfstat(fd, &d);
+	d = dirfstat(fd);
 	free(file);
-	data = emalloc(d.length+1);
-	read(fd, data, d.length);
+	len = 0;
+	if(d != nil)
+		len = d->length;
+	free(d);
+	data = emalloc(len+1);
+	read(fd, data, len);
 	close(fd);
 	if(np != nil)
-		*np = d.length;
+		*np = len;
 	return data;
 }
 
@@ -266,6 +286,26 @@ info(Message *m, int ind)
 {
 	char *i;
 	int j;
+
+	if (ind == 0 && shortmenu) {
+		char fmt[80];
+		char s[80];
+		int len;
+		int lens;
+
+		len = (shortmenu > 1) ? 10 : 30;
+		lens = (shortmenu > 1) ? 25 : 30;
+		if (ind == 0 && m->subject[0] == '\0'){
+			snprint(fmt, 80, " %%-%d.%ds", len, len);
+			snprint(s, 80, fmt, m->fromcolon);
+		}else{
+			snprint(fmt, 80, " %%-%d.%ds  %%-%d.%ds", len, len, lens, lens);
+			snprint(s, 80, fmt, m->fromcolon, m->subject);
+		}
+		i = estrdup(s);
+
+		return i;
+	} 
 
 	i = estrdup("");
 	i = eappend(i, "\t", m->fromcolon);
@@ -286,7 +326,7 @@ info(Message *m, int ind)
 }
 
 void
-mesgmenu0(Window *w, Message *mbox, char *realdir, char *dir, int ind, Biobuf *fd, int onlyone)
+mesgmenu0(Window *w, Message *mbox, char *realdir, char *dir, int ind, Biobuf *fd, int onlyone, int dotail)
 {
 	int i;
 	Message *m;
@@ -306,8 +346,8 @@ mesgmenu0(Window *w, Message *mbox, char *realdir, char *dir, int ind, Biobuf *f
 		tmp = info(m, ind);
 		Bprint(fd, "%s%s\n", name, tmp);
 		free(tmp);
-		if(m->tail)
-			mesgmenu0(w, m, realdir, name, ind+1, fd, 0);
+		if(dotail && m->tail)
+			mesgmenu0(w, m, realdir, name, ind+1, fd, 0, dotail);
 		free(name);
 		if(ind)
 			m = m->next;
@@ -322,7 +362,7 @@ void
 mesgmenu(Window *w, Message *mbox)
 {
 	winopenbody(w, OWRITE);
-	mesgmenu0(w, mbox, mbox->name, "", 0, w->body, 0);
+	mesgmenu0(w, mbox, mbox->name, "", 0, w->body, 0, !shortmenu);
 	winclosebody(w);
 }
 
@@ -336,8 +376,9 @@ mesgmenunew(Window *w, Message *mbox)
 	w->data = winopenfile(w, "data");
 	b = emalloc(sizeof(Biobuf));
 	Binit(b, w->data, OWRITE);
-	mesgmenu0(w, mbox, mbox->name, "", 0, b, 1);
+	mesgmenu0(w, mbox, mbox->name, "", 0, b, 1, !shortmenu);
 	Bterm(b);
+	free(b);
 	if(!mbox->dirty)
 		winclean(w);
 	/* select tag line plus following indented lines, but not final newline (it's distinctive) */
@@ -502,7 +543,7 @@ mesgsave(Message *m, char *s)
 	raw = readfile(t, "raw", &n);
 	unixheader = readfile(t, "unixheader", &k);
 	if(raw==nil || unixheader==nil){
-		threadprint(2, "Mail: can't read %s: %r\n", t);
+		fprint(2, "Mail: can't read %s: %r\n", t);
 		free(t);
 		return 0;
 	}
@@ -521,10 +562,10 @@ mesgsave(Message *m, char *s)
 		s = egrow(estrdup(mailboxdir), "/", s);
 	ofd = open(s, OWRITE);
 	if(ofd < 0){
-		threadprint(2, "Mail: can't open %s: %r\n", s);
+		fprint(2, "Mail: can't open %s: %r\n", s);
 		ret = 0;
 	}else if(seek(ofd, 0LL, 2)<0 || write(ofd, all, n)!=n){
-		threadprint(2, "Mail: save failed: can't write %s: %r\n", s);
+		fprint(2, "Mail: save failed: can't write %s: %r\n", s);
 		ret = 0;
 	}
 	free(all);
@@ -536,50 +577,51 @@ mesgsave(Message *m, char *s)
 int
 mesgcommand(Message *m, char *cmd)
 {
-	char *s, *t, *u;
-	int ok, ret;
+	char *s;
+	char *args[10];
+	int ok, ret, nargs;
 
 	s = cmd;
 	ret = 1;
-	while(*s==' ' || *s=='\t' || *s=='\n')
-		s++;
-	if(strcmp(s, "Post") == 0){
+	nargs = tokenize(s, args, nelem(args));
+	if(nargs == 0)
+		return 0;
+	if(strcmp(args[0], "Post") == 0){
 		mesgsend(m);
 		goto Return;
 	}
-	if(strncmp(s, "Save", 4) == 0){
+	if(strncmp(args[0], "Save", 4) == 0){
 		if(m->isreply)
 			goto Return;
-		s += 4;
-		while(*s==' ' || *s=='\t' || *s=='\n')
-			s++;
-		u = estrdup("\t[saved");
-		if(*s == '\0'){
+		s = estrdup("\t[saved");
+		if(nargs==1 || strcmp(args[1], "")==0){
 			ok = mesgsave(m, "stored");
 		}else{
-			t = s;
-			while(*s!='\0' && *s!=' ' && *s!='\t' && *s!='\n')
-				s++;
-			*s = 0;
-			ok = mesgsave(m, t);
-			u = eappend(u, " ", t);
+			ok = mesgsave(m, args[1]);
+			s = eappend(s, " ", args[1]);
 		}
 		if(ok){
-			u = egrow(u, "]", nil);
-			mesgmenumark(mbox.w, m->name, u);
+			s = egrow(s, "]", nil);
+			mesgmenumark(mbox.w, m->name, s);
 		}
-		free(u);
+		free(s);
 		goto Return;
 	}
-	if(strcmp(s, "Reply") == 0){
-		mkreply(m, s, nil);
+	if(strcmp(args[0], "Reply")==0){
+		if(nargs>=2 && strcmp(args[1], "all")==0)
+			mkreply(m, "Replyall", nil);
+		else
+			mkreply(m, "Reply", nil);
 		goto Return;
 	}
-	if(strncmp(s, "Reply all", 9) == 0 || strcmp(s, "Replyall") == 0){
-		mkreply(m, "Replyall", nil);
+	if(strcmp(args[0], "Q") == 0){
+		if(nargs>=3 && strcmp(args[1], "Reply")==0 && strcmp(args[2], "all")==0)
+			mkreply(m, "QReplyall", nil);
+		else
+			mkreply(m, "QReply", nil);
 		goto Return;
 	}
-	if(strcmp(s, "Del") == 0){
+	if(strcmp(args[0], "Del") == 0){
 		if(windel(m->w, 0)){
 			chanfree(m->w->cevent);
 			free(m->w);
@@ -595,7 +637,7 @@ mesgcommand(Message *m, char *cmd)
 		}
 		goto Return;
 	}
-	if(strcmp(s, "Delmesg") == 0){
+	if(strcmp(args[0], "Delmesg") == 0){
 		if(!m->isreply){
 			mesgmenumarkdel(wbox, &mbox, m, 1);
 			free(cmd);	/* mesgcommand might not return */
@@ -604,12 +646,12 @@ mesgcommand(Message *m, char *cmd)
 		}
 		goto Return;
 	}
-	if(strcmp(s, "UnDelmesg") == 0){
+	if(strcmp(args[0], "UnDelmesg") == 0){
 		if(!m->isreply && m->deleted)
 			mesgmenumarkundel(wbox, &mbox, m);
 		goto Return;
 	}
-//	if(strcmp(s, "Headers") == 0){
+//	if(strcmp(args[0], "Headers") == 0){
 //		m->showheaders();
 //		return True;
 //	}
@@ -793,6 +835,24 @@ mimedisplay(Message *m, char *name, char *rootdir, Window *w, int fileonly)
 }
 
 void
+printheader(char *dir, Biobuf *b)
+{
+	char *s;
+	char *lines[100];
+	int i, j, n;
+
+	s = readfile(dir, "header", nil);
+	if(s == nil)
+		return;
+	n = getfields(s, lines, nelem(lines), 0, "\n");
+	for(i=0; i<n; i++)
+		for(j=0; okheaders[j]; j++)
+			if(cistrncmp(lines[i], okheaders[j], strlen(okheaders[j])) == 0)
+				Bprint(b, "%s\n", lines[i]);
+	free(s);
+}
+
+void
 mesgload(Message *m, char *rootdir, char *file, Window *w)
 {
 	char *s, *subdir, *name, *dir;
@@ -800,25 +860,33 @@ mesgload(Message *m, char *rootdir, char *file, Window *w)
 	int n;
 
 	dir = estrstrdup(rootdir, file);
-	if(strlen(m->from) > 0)
-		Bprint(w->body, "From: %s\n", m->from);
-	else
-		Bprint(w->body, "\n");
-	mesgline(m, "Date", m->date);
-	mesgline(m, "To", m->to);
-	mesgline(m, "CC", m->cc);
-	mesgline(m, "Subject", m->subject);
-	Bprint(w->body, "\n");
 
+	if(strcmp(m->type, "message/rfc822") != 0){	/* suppress headers of envelopes */
+		if(strlen(m->from) > 0){
+			Bprint(w->body, "From: %s\n", m->from);
+			mesgline(m, "Date", m->date);
+			mesgline(m, "To", m->to);
+			mesgline(m, "CC", m->cc);
+			mesgline(m, "Subject", m->subject);
+		}else
+			printheader(dir, w->body);
+		Bprint(w->body, "\n");
+	}
+
+	if(m->level == 1 && m->recursed == 0){
+		m->recursed = 1;
+		readmbox(m, rootdir, m->name);
+	}
 	if(m->head == nil){	/* single part message */
 		if(strcmp(m->type, "text")==0 || strncmp(m->type, "text/", 5)==0){
 			mimedisplay(m, m->name, rootdir, w, 1);
-			s = readfile(dir, "body", &n);
+			s = readbody(m->type, dir, &n);
 			winwritebody(w, s, n);
 			free(s);
 		}else
 			mimedisplay(m, m->name, rootdir, w, 0);
-	}else{	/* multi-part message */
+	}else{
+		/* multi-part message, either multipart/* or message/rfc822 */
 		thisone = nil;
 		if(strcmp(m->type, "multipart/alternative") == 0){
 			thisone = m->head;	/* in case we can't find a good one */
@@ -838,15 +906,13 @@ mesgload(Message *m, char *rootdir, char *file, Window *w)
 				Bprint(w->body, "\n===> %s (%s) [%s]\n", strchr(name, '/')+1, mp->type, mp->disposition);
 			if(strcmp(mp->type, "text")==0 || strncmp(mp->type, "text/", 5)==0){
 				mimedisplay(mp, name, rootdir, w, 1);
-				s = readfile(subdir, "header", &n);
-				winwritebody(w, s, n);
-				free(s);
+				printheader(subdir, w->body);
 				winwritebody(w, "\n", 1);
-				s = readfile(subdir, "body", &n);
+				s = readbody(mp->type, subdir, &n);
 				winwritebody(w, s, n);
 				free(s);
 			}else{
-				if(strncmp(mp->type, "multipart/", 10)==0){
+				if(strncmp(mp->type, "multipart/", 10)==0 || strcmp(mp->type, "message/rfc822")==0){
 					mp->w = w;
 					mesgload(mp, rootdir, name, w);
 					mp->w = nil;
@@ -916,18 +982,41 @@ mesglookup(Message *mbox, char *name, char *digest)
 	return m;
 }
 
+/*
+ * Find plumb port, knowing type is text, given file name (by extension)
+ */
 int
-plumbport(char *s)
+plumbportbysuffix(char *file)
+{
+	char *suf;
+	int i, nsuf, nfile;
+
+	nfile = strlen(file);
+	for(i=0; ports[i].type!=nil; i++){
+		suf = ports[i].suffix;
+		nsuf = strlen(suf);
+		if(nfile > nsuf)
+			if(cistrncmp(file+nfile-nsuf, suf, nsuf) == 0)
+				return i;
+	}
+	return 0;
+}
+
+/*
+ * Find plumb port using type and file name (by extension)
+ */
+int
+plumbport(char *type, char *file)
 {
 	int i;
 
 	for(i=0; ports[i].type!=nil; i++)
-		if(strncmp(s, ports[i].type, strlen(ports[i].type)) == 0)
+		if(strncmp(type, ports[i].type, strlen(ports[i].type)) == 0)
 			return i;
 	/* see if it's a text type */
 	for(i=0; goodtypes[i]!=nil; i++)
-		if(strncmp(s, goodtypes[i], strlen(goodtypes[i])) == 0)
-			return 0;
+		if(strncmp(type, goodtypes[i], strlen(goodtypes[i])) == 0)
+			return plumbportbysuffix(file);
 	return -1;
 }
 
@@ -940,9 +1029,9 @@ plumb(Message *m, char *dir)
 
 	if(strlen(m->type) == 0)
 		return;
-	i = plumbport(m->type);
+	i = plumbport(m->type, m->filename);
 	if(i < 0)
-		threadprint(2, "can't find destination for message subpart\n");
+		fprint(2, "can't find destination for message subpart\n");
 	else{
 		port = ports[i].port;
 		pm = emalloc(sizeof(Plumbmsg));
@@ -955,9 +1044,9 @@ plumb(Message *m, char *dir)
 		pm->type = estrdup("text");
 		pm->ndata = -1;
 		pm->data = estrstrdup(dir, "body");
-		pm->data = eappend(pm->data, ".", ports[i].suffix);
+		pm->data = eappend(pm->data, "", ports[i].suffix);
 		if(plumbsend(plumbsendfd, pm) < 0)
-			threadprint(2, "error writing plumb message: %r\n");
+			fprint(2, "error writing plumb message: %r\n");
 		plumbfree(pm);
 	}
 }
@@ -968,7 +1057,7 @@ mesgopen(Message *mbox, char *dir, char *s, Message *mesg, int plumbed, char *di
 	char *t, *u, *v;
 	Message *m;
 	char *direlem[10];
-	int i, ndirelem;
+	int i, ndirelem, reuse;
 
 	/* find white-space-delimited first word */
 	for(t=s; *t!='\0' && !isspace(*t); t++)
@@ -993,14 +1082,27 @@ mesgopen(Message *mbox, char *dir, char *s, Message *mesg, int plumbed, char *di
 	if(mesg!=nil && m!=mesg)	/* string looked like subpart but isn't part of this message */
 		goto Error;
 	if(m->opened == 0){
-		m->w = newwindow();
+		if(m->w == nil){
+			reuse = 0;
+			m->w = newwindow();
+		}else{
+			reuse = 1;
+			/* re-use existing window */
+			if(winsetaddr(m->w, "0,$", 1)){
+				if(m->w->data < 0)
+					m->w->data = winopenfile(m->w, "data");
+				write(m->w->data, "", 0);
+			}
+		}
 		v = estrstrdup(mbox->name, m->name);
 		winname(m->w, v);
 		free(v);
-		if(m->deleted)
-			wintagwrite(m->w, "Reply all UnDelmesg Save ", 6+4+10+5);
-		else
-			wintagwrite(m->w, "Reply all Delmesg Save ", 6+4+8+5);
+		if(!reuse){
+			if(m->deleted)
+				wintagwrite(m->w, "Q Reply all UnDelmesg Save ", 2+6+4+10+5);
+			else
+				wintagwrite(m->w, "Q Reply all Delmesg Save ", 2+6+4+8+5);
+		}
 		threadcreate(mesgctl, m, STACK);
 		winopenbody(m->w, OWRITE);
 		mesgload(m, dir, m->name, m->w);
@@ -1012,7 +1114,7 @@ mesgopen(Message *mbox, char *dir, char *s, Message *mesg, int plumbed, char *di
 			return 1;
 		}
 	}
-	if(ndirelem == 1 && plumbport(m->type) <= 0){
+	if(ndirelem == 1 && plumbport(m->type, m->filename) <= 0){
 		/* make sure dot is visible */
 		ctlprint(m->w->ctl, "show\n");
 		return 0;
@@ -1025,7 +1127,7 @@ mesgopen(Message *mbox, char *dir, char *s, Message *mesg, int plumbed, char *di
 			break;
 		dir = egrow(dir, m->name, nil);
 	}
-	if(m != nil && plumbport(m->type) > 0)
+	if(m != nil && plumbport(m->type, m->filename) > 0)
 		plumb(m, dir);
 	free(dir);
 	free(u);
@@ -1061,7 +1163,7 @@ rewritembox(Window *w, Message *mbox)
 		mesgdel(mbox, m);
 	}
 	if(write(mbox->ctlfd, deletestr, strlen(deletestr)) < 0)
-		threadprint(2, "Mail: warning: error removing mail message files: %r\n");
+		fprint(2, "Mail: warning: error removing mail message files: %r\n");
 	free(deletestr);
 	winselect(w, "0", 0);
 	if(nopen == 0)
@@ -1078,7 +1180,7 @@ mesglookupfile(Message *mbox, char *name, char *digest)
 	k = strlen(name);
 	n = strlen(mbox->name);
 	if(k==0 || strncmp(name, mbox->name, n) != 0){
-//		threadprint(2, "Mail: message %s not in this mailbox\n", name);
+//		fprint(2, "Mail: message %s not in this mailbox\n", name);
 		return nil;
 	}
 	return mesglookup(mbox, name+n, digest);

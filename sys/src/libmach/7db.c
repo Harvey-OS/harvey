@@ -175,7 +175,7 @@ bprint(Instr *i, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	i->curr = doprint(i->curr, i->end, fmt, arg);
+	i->curr = vseprint(i->curr, i->end, fmt, arg);
 	va_end(arg);
 }
 

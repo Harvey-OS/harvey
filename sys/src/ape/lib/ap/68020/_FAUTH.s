@@ -1,4 +1,0 @@
-TEXT _FAUTH(SB), 1, $0
-MOVL $10, R0
-TRAP $0
-RTS

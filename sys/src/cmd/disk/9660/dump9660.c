@@ -21,7 +21,7 @@ void
 usage(void)
 {
 	if(mk9660)
-		fprint(2, "usage: disk/mk9660 [-D:] [-9cjr] [-p proto] [-s src] cdimage\n");
+		fprint(2, "usage: disk/mk9660 [-D:] [-9cjr] [-b bootfile] [-p proto] [-s src] cdimage\n");
 	else
 		fprint(2, "usage: disk/dump9660 [-D:] [-9cjr] [-m maxsize] [-n now] [-p proto] [-s src] cdimage\n");
 	exits("usage");
@@ -71,6 +71,12 @@ main(int argc, char **argv)
 		break;
 	case 'a':
 		doabort = 1;
+		break;
+	case 'b':
+		if(!mk9660)
+			usage();
+		info.flags |= CDbootable;
+		info.bootimage = EARGF(usage());
 		break;
 	case 'c':
 		info.flags |= CDconform;
@@ -128,7 +134,7 @@ main(int argc, char **argv)
 	dir.gid = atom("sys");
 	dir.uidno = 0;
 	dir.gidno = 0;
-	dir.mode = CHDIR | 0755;
+	dir.mode = DMDIR | 0755;
 	dir.mtime = now;
 	dir.atime = now;
 	dir.ctime = now;
@@ -181,6 +187,11 @@ main(int argc, char **argv)
 	Cwseek(cd, cd->nextblock*Blocksize);
 	writefiles(dump, cd, &iroot);
 
+	if(cd->bootimage){
+		findbootimage(cd, &iroot);
+		Cupdatebootcat(cd);
+	}
+		
 	/* create Joliet tree */
 	if(cd->flags & CDjoliet)
 		copydirec(&jroot, &iroot);

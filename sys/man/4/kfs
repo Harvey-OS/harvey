@@ -124,3 +124,9 @@ Default file holding blocks.
 .IR mkfs (8),
 .IR prep (8),
 .IR sd (3)
+.SH BUGS
+For the moment,
+.I kfs
+serves both the old (third edition) and new (fourth
+edition) versions of 9P, deciding which to serve by sniffing the first packet on each
+connection.

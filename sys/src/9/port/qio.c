@@ -45,7 +45,7 @@ struct Queue
 	QLock	wlock;		/* mutex for writing processes */
 	Rendez	wr;		/* process waiting to write */
 
-	char	err[ERRLEN];
+	char	err[ERRMAX];
 };
 
 enum
@@ -59,6 +59,8 @@ enum
 
 	Maxatomic	= 32*1024,
 };
+
+uint	qiomaxatomic = Maxatomic;
 
 void
 ixsummary(void)
@@ -103,7 +105,7 @@ padblock(Block *bp, int size)
 		}
 
 		if(bp->next)
-			panic("padblock 0x%uX", getcallerpc(&bp));
+			panic("padblock 0x%luX", getcallerpc(&bp));
 		n = BLEN(bp);
 		padblockcnt++;
 		nbp = allocb(size+n);
@@ -117,7 +119,7 @@ padblock(Block *bp, int size)
 		size = -size;
 
 		if(bp->next)
-			panic("padblock 0x%uX", getcallerpc(&bp));
+			panic("padblock 0x%luX", getcallerpc(&bp));
 
 		if(bp->lim - bp->wp >= size)
 			return bp;
@@ -144,6 +146,22 @@ blocklen(Block *bp)
 	len = 0;
 	while(bp) {
 		len += BLEN(bp);
+		bp = bp->next;
+	}
+	return len;
+}
+
+/*
+ * return count of space in blocks
+ */
+int
+blockalloclen(Block *bp)
+{
+	int len;
+
+	len = 0;
+	while(bp) {
+		len += BALLOC(bp);
 		bp = bp->next;
 	}
 	return len;
@@ -230,6 +248,23 @@ pullupblock(Block *bp, int n)
 	}
 	freeb(bp);
 	return 0;
+}
+
+/*
+ *  make sure the first block has at least n bytes
+ */
+Block*
+pullupqueue(Queue *q, int n)
+{
+	Block *b;
+
+	if(BLEN(q->bfirst) >= n)
+		return q->bfirst;
+	q->bfirst = pullupblock(q->bfirst, n);
+	for(b = q->bfirst; b != nil && b->next != nil; b = b->next)
+		;
+	q->blast = b;
+	return q->bfirst;
 }
 
 /*
@@ -800,6 +835,8 @@ qwait(Queue *q)
 		if(q->state & Qclosed){
 			if(++q->eof > 3)
 				return -1;
+			if(*q->err && strcmp(q->err, Ehungup) != 0)
+				return -1;
 			return 0;
 		}
 
@@ -812,9 +849,27 @@ qwait(Queue *q)
 }
 
 /*
+ * add a block list to a queue
+ */
+void
+qaddlist(Queue *q, Block *b)
+{
+	/* queue the block */
+	if(q->bfirst)
+		q->blast->next = b;
+	else
+		q->bfirst = b;
+	q->len += blockalloclen(b);
+	q->dlen += blocklen(b);
+	while(b->next)
+		b = b->next;
+	q->blast = b;
+}
+
+/*
  *  called with q ilocked
  */
-static Block*
+Block*
 qremove(Queue *q)
 {
 	Block *b;
@@ -831,10 +886,72 @@ qremove(Queue *q)
 }
 
 /*
+ *  copy the contents of a string of blocks into
+ *  memory.  emptied blocks are freed.  return
+ *  pointer to first unconsumed block.
+ */
+Block*
+bl2mem(uchar *p, Block *b, int n)
+{
+	int i;
+	Block *next;
+
+	for(; b != nil; b = next){
+		i = BLEN(b);
+		if(i > n){
+			memmove(p, b->rp, n);
+			b->rp += n;
+			return b;
+		}
+		memmove(p, b->rp, i);
+		n -= i;
+		p += i;
+		b->rp += i;
+		next = b->next;
+		freeb(b);
+	}
+	return nil;
+}
+
+/*
+ *  copy the contents of memory into a string of blocks.
+ *  return nil on error.
+ */
+Block*
+mem2bl(uchar *p, int len)
+{
+	int n;
+	Block *b, *first, **l;
+
+	first = nil;
+	l = &first;
+	if(waserror()){
+		freeblist(first);
+		nexterror();
+	}
+	do {
+		n = len;
+		if(n > Maxatomic)
+			n = Maxatomic;
+
+		*l = b = allocb(n);
+		setmalloctag(b, (up->text[0]<<24)|(up->text[1]<<16)|(up->text[2]<<8)|up->text[3]);
+		memmove(b->wp, p, n);
+		b->wp += n;
+		p += n;
+		len -= n;
+		l = &b->next;
+	} while(len > 0);
+	poperror();
+
+	return first;
+}
+
+/*
  *  put a block back to the front of the queue
  *  called with q ilocked
  */
-static void
+void
 qputback(Queue *q, Block *b)
 {
 	b->next = q->bfirst;
@@ -931,12 +1048,8 @@ qbread(Queue *q, int len)
 long
 qread(Queue *q, void *vp, int len)
 {
-	Block *b, *first, *next, **l;
-	int m;
-	uchar *s, *e, *p;
-
-	s = p = vp;
-	e = s+len;
+	Block *b, *first, **l;
+	int m, n;
 
 	qlock(&q->rlock);
 	if(waserror()){
@@ -972,46 +1085,34 @@ again:
 		 *  following blocks as will completely
 		 *  fit in the read.
 		 */
+		n = 0;
 		l = &first;
 		m = BLEN(b);
 		for(;;) {
 			*l = qremove(q);
 			l = &b->next;
-			p += m;
+			n += m;
 
 			b = q->bfirst;
 			if(b == nil)
 				break;
 			m = BLEN(b);
-			if(p+m > e)
+			if(n+m > len)
 				break;
 		}
 	} else {
 		first = qremove(q);
+		n = BLEN(first);
 	}
 
 	/* copy to user space outside of the ilock */
 	iunlock(q);
-	p = s;
-	for(b = first; b != nil; b = next){
-		m = BLEN(b);
-		if(m > e - p){
-			m = e - p;
-			memmove(p, b->rp, m);
-			p += m;
-			b->rp += m;
-			break;
-		}
-		memmove(p, b->rp, m);
-		p += m;
-		next = b->next;
-		b->next = nil;
-		freeb(b);
-	}
+	b = bl2mem(vp, first, len);
 	ilock(q);
 
 	/* take care of any left over partial block */
 	if(b != nil){
+		n -= BLEN(b);
 		if(q->state & Qmsg)
 			freeb(b);
 		else
@@ -1023,7 +1124,7 @@ again:
 
 	poperror();
 	qunlock(&q->rlock);
-	return p-s;
+	return n;
 }
 
 static int
@@ -1105,7 +1206,7 @@ qbwrite(Queue *q, Block *b)
 	 *  flow control, wait for queue to get below the limit
 	 *  before allowing the process to continue and queue
 	 *  more.  We do this here so that postnote can only
-	 *  interrupt us after the data has been quued.  This
+	 *  interrupt us after the data has been queued.  This
 	 *  means that things like 9p flushes and ssl messages
 	 *  will not be disrupted by software interrupts.
 	 *
@@ -1139,7 +1240,7 @@ qwrite(Queue *q, void *vp, int len)
 	Block *b;
 	uchar *p = vp;
 
-	QDEBUG if(islo() == 0)
+	QDEBUG if(!islo())
 		print("qwrite hi %lux\n", getcallerpc(&q));
 
 	sofar = 0;
@@ -1185,7 +1286,9 @@ qiwrite(Queue *q, void *vp, int len)
 		if(n > Maxatomic)
 			n = Maxatomic;
 
-		b = allocb(n);
+		b = iallocb(n);
+		if(b == nil)
+			break;
 		memmove(b->wp, p+sofar, n);
 		b->wp += n;
 
@@ -1216,7 +1319,7 @@ qiwrite(Queue *q, void *vp, int len)
 		sofar += n;
 	} while(sofar < len && (q->state & Qmsg) == 0);
 
-	return len;
+	return sofar;
 }
 
 /*
@@ -1275,7 +1378,7 @@ qhangup(Queue *q, char *msg)
 	if(msg == 0 || *msg == 0)
 		strcpy(q->err, Ehungup);
 	else
-		strncpy(q->err, msg, ERRLEN-1);
+		strncpy(q->err, msg, ERRMAX-1);
 	iunlock(q);
 
 	/* wake up readers/writers */

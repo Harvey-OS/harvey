@@ -1,4 +1,0 @@
-TEXT _BRK_(SB), 1, $-4
-MOVW $24, R0
-SWI 0
-RET

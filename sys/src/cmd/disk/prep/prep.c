@@ -8,7 +8,7 @@
 #include "edit.h"
 
 enum {
-	Maxpath = 4*NAMELEN,
+	Maxpath = 128,
 };
 
 static int		blank;
@@ -220,16 +220,9 @@ static char isfrog[256]={
 static char*
 cmdokname(Edit*, char *elem)
 {
-	char *eelem;
-
-	eelem = elem+NAMELEN;
-	while(*elem) {
+	for(; *elem; elem++)
 		if(isfrog[*(uchar*)elem])
 			return "bad character in name";
-		elem++;
-		if(elem >= eelem)
-			return "name too long";
-	}
 	return nil;
 }
 
@@ -271,8 +264,8 @@ mkpart(char *name, vlong start, vlong end, int changed)
 	Part *p;
 
 	p = emalloc(sizeof(*p));
-	strcpy(p->name, name);
-	strcpy(p->ctlname, name);
+	p->name = estrdup(name);
+	p->ctlname = estrdup(name);
 	p->start = start;
 	p->end = end;
 	p->changed = changed;

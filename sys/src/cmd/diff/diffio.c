@@ -127,6 +127,8 @@ prepare(int i, char *arg)
 		panic(mflag ? 0: 2, "cannot open %s: %r\n", arg);
 		return 0;
 	}
+	if (binary)
+		return bp;
 	nbytes = Bread(bp, buf, MIN(1024, MAXLINELEN));
 	if (nbytes > 0) {
 		cp = buf;
@@ -137,9 +139,8 @@ prepare(int i, char *arg)
 			 */
 			cp += chartorune(&r, cp);
 			if (r == 0 || (r > 0x7f && r <= 0xa0)) {
-				Bterm(bp);
-				panic(mflag ? 0: 2, "binary file %s\n", arg);
-				return 0;
+				binary++;
+				return bp;
 			}
 		}
 		Bseek(bp, 0, 0);
@@ -287,3 +288,4 @@ change(int a, int b, int c, int d)
 	if (mode != 0 && mode != 'n' && c <= d)
 		Bprint(&stdout, ".\n");
 }
+

@@ -11,7 +11,7 @@ DIRS=\
 	9660\
 	kfs\
 	prep\
-	sacfs\
+#	sacfs\
 
 OFILES=
 

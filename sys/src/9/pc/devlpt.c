@@ -20,6 +20,7 @@ static int lptallocd[NDEV];
 /* offsets, and bits in the registers */
 enum
 {
+	Qdir=		0x8000,
 	/* data latch register */
 	Qdlr=		0x0,
 	/* printer status register */
@@ -47,32 +48,34 @@ static void	lptintr(Ureg*, void*);
 static Rendez	lptrendez;
 
 Dirtab lptdir[]={
-	"dlr",		{Qdlr},		1,		0666,
-	"psr",		{Qpsr},		5,		0444,
-	"pcr",		{Qpcr},		0,		0222,
-	"data",		{Qdata},	0,		0222,
+	".",	{Qdir, 0, QTDIR},	0,	DMDIR|0555,
+	"dlr",	{Qdlr},			1,	0666,
+	"psr",	{Qpsr},			5,	0444,
+	"pcr",	{Qpcr},			0,	0222,
+	"data",	{Qdata},		0,	0222,
 };
 
 static int
-lptgen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
+lptgen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	Qid qid;
-	char name[NAMELEN];
 
 	if(i == DEVDOTDOT){
-		sprint(name, "#L%lud", c->dev+1);
-		devdir(c, (Qid){CHDIR, 0}, name, 0, eve, 0555, dp);
+		mkqid(&qid, Qdir, 0, QTDIR);
+		devdir(c, qid, ".", 0, eve, 0555, dp);
 		return 1;
 	}
+	i++; /* skip first element for . itself */
 	if(tab==0 || i>=ntab)
 		return -1;
 	tab += i;
 	qid = tab->qid;
+	qid.path &= ~Qdir;
 	if(qid.path < Qdata)
 		qid.path += lptbase[c->dev];
 	qid.vers = c->dev;
-	sprint(name, "lpt%lud%s", c->dev+1, tab->name);
-	devdir(c, qid, name, tab->length, eve, tab->perm, dp);
+	sprint(up->genbuf, "lpt%lud%s", c->dev+1, tab->name);
+	devdir(c, qid, up->genbuf, tab->length, eve, tab->perm, dp);
 	return 1;
 }
 
@@ -92,26 +95,38 @@ lptattach(char *spec)
 	if(i < 1 || i > NDEV)
 		error(Ebadarg);
 	if(lptallocd[i-1] == 0){
+		int ecr;
 		sprint(name, "lpt%d", i-1);
 		if(ioalloc(lptbase[i-1], 3, 0, name) < 0)
 			error("lpt port space in use");
 		lptallocd[i-1] = 1;
+		// Detect ECP - if found, put into PS/2 mode to suit style of driver
+		ecr = lptbase[i-1] + 0x402;
+		if ((inb(ecr) & 3) == 1) {
+			outb(ecr, 0x34);
+			if (inb(ecr) == 0x35) {
+				outb(ecr, (inb(ecr) & 0x1f) | (1 << 5));
+				if(ioalloc(ecr, 1, 0, name) < 0)
+					error("lpt ecr port space in use");
+			}
+		}
 	}
 	c = devattach('L', spec);
+	c->qid.path = Qdir;
 	c->dev = i-1;
 	return c;
 }
 
-static int
-lptwalk(Chan *c, char *name)
+static Walkqid*
+lptwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c, name, lptdir, nelem(lptdir), lptgen);
+	return devwalk(c, nc, name, nname, lptdir, nelem(lptdir), lptgen);
 }
 
-static void
-lptstat(Chan *c, char *dp)
+static int
+lptstat(Chan *c, uchar *dp, int n)
 {
-	devstat(c, dp, lptdir, nelem(lptdir), lptgen);
+	return devstat(c, dp, n, lptdir, nelem(lptdir), lptgen);
 }
 
 static Chan*
@@ -132,7 +147,7 @@ lptread(Chan *c, void *a, long n, vlong)
 	int size;
 	ulong o;
 
-	if(c->qid.path == CHDIR)
+	if(c->qid.path == Qdir)
 		return devdirread(c, a, n, lptdir, nelem(lptdir), lptgen);
 	size = sprint(str, "0x%2.2ux\n", inb(c->qid.path));
 	o = c->offset;
@@ -214,8 +229,8 @@ Dev lptdevtab = {
 
 	devreset,
 	devinit,
+	devshutdown,
 	lptattach,
-	devclone,
 	lptwalk,
 	lptstat,
 	lptopen,

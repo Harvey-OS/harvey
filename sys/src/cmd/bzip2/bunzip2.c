@@ -52,7 +52,7 @@ main(int argc, char **argv)
 static int
 bunzipf(char *file, int stdout)
 {
-	char ofile[NAMELEN], *s;
+	char ofile[64], *s;
 	int ofd, ifd, ok;
 
 	infile = file;
@@ -82,8 +82,7 @@ bunzipf(char *file, int stdout)
 			s++;
 		else
 			s = file;
-		strncpy(ofile, s, NAMELEN);
-		ofile[NAMELEN-1] = '\0';
+		strecpy(ofile, ofile+sizeof ofile, s);
 		s = strrchr(ofile, '.');
 		if(s != nil && s != ofile && strcmp(s, ".bz2") == 0)
 			*s = '\0';
@@ -179,6 +178,8 @@ bunzip(int ofd, char *ofile, Biobuf *bin)
 		fprint(2, "bunzip2: decompress end failed (can't happen)\n");
 		return 0;
 	}
+
+	Bterm(&bout);
 
 	return 1;
 }

@@ -1,4 +1,0 @@
-TEXT _EXEC(SB), 1, $0
-MOVL $7, AX
-INT $64
-RET

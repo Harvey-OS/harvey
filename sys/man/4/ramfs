@@ -10,6 +10,9 @@ ramfs  \- memory file system
 .B -s
 ]
 [
+.B -p
+]
+[
 .B -m
 .I mountpoint
 ]
@@ -52,6 +55,15 @@ enabling multiple clients to access its files.
 However, it does not authenticate its clients and its
 implementation of groups is simplistic, so
 it should not be used for precious data.
+.PP
+The
+.B -p
+flag causes
+.I ramfs
+to make its memory `private'
+(see
+.IR proc (3))
+so that its files are not accessible through the debugging interface.
 .PP
 This program is useful mainly as an example of how
 to write a user-level file server.

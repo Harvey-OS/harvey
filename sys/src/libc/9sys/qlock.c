@@ -70,7 +70,8 @@ qlock(QLock *q)
 	unlock(&q->lock);
 
 	/* wait */
-	(*_rendezvousp)((ulong)mp, 1);
+	while((*_rendezvousp)((ulong)mp, 1) == ~0)
+		;
 	mp->inuse = 0;
 }
 
@@ -87,7 +88,8 @@ qunlock(QLock *q)
 		if(q->head == nil)
 			q->tail = nil;
 		unlock(&q->lock);
-		(*_rendezvousp)((ulong)p, 0x12345);
+		while((*_rendezvousp)((ulong)p, 0x12345) == ~0)
+			;
 		return;
 	}
 	q->locked = 0;
@@ -132,8 +134,23 @@ rlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wait in kernel */
-	(*_rendezvousp)((ulong)mp, 1);
+	while((*_rendezvousp)((ulong)mp, 1) == ~0)
+		;
 	mp->inuse = 0;
+}
+
+int
+canrlock(RWLock *q)
+{
+	lock(&q->lock);
+	if (q->writer == 0 && q->head == nil) {
+		/* no writer; go for it */
+		q->readers++;
+		unlock(&q->lock);
+		return 1;
+	}
+	unlock(&q->lock);
+	return 0;
 }
 
 void
@@ -142,6 +159,8 @@ runlock(RWLock *q)
 	QLp *p;
 
 	lock(&q->lock);
+	if(q->readers <= 0)
+		abort();
 	p = q->head;
 	if(--(q->readers) > 0 || p == nil){
 		unlock(&q->lock);
@@ -158,7 +177,8 @@ runlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wakeup waiter */
-	(*_rendezvousp)((ulong)p, 0);
+	while((*_rendezvousp)((ulong)p, 0) == ~0)
+		;
 }
 
 void
@@ -187,8 +207,23 @@ wlock(RWLock *q)
 	unlock(&q->lock);
 
 	/* wait in kernel */
-	(*_rendezvousp)((ulong)mp, 1);
+	while((*_rendezvousp)((ulong)mp, 1) == ~0)
+		;
 	mp->inuse = 0;
+}
+
+int
+canwlock(RWLock *q)
+{
+	lock(&q->lock);
+	if (q->readers == 0 && q->writer == 0) {
+		/* no one waiting; go for it */
+		q->writer = 1;
+		unlock(&q->lock);
+		return 1;
+	}
+	unlock(&q->lock);
+	return 0;
 }
 
 void
@@ -197,6 +232,8 @@ wunlock(RWLock *q)
 	QLp *p;
 
 	lock(&q->lock);
+	if(q->writer == 0)
+		abort();
 	p = q->head;
 	if(p == nil){
 		q->writer = 0;
@@ -209,20 +246,21 @@ wunlock(RWLock *q)
 		if(q->head == nil)
 			q->tail = nil;
 		unlock(&q->lock);
-		(*_rendezvousp)((ulong)p, 0);
-
+		while((*_rendezvousp)((ulong)p, 0) == ~0)
+			;
 		return;
 	}
 
 	if(p->state != QueuingR)
 		abort();
 
-	/* waken waiting readers */
+	/* wake waiting readers */
 	while(q->head != nil && q->head->state == QueuingR){
 		p = q->head;
 		q->head = p->next;
 		q->readers++;
-		(*_rendezvousp)((ulong)p, 0);
+		while((*_rendezvousp)((ulong)p, 0) == ~0)
+			;
 	}
 	if(q->head == nil)
 		q->tail = nil;

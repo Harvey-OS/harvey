@@ -17,6 +17,7 @@
  * All input is through the C macro; the most recently read character is in c.
  */
 
+/*
 #define	C	((c = Bgetrune(infile)) < 0?\
 			eof():\
 			((c == ldelim) && (filesp == files)?\
@@ -24,11 +25,18 @@
 				(c == '\n'?\
 					(linect++,c):\
 						c)))
+
 #define	C1	((c = Bgetrune(infile)) == Beof?\
 			eof():\
 			(c == '\n'?\
 				(linect++,c):\
 				c))
+*/
+
+/* lose those macros! */
+#define	C	fC()
+#define	C1	fC1()
+
 #define	SKIP	while(C != '\n') 
 #define SKIP1	while(C1 != '\n')
 #define SKIP_TO_COM		SKIP;\
@@ -55,6 +63,7 @@
 
 int	linect	= 0;
 int	wordflag= NO;
+int	underscoreflag = NO;
 int	msflag	= NO;
 int	iflag	= NO;
 int	mac	= MM;
@@ -109,6 +118,30 @@ char*	copys(char *s);
 void	refer(int c1);
 void	inpic(void);
 
+int
+fC(void)
+{
+	c = Bgetrune(infile);
+	if(c < 0)
+		return eof();
+	if(c == ldelim && filesp == files)
+		return skeqn();
+	if(c == '\n')
+		linect++;
+	return c;
+}
+
+int
+fC1(void)
+{
+	c = Bgetrune(infile);
+	if(c == Beof)
+		return eof();
+	if(c == '\n')
+		linect++;
+	return c;
+}
+
 void
 main(int argc, char *av[])
 {
@@ -120,6 +153,10 @@ main(int argc, char *av[])
 	ARGBEGIN{
 	case 'w':
 		wordflag = YES;
+		break;
+	case '_':
+		wordflag = YES;
+		underscoreflag = YES;
 		break;
 	case 'm':
 		msflag = YES;
@@ -218,7 +255,7 @@ getfname(void)
 {
 	char *p;
 	Rune r;
-	Dir dir;
+	Dir *dir;
 	struct chain
 	{ 
 		struct	chain*	nextp; 
@@ -239,10 +276,13 @@ getfname(void)
 		fname[0] = '\0';
 		return;
 	}
-	if(dirstat(fname, &dir) >= 0 && ((dir.mode & CHDIR) || dir.type != 'M')) {
+	dir = dirstat(fname);
+	if(dir!=nil && ((dir->mode & DMDIR) || dir->type != 'M')) {
+		free(dir);
 		fname[0] = '\0';
 		return;
 	}
+	free(dir);
 	/*
 	 * see if this name has already been used
 	 */
@@ -261,7 +301,7 @@ getfname(void)
 void
 usage(void)
 {
-	fprint(2,"usage: deroff [-nwpi] [-m (m s l)] [file ...] \n");
+	fprint(2,"usage: deroff [-nw_pi] [-m (m s l)] [file ...] \n");
 	exits("usage");
 }
 
@@ -382,8 +422,8 @@ putwords(void)
 			if(*p1++ == '\0')
 				return;
 		nlet = 0;
-		for(p = p1; (i = charclass(*p)) != SPECIAL; p++)
-			if(i == LETTER)
+		for(p = p1; (i = charclass(*p)) != SPECIAL || (underscoreflag && *p=='_'); p++)
+			if(i == LETTER || (underscoreflag && *p == '_'))
 				nlet++;
 		/*
 		 * MDM definition of word

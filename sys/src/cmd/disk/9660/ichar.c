@@ -103,14 +103,14 @@ int
 isocmp(const void *va, const void *vb)
 {
 	int i;
-	char s1[NAMELEN], s2[NAMELEN], *b1, *b2, *e1, *e2;
+	char s1[32], s2[32], *b1, *b2, *e1, *e2;
 	const Direc *a, *b;
 
 	a = va;
 	b = vb;
 
-	b1 = strcpy(s1, a->confname);
-	b2 = strcpy(s2, b->confname);
+	b1 = strecpy(s1, s1+sizeof s1, a->confname);
+	b2 = strecpy(s2, s2+sizeof s2, b->confname);
 	if((e1 = strchr(b1, '.')) != nil)
 		*e1++ = '\0';
 	else
@@ -160,6 +160,8 @@ Cputisopvd(Cdimg *cd, Cdinfo info)
 		strcat(buf, "plan 9 ");
 	if(info.flags & CDrockridge)
 		strcat(buf, "rrip ");
+	if(info.flags & CDbootable)
+		strcat(buf, "boot ");
 	if(info.flags & CDconform)
 		strcat(buf, "iso9660");
 	else

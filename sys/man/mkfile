@@ -24,7 +24,7 @@ permind:V:
 				switch($i/$j){
 				case 1/tbl
 					tbl $j
-				case 1/eqn 6/auth
+				case 1/eqn 3/realtime 6/auth
 					eqn $j
 				case 1/pic
 					pic $j
@@ -72,6 +72,8 @@ print.out:V: permind
 	{
 		{echo -n $FONTS; cat $LIB/title} | troff
 		{echo -n $FONTS; cat $LIB/trademarks} | troff -ms
+		{echo -n $FONTS; echo ' '} | troff
+		{echo -n $FONTS; cat $LIB/preface4} | troff -ms
 		{echo -n $FONTS; echo ' '} | troff
 		{echo -n $FONTS; cat $LIB/preface3} | troff -ms
 		{echo -n $FONTS; echo ' '} | troff

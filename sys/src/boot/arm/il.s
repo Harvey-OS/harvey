@@ -1,5 +1,4 @@
 #include "mem.h"
-
 /*
  *  Entered here from Compaq's bootldr.  First relocate to
  *  the location we're linked for and then copy back the
@@ -9,6 +8,15 @@
  */
 TEXT _start(SB), $-4
 	MOVW	$setR12(SB), R12		/* load the SB */
+	MOVW	$1, R0		/* dance to make 5l think that the magic */
+	MOVW	$1, R1		/* numbers in WORDs below are being used */
+	CMP.S	R0, R1		/* and to align them to where bootldr wants */
+	BEQ	_start2
+	WORD	$0x016f2818	/* magic number to say we are a kernel */
+	WORD	$0xc0008000	/* entry point address */
+	WORD	$0		/* size?, or end of data? */
+
+_start2:
 
 	/* SVC mode, interrupts disabled */
 	MOVW	$(PsrDirq|PsrDfiq|PsrMsvc), R1

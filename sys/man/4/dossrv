@@ -144,7 +144,7 @@ attribute in the DOS file system.
 Most of the other DOS attributes
 are not accessible.
 .PP
-Setting the exclusive use flag (CHEXCL)
+Setting the exclusive use flag (DMEXCL)
 in Plan 9 corresponds to setting the
 system use attribute in the DOS file system.
 Such files are not actually restricted to exclusive use,
@@ -160,10 +160,10 @@ contiguously on disk.
 .PP
 Since other operating systems do not
 guarantee that system files are laid
-out contiguously, the CHAPPEND mode
+out contiguously, the DMAPPEND mode
 bit is set in file stat information
 only when the file is currently contiguous.
-Attempts to set the CHAPPEND mode bit
+Attempts to set the DMAPPEND mode bit
 explicitly will cause 
 .I dossrv
 to try to make the file contiguous,
@@ -213,5 +213,5 @@ a:
 .B /rc/bin/eject
 .SH BUGS
 The overloading of the semantics of
-the CHEXCL and CHAPPEND
+the DMEXCL and DMAPPEND
 bits can be confusing.

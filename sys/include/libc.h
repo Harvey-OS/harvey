@@ -3,7 +3,7 @@
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 #define	offsetof(s, m)	(ulong)(&(((s*)0)->m))
-#define	assert(x)	if(x);else _assert("x")
+#define	assert(x)	if(x){}else _assert("x")
 
 /*
  * mem routines
@@ -60,6 +60,7 @@ extern	int	utfnlen(char*, long);
 extern	char*	utfrune(char*, long);
 extern	char*	utfrrune(char*, long);
 extern	char*	utfutf(char*, char*);
+extern	char*	utfecpy(char*, char*, char*);
 
 extern	Rune*	runestrcat(Rune*, Rune*);
 extern	Rune*	runestrchr(Rune*, Rune);
@@ -101,28 +102,77 @@ extern	void*	malloctopoolblock(void*);
 /*
  * print routines
  */
-typedef	struct	Fconv	Fconv;
-struct	Fconv
-{
-	char*	out;		/* pointer to next output */
-	char*	eout;		/* pointer to end */
-	int	f1;
-	int	f2;
-	int	f3;
-	int	chr;
+typedef struct Fmt	Fmt;
+struct Fmt{
+	uchar	runes;			/* output buffer is runes or chars? */
+	void	*start;			/* of buffer */
+	void	*to;			/* current place in the buffer */
+	void	*stop;			/* end of the buffer; overwritten if flush fails */
+	int	(*flush)(Fmt *);	/* called when to == stop */
+	void	*farg;			/* to make flush a closure */
+	int	nfmt;			/* num chars formatted so far */
+	va_list	args;			/* args passed to dofmt */
+	int	r;			/* % format Rune */
+	int	width;
+	int	prec;
+	ulong	flags;
 };
-extern	char*	doprint(char*, char*, char*, va_list);
+
+enum{
+	FmtWidth	= 1,
+	FmtLeft		= FmtWidth << 1,
+	FmtPrec		= FmtLeft << 1,
+	FmtSharp	= FmtPrec << 1,
+	FmtSpace	= FmtSharp << 1,
+	FmtSign		= FmtSpace << 1,
+	FmtZero		= FmtSign << 1,
+	FmtUnsigned	= FmtZero << 1,
+	FmtShort	= FmtUnsigned << 1,
+	FmtLong		= FmtShort << 1,
+	FmtVLong	= FmtLong << 1,
+	FmtComma	= FmtVLong << 1,
+	FmtByte	= FmtComma << 1,
+
+	FmtFlag		= FmtByte << 1
+};
+
 extern	int	print(char*, ...);
 extern	char*	seprint(char*, char*, char*, ...);
+extern	char*	vseprint(char*, char*, char*, va_list);
 extern	int	snprint(char*, int, char*, ...);
+extern	int	vsnprint(char*, int, char*, va_list);
+extern	char*	smprint(char*, ...);
+extern	char*	vsmprint(char*, va_list);
 extern	int	sprint(char*, char*, ...);
 extern	int	fprint(int, char*, ...);
+extern	int	vfprint(int, char*, va_list);
 
-#pragma	varargck	argpos	print	1
-#pragma	varargck	argpos	snprint	3
-#pragma	varargck	argpos	seprint	3
-#pragma	varargck	argpos	sprint	2
+extern	int	runesprint(Rune*, char*, ...);
+extern	int	runesnprint(Rune*, int, char*, ...);
+extern	int	runevsnprint(Rune*, int, char*, va_list);
+extern	Rune*	runeseprint(Rune*, Rune*, char*, ...);
+extern	Rune*	runevseprint(Rune*, Rune*, char*, va_list);
+extern	Rune*	runesmprint(char*, ...);
+extern	Rune*	runevsmprint(char*, va_list);
+
+extern	int	fmtfdinit(Fmt*, int, char*, int);
+extern	int	fmtfdflush(Fmt*);
+extern	int	fmtstrinit(Fmt*);
+extern	char*	fmtstrflush(Fmt*);
+extern	int	runefmtstrinit(Fmt*);
+extern	Rune*	runefmtstrflush(Fmt*);
+
+#pragma	varargck	argpos	fmtprint	2
 #pragma	varargck	argpos	fprint	2
+#pragma	varargck	argpos	print	1
+#pragma	varargck	argpos	runeseprint	3
+#pragma	varargck	argpos	runesmprint	1
+#pragma	varargck	argpos	runesnprint	3
+#pragma	varargck	argpos	runesprint	2
+#pragma	varargck	argpos	seprint	3
+#pragma	varargck	argpos	smprint	1
+#pragma	varargck	argpos	snprint	3
+#pragma	varargck	argpos	sprint	2
 
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
@@ -149,16 +199,26 @@ extern	int	fprint(int, char*, ...);
 #pragma	varargck	type	"Q"	Rune*
 #pragma	varargck	type	"r"	void
 #pragma	varargck	type	"%"	void
-#pragma	varargck	type	"|"	int
+#pragma	varargck	type	"n"	int*
 #pragma	varargck	type	"p"	void*
+#pragma	varargck	flag	','
+#pragma varargck	type	"<" void*
+#pragma varargck	type	"[" void*
+#pragma varargck	type	"H" void*
 
-extern	int	fmtinstall(int, int (*)(va_list*, Fconv*));
-extern	int	numbconv(va_list*, Fconv*);
-extern	void	strconv(char*, Fconv*);
-extern	void	Strconv(Rune*, Fconv*);
-extern	int	fltconv(va_list*, Fconv*);
-extern	char	*dtoa(double, int, int, int*, int*, char**);
-extern	void	freedtoa(char*);
+extern	int	fmtinstall(int, int (*)(Fmt*));
+extern	int	dofmt(Fmt*, char*);
+extern	int	dorfmt(Fmt*, Rune*);
+extern	int	fmtprint(Fmt*, char*, ...);
+extern	int	fmtvprint(Fmt*, char*, va_list);
+extern	int	fmtrune(Fmt*, int);
+extern	int	fmtstrcpy(Fmt*, char*);
+extern	int	fmtrunestrcpy(Fmt*, Rune*);
+/*
+ * error string for %r
+ * supplied on per os basis, not part of fmt library
+ */
+extern	int	errfmt(Fmt *f);
 
 /*
  * quoted strings
@@ -167,8 +227,8 @@ extern	char	*unquotestrdup(char*);
 extern	Rune	*unquoterunestrdup(Rune*);
 extern	char	*quotestrdup(char*);
 extern	Rune	*quoterunestrdup(Rune*);
-extern	int	quotestrconv(va_list*, Fconv*);
-extern	int	quoterunestrconv(va_list*, Fconv*);
+extern	int	quotestrfmt(Fmt*);
+extern	int	quoterunestrfmt(Fmt*);
 extern	void	quotefmtinstall(void);
 extern	int	(*doquote)(int);
 
@@ -182,8 +242,9 @@ extern	long	lrand(void);
 extern	long	lnrand(long);
 extern	double	frand(void);
 extern	ulong	truerand(void);			/* uses /dev/random */
-extern	int	n_truerand(int);		/* uses /dev/random */
+extern	ulong	ntruerand(ulong);		/* uses /dev/random */
 extern	ulong	fastrand(void);			/* uses /dev/random extended by a prng */
+extern ulong	nfastrand(ulong);		/* uses /dev/random extended by a prng */
 
 /*
  * math
@@ -274,13 +335,23 @@ extern	double	charstod(int(*)(void*), void*);
 extern	char*	cleanname(char*);
 extern	int	decrypt(void*, void*, int);
 extern	int	encrypt(void*, void*, int);
+extern	int	dec64(uchar*, int, char*, int);
+extern	int	enc64(char*, int, uchar*, int);
+extern	int	dec32(uchar*, int, char*, int);
+extern	int	enc32(char*, int, uchar*, int);
+extern	int	dec16(uchar*, int, char*, int);
+extern	int	enc16(char*, int, uchar*, int);
+extern	int	encodefmt(Fmt*);
 extern	void	exits(char*);
 extern	double	frexp(double, int*);
 extern	ulong	getcallerpc(void*);
 extern	char*	getenv(char*);
 extern	int	getfields(char*, char**, int, int, char*);
+extern	int	gettokens(char *, char **, int, char *);
 extern	char*	getuser(void);
 extern	char*	getwd(char*, int);
+extern	int	iounit(int);
+extern	int	kiounit(void);
 extern	long	labs(long);
 extern	double	ldexp(double, int);
 extern	void	longjmp(jmp_buf, int);
@@ -362,7 +433,7 @@ extern	void**	privalloc(void);
 extern	void	privfree(void**);
 
 /*
- *  network dialing and authentication
+ *  network dialing
  */
 #define NETPATHLEN 40
 extern	int	accept(int, char*);
@@ -373,15 +444,37 @@ extern	int	hangup(int);
 extern	int	listen(char*, char*);
 extern	char*	netmkaddr(char*, char*, char*);
 extern	int	reject(int, char*, char*);
+
+/*
+ *  encryption
+ */
 extern	int	pushssl(int, char*, char*, char*, int*);
+extern	int	pushtls(int, char*, char*, int, char*, char*);
+
+/*
+ *  network services
+ */
+typedef struct NetConnInfo NetConnInfo;
+struct NetConnInfo
+{
+	char	*dir;		/* connection directory */
+	char	*root;		/* network root */
+	char	*spec;		/* binding spec */
+	char	*lsys;		/* local system */
+	char	*lserv;		/* local service */
+	char	*rsys;		/* remote system */
+	char	*rserv;		/* remote service */
+};
+extern	NetConnInfo*	getnetconninfo(char*, int);
+extern	void		freenetconninfo(NetConnInfo*);
 
 /*
  * system calls
  *
  */
-#define	NAMELEN	28	/* length of path element, including '\0' */
-#define	DIRLEN	116	/* length of machine-independent Dir structure */
-#define	ERRLEN	64	/* length of error string */
+#define	STATMAX	65535U	/* max length of machine-independent stat structure */
+#define	DIRMAX	(sizeof(Dir)+STATMAX)	/* max length of Dir structure */
+#define	ERRMAX	128	/* max length of error string */
 
 #define	MORDER	0x0003	/* mask for bits defining order of mounting */
 #define	MREPL	0x0000	/* mount replaces object */
@@ -389,7 +482,7 @@ extern	int	pushssl(int, char*, char*, char*, int*);
 #define	MAFTER	0x0002	/* mount goes after others in union directory */
 #define	MCREATE	0x0004	/* permit creation in mounted directory */
 #define	MCACHE	0x0010	/* cache some data */
-#define	MMASK	0x0007	/* all bits on */
+#define	MMASK	0x0017	/* all bits on */
 
 #define	OREAD	0	/* open for read */
 #define	OWRITE	1	/* write */
@@ -398,7 +491,7 @@ extern	int	pushssl(int, char*, char*, char*, int*);
 #define	OTRUNC	16	/* or'ed in (except for exec), truncate file first */
 #define	OCEXEC	32	/* or'ed in, close on exec */
 #define	ORCLOSE	64	/* or'ed in, remove on close */
-#define	OEXCL	0x1000	/* or'ed in, exclusive use */
+#define	OEXCL	0x1000	/* or'ed in, exclusive use (create only) */
 
 #define	AEXIST	0	/* accessible: exists */
 #define	AEXEC	1	/* execute access */
@@ -414,13 +507,23 @@ extern	int	pushssl(int, char*, char*, char*, int*);
 #define	NSAVE	2	/* clear note but hold state */
 #define	NRSTR	3	/* restore saved state */
 
-#define CHDIR		0x80000000	/* mode bit for directories */
-#define CHAPPEND	0x40000000	/* mode bit for append only files */
-#define CHEXCL		0x20000000	/* mode bit for exclusive use files */
-#define CHMOUNT		0x10000000	/* mode bit for mounted channel */
-#define CHREAD		0x4		/* mode bit for read permission */
-#define CHWRITE		0x2		/* mode bit for write permission */
-#define CHEXEC		0x1		/* mode bit for execute permission */
+/* bits in Qid.type */
+#define QTDIR		0x80		/* type bit for directories */
+#define QTAPPEND	0x40		/* type bit for append only files */
+#define QTEXCL		0x20		/* type bit for exclusive use files */
+#define QTMOUNT		0x10		/* type bit for mounted channel */
+#define QTAUTH		0x08		/* type bit for authentication file */
+#define QTFILE		0x00		/* plain file */
+
+/* bits in Dir.mode */
+#define DMDIR		0x80000000	/* mode bit for directories */
+#define DMAPPEND	0x40000000	/* mode bit for append only files */
+#define DMEXCL		0x20000000	/* mode bit for exclusive use files */
+#define DMMOUNT		0x10000000	/* mode bit for mounted channel */
+#define DMAUTH		0x08000000	/* mode bit for authentication file */
+#define DMREAD		0x4		/* mode bit for read permission */
+#define DMWRITE		0x2		/* mode bit for write permission */
+#define DMEXEC		0x1		/* mode bit for execute permission */
 
 /* rfork */
 enum
@@ -442,54 +545,66 @@ enum
 typedef
 struct Qid
 {
-	ulong	path;
+	uvlong	path;
 	ulong	vers;
+	uchar	type;
 } Qid;
 
 typedef
-struct Dir
-{
-	char	name[NAMELEN];
-	char	uid[NAMELEN];
-	char	gid[NAMELEN];
-	Qid	qid;
-	ulong	mode;
-	long	atime;
-	long	mtime;
-	vlong	length;
-	ushort	type;
-	ushort	dev;
+struct Dir {
+	/* system-modified data */
+	ushort	type;	/* server type */
+	uint	dev;	/* server subtype */
+	/* file data */
+	Qid	qid;	/* unique id from server */
+	ulong	mode;	/* permissions */
+	ulong	atime;	/* last read time */
+	ulong	mtime;	/* last write time */
+	vlong	length;	/* file length */
+	char	*name;	/* last element of path */
+	char	*uid;	/* owner name */
+	char	*gid;	/* group name */
+	char	*muid;	/* last modifier name */
 } Dir;
 
+/* keep /sys/src/ape/lib/ap/plan9/sys9.h in sync with this -rsc */
 typedef
 struct Waitmsg
 {
-	char	pid[12];	/* of loved one */
-	char	time[3*12];	/* of loved one & descendants */
-	char	msg[ERRLEN];
+	int pid;	/* of loved one */
+	ulong time[3];	/* of loved one & descendants */
+	char	*msg;
 } Waitmsg;
+
+typedef
+struct IOchunk
+{
+	void	*addr;
+	ulong	len;
+} IOchunk;
 
 extern	void	_exits(char*);
 
 extern	void	abort(void);
 extern	int	access(char*, int);
 extern	long	alarm(ulong);
+extern	int	await(char*, int);
 extern	int	bind(char*, char*, int);
 extern	int	brk(void*);
 extern	int	chdir(char*);
 extern	int	close(int);
 extern	int	create(char*, int, ulong);
 extern	int	dup(int, int);
-extern	int	errstr(char*);
+extern	int	errstr(char*, uint);
 extern	int	exec(char*, char*[]);
 extern	int	execl(char*, ...);
 extern	int	fork(void);
 extern	int	rfork(int);
 extern	int	fauth(int, char*);
-extern	int	fsession(int, char*);
-extern	int	fstat(int, char*);
-extern	int	fwstat(int, char*);
-extern	int	mount(int, char*, int, char*);
+extern	int	fstat(int, uchar*, int);
+extern	int	fwstat(int, uchar*, int);
+extern	int	fversion(int, int, char*, int);
+extern	int	mount(int, int, char*, int, char*);
 extern	int	unmount(char*, char*);
 extern	int	noted(int);
 extern	int	notify(void(*)(void*, char*));
@@ -497,10 +612,12 @@ extern	int	open(char*, int);
 extern	int	fd2path(int, char*, int);
 extern	int	pipe(int*);
 extern	long	pread(int, void*, long, vlong);
+extern	long	preadv(int, IOchunk*, int, vlong);
 extern	long	pwrite(int, void*, long, vlong);
+extern	long	pwritev(int, IOchunk*, int, vlong);
 extern	long	read(int, void*, long);
 extern	long	readn(int, void*, long);
-extern	long	read9p(int, void*, long);
+extern	long	readv(int, IOchunk*, int);
 extern	int	remove(char*);
 extern	void*	sbrk(ulong);
 extern	long	oseek(int, long, int);
@@ -511,20 +628,24 @@ extern	int	segdetach(void*);
 extern	int	segflush(void*, ulong);
 extern	int	segfree(void*, ulong);
 extern	int	sleep(long);
-extern	int	stat(char*, char*);
-extern	int	wait(Waitmsg*);
+extern	int	stat(char*, uchar*, int);
+extern	Waitmsg*	wait(void);
+extern	int	waitpid(void);
 extern	long	write(int, void*, long);
-extern	long	write9p(int, void*, long);
-extern	int	wstat(char*, char*);
+extern	long	writev(int, IOchunk*, int);
+extern	int	wstat(char*, uchar*, int);
 extern	ulong	rendezvous(ulong, ulong);
 
-extern	int	dirstat(char*, Dir*);
-extern	int	dirfstat(int, Dir*);
+extern	Dir*	dirstat(char*);
+extern	Dir*	dirfstat(int);
 extern	int	dirwstat(char*, Dir*);
 extern	int	dirfwstat(int, Dir*);
-extern	long	dirread(int, Dir*, long);
+extern	long	dirread(int, Dir**);
+extern	void	nulldir(Dir*);
+extern	long	dirreadall(int, Dir**);
 extern	int	getpid(void);
 extern	int	getppid(void);
+extern	void	rerrstr(char*, uint);
 extern	char*	sysname(void);
 extern	void	werrstr(char*, ...);
 #pragma	varargck	argpos	werrstr	1
@@ -545,7 +666,7 @@ extern char *argv0;
 #define	ARGEND		SET(_argt);USED(_argt,_argc,_args);}USED(argv, argc);
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
-#define	EARGF(x)		(_argt=_args, _args="",\
+#define	EARGF(x)	(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), abort(), (char*)0)))
 
 #define	ARGC()		_argc

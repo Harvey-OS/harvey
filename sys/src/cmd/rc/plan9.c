@@ -80,59 +80,76 @@ void execnewpgrp(void){
 	poplist();
 }
 void Vinit(void){
-	int dir=open("#e", 0), f, len;
+	int dir, f, len;
 	word *val;
 	char *buf, *s;
-	Dir ent;
-	char envname[NAMELEN+6];
+	Dir *ent;
+	int i, nent;
+	char envname[256];
+	dir=open("/env", OREAD);
 	if(dir<0){
-		pfmt(err, "rc: can't open #e\n");
+		pfmt(err, "rc: can't open /env: %r\n");
 		return;
 	}
-	while(dirread(dir, &ent, sizeof ent)==sizeof ent){
-		len=ent.length;
-		if(len && strncmp(ent.name, "fn#", 3)!=0){
-			snprint(envname, sizeof envname, "#e/%s", ent.name);
-			if((f=open(envname, 0))>=0){
-				buf=emalloc((int)len+1);
-				read(f, buf, (long)len);
-				val=0;
-				/* Charitably add a 0 at the end if need be */
-				if(buf[len-1]) buf[len++]='\0';
-				s=buf+len-1;
-				for(;;){
-					while(s!=buf && s[-1]!='\0') --s;
-					val=newword(s, val);
-					if(s==buf) break;
-					--s;
+	ent = nil;
+	for(;;){
+		nent = dirread(dir, &ent);
+		if(nent <= 0)
+			break;
+		for(i=0; i<nent; i++){
+			len=ent[i].length;
+			if(len && strncmp(ent[i].name, "fn#", 3)!=0){
+				snprint(envname, sizeof envname, "/env/%s", ent[i].name);
+				if((f=open(envname, 0))>=0){
+					buf=emalloc((int)len+1);
+					read(f, buf, (long)len);
+					val=0;
+					/* Charitably add a 0 at the end if need be */
+					if(buf[len-1]) buf[len++]='\0';
+					s=buf+len-1;
+					for(;;){
+						while(s!=buf && s[-1]!='\0') --s;
+						val=newword(s, val);
+						if(s==buf) break;
+						--s;
+					}
+					setvar(ent[i].name, val);
+					vlook(ent[i].name)->changed=0;
+					close(f);
+					efree(buf);
 				}
-				setvar(ent.name, val);
-				vlook(ent.name)->changed=0;
-				close(f);
-				efree(buf);
 			}
 		}
+		free(ent);
 	}
 	close(dir);
 }
-#ifdef old_execfinit
-void Xrdfn(void){}
-void execfinit(void){
-	Xpopm();
-}
-#else
 int envdir;
 void Xrdfn(void){
 	int f, len;
-	Dir ent;
-	char envname[NAMELEN+6];
-	while(dirread(envdir, &ent, sizeof ent)==sizeof ent){
-		len=ent.length;
-		if(len && strncmp(ent.name, "fn#", 3)==0){
-			snprint(envname, sizeof envname, "#e/%s", ent.name);
-			if((f=open(envname, 0))>=0){
-				execcmds(openfd(f));
-				return;
+	static Dir *ent, *allocent;
+	static int nent;
+	Dir *e;
+	char envname[256];
+
+	for(;;){
+		if(nent == 0){
+			free(allocent);
+			nent = dirread(envdir, &allocent);
+			ent = allocent;
+		}
+		if(nent <= 0)
+			break;
+		while(nent){
+			e = ent++;
+			nent--;
+			len=e->length;
+			if(len && strncmp(e->name, "fn#", 3)==0){
+				snprint(envname, sizeof envname, "/env/%s", e->name);
+				if((f=open(envname, 0))>=0){
+					execcmds(openfd(f));
+					return;
+				}
 			}
 		}
 	}
@@ -150,31 +167,33 @@ void execfinit(void){
 		first=0;
 	}
 	Xpopm();
-	envdir=open("#e", 0);
+	envdir=open("/env", 0);
 	if(envdir<0){
-		pfmt(err, "rc: can't open #e\n");
+		pfmt(err, "rc: can't open /env: %r\n");
 		return;
 	}
 	start(rdfns, 1, runq->local);
 }
-#endif
 int Waitfor(int pid, int){
 	thread *p;
-	Waitmsg w;
-	int cpid;
-	char errbuf[ERRLEN];
-	while((cpid=wait(&w))>=0){
-		if(pid==cpid){
-			setstatus(w.msg);
+	Waitmsg *w;
+	char errbuf[ERRMAX];
+
+	while((w = wait()) != nil){
+		if(w->pid==pid){
+			setstatus(w->msg);
+			free(w);
 			return 0;
 		}
 		for(p=runq->ret;p;p=p->ret)
-			if(p->pid==cpid){
+			if(p->pid==w->pid){
 				p->pid=-1;
-				strcpy(p->status, w.msg);
+				strcpy(p->status, w->msg);
 			}
+		free(w);
 	}
-	errstr(errbuf);
+
+	errstr(errbuf, sizeof errbuf);
 	if(strcmp(errbuf, "interrupted")==0) return -1;
 	return 0;
 }
@@ -188,15 +207,15 @@ char **mkargv(word *a)
 }
 void addenv(var *v)
 {
-	char envname[NAMELEN+9];
+	char envname[256];
 	word *w;
 	int f;
 	io *fd;
 	if(v->changed){
 		v->changed=0;
-		snprint(envname, sizeof envname, "#e/%s", v->name);
+		snprint(envname, sizeof envname, "/env/%s", v->name);
 		if((f=Creat(envname))<0)
-			pfmt(err, "rc: can't open %s\n", envname);
+			pfmt(err, "rc: can't open %s: %r\n", envname);
 		else{
 			for(w=v->val;w;w=w->next)
 				write(f, w->word, strlen(w->word)+1L);
@@ -205,9 +224,9 @@ void addenv(var *v)
 	}
 	if(v->fnchanged){
 		v->fnchanged=0;
-		snprint(envname, sizeof envname, "#e/fn#%s", v->name);
+		snprint(envname, sizeof envname, "/env/fn#%s", v->name);
 		if((f=Creat(envname))<0)
-			pfmt(err, "rc: can't open %s\n", envname);
+			pfmt(err, "rc: can't open %s: %r\n", envname);
 		else{
 			if(v->fn){
 				fd=openfd(f);
@@ -253,86 +272,79 @@ void Execute(word *args, word *path)
 			else werrstr("command name too long");
 		}
 	}
-	errstr(file);
+	rerrstr(file, sizeof file);
 	pfmt(err, "%s: %s\n", argv[1], file);
 	efree((char *)argv);
 }
+#define	NDIR	256		/* shoud be a better way */
 int Globsize(char *p)
 {
-	ulong isglob=0, globlen=NAMELEN+1;
+	ulong isglob=0, globlen=NDIR+1;
 	for(;*p;p++){
 		if(*p==GLOB){
 			p++;
 			if(*p!=GLOB) isglob++;
-			globlen+=*p=='*'?NAMELEN:1;
+			globlen+=*p=='*'?NDIR:1;
 		}
 		else
 			globlen++;
 	}
 	return isglob?globlen:0;
 }
-#define NFD	50
+#define	NFD	50
 #define	NDBUF	32
 struct{
-	char	*buf;
+	Dir	*dbuf;
+	int	i;
 	int	n;
 }dir[NFD];
 int Opendir(char *name)
 {
-	Dir db;
+	Dir *db;
 	int f;
 	f=open(name, 0);
 	if(f==-1)
 		return f;
-	if(dirfstat(f, &db)!=-1 && (db.mode&0x80000000)){
-		if(f<NFD && dir[f].buf){
-			free(dir[f].buf);
-			dir[f].buf=0;
+	db = dirfstat(f);
+	if(db!=nil && (db->mode&DMDIR)){
+		if(f<NFD){
+			dir[f].i=0;
+			dir[f].n=0;
 		}
+		free(db);
 		return f;
 	}
+	free(db);
 	close(f);
 	return -1;
 }
 int Readdir(int f, char *p)
 {
-	char dirent[DIRLEN];
 	int n;
-	if(f<0 || f>=NFD){
-   slow:
-		while(read(f, dirent, sizeof dirent)==sizeof dirent){
-			strcpy(p, dirent);
-			return 1;
-		}
+	if(f<0 || f>=NFD)
 		return 0;
-	}
-	if(dir[f].buf==0){	/* allocate */
-		dir[f].buf=malloc(NDBUF*DIRLEN);
-		if(dir[f].buf==0)
-			goto slow;
-		dir[f].n=0;
-	}
-	if(dir[f].n==0){	/* read */
-		memset(dir[f].buf, 0, NDBUF*DIRLEN);
-		n = read(f, dir[f].buf, NDBUF*DIRLEN);
-		if(n>0 && n<NDBUF*DIRLEN){
-			memmove(dir[f].buf+NDBUF*DIRLEN-n, dir[f].buf, n);
-			dir[f].n=NDBUF-n/DIRLEN;
-		}else
+	if(dir[f].i==dir[f].n){	/* read */
+		free(dir[f].dbuf);
+		dir[f].dbuf=0;
+		n=dirread(f, &dir[f].dbuf);
+		if(n>=0)
+			dir[f].n=n;
+		else
 			dir[f].n=0;
+		dir[f].i=0;
 	}
-	if(dir[f].buf[dir[f].n*DIRLEN]==0)
+	if(dir[f].i==dir[f].n)
 		return 0;
-	strcpy(p, &dir[f].buf[dir[f].n*DIRLEN]);
-	dir[f].n++;
-	if(dir[f].n==NDBUF)
-		dir[f].n=0;
+	strcpy(p, dir[f].dbuf[dir[f].i].name);
+	dir[f].i++;
 	return 1;
 }
 void Closedir(int f){
-	if(f>=0 && f<NFD && dir[f].buf){
-		free(dir[f].buf);
-		dir[f].buf=0;
+	if(f>=0 && f<NFD){
+		free(dir[f].dbuf);
+		dir[f].i=0;
+		dir[f].n=0;
+		dir[f].dbuf=0;
 	}
 	close(f);
 }
@@ -380,9 +392,14 @@ long Seek(int fd, long cnt, long whence)
 }
 int Executable(char *file)
 {
-	Dir statbuf;
+	Dir *statbuf;
+	int ret;
 
-	return dirstat(file, &statbuf)!=-1 && (statbuf.mode&0111)!=0 && (statbuf.mode&CHDIR)==0;
+	statbuf = dirstat(file);
+	if(statbuf == nil) return 0;
+	ret = ((statbuf->mode&0111)!=0 && (statbuf->mode&DMDIR)==0);
+	free(statbuf);
+	return ret;
 }
 int Creat(char *file)
 {
@@ -407,12 +424,24 @@ void Noerror(void){
 	interrupted=0;
 }
 int Isatty(int fd){
-	Dir d1, d2;
+	Dir *d1, *d2;
+	int ret;
 
-	if(dirfstat(fd, &d1)==-1) return 0;
-	if(strncmp(d1.name, "ptty", 4)==0) return 1;	/* fwd complaints to philw */
-	if(dirstat("/dev/cons", &d2)==-1) return 0;
-	return d1.type==d2.type&&d1.dev==d2.dev&&d1.qid.path==d2.qid.path;
+	d1 = dirfstat(fd);
+	if(d1 == nil) return 0;
+	if(strncmp(d1->name, "ptty", 4)==0){	/* fwd complaints to philw */
+		free(d1);
+		return 1;
+	}
+	d2 = dirstat("/dev/cons");
+	if(d2 == nil){
+		free(d1);
+		return 0;
+	}
+	ret = (d1->type==d2->type&&d1->dev==d2->dev&&d1->qid.path==d2->qid.path);
+	free(d1);
+	free(d2);
+	return ret;
 }
 void Abort(void){
 	pfmt(err, "aborting\n");

@@ -14,3 +14,5 @@ if(! test -f /srv/dos)
 
 unmount /n/9fat >/dev/null >[2]/dev/null
 mount -c /srv/dos /n/9fat $part
+unmount /n/9 >/dev/null >[2]/dev/null
+mount -c /srv/dos /n/9 $part

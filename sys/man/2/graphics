@@ -1,6 +1,6 @@
 .TH GRAPHICS 2
 .SH NAME
-Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pconv, Rconv, strtochan, chantostr, chantodepth \- interactive graphics
+Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pfmt, Rfmt, strtochan, chantostr, chantodepth \- interactive graphics
 .SH SYNOPSIS
 .nf
 .PP
@@ -74,10 +74,10 @@ Font*	buildfont(Display *d, char *desc, char *name)
 void	freefont(Font *f)
 .PP
 .B
-int	Pconv(void *arg, Fconv*)
+int	Pfmt(Fmt*)
 .PP
 .B
-int	Rconv(void *arg, Fconv*)
+int	Rfmt(Fmt*)
 .PP
 .B
 ulong	strtochan(char *s)
@@ -336,9 +336,9 @@ Another effect of
 is that it installs
 .IR print (2)
 formats
-.I Pconv
+.I Pfmt
 and
-.I Rconv
+.I Rfmt
 as
 .L %P
 and
@@ -477,7 +477,7 @@ to connect to them.
 .IR Gengetwindow 's
 extra arguments are the full path of the window's
 .B winname
-file, and pointers to be overwritten with the values of the `global'
+file and pointers to be overwritten with the values of the `global'
 .B Image
 and
 .B Screen

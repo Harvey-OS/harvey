@@ -224,7 +224,7 @@ jpgerror(Header *h, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(h->err, h->err+sizeof h->err, fmt, arg);
+	vseprint(h->err, h->err+sizeof h->err, fmt, arg);
 	va_end(arg);
 
 	werrstr(h->err);
@@ -237,11 +237,11 @@ Breadjpg(Biobuf *b, int colorspace)
 {
 	Rawimage *r, **array;
 	Header *h;
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
 	buf[0] = '\0';
 	if(colorspace!=CYCbCr && colorspace!=CRGB){
-		errstr(buf);	/* throw it away */
+		errstr(buf, sizeof buf);	/* throw it away */
 		werrstr("ReadJPG: unknown color space");
 		return nil;
 	}
@@ -256,7 +256,7 @@ Breadjpg(Biobuf *b, int colorspace)
 	h->array = array;
 	memset(h, 0, sizeof(Header));
 	h->fd = b;
-	errstr(buf);	/* throw it away */
+	errstr(buf, sizeof buf);	/* throw it away */
 	if(setjmp(h->errlab))
 		r = nil;
 	else

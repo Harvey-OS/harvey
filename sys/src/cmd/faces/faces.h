@@ -55,6 +55,7 @@ void		freefacefile(Facefile*);
 Face*	dirface(char*, char*);
 void		resized(void);
 int		alreadyseen(char*, char*, char*);
+ulong	dirlen(char*);
 
 void		*emalloc(ulong);
 void		*erealloc(void*, ulong);

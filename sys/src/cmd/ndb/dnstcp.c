@@ -38,7 +38,6 @@ main(int argc, char *argv[])
 	char tname[32];
 	char *err;
 	char *ext = "";
-	Ipifc *ifcs;
 
 	ARGBEGIN{
 	case 'd':
@@ -64,10 +63,8 @@ main(int argc, char *argv[])
 	dninit();
 
 	snprint(mntpt, sizeof(mntpt), "/net%s", ext);
-	ifcs = readipifc(mntpt, nil);
-	if(ifcs == nil)
+	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
-	ipmove(ipaddr, ifcs->ip);
 	syslog(0, logfile, "dnstcp call from %s to %I", caller, ipaddr);
 
 	db2cache(1);
@@ -109,7 +106,7 @@ main(int argc, char *argv[])
 				req.id, caller,
 				reqmsg.id,
 				reqmsg.qd->owner->name,
-				rrname(reqmsg.qd->type, tname));
+				rrname(reqmsg.qd->type, tname, sizeof tname));
 
 		/* loop through each question */
 		while(reqmsg.qd){
@@ -166,7 +163,7 @@ reply(int fd, DNSmsg *rep, Request *req)
 		syslog(0, logfile, "%d: reply (%s) %s %s %ux",
 			req->id, caller,
 			rep->qd->owner->name,
-			rrname(rep->qd->type, tname),
+			rrname(rep->qd->type, tname, sizeof tname),
 			rep->flags);
 		for(rp = rep->an; rp; rp = rp->next)
 			syslog(0, logfile, "an %R", rp);
@@ -353,7 +350,7 @@ logsend(int id, int subid, uchar *addr, char *sname, char *rname, int type)
 	char buf[12];
 
 	syslog(0, LOG, "%d.%d: sending to %I/%s %s %s",
-		id, subid, addr, sname, rname, rrname(type, buf));
+		id, subid, addr, sname, rname, rrname(type, buf, sizeof buf));
 }
 
 RR*

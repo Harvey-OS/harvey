@@ -9,7 +9,6 @@
 #include <libc.h>
 #include <bio.h>
 
-
 #define	NINC	50	/* Multiples of directory allocation */
 char	NEWS[] = "/lib/news";
 char	TFILE[] = "%s/lib/newstime";
@@ -28,7 +27,8 @@ typedef
 struct
 {
 	long	time;
-	char	name[NAMELEN];
+	char	*name;
+	vlong	length;
 } File;
 File*	n_list;
 int	n_count;
@@ -92,7 +92,7 @@ fcmp(void *a, void *b)
 void
 read_dir(int update)
 {
-	Dir nd[NINC];
+	Dir *d;
 	char newstime[100], *home;
 	int i, j, n, na, fd;
 
@@ -102,10 +102,13 @@ read_dir(int update)
 	home = getenv("home");
 	if(home) {
 		sprint(newstime, TFILE, home);
-		if(dirstat(newstime, nd) >= 0) {
-			strncpy(n_list[n_count].name, "", NAMELEN);
-			n_list[n_count].time = nd[0].mtime-1;
+		d = dirstat(newstime);
+		if(d != nil) {
+			n_list[n_count].name = strdup("");
+			n_list[n_count].time =d->mtime-1;
+			n_list[n_count].length = 0;
 			n_count++;
+			free(d);
 		}
 		if(update) {
 			fd = create(newstime, OWRITE, 0644);
@@ -119,25 +122,24 @@ read_dir(int update)
 		perror(NEWS);
 		exits(NEWS);
 	}
-	for(;;) {
-		n = dirread(fd, nd, sizeof(nd));
-		if(n <= 0)
-			break;
-		n /= sizeof(Dir);
-		for(i=0; i<n; i++) {
-			for(j=0; ignore[j]; j++)
-				if(strcmp(ignore[j], nd[i].name) == 0)
-					goto ign;
-			if(na <= n_count) {
-				na += NINC;
-				n_list = realloc(n_list, na*sizeof(File));
-			}
-			strncpy(n_list[n_count].name, nd[i].name, NAMELEN);
-			n_list[n_count].time = nd[i].mtime;
-			n_count++;
-		ign:;
+
+	n = dirreadall(fd, &d);
+	for(i=0; i<n; i++) {
+		for(j=0; ignore[j]; j++)
+			if(strcmp(ignore[j], d[i].name) == 0)
+				goto ign;
+		if(na <= n_count) {
+			na += NINC;
+			n_list = realloc(n_list, na*sizeof(File));
 		}
+		n_list[n_count].name = strdup(d[i].name);
+		n_list[n_count].time = d[i].mtime;
+		n_list[n_count].length = d[i].length;
+		n_count++;
+	ign:;
 	}
+	free(d);
+
 	close(fd);
 	qsort(n_list, n_count, sizeof(File), fcmp);
 }
@@ -146,7 +148,7 @@ void
 print_item(char *file)
 {
 	char name[4096], *p, *ep;
-	Dir dbuf;
+	Dir *dbuf;
 	int f, c;
 	int bol, bop;
 
@@ -158,10 +160,13 @@ print_item(char *file)
 		return;
 	}
 	strcpy(name, "...");
-	if(dirfstat(f, &dbuf) < 0)
+	dbuf = dirfstat(f);
+	if(dbuf == nil)
 		return;
 	Bprint(&bout, "\n%s (%s) %s\n", file,
-		dbuf.uid, asctime(localtime(dbuf.mtime)));
+		dbuf->muid[0]? dbuf->muid : dbuf->uid,
+		asctime(localtime(dbuf->mtime)));
+	free(dbuf);
 
 	bol = 1;	/* beginning of line ...\n */
 	bop = 1;	/* beginning of page ...\n\n */
@@ -207,6 +212,8 @@ eachitem(void (*emit)(char*), int all, int update)
 				continue;
 			break;
 		}
+		if(n_list[i].length == 0)		/* in progress */
+			continue;
 		(*emit)(n_list[i].name);
 	}
 }

@@ -39,7 +39,7 @@ mpint*	mprand(int bits, void (*gen)(uchar*, int), mpint *b);
 
 // conversion
 mpint*	strtomp(char*, char**, int, mpint*);	// ascii
-int	mpconv(va_list*, Fconv*);
+int	mpfmt(Fmt*);
 char*	mptoa(mpint*, int, char*, int);
 mpint*	letomp(uchar*, uint, mpint*);	// byte array, little-endian
 int	mptole(mpint*, uchar*, uint, uchar**);

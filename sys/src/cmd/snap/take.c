@@ -200,7 +200,7 @@ snap(long pid, int usetext)
 	Data *d;
 	Proc *proc;
 	Seg **s;
-	char *segdat, *q, *f[128+1], buf[NAMELEN*3];
+	char *segdat, *q, *f[128+1], buf[128];
 	int fd, i, stacki, nf, np;
 	ulong off, len, stackoff, stacklen;
 	ulong sp;

@@ -1,0 +1,11 @@
+sandbox:V:
+	{
+		echo Sandbox
+		echo D^`{date -n}
+		echo Agre '(204.178.31.2)'
+		echo '#This page exists to be modified.  Use it to test the server.'
+	} >sandbox
+	<d/L.2 {
+		cp sandbox d/2
+		cp sandbox d/2.hist
+	}

@@ -166,7 +166,7 @@ commands(void)
 {
 	int *a1, c, temp;
 	char lastsep;
-	Dir d;
+	Dir *d;
 
 	for(;;) {
 		if(pflag) {
@@ -314,9 +314,10 @@ commands(void)
 				lastc = '\n';
 				error(file);
 			}
-			if(dirfstat(io, &d) >= 0){
-				if(d.mode & CHAPPEND)
+			if((d = dirfstat(io)) != nil){
+				if(d->mode & DMAPPEND)
 					print("warning: %s is append only\n", file);
+				free(d);
 			}
 			Binit(&iobuf, io, OREAD);
 			setwide();
@@ -907,7 +908,6 @@ callunix(void)
 {
 	int c, pid;
 	Rune rune;
-	Waitmsg w;
 	char buf[512];
 	char *p;
 
@@ -925,7 +925,7 @@ callunix(void)
 		exits("execl failed");
 	}
 	waiting = 1;
-	while(wait(&w) != pid)
+	while(waitpid() != pid)
 		;
 	waiting = 0;
 	if(vflag)

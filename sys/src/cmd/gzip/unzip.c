@@ -342,7 +342,7 @@ sunzip(Biobuf *bin)
 static int
 unzipEntry(Biobuf *bin, ZipHead *czh)
 {
-	Dir d;
+	Dir *d;
 	ZipHead zh;
 	char *p;
 	vlong off;
@@ -381,12 +381,14 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 			if(ok && !isdir)
 				fd = 1;
 		}else if(isdir){
-			fd = create(zh.file, OREAD, CHDIR | 0775);
+			fd = create(zh.file, OREAD, DMDIR | 0775);
 			if(fd < 0){
-				if(dirstat(zh.file, &d) < 0 || (d.mode & CHDIR) != CHDIR){
+				d = dirstat(zh.file);
+				if(d == nil || (d->mode & DMDIR) != DMDIR){
 					fprint(2, "unzip: can't create directory %s: %r\n", zh.file);
 					ok = 0;
 				}
+				free(d);
 			}
 		}else if(ok){
 			fd = create(zh.file, OWRITE, 0664);
@@ -429,10 +431,11 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 
 	if(fd >= 0 && !stdout){
 		if(settimes){
-			if(dirfstat(fd, &d) >= 0){
-				d.mtime = msdos2time(zh.modtime, zh.moddate);
-				if(d.mtime)
-					dirfwstat(fd, &d);
+			d = dirfstat(fd);
+			if(d != nil){
+				d->mtime = msdos2time(zh.modtime, zh.moddate);
+				if(d->mtime)
+					dirfwstat(fd, d);
 			}
 		}
 		close(fd);
@@ -717,13 +720,13 @@ emalloc(ulong n)
 static void
 error(char *fmt, ...)
 {
-	char buf[1024];
 	va_list arg;
 
+	fprint(2, "unzip: ");
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vfprint(2, fmt, arg);
 	va_end(arg);
-	fprint(2, "unzip: %s\n", buf);
+	fprint(2, "\n");
 
 	if(delfile != nil){
 		fprint(2, "unzip: removing output file %s\n", delfile);

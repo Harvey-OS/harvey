@@ -777,7 +777,7 @@ cpoint(int xi, int yi, int conn)
 		return 0;
 	}
 	if(conn == -1)		/* isolated plotting symbol */
-		;
+		{}
 	else if(!conn)
 		point(xi,yi);
 	else {

@@ -1,21 +1,44 @@
 .TH SSH 1
 .SH NAME
-ssh, sshserve, scp \- secure login and file copy from/to Unix or Plan 9
+ssh, sshnet, scp, sshserve, ssh_genkey \- secure login and file copy from/to Unix or Plan 9
 .SH SYNOPSIS
 .B ssh
 [
-.B -CiImprv
+.B -CiImPprvw
+]
+[
+.B -A
+.I authlist
+]
+[
+.B -c
+.I cipherlist
 ]
 [
 .B -[lu]
 .I user
 ]
-.RI [ user\fB@ ] hostname
+.RI [ user\fB@ ] host
 [
-.I command
+.I cmd
 [
-.I arguments
+.I args
 \&... ]]
+.PP
+.B sshnet
+[
+.B -A
+.I authlist
+]
+[
+.B -c
+.I cipherlist
+]
+[
+.B -m
+.I mtpt
+]
+.RI [ user\fB@ ] host
 .PP
 .B scp
 [host:]file [host:]file
@@ -23,16 +46,13 @@ ssh, sshserve, scp \- secure login and file copy from/to Unix or Plan 9
 .B scp
 [host:]file ... [host:]dir
 .PP
-.B sshserve
+.B aux/sshserve
 [
 .B -p
 ]
 .I address
 .PP
 .B aux/ssh_genkey
-[
-.B -d
-]
 [
 .I basename
 ]
@@ -90,17 +110,56 @@ requests a pseudoterminal only when no
 .I command
 is given.
 .TP
+.B -P
+force no pseudoterminal request.
+.TP
 .B -r
 strip carriage returns.
 .TP
 .B -v
 enable verbose feedback during the connection and authentication process. 
 .TP
+.B -w
+notify the remote side whenever the window changes size.
+.TP
 .BR - [ lu ] "\fI user
 specify user name.
 This option is deprecated in favor of the
 .IB user @ hostname
 syntax.
+.TP
+.B "-A\fI authlist
+specify an ordered space-separated list of authentication protocols to try.
+The full set of authentication protocols is
+.B rsa
+(RSA using
+.IR factotum (4)
+to moderate key usage),
+.B password
+(use a password gathered from factotum),
+and
+.B tis
+(challenge-response).
+The default list is all three in that order.
+.TP
+.B "-c\fI cipherlist
+specify an ordered space-separated list of allowed ciphers to use when encrypting the channel.
+The full set of ciphers is
+.B des
+(standard DES),
+.B 3des
+(a somewhat doubtful variation on triple DES),
+.B blowfish
+(Bruce Schneier's Blowfish),
+.B rc4
+(RC4),
+and
+.B none
+(no encryption).
+The default cipher list is 
+.B blowfish
+.B rc4
+.BR 3des .
 .PD
 .PP
 The
@@ -140,12 +199,7 @@ Using these,
 .I ssh
 sends a session key which, presumably, only the
 daemon can decipher.  After this, both sides start encrypting their
-data with this session key.  The encryption algorithm preferred by
-Plan9
-.I ssh
-for data transfer is RC4, with triple-DES (which isn't
-really triple DES but a somewhat doubtful variation on it) as
-backup.  (All ssh implementations are required to be able to do 3DES.)
+data with this session key.
 .LP
 When the daemon's host key has been received,
 .I ssh
@@ -163,32 +217,37 @@ reports this and offers to add the key to
 .LP
 Over the encrypted channel,
 .I ssh
-attempts to convince the daemon to accept the call.  
-It will try to use RSA private keys, first those mounted
-at 
-.B /mnt/auth/ssh
-(see
-.IR agent (4)),
-and then any in the private keyring
-.BR $home/lib/userkeyring .
-.PP
-If RSA authentication fails,
-.I ssh
-may prompt for
-the password on the remote host \- note that this password will be sent
-over the
-.I encrypted
-channel.  This is safe, provided one is indeed connected to the intended
-host.
+attempts to convince the daemon to accept the call
+using the listed authentication protocols
+(see the
+.B -A
+option above).
 .LP
-The preferred way to authenticate the user, however, is the
-challenge/response system used by
-.IR netkey .
+The preferred way to authenticate is a
+.IR netkey -style
+challenge/response or via a SecurID token.
 .I Ssh
 users on other systems than Plan 9 should enable \s-2TIS_A\s0uthentication.
 .LP
-When the connection is established, the command given in the remaining
-arguments, or the shell, is started up on the remote host.
+When the connection is authenticated, the given command line,
+(by default, a login shell) is executed on the remote host.
+.sp 1
+The SSH protocol allows clients to make outgoing TCP calls via the server.
+.I Sshnet
+establishes an SSH connection and, rather than execute a remote command,
+presents the remote server's TCP stack as a network stack
+(see the discussion of TCP in
+.IR ip (3))
+mounted at
+.I mtpt
+(default
+.BR /net ).
+The
+.B -A
+and
+.B -c
+arguments are as in
+.IR ssh .
 .sp 1
 .I Scp
 uses
@@ -201,16 +260,26 @@ can copy files from remote hosts and to remote hosts.
 .I Sshserve
 is the server that services
 .I ssh
-calls from remote hosts.  On Plan 9, it always requires either
-a response to a challenge (netkey), or a password.  The password is
-protected by encryption as it travels from the remote host to
-.IR sshserve .
+calls from remote hosts. 
 The 
-.B -p
-option keeps
-.I sshserve
-from accepting passwords, forcing the use of the netkey-style
-challenge-response.
+.B -A
+and
+.B -c
+options set valid authentication methods and ciphers
+as in
+.IR ssh ,
+except that there is no
+.B rsa
+authentication method.
+Unlike in
+.IR ssh ,
+the list is not ordered: the server presents a set and the client makes the choice.
+The default sets are
+.B tis
+and
+.B blowfish
+.B rc4
+.BR 3des .
 By default, users start with the namespace defined in
 .BR /lib/namespace .
 Users in group
@@ -219,6 +288,12 @@ in
 .B /adm/users
 start with the namespace defined in
 .BR /lib/namespace.noworld .
+.I Sshserve
+does not provide the TCP forwarding functionality used
+by
+.IR sshnet ,
+because many Unix clients present
+this capability in an insecure manner.
 .PP
 .I Ssh_genkey
 generates an RSA key set, writing the
@@ -226,6 +301,11 @@ private key to
 .IB basename .secret
 and the public key to
 .IB basename .public\fR.
+.I Ssh_genkey
+also writes
+a secret key in the style expected by factotum
+to
+.IB basename .secret.factotum\fR.
 The default 
 .B basename
 is 
@@ -233,18 +313,6 @@ is
 so running it with no arguments
 will generate an RSA key set
 for the file server in use.
-Unlike the ssh used by Unix machines,
-the Plan 9
-.I ssh
-stores its keys in hexadecimal.
-Invoking
-.I ssh_genkey
-with the
-.B -d
-option causes it to create a decimal public key
-in
-.IB basename .public10\fR,
-useful for sharing with Unix hosts.
 .SH FILES
 .TF /sys/lib/ssh/hostkey.public
 .TP
@@ -261,16 +329,10 @@ System keyring file containing public keys for remote ssh clients and servers.
 .B /usr/\fIuser\fP/lib/keyring
 Personal keyring file containing public keys for remote ssh clients and
 servers.
-.TP
-.B /mnt/auth/ssh
-Expected mount point for private keys held by an agent.
-.TP
-.B /usr/\fIuser\fP/lib/userkeyring
-Personal keyring file containing private keys to be used in authentication.
 .SH SOURCE
 .B /sys/src/cmd/ssh
 .SH "SEE ALSO"
 .IR /sys/src/cmd/ssh/RFC*
 .br
-.IR agent (4),
-.IR auth (6)
+.IR factotum (4),
+.IR authsrv (6)

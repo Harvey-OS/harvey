@@ -34,14 +34,14 @@ static Keyword options[] = {
 
 static Keyword actions[] = {
 	"allow",		ACCEPT,
-	"accept",		ACCEPT,
 	"block",		BLOCKED,
 	"deny",			DENIED,
 	"dial",			DIALUP,
-	"relay",		DELAY,
 	"delay",		DELAY,
 	0,			NONE,
 };
+
+static	int	hisaction;
 
 static	char*	getline(Biobuf*);
 
@@ -55,6 +55,50 @@ findkey(char *val, Keyword *p)
 	return p->code;
 }
 
+char*
+actstr(int a)
+{
+	char buf[32];
+	Keyword *p;
+
+	for(p=actions; p->name; p++)
+		if(p->code == a)
+			return p->name;
+	if(a==NONE)
+		return "none";
+	sprint(buf, "%d", a);
+	return buf;
+}
+
+int
+getaction(char *s, char *type)
+{
+	char buf[1024];
+	Keyword *k;
+
+	if(s == nil || *s == 0)
+		return ACCEPT;
+
+	for(k = actions; k->name != 0; k++){
+		snprint(buf, sizeof buf, "/mail/ratify/%s/%s/%s", k->name, type, s);
+		if(access(buf,0) >= 0)
+			return k->code;
+	}
+	return ACCEPT;
+}
+
+int
+istrusted(char *s)
+{
+	char buf[1024];
+
+	if(s == nil || *s == 0)
+		return 0;
+
+	snprint(buf, sizeof buf, "/mail/ratify/trusted/%s", s);
+	return access(buf,0) >= 0;
+}
+
 void
 getconf(void)
 {
@@ -62,16 +106,13 @@ getconf(void)
 	char *cp, *p;
 	String *s;
 	char buf[512];
-/*
-**		let it fail on unix
-*/
-	if(hisaddr && *hisaddr){
-		sprint(buf, "/mail/ratify/trusted/%s#32", hisaddr);
-		if(access(buf,0) >= 0)
-			trusted++;
+
+	trusted = istrusted(nci->rsys);
+	hisaction = getaction(nci->rsys, "ip");
+	if(debug){
+		fprint(2, "istrusted(%s)=%d\n", nci->rsys, trusted);
+		fprint(2, "getaction(%s, ip)=%s\n", nci->rsys, actstr(hisaction));
 	}
-
-
 	snprint(buf, sizeof(buf), "%s/smtpd.conf", UPASLIB);
 	bp = sysopen(buf, "r", 0);
 	if(bp == 0)
@@ -156,153 +197,40 @@ dommatch(char *pathdom, char *specdom)
 }
 
 /*
- * match path components to prohibited domain & user specifications.  patterns include:
- *	domain, domain! or domain!*	  - all users in domain
- *	*.domain, *.domain! or *.domain!* - all users in domain and its subdomains
- *	!user or *!user			  - user in all domains
- *	domain!user			  - user in domain
- *	*.domain!user			  - user in domain and its subdomains
- *
- *	if "user" has a trailing '*', it matches all user names beginning with "user"
- *
- * there are special semantics for the "domain, domain! or domain!*" specifications:
- * the first two forms match when the domain is anywhere in at list of source-routed
- * domains while the latter matches only when the domain is the last hop.  the same is
- * true for the *.domain!* form of the pattern.
- */
-static int
-accountmatch(char *spec, List *doms, char *user)
-{
-	char *cp, *p;
-	int i, n;
-	Link *l;
-
-	static char *dangerous[] = { "*", "!", "*!", "!*", "*!*", 0 };
-
-	for(; *spec; spec += n){
-		n = strlen(spec)+1;
-
-		/* rule out dangerous patterns */
-		for (i = 0; dangerous[i]; i++)
-			if(strcmp(spec, dangerous[i])== 0)
-				break;
-		if(dangerous[i])
-			continue;
-
-		p = 0;
-		cp = strchr(spec, '!');
-		if(cp){
-			*cp++ = 0;
-			if(*cp)
-			if(strcmp(cp, "*"))	/* rule out "!*" */
-				p = cp;
-		}
-
-		if(p == 0){			/* no user field - domain match only */
-			for(l = doms->first; l; l = l->next)
-				if(dommatch(s_to_c(l->p), spec) == 0)
-					return 1;
-		} else {
-			/* check for "!user", "*!user" or "domain!user" */
-			if(usermatch(user, p) == 0){
-				if(*spec == 0 || strcmp(spec, "*") == 0)
-					return 1;
-				if(doms->last && dommatch(s_to_c(doms->last->p), spec) == 0)
-					return 1;
-			}
-		}
-	}
-	return 0;
-}
-
-/*
- * we risk reparsing the file of blocked addresses if there are
- * multiple senders or if the peer does a transaction and then a RSET
- * followed by another transaction.  we believe this happens rarely,
- * but we cache the last sender to try to minimize the overhead.  we
- * also cache whether we rejected a previous transaction based on
- * ip address, since this never changes.
+ *  figure out action for this sender
  */
 int
 blocked(String *path)
 {
-	char buf[512], *cp, *p, *user;
-	Biobuf *bp;
-	int action, type;
-	List doms;
-	String *s, *lpath;
-
-	static String *lastsender;
-	static int lastret, blockedbyip;
+	String *lpath;
+	int action;
 
 	if(debug)
 		fprint(2, "blocked(%s)\n", s_to_c(path));
 
-	if(blockedbyip)
-		return lastret;
-
-	if(lastsender){
-		if(strcmp(s_to_c(lastsender), s_to_c(path)) == 0)
-			return lastret;
-		s_free(lastsender);
-		lastsender = 0;
+	/* if the sender's IP address is blessed, ignore sender email address */
+	if(trusted){
+		if(debug)
+			fprint(2, "\ttrusted => trusted\n");
+		return TRUSTED;
 	}
 
-	snprint(buf, sizeof(buf), "%s/blocked", UPASLIB);
-	bp = sysopen(buf, "r", 0);
-	if(bp == 0)
-		return ACCEPT;
-
-	lpath = s_copy(s_to_c(s_restart(path)));	/* convert to LC */
-	for(cp = s_to_c(lpath); *cp; cp++)
-		*cp = tolower(*cp);
-
-	/* parse the path into a list of domains and a user */
-	doms.first = doms.last = 0;
-	p = s_to_c(lpath);
-	while (cp = strchr(p, '!')){
-		*cp = 0;
-		s = s_new();
-		s_append(s, p);
-		*cp = '!';
-		listadd(&doms, s);
-		p = cp+1;
+	/* if sender's IP address is blocked, ignore sender email address */
+	if(hisaction != ACCEPT){
+		if(debug)
+			fprint(2, "\thisaction=%s => %s\n", actstr(hisaction), actstr(hisaction));
+		return hisaction;
 	}
-	user = p;
 
-	/*
-	 * line format: [*]VERB param 1, ... param n,  where '*' indicates
-	 * params are path names; if not present, params are ip addresses in
-	 * CIDR format.
-	 */
-	for(;;){
-		action = ACCEPT;
-		cp = getline(bp);
-		if(cp == 0)
-			break;
-		type = *cp;
-		if(type == '*') {
-			cp++;
-			if(*cp == 0)
-				cp++;
-		}
-		action = findkey(cp, actions);
-		if (action == NONE)
-			continue;
+	/* convert to lower case */
+	lpath = s_copy(s_to_c(path));
+	s_tolower(lpath);
 
-		cp += strlen(cp)+1;
-		if(type == '*' && accountmatch(cp, &doms, user))
-			break;
-		else if(type != '*'&& cidrcheck(cp)) {
-			blockedbyip = 1;
-			break;
-		}
-	}
-	sysclose(bp);
-	listfree(&doms);
-	lastsender = s_copy(s_to_c(s_restart(path)));
+	/* classify */
+	action = getaction(s_to_c(lpath), "account");
+	if(debug)
+		fprint(2, "\tgetaction account %s => %s\n", s_to_c(lpath), actstr(action));
 	s_free(lpath);
-	lastret = action;
 	return action;
 }
 
@@ -369,15 +297,14 @@ forwarding(String *path)
 	if(debug)
 		fprint(2, "forwarding(%s)\n", s_to_c(path));
 
-		/* first check if they want loopback */
-
+	/* first check if they want loopback */
 	lpath = s_copy(s_to_c(s_restart(path)));
-	if(hisaddr && *hisaddr){
+	if(nci->rsys && *nci->rsys){
 		cp = s_to_c(lpath);
 		if(strncmp(cp, "[]!", 3) == 0){
 found:
 			s_append(path, "[");
-			s_append(path, hisaddr);
+			s_append(path, nci->rsys);
 			s_append(path, "]!");
 			s_append(path, cp+3);
 			s_terminate(path);
@@ -388,13 +315,14 @@ found:
 		if(cp++ && strncmp(cp, "[]!", 3) == 0)
 			goto found;
 	}
-		/* if mail is from a trusted subnet, allow it to forward*/
+
+	/* if mail is from a trusted IP addr, allow it to forward*/
 	if(trusted) {
 		s_free(lpath);
 		return 0;
 	}
 
-		/* sender is untrusted; ensure receiver is in one of our domains */
+	/* sender is untrusted; ensure receiver is in one of our domains */
 	for(cp = s_to_c(lpath); *cp; cp++)		/* convert receiver lc */
 		*cp = tolower(*cp);
 

@@ -33,12 +33,15 @@ enum{
 	EClamp,
 	EFocus,
 	EFormat,
+	EHide,
 	EImage,
 	EIndicatorcolor,
 	EMax,
 	EOrient,
 	ERect,
+	EReveal,
 	EShow,
+	ESize,
 	EValue,
 	EVis,
 };
@@ -50,72 +53,25 @@ static char *cmds[] = {
 	[EClamp] =		"clamp",
 	[EFocus] = 		"focus",
 	[EFormat] = 		"format",
+	[EHide] =			"hide",
 	[EImage] =		"image",
 	[EIndicatorcolor] =	"indicatorcolor",
 	[EMax] =			"max",
 	[EOrient] =		"orient",
 	[ERect] =			"rect",
+	[EReveal] =		"reveal",
 	[EShow] =			"show",
+	[ESize] =			"size",
 	[EValue] =			"value",
 	[EVis] =			"vis",
 };
 
-static void	sliderctl(Control*, char*);
-static void	slidershow(Slider*);
-static void	slidermouse(Slider*);
-static void	sliderfree(Slider*);
-
 static void
-sliderthread(void *v)
+sliderfree(Control *c)
 {
-	char buf[32];
 	Slider *s;
 
-	s = v;
-
-	snprint(buf, sizeof buf, "slider-%s-0x%p", s->name, s);
-	threadsetname(buf);
-
-	s->image = _getctlimage("white");
-	s->textcolor = _getctlimage("black");
-	s->bordercolor = _getctlimage("black");
-	s->indicatorcolor = _getctlimage("black");
-	s->format = ctlstrdup("%q: value %d");
-	s->border = 0;
-
-	for(;;){
-		switch(alt(s->alts)){
-		default:
-			ctlerror("%q: unknown message", s->name);
-		case AKey:
-			break;
-		case AMouse:
-			slidermouse(s);
-			break;
-		case ACtl:
-			_ctlcontrol(s, s->str, sliderctl);
-			free(s->str);
-			break;
-		case AWire:
-			_ctlrewire(s);
-			break;
-		case AExit:
-			sliderfree(s);
-			sendul(s->exit, 0);
-			return;
-		}
-	}
-}
-
-Control*
-createslider(Controlset *cs, char *name)
-{
-	return _createctl(cs, "slider", sizeof(Slider), name, sliderthread, 0);
-}
-
-static void
-sliderfree(Slider *s)
-{
+	s = (Slider*)c;
 	_putctlimage(s->image);
 	_putctlimage(s->textcolor);
 	_putctlimage(s->bordercolor);
@@ -128,6 +84,8 @@ slidershow(Slider *s)
 	Rectangle r, t;
 	int l, h, d;
 
+	if (s->hidden)
+		return;
 	r = s->rect;
 	draw(s->screen, r, s->image->image, nil, s->image->image->r.min);
 	if(s->border > 0){
@@ -164,103 +122,126 @@ slidershow(Slider *s)
 }
 
 static void
-sliderctl(Control *c, char *str)
+sliderctl(Control *c, CParse *cp)
 {
 	int cmd, prev;
-	CParse cp;
 	Rectangle r;
 	Slider *s;
 
 	s = (Slider*)c;
-	cmd = _ctlparse(&cp, str, cmds);
+	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", s->name, cp.str);
+		ctlerror("%q: unrecognized message '%s'", s->name, cp->str);
 		break;
 	case EAbsolute:
-		_ctlargcount(s, &cp, 2);
-		s->absolute = cp.iargs[1];
+		_ctlargcount(s, cp, 2);
+		s->absolute = cp->iargs[1];
 		break;
 	case EBorder:
-		_ctlargcount(s, &cp, 2);
-		if(cp.iargs[1] < 0)
-			ctlerror("%q: bad border: %c", s->name, cp.str);
-		s->border = cp.iargs[1];
+		_ctlargcount(s, cp, 2);
+		if(cp->iargs[1] < 0)
+			ctlerror("%q: bad border: %c", s->name, cp->str);
+		s->border = cp->iargs[1];
 		break;
 	case EBordercolor:
-		_ctlargcount(s, &cp, 2);
-		_setctlimage(s, &s->bordercolor, cp.args[1]);
+		_ctlargcount(s, cp, 2);
+		_setctlimage(s, &s->bordercolor, cp->args[1]);
 		break;
 	case EClamp:
-		_ctlargcount(s, &cp, 3);
-		if(strcmp(cp.args[1], "high") == 0)
-			s->clamphigh = cp.iargs[2];
-		else if(strcmp(cp.args[1], "low") == 0)
-			s->clamplow = cp.iargs[2];
+		_ctlargcount(s, cp, 3);
+		if(strcmp(cp->args[1], "high") == 0)
+			s->clamphigh = cp->iargs[2];
+		else if(strcmp(cp->args[1], "low") == 0)
+			s->clamplow = cp->iargs[2];
 		else
-			ctlerror("%q: unrecognized clamp: %s", s->name, cp.str);
+			ctlerror("%q: unrecognized clamp: %s", s->name, cp->str);
 		break;
 	case EFocus:
 		/* ignore focus change */
 		break;
 	case EFormat:
-		_ctlargcount(s, &cp, 2);
-		s->format = ctlstrdup(cp.args[1]);
+		_ctlargcount(s, cp, 2);
+		s->format = ctlstrdup(cp->args[1]);
+		break;
+	case EHide:
+		_ctlargcount(s, cp, 1);
+		s->hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(s, &cp, 2);
-		_setctlimage(s, &s->image, cp.args[1]);
+		_ctlargcount(s, cp, 2);
+		_setctlimage(s, &s->image, cp->args[1]);
 		break;
 	case EIndicatorcolor:
-		_ctlargcount(s, &cp, 2);
-		_setctlimage(s, &s->indicatorcolor, cp.args[1]);
+		_ctlargcount(s, cp, 2);
+		_setctlimage(s, &s->indicatorcolor, cp->args[1]);
 		break;
 	case EMax:
-		_ctlargcount(s, &cp, 2);
-		if(cp.iargs[1] < 0)
-			ctlerror("%q: negative max value: %s", s->name, cp.str);
-		if(s->max != cp.iargs[1]){
-			s->max = cp.iargs[1];
+		_ctlargcount(s, cp, 2);
+		if(cp->iargs[1] < 0)
+			ctlerror("%q: negative max value: %s", s->name, cp->str);
+		if(s->max != cp->iargs[1]){
+			s->max = cp->iargs[1];
 			slidershow(s);
 		}
 		break;
 	case EOrient:
-		_ctlargcount(s, &cp, 2);
+		_ctlargcount(s, cp, 2);
 		prev = s->horizontal;
-		if(strncmp(cp.args[1], "hor", 3) == 0)
+		if(strncmp(cp->args[1], "hor", 3) == 0)
 			s->horizontal = 1;
-		else if(strncmp(cp.args[1], "ver", 3) == 0)
+		else if(strncmp(cp->args[1], "ver", 3) == 0)
 			s->horizontal = 0;
 		else
-			ctlerror("%q: unrecognized orientation: %s", s->name, cp.str);
+			ctlerror("%q: unrecognized orientation: %s", s->name, cp->str);
 		if(s->horizontal != prev)
 			slidershow(s);
 		break;
 	case ERect:
-		_ctlargcount(s, &cp, 5);
-		r.min.x = cp.iargs[1];
-		r.min.y = cp.iargs[2];
-		r.max.x = cp.iargs[3];
-		r.max.y = cp.iargs[4];
+		_ctlargcount(s, cp, 5);
+		r.min.x = cp->iargs[1];
+		r.min.y = cp->iargs[2];
+		r.max.x = cp->iargs[3];
+		r.max.y = cp->iargs[4];
 		if(Dx(r)<=0 || Dy(r)<=0)
-			ctlerror("%q: bad rectangle: %s", s->name, cp.str);
+			ctlerror("%q: bad rectangle: %s", s->name, cp->str);
 		s->rect = r;
 		break;
-	case EShow:
-		_ctlargcount(s, &cp, 1);
+	case EReveal:
+		_ctlargcount(s, cp, 1);
+		s->hidden = 0;
 		slidershow(s);
 		break;
+	case EShow:
+		_ctlargcount(s, cp, 1);
+		slidershow(s);
+		break;
+	case ESize:
+		if (cp->nargs == 3)
+			r.max = Pt(0x7fffffff, 0x7fffffff);
+		else{
+			_ctlargcount(s, cp, 5);
+			r.max.x = cp->iargs[3];
+			r.max.y = cp->iargs[4];
+		}
+		r.min.x = cp->iargs[1];
+		r.min.y = cp->iargs[2];
+		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
+			ctlerror("%q: bad sizes: %s", s->name, cp->str);
+		s->size.min = r.min;
+		s->size.max = r.max;
+		break;
 	case EValue:
-		_ctlargcount(s, &cp, 2);
-		if(s->value != cp.iargs[1]){
-			s->value = cp.iargs[1];
+		_ctlargcount(s, cp, 2);
+		if(s->value != cp->iargs[1]){
+			s->value = cp->iargs[1];
 			slidershow(s);
 		}
 		break;
 	case EVis:
-		_ctlargcount(s, &cp, 2);
-		if(s->vis != cp.iargs[1]){
-			s->vis = cp.iargs[1];
+		_ctlargcount(s, cp, 2);
+		if(s->vis != cp->iargs[1]){
+			s->vis = cp->iargs[1];
 			slidershow(s);
 		}
 		break;
@@ -268,38 +249,40 @@ sliderctl(Control *c, char *str)
 }
 
 static void
-slidermouse(Slider *s)
+slidermouse(Control *c, Mouse *m)
 {
 	Rectangle r;
 	int v, l, d, b;
+	Slider *s;
 
-	if(s->m.buttons == 0){
+	s =(Slider*)c;
+	if(m->buttons == 0){
 		/* buttons now up */
 		s->lastbut = 0;
 		return;
 	}
-	if(!s->absolute && s->lastbut==s->m.buttons && s->lastbut!=2){
+	if(!s->absolute && s->lastbut==m->buttons && s->lastbut!=2){
 		/* clicks only on buttons 1 & 3; continuous motion on 2 (or when absolute) */
 		return;
 	}
-	if(s->lastbut!=0 && s->m.buttons!=s->lastbut){
+	if(s->lastbut!=0 && m->buttons!=s->lastbut){
 		/* buttons down have changed; wait for button up */
 		return;
 	}
-	s->lastbut = s->m.buttons;
+	s->lastbut = m->buttons;
 
 	r = insetrect(s->rect, s->border);
 	if(s->horizontal){
-		v = s->m.xy.x - r.min.x;
+		v = m->xy.x - r.min.x;
 		d = Dx(r);
 	}else{
-		v = s->m.xy.y - r.min.y;
+		v = m->xy.y - r.min.y;
 		d = Dy(r);
 	}
 	if(s->absolute)
 		b = 2;
 	else
-		b = s->m.buttons;
+		b = m->buttons;
 	switch(b){
 	default:
 		return;
@@ -319,7 +302,25 @@ slidermouse(Slider *s)
 		l = s->max;
 	if(l != s->value){
 		s->value = l;
-		printctl(s->event, s->format, s->name, s->value);
+		chanprint(s->event, s->format, s->name, s->value);
 		slidershow(s);
 	}
+}
+
+Control*
+createslider(Controlset *cs, char *name)
+{
+	Slider *s;
+
+	s = (Slider*)_createctl(cs, "slider", sizeof(Slider), name);
+	s->image = _getctlimage("white");
+	s->textcolor = _getctlimage("black");
+	s->bordercolor = _getctlimage("black");
+	s->indicatorcolor = _getctlimage("black");
+	s->format = ctlstrdup("%q: value %d");
+	s->border = 0;
+	s->mouse = slidermouse;
+	s->ctl = sliderctl;
+	s->exit = sliderfree;
+	return (Control*)s;
 }

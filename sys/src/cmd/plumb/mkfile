@@ -2,7 +2,6 @@
 
 TARG=plumber plumb
 
-HFILES=/sys/include/plumb.h\
 
 BIN=/$objtype/bin
 </sys/src/cmd/mkmany

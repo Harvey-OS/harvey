@@ -1,47 +1,34 @@
 .TH UART 3 
 .SH NAME
-duart, uart, eia, astar \- serial communication control
+uart, eia \- serial communication control
 .SH SYNOPSIS
 .nf
 .B bind -a #t /dev
 
 .B /dev/eia0
 .B /dev/eia0ctl
+.B /dev/eia0status
 .B /dev/eia1
 .B /dev/eia1ctl
-
-.B bind -a #G /dev
-
-.B /dev/astar0ctl
-.B /dev/astar0mem
-.B /dev/eia000
-.B /dev/eia000ctl
-.B /dev/eia000stat
-.B /dev/eia001
-.B /dev/eia001ctl
-.B /dev/eia001stat
+.B /dev/eia1status
 \&...
 .fi
-
 .SH DESCRIPTION
 .PP
 The serial line devices serve a one-level directory,
 giving access to the serial ports.
-There are several devices serving the same files;
-the particular one used depends on the machine involved.
-.B Eia0
-is the data file.
-It can be read and written to use that port.
-Reads will block until at least one character is available.
-.B Eia0ctl
-is a control file associated with the port.
-.B Eia1
-and
-.B eia1ctl
-are similar, but for a second serial line.
-.PP
+Device
+.I n
+is accessed through
+.BI eia n
+(the data file),
+.BI eia n ctl
+(the control file), and
+.BI eia n status
+(the read-only status file).
+Reads of the data file will block until at least one byte is available.
 The
-.B ctl
+control file
 configures the port.
 It accepts the following commands:
 .TP
@@ -99,34 +86,12 @@ Set number of bits per byte to
 .IR n .
 Legal values are 5, 6, 7, or 8.
 .PP
-The Star Gate Avanstar intelligent serial board has a separate driver.
-The individual data and
-.B ctl
-files behave like regular
-.SM UART
-files, but there are 16 per controller.
-The
-.B stat
+The status
 files contain a textual representation of the status of the line, in the format of the
 commands used on the
-.B ctl
+control
 file.
-The
-.B astar0ctl
-and
-.B astar0mem
-files are used by the
-.B aux/astarld
-program to download the controller software for the boards.
-.SH FILES
-.B /sys/lib/astar/*
-download files for the Avanstar
-.PP
-.B /bin/aux/astarld
-download program for the Avanstar
 .SH SOURCE
-.B /sys/src/9/port/devns16552.c
+.B /sys/src/9/port/devuart.c
 .br
-.B /sys/src/9/ch/devz8530.c
-.br
-.B /sys/src/9/pc/devastar.c
+.B /sys/src/9/*/uart*.c

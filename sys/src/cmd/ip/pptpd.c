@@ -187,7 +187,6 @@ void	greack(Call *c);
 
 void	timeoutthread(void*);
 
-int	eipconv(va_list *arg, Fconv *f);
 ulong	parseip(uchar *ato, char *from);
 int	argatoi(char *p);
 void	usage(void);
@@ -213,10 +212,10 @@ main(int argc, char *argv[])
 		usage();
 	}ARGEND
 
-	fmtinstall('I', eipconv);
-	fmtinstall('E', eipconv);
-	fmtinstall('V', eipconv);
-	fmtinstall('M', eipconv);
+	fmtinstall('I', eipfmt);
+	fmtinstall('E', eipfmt);
+	fmtinstall('V', eipfmt);
+	fmtinstall('M', eipfmt);
 
 	rfork(RFNOTEG|RFREND);
 
@@ -770,12 +769,12 @@ calllookup(int id)
 	return c;
 }
 
+
 void
 srvinit(void)
 {
 	char buf[100];
 	int fd, n;
-	Ipifc *ifcs;
 
 	sprint(buf, "%s/local", srv.tcpdir);
 	if((fd = open(buf, OREAD)) < 0)
@@ -801,10 +800,8 @@ srvinit(void)
 	if(srv.pppexec == 0)
 		srv.pppexec = "/bin/ip/ppp";
 
-	ifcs = readipifc(srv.pppdir, nil);
-	if(ifcs == nil)
+	if(myipaddr(srv.ipaddr, srv.pppdir) < 0)
 		myfatal("could not read local ip addr: %r");
-	ipmove(srv.ipaddr, ifcs->ip);
 	if(srv.recvwindow == 0)
 		srv.recvwindow = Window;
 }
@@ -1108,7 +1105,7 @@ myfatal(char *fmt, ...)
 	write(1, buf, sizeof(buf));
 
 	va_start(arg, fmt);
-	doprint(sbuf, sbuf+sizeof(sbuf), fmt, arg);
+	vseprint(sbuf, sbuf+sizeof(sbuf), fmt, arg);
 	va_end(arg);
 
 	SDB "%I: fatal: %s\n", srv.remote, sbuf EDB
@@ -1270,18 +1267,18 @@ static void
 fdclose(void)
 {
 	int fd, n, i;
-	Dir d[100], *p;
+	Dir *d, *p;
 
 	if((fd = open("#d", OREAD)) < 0)
 		return;
 
-	while((n = dirread(fd, d, sizeof(d))) > 0) {
-		for(p = d; n > 0; n -= sizeof(Dir), p++) {
-			i = atoi(p->name);
-			if(i > 2)
-				close(i);
-		}
+	n = dirreadall(fd, &d);
+	for(p = d; n > 0; n--, p++) {
+		i = atoi(p->name);
+		if(i > 2)
+			close(i);
 	}
+	free(d);
 }
 
 int

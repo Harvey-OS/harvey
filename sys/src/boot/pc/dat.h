@@ -49,7 +49,7 @@ enum {
 	ETHERMAXTU	= 1514,		/* maximum transmit size */
 	ETHERHDRSIZE	= 14,		/* size of an ethernet header */
 
-	MaxEther	= 4,
+	MaxEther	= 6,
 };
 
 typedef struct {
@@ -156,15 +156,16 @@ typedef struct Type {
 	int	flag;
 	int	(*init)(void);
 	void	(*initdev)(int, char*);
-	void*	(*getdospart)(int, char*);	/* actually returns Dos* */
+	void*	(*getdospart)(int, char*, int);	/* actually returns Dos* */
 	void	(*addconf)(int);
 	int	(*boot)(int, char*, Boot*);
-
+	void	(*printdevs)(int);
 	int	mask;
 	Medium*	media;
 } Type;
 
 extern void (*etherdetach)(void);
+extern void (*floppydetach)(void);
 extern void (*sddetach)(void);
 
 typedef struct Lock {	/* for ilock, iunlock */

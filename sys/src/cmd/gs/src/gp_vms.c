@@ -1,22 +1,22 @@
 /* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gp_vms.c,v 1.4.2.1 2000/11/09 21:13:04 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gp_vms.c,v 1.2 2000/03/18 01:45:16 lpd Exp $ */
 /* VAX/VMS specific routines for Ghostscript */
 #include "string_.h"
 #include "gx.h"
@@ -49,7 +49,6 @@ struct dsc$descriptor_s {
 typedef struct dsc$descriptor_s descrip;
 
 /* VMS RMS constants */
-#define RMS_IS_ERROR_OR_NMF(rmsv) (((rmsv) & 1) == 0)
 #define RMS$_NMF    99018
 #define RMS$_NORMAL 65537
 #define NAM$C_MAXRSS  255
@@ -63,11 +62,9 @@ gs_private_st_ptrs1(st_file_enum, struct file_enum_s, "file_enum",
 	  file_enum_enum_ptrs, file_enum_reloc_ptrs, pattern.dsc$a_pointer);
 
 extern uint
-    LIB$FIND_FILE(descrip *, descrip *, uint *, descrip *, descrip *,
-		  uint *, uint *),
-    LIB$FIND_FILE_END(uint *),
-    SYS$FILESCAN(descrip *, uint *, uint *),
-    SYS$PUTMSG(uint *, int (*)(), descrip *, uint);
+       LIB$FIND_FILE(descrip *, descrip *, uint *, descrip *, descrip *,
+		     uint *, uint *), LIB$FIND_FILE_END(uint *), SYS$FILESCAN(descrip *, uint *, uint *),
+       SYS$PUTMSG(uint *, int (*)(), descrip *, uint);
 
 private uint
 strlength(char *str, uint maxlen, char term)
@@ -415,10 +412,12 @@ gp_enumerate_files_next(file_enum * pfen, char *ptr, uint maxlen)
 		      (descrip *) 0, (descrip *) 0, (uint *) 0, (uint *) 0);
 
     /* Check the return status */
-    if (RMS_IS_ERROR_OR_NMF(i)) {
+    if (i == RMS$_NMF) {
 	gp_free_enumeration(pfen);
-	return (uint)(-1);
-    } else if ((len = strlength(filnam, NAM$C_MAXRSS, ' ')) > maxlen)
+	return (uint) - 1;
+    } else if (i != RMS$_NORMAL)
+	return 0;
+    else if ((len = strlength(filnam, NAM$C_MAXRSS, ' ')) > maxlen)
 	return maxlen + 1;
 
     /* Copy the returned filename over to the input string ptr */

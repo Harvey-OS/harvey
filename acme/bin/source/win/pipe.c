@@ -1,7 +1,8 @@
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
+#include <fcall.h>
 #include <thread.h>
+#include <9p.h>
 #include "dat.h"
 
 typedef struct Wpid Wpid;
@@ -17,58 +18,26 @@ void	pipectl(void*);
 int	pipefd;
 Wpid	*wpid;
 int	snarffd;
+Channel *newpipechan;
 
-void
+int
 newpipewin(int pid, char *p)
 {
+	int id;
 	Window *w;
 	Wpid *wp;
 
 	w = newwindow();
 	winname(w, p);
 	wintagwrite(w, "Send ", 5);
-	threadcreate(pipectl, w, STACK);
 	wp = emalloc(sizeof(Wpid));
 	wp->pid = pid;
 	wp->w = w;
-	wp->next = wpid;
+	wp->next = wpid;	/* BUG: this happens in fsread proc (we don't use wpid, so it's okay) */
 	wpid = wp;
-}
-
-void
-datapipewin(int pid, char *p, int n)
-{
-	Wpid *wp;
-
-	for(wp=wpid; wp!=nil; wp=wp->next){
-		if(wp->pid == pid){
-			write(wp->w->data, p, n);
-			return;
-		}
-	}
-	fprint(2, "win: can't find window %d for data message\n", pid);
-}
-
-void
-eofpipewin(int pid)
-{
-	Wpid *wp, *prev;
-
-	prev = nil;
-	for(wp=wpid; wp!=nil; wp=wp->next){
-		if(wp->pid == pid){
-			winclean(wp->w);
-			windormant(wp->w);
-			if(prev)
-				prev->next = wp->next;
-			else
-				wpid->next = wp->next;
-			free(wp);
-			return;
-		}
-		prev = wp;
-	}
-	fprint(2, "win: can't find window %d for eof message\n", pid);
+	id = w->id;
+	sendp(newpipechan, w);
+	return id;
 }
 
 int
@@ -104,7 +73,7 @@ pipecommand(Window *w, char *s)
 				if(snarffd > 0){
 					seek(0, snarffd, 0);
 					for(;;){
-						t = realloc(t, k+8192+1);
+						t = realloc(t, k+8192+2);
 						if(t == nil)
 							error("win: alloc failed: %r\n");
 						n = read(snarffd, t+k, 8192);
@@ -115,11 +84,17 @@ pipecommand(Window *w, char *s)
 					t[k] = 0;
 				}
 			}else{
-				t = emalloc((q1-q0)*UTFmax+1);
+				t = emalloc((q1-q0)*UTFmax+2);
 				winread(w, q0, q1, t);
+				k = strlen(t);
 			}
-			if(t!=nil && t[0]!='\0')
+			if(t!=nil && t[0]!='\0'){
+				if(t[k-1]!='\n' && t[k-1]!='\004'){
+					t[k++] = '\n';
+					t[k] = '\0';
+				}
 				sendit(t);
+			}
 			free(t);
 		}
 		return 1;
@@ -136,13 +111,14 @@ pipectl(void *v)
 	w = v;
 	proccreate(wineventproc, w, STACK);
 
+	windormant(w);
 	winsetaddr(w, "0", 0);
 	for(;;){
 		e = recvp(w->cevent);
 		switch(e->c1){
 		default:
 		Unknown:
-			threadprint(2, "unknown message %c%c\n", e->c1, e->c2);
+			fprint(2, "unknown message %c%c\n", e->c1, e->c2);
 			break;
 
 		case 'E':	/* write to body; can't affect us */
@@ -182,87 +158,18 @@ pipectl(void *v)
 }
 
 void
-pipeproc(void *v)
+newpipethread(void*)
 {
-	int n;
-	char *buf;
-	Channel *ch;
+	Window *w;
 
-	ch = v;
-	for(;;){
-		buf = emalloc(NPIPE+1);
-		n = read(pipefd, buf, NPIPE);
-		if(n < 0){
-			sendp(ch, nil);
-			break;
-		}
-		if(n == 0)
-			continue;
-		buf[n] = '\0';
-		sendp(ch, buf);
-	}
-}
-
-void
-pipetask(void *v)
-{
-	char *buf, *datap;
-	int pid, c;
-	Channel *ch;
-
-	ch = v;
-
-	while((buf = recvp(ch)) != nil){
-		datap = strchr(buf, '\n');
-		if(datap == nil)
-			break;
-		datap++;
-		pid = atoi((char*)buf+1);
-		c = ((uchar*)buf)[0];
-		switch(c){
-		default:
-			fprint(2, "win: unrecognized pipe command '%c'=0x%.2x\n", c, c);
-		case 'n':
-			newpipewin(pid, datap);
-			break;
-		case 'd':
-			datapipewin(pid, datap, (buf+strlen(buf))-datap);
-			break;
-		case 'e':
-			eofpipewin(pid);
-			break;
-		}
-		free(buf);
-	}
+	while(w = recvp(newpipechan))
+		threadcreate(pipectl, w, STACK);
 }
 
 void
 startpipe(void)
 {
-	int fd, p[2];
-	char *user, buf[128];
-	Channel *c;
-
+	newpipechan = chancreate(sizeof(Window*), 0);
+	threadcreate(newpipethread, nil, STACK);
 	snarffd = open("/dev/snarf", OREAD|OCEXEC);
-	if(pipe(p) < 0)
-		error("can't create pipe: %r");
-	/* 0 will be server end, 1 will be client end */
-	pipefd = p[0];
-	user = getenv("user");
-	if(user == nil)
-		user = "none";
-	sprint(buf, "/srv/win.%s.%d", user, getpid());
-	fd = create(buf, OWRITE|OCEXEC|ORCLOSE, 0600);
-	if(fd < 0)
-		error("can't create /srv file: %r");
-	if(putenv("winsrv", buf) < 0)
-		error("can't write $winsrv: %r");
-	if(threadprint(fd, "%d", p[1]) <= 0)
-		error("can't write /srv/file: %r");
-	/* leave fd open; ORCLOSE will take care of it */
-
-	c = chancreate(sizeof(char*), 0);
-	proccreate(pipeproc, c, STACK);
-	threadcreate(pipetask, c, STACK);
-	close(p[1]);
 }

@@ -90,14 +90,14 @@ attributes/value pairs.
 The uid values are user account names.
 The gid values are the names of groups defined in
 .I consolefs
-by enties of the form:
+by entries of the form:
 .PP
 .EX
 	group=support
-		uid=alice
 		uid=bob
+		uid=carol
 		uid=ted
-		uid=mary
+		uid=alice
 .EE
 .PP
 Groups are used to avoid excessive typing.  Using

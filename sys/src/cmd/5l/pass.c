@@ -26,6 +26,17 @@ dodata(void)
 				s->value, s->name, p);
 	}
 
+	if(debug['t']) {
+		/*
+		 * pull out string constants
+		 */
+		for(p = datap; p != P; p = p->link) {
+			s = p->from.sym;
+			if(p->to.type == D_SCONST)
+				s->type = SSTRING;
+		}
+	}
+
 	/*
 	 * pass 1
 	 *	assign 'small' variables to data segment
@@ -298,6 +309,10 @@ patch(void)
 		if(p->to.type != D_BRANCH)
 			continue;
 		c = p->to.offset;
+		if(reloc && p->as == ABL && c == -1) {
+			p->cond = UP;
+			continue;
+		}
 		for(q = firstp; q != P;) {
 			if(q->forwd != P)
 			if(c >= q->forwd->pc) {
@@ -318,7 +333,7 @@ patch(void)
 	for(p = firstp; p != P; p = p->link) {
 		if(p->as == ATEXT)
 			curtext = p;
-		if(p->cond != P) {
+		if(p->cond != P && p->cond != UP) {
 			p->cond = brloop(p->cond);
 			if(p->cond != P)
 			if(p->to.type == D_BRANCH)

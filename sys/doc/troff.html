@@ -1,0 +1,3348 @@
+<html>
+
+
+
+
+
+
+
+
+<title>
+-
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Troff User's Manual
+</H1>
+<DL><DD><I>Joseph F. Ossanna<br>
+Brian W. Kernighan<br>
+<br>&#32;<br>
+bwk@research.bell-labs.com<br>
+</I></DL>
+<H4>Introduction
+</H4>
+<P>
+<I>Troff</I> and <I>nroff</I> are text processors 
+that format text for typesetter- and
+typewriter-like terminals, respectively.
+They accept lines of text interspersed with lines of
+format control information and
+format the text into a printable, paginated document
+having a user-designed style.
+<I>Troff</I> and <I>nroff</I> offer
+unusual freedom in document styling:
+arbitrary style headers and footers;
+arbitrary style footnotes;
+multiple automatic sequence numbering for paragraphs, sections, etc;
+multiple column output;
+dynamic font and point-size control;
+arbitrary horizontal and vertical local motions at any point;
+and
+a family of automatic overstriking, bracket construction, and
+line-drawing functions.
+
+
+</P>
+<P>
+<I>Troff</I>
+produces its output in a device-independent form,
+although parameterized for a specific device;
+<I>troff</I> output must be processed by a driver for that
+device to produce printed output.
+</P>
+<P>
+<I>Troff</I> and <I>nroff</I> are highly compatible with each other and it is almost always
+possible to prepare input acceptable to both.
+Conditional input is provided to enable
+the user to embed input expressly destined for either program.
+<I>Nroff</I> can prepare output directly for a variety of terminal types and
+is capable of utilizing the full resolution of each terminal.
+<I>Nroff</I> is the same program as <I>troff</I>; in fact, on Plan 9 
+<I>nroff</I> is a shell script that calls <I>troff</I> with the
+argument.
+</P>
+<H4>Background to the Plan 9 Edition
+</H4>
+<P>
+The primary change to <I>troff</I> and <I>nroff</I> for Plan 9 is
+support of the Unicode Standard, which was added during
+1992 and 1993.  There are two results.  First, there is much
+less need for the myriad of two-character names that are so
+much a part of <I>troff</I> lore; in Plan 9, for example, one naturally uses the
+Unicode character &#189; instead of <I>troff</I>'s
+Second, the output device, though called
+is almost always a form of PostScript printer;
+the panoply of special drivers for different typesetters
+has largely disappeared.
+Unfortunately, not all PostScript printers can cope
+with Unicode characters, so there remains a need for
+programs that synthesize PostScript characters from bitmaps;
+this is especially true for Asian languages.
+</P>
+<H4>Background to the Second Edition
+</H4>
+<P>
+<I>Troff</I>
+was originally written by the late Joe Ossanna
+in about 1973, in assembly language for the
+PDP-11,
+to drive the Graphic Systems CAT typesetter.
+It was rewritten in C around 1975,
+and underwent slow but steady evolution until
+Ossanna's death late in 1977.
+</P>
+<P>
+In 1979, Brian Kernighan
+modified
+<I>troff</I>
+so that it would produce output for a variety of typesetters,
+while retaining its input specifications.
+Over the decade from 1979 to 1989,
+the internals
+have been modestly revised,
+though much of the code remains as it was when Ossanna wrote it.
+</P>
+<P>
+<I>Troff</I>
+reads parameter files
+each time it is invoked, to
+set values for machine resolution,
+legal type sizes and fonts, and character names,
+character widths
+and the like.
+<I>Troff</I>
+output is
+ASCII
+characters
+in a simple language
+that describes where each character is to be placed
+and in what size and font.
+A post-processor must be written for each device
+to convert this typesetter-independent language
+into specific instructions for that device.
+</P>
+<P>
+The output language contains information that was not readily
+identifiable in the older output.
+In the newer language, the beginning of each page, line, and word
+is marked,
+so post-processors can do device-specific optimizations
+such as sorting the data vertically or printing it boustrophedonically,
+independent of
+<I>troff</I>.
+</P>
+<P>
+Capabilities for graphics have been added:
+<I>troff</I>
+recognizes commands for drawing diagonal lines,
+circles, ellipses, circular arcs,
+and quadratic B-splines.
+There are also ways to pass arbitrary information to the output,
+unprocessed by
+<I>troff</I>.
+</P>
+<P>
+A number of limitations have been eased or eliminated.
+A document may have an arbitrary number of fonts on any page
+(if the output device permits it, of course).
+Fonts may be accessed merely by naming them;
+``mounting'' is no longer necessary.
+There are no limits on the number of characters.
+Character height and slant may be set
+independently of width.
+</P>
+<P>
+The remainder of this document contains a description of
+usage and command-line options;
+a summary of requests, escape sequences, and pre-defined number registers;
+a reference manual;
+tutorial examples;
+and a list of commonly-available characters.
+</P>
+<H4>Acknowledgements
+</H4>
+<P>
+Joe Ossanna's
+<I>troff</I>
+remains a remarkable accomplishment.
+For more than twenty years, it has proven a robust tool,
+taking unbelievable abuse from a variety of preprocessors
+and being forced into uses that were never conceived of
+in the original design,
+all with considerable grace under fire.
+</P>
+<P>
+Recent versions of <I>troff</I> have profited from
+significant code improvements by
+Jaap Akkerhuis, Dennis Ritchie, Ken Thompson, and Molly Wagner.
+UTF facilities owe much to Jaap Akkerhuis.
+Andrew Hume, Doug McIlroy, Peter Nelson and Ravi Sethi made valuable suggestions on the manual.
+I fear that the remaining bugs are my fault.
+<br>&#32;<br>
+<HR>
+<br>&#32;<br>
+</P>
+<br>&#32;<br>
+<B>Usage
+</B><P>
+<I>Troff</I> or <I>nroff</I> is invoked as
+<DL><DT><DD><TT><PRE>
+troff  <I>options  files</I>
+nroff  <I>options  files</I>
+</PRE></TT></DL>
+where <I>options</I> represents any of a number of option arguments
+and <I>files</I> represents the list of files containing the document
+to be formatted.
+An argument consisting of a single minus
+represents standard input.
+If no filenames are given input is taken from the standard input.
+The options, which may appear in any order so long as they appear
+before the files, are:
+<br><img src="-.16251.gif"><br>
+</P>
+<P>
+Each option is a separate argument;
+for example,
+<DL><DT><DD><TT><PRE>
+troff -Tutf -ms -mpictures -o4,6,8-10 <I>file1 file2</I>
+</PRE></TT></DL>
+requests formatting of pages 4, 6, and 8 through 10 of a document contained in the files
+named <I>file1</I> and <I>file2</I>,
+specifies the output in UTF,
+and invokes the macro packages
+and
+</P>
+<P>
+Various pre- and post-processors are available for use with <I>nroff</I> and <I>troff</I>.
+These include the equation preprocessor
+<I>eqn</I>
+(for <I>troff</I> only),
+the table-construction preprocessor
+<I>tbl</I>,
+and
+<I>pic</I>
+and
+<I>grap</I>
+for various forms of graphics.
+<br>&#32;<br>
+<HR>
+<br>&#32;<br>
+</P>
+<br>&#32;<br>
+<B>Request Summary
+</B><P>
+In the following table,
+the notation &#177;<I>N</I> in the
+<B><I>column means that the forms </I></B><I>N</I><B><I>, </I></B><I>+N</I><B><I>, or </I></B><I>-N</I><B><I> are permitted,
+to set the parameter to </I></B><I>N</I><B><I>, increment it by </I></B><I>N</I><B><I>, or decrement it by </I></B><I>N</I><B><I>,
+respectively.
+Plain </I></B><I>N</I><B><I> means that the value is used to set the parameter.
+</I></B><B><I>separated by 
+</I></B>are for
+<I>troff</I>
+and
+<I>nroff</I>
+respectively.
+In the 
+<B><I>column,
+<br><img src="-.16252.gif"><br>
+<br>&#32;<br>
+<br><img src="-.16253.gif"><br>
+<br>
+<DL><DT><DD><TT><PRE>
+</I></B><TT>ab</TT><B><I>	20
+</I></B><TT>ad</TT><B><I>	4
+</I></B><TT>af</TT><B><I>	8
+</I></B><TT>am</TT><B><I>	7
+</I></B><TT>as</TT><B><I>	7
+</I></B><TT>bd</TT><B><I>	2
+</I></B><TT>bp</TT><B><I>	3
+</I></B><TT>br</TT><B><I>	4
+</I></B><TT>c2</TT><B><I>	10
+</I></B><TT>cc</TT><B><I>	10
+</I></B><TT>ce</TT><B><I>	4
+</I></B><TT>cf</TT><B><I>	19
+</I></B><TT>ch</TT><B><I>	7
+</I></B><TT>cs</TT><B><I>	2
+</I></B><TT>cu</TT><B><I>	10
+</I></B><TT>da</TT><B><I>	7
+</I></B><TT>de</TT><B><I>	7
+</I></B><TT>di</TT><B><I>	7
+</I></B><TT>ds</TT><B><I>	7
+</I></B><TT>dt</TT><B><I>	7
+</I></B><TT>ec</TT><B><I>	10
+</I></B><TT>el</TT><B><I>	16
+</I></B><TT>em</TT><B><I>	7
+</I></B><TT>eo</TT><B><I>	10
+</I></B><TT>ev</TT><B><I>	17
+</I></B><TT>ex</TT><B><I>	18
+</I></B><TT>fc</TT><B><I>	9
+</I></B><TT>fi</TT><B><I>	4
+</I></B><TT>fl</TT><B><I>	20
+</I></B><TT>fp</TT><B><I>	2
+</I></B><TT>ft</TT><B><I>	2
+</I></B><TT>hc</TT><B><I>	13
+</I></B><TT>hw</TT><B><I>	13
+</I></B><TT>hy</TT><B><I>	13
+</I></B><TT>ie</TT><B><I>	16
+</I></B><TT>if</TT><B><I>	16
+</I></B><TT>ig</TT><B><I>	20
+</I></B><TT>in</TT><B><I>	6
+</I></B><TT>it</TT><B><I>	7
+</I></B><TT>lc</TT><B><I>	9
+</I></B><TT>lg</TT><B><I>	10
+</I></B><TT>lf</TT><B><I>	20
+</I></B><TT>ll</TT><B><I>	6
+</I></B><TT>ls</TT><B><I>	5
+</I></B><TT>lt</TT><B><I>	14
+</I></B><TT>mc</TT><B><I>	20
+</I></B><TT>mk</TT><B><I>	3
+</I></B><TT>na</TT><B><I>	4
+</I></B><TT>ne</TT><B><I>	3
+</I></B><TT>nf</TT><B><I>	4
+</I></B><TT>nh</TT><B><I>	13
+</I></B><TT>nm</TT><B><I>	15
+</I></B><TT>nn</TT><B><I>	15
+</I></B><TT>nr</TT><B><I>	8
+</I></B><TT>ns</TT><B><I>	5
+</I></B><TT>nx</TT><B><I>	19
+</I></B><TT>os</TT><B><I>	5
+</I></B><TT>pc</TT><B><I>	14
+</I></B><TT>pi</TT><B><I>	19
+</I></B><TT>pl</TT><B><I>	3
+</I></B><TT>pm</TT><B><I>	20
+</I></B><TT>pn</TT><B><I>	3
+</I></B><TT>po</TT><B><I>	3
+</I></B><TT>ps</TT><B><I>	2
+</I></B><TT>rd</TT><B><I>	18
+</I></B><TT>rm</TT><B><I>	7
+</I></B><TT>rn</TT><B><I>	7
+</I></B><TT>rr</TT><B><I>	8
+</I></B><TT>rs</TT><B><I>	5
+</I></B><TT>rt</TT><B><I>	3
+</I></B><TT>so</TT><B><I>	19
+</I></B><TT>sp</TT><B><I>	5
+</I></B><TT>ss</TT><B><I>	2
+</I></B><TT>sv</TT><B><I>	5
+</I></B><TT>sy</TT><B><I>	19
+</I></B><TT>ta</TT><B><I>	9
+</I></B><TT>tc</TT><B><I>	9
+</I></B><TT>ti</TT><B><I>	6
+</I></B><TT>tl</TT><B><I>	14
+</I></B><TT>tm</TT><B><I>	20
+</I></B><TT>tr</TT><B><I>	10
+</I></B><TT>uf</TT><B><I>	10
+</I></B><TT>ul</TT><B><I>	10
+</I></B><TT>vs</TT><B><I>	5
+</I></B><TT>wh</TT><B><I>	7
+<br>&#32;<br>
+</PRE></TT></DL>
+</P>
+</I></B><br>&#32;<br>
+<B>Alphabetical Request and Section Number Cross Reference
+</B><br>&#32;<br>
+<br>&#32;<br>
+<DL><DT><DD><TT><PRE>
+<br>&#32;<br>
+<br>&#32;<br>
+<HR>
+<br>&#32;<br>
+</PRE></TT></DL>
+<br>&#32;<br>
+<B>Escape Sequences for Characters, Indicators, and Functions
+</B><br>&#32;<br>
+<br><img src="-.16254.gif"><br>
+<br>&#32;<br>
+The escape sequences
+and
+are interpreted in copy mode (&#167;7.2).
+ 
+<br>&#32;<br>
+<HR>
+<br>&#32;<br>
+<br>&#32;<br>
+<B>Predefined Number Registers
+</B><br>&#32;<br>
+<br><img src="-.16255.gif"><br>
+
+
+<br>&#32;<br>
+<B>Predefined Read-Only Number Registers
+</B><br>&#32;<br>
+<br><img src="-.16256.gif"><br>
+<br>&#32;<br>
+<HR>
+<br>&#32;<br>
+<br>&#32;<br>
+<B>Reference Manual
+</B><H4>1 General Explanation
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Form of input.</I></B> 
+Input consists of <I>text lines</I>, which are destined to be printed,
+interspersed with <I>control lines</I>,
+which set parameters or otherwise control subsequent processing.
+Control lines begin with a <I>control character</I>&#173;
+normally <TT>.</TT> (period) or <TT>'</TT> (single quote)&#173;
+followed by a one or two character name that specifies
+a basic <I>request</I> or the substitution of
+a user-defined <I>macro</I> in place of the control line.
+The control character <TT>'</TT> suppresses the <I>break</I> function&#173;
+the forced output of a partially filled line&#173;
+caused by certain requests.
+The control character may be separated from the request/macro name by
+white space (spaces and/or tabs) for aesthetic reasons.
+Names should be followed by either
+space or newline.
+Control lines with unrecognized names are ignored.
+<P>
+Various special functions may be introduced anywhere in the input by
+means of an <I>escape</I> character, normally <TT>\</TT>.
+For example, the function
+causes the interpolation of the contents of the
+<I>number register R</I>
+in place of the function;
+here <I>R</I> is either a single character name
+as in <TT>\n</TT><I>x</I>,
+or a two-character name introduced by
+a left-parenthesis, as in <TT>\n(</TT><I>xx</I>.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Formatter and device resolution.</I></B> 
+<I>Troff</I> internally stores and processes dimensions in units that correspond to
+the particular device for which output is being prepared;
+values from 300 to 1200/inch are typical.
+See &#167;23.
+<I>Nroff</I> internally uses 240 units/inch,
+corresponding to the least common multiple of the
+horizontal and vertical resolutions of various
+typewriter-like output devices.
+<I>Troff</I> rounds horizontal/vertical numerical parameter input to the actual
+horizontal/vertical resolution of the output device indicated by the <TT>-T</TT> option
+(default
+<I>Nroff</I> similarly rounds numerical input to the actual resolution
+of its output device
+(default Model 37 Teletype).
+<br>&#32;<br>
+<B><I>0.0s.  Numerical parameter input.</I></B> 
+Both <I>nroff</I> and <I>troff</I>
+accept numerical input with the appended scale
+indicators
+shown in the following table,
+where
+<I>S</I> is the current type size in points and
+<I>V</I> is the current vertical line spacing in
+basic units.
+<br><img src="-.16257.gif"><br>
+In <I>nroff</I>, both the em and the en are taken to be equal to the
+nominal character width,
+which is output-device dependent;
+common values are 1/10 and 1/12 inch.
+Actual character widths in <I>nroff</I> need not be all the same and constructed characters
+such as -&#62; (->) are often extra wide.
+The default scaling is
+for the horizontally-oriented requests
+and functions
+and horizontal coordinates of
+for the vertically-oriented requests and functions
+and vertical coordinates of
+for the
+request;
+and
+for the requests
+and
+<I>All</I> other requests ignore any scale indicators.
+When a number register containing an already appropriately scaled number
+is interpolated to provide numerical input,
+the unit scale indicator
+<TT>u</TT> may need to be appended to prevent
+an additional inappropriate default scaling.
+The number, <I>N</I>, may be specified in decimal-fraction form
+but the parameter finally stored is rounded to an integer number of basic units.
+Internal computations are performed in integer arithmetic.
+<P>
+The <I>absolute position</I> indicator <TT>|</TT> may be prefixed
+to a number <I>N</I>
+to generate the distance to the vertical or horizontal place <I>N</I>.
+For vertically-oriented requests and functions, <TT>|</TT><I>N</I>
+becomes the distance in basic units from the current vertical place on the page or in a <I>diversion</I> (&#167;7.4)
+to the vertical place <I>N</I>.
+For <I>all</I> other requests and functions,
+<TT>|</TT><I>N</I>
+becomes the distance from
+the current horizontal place on the <I>input</I> line to the horizontal place <I>N</I>.
+For example,
+<DL><DT><DD><TT><PRE>
+.sp |3.2c
+</PRE></TT></DL>
+will space in the required direction to 3.2 centimeters from the top of the page.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Numerical expressions.</I></B> 
+Wherever numerical input is expected,
+an expression involving parentheses,
+the arithmetic operators <TT>+</TT>, <TT>-</TT>, <TT>/</TT>, <TT>*</TT>, <TT>%</TT> (mod),
+and the logical operators
+<TT>&#60;</TT>,
+<TT>&#62;</TT>,
+<TT>&#60;=</TT>,
+<TT>&#62;=</TT>,
+<TT>=</TT> (or <TT>==</TT>),
+<TT>&amp;</TT> (and),
+<TT>:</TT> (or)
+may be used.
+Except where controlled by parentheses, evaluation of expressions is left-to-right;
+there is no operator precedence.
+In the case of certain requests, an initial <TT>+</TT> or <TT>-</TT> is stripped
+and interpreted as an increment or decrement indicator respectively.
+In the presence of default scaling, the desired scale indicator must be
+attached to <I>every</I> number in an expression
+for which the desired and default scaling differ.
+For example,
+if the number register <TT>x</TT> contains 2
+and the current point size is 10,
+then
+<DL><DT><DD><TT><PRE>
+.ll (4.25i+\nxP+3)/2u
+</PRE></TT></DL>
+will set the line length to 1/2 the sum of 4.25 inches + 2 picas + 3 ems.
+<br>&#32;<br>
+<B><I>0.0s.  Notation.</I></B> 
+Numerical parameters are indicated in this manual in two ways.
+&#177;<I>N</I> means that the argument may take the forms <I>N</I>, <I>+N</I>, or <I>-N</I> and
+that the corresponding effect is to set the parameter
+to <I>N</I>, to increment it by <I>N</I>, or to decrement it by <I>N</I> respectively.
+Plain <I>N</I> means that an initial algebraic sign is <I>not</I>
+an increment indicator,
+but merely the sign of <I>N</I>.
+Generally, unreasonable numerical input is either ignored
+or truncated to a reasonable value.
+For example,
+most requests expect to set parameters to non-negative
+values;
+exceptions are
+and
+The requests
+and
+restore the previous parameter value in the absence
+of an argument.
+<P>
+Single character arguments are indicated by single lower case letters
+and
+one/two character arguments are indicated by a pair of lower case letters.
+Character string arguments are indicated by multi-character mnemonics.
+</P>
+<H4>2 Font and Character Size Control
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Character set.</I></B> 
+The <I>troff</I> character set is defined by a description file specific to each output device (&#167;23).
+There are normally several regular fonts and one or more special fonts.
+Characters are input as themselves,
+as <I></I><TT>&#191;TT><I>xx</I>, as <I></I><TT>C'</TT><I>name</I><I></I><TT>'</TT>,
+or as 
+The form
+permits a name of any length;
+the form
+refers to the <I>n</I>-th character on the current font,
+whether named or not.
+<P>
+Normally the input characters
+and
+are printed as `, ', and - respectively;
+and
+produce `, ', and -.
+If the character does not exist in the font, <I>troff</I> assumes the width is 1 em and
+outputs the character with a
+name as defined in Section 22.
+(This is independent of how the device handles characters unknown to it.)
+</P>
+<P>
+<I>Nroff</I> has an analogous, but different, mechanism for defining legal characters
+and how to print them.
+By default all characters are valid.
+There are such
+additional characters as may be available on
+the output device,
+such characters as may be constructed
+by overstriking or other combination,
+and those that can reasonably be mapped
+into other printable characters.
+The exact behavior is determined by a driving
+table prepared for each device.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Fonts.</I></B> 
+<I>Troff</I>
+begins execution by reading information for a set of defaults fonts,
+said to be
+<I>mounted</I>;
+conventionally, the first four are
+Times Roman (<TT>R</TT>),
+Times Italic
+(<TT>I</TT>),
+Times Bold
+(<TT>B</TT>),
+and
+Times Bold Italic
+(<TT>BI</TT>) ,
+and the last is a Special font
+containing miscellaneous characters.
+(This document uses Lucida Sans in place of Times.)
+The set of fonts and positions is determined by the device description file,
+described in &#167;23.
+<P>
+The current font, initially Roman, may be changed
+by the <TT>ft</TT> request,
+or by embedding at any desired point
+<TT>/TT><I>x</I>, <TT>TT><I>xx</I>, or <TT>/TT><I>N</I>,
+where
+<I>x</I> and <I>xx</I> are the name of a font
+and <I>N</I> is a numerical font position.
+</P>
+<P>
+It is not necessary to change to the Special font;
+characters on that font are automatically handled
+as if they were physically part of the current font.
+The Special font may actually be several fonts;
+the name
+is reserved and is generally used for one of these.
+All special fonts must be mounted after regular fonts.
+</P>
+<P>
+<I>Troff</I> can be informed that any particular font is mounted
+by use of the <TT>fp</TT> request.
+The list of known fonts is installation dependent.
+In the subsequent discussion of font-related requests,
+<I>F</I> represents either a one/two-character
+font name or the numerical font position.
+The current font is available (as a numerical position) in the read-only number register <TT>.f</TT>.
+</P>
+<P>
+A request for a named but not-mounted font is honored
+if the font description information exists.
+In this way, there is no limit on the number of fonts that may be printed
+in any part of a document.
+Mounted fonts may be handled more efficiently,
+and they may be referred to by their mount positions,
+but there is no other difference.
+Mention of an unmounted font loads it temporarily at font position
+zero, which serves as a one-font cache.
+</P>
+<P>
+The function
+causes the current font to be slanted by
+&#177;<I>N</I>
+degrees.
+Not all devices support slanting.
+</P>
+<P>
+<I>Nroff</I> understands font control
+and normally underlines italic characters (see &#167;10.5).
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Character size.</I></B> 
+Character point sizes available depend on the specific output device;
+a typical (historical) set of values is
+6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 28, and 36.
+This is a range of 1/12 inch to 1/2 inch.
+The <TT>ps</TT> request is used to change or restore the point size.
+Alternatively the point size may be changed between any two characters
+by embedding a
+at the desired point
+to set the size to <I>N</I>,
+or a
+</TT>(1<=<I>N</I><=9)
+to increment/decrement the size by <I>N</I>;
+restores the previous size.
+Requested point size values that are between two valid
+sizes yield the larger of the two.
+<P>
+Note that through an accident of history, a construction like
+is parsed as size 39, and thus converted to size 36 (given the sizes above),
+while
+is parsed as size 4 followed by
+The forms
+<I></I><TT></TT><I>nn</I> and <I></I><TT></TT>&#177;<I></I><TT>(</TT><I>nn</I>
+permit specification of sizes that would otherwise be ambiguous.
+</P>
+<P>
+The current size is available in the <TT>.s</TT> register.
+<I>Nroff</I> ignores type size requests.
+</P>
+<P>
+The function
+sets the height of the current font to
+<I>N</I>, or increments it by <I>+N</I>, or decrements it by <I>-N</I>;
+if <I>N=</I>0, the height is restored to the current point size.
+In each case, the width is unchanged.
+Not all devices support independent height and width for characters.
+</P>
+<DL>
+<DT><DT>&#32;<DD>
+NOTE:<I> *The fields have the same meaning as described earlier in the Request Summary.
+</I><DT>&#32;<DD></dl>
+<br>
+<br>&#32;<br>
+<I>Request</I>	<I>Initial</I>	<I>If No</I>
+<br>
+<I>Form</I>	<I>Value</I>	<I>Argument</I>	<I>Notes</I>
+<br>&#32;<br>
+<TT>.ps</TT><I> &#177;N</I>*	10point	previous	E
+<DL COMPACT>
+<DT><DD>
+Point size
+set to &#177;<I>N</I>.
+Alternatively, embed
+or
+</TT>Any positive size value may be requested;
+if invalid, the next larger valid size will result, with a
+maximum of 36.
+A paired sequence
+<I>+N</I>, <I>-N</I>
+will work because the previous requested value is also remembered.
+Ignored in <I>nroff</I>.
+</dl>
+<br>&#32;<br>
+<TT>.ss</TT><I> N</I>	12/36em	ignored	E
+<DL COMPACT>
+<DT><DD>
+Space-character size
+(i.e., inter-word gap)
+is set to <I>N</I>/36 ems.
+This size is the minimum word spacing in adjusted text.
+Ignored in <I>nroff</I>.
+</dl>
+<br>&#32;<br>
+<TT>.cs</TT><I>FNM</I>	off	-	P
+<DL COMPACT>
+<DT><DD>
+Constant character space
+(width) mode is
+set on for font <I>F</I> (if mounted); the width of every character will be
+taken to be <I>N</I>/36 ems.
+If <I>M</I> is absent,
+the em is that of the character's point size;
+if <I>M</I> is given,
+the em is <I>M</I> points.
+All affected characters
+are centered in this space, including those with an actual width
+larger than this space.
+Special Font characters occurring while the current font
+is <I>F</I> are also so treated.
+If <I>N</I> is absent, the mode is turned off.
+The mode must be in effect when the characters are physically printed.
+Ignored in <I>nroff</I>.
+</dl>
+<br>&#32;<br>
+<TT>.bd</TT><I> F N</I>	off	-	P
+<DL COMPACT>
+<DT><DD>
+The characters in font <I>F</I> will be artificially
+emboldened by printing each one twice, separated by <I>N-</I>1 basic units.
+A reasonable value for <I>N</I> is 3 when the character size is near 10 points.
+If <I>N</I> is missing the embolden mode is turned off.
+The emboldening value <I>N</I> is in the <TT>.b</TT> register.
+<DT><DT>&#32;<DD>
+This paragraph is printed with <TT>.bd R 3</TT>.
+The mode must be in effect when the characters are physically printed.
+Ignored in <I>nroff</I>.
+<br>
+</dl>
+<br>&#32;<br>
+<TT>.bd S </TT><I>F N</I>	off	-	P
+<DL COMPACT>
+<DT><DD>
+The characters in the Special font
+will be emboldened whenever the current font is <I>F</I>.
+The mode must be in effect when the characters are physically printed.
+Ignored in <I>nroff</I>.
+</dl>
+<br>&#32;<br>
+<TT>.ft</TT> <I>F</I>	Roman	previous	E
+<DL COMPACT>
+<DT><DD>
+Font changed to
+<I>F</I>.
+Alternatively, embed
+The font name <TT>P</TT> is reserved to mean the previous font,
+and the name
+for the special font.
+</dl>
+<br>&#32;<br>
+<TT>.fp </TT><I>N F L</I>	R,I,B,...,S	ignored	-
+<DL COMPACT>
+<DT><DD>
+Font position.
+This is a statement
+that a font named <I>F</I> is associated with position <I>N</I>.
+It is a fatal error if <I>F</I> is not known.
+For fonts with names longer than two characters,
+<I>L</I>
+refers to the long name,
+and
+<I>F</I>
+becomes a synonym.
+There is generally a limit of about 10 mounted fonts.
+</dl>
+<H4>3 Page control
+</H4>
+<P>
+Top and bottom margins are not automatically provided;
+it is conventional to define two <I>macros</I> and to set <I>traps</I>
+for them at vertical positions 0 (top) and <I>-N</I> (distance <I>N</I> up from the bottom).
+See &#167;7 and Tutorial Examples &#167;T2.
+A pseudo-page transition onto the first page occurs
+either when the first <I>break</I> occurs or
+when the first <I>non-diverted</I> text processing occurs.
+Arrangements
+for a trap to occur at the top of the first page
+must be completed before this transition.
+In the following, references to the <I>current diversion</I> (&#167;7.4)
+mean that the mechanism being described works during both
+ordinary and diverted output (the former considered as the top diversion level).
+</P>
+<P>
+The limitations on <I>troff</I> and <I>nroff</I> output dimensions
+are device dependent.
+</P>
+<br>&#32;<br>
+<TT>.pl</TT><I> &#177;N</I>	11in	11in	<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Page length set to &#177;<I>N</I>.
+The current page length is available in the <TT>.p</TT> register.
+</dl>
+<br>&#32;<br>
+<TT>.bp</TT><I> &#177;N</I>	<I>N=</I>1	-	B,<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Begin page.
+The current page is ejected and a new page is begun.
+If &#177;<I>N</I> is given, the new page number will be &#177;<I>N</I>.
+Also see request <TT>ns</TT>.
+</dl>
+<br>&#32;<br>
+<TT>.pn</TT><I> &#177;N</I>	<I>N</I>=1	ignored	-
+<DL COMPACT>
+<DT><DD>
+Page number.
+The next page (when it occurs) will have the page number &#177;<I>N</I>.
+A <TT>pn</TT> must occur before the initial pseudo-page transition
+to affect the page number of the first page.
+The current page number is in the <TT>%</TT> register.
+</dl>
+<br>&#32;<br>
+<TT>.po</TT><I> &#177;N</I>	1in; 0	previous	<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Page offset.
+The current <I>left margin</I> is set to &#177;<I>N</I>.
+The <I>troff</I> initial value provides 1 inch of paper margin
+on a typical device.
+The current page offset is available in the <TT>.o</TT> register.
+</dl>
+<br>&#32;<br>
+<TT>.ne</TT><I> N</I>	-	<I>N=</I>1<I>V</I>	D,<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Need <I>N</I> vertical space.
+If the distance <I>D</I> to the next trap position (see &#167;7.5) is less than <I>N</I>,
+a forward vertical space of size <I>D</I> occurs,
+which will spring the trap.
+If there are no remaining
+traps on the page,
+<I>D</I> is the distance to the bottom of the page.
+If <I>D&#60;V</I>, another line could still be output
+and spring the trap.
+In a diversion, <I>D</I> is the distance to the <I>diversion trap</I>, if any,
+or is very large.
+</dl>
+<br>&#32;<br>
+<TT>.mk</TT><I> R</I>	none	internal	D
+<DL COMPACT>
+<DT><DD>
+Mark the current vertical place
+in an internal register (both associated with the current diversion level),
+or in register <I>R</I>, if given.
+See <TT>rt</TT> request.
+</dl>
+<br>&#32;<br>
+<TT>.rt</TT><I> &#177;N</I>	none	internal	D,<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Return <I>upward only</I> to a marked vertical place
+in the current diversion.
+If &#177;<I>N</I> (with respect to current place) is given,
+the place is &#177;<I>N</I> from the top of the page or diversion
+or, if <I>N</I> is absent, to a
+place marked by a previous <TT>mk</TT>.
+The <TT>sp</TT> request (&#167;5.3) may be used
+instead of <TT>rt</TT>
+by spacing to the absolute place stored in a explicit register,
+e.g., using
+<I>R</I> ...
+this also works when the motion is downwards.
+</dl>
+<H4>4 Text Filling, Adjusting, and Centering
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Filling and adjusting.</I></B> 
+Normally,
+words are collected from input text lines
+and assembled into a output text line
+until some word does not fit.
+An attempt is then made
+to hyphenate the word to put part
+of it into the output line.
+The spaces between the words on the output line
+are then increased to spread out the line
+to the current <I>line length</I>
+minus any current <I>indent</I>.
+A <I>word</I> is any string of characters delimited by
+the <I>space</I> character or the beginning/end of the input line.
+Any adjacent pair of words that must be kept together
+(neither split across output lines nor spread apart
+in the adjustment process)
+can be tied together by separating them with the
+<I>unpaddable space</I> character
+``<TT>\ </TT>'' (backslash-space).
+The adjusted word spacings are uniform in <I>troff</I>
+and the minimum interword spacing can be controlled
+with the <TT>ss</TT> request (&#167;2).
+In <I>nroff</I>, they are normally nonuniform because of
+quantization to character-size spaces;
+however,
+the command line option <TT>-e</TT> causes uniform
+spacing with full output device resolution.
+Filling, adjustment, and hyphenation (&#167;13) can all be
+prevented or controlled.
+The text length on the last line output is available in the <TT>.n</TT> register,
+and text baseline position on the page for this line is in the <TT>nl</TT> register.
+The text baseline high-water mark (lowest place) on the current page is in
+the <TT>.h</TT> register.
+The current horizontal output position is in the <TT>.k</TT> register.
+<P>
+An input text line
+<I>ending</I>
+with <TT>.</TT>, <TT>?</TT>, or <TT>!</TT>,
+optionally followed by any number of
+or
+&#191;,
+is taken
+to be the end of a sentence, and an additional space character is
+automatically provided during filling.
+To prevent this, add
+to the end of the input line.
+Multiple inter-word space characters found in the input are retained,
+except for trailing spaces;
+initial spaces also cause a break.
+</P>
+<P>
+When filling is in effect, a <TT>\p</TT> may be embedded or attached to a word to
+cause a break at the end of the word and have the resulting output
+line spread out to fill the current line length.
+</P>
+<P>
+A text input line that happens to begin
+with a control character can
+be made not to look like a control line
+by prefixing it with
+the non-printing, zero-width filler character <TT>\&amp;</TT>.
+Still another way is to specify output translation of some
+convenient character into the control character
+using <TT>tr</TT> (&#167;10.5).
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Interrupted text.</I></B> 
+The copying of a input line in <I>nofill</I>(non-fill) mode can be interrupted
+by terminating
+the partial line with a <TT>\c</TT>.
+The next encountered input text line will be considered to be a continuation
+of the same line of input text.
+Similarly,
+a word within <I>filled</I> text may be interrupted by terminating the
+word (and line) with <TT>\c</TT>;
+the next encountered text will be taken as a continuation of the
+interrupted word.
+If the intervening control lines cause a break,
+any partial line will be forced out along with any partial word.
+<br>&#32;<br>
+<TT>.br</TT>	-	-	B
+<DL COMPACT>
+<DT><DD>
+Break.
+The filling of the line currently
+being collected is stopped and
+the line is output without adjustment.
+Text lines beginning with space characters
+(but not tabs)
+and empty text lines (blank lines) also cause a break.
+</dl>
+<br>&#32;<br>
+<TT>.fi</TT>	fill on	-	B,E
+<DL COMPACT>
+<DT><DD>
+Fill subsequent output lines.
+The register <TT>.u</TT> is 1 in fill mode and 0 in nofill mode.
+</dl>
+<br>&#32;<br>
+<TT>.nf</TT>	fill on	-	B,E
+<DL COMPACT>
+<DT><DD>
+Nofill.
+Subsequent output lines are neither filled nor adjusted.
+Input text lines are copied directly to output lines
+without regard for the current line length.
+</dl>
+<br>&#32;<br>
+<TT>.ad</TT><I> c</I>	adj, both	adjust	E
+<DL COMPACT>
+<DT><DD>
+Line adjustment is begun.
+If fill mode is not on, adjustment will be deferred until
+fill mode is back on.
+If the type indicator <I>c</I> is present,
+the adjustment type is changed as shown in the following table.
+<br><img src="-.16258.gif"><br>
+The number register
+contains the current value of the
+setting;
+its value can be recorded and used subsequently to set adjustment.
+</dl>
+<br>&#32;<br>
+<TT>.na</TT>	adjust	-	E
+<DL COMPACT>
+<DT><DD>
+Noadjust.
+Adjustment is turned off;
+the right margin will be ragged.
+The adjustment type for <TT>ad</TT> is not changed.
+Output line filling still occurs if fill mode is on.
+</dl>
+<br>&#32;<br>
+<TT>.ce</TT><I> N</I>	off	<I>N=</I>1	B,E
+<DL COMPACT>
+<DT><DD>
+Center the next <I>N</I> input text lines
+within the current available horizontal space (line-length minus indent).
+If <I>N=</I>0, any residual count is cleared.
+A break occurs after each of the <I>N</I> input lines.
+If the input line is too long,
+it will be left adjusted.
+</dl>
+<H4>5 Vertical Spacing
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Baseline spacing.</I></B> 
+The vertical spacing (<I>V</I>) between the baselines of successive
+output lines can be set
+using the <TT>vs</TT> request.
+<I>V</I> should be large enough to accommodate the character sizes
+on the affected output lines.
+For the common type sizes (9-12 points),
+usual typesetting practice is to set <I>V</I> to 2 points greater than the
+point size;
+<I>troff</I> default is 10-point type on a 12-point spacing
+(as in this document).
+The current <I>V</I> is available in the <TT>.v</TT> register.
+Multiple-<I>V</I> line separation (e.g., double spacing) may be requested
+with <TT>ls</TT>,
+but it is better to use a large
+instead;
+certain preprocessors assume single spacing.
+The current line spacing is available in the <TT>.L</TT> register.
+<br>&#32;<br>
+<B><I>0.0s.  Extra line-space.</I></B> 
+If a word contains a tall construct requiring
+the output line containing it to have extra vertical space
+before and/or after it,
+the <I>extra-line-space</I> function <TT>\x'</TT><I>N</I><TT>'</TT>
+can be embedded in or attached to that word.
+If <I>N</I> is negative,
+the output line containing the word will
+be preceded by <I>N</I> extra vertical space;
+if <I>N</I> is positive,
+the output line containing the word
+will be followed by <I>N</I> extra vertical space.
+If successive requests for extra space apply to the same line,
+the maximum values are used.
+The most recently utilized post-line extra line-space is available in the <TT>.a</TT> register.
+<P>
+In
+and other functions having a pair of delimiters around
+their parameter,
+the delimiter choice (here 
+is arbitrary,
+except that it can not look like the continuation of a number expression for <I>N</I>.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Blocks of vertical space.</I></B> 
+A block of vertical space is ordinarily requested using <TT>sp</TT>,
+which honors the <I>no-space</I> mode and which does
+not space past a trap.
+A contiguous block of vertical space may be reserved using <TT>sv</TT>.
+<br>&#32;<br>
+<TT>.vs </TT><I>N</I>	12pts; 1/6in	previous	E,<B>p</B>
+<DL COMPACT>
+<DT><DD>
+Set vertical baseline spacing size <I>V</I>.
+Transient extra vertical space is available with <TT>\x</TT><I>'N'</I> (see above).
+</dl>
+<br>&#32;<br>
+<TT>.ls </TT><I>N</I>	<I>N=</I>1	previous	E
+<DL COMPACT>
+<DT><DD>
+<I>Line</I> spacing
+set to &#177;<I>N</I>.
+<I>N-</I>1 <I>V</I>s (blank lines) are
+appended to each output text line.
+Appended blank lines are omitted, if the text or previous appended blank line reached a trap position.
+</dl>
+<br>&#32;<br>
+<TT>.sp </TT><I>N</I>	-	<I>N=</I>1 <I>V</I>	B,<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Space vertically in either direction.
+If <I>N</I> is negative, the motion is backward (upward)
+and is limited to the distance to the top of the page.
+Forward (downward) motion is truncated to the distance to the
+nearest trap.
+(Recall the use of
+from &#167;1.3.)
+If the no-space mode is on,
+no spacing occurs (see <TT>ns</TT> and <TT>rs</TT> below).
+</dl>
+<br>&#32;<br>
+<TT>.sv</TT><I> N</I>	-	<I>N=</I>1 <I>V</I>	<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Save a contiguous vertical block of size <I>N</I>.
+If the distance to the next trap is greater
+than <I>N</I>, <I>N</I> vertical space is output.
+No-space mode has no effect.
+If this distance is less than <I>N</I>,
+no vertical space is immediately output,
+but <I>N</I> is remembered for later output (see <TT>os</TT>).
+Subsequent <TT>sv</TT> requests will overwrite any still remembered <I>N</I>.
+</dl>
+<br>&#32;<br>
+<TT>.os</TT>	-	-	-
+<DL COMPACT>
+<DT><DD>
+Output saved vertical space.
+No-space mode has no effect.
+Used to finally output a block of vertical space requested
+by an earlier <TT>sv</TT> request.
+</dl>
+<br>&#32;<br>
+<TT>.ns</TT>	space	-	D
+<DL COMPACT>
+<DT><DD>
+No-space mode turned on.
+When on, no-space mode inhibits <TT>sp</TT> requests and
+<TT>bp</TT> requests <I>without</I> a next page number.
+No-space mode is turned off when a line of
+output occurs, or with <TT>rs</TT>.
+</dl>
+<br>&#32;<br>
+<TT>.rs</TT>	space	-	D
+<DL COMPACT>
+<DT><DD>
+Restore spacing.
+The no-space mode is turned off.
+</dl>
+<br>&#32;<br>
+Blank text line.		-	B
+<DL COMPACT>
+<DT><DD>
+Causes a break and
+output of a blank line exactly like <TT>sp 1</TT>.
+</dl>
+<H4>6 Line Length and Indenting
+</H4>
+<P>
+The maximum line length for fill mode may be set with <TT>ll</TT>.
+The indent may be set with <TT>in</TT>;
+an indent applicable to only the next output line may be set with <TT>ti</TT>.
+The line length includes indent space but not
+page offset space.
+The line length minus the indent is the basis for centering with <TT>ce</TT>.
+The effect of <TT>ll</TT>, <TT>in</TT>, or <TT>ti</TT>
+is delayed, if a partially collected line exists,
+until after that line is output.
+In fill mode the length of text on an output line is less than or equal to
+the line length minus the indent.
+The current line length and indent are available in registers <TT>.l</TT> and <TT>.i</TT> respectively.
+The length of <I>three-part titles</I> produced by <TT>tl</TT>
+(see &#167;14) is independently set by <TT>lt</TT>.
+</P>
+<br>&#32;<br>
+<TT>.ll</TT><I> &#177;N</I>	6.5in	previous	E,<B>m</B>
+<DL COMPACT>
+<DT><DD>
+Line length is set to &#177;<I>N</I>.
+</dl>
+<br>&#32;<br>
+<TT>.in</TT><I> &#177;N</I>	<I>N=</I>0	previous	B,E,<B>m</B>
+<DL COMPACT>
+<DT><DD>
+Indent is set to &#177;<I>N</I>.
+The indent is prefixed to each output line.
+</dl>
+<br>&#32;<br>
+<TT>.ti</TT><I> &#177;N</I>	-	ignored	B,E,<B>m</B>
+<DL COMPACT>
+<DT><DD>
+Temporary indent.
+The next output text line will be indented a distance &#177;<I>N</I>
+with respect to the current indent.
+The resulting total indent may not be negative.
+The current indent is not changed.
+</dl>
+<H4>7 Macros, Strings, Diversion, and Position Traps
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Macros and strings.</I></B> 
+A <I>macro</I> is a named set of arbitrary <I>lines</I> that may be invoked by name or
+with a <I>trap</I>.
+A <I>string</I> is a named string of <I>characters</I>,
+not including a newline character,
+that may be interpolated by name at any point.
+Request, macro, and string names share the same name list.
+Macro and string names
+may be one or two characters long and may usurp previously defined
+request, macro, or string names;
+this implies that built-in operations may be (irrevocably) redefined.
+Any of these entities may be renamed with <TT>rn</TT>
+or removed with <TT>rm</TT>.
+<P>
+Macros are created by <TT>de</TT> and <TT>di</TT>, and appended to by <TT>am</TT> and <TT>da</TT>;
+<TT>di</TT> and <TT>da</TT> cause normal output to be stored in a macro.
+A macro is invoked in the same way as a request;
+a control line beginning <TT>.</TT><I>xx</I> will interpolate the contents of macro <I>xx</I>.
+The remainder of the line may contain up to nine <I>arguments</I>.
+</P>
+<P>
+Strings are created by <TT>ds</TT> and appended to by <TT>as</TT>.
+The strings <I>x</I> and <I>xx</I> are interpolated at any desired point with
+<TT>\*</TT><I>x</I> and <TT>\*(</TT><I>xx</I> respectively.
+String references and macro invocations may be nested.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Copy mode input interpretation.</I></B> 
+During the definition and extension
+of strings and macros (not by diversion)
+the input is read in <I>copy mode</I>.
+In copy mode, input is copied without interpretation
+except that:
+<DL>
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+^* The contents of number registers indicated by <TT>\n</TT> are interpolated.
+^* Strings indicated by <TT>\*</TT> are interpolated.
+^* Arguments indicated by <TT>\$</TT> are interpolated.
+^* Concealed newlines indicated by <TT>\</TT><I>newline</I> are eliminated.
+^* Comments indicated by <TT>\"</TT> are eliminated.
+^* <TT>\t</TT> and <TT>\a</TT> are interpreted as ASCII horizontal tab and SOH respectively (&#167;9).
+^* <TT>\\</TT> is interpreted as <TT>\</TT>.
+^* <TT>\.</TT> is interpreted as ``<TT>.</TT>''.
+</PRE></TT></DL>
+</dl>
+<br>&#32;<br>
+These interpretations can be suppressed by
+prefixing
+a <TT>\</TT>.
+For example, since <TT>\\</TT> maps into a <TT>\</TT>, <TT>\\n</TT> will copy as <TT>\n</TT>, which
+will be interpreted as a number register indicator when the
+macro or string is reread.
+<br>&#32;<br>
+<B><I>0.0s.  Arguments.</I></B> 
+When a macro is invoked by name, the remainder of the line is
+taken to contain up to nine arguments.
+The argument separator is the space character (not tab), and arguments
+may be surrounded by double quotes to permit embedded space characters.
+Pairs of double quotes may be embedded in double-quoted arguments to
+represent a single double-quote character.
+The argument
+is explicitly null.
+If the desired arguments won't fit on a line,
+a concealed newline may be used to continue on the next line.
+A trailing double quote may be omitted.
+<P>
+When a macro is invoked the <I>input level</I> is <I>pushed down</I> and
+any arguments available at the previous level become unavailable
+until the macro is completely read and the previous level is restored.
+A macro's own arguments can be interpolated at any point
+within the macro with
+which interpolates the <I>N</I>th
+argument
+(1<=<I>N</I><=9).
+If an invoked argument does not exist,
+a null string results.
+For example, the macro <I>xx</I> may be defined by
+<DL><DT><DD><TT><PRE>
+&amp;de xx	\" begin definition
+Today is \\$1 the \\$2.
+&amp;.	\" end definition
+</PRE></TT></DL>
+and called by
+<DL><DT><DD><TT><PRE>
+&amp;xx Monday 14th
+</PRE></TT></DL>
+to produce the text
+<DL><DT><DD><TT><PRE>
+Today is Monday the 14th.
+</PRE></TT></DL>
+Note that each <TT>\$</TT>
+was concealed in the definition with a prefixed <TT>\</TT>.
+The number of
+arguments is in the <TT>.$</TT> register.
+</P>
+<P>
+No arguments are available at the top (non-macro) level,
+within a string, or within a trap-invoked macro.
+</P>
+<P>
+Arguments are copied in copy mode onto a stack
+where they are available for reference.
+It is advisable to
+conceal string references (with an extra <TT>\</TT>)
+to delay interpolation until argument reference time.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Diversions.</I></B> 
+Processed output may be diverted into a macro for purposes
+such as footnote processing (see Tutorial &#167;T5)
+or determining the horizontal and vertical size of some text for
+conditional changing of pages or columns.
+A single diversion trap may be set at a specified vertical position.
+The number registers <TT>dn</TT> and <TT>dl</TT> respectively contain the
+vertical and horizontal size of the most
+recently ended diversion.
+Processed text that is diverted into a macro
+retains the vertical size of each of its lines when reread
+in <I>nofill</I> mode
+regardless of the current <I>V</I>.
+Constant-spaced (<TT>cs</TT>) or emboldened (<TT>bd</TT>) text that is diverted
+can be reread correctly only if these modes are again or still in effect
+at reread time.
+One way to do this is to embed in the diversion the appropriate
+<TT>cs</TT> or <TT>bd</TT> requests with the <I>transparent</I>
+mechanism described in &#167;10.6.
+<P>
+Diversions may be nested
+and certain parameters and registers
+are associated
+with the current diversion level
+(the top non-diversion level may be thought of as the
+0th diversion level).
+These are the diversion trap and associated macro,
+no-space mode,
+the internally-saved marked place (see <TT>mk</TT> and <TT>rt</TT>),
+the current vertical place (<TT>.d</TT> register),
+the current high-water text baseline (<TT>.h</TT> register),
+and the current diversion name (<TT>.z</TT> register).
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Traps.</I></B> 
+Three types of trap mechanisms are available&#173;page traps, a diversion trap, and
+an input-line-count trap.
+Macro-invocation traps may be planted using <TT>wh</TT> at any page position including the top.
+This trap position may be changed using <TT>ch</TT>.
+Trap positions at or below the bottom of the page
+have no effect unless or until
+moved to within the page or rendered effective by an increase in page length.
+Two traps may be planted at the same position only by first planting them at different
+positions and then moving one of the traps;
+the first planted trap will conceal the second unless and until the first one is moved
+(see Tutorial Examples).
+If the first one is moved back, it again conceals the second trap.
+The macro associated with a page trap is automatically
+invoked when a line of text is output whose vertical size reaches
+or sweeps past the trap position.
+Reaching the bottom of a page springs the top-of-page trap, if any,
+provided there is a next page.
+The distance to the next trap position is available in the <TT>.t</TT> register;
+if there are no traps between the current position and the bottom of the page,
+the distance returned is the distance to the page bottom.
+<P>
+A macro-invocation trap effective in the current diversion may be planted using <TT>dt</TT>.
+The <TT>.t</TT> register works in a diversion; if there is no subsequent trap a large
+distance is returned.
+For a description of input-line-count traps, see <TT>it</TT> below.
+</P>
+<br>&#32;<br>
+<TT>&de</TT><I> xx yy</I>	-	<I>.yy=</I><TT>..</TT>	-
+<DL COMPACT>
+<DT><DD>
+Define or redefine the macro <I>xx</I>.
+The contents of the macro begin on the next input line.
+Input lines are copied in <I>copy mode</I> until the definition is terminated by a
+line beginning with <TT>.</TT><I>yy</I>,
+whereupon the macro <I>yy</I> is called.
+In the absence of <I>yy</I>, the definition
+is terminated by a
+line beginning with ``<TT>..</TT>''.
+A macro may contain <TT>de</TT> requests
+provided the terminating macros differ
+or the contained definition terminator is concealed.
+``<TT>..</TT>'' can be concealed as
+<TT>\\..</TT> which will copy as <TT>\..</TT> and be reread as ``<TT>..</TT>''.
+</dl>
+<br>&#32;<br>
+<TT>&am</TT><I> xx yy</I>	-	<I>.yy=</I><TT>..</TT>	-
+<DL COMPACT>
+<DT><DD>
+Append to macro
+<I>xx</I>
+(append version of <TT>de</TT>).
+</dl>
+<br>&#32;<br>
+<TT>&ds</TT><I> xx string</I>	-	ignored	-
+<DL COMPACT>
+<DT><DD>
+Define a string
+<I>xx</I> containing <I>string</I>.
+Any initial double quote in <I>string</I> is stripped off to permit
+initial blanks.
+</dl>
+<br>&#32;<br>
+<TT>&as</TT><I> xx string</I>	-	ignored	-
+<DL COMPACT>
+<DT><DD>
+Append
+<I>string</I> to string <I>xx</I>
+(append version of <TT>ds</TT>).
+</dl>
+<br>&#32;<br>
+<TT>&rm</TT><I> xx</I>	-	ignored	-
+<DL COMPACT>
+<DT><DD>
+Remove
+request, macro, or string.
+The name <I>xx</I> is removed from the name list and
+any related storage space is freed.
+Subsequent references will have no effect.
+If many macros and strings are being created dynamically, it
+may become necessary to remove unused ones
+to recapture internal storage space for newer registers.
+</dl>
+<br>&#32;<br>
+<TT>&rn</TT><I> xx yy</I>	-	ignored	-
+<DL COMPACT>
+<DT><DD>
+Rename request, macro, or string
+<I>xx</I> to <I>yy</I>.
+If <I>yy</I> exists, it is first removed.
+</dl>
+<br>&#32;<br>
+<TT>&di</TT><I> xx</I>	-	end	D
+<DL COMPACT>
+<DT><DD>
+Divert output to macro <I>xx</I>.
+Normal text processing occurs during diversion
+except that page offsetting is not done.
+The diversion ends when the request <TT>di</TT> or <TT>da</TT> is encountered without an argument;
+extraneous
+requests of this type should not appear when nested diversions are being used.
+</dl>
+<br>&#32;<br>
+<TT>&da </TT><I>xx</I>	-	end	D
+<DL COMPACT>
+<DT><DD>
+Divert, appending to macro <I>xx</I>
+(append version of <TT>di</TT>).
+</dl>
+<br>&#32;<br>
+<TT>&wh</TT><I> N xx</I>	-	-	<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Install
+a trap to invoke <I>xx</I> at page position <I>N</I>;
+a negative N will be interpreted as a distance from the
+page bottom.
+Any macro previously planted at <I>N</I> is replaced by <I>xx</I>.
+A zero <I>N</I> refers to the top of a page.
+In the absence of <I>xx</I>, the first trap found at <I>N</I>, if any, is removed.
+</dl>
+<br>&#32;<br>
+<TT>&ch</TT><I> xx N</I>	-	-	<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Change
+the trap position for macro <I>xx</I> to be <I>N</I>.
+In the absence of <I>N</I>, the trap, if any, is removed.
+</dl>
+<br>&#32;<br>
+<TT>&dt</TT><I> N xx</I>	-	off	D,<B>v</B>
+<DL COMPACT>
+<DT><DD>
+Install a diversion trap
+at position <I>N</I> in the <I>current</I> diversion to invoke
+macro <I>xx</I>.
+Another <TT>dt</TT> will redefine the diversion trap.
+If no arguments are given, the diversion trap is removed.
+</dl>
+<br>&#32;<br>
+<TT>&it</TT><I> N xx</I>	-	off	E
+<DL COMPACT>
+<DT><DD>
+Set an input-line-count trap
+to invoke the macro <I>xx</I> after <I>N</I> lines of <I>text</I> input
+have been read
+(control or request lines do not count).
+The text may be inline text or
+text interpolated by inline or trap-invoked macros.
+</dl>
+<br>&#32;<br>
+<TT>&em</TT><I> xx</I>	none	none	-
+<DL COMPACT>
+<DT><DD>
+The
+macro <I>xx</I> will be invoked
+when all input has ended.
+The effect is almost as if the contents of <I>xx</I> had been at the end
+of the last file processed,
+but all processing ceases at the next page eject.
+</dl>
+<H4>8 Number Registers
+</H4>
+<P>
+A variety of parameters are available to the user as
+predefined <I>number registers</I> (see Summary, page 0u+7u).
+In addition, users may define their own registers.
+Register names are one or two characters long and do not conflict
+with request, macro, or string names.
+Except for certain predefined read-only registers,
+a number register can be read, written, automatically
+incremented or decremented, and interpolated
+into the input in a variety of formats.
+One common use of user-defined registers is to
+automatically number sections, paragraphs, lines, etc.
+A number register may be used any time numerical input is expected or desired
+and may be used in numerical <I>expressions</I> (&#167;1.4).
+</P>
+<P>
+Number registers are created and modified using <TT>nr</TT>, which
+specifies the name, numerical value, and the auto-increment size.
+Registers are also modified, if accessed
+with an auto-incrementing sequence.
+If the registers <I>x</I> and <I>xx</I> both contain
+<I>N</I> and have the auto-increment size <I>M</I>,
+the following access sequences have the effect shown:
+<br><img src="-.16259.gif"><br>
+When interpolated, a number register is converted to
+decimal (default),
+decimal with leading zeros,
+lower-case Roman,
+upper-case Roman,
+lower-case sequential alphabetic,
+or
+upper-case sequential alphabetic
+according to the format specified by <TT>af</TT>.
+</P>
+<br>&#32;<br>
+<TT>&nr</TT><I> R &#177;N M</I>		-	<B>u</B>
+<DL COMPACT>
+<DT><DD>
+The number register
+<I>R</I> is assigned the value &#177;<I>N</I>
+with respect to the previous value, if any.
+The increment for auto-incrementing is set to <I>M</I>.
+</dl>
+<br>&#32;<br>
+<TT>&af</TT><I> R c</I>	arabic	-	-
+<DL COMPACT>
+<DT><DD>
+Assign
+format <I>c</I> to register <I>R</I>.
+The available formats are:
+<br><img src="-.162510.gif"><br>
+An arabic format having <I>N</I> digits
+specifies a field width of <I>N</I> digits (example 2 above).
+The read-only registers and the width function
+(&#167;11.2)
+are always arabic.
+Warning: the value of a number register in a non-Arabic format
+is not numeric, and will not produce the expected results in expressions.
+<DT><DT>&#32;<DD>
+The function
+or
+returns the format of a number register in a form suitable for
+it returns nothing if the register has not been used.
+</dl>
+<br>&#32;<br>
+<TT>&rr</TT><I> R</I>	-	ignored	-
+<DL COMPACT>
+<DT><DD>
+Remove number register <I>R</I>.
+If many registers are being created dynamically, it
+may become necessary to remove unused registers
+to recapture internal storage space for newer registers.
+The register
+contains the number of number registers still available.
+</dl>
+<H4>9 Tabs, Leaders, and Fields
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Tabs and leaders.</I></B> 
+The ASCII horizontal tab character and the ASCII
+SOH (control-A, hereafter called the <I>leader</I> character)
+can both be used to generate either horizontal motion or
+a string of repeated characters.
+The length of the generated entity is governed
+by internal <I>tab stops</I> specifiable
+with <TT>ta</TT>.
+The default difference is that tabs generate motion and leaders generate
+a string of periods;
+<TT>tc</TT> and <TT>lc</TT>
+offer the choice of repeated character or motion.
+There are three types of internal tab stops&#173;
+<I>left</I> adjusting, <I>right</I> adjusting,
+and <I>centering</I>.
+In the following table,
+<I>D</I> is the distance from the current position on the <I>input</I> line
+(where a tab or leader was found)
+to the next tab stop,
+<I>next-string</I> consists
+of the input characters following the tab (or leader) up to the next tab (or leader) or end of line,
+and
+<I>W</I> is the width of <I>next-string</I>.
+<br><img src="-.162511.gif"><br>
+The length of generated motion is allowed to be negative, but
+that of a repeated character string cannot be.
+Repeated character strings contain an integer number of characters, and
+any residual distance is prepended as motion.
+Tabs or leaders found after the last tab stop are ignored, but may be used
+as <I>next-string</I> terminators.
+<P>
+Tabs and leaders are not interpreted in copy mode.
+<TT>\t</TT> and <TT>\a</TT> always generate a non-interpreted
+tab and leader respectively, and
+are equivalent to actual tabs and leaders in copy mode.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Fields.</I></B> 
+A <I>field</I> is contained between
+a pair of <I>field delimiter</I> characters,
+and consists of substrings
+separated by <I>padding</I> indicator characters.
+The field length is the distance on the
+<I>input</I> line from the position where the field begins to the next tab stop.
+The difference between the total length of all the substrings
+and the field length is incorporated as horizontal
+padding space that is divided among the indicated
+padding places.
+The incorporated padding is allowed to be negative.
+For example,
+if the field delimiter is <TT>#</TT> and the padding indicator is <TT>^</TT>,
+<TT>#^</TT><I>xxx</I><TT>^</TT><I>right</I><TT>#</TT>
+specifies a right-adjusted string with the string <I>xxx</I> centered
+in the remaining space.
+<br>&#32;<br>
+<TT>&ta</TT><I> Nt ...</I>	0.8; 0.5in	none	E,<B>m</B>
+<DL COMPACT>
+<DT><DD>
+Set tab stops and types.
+<I>t=</I><TT>R</TT>, right adjusting;
+<I>t=</I><TT>C</TT>, centering;
+<I>t</I> absent, left adjusting.
+<I>Troff</I> tab stops are preset every 0.5in.,
+<I>nroff</I> every 0.8in.
+The stop values are separated by spaces, and
+a value preceded by <TT>+</TT>
+is treated as an increment to the previous stop value.
+</dl>
+<br>&#32;<br>
+<TT>&tc</TT><I> c</I>	none	none	E
+<DL COMPACT>
+<DT><DD>
+The tab repetition character
+becomes <I>c</I>,
+or is removed, thus specifying motion.
+</dl>
+<br>&#32;<br>
+<TT>&lc</TT><I> c</I>	<TT>.</TT>	none	E
+<DL COMPACT>
+<DT><DD>
+The leader repetition character
+becomes <I>c</I>,
+or is removed, thus specifying motion.
+</dl>
+<br>&#32;<br>
+<TT>&fc</TT><I> a b</I>	off	off	-
+<DL COMPACT>
+<DT><DD>
+The field delimiter
+is set to <I>a</I>;
+the padding indicator is set to the space character or to
+<I>b</I>, if given.
+In the absence of arguments the field mechanism is turned off.
+</dl>
+<H4>10 Input and Output Conventions and Character Translations
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Input character translations.</I></B> 
+Ways of inputting the valid character set were
+discussed in &#167;2.1.
+The ASCII control characters horizontal tab (&#167;9.1),
+SOH (&#167;9.1), and backspace (&#167;10.3) are discussed elsewhere.
+The newline delimits input lines.
+In addition,
+STX, ETX, ENQ, ACK, and BEL
+are accepted,
+and may be used as delimiters or translated into a graphic with <TT>tr</TT> (&#167;10.5).
+All others are ignored.
+<P>
+The <I>escape</I> character <TT>\</TT>
+introduces <I>escape sequences</I>,
+which cause the following character to mean
+another character, or to indicate
+some function.
+A complete list of such sequences is given in the Summary on page 0u+7u.
+The escape character <TT>\</TT>
+should not be confused with the ASCII control character ESC.
+The escape character <TT>\</TT> can be input with the sequence <TT>\\</TT>.
+The escape character can be changed with <TT>ec</TT>,
+and all that has been said about the default <TT>\</TT> becomes true
+for the new escape character.
+<TT>\e</TT> can be used to print whatever the current escape character is.
+The escape mechanism may be turned off with <TT>eo</TT>,
+and restored with <TT>ec</TT>.
+</P>
+<br>&#32;<br>
+<TT>&ec</TT><I> c</I>	<TT></TT>	<TT></TT>	-
+<DL COMPACT>
+<DT><DD>
+Set escape character
+to <TT></TT>, or to <I>c</I>, if given.
+</dl>
+<br>&#32;<br>
+<TT>&eo</TT>	on	-	-
+<DL COMPACT>
+<DT><DD>
+Turn escape mechanism off.
+</dl>
+<br>&#32;<br>
+<B><I>0.0s.  Ligatures.</I></B> 
+The set of available ligatures is device and font dependent,
+but is often a subset of
+<B>fi</B>, <B>fl</B>, <B>ff</B>, <B>ffi</B>, and <B>ffl</B>.
+They may be input by
+<TT>\(fi</TT>, <TT>\(fl</TT>, <TT>\(ff</TT>, <TT>\(Fi</TT>, and <TT>\(Fl</TT> respectively.
+The ligature mode is normally on in <I>troff</I>, and automatically invokes 
+ligatures during input.
+<br>&#32;<br>
+<TT>&lg</TT><I> N</I>	on; off	on	-
+<DL COMPACT>
+<DT><DD>
+Ligature mode
+is turned on if <I>N</I> is absent or non-zero,
+and turned off if <I>N=</I>0.
+If <I>N=</I>2, only the two-character ligatures are automatically invoked.
+Ligature mode is inhibited for
+request, macro, string, register, or file names,
+and in copy mode.
+No effect in <I>nroff</I>.
+</dl>
+<br>&#32;<br>
+<B><I>0.0s.  Backspacing, underlining, overstriking, etc.</I></B> 
+Unless in copy mode, the ASCII backspace character is replaced
+by a backward horizontal motion having the width of the
+space character.
+Underlining as a form of line-drawing is discussed in &#167;12.4.
+A generalized overstriking function is described in &#167;12.1.
+<P>
+<I>Nroff</I> automatically underlines
+characters in the <I>underline</I> font,
+specifiable with <TT>uf</TT>,
+normally that on font position 2.
+In addition to <TT>ft</TT> and
+the underline font may be selected by <TT>ul</TT> and <TT>cu</TT>.
+Underlining is restricted to an output-device-dependent
+subset of reasonable characters.
+</P>
+<br>&#32;<br>
+<TT>&ul</TT><I> N</I>	off	<I>N=</I>1	E
+<DL COMPACT>
+<DT><DD>
+Italicize in <I>troff</I>
+(underline in <I>nroff</I>) the next <I>N</I>
+input text lines.
+Actually, switch to underline font, saving the
+current font for later restoration;
+other font changes within the span of a <TT>ul</TT>
+will take effect,
+but the restoration will undo the last change.
+Output generated by <TT>tl</TT> (&#167;14) is affected by the
+font change, but does not decrement <I>N</I>.
+If <I>N&#62;</I>1, there is the risk that
+a trap interpolated macro may provide text
+lines within the span;
+environment switching can prevent this.
+</dl>
+<br>&#32;<br>
+<TT>&cu</TT><I> N</I>	off	<I>N=</I>1	E
+<DL COMPACT>
+<DT><DD>
+Continuous underline.
+A variant
+of <TT>ul</TT> that causes <I>every</I> character to be underlined in <I>nroff</I>.
+Identical to <TT>ul</TT> in <I>troff</I>.
+</dl>
+<br>&#32;<br>
+<TT>&uf</TT><I> F</I>	Italic	Italic	-
+<DL COMPACT>
+<DT><DD>
+Underline font set to <I>F</I>.
+In <I>nroff</I>,
+<I>F</I> may not be on position 1.
+</dl>
+<br>&#32;<br>
+<B><I>0.0s.  Control characters.</I></B> 
+Both the control character <TT>.</TT> and the <I>no-break</I>
+control character <TT>'</TT> may be changed.
+Such a change must be compatible with the design
+of any macros used in the span of the change,
+and
+particularly of any trap-invoked macros.
+<br>&#32;<br>
+<TT>&cc</TT><I> c</I>	<TT>.</TT>	<TT>.</TT>	E
+<DL COMPACT>
+<DT><DD>
+The basic control character
+is set to <I>c</I>,
+or reset to ``<TT>.</TT>''.
+</dl>
+<br>&#32;<br>
+<TT>&c2</TT><I> c</I>	<TT>'	'</TT>	E
+<DL COMPACT>
+<DT><DD>
+The <I>no-break</I> control character is set
+to <I>c</I>, or reset to ``<TT>'</TT>''.
+</dl>
+<br>&#32;<br>
+<B><I>0.0s.  Output translation.</I></B> 
+One character can be made a stand-in for another character using <TT>tr</TT>.
+All text processing (e.g., character comparisons) takes place
+with the input (stand-in) character, which appears to have the width of the final
+character.
+The graphic translation occurs at the moment of output
+(including diversion).
+<br>&#32;<br>
+<TT>&tr</TT><I> abcd....</I>	none	-	O
+<DL COMPACT>
+<DT><DD>
+Translate
+<I>a</I> into <I>b</I>, <I>c</I> into <I>d</I>, etc.
+If an odd number of characters is given,
+the last one will be mapped into the space character.
+To be consistent, a particular translation
+must stay in effect from <I>input</I> to <I>output</I> time.
+</dl>
+<br>&#32;<br>
+<B><I>0.0s.  Transparent throughput.</I></B> 
+An input line beginning with a <TT>\!</TT> is read in copy mode and <I>transparently</I> output
+(without the initial <TT>\!</TT>);
+the text processor is otherwise unaware of the line's presence.
+This mechanism may be used to pass control information to a post-processor
+or to embed control lines in a macro created by a diversion.
+<br>&#32;<br>
+<B><I>0.0s.  Transparent output</I></B> 
+The sequence
+copies
+<I>anything</I>
+to the output, as a device control function of the form
+<I>anything</I>
+(&#167;22).
+Escape sequences in
+<I>anything</I>
+are processed.
+<br>&#32;<br>
+<B><I>0.0s.  Comments and concealed newlines.</I></B> 
+An uncomfortably long input line that must stay
+one line (e.g., a string definition, or nofilled text)
+can be split into several physical lines by ending all but
+the last one with the escape <TT>\</TT>.
+The sequence <TT></TT><I>newline</I> is always ignored,
+except in a comment.
+Comments may be embedded at the end of any line by
+prefacing them with <TT>\"</TT>.
+The newline at the end of a comment cannot be concealed.
+A line beginning with <TT>\"</TT> will appear as a blank line and
+behave like
+a comment can be on a line by itself by beginning the line with <TT>.\"</TT>.
+<H4>11 Local Horizontal and Vertical Motions, and the Width Function
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Local Motions.</I></B> 
+The functions <TT>\v'</TT><I>N</I><TT>'</TT> and
+<TT>\h'</TT><I>N</I><TT>'</TT>
+can be used for <I>local</I> vertical and horizontal motion respectively.
+The distance <I>N</I> may be negative; the positive directions
+are rightward and downward.
+A local motion is one contained within a line.
+To avoid unexpected vertical dislocations, it is necessary that
+the net vertical local motion within a word in filled text
+and otherwise within a line balance to zero.
+The escape sequences providing local motion are
+summarized in the following table.
+<br><img src="-.162512.gif"><br>
+As an example,
+<TT>E^2</TT>
+could be generated by a sequence of size changes and motions:
+<TT>E\s-2\v'-0.4m'2\v'0.4m'\s+2</TT>;
+note that
+the 0.4 em vertical motions are at the smaller size.
+<br>&#32;<br>
+<B><I>0.0s.  Width Function.</I></B> 
+The <I>width</I> function <TT>\w'</TT><I>string</I><TT>'</TT>
+generates the numerical width of <I>string</I> (in basic units).
+Size and font changes may be embedded in <I>string</I>,
+and will not affect the current environment.
+For example,
+<TT>.ti -\w'\fB1. 'u</TT> could be used to
+temporarily indent leftward a distance equal to the
+size of the string ``<TT>1. </TT>'' in font
+<P>
+The width function also sets three number registers.
+The registers <TT>st</TT> and <TT>sb</TT> are set respectively to the highest and
+lowest extent of <I>string</I> relative to the baseline;
+then, for example,
+the total height of the string is <TT>\n(stu-\n(sbu</TT>.
+In <I>troff</I> the number register <TT>ct</TT> is set to a value
+between 0 and 3.
+The value
+0 means that all of the characters in <I>string</I> were short lower
+case characters without descenders (like <TT>e</TT>);
+1 means that at least one character has a descender (like <TT>y</TT>);
+2 means that at least one character is tall (like <TT>H</TT>);
+and 3 means that both tall characters and characters with
+descenders are present.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Mark horizontal place.</I></B> 
+The function <TT>\k</TT><I>x</I> causes the current horizontal
+position in the <I>input line</I> to be stored in register <I>x</I>.
+For example,
+the construction <TT>\kx</TT><I>word</I><TT>\h'|\nxu+3u'</TT><I>word</I><TT></TT>
+will embolden <I>word</I> by backing up to almost its beginning and overprinting it,
+resulting in <I>word</I>h'|0u+3u'<I>word</I>.
+<H4>12 Overstrike, Bracket, Line-drawing, Graphics, and Zero-width Functions
+</H4>
+<br>&#32;<br>
+<B><I>0.0s.  Overstriking.</I></B> 
+Automatically centered overstriking of up to nine characters
+is provided by the <I>overstrike</I> function
+<TT>\o'</TT><I>string</I><TT>'</TT>.
+The characters in <I>string</I> are overprinted with centers aligned; the total width
+is that of the widest character.
+<I>string</I> may not contain local vertical motion.
+As examples,
+<TT>\o'e\''</TT> produces o'e'', and
+<TT>\o'\(mo\(sl'</TT> produces o'C/'.
+<br>&#32;<br>
+<B><I>0.0s.  Zero-width characters.</I></B> 
+The function
+will output <I>c</I> without spacing over
+it, and can be used to produce left-aligned overstruck
+combinations.
+As examples,
+<TT>\z&#164;+</TT> will produce z&#164;+, and
+<TT>\(br\z\(rn\(ul\(br</TT> will produce a small
+badly constructed box |z _|.
+<br>&#32;<br>
+<B><I>0.0s.  Large Brackets.</I></B> 
+The Special Font usually contains a number of bracket construction pieces
+(())|||||||
+that can be combined into various bracket styles.
+The function <TT>\b'</TT><I>string</I><TT>'</TT> may be used to pile
+up vertically the characters in <I>string</I>
+(the first character on top and the last at the bottom);
+the characters are vertically separated by 1 em and the total
+pile is centered 1/2 em above the current baseline
+(&#189; line in <I>nroff</I>).
+For example,
+<DL><DT><DD><TT><PRE>
+\b'\(lc\(lf'E\b'\(rc\(rf'\x'-0.5m'\x'0.5m'
+</PRE></TT></DL>
+produces
+x'-.5m'x'.5m'b'||'Eb'||'.
+<br>&#32;<br>
+<B><I>0.0s.  Line drawing.</I></B> 
+The function <TT><HR></TT> (backslash-ell) draws a string of repeated <I>c</I>'s towards the right for a distance <I>N</I>.
+If <I>c</I> looks like a continuation of
+an expression for <I>N</I>, it may be insulated from <I>N</I> with <TT></TT>.
+If <I>c</I> is not specified, the <TT>_</TT> (baseline rule) is used
+(underline character in <I>nroff</I>).
+If <I>N</I> is negative, a backward horizontal motion
+of size <I>N</I> is made before drawing the string.
+Any space resulting from <I>N</I>/(size of <I>c</I>) having a remainder is put at the beginning (left end)
+of the string.
+If <I>N</I> is less than the width of <I>c</I>,
+a single <I>c</I> is centered on a distance <I>N</I>.
+In the case of characters
+that are designed to be connected, such as
+baseline-rule <TT>_</TT>,
+under-rule <TT>_</TT>,
+and
+root-en <TT> </TT>,
+the remainder space is covered by overlapping.
+As an example, a macro to underscore a string can be written
+<DL><DT><DD><TT><PRE>
+&amp;de us
+\\$1\l'|0\(ul'
+&amp;&amp;
+</PRE></TT></DL>
+or one to draw a box around a string
+<DL><DT><DD><TT><PRE>
+&amp;de bx
+\(br\|\\$1\|\(br\l'|0\(rn'\l'|0\(ul'
+&amp;&amp;
+</PRE></TT></DL>
+such that
+<DL><DT><DD><TT><PRE>
+&amp;ul "underlined words"
+</PRE></TT></DL>
+and
+<DL><DT><DD><TT><PRE>
+&amp;bx "words in a box"
+</PRE></TT></DL>
+yield
+underlined words<HR>
+and
+|words in a box|<HR><HR>
+h'-w'.'u'.
+<P>
+The function <TT>\L'</TT><I>Nc</I><TT>'</TT> draws a vertical line consisting
+of the (optional) character <I>c</I> stacked vertically apart 1em
+(1 line in <I>nroff</I>),
+with the first two characters overlapped,
+if necessary, to form a continuous line.
+The default character is the <I>box rule</I> | (<TT>\(br</TT>);
+the other suitable character is the <I>bold vertical</I> | (<TT>\(bv</TT>).
+The line is begun without any initial motion relative to the
+current baseline.
+A positive <I>N</I> specifies a line drawn downward and
+a negative <I>N</I> specifies a line drawn upward.
+After the line is drawn no compensating
+motions are made;
+the instantaneous baseline is at the end of the line.
+</P>
+<P>
+The horizontal and vertical line drawing functions may be used
+in combination to produce large boxes.
+The zero-width <I>box-rule</I> and the &#189;-em wide <I>under-rule</I>
+were designed to form corners when using 1-em vertical
+spacings.
+For example the macro
+<DL><DT><DD><TT><PRE>
+.de eb
+.sp -1	\"compensate for next automatic baseline spacing
+.nf	\"avoid possibly overflowing word buffer
+\h'-.5n'\L'|\\nau-1'\l'\\n(.lu+1n\(ul'\L'-|\\nau+1'\l'|0u-.5n\(ul'
+.fi
+..
+</PRE></TT></DL>
+will draw a box around some text whose beginning vertical place was
+saved in number register <I>a</I>
+(e.g., using <TT>.mk a</TT>)
+as was done for this paragraph.
+<br>&#32;<br>
+<DL><DT><DD><TT><PRE>
+h'-.5n'L'|0+1u-1'<HR>L'-|0+1u+1'<HR>
+</PRE></TT></DL>
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Graphics.</I></B> 
+The function
+draws a graphic object of type <I>c</I>
+according to a sequence of parameters,
+which are generally pairs of numbers.
+<DL>
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<TT>D'l </TT><I>dh</I><TT> </TT><I>dv</I><TT>'	</TT>draw line from current position by <I>dh</I>, <I>dv</I><TT>
+</TT><TT>D'c </TT><I>d</I><TT>'	</TT>draw circle of diameter <I>d</I> with left side at current position<TT>
+</TT><TT>D'e </TT><I>d</I><TT></TT>1<TT></TT><I>d</I><TT></TT>2<TT>'	</TT>draw ellipse of diameters <I>d</I>1 and <I>d</I>2<TT>
+</TT><TT>D'a </TT><I>dh</I><TT></TT>1<TT> </TT><I>dv</I><TT></TT>1<TT> </TT><I>dh</I><TT></TT>2<TT> </TT><I>dv</I><TT></TT>2<TT>'</TT><TT>	</TT>draw arc from current position to <I>dh</I>1<I>+dh</I>2, <I>dv</I>1<I>+dv</I>2,<TT>
+	   </TT>with center at <I>dh</I>1, <I>dv</I>1 from current position<TT>
+</TT><TT>D'~ </TT><I>dh</I><TT></TT>1<TT></TT><I>dv</I><TT></TT>1<TT></TT><I>dh</I><TT></TT>2<TT></TT><I>dv</I><TT></TT>2<TT></TT><I>...</I><TT>'</TT><TT>	</TT>draw B-spline from current position by <I>dh</I>1<I></I>,<I>dv</I>1,<TT>
+	   </TT>then by <I>dh</I>2,<I>dv</I>2, then by <I>dh</I>2,<I>dv</I>2, then ...<TT>
+</PRE></TT></DL>
+</dl>
+</TT><br>&#32;<br>
+For example,
+draws the ellipse
+D'e.2i .1i',
+and
+the line
+D'l.2i -.1i'D'l.1i .1i'.
+A
+with an unknown <I>c</I> is processed and copied through to the output
+for unspecified interpretation;
+coordinates are interpreted alternately as horizontal and vertical
+values.
+<P>
+Numbers taken as horizontal (first, third, etc.) have default scaling of ems;
+vertical numbers (second, fourth, etc.) have default scaling of <I>V</I>s (&#167;1.3).
+The position after a graphical object has been drawn is
+at its end; for circles and ellipses, the ``end''
+is at the right side.
+</P>
+<H4>13 Hyphenation.
+</H4>
+<P>
+Automatic hyphenation may be switched off and on.
+When switched on with <TT>hy</TT>,
+several variants may be set.
+A <I>hyphenation indicator</I> character may be embedded in a word to
+specify desired hyphenation points,
+or may be prefixed to suppress hyphenation.
+In addition,
+the user may specify a small list of exception words.
+</P>
+<P>
+Only words that consist of a central alphabetic string
+surrounded by (usually null) non-alphabetic strings
+are candidates for automatic hyphenation.
+Words that contain hyphens
+(minus),
+em-dashes (<TT>\(em</TT>),
+or hyphenation indicator characters
+are always subject to splitting after those characters,
+whether automatic hyphenation is on or off.
+</P>
+<br>&#32;<br>
+<TT>&nh</TT>	hyphenate	-	E
+<DL COMPACT>
+<DT><DD>
+Automatic hyphenation is turned off.
+</dl>
+<br>&#32;<br>
+<TT>&hy</TT> <I>N</I>	on, <I>N=</I>1	on, <I>N=</I>1	E
+<DL COMPACT>
+<DT><DD>
+Automatic hyphenation is turned on
+for <I>N</I>>=1, or off for <I>N=</I>0.
+If <I>N=</I>2, last lines (ones that will cause a trap)
+are not hyphenated.
+For <I>N=</I>4 and 8, the last and first two characters
+respectively of a word are not split off.
+These values are additive;
+i.e., <I>N=</I>14 will invoke all three restrictions.
+</dl>
+<br>&#32;<br>
+<TT>&hc</TT><I> c</I>	<TT>	</TT>	E
+<DL COMPACT>
+<DT><DD>
+Hyphenation indicator character is set
+to <I>c</I> or to the default <TT></TT>.
+The indicator does not appear in the output.
+</dl>
+<br>&#32;<br>
+<TT>&hw</TT><I> word ...</I>		ignored	-
+<DL COMPACT>
+<DT><DD>
+Specify
+hyphenation points in words
+with embedded minus signs.
+Versions of a word with terminal <I>s</I> are implied;
+i.e.,
+implies
+This list is examined initially and after
+each suffix stripping.
+The space available is small.
+</dl>
+<H4>14 Three-Part Titles.
+</H4>
+<P>
+The titling function <TT>tl</TT> provides for automatic placement
+of three fields at the left, center, and right of a line
+with a title length
+specifiable with <TT>lt</TT>.
+<TT>tl</TT> may be used anywhere, and is independent of the
+normal text collecting process.
+A common use is in header and footer macros.
+</P>
+<br>&#32;<br>
+<TT>&tl '</TT><I>left</I><TT>'</TT><I>center</I><TT>'</TT><I>right</I><TT>'</TT>	-	-	
+<DL COMPACT>
+<DT><DD>
+The strings
+<I>left</I>, <I>center</I>, and <I>right</I> are
+respectively left-adjusted, centered, and right-adjusted
+in the current title length.
+Any of the strings may be empty,
+and overlapping is permitted.
+If the page-number character (initially <TT>%</TT>) is found within any of the fields it is replaced
+by the current page number in the format assigned to register <TT>%</TT>.
+Any character may be used in place of
+as the string delimiter.
+</dl>
+<br>&#32;<br>
+<TT>&pc</TT><I> c</I>	<TT>%</TT>	off	-
+<DL COMPACT>
+<DT><DD>
+The page number character is set to <I>c</I>,
+or removed.
+The page number register remains <TT>%</TT>.
+</dl>
+<br>&#32;<br>
+<TT>&lt</TT><I> &#177;N</I>	6.5in	previous	E,<B>m</B>
+<DL COMPACT>
+<DT><DD>
+Length of title
+is set to &#177;<I>N</I>.
+The line length and the title length are independent.
+Indents do not apply to titles; page offsets do.
+</dl>
+<H4>15 Output Line Numbering.
+</H4>
+<P>
+Automatic sequence numbering of output lines may be
+requested with <TT>nm</TT>.
+When in effect,
+a three-digit, arabic number plus a digit-space
+is prefixed to output text lines.
+The text lines are thus offset by four digit-spaces,
+and otherwise retain their line length;
+a reduction in line length may be desired to keep the right margin
+aligned with an earlier margin.
+Blank lines, other vertical spaces, and lines generated by <TT>tl</TT>
+are not numbered.
+Numbering can be temporarily suspended with <TT>nn</TT>,
+or with an <TT>.nm</TT> followed by a later <TT>.nm +0</TT>.
+In addition,
+a line number indent <I>I</I>, and the number-text separation <I>S</I>
+may be specified in digit-spaces.
+Further, it can be specified that only those line numbers that are
+multiples of some number <I>M</I> are to be printed (the others will appear
+as blank number fields).
+<br>
+</P>
+<br>&#32;<br>
+<TT>&nm</TT><I> &#177;N M S I</I>		off	E
+<DL COMPACT>
+<DT><DD>
+Line number mode.
+If &#177;<I>N</I> is given,
+line numbering is turned on,
+and the next output line numbered is numbered &#177;<I>N</I>.
+Default values are <I>M=</I>1, <I>S=</I>1, and <I>I=</I>0.
+Parameters corresponding to missing arguments are unaffected;
+a non-numeric argument is considered missing.
+In the absence of all arguments, numbering is turned off;
+the next line number is preserved for possible further use
+in number register <TT>ln</TT>.
+</dl>
+<br>&#32;<br>
+<TT>&nn</TT><I> N</I>	-	<I>N=</I>1	E
+<DL COMPACT>
+<DT><DD>
+The next <I>N</I> text output lines are not
+numbered.
+</dl>
+<P>
+As an example, the paragraph portions of this section
+are numbered with <I>M=</I>3:
+<TT>.nm 1 3</TT> was placed at the beginning;
+<TT>.nm</TT> was placed at the end of the first paragraph;
+and <TT>.nm +0</TT> was placed in front of this paragraph;
+and <TT>.nm</TT> finally placed at the end.
+Line lengths were also changed (by <TT>\w'0000'u</TT>) to keep the right side aligned.
+Another example is
+which turns on numbering with the line number of the next
+line to be 5 greater than the last numbered line,
+with <I>M=</I>5, with spacing <I>S</I> untouched, and with the indent <I>I</I> set to 3.
+<br>
+</P>
+<H4>16 Conditional Acceptance of Input
+</H4>
+<P>
+In the following,
+<I>c</I> is a one-character built-in <I>condition</I> name,
+<TT>!</TT> signifies <I>not</I>,
+<I>N</I> is a numerical expression,
+<I>string1</I> and <I>string2</I> are strings delimited by any non-blank, non-numeric character not in the strings,
+and
+<I>anything</I> represents what is conditionally accepted.
+</P>
+<br>&#32;<br>
+<TT>&if</TT><I> c anything</I>	-	-	
+<DL COMPACT>
+<DT><DD>
+If condition
+<I>c</I> true, accept <I>anything</I> as input;
+in multi-line case use \{<I>anything</I>\}.
+</dl>
+<br>&#32;<br>
+<TT>&if !</TT><I>c anything</I>	-	-	
+<DL COMPACT>
+<DT><DD>
+If condition <I>c</I> false, accept <I>anything</I>.
+</dl>
+<br>&#32;<br>
+<TT>&if</TT><I> N anything</I>		-	<B>u</B>
+<DL COMPACT>
+<DT><DD>
+If expression <I>N</I> > 0, accept <I>anything</I>.
+</dl>
+<br>&#32;<br>
+<TT>&if !</TT><I>N anything</I>		-	<B>u</B>
+<DL COMPACT>
+<DT><DD>
+If expression <I>N</I> <= 0 [sic], accept <I>anything</I>.
+</dl>
+<br>&#32;<br>
+<TT>&if '</TT><I>string1</I><TT>'</TT><I>string2</I><TT>'</TT><I> anything</I>	-		
+<DL COMPACT>
+<DT><DD>
+If <I>string1</I> identical to <I>string2</I>,
+accept <I>anything</I>.
+</dl>
+<br>&#32;<br>
+<TT>&if !'</TT><I>string1</I><TT>'</TT><I>string2</I><TT>'</TT><I> anything</I>	-		
+<DL COMPACT>
+<DT><DD>
+If <I>string1</I> not identical to <I>string2</I>,
+accept <I>anything</I>.
+</dl>
+<br>&#32;<br>
+<TT>&ie</TT><I> c anything</I>		-	<B>u</B>
+<DL COMPACT>
+<DT><DD>
+If portion of if-else;
+all of the forms for <TT>if</TT> above are valid.
+</dl>
+<br>&#32;<br>
+<TT>&el</TT><I> anything</I>	-	-	
+<DL COMPACT>
+<DT><DD>
+Else portion of if-else.
+</dl>
+<P>
+The built-in condition names are:
+<br><img src="-.162513.gif"><br>
+If the condition <I>c</I> is true, or if the number <I>N</I> is greater than zero,
+or if the strings compare identically (including motions and character size and font),
+<I>anything</I> is accepted as input.
+If a <TT>!</TT> precedes the condition, number, or string comparison,
+the sense of the acceptance is reversed.
+</P>
+<P>
+Any spaces between the condition and the beginning of <I>anything</I> are skipped over.
+The <I>anything</I> can be either a single input line (text, macro, or whatever)
+or a number of input lines.
+In the multi-line case,
+the first line must begin with a left delimiter <TT>\{</TT> and
+the last line must end with a right delimiter <TT>\}</TT>.
+</P>
+<P>
+The request <TT>ie</TT> (if-else) is identical to <TT>if</TT>
+except that the acceptance state is remembered.
+A subsequent and matching <TT>el</TT> (else) request then uses the reverse sense of that state.
+<TT>ie</TT>-<TT>el</TT> pairs may be nested.
+</P>
+<P>
+Some examples are:
+<DL><DT><DD><TT><PRE>
+&amp;if e .tl 'Even Page %'''
+</PRE></TT></DL>
+which outputs a title if the page number is even; and
+<DL><DT><DD><TT><PRE>
+&amp;ie \n%&#62;1 \{\
+'	sp 0.5i
+&amp;	tl 'Page %'''
+'	sp |1.2i \}
+&amp;el .sp |2.5i
+</PRE></TT></DL>
+which treats page 1 differently from other pages.
+</P>
+<H4>17 Environment Switching.
+</H4>
+<P>
+A number of the parameters that
+control the text processing are gathered together into an
+<I>environment</I>, which can be switched by the user.
+The environment parameters are those associated
+with requests noting E in their <I>Notes</I> column;
+in addition, partially collected lines and words are in the environment.
+Everything else is global; examples are page-oriented parameters,
+diversion-oriented parameters, number registers, and macro and string definitions.
+All environments are initialized with default parameter values.
+</P>
+<br>&#32;<br>
+<TT>&ev</TT><I> N</I>	<I>N=</I>0	previous	-
+<DL COMPACT>
+<DT><DD>
+Environment switched to
+environment 0<=<I>N</I><=2.
+Switching is done in push-down fashion so that
+restoring a previous environment <I>must</I> be done with <TT>.ev</TT>
+rather than specific reference.
+Note that what is pushed down and restored is the environment
+<I>number,</I>
+not its contents.
+</dl>
+<H4>18 Insertions from the Standard Input
+</H4>
+<P>
+The input can be temporarily switched to the system standard input
+with <TT>rd</TT>,
+which will switch back when two consecutive newlines
+are found (the extra blank line is not used).
+This mechanism is intended for insertions in form-letter-like documentation.
+The standard input can be the user's keyboard,
+a pipe, or a file.
+</P>
+<br>&#32;<br>
+<TT>&rd</TT><I> prompt</I>	-	<I>prompt=</I>BEL" 	-"
+<DL COMPACT>
+<DT><DD>
+Read insertion
+from the standard input until two newlines in a row are found.
+If the standard input is the user's keyboard, <I>prompt</I> (or a BEL)
+is written onto the standard output.
+<TT>rd</TT> behaves like a macro,
+and arguments may be placed after <I>prompt</I>.
+</dl>
+<br>&#32;<br>
+<TT>&ex</TT>	-	-	-
+<DL COMPACT>
+<DT><DD>
+Exit from <I>nroff</I>/<I>troff</I>.
+Text processing is terminated exactly as if all input had ended.
+</dl>
+<P>
+If insertions are to be
+taken from the terminal keyboard while output is being printed
+on the terminal, the command line option <TT>-q</TT> will turn off the echoing
+of keyboard input and prompt only with BEL.
+The regular input and insertion input cannot
+simultaneously come from the standard input.
+</P>
+<P>
+As an example,
+multiple copies of a form letter may be prepared by entering the insertions
+for all the copies in one file to be used as the standard input,
+and causing the file containing the letter to reinvoke itself with <TT>nx</TT> (&#167;19);
+the process would ultimately be ended by an <TT>ex</TT> in the insertion file.
+</P>
+<H4>19 Input/Output File Switching
+</H4>
+<br>&#32;<br>
+<TT>&so</TT><I> filename</I>		-	-
+<DL COMPACT>
+<DT><DD>
+Switch source file.
+The top input (file reading) level is switched to <I>filename</I>.
+When the new file ends,
+input is again taken from the original file.
+<TT>so</TT>'s may be nested.
+</dl>
+<br>&#32;<br>
+<TT>&nx</TT><I> filename</I>		end-of-file	-
+<DL COMPACT>
+<DT><DD>
+Next file is <I>filename</I>.
+The current file is considered ended, and the input is immediately switched
+to <I>filename</I>.
+</dl>
+<br>&#32;<br>
+<TT>&sy</TT><I> string</I>		-	-
+<DL COMPACT>
+<DT><DD>
+Execute program from <I>string</I>,
+which is the rest of the input line.
+The output is not collected automatically.
+The number register
+which contains the process id of the <I>troff</I> process,
+may be useful in generating unique filenames for output.
+</dl>
+<br>&#32;<br>
+<TT>&pi</TT><I> string</I>		-	-
+<DL COMPACT>
+<DT><DD>
+Pipe output to <I>string</I>,
+which is the rest of the input line.
+This request must occur before any printing occurs;
+typically it is the first line of input.
+</dl>
+<br>&#32;<br>
+<TT>&cf</TT><I> filename</I>		-	-
+<DL COMPACT>
+<DT><DD>
+Copy
+contents of file
+<I>filename</I>
+to output, completely unprocessed.
+The file is assumed to contain something meaningful
+to subsequent processes.
+</dl>
+<H4>20 Miscellaneous
+<br>
+that a <I>margin</I> character <I>c</I> appear a distance
+<I>N</I> to the right of the right margin
+after each non-empty text line (except those produced by <TT>tl</TT>).
+If the output line is too long (as can happen in nofill mode)
+the character will be appended to the line.
+If <I>N</I> is not given, the previous <I>N</I> is used; the initial <I>N</I> is
+0.2 inches in <I>nroff</I> and 1 em in <I>troff</I>.
+The margin character used with this paragraph was a 12-point box-rule.
+<br>
+</H4>
+<br>&#32;<br>
+<TT>.tm</TT><I> string</I>	-	newline	-
+<DL COMPACT>
+<DT><DD>
+After skipping initial blanks,
+<I>string</I> (rest of the line) is read in copy mode
+and written on the standard error.
+</dl>
+<br>&#32;<br>
+<TT>&ab</TT><I> string</I>	-	newline	-
+<DL COMPACT>
+<DT><DD>
+After skipping initial blanks,
+<I>string</I> (rest of the line) is read in copy mode
+and written on the standard error.
+<I>Troff</I> or <I>nroff</I> then exit.
+</dl>
+<br>&#32;<br>
+<TT>.ig</TT><I> yy</I>	-	<I>.yy=</I><TT>..</TT>	-
+<DL COMPACT>
+<DT><DD>
+Ignore
+input lines.
+<TT>ig</TT> behaves exactly like <TT>de</TT> (&#167;7) except that the
+input is discarded.
+The input is read in copy mode, and any auto-incremented
+registers will be affected.
+</dl>
+<br>&#32;<br>
+<TT>.lf</TT><I> N filename</I>		-	-
+<DL COMPACT>
+<DT><DD>
+Set
+line number to <I>N</I> and filename to <I>filename</I>
+for purposes of subsequent error messages, etc.
+The number register [sic]
+contains the name of the current input file,
+as set by command line argument,
+or
+The number register
+contains the number of input lines read from the current file,
+again perhaps as modified by
+</dl>
+<br>&#32;<br>
+<TT>.pm</TT><I> t</I>	-	all	-
+<DL COMPACT>
+<DT><DD>
+Print macros.
+The names and sizes of all of the defined macros and strings are printed
+on the standard error;
+if <I>t</I> is given, only the total of the sizes is printed.
+The sizes is given in blocks
+of 128 characters.
+</dl>
+<br>&#32;<br>
+<TT>.fl</TT>	-	-	B
+<DL COMPACT>
+<DT><DD>
+Flush output buffer.
+Force output, including any pending position information.
+</dl>
+<H4>21 Output and Error Messages.
+</H4>
+<P>
+The output from <TT>tm</TT>, <TT>pm</TT>, and the prompt from <TT>rd</TT>,
+as well as various error messages, are written onto
+the standard error.
+The latter is different from the standard output,
+where formatted text goes.
+By default, both are written onto the user's terminal,
+but they can be independently redirected.
+</P>
+<P>
+Various error conditions may occur during
+the operation of <I>nroff</I> and <I>troff</I>.
+Certain less serious errors having only local impact do not
+cause processing to terminate.
+Two examples are <I>word overflow</I>, caused by a word that is too large
+to fit into the word buffer (in fill mode), and
+<I>line overflow</I>, caused by an output line that grew too large
+to fit in the line buffer.
+In both cases, a message is printed, the offending excess
+is discarded,
+and the affected word or line is marked at the point of truncation
+with a * in <I>nroff</I> and a <= in <I>troff</I>.
+Processing continues if possible,
+on the grounds that output useful for debugging may be produced.
+If a serious error occurs, processing terminates,
+and a message is printed, along with a list of the macro names currently active.
+Examples of serious errors include the inability to create, read, or write files,
+and the exceeding of certain internal limits that
+make future output unlikely to be useful.
+</P>
+<H4>22 Output Language
+</H4>
+<P>
+<I>Troff</I>
+produces its output in a language that is independent of any
+specific output device,
+except that the numbers in it have been computed on the basis
+of the resolution of the device,
+and the sizes, fonts, and characters that that device can print.
+Nevertheless it is quite possible to interpret that output
+on a different device, within the latter's capabilities.
+</P>
+<DL>
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<I></I><TT>s</TT><I>n</I>	set point size to <I>n</I>
+<I></I><TT>f</TT><I>n</I>	set font to <I>n</I>
+<I></I><TT>c</TT><I>c</I>	print character <I>c</I>
+<I></I><TT>C</TT><I>name</I>	print the character called <I>name</I>; terminate <I>name</I> by white space
+<I></I><TT>N</TT><I>n</I>	print character <I>n</I> on current font
+<I></I><TT>H</TT><I>n</I>	go to absolute horizontal position <I>n</I> (<I>n</I>>=0)
+<I></I><TT>V</TT><I>n</I>	go to absolute vertical position <I>n</I> (<I>n</I>>=0, down is positive)
+<I></I><TT>h</TT><I>n</I>	go <I>n</I> units horizontally; <I>n</I><I><</I>0 is to the left
+<I></I><TT>v</TT><I>n</I>	go <I>n</I> units vertically; <I>n</I><I><</I>0 is up
+<I>nnc</I>	move right <I>nn</I>, then print UTF character <I>c</I>;  <I>nn</I> must be exactly 2 digits
+<I></I><TT>p</TT><I>n</I>	new page <I>n</I> begins&#173;set vertical position to 0
+<I></I><TT>n</TT><I>b</I> <I>a</I>	end of line (information only&#173;no action);  <I>b</I> = space before line, <I>a</I> = after
+<I></I><TT>w</TT>	paddable word space (information only&#173;no action)
+<I></I><TT>D</TT><I>c</I> ...0graphics function <I>c</I>; see below
+<I></I><TT>x</TT> ...0device control functions; see below
+<I></I><TT>#</TT> ...0comment
+</PRE></TT></DL>
+</dl>
+<br>&#32;<br>
+All position values are in units.
+Sequences that end in digits must be followed by a non-digit.
+Blanks, tabs and newlines may occur as separators
+in the input, and are mandatory to separate constructions
+that would otherwise be confused.
+Graphics functions, device control functions, and comments extend to the
+end of the line they occur on.
+<P>
+The device control and graphics commands are intended as open-ended
+families, to be expanded as needed.
+The graphics functions coincide directly with the
+sequences:
+</P>
+<DL>
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<I></I><TT>Dl</TT> <I>dh dv</I>	draw line from current position by <I>dh</I>, <I>dv</I>
+<I></I><TT>Dc</TT> <I>d</I>	draw circle of diameter <I>d</I> with left side here
+<I></I><TT>De</TT> <I>dh</I>1 <I>dv</I>2	draw ellipse of diameters <I>dh</I>1 and <I>dv</I>2
+<I></I><TT>Da</TT> <I>dh</I>1 <I>dv</I>1 <I>dh</I>2 <I>dv</I>2	draw arc from current position to <I>dh</I>1<I>+dh</I>2, <I>dv</I>1<I>+dv</I>2,
+		   center at <I>dh</I>1, <I>dv</I>1 from current position
+<I></I><TT>D~</TT> <I>dh</I>1 <I>dv</I>1 <I>dh</I>2 <I>dv</I>2 ...	draw B-spline from current position to <I>dh</I>1, <I>dv</I>1,
+		   then to <I>dh</I>2, <I>dv</I>2, then to ...
+<I></I><TT>D</TT><I>z</I> <I>dh</I>1 <I>dv</I>1 <I>dh</I>2 <I>dv</I>2 ...	for any other <I>z</I> is uninterpreted
+</PRE></TT></DL>
+</dl>
+<br>&#32;<br>
+In all of these, <I>dh</I>, <I>dv</I> is an increment on the current horizontal and
+vertical position,
+with down and right positive.
+All distances and dimensions are in units.
+<P>
+The device control functions begin with
+then a command, then other parameters.
+</P>
+<DL>
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+x T <I>s</I>	name of typesetter is <I>s</I><TT>
+x r </TT><I>n h v</I><TT>	</TT>resolution is <I>n</I> units/inch;<TT>
+		</TT><I>h</I> = minimum horizontal motion, <I>v</I> = minimum vertical<TT>
+x i	</TT>initialize<TT>
+x f </TT><I>n s</I><TT>	</TT>mount font <I>s</I> on font position <I>n</I><TT>
+x p	</TT>pause&#173;can restart<TT>
+x s	</TT>stop&#173;done forever<TT>
+x t	</TT>generate trailer information, if any<TT>
+x H </TT><I>n</I><TT>	</TT>set character height to <I>n</I><TT>
+x S </TT><I>n</I><TT>	</TT>set slant to <I>n</I><TT>
+x X </TT><I>any</I><TT>	</TT>generated by the <TT>\X</TT> function<TT>
+x </TT><I>any</I><TT>	</TT>to be ignored if not recognized<TT>
+</PRE></TT></DL>
+</dl>
+</TT><br>&#32;<br>
+Subcommands like
+may be spelled out like
+<P>
+The commands
+and
+must occur first;
+fonts must be mounted before they can be used;
+comes last.
+There are no other order requirements.
+</P>
+<P>
+The following is the output from
+for a typical printer,
+as described in &#167;23:
+<DL><DT><DD><TT><PRE>
+x T utf
+x res 720 1 1
+x init
+V0
+p1
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+x font 1 R
+x font 2 I
+x font 3 B
+x font 4 BI
+x font 5 CW
+x font 6 H
+x font 7 HB
+x font 8 HX
+x font 9 S1
+x font 10 S
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+s10
+f1
+H0
+s10
+f1
+V0
+H720
+V120
+ch
+50e44l28l28o50,w58w72o50r33l28dn120 0
+x trailer
+V7920
+x stop
+</PRE></TT></DL>
+</P>
+<P>
+<I>Troff</I> output is normally not redundant;
+size and font changes and position information are not included
+unless needed.
+Nevertheless, each page is self-contained, for the benefit of postprocessors
+that re-order pages or process only a subset.
+</P>
+<H4>23 Device and Font Description Files
+</H4>
+<P>
+The parameters that describe a output device
+<I>name</I>
+are read
+from the directory
+each time
+<I>troff</I>
+is invoked.
+The device name is provided by default,
+by the environment variable
+or by a command-line argument
+The default device name is
+for UTFencoded Unicode characters.
+The pre-defined string
+contains the name of the device.
+The
+command-line option may be used to change the default directory.
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Device description file.</I></B> 
+General parameters of the device are stored, one per line, in
+the file 
+as a sequence of names and values.
+<I>Troff</I> recognizes these parameters, and ignores any
+others that may be present for specific drivers:
+<DL>
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<I></I><TT>fonts</TT> <I>n</I> <I>F</I>1 <I>F</I>2 <I>.</I><I>.</I><I>.</I> <I>F</I><I>n</I>
+<I></I><TT>sizes</TT> <I>s</I>1 <I>s</I>2 <I>.</I><I>.</I><I>.</I><I></I><TT>0</TT>
+<I></I><TT>res</TT> <I>n</I>
+<I></I><TT>hor</TT> <I>n</I>
+<I></I><TT>vert</TT> <I>n</I>
+<I></I><TT>unitwidth</TT> <I>n</I>
+<I></I><TT>charset</TT>
+<I>list of multi-character character names (optional)</I>
+</PRE></TT></DL>
+</dl>
+<br>&#32;<br>
+The <I>F</I><I>i</I> are font names
+to be initially mounted.
+The list of sizes is a set of integers representing
+some or all of the legal sizes the device can produce,
+terminated by a zero.
+The 
+parameter gives the resolution of the machine in units per inch;
+and
+give the minimum number of units that can be moved
+horizontally and vertically.
+<P>
+Character widths for each font are assumed to be given in machine units
+at point size
+(In other words, a character with a width of
+<I>n</I> is <I>n</I> units wide at size
+All widths are integers at all sizes.
+</P>
+<P>
+A list of valid character names may be introduced by
+the list of names is optional.
+</P>
+<P>
+A line whose first non-blank character is
+is a comment.
+Except that
+must occur last, parameters may appear in any order.
+</P>
+<P>
+Here is a subset of the
+file for a typical Postscript printer:
+<DL><DT><DD><TT><PRE>
+# Description file for Postscript printers.
+
+fonts 10 R I B BI CW H HB HX S1 S
+sizes 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+   24 25 26 27 28 29 30 31 32 33 34 35 36 38 40 44 48 54 60 72 0
+res 720
+hor 1
+vert 1
+unitwidth 10
+charset
+hy ct fi fl ff Fi Fl dg em 14 34 12 en aa
+ga ru sc dd -&#62; br Sl ps cs cy as os =. ld
+rd le ge pp -+ ob vr
+sq bx ci fa te ** pl mi eq ~= *A *B *X *D
+*E *F *G *Y *I *K *L *M *N *O *P *R *H *S *T *U *W
+*C *Q *Z ul rn *a *b *x *d *e *f *g *y *i *k
+*l *m *n *o *p *h *r *s *t *u *w *c *q *z
+</PRE></TT></DL>
+</P>
+<br>&#32;<br>
+<B><I>0.0s.  Font description files.</I></B> 
+Each font is described by an analogous description file,
+which begins with parameters of the font, one per line, followed by a
+list of characters and widths.
+The file for font
+<I>f</I>
+is
+<DL>
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<I></I><TT>name</TT> <I>str</I>	name of font is <I>str</I>
+<I></I><TT>ligatures</TT> <I>. . .</I> <I></I><TT>0</TT>	list of ligatures
+<I></I><TT>spacewidth</TT> <I>n</I>	width of a space on this font
+<I></I><TT>special</TT>	this is a special font
+<I></I><TT>charset</TT>
+<I>list of character name, width, ascender/descender, code</I>, tab separated
+</PRE></TT></DL>
+</dl>
+<br>&#32;<br>
+The
+and
+fields are mandatory;
+must be last.
+Comments are permitted,
+as are other unrecognized parameters.
+<P>
+Each line following
+describes one character: its name, its width in units as described above,
+ascender/descender information, and a decimal, octal or hexadecimal value
+by which the output device knows it
+(the
+``number'' of the character).
+The character name is arbitrary, except that
+signifies an unnamed character.
+If the width field contains
+the name is a synonym for the previous character.
+The ascender/descender field is 1 if
+the character has a descender (hangs below the baseline, like
+is 2 if it has an ascender (is tall, like
+is 3 if both,
+and is 0 if neither.
+The value is returned
+in the 
+register, as computed by the
+function (&#167;11.2).
+</P>
+<P>
+Here are excerpts from a typical font description file
+for the same Postscript printer.
+<DL><DT><DD><TT><PRE>
+hy	33	0	45	hyphen \(hy
+-	"			- is a synonym for \(hy
+<br>&#32;<br>
+Q	72	3	81
+<br>&#32;<br>
+a	44	0	97
+b	50	2	98
+c	44	0	99
+d	50	2	100
+y	50	1	121
+<br>&#32;<br>
+em	100	0	208
+---	44	2	220	Pound symbol &#163;, \N'220'
+---	36	0	221	centered dot \N'221'
+</PRE></TT></DL>
+This says, for example, that the width of the letter
+is 44 units at point size 10,
+the value of 
+Point sizes are scaled linearly and rounded, so the width of
+will be 44 at size 10, 40 at size 9, 35 at size 8,
+and so on.
+<br>&#32;<br>
+<HR>
+<br>&#32;<br>
+</P>
+<br>&#32;<br>
+<B>Tutorial Examples
+<br>&#32;<br>
+<br>&#32;<br>
+<br>&#32;<br>
+<br>&#32;<br>
+</B><H4>Introduction
+</H4>
+<P>
+It is almost always necessary to
+prepare at least a small set of macro definitions
+to describe a document.
+Such common formatting needs
+as page margins and footnotes
+are deliberately not built into <I>nroff</I> and <I>troff</I>.
+Instead,
+the macro and string definition, number register, diversion,
+environment switching, page-position trap, and conditional input mechanisms
+provide the basis for user-defined implementations.
+</P>
+<P>
+For most uses, a standard package like
+or
+is the right choice.
+The next stage is to augment that,
+or to selectively replace macros from the standard package.
+The last stage, much harder,
+is to write one's own from scratch.
+This is not a task for the novice.
+</P>
+<P>
+The examples discussed here are intended to be useful and somewhat realistic,
+but will not necessarily cover all relevant contingencies.
+Explicit numerical parameters are used
+in the examples
+to make them easier to read and to
+illustrate typical values.
+In many cases, number registers would be used
+to reduce the number of places where numerical
+information is kept,
+and to concentrate conditional parameter initialization
+like that which depends on whether <I>troff</I> or <I>nroff</I> is being used.
+</P>
+<H4>Page Margins
+</H4>
+<P>
+As discussed in &#167;3,
+header and footer macros are usually defined
+to describe the top and bottom page margin areas respectively.
+A trap is planted at page position 0 for the header, and at
+<I>-N</I> (<I>N</I> from the page bottom) for the footer.
+The simplest such definitions might be
+<DL><DT><DD><TT><PRE>
+&amp;de hd	\"define header
+'sp 1i
+&amp;&amp;	\"end definition
+&amp;de fo	\"define footer
+'bp
+&amp;&amp;	\"end definition
+&amp;wh 0 hd
+&amp;wh -1i fo
+</PRE></TT></DL>
+which provide blank 1 inch top and bottom margins.
+The header will occur on the <I>first</I> page
+only if the definition and trap exist prior to
+the initial pseudo-page transition (&#167;3).
+In fill mode, the output line that springs the footer trap
+was typically forced out because some part or whole word didn't fit on it.
+If anything in the footer and header that follows causes a break,
+that word or part word will be forced out.
+In this and other examples,
+requests like <TT>bp</TT> and <TT>sp</TT> that normally cause breaks are invoked using
+the no-break control character <TT>'</TT>
+to avoid this.
+When the header/footer design contains material
+requiring independent text processing, the
+environment may be switched, avoiding
+most interaction with the running text.
+</P>
+<P>
+A more realistic example would be
+<DL><DT><DD><TT><PRE>
+&amp;de hd	\"header
+&amp;if \\n%&#62;1 \{\
+'sp ~0.5i-1	\"tl base at 0.5i
+&amp;tl ''- % -''	\"centered page number
+&amp;ps	\"restore size
+&amp;ft	\"restore font
+&amp;vs  \}	\"restore vs
+'sp ~1.0i  	\"space to 1.0i
+&amp;ns	\"turn on no-space mode
+&amp;&amp;
+&amp;de fo	\"footer
+&amp;ps 10	\"set footer/header size
+&amp;ft R	\"set font
+&amp;vs 12p	\"set baseline spacing
+&amp;if \\n%=1 \{\
+'sp ~\\n(.pu-0.5i-1  \"tl base 0.5i up
+&amp;tl ''- % -'' \}  \"first page number
+'bp
+&amp;&amp;
+&amp;wh 0 hd
+&amp;wh -1i fo
+</PRE></TT></DL>
+which sets the size, font, and baseline spacing for the
+header/footer material, and ultimately restores them.
+The material in this case is a page number at the bottom of the
+first page and at the top of the remaining pages.
+The <TT>sp</TT>'s refer to absolute positions to avoid
+dependence on the baseline spacing.
+Another reason for doing this in the footer
+is that the footer is invoked by printing a line whose
+vertical spacing swept past the trap position by possibly
+as much as the baseline spacing.
+No-space mode is turned on at the end of <TT>hd</TT>
+to render ineffective
+accidental occurrences of <TT>sp</TT> at the top of the running text.
+</P>
+<P>
+This method of restoring size, font, etc., presupposes
+that such requests (that set <I>previous</I> value) are <I>not</I>
+used in the running text.
+A better scheme is to save and restore both the current <I>and</I>
+previous values as shown for size in the following:
+<DL><DT><DD><TT><PRE>
+&amp;de fo
+&amp;nr s1 \\n(.s	\"current size
+&amp;ps
+&amp;nr s2 \\n(.s	\"previous size
+&amp;  ---	\"rest of footer
+&amp;&amp;
+&amp;de hd
+&amp;  ---	\"header stuff
+&amp;ps \\n(s2  \"restore previous size
+&amp;ps \\n(s1  \"restore current size
+&amp;&amp;
+</PRE></TT></DL>
+Page numbers may be printed in the bottom margin
+by a separate macro triggered during the footer's
+page ejection:
+<DL><DT><DD><TT><PRE>
+&amp;de bn	\"bottom number
+&amp;tl ''- % -''	\"centered page number
+&amp;&amp;
+&amp;wh -0.5i-1v bn	 \"tl base 0.5i up
+</PRE></TT></DL>
+</P>
+<H4>Paragraphs and Headings
+</H4>
+<P>
+The housekeeping
+associated with starting a new paragraph should be collected
+in a paragraph macro
+that, for example,
+does the desired preparagraph spacing,
+forces the correct font, size, baseline spacing, and indent,
+checks that enough space remains for <I>more than one</I> line,
+and
+requests a temporary indent.
+<DL><DT><DD><TT><PRE>
+&amp;de pg    \"paragraph
+&amp;br       \"break
+&amp;ft R     \"force font,
+&amp;ps 10    \"size,
+&amp;vs 12p   \"spacing,
+&amp;in 0     \"and indent
+&amp;sp 0.4   \"prespace
+&amp;ne 1+\\n(.Vu  \"want more than 1 line
+&amp;ti 0.2i         \"temp indent
+&amp;&amp;
+</PRE></TT></DL>
+The first break in <TT>pg</TT>
+will force out any previous partial lines,
+and must occur before the <TT>vs</TT>.
+The forcing of font, etc., is
+partly a defense against prior error and
+partly to permit
+things like section heading macros to
+set parameters only once.
+The prespacing parameter is suitable for <I>troff</I>;
+a larger space, at least as big as the output device vertical resolution, would be
+more suitable in <I>nroff</I>.
+The choice of remaining space to test for in the <TT>ne</TT>
+is the smallest amount greater than one line
+(the <TT>.V</TT> is the available vertical resolution).
+</P>
+<P>
+A macro to automatically number section headings
+might look like:
+<DL><DT><DD><TT><PRE>
+&amp;de sc	\"section
+&amp;  ---	\"force font, etc.
+&amp;sp 0.4	\"prespace
+&amp;ne 2.4+\\n(.Vu \"want 2.4+ lines
+&amp;fi
+\\n+S.
+&amp;&amp;
+&amp;nr S 0 1	\"init S
+</PRE></TT></DL>
+The usage is <TT>.sc</TT>,
+followed by the section heading text,
+followed by <TT>.pg</TT>.
+The <TT>ne</TT> test value includes one line of heading,
+0.4 line in the following <TT>pg</TT>, and
+one line of the paragraph text.
+A word consisting of the next section number and a period is
+produced to begin the heading line.
+The format of the number may be set by <TT>af</TT> (&#167;8).
+</P>
+<P>
+Another common form is the labeled, indented paragraph,
+where the label protrudes left into the indent space.
+<DL><DT><DD><TT><PRE>
+&amp;de lp	\"labeled paragraph
+&amp;pg
+&amp;in 0.5i	\"paragraph indent
+&amp;ta 0.2i 0.5i	\"label, paragraph
+&amp;ti 0
+\t\\$1\t\c	\"flow into paragraph
+&amp;&amp;
+</PRE></TT></DL>
+The intended usage is ``<TT>.lp</TT> <I>label</I>'';
+<I>label</I> will begin at 0.2 inch, and
+cannot exceed a length of 0.3 inch without intruding into
+the paragraph.
+The label could be right adjusted against 0.4 inch by
+setting the tabs instead with <TT>.ta|0.4iR|0.5i</TT>.
+The last line of <TT>lp</TT> ends with <TT>\c</TT> so that
+it will become a part of the first line of the text
+that follows.
+</P>
+<H4>Multiple Column Output
+</H4>
+<P>
+The production of multiple column pages requires
+the footer macro to decide whether it was
+invoked by other than the last column,
+so that it will begin a new column rather than
+produce the bottom margin.
+The header can initialize a column register that
+the footer will increment and test.
+The following is arranged for two columns, but
+is easily modified for more.
+<DL><DT><DD><TT><PRE>
+&amp;de hd	\"header
+&amp;  ---
+&amp;nr cl 0 1	\"init column count
+&amp;mk	\"mark top of text
+&amp;&amp;
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;de fo	\"footer
+&amp;ie \\n+(cl&#60;2 \{\
+&amp;po +3.4i	\"next column; 3.1+0.3
+&amp;rt	\"back to mark
+&amp;ns \}	\"no-space mode
+&amp;el \{\
+&amp;po \\nMu	\"restore left margin
+&amp;  ---
+'bp \}
+&amp;&amp;
+&amp;ll 3.1i	\"column width
+&amp;nr M \\n(.o	\"save left margin
+</PRE></TT></DL>
+Typically a portion of the top of the first page
+contains full width text;
+the request for the narrower line length,
+as well as another <TT>.mk</TT> would
+be made where the two column output was to begin.
+</P>
+<H4>Footnotes
+</H4>
+<P>
+The footnote mechanism to be described is used by
+embedding the footnotes in the input text at the
+point of reference,
+demarcated by an initial <TT>.fn</TT> and a terminal <TT>.ef</TT>:
+<DL><DT><DD><TT><PRE>
+&amp;fn
+<I>Footnote text and control lines...</I>
+&amp;ef
+</PRE></TT></DL>
+In the following,
+footnotes are processed in a separate environment and diverted
+for later printing in the space immediately prior to the bottom
+margin.
+There is provision for the case where the last collected
+footnote doesn't completely fit in the available space.
+<DL><DT><DD><TT><PRE>
+&amp;de hd	\"header
+&amp;  ---
+&amp;nr x 0 1	\"init footnote count
+&amp;nr y 0-\\nb	\"current footer place
+&amp;ch fo -\\nbu	\"reset footer trap
+&amp;if \\n(dn .fz	\"leftover footnote
+&amp;&amp;
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;de fo	\"footer
+&amp;nr dn 0  \"zero last diversion size
+&amp;if \\nx \{\
+&amp;ev 1	\"expand footnotes in ev1
+&amp;nf	\"retain vertical size
+&amp;FN	\"footnotes
+&amp;rm FN	\"delete it
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;if "\\n(.z"fy" .di  \"end overflow di
+&amp;nr x 0	\"disable fx
+&amp;ev  \}	\"pop environment
+&amp;  ---
+'bp
+&amp;&amp;
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;de fx	\"process footnote overflow
+&amp;if \\nx .di fy	\"divert overflow
+&amp;&amp;
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;de fn	\"start footnote
+&amp;da FN	\"divert (append) footnote
+&amp;ev 1	\"in environment 1
+&amp;if \\n+x=1 .fs   \"if 1st, separator
+&amp;fi	\"fill mode
+&amp;&amp;
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;de ef	\"end footnote
+&amp;br	\"finish output
+&amp;nr z \\n(.v	\"save spacing
+&amp;ev	\"pop ev
+&amp;di	\"end diversion
+&amp;nr y -\\n(dn	\"new footer position,
+&amp;if \\nx=1 .nr y -(\\n(.v-\\nz) \
+	\"uncertainty correction
+&amp;ch fo \\nyu	\"y is negative
+&amp;if (\\n(nl+1v)&#62;(\\n(.p+\\ny) \
+&amp;ch fo \\n(nlu+1v	 \"didn't fit
+&amp;&amp;
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;de fs	\"separator
+\l'1i'	\"1 inch rule
+&amp;br
+&amp;&amp;
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;de fz	\"get leftover footnote
+&amp;fn
+&amp;nf	\"retain vertical size
+&amp;fy	\"where fx put it
+&amp;ef
+&amp;&amp;
+</PRE></TT></DL>
+<DL><DT><DD><TT><PRE>
+&amp;nr b 1.0i  \"bottom margin size
+&amp;wh 0 hd    \"header trap
+&amp;wh 12i fo  \"footer trap-&#62;temp pos
+&amp;wh -\\nbu fx	\"fx at footer position
+&amp;ch fo -\\nbu	\"conceal fx with fo
+</PRE></TT></DL>
+</P>
+<P>
+The header <TT>hd</TT> initializes a footnote count register <TT>x</TT>,
+and sets both the current footer trap position register <TT>y</TT> and
+the footer trap itself to a nominal position specified in
+register <TT>b</TT>.
+In addition, if the register <TT>dn</TT> indicates a leftover footnote,
+<TT>fz</TT> is invoked to reprocess it.
+The footnote start macro <TT>fn</TT> begins a diversion (append) in environment 1,
+and increments the count <TT>x</TT>; if the count is one, the footnote separator <TT>fs</TT>
+is interpolated.
+The separator is kept in a separate macro to permit user redefinition.
+</P>
+<P>
+The footnote end macro <TT>ef</TT> restores
+the previous environment and ends the diversion after saving the spacing size in register <TT>z</TT>.
+<TT>y</TT> is then decremented by the size of the footnote, available in <TT>dn</TT>;
+then on the first footnote, <TT>y</TT> is further decremented by the difference
+in vertical baseline spacings of the two environments, to
+prevent the late triggering of the footer trap from causing the last
+line of the combined footnotes to overflow.
+The footer trap is then set to the lower (on the page) of <TT>y</TT> or the current page position (<TT>nl</TT>)
+plus one line, to allow for printing the reference line.
+</P>
+<P>
+If indicated by <TT>x</TT>, the footer <TT>fo</TT> rereads the footnotes from <TT>FN</TT> in nofill mode
+in environment 1,
+and deletes <TT>FN</TT>.
+If the footnotes were too large to fit, the macro <TT>fx</TT> will be trap-invoked to redivert
+the overflow into <TT>fy</TT>,
+and the register <TT>dn</TT> will later indicate to the header whether <TT>fy</TT> is empty.
+</P>
+<P>
+Both <TT>fo</TT> and <TT>fx</TT> are planted in the nominal footer trap position in an order
+that causes <TT>fx</TT> to be concealed unless the <TT>fo</TT> trap is moved.
+The footer then terminates the overflow diversion, if necessary, and
+zeros <TT>x</TT> to disable <TT>fx</TT>,
+because the uncertainty correction
+together with a not-too-late triggering of the footer can result
+in the footnote rereading finishing before reaching the <TT>fx</TT> trap.
+</P>
+<P>
+A good exercise for the student is to combine the multiple-column and footnote mechanisms.
+</P>
+<H4>The Last Page
+</H4>
+<P>
+After the last input file has ended, <I>nroff</I> and <I>troff</I>
+invoke the <I>end macro</I> (&#167;7), if any,
+and when it finishes, eject the remainder of the page.
+During the eject, any traps encountered are processed normally.
+At the end of this last page, processing terminates
+unless a partial line, word, or partial word remains.
+If it is desired that another page be started, the end-macro
+<DL><DT><DD><TT><PRE>
+&amp;de en	\"end-macro
+\c
+'bp
+&amp;&amp;
+&amp;em en
+</PRE></TT></DL>
+will deposit a null partial word,
+and produce another last page.
+<br>&#32;<br>
+<HR>
+<br>&#32;<br>
+</P>
+<br>&#32;<br>
+<B>Special Character Names
+</B><P>
+The following table lists names for a set of characters,
+most of which have traditionally been provided by <I>troff</I> using
+the `special' or `symbol' font.
+Many of these sequences are old ways to get what are now Unicode
+characters;
+Lucida Sans, for example, has glyphs corresponding to many of these
+but does not have the special sequences.
+Therefore
+the <I>troff</I> sequence
+gives the character &#191; from the Times font instead of the
+character &#191; from the current font, in this case Lucida Sans.
+Not all sequences print on any particular device, including this one; Peter
+faces appear in their place.
+<br><img src="-.162514.gif"><br>
+</P>
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

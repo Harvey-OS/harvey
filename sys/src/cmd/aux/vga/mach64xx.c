@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "vga.h"
 #include "pci.h"
+#include "vga.h"
 
 /*
  * ATI Mach64 family.
@@ -421,6 +421,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case ('G'<<8)|'M':	/* 474D: Rage XL */
 		case ('G'<<8)|'P':	/* 4750: 264GT PRO */
 		case ('G'<<8)|'Q':	/* 4751: 264GT PRO */
+		case ('G'<<8)|'R':	/* 4752: */
 		case ('G'<<8)|'U':	/* 4755: 264GT DVD */
 		case ('G'<<8)|'V':	/* 4756: Rage2C */
 		case ('G'<<8)|'Z':	/* 475A: Rage2C */
@@ -833,6 +834,7 @@ init(Vga* vga, Ctlr* ctlr)
 		case ('G'<<8)|'M':	/* 474D: Rage XL */
 		case ('G'<<8)|'P':	/* 4750: 264GT PRO */
 		case ('G'<<8)|'Q':	/* 4751: 264GT PRO */
+		case ('G'<<8)|'R':	/* 4752: */
 		case ('G'<<8)|'U':	/* 4755: 264GT DVD */
 		case ('G'<<8)|'V':	/* 4756: Rage2C */
 		case ('G'<<8)|'Z':	/* 475A: Rage2C */

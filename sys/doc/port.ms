@@ -205,13 +205,13 @@ or directly from a disk created by the
 .CW format
 command; see
 .I prep (8).
-Plan 9 runs in 32-bit mode\(emwhich requires a 386, 486, or Pentium\(emand
+Plan 9 runs in 32-bit mode\(emwhich requires a 386 or later\(emand
 has an interrupt-driven I/O system, so it does not
 use the BIOS (except for a small portion of the boot program and floppy boot block).
 This helps performance but limits the set of I/O devices that it can support without
 special code.
 .PP
-Plan 9 supports the ISA, EISA, and PCI buses as well as PCMCIA devices.
+Plan 9 supports the ISA, EISA, and PCI buses as well as PCMCIA and PC card devices.
 It is infeasible to list all the supported machines, because
 the PC-clone marketplace is too volatile and there is
 no guarantee that the machine you buy today will contain the
@@ -226,6 +226,7 @@ or the Symbios 53C8XX series.
 Supported Ethernet cards include the
 AMD79C790,
 3COM Etherlink III and 3C589 series,
+Lucent Wavelan and compatibles,
 NE2000,
 WD8003,
 WD8013,
@@ -245,30 +246,33 @@ For more details see
 .I plan9.ini (8).
 .PP
 Over the years,
-Plan 9 has run on a number of VGA cards using the
-S3 80[15],
-S3 928,
-S3 864,
-Tseng ET4000,
-ATI Mach32/64
-and Cirrus Logic CLGD-54[23]x chips.
-However, recent changes to the graphics system have not been
-tested on all these cards; some effort may be needed to get them working again.
-In our lab, most of our machines use the Mach64 chips, so such devices are probably
+Plan 9 has run on a number of VGA cards.
+Recent changes to the graphics system have not been
+tested on most of the older cards; some effort may be needed to get them working again.
+In our lab, most of our machines use the ATI Mach64, S3 ViRGE, or S3 Savage chips,
+so such devices are probably
 the most reliable.
+We also use a few Matrox and TNT cards.
 The system requires a hardware cursor.
 For more details see
 .I vgadb (6)
 and
 .I vga (8).
+The wiki
+.CW http://plan9.bell-labs.com/wiki/plan9 ) (
+contains the definitive list of cards that are known to work; see the ``supported PC hardware''
+page.
 .PP
 For audio, Plan 9 supports the Sound Blaster 16 and compatibles.
 (Note that audio doesn't work under Plan 9 with 8-bit Sound Blasters.)
+There is also user-level support for USB audio devices; see 
+.I usb (4).
 .PP
 Finally, it's important to have a three-button mouse with Plan 9.
-The system works with either a PS/2 or serial mouse.
+The system currently works only with PS/2 mice.
+Serial mouse support should return before long.
 .PP
-Once you have Plan 9 installed (see the separate installation document)
+Once you have Plan 9 installed (see the wiki's installation document)
 run the program
 .CW ld
 from DOS
@@ -336,23 +340,23 @@ The IBM PC file server
 Except for the restriction to SCSI disks,
 the PC file server has the same hardware requirements as
 the regular PC operating system.
-However, only a subset of the supported SCSI (Adaptec 1542, Buslogic Multimaster,
+However, only a subset of the supported SCSI (Adaptec 1542, Mylex Multimaster,
 and Symbios 53C8XX) and Ethernet (Digital 2114x,
 Intel 8255x, and 3Com) controllers
 may be
 used.
 Any of the boot methods described in
-.I b.com (8)
+.I 9load (8)
 will work.
 .PP
 To boot any PC, the file
-.CW b.com
-must reside on a MS-DOS formatted floppy, IDE disc,
-or SCSI partition.
+.CW 9load
+must reside on a MS-DOS formatted floppy, IDE disk,
+or SCSI disk.
 However, PCs have no non-volatile RAM in which the
 file server can store its configuration information, so the system
 stores it in a file on an MS-DOS file system instead.
-This file, however, cannot live on a SCSI disc, only a floppy or IDE.
+This file, however, cannot live on a SCSI disk, only a floppy or IDE.
 (This restriction avoids a lot of duplicated interfaces in the
 system.)
 Thus the file server cannot be all-SCSI.
@@ -398,6 +402,12 @@ to build regular file system archives and use
 to stream them to a SCSI 8mm tape drive.
 .CW Mkext
 could then extract them.
+Another alternative is to use
+.I dump9660
+(see
+.I mk9660 (8)),
+which stores incremental backups on CD images
+in the form of a dump hierarchy.
 .PP
 It is also possible to treat a regular disk, or even a part of a disk,
 as a fake WORM, which can then be streamed to tape when it fills.

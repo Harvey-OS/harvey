@@ -10,10 +10,8 @@ TARG=basename\
 DIRS=\
 	expr\
 	make\
-#	pax\
 	pdksh\
 	sed\
-#	stc
 
 BIN=$APEBIN
 </sys/src/cmd/mkmany

@@ -101,12 +101,12 @@ main(int argc, char *argv[])
 		exits((char *)0);
 	if(!sflag)
 		print("EOF on %s\n", (b1e - b1s > b2e - b2s)? name2 : name1);
-	exits("differ");
+	exits("EOF");
 }
 
 static void
 usage(void)
 {
-	print("Usage: cmp [-ls] file1 file2 [offset1 [offset2] ]\n");
+	print("Usage: cmp [-lsL] file1 file2 [offset1 [offset2] ]\n");
 	exits("usage");
 }

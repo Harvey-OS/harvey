@@ -1,27 +1,30 @@
 </$objtype/mkfile
 
-TARG = telnet\
-	tftpd\
-	rarpd\
-	sniffer\
-	snoopy\
-	traceroute\
-	ping\
-	ipconfig\
-	rip\
-	gping\
+TARG = 	dhcpclient\
 	ftpd\
-	telnetd\
-	rlogind\
-	rexexec\
-	udpecho\
-	dhcpclient\
+	gping\
+	hogports\
+	ipconfig\
+	ping\
+	pppoe\
+	pptp\
 	pptpd\
+	rarpd\
+	rexexec\
+	rip\
+	rlogind\
+	sniffer\
+	telnet\
+	telnetd\
+	tftpd\
+	traceroute\
+	udpecho\
 
-DIRS=dhcpd httpd ppp imap4d
+DIRS=ftpfs dhcpd httpd ppp imap4d snoopy
 
 
 BIN=/$objtype/bin/ip
+
 </sys/src/cmd/mkmany
 
 all:V:	$DIRS

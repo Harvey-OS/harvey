@@ -3,7 +3,7 @@
 kprof \- kernel profiling
 .SH SYNOPSIS
 .nf
-.B bind -a #T /dev
+.B bind -a #K /dev
 .sp
 .B /dev/kpctl
 .B /dev/kpdata
@@ -54,7 +54,7 @@ script runs a test program while profiling the kernel
 and reports the results.
 .sp
 .EX
-	bind -a '#T' /dev
+	bind -a '#K' /dev
 	echo start > /dev/kpctl
 	runtest
 	echo stop > /dev/kpctl

@@ -119,7 +119,10 @@ of the union directory represented by the old file.
 This can be used in addition to any of the above to permit
 creation in a union directory.
 When a new file is created in a union directory,
-it is placed in the first element of the union that permits creation.
+it is placed in the first element of the union that has been bound or mounted with the
+.B -c
+flag.
+If that directory does not have write permission, the create fails.
 .TP
 .B -C
 (Only in

@@ -2,8 +2,8 @@ typedef struct Alarms	Alarms;
 typedef struct Block	Block;
 typedef struct Chan	Chan;
 typedef struct Cmdbuf	Cmdbuf;
+typedef struct Cmdtab	Cmdtab;
 typedef struct Cname	Cname;
-typedef struct Crypt	Crypt;
 typedef struct Dev	Dev;
 typedef struct Dirtab	Dirtab;
 typedef struct Egrp	Egrp;
@@ -24,6 +24,7 @@ typedef struct Note	Note;
 typedef struct Page	Page;
 typedef struct Palloc	Palloc;
 typedef struct Pgrps	Pgrps;
+typedef struct PhysUart	PhysUart;
 typedef struct Pgrp	Pgrp;
 typedef struct Physseg	Physseg;
 typedef struct Proc	Proc;
@@ -36,16 +37,18 @@ typedef struct Rendez	Rendez;
 typedef struct Rgrp	Rgrp;
 typedef struct RWlock	RWlock;
 typedef struct Sargs	Sargs;
+typedef struct Schedq	Schedq;
 typedef struct Segment	Segment;
 typedef struct Session	Session;
+typedef struct Task	Task;
 typedef struct Talarm	Talarm;
-typedef struct Target	Target;
+typedef struct Timer	Timer;
+typedef struct Uart	Uart;
 typedef struct Waitq	Waitq;
-typedef struct Watchdog	Watchdog;
-typedef int    Devgen(Chan*, Dirtab*, int, int, Dir*);
+typedef struct Walkqid	Walkqid;
+typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 
-#include <auth.h>
 #include <fcall.h>
 
 struct Ref
@@ -91,7 +94,6 @@ struct Alarms
 	Proc	*head;
 };
 
-#define MAXSYSARG	5	/* for mount(fd, mpt, flag, arg, srv) */
 struct Sargs
 {
 	ulong	args[MAXSYSARG];
@@ -102,15 +104,17 @@ struct Sargs
  */
 enum
 {
-	Aaccess,			/* as in access, stat */
+	Aaccess,			/* as in stat, wstat */
+	Abind,			/* for left-hand-side of bind */
 	Atodir,				/* as in chdir */
 	Aopen,				/* for i/o */
-	Amount,				/* to be mounted upon */
-	Acreate,			/* file is to be created */
+	Amount,				/* to be mounted or mounted upon */
+	Acreate,			/* is to be created */
+	Aremove,			/* will be removed by caller */
 
 	COPEN	= 0x0001,		/* for i/o */
 	CMSG	= 0x0002,		/* the message channel for a mount */
-	CCREATE	= 0x0004,		/* permits creation if c->mnt */
+/*rsc	CCREATE	= 0x0004,		/* permits creation if c->mnt */
 	CCEXEC	= 0x0008,		/* close on exec */
 	CFREE	= 0x0010,		/* not in use */
 	CRCLOSE	= 0x0020,		/* remove on close */
@@ -149,17 +153,19 @@ struct Chan
 	ushort	flag;
 	Qid	qid;
 	int	fid;			/* for devmnt */
-	Mhead*	mh;			/* mount point that derived Chan */
-	Mhead*	xmh;			/* Last mount point crossed */
+	ulong	iounit;	/* chunk size for i/o; 0==default */
+	Mhead*	umh;			/* mount point that derived Chan; used in unionread */
+	Chan*	umc;			/* channel in union; held for union read */
+	QLock	umqlock;		/* serialize unionreads */
 	int	uri;			/* union read index */
+	int	dri;			/* devdirread index */
 	ulong	mountid;
 	Mntcache *mcp;			/* Mount cache pointer */
+	Mnt		*mux;		/* Mnt for clients using me for messages */
 	union {
 		void*	aux;
 		Qid	pgrpid;		/* for #p/notepg */
-		Mnt*	mntptr;		/* for devmnt */
 		ulong	mid;		/* for ns in devproc */
-		char	tag[4];		/* for iproute */
 	};
 	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
@@ -182,10 +188,10 @@ struct Dev
 
 	void	(*reset)(void);
 	void	(*init)(void);
+	void	(*shutdown)(void);
 	Chan*	(*attach)(char*);
-	Chan*	(*clone)(Chan*, Chan*);
-	int	(*walk)(Chan*, char*);
-	void	(*stat)(Chan*, char*);
+	Walkqid*	(*walk)(Chan*, Chan*, char**, int);
+	int	(*stat)(Chan*, uchar*, int);
 	Chan*	(*open)(Chan*, int);
 	void	(*create)(Chan*, char*, int, ulong);
 	void	(*close)(Chan*);
@@ -194,17 +200,24 @@ struct Dev
 	long	(*write)(Chan*, void*, long, vlong);
 	long	(*bwrite)(Chan*, Block*, ulong);
 	void	(*remove)(Chan*);
-	void	(*wstat)(Chan*, char*);
-	void	(*power)(int);	/* power mgt: power(1) → on, power (0) → off */
+	int	(*wstat)(Chan*, uchar*, int);
+	void	(*power)(int);	/* power mgt: power(1) => on, power (0) => off */
 	int	(*config)(int, char*, DevConf*);
 };
 
 struct Dirtab
 {
-	char	name[NAMELEN];
+	char	name[KNAMELEN];
 	Qid	qid;
-	vlong	length;
+	vlong length;
 	long	perm;
+};
+
+struct Walkqid
+{
+	Chan	*clone;
+	int	nqid;
+	Qid	qid[1];
 };
 
 enum
@@ -230,8 +243,8 @@ struct Mount
 	Mount*	copy;
 	Mount*	order;
 	Chan*	to;			/* channel replacing channel */
-	int	flag;
-	char	spec[NAMELEN];
+	int	mflag;
+	char	*spec;
 };
 
 struct Mhead
@@ -245,16 +258,17 @@ struct Mhead
 
 struct Mnt
 {
-	Ref;			/* Count of attached channels */
+	Lock;
+	/* references are counted using c->ref; channels on this mount point incref(c->mchan) == Mnt.c */
 	Chan	*c;		/* Channel to file service */
 	Proc	*rip;		/* Reader in progress */
 	Mntrpc	*queue;		/* Queue of pending requests on this channel */
 	ulong	id;		/* Multiplexer id for channel check */
 	Mnt	*list;		/* Free list */
 	int	flags;		/* cache */
-	int	blocksize;	/* read/write block size */
-	char	*partial;	/* Outstanding read data */
-	int	npart;		/* Sizeof remains */
+	int	msize;		/* data + IOHDRSZ */
+	char	*version;			/* 9P version */
+	Queue	*q;		/* input queue */
 };
 
 enum
@@ -266,7 +280,7 @@ enum
 
 struct Note
 {
-	char	msg[ERRLEN];
+	char	msg[ERRMAX];
 	int	flag;			/* whether system posted it */
 };
 
@@ -343,8 +357,6 @@ enum
 	SG_STACK	= 03,
 	SG_SHARED	= 04,
 	SG_PHYSICAL	= 05,
-	SG_SHDATA	= 06,
-	SG_MAP		= 07,
 
 	SG_RONLY	= 0040,		/* Segment is read only */
 	SG_CEXEC	= 0100,		/* Detach at exec */
@@ -389,14 +401,16 @@ struct Segment
 
 enum
 {
-	RENDHASH =	32,		/* Hash to lookup rendezvous tags */
-	MNTHASH	=	32,		/* Hash to walk mount table */
+	RENDLOG	=	5,
+	RENDHASH =	1<<RENDLOG,		/* Hash to lookup rendezvous tags */
+	MNTLOG	=	5,
+	MNTHASH =	1<<MNTLOG,		/* Hash to walk mount table */
 	NFD =		100,		/* per process file descriptors */
 	PGHLOG  =	9,
 	PGHSIZE	=	1<<PGHLOG,	/* Page hash for image lookup */
 };
-#define REND(p,s)	((p)->rendhash[(s)%RENDHASH])
-#define MOUNTH(p,s)	((p)->mnthash[(s)->qid.path%MNTHASH])
+#define REND(p,s)	((p)->rendhash[(s)&((1<<RENDLOG)-1)])
+#define MOUNTH(p,qid)	((p)->mnthash[(qid).path&((1<<MNTLOG)-1)])
 
 struct Pgrp
 {
@@ -405,7 +419,6 @@ struct Pgrp
 	ulong	pgrpid;
 	QLock	debug;			/* single access via devproc.c */
 	RWlock	ns;			/* Namespace n read/one write lock */
-	QLock	nsh;
 	Mhead	*mnthash[MNTHASH];
 };
 
@@ -418,7 +431,7 @@ struct Rgrp
 struct Egrp
 {
 	Ref;
-	QLock;
+	RWlock;
 	Evalue	*entries;
 	ulong	path;	/* qid.path of next Evalue to be allocated */
 	ulong	vers;	/* of Egrp */
@@ -459,8 +472,6 @@ struct Palloc
 	Lock	hashlock;
 	Rendez	r;			/* Sleep for free mem */
 	QLock	pwait;			/* Queue of procs waiting for memory */
-	ulong	cmembase;		/* Key memory */
-	ulong	cmemtop;
 };
 
 struct Waitq
@@ -530,22 +541,35 @@ enum
 	PriRoot		= 13,	/* base priority for root processes */
 };
 
+typedef uvlong	Ticks;
+
+struct Schedq
+{
+	Lock;
+	Proc*	head;
+	Proc*	tail;
+	int	n;
+};
+
 struct Proc
 {
 	Label	sched;		/* known to l.s */
 	char	*kstack;	/* known to l.s */
 	Mach	*mach;		/* machine running this proc */
-	char	text[NAMELEN];
-	char	user[NAMELEN];
+	char	*text;
+	char	*user;
+	char	*args;
+	int	nargs;		/* number of bytes of args */
 	Proc	*rnext;		/* next process in run queue */
 	Proc	*qnext;		/* next process on queue for a QLock */
-	QLock	*qlock;		/* addrof qlock being queued for DEBUG */
+	QLock	*qlock;		/* addr of qlock being queued for DEBUG */
 	int	state;
 	char	*psstate;	/* What /proc/#/status reports */
 	Segment	*seg[NSEG];
 	QLock	seglock;	/* locked whenever seg[] changes */
 	ulong	pid;
 	ulong	noteid;		/* Equivalent of note group */
+	Proc	*pidhash;	/* next proc in pid hash */
 
 	Lock	exl;		/* Lock count and waitq */
 	Waitq	*waitq;		/* Exited processes wait children */
@@ -568,6 +592,7 @@ struct Proc
 	QLock	debug;		/* to access debugging elements of User */
 	Proc	*pdbg;		/* the debugging process */
 	ulong	procmode;	/* proc device file mode */
+	ulong	privatemem;	/* proc does not let anyone read mem */
 	int	hang;		/* hang at next exec for debug */
 	int	procctl;	/* Control for /proc debugging */
 	ulong	pc;		/* DEBUG only */
@@ -597,8 +622,11 @@ struct Proc
 	Sargs	s;		/* address of this is known by db */
 	int	nerrlab;
 	Label	errlab[NERR];
-	char	error[ERRLEN];
-	char	elem[NAMELEN];	/* last name element from namec */
+	char *syserrstr;			/* last error from a system call, errbuf0 or 1 */
+	char *errstr;			/* reason we're unwinding the error stack, errbuf1 or 0 */
+	char errbuf0[ERRMAX];
+	char errbuf1[ERRMAX];
+	char	genbuf[128];	/* buffer used e.g. for last name element from namec */
 	Chan	*slash;
 	Chan	*dot;
 
@@ -608,10 +636,13 @@ struct Proc
 	Note	lastnote;
 	int	(*notify)(void*, char*);
 
-	int	lockwait;	/* waiting for lock to be released */
+	Lock		*lockwait;
+	Lock		*lastlock;	/* debugging */
 
 	Mach	*wired;
 	Mach	*mp;		/* machine this process last ran on */
+	ulong	nlocks;		/* number of locks held by proc */
+	ulong	delaysched;
 	ulong	priority;	/* priority level */
 	ulong	basepri;	/* base priority level */
 	uchar	fixedpri;	/* priority level deson't change */
@@ -622,8 +653,9 @@ struct Proc
 	int	preempted;	/* true if this process hasn't finished the interrupt
 				 *  that last preempted it
 				 */
+	Task		*task;	/* if non-null, real-time proc, task contains scheduling params */
+
 	ulong	qpc;		/* pc calling last blocking qlock */
-	ulong	kppc;		/* kprof calling pc */
 
 	void	*ureg;		/* User registers for notes */
 	void	*dbgreg;	/* User registers for devproc */
@@ -648,46 +680,22 @@ extern	Conf	conf;
 extern	char*	conffile;
 extern	int	cpuserver;
 extern	Dev*	devtab[];
-extern  char	eve[];
+extern  char	*eve;
 extern	char	hostdomain[];
 extern	uchar	initcode[];
 extern	FPsave	initfp;
 extern  Queue*	kbdq;
+extern  Queue*	kprintoq;
 extern  Ref	noteidalloc;
-extern	int	nrdy;
 extern	Palloc	palloc;
-extern  Queue	*printq;
+extern  Queue	*serialoq;
 extern	char*	statename[];
 extern  Image	swapimage;
-extern	char	sysname[NAMELEN];
+extern	int	nsyscall;
+extern	char	*sysname;
 extern	Pthash	syspt;
 extern	Talarm	talarm;
-
-enum
-{
-	CHDIR =		0x80000000L,
-	CHAPPEND = 	0x40000000L,
-	CHEXCL =	0x20000000L,
-	CHMOUNT	=	0x10000000L,
-};
-
-/*
- * auth messages
- */
-enum
-{
-	FScchal	= 1,
-	FSschal,
-	FSok,
-	FSctick,
-	FSstick,
-	FSerr,
-
-	RXschal	= 0,
-	RXstick	= 1,
-
-	AUTHLEN	= 8,
-};
+extern	uint	qiomaxatomic;
 
 enum
 {
@@ -718,14 +726,123 @@ struct Logflag {
 	int	mask;
 };
 
+enum
+{
+	NCMDFIELD = 128
+};
+
 struct Cmdbuf
 {
-	char	buf[256];
-	char	*f[16];
+	char	*buf;
+	char	**f;
 	int	nf;
 };
 
-extern int nsyscall;
+struct Cmdtab
+{
+	int	index;	/* used by client to switch on result */
+	char	*cmd;	/* command name */
+	int	narg;	/* expected #args; 0 ==> variadic */
+};
+
+/*
+ *  routines to access UART hardware
+ */
+struct PhysUart
+{
+	char*	name;
+	Uart*	(*pnp)(void);
+	void	(*enable)(Uart*, int);
+	void	(*disable)(Uart*);
+	void	(*kick)(Uart*);
+	void	(*dobreak)(Uart*, int);
+	int	(*baud)(Uart*, int);
+	int	(*bits)(Uart*, int);
+	int	(*stop)(Uart*, int);
+	int	(*parity)(Uart*, int);
+	void	(*modemctl)(Uart*, int);
+	void	(*rts)(Uart*, int);
+	void	(*dtr)(Uart*, int);
+	long	(*status)(Uart*, void*, long, long);
+	void	(*fifo)(Uart*, int);
+	void	(*power)(Uart*, int);
+	int	(*getc)(Uart*);	/* polling versions, for iprint, rdb */
+	void	(*putc)(Uart*, int);
+};
+
+enum {
+	Stagesize=	1024
+};
+
+/*
+ *  software UART
+ */
+struct Uart
+{
+	void*	regs;			/* hardware stuff */
+	void*	saveregs;		/* place to put registers on power down */
+	char*	name;			/* internal name */
+	ulong	freq;			/* clock frequency */
+	int	bits;			/* bits per character */
+	int	stop;			/* stop bits */
+	int	parity;			/* even, odd or no parity */
+	int	baud;			/* baud rate */
+	PhysUart*phys;
+	int	console;		/* used as a serial console */
+	int	special;		/* internal kernel device */
+	Uart*	next;			/* list of allocated uarts */
+
+	QLock;
+	int	type;			/* ?? */
+	int	dev;
+	int	opens;
+
+	int	enabled;
+	Uart	*elist;			/* next enabled interface */
+
+	int	perr;			/* parity errors */
+	int	ferr;			/* framing errors */
+	int	oerr;			/* rcvr overruns */
+
+	/* buffers */
+	int	(*putc)(Queue*, int);
+	Queue	*iq;
+	Queue	*oq;
+
+	uchar	istage[Stagesize];
+	uchar	*iw;
+	uchar	*ir;
+	uchar	*ie;
+
+	Lock	tlock;			/* transmit */
+	uchar	ostage[Stagesize];
+	uchar	*op;
+	uchar	*oe;
+
+	int	modem;			/* hardware flow control on */
+	int	xonoff;			/* software flow control on */
+	int	blocked;
+	int	cts, dsr, dcd, dcdts;	/* keep track of modem status */ 
+	int	ctsbackoff;
+	int	hup_dsr, hup_dcd;	/* send hangup upstream? */
+	int	dohup;
+
+	Rendez	r;
+};
+
+extern	Uart*	consuart;
+
+/*
+ * fasttick timer interrupts (Dummy for now)
+ */
+struct Timer
+{
+	uvlong	when;			/* fastticks when f should be called */
+	void	(*f)(Ureg*, Timer*);
+	void	*a;
+	Timer	*next;
+	ulong	period;
+};
 
 #define DEVDOTDOT -1
 
@@ -733,6 +850,7 @@ extern int nsyscall;
 #pragma	varargck	argpos	snprint	3
 #pragma	varargck	argpos	sprint	2
 #pragma	varargck	argpos	fprint	2
+#pragma varargck	argpos	panic	1
 
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
@@ -751,9 +869,6 @@ extern int nsyscall;
 #pragma	varargck	type	"x"	uint
 #pragma	varargck	type	"c"	uint
 #pragma	varargck	type	"C"	uint
-#pragma	varargck	type	"f"	double
-#pragma	varargck	type	"e"	double
-#pragma	varargck	type	"g"	double
 #pragma	varargck	type	"s"	char*
 #pragma	varargck	type	"S"	Rune*
 #pragma	varargck	type	"r"	void
@@ -763,3 +878,4 @@ extern int nsyscall;
 #pragma	varargck	type	"E"	uchar*
 #pragma	varargck	type	"M"	uchar*
 #pragma	varargck	type	"p"	void*
+#pragma	varargck	type	"q"	char*

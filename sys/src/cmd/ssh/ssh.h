@@ -1,185 +1,276 @@
+#include <u.h>
+#include <libc.h>
 #include <mp.h>
+#include <auth.h>
 #include <libsec.h>
-#include <stdio.h>
-#pragma	varargck	argpos	error	1
 
-/* File names */
-#define HOSTKEYPRIV	"/sys/lib/ssh/hostkey.secret"
-#define HOSTKEYPUB	"/sys/lib/ssh/hostkey.public"
-
-/*
-Debugging only:
-#define HOSTKEYPRIV	"./hostkey.secret"
-#define HOSTKEYPUB	"./hostkey.public"
- */
-
-#define HOSTKEYRING	"/sys/lib/ssh/keyring"
-
-#define PROTSTR	"SSH-1.5-"
-#define PROTVSN	"Plan9"
-
-
-#define DBG			0x01
-#define DBG_CRYPTO	0x02
-#define DBG_PACKET	0x04
-#define DBG_AUTH	0x08
-#define DBG_PROC	0x10
-#define DBG_PROTO	0x20
-#define DBG_IO		0x40
-#define DBG_SCP		0x80
-
-extern char *progname;
-
-#define SSH_MSG_NONE							0
-#define SSH_MSG_DISCONNECT						1
-#define SSH_SMSG_PUBLIC_KEY						2
-#define SSH_CMSG_SESSION_KEY					3
-#define SSH_CMSG_USER							4
-#define SSH_CMSG_AUTH_RHOSTS					5
-#define SSH_CMSG_AUTH_RSA						6
-#define SSH_SMSG_AUTH_RSA_CHALLENGE				7
-#define SSH_CMSG_AUTH_RSA_RESPONSE				8
-#define SSH_CMSG_AUTH_PASSWORD					9
-#define SSH_CMSG_REQUEST_PTY					10
-#define SSH_CMSG_WINDOW_SIZE					11
-#define SSH_CMSG_EXEC_SHELL						12
-#define SSH_CMSG_EXEC_CMD						13
-#define SSH_SMSG_SUCCESS						14
-#define SSH_SMSG_FAILURE						15
-#define SSH_CMSG_STDIN_DATA						16
-#define SSH_SMSG_STDOUT_DATA					17
-#define SSH_SMSG_STDERR_DATA					18
-#define SSH_CMSG_EOF							19
-#define SSH_SMSG_EXITSTATUS						20
-#define SSH_MSG_CHANNEL_OPEN_CONFIRMATION		21
-#define SSH_MSG_CHANNEL_OPEN_FAILURE			22
-#define SSH_MSG_CHANNEL_DATA					23
-#define SSH_MSG_CHANNEL_CLOSE					24
-#define SSH_MSG_CHANNEL_CLOSE_CONFIRMATION		25
-/*	(OBSOLETED; was unix-domain X11 forwarding)	26 */
-#define SSH_SMSG_X11_OPEN						27
-#define SSH_CMSG_PORT_FORWARD_REQUEST			28
-#define SSH_MSG_PORT_OPEN						29
-#define SSH_CMSG_AGENT_REQUEST_FORWARDING		30
-#define SSH_SMSG_AGENT_OPEN						31
-#define SSH_MSG_IGNORE							32
-#define SSH_CMSG_EXIT_CONFIRMATION				33
-#define SSH_CMSG_X11_REQUEST_FORWARDING			34
-#define SSH_CMSG_AUTH_RHOSTS_RSA				35
-#define SSH_MSG_DEBUG							36
-#define SSH_CMSG_REQUEST_COMPRESSION			37
-#define SSH_CMSG_MAX_PACKET_SIZE				38
-#define SSH_CMSG_AUTH_TIS						39
-#define SSH_SMSG_AUTH_TIS_CHALLENGE				40
-#define SSH_CMSG_AUTH_TIS_RESPONSE				41
-#define SSH_CMSG_AUTH_KERBEROS					42
-#define SSH_SMSG_AUTH_KERBEROS_RESPONSE			43
-#define SSH_CMSG_HAVE_KERBEROS_TGT				44
-
-#define SSH_CIPHER_NONE							0
-#define SSH_CIPHER_IDEA							1
-#define SSH_CIPHER_DES							2
-#define SSH_CIPHER_3DES							3
-#define SSH_CIPHER_TSS							4
-#define SSH_CIPHER_RC4							5
-
-extern char	*cipher_names[];
-
-#define SSH_AUTH_RHOSTS							1
-#define SSH_AUTH_RSA							2
-#define SSH_AUTH_PASSWORD						3
-#define SSH_AUTH_RHOSTS_RSA						4
-#define SSH_AUTH_TIS							5
-#define SSH_AUTH_USER_RSA						6
-
-extern char	*auth_names[];
-
-#define SSH_PROTOCOL_SCREEN_NUMBER				1
-#define SSH_PROTOCOL_HOST_IN_FWD_OPEN			2
-
-typedef struct Packet {
-	uchar	*pos;	/* position in packet (while reading or writing */
-	ulong	length;	/* output: #bytes before pos, input: #bytes after pos */
-	uchar	pad[8];
-	uchar	type;
-	uchar	data[1];
-} Packet;
-
-#define SSH_MAX_DATA	262144	/* smallest allowed maximum packet size */
-#define SSH_MAX_MSG	SSH_MAX_DATA+4
-
-#define SESSION_KEY_LENGTH						32
-#define SESSION_ID_LENGTH 						MD5dlen
-
-/* Used by both */
-extern uchar		session_key[SESSION_KEY_LENGTH];
-extern uchar		session_id[SESSION_ID_LENGTH];
-extern uchar		session_cipher;	/* Cipher used for data encryption */
-
-extern int		encryption;
-extern int		compression;
-extern int		DEBUG;
-extern int		doabort;
-
-extern char		passwd[256];
-
-extern int	dfdin, dfdout;	/* The all-important file descriptors */
-
-enum {
-	c2s, s2c
+enum		/* internal debugging flags */
+{
+	DBG=			1<<0,
+	DBG_CRYPTO=		1<<1,
+	DBG_PACKET=		1<<2,
+	DBG_AUTH=		1<<3,
+	DBG_PROC=		1<<4,
+	DBG_PROTO=		1<<5,
+	DBG_IO=			1<<6,
+	DBG_SCP=		1<<7,
 };
 
-enum {
-	key_ok, key_wrong, key_notfound, key_file
+enum		/* protocol packet types */
+{
+/* 0 */
+	SSH_MSG_NONE=0,
+	SSH_MSG_DISCONNECT,
+	SSH_SMSG_PUBLIC_KEY,
+	SSH_CMSG_SESSION_KEY,
+	SSH_CMSG_USER,
+	SSH_CMSG_AUTH_RHOSTS,
+	SSH_CMSG_AUTH_RSA,
+	SSH_SMSG_AUTH_RSA_CHALLENGE,
+	SSH_CMSG_AUTH_RSA_RESPONSE,
+	SSH_CMSG_AUTH_PASSWORD,
+
+/* 10 */
+	SSH_CMSG_REQUEST_PTY,
+	SSH_CMSG_WINDOW_SIZE,
+	SSH_CMSG_EXEC_SHELL,
+	SSH_CMSG_EXEC_CMD,
+	SSH_SMSG_SUCCESS,
+	SSH_SMSG_FAILURE,
+	SSH_CMSG_STDIN_DATA,
+	SSH_SMSG_STDOUT_DATA,
+	SSH_SMSG_STDERR_DATA,
+	SSH_CMSG_EOF,
+
+/* 20 */
+	SSH_SMSG_EXITSTATUS,
+	SSH_MSG_CHANNEL_OPEN_CONFIRMATION,
+	SSH_MSG_CHANNEL_OPEN_FAILURE,
+	SSH_MSG_CHANNEL_DATA,
+	SSH_MSG_CHANNEL_CLOSE,
+	SSH_MSG_CHANNEL_CLOSE_CONFIRMATION,
+	SSH_MSG_UNIX_DOMAIN_X11_FORWARDING,	/* obsolete */
+	SSH_SMSG_X11_OPEN,
+	SSH_CMSG_PORT_FORWARD_REQUEST,
+	SSH_MSG_PORT_OPEN,
+
+/* 30 */
+	SSH_CMSG_AGENT_REQUEST_FORWARDING,
+	SSH_SMSG_AGENT_OPEN,
+	SSH_MSG_IGNORE,
+	SSH_CMSG_EXIT_CONFIRMATION,
+	SSH_CMSG_X11_REQUEST_FORWARDING,
+	SSH_CMSG_AUTH_RHOSTS_RSA,
+	SSH_MSG_DEBUG,
+	SSH_CMSG_REQUEST_COMPRESSION,
+	SSH_CMSG_MAX_PACKET_SIZE,
+	SSH_CMSG_AUTH_TIS,
+
+/* 40 */
+	SSH_SMSG_AUTH_TIS_CHALLENGE,
+	SSH_CMSG_AUTH_TIS_RESPONSE,
+	SSH_CMSG_AUTH_KERBEROS,
+	SSH_SMSG_AUTH_KERBEROS_RESPONSE,
+	SSH_CMSG_HAVE_KERBEROS_TGT,
 };
 
-/* misc.c */
-void			error(char *, ...);
-void			debug(int, char *, ...);
-void			debugbig(int, mpint*, char);
-void*			mmalloc(int);
-void*			zalloc(int);
-void			printbig(int, mpint*, int, char);
-void			printpublickey(int, RSApub *);
-void			printdecpublickey(int, RSApub *);
-void			printsecretkey(int, RSApriv *);
-int			readsecretkey(FILE *, RSApriv *);
-int			readpublickey(FILE *, RSApub *);
-void			comp_sess_id(mpint*, mpint*, uchar *, uchar *);
-void			RSApad(uchar *, int, uchar *, int);
-mpint*			RSAunpad(mpint*, int);
-mpint*			RSAEncrypt(mpint*, RSApub*);
-mpint*			RSADecrypt(mpint*, RSApriv*);
-int			verify_key(char *, RSApub *, char *);
-int			replace_key(char *, RSApub *, char *);
-int			isatty(int);
-void			getdomainname(char*, char*, int);
-void			mptobuf(mpint*, uchar*, int);
+enum		/* protocol flags */
+{
+	SSH_PROTOFLAG_SCREEN_NUMBER=1<<0,
+	SSH_PROTOFLAG_HOST_IN_FWD_OPEN=1<<1,
+};
 
-/* packet.c */
-void			mkcrctab(ulong);
-Packet*			getpacket(int);
-int			putpacket(Packet *, int);
-void			preparekey(void);
-void			mfree(Packet *);
+enum		/* protocol constants */
+{
+	SSH_MAX_DATA = 256*1024,
+	SSH_MAX_MSG = SSH_MAX_DATA+4,
 
-ulong			getlong(Packet *);
-RSApub*			getRSApublic(Packet *);
-ulong			getlong(Packet *);
-ushort			getshort(Packet *);
-uchar			getbyte(Packet *);
-void			getbytes(Packet *, uchar *, int);
-mpint*			getBigInt(Packet *);
-int			getstring(Packet *, char *, int);
+	SESSKEYLEN = 32,
+	SESSIDLEN = 16,
+	
+	COOKIELEN = 8,
+};
 
-void			putlong(Packet *, ulong);
-void			putshort(Packet *, ushort);
-void			putbyte(Packet *, uchar);
-void			putbytes(Packet *, uchar *, int);
-void			putBigInt(Packet *, mpint*);
-void			putRSApublic(Packet *, RSApub *);
-void			putstring(Packet *, char *, int);
+enum		/* crypto ids */
+{
+	SSH_CIPHER_NONE = 0,
+	SSH_CIPHER_IDEA,
+	SSH_CIPHER_DES,
+	SSH_CIPHER_3DES,
+	SSH_CIPHER_TSS,
+	SSH_CIPHER_RC4,
+	SSH_CIPHER_BLOWFISH,
+	SSH_CIPHER_TWIDDLE,		/* for debugging */
+};
 
+enum		/* auth method ids */
+{
+	SSH_AUTH_RHOSTS = 1,
+	SSH_AUTH_RSA = 2,
+	SSH_AUTH_PASSWORD = 3,
+	SSH_AUTH_RHOSTS_RSA = 4,
+	SSH_AUTH_TIS = 5,
+	SSH_AUTH_USER_RSA = 6,
+};
 
-/* messages.c */
-void			get_ssh_smsg_public_key(void);
+typedef struct Auth Auth;
+typedef struct Authsrv Authsrv;
+typedef struct Cipher Cipher;
+typedef struct CipherState CipherState;
+typedef struct Conn Conn;
+typedef struct Msg Msg;
+
+struct Auth
+{
+	int id;
+	char *name;
+	int (*fn)(Conn*);
+};
+
+struct Authsrv
+{
+	int id;
+	char *name;
+	int firstmsg;
+	AuthInfo *(*fn)(Conn*, Msg*);
+};
+
+struct Cipher
+{
+	int id;
+	char *name;
+	CipherState *(*init)(Conn*, int isserver);
+	void (*encrypt)(CipherState*, uchar*, int);
+	void (*decrypt)(CipherState*, uchar*, int);
+};
+
+struct Conn
+{
+	int fd[2];
+	CipherState *cstate;
+	uchar cookie[COOKIELEN];
+	uchar sessid[SESSIDLEN];
+	uchar sesskey[SESSKEYLEN];
+	RSApub *serverkey;
+	RSApub *hostkey;
+	ulong flags;
+	ulong ciphermask;
+	Cipher *cipher;		/* chosen cipher */
+	Cipher **okcipher;	/* list of acceptable ciphers */
+	int nokcipher;
+	ulong authmask;
+	Auth **okauth;
+	int nokauth;
+	char *user;
+	char *host;
+	char *aliases;
+	int interactive;
+
+	RSApriv *serverpriv;		/* server only */
+	RSApriv *hostpriv;
+	Authsrv **okauthsrv;
+	int nokauthsrv;
+};
+
+struct Msg
+{
+	Conn *c;
+	uchar type;
+	ulong len;		/* output: #bytes before pos, input: #bytes after pos */
+	uchar *bp;	/* beginning of allocated space */
+	uchar *rp;		/* read pointer */
+	uchar *wp;	/* write pointer */
+	uchar *ep;	/* end of allocated space */
+	Msg *link;		/* for sshnet */
+};
+
+#define LONG(p)	(((p)[0]<<24)|((p)[1]<<16)|((p)[2]<<8)|((p)[3]))
+#define PLONG(p, l) \
+	(((p)[0]=(l)>>24),((p)[1]=(l)>>16),\
+	 ((p)[2]=(l)>>8),((p)[3]=(l)))
+#define SHORT(p) (((p)[0]<<8)|(p)[1])
+#define PSHORT(p,l) \
+	(((p)[0]=(l)>>8),((p)[1]=(l)))
+
+extern char Edecode[];
+extern char Eencode[];
+extern char Ememory[];
+extern char Ehangup[];
+extern int doabort;
+extern int debuglevel;
+
+extern Auth authpassword;
+extern Auth authrsa;
+extern Auth authtis;
+
+extern Authsrv authsrvpassword;
+extern Authsrv authsrvtis;
+
+extern Cipher cipher3des;
+extern Cipher cipherblowfish;
+extern Cipher cipherdes;
+extern Cipher cipherrc4;
+extern Cipher ciphernone;
+extern Cipher ciphertwiddle;
+
+/* msg.c */
+Msg*	allocmsg(Conn*, int, int);
+void		badmsg(Msg*, int);
+Msg*	recvmsg(Conn*, int);
+int		sendmsg(Msg*);
+uchar	getbyte(Msg*);
+ushort	getshort(Msg*);
+ulong	getlong(Msg*);
+char*	getstring(Msg*);
+void*	getbytes(Msg*, int);
+mpint*	getmpint(Msg*);
+RSApub*	getRSApub(Msg*);
+void		putbyte(Msg*, uchar);
+void		putshort(Msg*, ushort);
+void		putlong(Msg*, ulong);
+void		putstring(Msg*, char*);
+void		putbytes(Msg*, void*, long);
+void		putmpint(Msg*, mpint*);
+void		putRSApub(Msg*, RSApub*);
+mpint*	rsapad(mpint*, int);
+mpint*	rsaunpad(mpint*);
+void		mptoberjust(mpint*, uchar*, int);
+mpint*	rsaencryptbuf(RSApub*, uchar*, int);
+
+/* cmsg.c */
+void		sshclienthandshake(Conn*);
+void		requestpty(Conn*);
+int		readgeom(int*, int*, int*, int*);
+void		sendwindowsize(Conn*, int, int, int, int);
+
+/* smsg.c */
+void		sshserverhandshake(Conn*);
+
+/* pubkey.c */
+enum
+{
+	KeyOk,
+	KeyWrong,
+	NoKey,
+	NoKeyFile,
+};
+int		appendkey(char*, char*, RSApub*);
+int		findkey(char*, char*, RSApub*);
+int		replacekey(char*, char*, RSApub*);
+
+/* util.c */
+void		debug(int, char*, ...);
+void*	emalloc(long);
+void		error(char*, ...);
+RSApriv*	readsecretkey(char*);
+int		readstrnl(int, char*, int);
+void		atexitkill(int);
+void		atexitkiller(void);
+void		calcsessid(Conn*);
+void		sshlog(char*, ...);
+void		setaliases(Conn*, char*);
+void		privatefactotum(void);
+
+#pragma varargck argpos error 1
+#pragma varargck argpos sshlog 2
+

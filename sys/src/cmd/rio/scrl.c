@@ -6,7 +6,6 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include "dat.h"
 #include "fns.h"
@@ -22,7 +21,7 @@ scrtemps(void)
 	if(scrtmp)
 		return;
 	h = BIG*Dy(screen->r);
-	scrtmp = allocimage(display, Rect(0, 0, 32, h), display->chan, 0, DWhite);
+	scrtmp = allocimage(display, Rect(0, 0, 32, h), screen->chan, 0, DWhite);
 	if(scrtmp == nil)
 		error("scrtemps");
 }

@@ -14,24 +14,30 @@ OFILES=\
 	dial.$O\
 	dirfstat.$O\
 	dirfwstat.$O\
-	dirmodeconv.$O\
+	dirmodefmt.$O\
 	dirread.$O\
 	dirstat.$O\
 	dirwstat.$O\
-	fcallconv.$O\
+	fcallfmt.$O\
 	fork.$O\
-	getS.$O\
+	getnetconninfo.$O\
 	getenv.$O\
 	getpid.$O\
 	getppid.$O\
-	getuser.$O\
 	getwd.$O\
+	iounit.$O\
 	nsec.$O\
+	nulldir.$O\
 	postnote.$O\
 	privalloc.$O\
 	pushssl.$O\
+	pushtls.$O\
 	putenv.$O\
 	qlock.$O\
+	read.$O\
+	read9pmsg.$O\
+	readv.$O\
+	rerrstr.$O\
 	sbrk.$O\
 	setnetmtpt.$O\
 	sysfatal.$O\
@@ -41,7 +47,11 @@ OFILES=\
 	times.$O\
 	tm2sec.$O\
 	truerand.$O\
+	wait.$O\
+	waitpid.$O\
 	werrstr.$O\
+	write.$O\
+	writev.$O\
 
 HFILES=/sys/include/libc.h
 

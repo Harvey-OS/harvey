@@ -1,22 +1,23 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <auth.h>
 #include <fcall.h>
 
 typedef struct NDir NDir;
 struct NDir
 {
-	Dir;
+	Dir *d;
 	char	*prefix;
 };
 
 int	errs = 0;
 int	dflag;
 int	lflag;
+int	mflag;
 int	nflag;
 int	pflag;
 int	qflag;
+int	Qflag;
 int	rflag;
 int	sflag;
 int	tflag;
@@ -34,15 +35,15 @@ void	growto(long);
 void	dowidths(Dir*);
 void	format(Dir*, char*);
 void	output(void);
+int	lsquote(int);
 ulong	clk;
 int	swidth;			/* max width of -s size */
 int	qwidth;			/* max width of -q version */
 int	vwidth;			/* max width of dev */
 int	uwidth;			/* max width of userid */
+int	mwidth;			/* max width of muid */
 int	glwidth;		/* max width of groupid and length */
 Biobuf	bin;
-
-#define		HUNK	50
 
 void
 main(int argc, char *argv[])
@@ -55,18 +56,22 @@ main(int argc, char *argv[])
 	case 'F':	Fflag++; break;
 	case 'd':	dflag++; break;
 	case 'l':	lflag++; break;
+	case 'm':	mflag++; break;
 	case 'n':	nflag++; break;
 	case 'p':	pflag++; break;
 	case 'q':	qflag++; break;
+	case 'Q':	Qflag++; break;
 	case 'r':	rflag++; break;
 	case 's':	sflag++; break;
 	case 't':	tflag++; break;
 	case 'u':	uflag++; break;
-	default:	fprint(2, "usage: ls [-dlnpqrstuF] [file ...]\n");
+	default:	fprint(2, "usage: ls [-dlmnpqrstuFQ] [file ...]\n");
 			exits("usage");
 	}ARGEND
 
-	fmtinstall('M', dirmodeconv);
+	doquote = lsquote;
+	quotefmtinstall();
+	fmtinstall('M', dirmodefmt);
 
 	if(lflag){
 		fd = open("/dev/time", OREAD);
@@ -89,7 +94,7 @@ ls(char *s, int multi)
 	int fd;
 	long i, n;
 	char *p;
-	Dir db[HUNK];
+	Dir *db;
 
 	for(;;) {
 		p = utfrrune(s, '/');
@@ -97,35 +102,38 @@ ls(char *s, int multi)
 			break;
 		*p = 0;
 	}
-	if(dirstat(s, db)==-1){
+	db = dirstat(s);
+	if(db == nil){
     error:
 		fprint(2, "ls: %s: %r\n", s);
 		return 1;
 	}
-	if(db[0].qid.path&CHDIR && dflag==0){
+	if(db->qid.type&QTDIR && dflag==0){
 		output();
 		fd = open(s, OREAD);
 		if(fd == -1)
 			goto error;
-		while((n=dirread(fd, db, sizeof db)) > 0){
-			n /= sizeof(Dir);
-			growto(ndir+n);
-			for(i=0; i<n; i++){
-				memmove(dirbuf+ndir+i, db+i, sizeof(Dir));
-				dirbuf[ndir+i].prefix = multi? s : 0;
-			}
-			ndir += n;
+		n = dirreadall(fd, &db);
+		if(n < 0)
+			goto error;
+		growto(ndir+n);
+		for(i=0; i<n; i++){
+			dirbuf[ndir+i].d = db+i;
+			dirbuf[ndir+i].prefix = multi? s : 0;
 		}
+		ndir += n;
 		close(fd);
 		output();
 	}else{
 		growto(ndir+1);
-		memmove(dirbuf+ndir, db, sizeof(Dir));
+		dirbuf[ndir].d = db;
 		dirbuf[ndir].prefix = 0;
 		p = utfrrune(s, '/');
 		if(p){
 			dirbuf[ndir].prefix = s;
 			*p = 0;
+			/* restore original name; don't use result of stat */
+			dirbuf[ndir].d->name = strdup(p+1);
 		}
 		ndir++;
 	}
@@ -142,15 +150,15 @@ output(void)
 	if(!nflag)
 		qsort(dirbuf, ndir, sizeof dirbuf[0], (int (*)(void*, void*))compar);
 	for(i=0; i<ndir; i++)
-		dowidths(&dirbuf[i]);
+		dowidths(dirbuf[i].d);
 	for(i=0; i<ndir; i++) {
 		if(!pflag && (s = dirbuf[i].prefix)) {
 			if(strcmp(s, "/") ==0)	/* / is a special case */
 				s = "";
-			sprint(buf, "%s/%s", s, dirbuf[i].name);
-			format(&dirbuf[i], buf);
+			sprint(buf, "%s/%s", s, dirbuf[i].d->name);
+			format(dirbuf[i].d, buf);
 		} else
-			format(&dirbuf[i], dirbuf[i].name);
+			format(dirbuf[i].d, dirbuf[i].d->name);
 	}
 	ndir = 0;
 	Bflush(&bin);
@@ -159,7 +167,7 @@ output(void)
 void
 dowidths(Dir *db)
 {
-	char buf[100];
+	char buf[256];
 	int n;
 
 	if(sflag) {
@@ -171,6 +179,11 @@ dowidths(Dir *db)
 		n = sprint(buf, "%lud", db->qid.vers);
 		if(n > qwidth)
 			qwidth = n;
+	}
+	if(mflag) {
+		n = snprint(buf, sizeof buf, "[%s]", db->muid);
+		if(n > mwidth)
+			mwidth = n;
 	}
 	if(lflag) {
 		n = sprint(buf, "%ud", db->dev);
@@ -191,7 +204,7 @@ fileflag(Dir *db)
 {
 	if(Fflag == 0)
 		return "";
-	if(CHDIR & db->qid.path)
+	if(QTDIR & db->qid.type)
 		return "/";
 	if(0111 & db->mode)
 		return "*";
@@ -201,15 +214,24 @@ fileflag(Dir *db)
 void
 format(Dir *db, char *name)
 {
+	int i;
+
 	if(sflag)
 		Bprint(&bin, "%*llud ",
 			swidth, (db->length+1023)/1024);
+	if(mflag){
+		Bprint(&bin, "[%s] ", db->muid);
+		for(i=2+strlen(db->muid); i<mwidth; i++)
+			Bprint(&bin, " ");
+	}
 	if(qflag)
-		Bprint(&bin, "%.8lux %*lud ",
+		Bprint(&bin, "(%.16llux %*lud %.2ux) ",
 			db->qid.path,
-			qwidth, db->qid.vers);
+			qwidth, db->qid.vers,
+			db->qid.type);
 	if(lflag)
-		Bprint(&bin, "%M %C %*ud %*s %s %*llud %s %s\n",
+		Bprint(&bin,
+			Qflag? "%M %C %*ud %*s %s %*llud %s %s\n" : "%M %C %*ud %*s %s %*llud %s %q\n",
 			db->mode, db->type,
 			vwidth, db->dev,
 			-uwidth, db->uid,
@@ -217,7 +239,9 @@ format(Dir *db, char *name)
 			(int)(glwidth-strlen(db->gid)), db->length,
 			asciitime(uflag? db->atime : db->mtime), name);
 	else
-		Bprint(&bin, "%s%s\n", name, fileflag(db));
+		Bprint(&bin,
+			Qflag? "%s%s\n" : "%q%s\n",
+			name, fileflag(db));
 }
 
 void
@@ -237,27 +261,31 @@ int
 compar(NDir *a, NDir *b)
 {
 	long i;
+	Dir *ad, *bd;
+
+	ad = a->d;
+	bd = b->d;
 
 	if(tflag){
 		if(uflag)
-			i = b->atime-a->atime;
+			i = bd->atime-ad->atime;
 		else
-			i = b->mtime-a->mtime;
+			i = bd->mtime-ad->mtime;
 	}else{
 		if(a->prefix && b->prefix){
 			i = strcmp(a->prefix, b->prefix);
 			if(i == 0)
-				i = strcmp(a->name, b->name);
+				i = strcmp(ad->name, bd->name);
 		}else if(a->prefix){
-			i = strcmp(a->prefix, b->name);
+			i = strcmp(a->prefix, bd->name);
 			if(i == 0)
 				i = 1;	/* a is longer than b */
 		}else if(b->prefix){
-			i = strcmp(a->name, b->prefix);
+			i = strcmp(ad->name, b->prefix);
 			if(i == 0)
 				i = -1;	/* b is longer than a */
 		}else
-			i = strcmp(a->name, b->name);
+			i = strcmp(ad->name, bd->name);
 	}
 	if(i == 0)
 		i = (a<b? -1 : 1);
@@ -281,4 +309,14 @@ asciitime(long l)
 		memmove(buf, t+4, 12);		/* skip day of week */
 	buf[12] = 0;
 	return buf;
+}
+
+int
+lsquote(int c)
+{
+	if(c <= ' ')
+		return 1;
+	if(strchr("`^#*[]=|\?${}()'", c))
+		return 1;
+	return 0;
 }

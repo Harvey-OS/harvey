@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
 #include "sys9.h"
 #include "dir.h"
 
@@ -11,7 +12,7 @@ int
 access(const char *name, int mode)
 {
 	int fd, n;
-	char db[DIRLEN];
+	Dir *db;
 	struct stat st;
 	static char omode[] = {
 		0,
@@ -26,12 +27,13 @@ access(const char *name, int mode)
 	char tname[1024];
 
 	if(mode == 0){
-		if(_STAT(name, db) >= 0)
-			return 0;
-		else {
+		db = _dirstat(name);
+		if(db == nil){
 			_syserrno();
 			return -1;
 		}
+		free(db);
+		return 0;
 	}
 	fd = open(name, omode[mode&7]);
 	if(fd >= 0){

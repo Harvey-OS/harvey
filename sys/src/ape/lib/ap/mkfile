@@ -1,144 +1,17 @@
 APE=/sys/src/ape
 <$APE/config
 
-LIB=/$objtype/lib/ape/libap.a
-EXTRAOBJS=`{extraobjs}
+DIRS=gen math plan9 posix stdio syscall
 
-STDIO=S__IO_getc.$O S__IO_putc.$O S__dtoa.$O S__fconv.$O S_clearerr.$O\
-	S_fclose.$O S_feof.$O S_ferror.$O S_fflush.$O S_fgetc.$O \
-	S_fgetpos.$O S_fgets.$O S_fopen.$O S_fprintf.$O S_fputc.$O\
-	S_fputs.$O S_fread.$O S_freopen.$O S_fscanf.$O S_fseek.$O\
-	S_fsetpos.$O S_ftell.$O S_ftoa.$O S_fwrite.$O S_getc.$O S_getchar.$O\
-	S_gets.$O S_perror.$O  S_printf.$O S_putc.$O S_putchar.$O S_puts.$O\
-	S_remove.$O 9_rename.$O S_rewind.$O S_scanf.$O\
-	S_sclose.$O S_setbuf.$O S_setvbuf.$O S_sopenr.$O S_sopenw.$O\
-	S_sprintf.$O S_sscanf.$O S_stdio.$O S_strerror.$O S_strtod.$O\
-	9_tmpfile.$O S_tmpnam.$O S_ungetc.$O S_vfprintf.$O S_vfscanf.$O\
-	S_vprintf.$O S_vsprintf.$O S_exit.$O S_fileno.$O S_pow10.$O S_fdopen.$O
+default:V:	all
 
-MATH= M_asin.$O M_atan.$O M_atan2.$O M_erf.$O M_exp.$O M_fabs.$O\
-	M_floor.$O M_fmod.$O M_gamma.$O M_hypot.$O M_j0.$O M_j1.$O\
-	M_jn.$O M_log.$O M_pow.$O M_sin.$O M_sinh.$O 9_sqrt.$O M_tan.$O\
-	M_tanh.$O 9_frexp.$O 9_nan.$O
-
-#		machine specific string/mem stuff from extraobjs:
-#	strcat strchr strcmp strcpy strlen strncmp strrchr
-#	memchr memcmp memcpy memmove memset
-
-STRING=G_strcoll.$O G_strcspn.$O G_strncat.$O G_strncpy.$O G_strpbrk.$O\
-	G_strspn.$O G_strstr.$O G_strtok.$O G_strxfrm.$O\
-	G_itoa.$O G_itol.$O
-
-GEN=9_malloc.$O 9_brk.$O G_ctype.$O G_strtol.$O G_strtoul.$O\
-	G_atoi.$O G_atol.$O G_atof.$O 9_system.$O 9_ctime.$O G_div.$O\
-	G_ldiv.$O 9__exit.$O G_toupper.$O G_isalnum.$O G_abs.$O G__assert.$O\
-	G_rand.$O G_qsort.$O G_bsearch.$O G_clock.$O G_difftime.$O\
-	G_mktime.$O G_mbwc.$O G_strftime.$O 9_raise.$O
-
-POSIX= 9_access.$O 9_alarm.$O 9_cfgetospeed.$O 9_chdir.$O\
-	9_chmod.$O 9_chown.$O 9_close.$O\
-	9_creat.$O 9_ctermid.$O 9_cuserid.$O 9_dirtostat.$O 9_dup.$O\
-	9_execl.$O 9_execle.$O 9_execlp.$O 9_execv.$O 9_execve.$O\
-	9_execvp.$O 9_fcntl.$O 9_fork.$O 9_fstat.$O 9_fsync.$O 9_ftruncate.$O 9_getcwd.$O\
-	G_getenv.$O 9_getgid.$O 9_getgrgid.$O 9_getgrnam.$O 9_getgroups.$O 9_getlogin.$O\
-	9_getpid.$O 9_getpgrp.$O 9_getppid.$O 9_getpwnam.$O 9_getpwuid.$O\
-	9_getuid.$O 9_isatty.$O 9_kill.$O 9_link.$O P_locale.$O 9_lseek.$O\
-	9_mkdir.$O P_mkfifo.$O 9_open.$O 9_opendir.$O P_pathconf.$O\
-	9_pause.$O 9_pipe.$O 9_read.$O 9_rmdir.$O 9_setgid.$O\
-	9_setjmp.$O 9_setpgid.$O 9_setsid.$O 9_setuid.$O P_sigset.$O\
-	9_signal.$O 9_sigprocmask.$O 9_sigpending.$O\
-	9_sigsuspend.$O 9_sleep.$O 9_stat.$O P_sysconf.$O 9_tcgetattr.$O\
-	9_time.$O 9_times.$O 9_ttyname.$O P_tzset.$O 9_uname.$O\
-	9_umask.$O 9_unlink.$O 9_utime.$O 9_wait.$O 9_write.$O\
-	G_calloc.$O S_abort.$O $EXTRAOBJS
-
-EXTRA=9__envsetup.$O 9__buf.$O 9__dirconv.$O 9__errno.$O 9__fcall.$O\
-	9__fdinfo.$O 9__getpw.$O 9__nap.$O \
-	9_notetramp.$O 9_profile.$O 9_lock.$O 9_tas.$O\
-	9__ALARM.$O 9__BIND.$O 9__BRK_.$O 9__CHDIR.$O\
-	9__CLOSE.$O 9__CREATE.$O 9__DUP.$O 9__ERRSTR.$O\
-	9__EXEC.$O 9__EXITS.$O 9__FD2PATH.$O 9__FSESSION.$O 9__FSTAT.$O 9__FWSTAT.$O\
-	9__MOUNT.$O 9__NOTED.$O 9__NOTIFY.$O 9__OPEN.$O 9__OSEEK.$O\
-	9__PIPE.$O 9__READ.$O 9__REMOVE.$O 9__RENDEZVOUS.$O\
-	9__RFORK.$O 9__SEEK.$O 9__SEGATTACH.$O 9__SEGBRK.$O\
-	9__SEGDETACH.$O 9__SEGFLUSH.$O 9__SEGFREE.$O\
-	9__SLEEP.$O 9__STAT.$O 9__UNMOUNT.$O 9__WAIT.$O\
-	9__WRITE.$O 9__WSTAT.$O 9_main9.$O 9_main9p.$O\
-
-
-# toupper has tolower
-# isalnum has isalpha, iscntrl, isdigit, isgraph, islower, isprint,
-#             ispunct, isspace, isupper, isxdigit
-# ctime has localtime, gmtime, asctime
-# opendir has closedir, readdir, rewinddir
-# _envsetup has environ, errno
-# getuid has geteuid
-# getgid has getegid
-# sigemptyset has sigfillset, sigaddset, sigdelset, sigismember
-# abs has labs
-# locale has setlocale, localeconv
-# rand has srand
-
-OFILES=$STDIO $MATH $STRING $GEN $POSIX $EXTRA
-OBJ=${OFILES:%.$O=$LIB(%.$O)}
-
-CFLAGS=-c -D_POSIX_SOURCE -D_PLAN9_SOURCE -D_BSD_EXTENSION
-AFLAGS=
-
-none:Q:
-	echo usage: mk entry, all, clean, install, entry.all, installall, nuke
-
-all:V:	$LIB
-
-$LIB:Q:	$OBJ
-	names=`{membername $newprereq}
-	$AR rv $LIB $names && rm -f $names
-
-$LIB(%.$O):N:	%.$O
-
-&:NQ:	&.$O
-	ar vu $LIB $stem.$O
-	rm -f $stem.$O
-
-%.$O:	%.c
-	$CC $CFLAGS $prereq
-
-%.$O:	%.s
-	$AS $AFLAGS $prereq
-
-install:V: $LIB
-
-installall:V:
-	for(objtype in $CPUS) {
-		mk install
+install clean nuke all:V:
+	for(i in $DIRS $objtype)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
 	}
 
-%.all:V:
-	for(objtype in $CPUS) mk $stem
+installall:V:
+	for(objtype in $CPUS) mk $MKFLAGS install
 
-clean:V:
-	rm -f *.[$OS] [$OS].out
-
-nuke:V:	clean
-	rm -f $LIB
-
-S_%.$O:	stdio/%.c
-	$CC $CFLAGS $prereq && mv $stem.$O $target
-
-M_%.$O:	math/%.c
-	$CC $CFLAGS $prereq && mv $stem.$O $target
-
-G_%.$O:	gen/%.c
-	$CC $CFLAGS $prereq && mv $stem.$O $target
-
-P_%.$O:	posix/%.c
-	$CC $CFLAGS $prereq && mv $stem.$O $target
-
-9_%.$O:	plan9/%.c
-	$CC $CFLAGS $prereq && mv $stem.$O $target
-
-9_%.$O:	$objtype/%.s
-	$AS $AFLAGS -o $target $prereq
-
-9_%.$O:	$objtype/%.c
-	$CC $CFLAGS $prereq && mv $stem.$O $target

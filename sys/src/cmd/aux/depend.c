@@ -15,6 +15,13 @@ typedef struct Tardir Tardir;
 
 extern int threadrforkflag = RFNAMEG;
 
+enum{
+	Nstat = 1024,	/* plenty for this application */
+	MAXSIZE = 8192+IOHDRSZ,
+};
+
+int messagesize = MAXSIZE;
+
 void
 fatal(char *fmt, ...)
 {
@@ -23,7 +30,7 @@ fatal(char *fmt, ...)
 
 	write(2, "depend: ", 8);
 	va_start(arg, fmt);
-	doprint(buf, buf+1024, fmt, arg);
+	vseprint(buf, buf+1024, fmt, arg);
 	va_end(arg);
 	write(2, buf, strlen(buf));
 	write(2, "\n", 1);
@@ -39,7 +46,7 @@ enum
 struct Symbol
 {
 	Symbol	*next;		/* hash list chaining */
-	char	sym[NAMELEN];
+	char	*sym;
 	int	fno;		/* file symbol is defined in */
 };
 
@@ -92,6 +99,9 @@ struct Fid
 	Dfile	*df;
 	Symbol	*dp;
 	int	fd;
+	Dir	*dir;
+	int	ndir;
+	int	dirindex;
 };
 
 struct Request
@@ -99,7 +109,7 @@ struct Request
 	Request	*next;
 	Fid	*fid;
 	Fcall	f;
-	char	buf[1];
+	uchar	buf[1];
 };
 
 enum
@@ -144,11 +154,10 @@ extern	void	fsrun(void*);
 extern	Fid*	fsgetfid(Fs*, int);
 extern	void	fsputfid(Fs*, Fid*);
 extern	void	fsreply(Fs*, Request*, char*);
-extern	void	fsnop(Fs*, Request*, Fid*);
-extern	void	fssession(Fs*, Request*, Fid*);
+extern	void	fsversion(Fs*, Request*, Fid*);
+extern	void	fsauth(Fs*, Request*, Fid*);
 extern	void	fsflush(Fs*, Request*, Fid*);
 extern	void	fsattach(Fs*, Request*, Fid*);
-extern	void	fsclone(Fs*, Request*, Fid*);
 extern	void	fswalk(Fs*, Request*, Fid*);
 extern	void	fsopen(Fs*, Request*, Fid*);
 extern	void	fscreate(Fs*, Request*, Fid*);
@@ -162,10 +171,9 @@ extern	void	fswstat(Fs*, Request*, Fid*);
 void 	(*fcall[])(Fs*, Request*, Fid*) =
 {
 	[Tflush]	fsflush,
-	[Tsession]	fssession,
-	[Tnop]		fsnop,
+	[Tversion]	fsversion,
+	[Tauth]	fsauth,
 	[Tattach]	fsattach,
-	[Tclone]	fsclone,
 	[Twalk]		fswalk,
 	[Topen]		fsopen,
 	[Tcreate]	fscreate,
@@ -183,12 +191,14 @@ char Enotdir[] = "not a directory";
 char Eisopen[] = "file already open";
 char Enofid[] = "no such fid";
 char mallocerr[]	= "malloc: %r";
+char Etoolong[]	= "name too long";
 
 char *dependlog = "depend";
 
 int debug;
 Dfile *dfhash[Ndfhash];		/* dependency file hash */
 QLock dfhlock[Ndfhash];
+QLock iolock;
 
 Request*	allocreq(int);
 Dfile*	getdf(char*);
@@ -196,7 +206,7 @@ void	releasedf(Dfile*);
 Symbol*	dfsearch(Dfile*, char*);
 void	dfresolve(Dfile*, int);
 char*	mkpath(char*, char*);
-int	mktar(Dfile*, Symbol*, char*, uint, int);
+int	mktar(Dfile*, Symbol*, uchar*, uint, int);
 void	closetar(Dfile*, Symbol*);
 
 void*
@@ -211,6 +221,31 @@ emalloc(uint n)
 	return p;
 }
 
+void *
+erealloc(void *ReallocP, int ReallocN)
+{
+	if(ReallocN == 0)
+		ReallocN = 1;
+	if(!ReallocP)
+		ReallocP = emalloc(ReallocN);
+	else if(!(ReallocP = realloc(ReallocP, ReallocN)))
+		fatal("unable to allocate %d bytes",ReallocN);
+	return(ReallocP);
+}
+
+char*
+estrdup(char *s)
+{
+	char *d, *d0;
+
+	if(!s)
+		return 0;
+	d = d0 = emalloc(strlen(s)+1);
+	while(*d++ = *s++)
+		;
+	return d0;
+}
+
 /*
  *  mount the user interface and start one request processor
  *  per CPU
@@ -221,7 +256,7 @@ realmain(void *a)
 	Fs *fs;
 	int pfd[2];
 	int srv;
-	char service[2*NAMELEN];
+	char service[128];
 	struct Fsarg fsarg;
 	int argc;
 	char **argv;
@@ -229,7 +264,7 @@ realmain(void *a)
 	argc = (int)((void**)a)[0];
 	argv = ((void**)a)[1];
 
-	fmtinstall('F', fcallconv);
+	fmtinstall('F', fcallfmt);
 
 	ARGBEGIN{
 		case 'd':
@@ -237,10 +272,10 @@ realmain(void *a)
 			break;
 	}ARGEND
 	if(argc != 2){
-		threadprint(2, "usage: %s [-d] svc-name directory", argv0);
+		fprint(2, "usage: %s [-d] svc-name directory", argv0);
 		exits("usage");
 	}
-	sprint(service, "#s/%s", argv[0]);
+	snprint(service, sizeof service, "#s/%s", argv[0]);
 	if(argv[1][0] != '/')
 		fatal("directory must be rooted");
 
@@ -251,7 +286,7 @@ realmain(void *a)
 	srv = create(service, OWRITE, 0666);
 	if(srv < 0)
 		fatal("post: %r");
-	threadprint(srv, "%d", pfd[1]);
+	fprint(srv, "%d", pfd[1]);
 	close(srv);
 	close(pfd[1]);
 
@@ -276,6 +311,7 @@ threadmain(int argc, char *argv[])
 
 	a[0] = (void*)argc;
 	a[1] = argv;
+	rfork(RFNAMEG);
 	proccreate(realmain, a, 16*1024);
 }
 
@@ -305,24 +341,28 @@ fsrun(void *a)
 	int n, t;
 	Request *r;
 	Fid *f;
-	Dir d;
+	Dir *d;
 
 	fsarg = a;
 	fs = fsarg->fs;
 	fs->fd = fsarg->fd;
 	root = fsarg->root;
-	if(dirstat("/", &d) < 0)
+	d = dirstat("/");
+	if(d == nil)
 		fatal("root %s inaccessible: %r", root);
-	fs->rootqid = d.qid;
+	fs->rootqid = d->qid;
+	free(d);
 
 	for(;;){
-		r = allocreq(MAXRPC);
-		n = read(fs->fd, r->buf, MAXRPC);
+		r = allocreq(messagesize);
+		qlock(&iolock);
+		n = read9pmsg(fs->fd, r->buf, messagesize);
+		qunlock(&iolock);
 		if(n <= 0)
-			fatal("unmounted");
+			fatal("read9pmsg error: %r");
 
-		if(convM2S(r->buf, &r->f, n) == 0){
-			threadprint(2, "can't convert %ux %ux %ux\n", r->buf[0],
+		if(convM2S(r->buf, n, &r->f) == 0){
+			fprint(2, "can't convert %ux %ux %ux\n", r->buf[0],
 				r->buf[1], r->buf[2]);
 			free(r);
 			continue;
@@ -331,7 +371,7 @@ fsrun(void *a)
 		f = fsgetfid(fs, r->f.fid);
 		r->fid = f;
 		if(debug)
-			threadprint(2, "%F path %lux\n", &r->f, f->qid.path);
+			fprint(2, "%F path %llux\n", &r->f, f->qid.path);
 
 		t = r->f.type;
 		r->f.type++;
@@ -401,34 +441,40 @@ void
 fsreply(Fs *fs, Request *r, char *err)
 {
 	int n;
-	char buf[MAXRPC];
+	uchar buf[MAXSIZE];
 
 	if(err){
 		r->f.type = Rerror;
-		strncpy(r->f.ename, err, sizeof(r->f.ename));
+		r->f.ename = err;
 	}
 	if(debug)
-		threadprint(2, "%F path %lux\n", &r->f, r->fid->qid.path);
-	n = convS2M(&r->f, buf);
+		fprint(2, "%F path %llux\n", &r->f, r->fid->qid.path);
+	n = convS2M(&r->f, buf, messagesize);
+	if(n == 0)
+		fatal("bad convS2M");
 	if(write(fs->fd, buf, n) != n)
 		fatal("unmounted");
 	free(r);
 }
 
 void
-fsnop(Fs *fs, Request *r, Fid*)
+fsversion(Fs *fs, Request *r, Fid*)
 {
+	if(r->f.msize < 256){
+		fsreply(fs, r, "version: bad message size");
+		return;
+	}
+	if(messagesize > r->f.msize)
+		messagesize = r->f.msize;
+	r->f.msize = messagesize;
+	r->f.version = "9P2000";
 	fsreply(fs, r, nil);
 }
 
 void
-fssession(Fs *fs, Request *r, Fid*)
+fsauth(Fs *fs, Request *r, Fid*)
 {
-	memset(r->f.authid, 0, sizeof(r->f.authid));
-	memset(r->f.authdom, 0, sizeof(r->f.authdom));
-	memset(r->f.chal, 0, sizeof(r->f.chal));
-
-	fsreply(fs, r, nil);
+	fsreply(fs, r, "depend: authentication not required");
 }
 
 void
@@ -449,11 +495,172 @@ fsattach(Fs *fs, Request *r, Fid *f)
 	f->ref++;
 	unlock(fs);
 
-	memset(r->f.rauth, 0, sizeof(r->f.rauth));
 	r->f.qid = f->qid;
 	fsreply(fs, r, nil);
 }
 
+void
+fswalk(Fs *fs, Request *r, Fid *f)
+{
+	Fid *nf;
+	char *name, *tmp;
+	int i, nqid, nwname;
+	char errbuf[ERRMAX], *err;
+	Qid qid[MAXWELEM];
+	Dfile *lastdf;
+	char *path, *npath;
+	Dir *d;
+	Symbol *dp;
+
+	if(f->attached == 0){
+		fsreply(fs, r, Eexist);
+		return;
+	}
+
+	if(f->fd >= 0 || f->open)
+		fatal("walk of an open file");
+
+	nf = nil;
+	if(r->f.newfid != r->f.fid){
+		nf = fsgetfid(fs, r->f.newfid);
+		nf->attached = 1;
+		nf->open = f->open;
+		nf->path = strdup(f->path);
+		nf->qid = f->qid;
+		nf->dp = f->dp;
+		nf->fd = f->fd;
+		nf->df = f->df;
+		if(nf->df){
+			lock(nf->df);
+			nf->df->use++;
+			unlock(nf->df);
+		}
+		if(r->f.nwname == 0){
+			r->f.nwqid = 0;
+			fsreply(fs, r, nil);
+			return;
+		}
+		f = nf;
+	}
+
+	err = nil;
+	path = strdup(f->path);
+	if(path == nil)
+		fatal(mallocerr);
+	nqid = 0;
+	nwname = r->f.nwname;
+	lastdf = f->df;
+
+	if(nwname > 0){
+		for(; nqid<nwname; nqid++){
+			name = r->f.wname[nqid];
+
+			if(strcmp(name, ".") == 0){
+	Noop:
+				if(nqid == 0)
+					qid[nqid] = f->qid;
+				else
+					qid[nqid] = qid[nqid-1];
+				continue;
+			}
+
+			if(strcmp(name, "..") == 0){
+				name = strrchr(path, '/');
+				if(name){
+					if(name == path)	/* at root */
+						goto Noop;
+					*name = '\0';
+				}
+				d = dirstat(path);
+				if(d == nil){
+					*name = '/';
+					errstr(errbuf, sizeof errbuf);
+					err = errbuf;
+					break;
+				}
+	Directory:
+				qid[nqid] = d->qid;
+				free(d);
+				releasedf(lastdf);
+				lastdf = getdf(mkpath(path, ".depend"));
+				continue;
+			}
+
+			npath = mkpath(path, name);
+			free(path);
+			path = npath;
+			d = dirstat(path);
+
+			if(d !=nil && (d->qid.type & QTDIR))
+				goto Directory;
+			free(d);
+
+			qid[nqid].type = QTFILE;
+			qid[nqid].path = 0;
+			qid[nqid].vers = 0;
+
+			dp = dfsearch(lastdf, name);
+			if(dp == nil){
+				tmp = strdup(name);
+				if(tmp == nil)
+					fatal("mallocerr");
+				i = strlen(tmp);
+				if(i > 4 && strcmp(&tmp[i-4], ".tar") == 0){
+					tmp[i-4] = 0;
+					dp = dfsearch(lastdf, tmp);
+				}
+				free(tmp);
+			}
+
+			if(dp == nil){
+				err = Eexist;
+				break;
+			}
+			qid[nqid].path = (uint)dp;
+			qid[nqid].vers = 0;
+		}
+		if(nqid == 0 && err == nil)
+			err = "file does not exist";
+	}
+
+	/* for error or partial success, put the cloned fid back*/
+	if(nf!=nil && (err != nil || nqid < nwname)){
+		releasedf(nf->df);
+		nf->df = nil;
+		fsputfid(fs, nf);
+	}
+
+	if(err == nil){
+		/* return (possibly short) list of qids */
+		for(i=0; i<nqid; i++)
+			r->f.wqid[i] = qid[i];
+		r->f.nwqid = nqid;
+
+		/* for full success, advance f */
+		if(nqid > 0 && nqid == nwname){
+			free(f->path);
+			f->path = path;
+			path = nil;
+
+			f->qid = qid[nqid-1];
+			f->dp = (Symbol*)f->qid.path;
+
+			if(f->df != lastdf){
+				releasedf(f->df);
+				f->df = lastdf;
+				lastdf = nil;
+			}
+
+		}
+	}
+
+	releasedf(lastdf);
+	free(path);
+
+	fsreply(fs, r, err);
+}
+
+#ifdef adf
 void
 fsclone(Fs *fs, Request *r, Fid *f)
 {
@@ -520,8 +727,7 @@ fswalk(Fs *fs, Request *r, Fid *f)
 		}
 		r->f.qid = f->qid = d.qid;
 
-		if(f->df)
-			releasedf(f->df);
+		releasedf(f->df);
 		f->df = getdf(mkpath(f->path, ".depend"));
 
 		fsreply(fs, r, nil);
@@ -552,20 +758,19 @@ fswalk(Fs *fs, Request *r, Fid *f)
 	f->path = path;
 
 	if(d.qid.path & CHDIR){
-		if(f->df)
-			releasedf(f->df);
+		releasedf(f->df);
 		f->df = getdf(mkpath(f->path, ".depend"));
 	}
 
 	r->f.qid = f->qid = d.qid;
 	fsreply(fs, r, nil);
 }
-
+#endif
 void
 fsopen(Fs *fs, Request *r, Fid *f)
 {
 	int mode;
-	char errbuf[ERRLEN];
+	char errbuf[ERRMAX];
 	
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
@@ -582,10 +787,10 @@ fsopen(Fs *fs, Request *r, Fid *f)
 		return;
 	}
 
-	if(f->qid.path & CHDIR){
+	if(f->qid.type & QTDIR){
 		f->fd = open(f->path, OREAD);
 		if(f->fd < 0){
-			errstr(errbuf);
+			errstr(errbuf, sizeof errbuf);
 			fsreply(fs, r, errbuf);
 			return;
 		}
@@ -605,10 +810,10 @@ fscreate(Fs *fs, Request *r, Fid*)
 void
 fsread(Fs *fs, Request *r, Fid *f)
 {
-	int i, n, skip;
+	int i, n, len,skip;
 	Dir d;
-	char dirbuf[DIRLEN];
 	Symbol *dp;
+	char buf[512];
 
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
@@ -619,47 +824,56 @@ fsread(Fs *fs, Request *r, Fid *f)
 		return;
 	}
 
-	if(f->qid.path & CHDIR){
-		skip = r->f.offset/DIRLEN;
-		for(n = 0; r->f.count - n >= DIRLEN;){
-			i = read(f->fd, dirbuf, DIRLEN);
-			if(i <= 0)
-				break;
-			convM2D(dirbuf, &d);
-			if((d.qid.path & CHDIR) == 0)
-				continue;
-			if(skip-- > 0)
-				continue;
-			memmove(r->buf + n, dirbuf, DIRLEN);
-			n += DIRLEN;
+	if(f->qid.type & QTDIR){
+		n = 0;
+		if(f->dir == nil){
+			f->ndir = dirreadall(f->fd, &f->dir);
+			f->dirindex = 0;
 		}
+		if(f->dir == nil)
+			goto Return;
+		if(r->f.offset == 0)	/* seeking to zero is permitted */
+			f->dirindex = 0;
+		for(; f->dirindex < f->ndir; f->dirindex++){
+			if((f->dir[f->dirindex].qid.type & QTDIR) == 0)
+				continue;
+			len = convD2M(&f->dir[f->dirindex], r->buf+n, r->f.count-n);
+			if(len <= BIT16SZ)
+				goto Return;
+			n += len;
+		}
+
+		skip = f->dirindex - f->ndir;	/* # depend records already read */
+
 		if(f->df){
 			for(i = 0; i < f->df->hlen; i++)
 				for(dp = f->df->dhash[i]; dp; dp = dp->next){
 					if(skip-- > 0)
 						continue;
-					if(r->f.count - n < DIRLEN)
-						goto break2;
-					strcpy(d.name, dp->sym);
-					if(strlen(dp->sym) < NAMELEN - 5)
-						strcat(d.name, ".tar");
-					strcpy(d.uid, "none");
-					strcpy(d.gid, "none");
+					snprint(buf, sizeof buf, "%s.tar", dp->sym);
+					d.name = buf;
+					d.uid = "none";
+					d.gid = "none";
+					d.muid = "none";
+					d.qid.type = QTFILE;
 					d.qid.path = (uint)dp;
 					d.qid.vers = 0;
 					d.length = f->df->file[dp->fno].tarlen;
 					d.mode = 0444;
 					d.mtime = time(nil);
 					d.atime = time(nil);
-					convD2M(&d, r->buf + n);
-					n += DIRLEN;
+					len = convD2M(&d, r->buf + n, r->f.count - n);
+					if(len <= BIT16SZ)
+						goto Return;
+					n += len;
+					f->dirindex++;
 				}
-    break2:;
 		}
 	} else
 		n = mktar(f->df, f->dp, r->buf, r->f.offset, r->f.count);
 
-	r->f.data = r->buf;
+    Return:
+	r->f.data = (char*)r->buf;
 	r->f.count = n;
 	fsreply(fs, r, nil);
 }
@@ -682,12 +896,13 @@ fsclunk(Fs *fs, Request *r, Fid *f)
 		f->fd = -1;
 	}
 
-	if((f->qid.path & CHDIR) == 0)
+	if((f->qid.type & QTDIR) == 0)
 		closetar(f->df, f->dp);
 
-	if(f->df)
-		releasedf(f->df);
+	releasedf(f->df);
 	f->df = nil;
+	free(f->dir);
+	f->dir = nil;
 
 	fsreply(fs, r, nil);
 	fsputfid(fs, f);
@@ -702,28 +917,35 @@ fsremove(Fs *fs, Request *r, Fid*)
 void
 fsstat(Fs *fs, Request *r, Fid *f)
 {
-	char err[ERRLEN];
+	char err[ERRMAX];
 	Dir d;
 	Symbol *dp;
+	int n;
+	uchar statbuf[Nstat];
 
-	if(f->qid.path & CHDIR){
-		if(stat(f->path, r->f.stat) < 0){
-			errstr(err);
-			fsreply(fs, r, err);
-		} else
-			fsreply(fs, r, nil);
-	} else {
+	if(f->qid.type & QTDIR)
+		n = stat(f->path, statbuf, sizeof statbuf);
+	else {
 		dp = f->dp;
-		strcpy(d.name, dp->sym);
-		strcpy(d.uid, "none");
-		strcpy(d.gid, "none");
+		d.name = dp->sym;
+		d.uid = "none";
+		d.gid = "none";
+		d.muid = "none";
+		d.qid.type = QTFILE;
 		d.qid.path = (uint)dp;
 		d.qid.vers = 0;
 		d.length = f->df->file[dp->fno].tarlen;
 		d.mode = 0444;
 		d.mtime = time(nil);
 		d.atime = time(nil);
-		convD2M(&d, r->f.stat);
+		n = convD2M(&d, statbuf, sizeof statbuf);
+	}
+	if(n <= BIT16SZ){
+		errstr(err, sizeof err);
+		fsreply(fs, r, err);
+	} else {
+		r->f.stat = statbuf;
+		r->f.nstat = n;
 		fsreply(fs, r, nil);
 	}
 }
@@ -793,8 +1015,9 @@ newsym(char *name, int fno, Symbol **l)
 	Symbol *dp;
 
 	dp = emalloc(sizeof(Symbol));
-	strncpy(dp->sym, name, sizeof(dp->sym));
-	dp->sym[sizeof(dp->sym)-1] = 0;
+	dp->sym = strdup(name);
+	if(dp->sym == nil)
+		fatal("mallocerr");
 	dp->next = *l;
 	dp->fno = fno;
 	*l = dp;
@@ -830,11 +1053,11 @@ crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
 {
 	char *name;
 	char *field[3];
-	int n, inc, ok;
+	char path[512];
+	int n, inc, ok, npath;
 	Symbol **l, *dp, *next;
 	File *f, *ef;
-	char *path;
-	Dir d;
+	Dir *d;
 
 	inc = 32;
 	df->flen = inc;
@@ -879,20 +1102,23 @@ crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
 	ef = &df->file[df->nfile];
 
 	/* stat the files to get sizes */
-	path = emalloc(strlen(dpath) + NAMELEN + 2 + 3);
-	strcpy(path, dpath);
+	npath = strlen(dpath);
+	if(npath+1+1 >= sizeof path)
+		fatal(Etoolong);
+	memmove(path, dpath, npath+1);	/* include NUL */
 	name = strrchr(path, '/') + 1;
 	for(f = df->file; f < ef; f++){
-		strcpy(name, f->name);
-		n = strlen(name);
-		d.length = 0;
-		ok = dirstat(path, &d);
+		n = strlen(f->name);
+		if(npath+1+n+3+1 > sizeof path)
+			fatal(Etoolong);
+		memmove(name, f->name, n+1);	/* include NUL */
+		ok = access(path, AEXIST);
 		if(ok < 0){
 			strcpy(name+n, ".Z");
-			ok = dirstat(path, &d);
+			ok = access(path, AEXIST);
 			if(ok < 0){
 				strcpy(name+n, ".gz");
-				ok = dirstat(path, &d);
+				ok = access(path, AEXIST);
 			}
 		}
 		if(ok >= 0){
@@ -901,12 +1127,19 @@ crackdf(Dfile *df, Biobuf *b, uint len, char *dpath)
 			if(f->name == nil)
 				fatal(mallocerr);
 		}
-		f->len = d.length;
-		f->mode = d.mode;
-		f->mtime = d.mtime;
+		d = dirstat(path);
+		if(d){
+			f->len = d->length;
+			f->mode = d->mode;
+			f->mtime = d->mtime;
+			free(d);
+		}else{
+			f->len = 0;
+			f->mode = 0;
+			f->mtime = 0;
+		}
 		f->fd = -1;
 	}
-	free(path);
 
 	/* resolve all file references */
 	for(f = df->file; f < ef; f++)
@@ -931,8 +1164,8 @@ getdf(char *path)
 {
 	Dfile *df, **l;
 	QLock *lk;
-	Dir d;
-	int i, rv, fd;
+	Dir *d;
+	int i, fd;
 	Biobuf *b;
 
 	i = shash(path, Ndfhash);
@@ -944,35 +1177,33 @@ getdf(char *path)
 			break;
 		l = &df->next;
 	}
-	rv = dirstat(path, &d);
+	d = dirstat(path);
 
 	if(df){
-		if(rv >= 0 && d.qid.path == df->qid.path && d.qid.vers == df->qid.vers){
+		if(d!=nil && d->qid.type == df->qid.type && d->qid.vers == df->qid.vers && d->qid.vers == df->qid.vers){
 			free(path);
 			lock(df);
 			df->use++;
 			unlock(df);
-			qunlock(lk);
-			return df;
+			goto Return;
 		}
 		*l = df->next;
 		freedf(df);
 	}
 
 	fd = open(path, OREAD);
-	if(rv < 0 || fd < 0){
-		qunlock(lk);
+	if(d == nil || fd < 0){
 		close(fd);
-		return nil;
+		goto Return;
 	}
 
 	df = emalloc(sizeof(*df));
 	b = emalloc(sizeof(Biobuf));
 
 	Binit(b, fd, OREAD);
-	df->qid = d.qid;
+	df->qid = d->qid;
 	df->path = path;
-	crackdf(df, b, d.length, path);
+	crackdf(df, b, d->length, path);
 	Bterm(b);
 
 	free(b);
@@ -980,7 +1211,9 @@ getdf(char *path)
 	df->next = *l;
 	*l = df;
 	df->use = 1;
+    Return:
 	qunlock(lk);
+	free(d);
 	return df;
 }
 
@@ -993,6 +1226,9 @@ releasedf(Dfile *df)
 	Dfile **l, *d;
 	QLock *lk;
 	int i;
+
+	if(df == nil)
+		return;
 
 	/* remove from hash chain */
 	i = shash(df->path, Ndfhash);
@@ -1096,13 +1332,13 @@ dfresolve(Dfile *df, int fno)
 /*
  *  make the tar directory block for a file
  */
-char*
+uchar*
 mktardir(File *f)
 {
-	char *ep;
+	uchar *ep;
 	Tardir *tp;
 	uint sum;
-	char *p, *cp;
+	uchar *p, *cp;
 
 	p = emalloc(Tblocksize);
 	tp = (Tardir*)p;
@@ -1131,20 +1367,21 @@ mktardir(File *f)
 int
 getfile(Dfile *df, File *f)
 {
-	char *path;
-	char *name;
+	int n;
+	char path[512], *name;
 
 	qlock(f);
 	f->use++;
 	if(f->fd < 0){
-		path = emalloc(strlen(df->path) + NAMELEN + 2 + 2);
-		strcpy(path, df->path);
-		name = strrchr(path, '/') + 1;
-		strcpy(name, f->name);
+		name = strrchr(df->path, '/') + 1;
+		n = snprint(path, sizeof path, "%.*s/%s", (int)(name-df->path), df->path, f->name);
+		if(n >= sizeof path - UTFmax){
+			syslog(0, dependlog, "path name too long: %.20s.../%.20s...", df->path, f->name);
+			return -1;
+		}
 		f->fd = open(path, OREAD);
 		if(f->fd < 0)
 			syslog(0, dependlog, "can't open %s: %r", path);
-		free(path);
 	}
 
 	return f->fd;
@@ -1170,10 +1407,10 @@ closefile(File *f)
  *  return a block of a tar file
  */
 int
-mktar(Dfile *df, Symbol *dp, char *area, uint offset, int len)
+mktar(Dfile *df, Symbol *dp, uchar *area, uint offset, int len)
 {
 	int fd, i, j, n, off;
-	char *p, *buf;
+	uchar *p, *buf;
 	uchar *vec;
 	File *f;
 
@@ -1199,7 +1436,7 @@ mktar(Dfile *df, Symbol *dp, char *area, uint offset, int len)
 				j = Tblocksize - offset;
 			else
 				j = len;
-/* if(debug)threadprint(2, "reading %d bytes dir of %s\n", j, f->name); */
+//if(debug)fprint(2, "reading %d bytes dir of %s\n", j, f->name);
 			memmove(p, buf+offset, j);
 			p += j;
 			len -= j;
@@ -1216,9 +1453,8 @@ mktar(Dfile *df, Symbol *dp, char *area, uint offset, int len)
 				j = len;
 			fd = getfile(df, f);
 			if(fd >= 0){
-/* if(debug)threadprint(2, "reading %d bytes from offset %d of %s\n", j, off, f->name); */
-				seek(fd, off, 0);
-				if(read(fd, p, j) != j)
+//if(debug)fprint(2, "reading %d bytes from offset %d of %s\n", j, off, f->name);
+				if(pread(fd, p, j, off) != j)
 					syslog(0, dependlog, "%r reading %d bytes from offset %d of %s", j, off, f->name);
 			}
 			releasefile(f);
@@ -1233,7 +1469,7 @@ mktar(Dfile *df, Symbol *dp, char *area, uint offset, int len)
 				j = n - offset;
 			else
 				j = len;
-/* if(debug)threadprint(2, "filling %d bytes after %s\n", j, f->name); */
+//if(debug)fprint(2, "filling %d bytes after %s\n", j, f->name);
 			memset(p, 0, j);
 			p += j;
 			len -= j;
@@ -1247,7 +1483,7 @@ mktar(Dfile *df, Symbol *dp, char *area, uint offset, int len)
 			j = 2*Tblocksize - offset;
 		else
 			j = len;
-/* if(debug)threadprint(2, "filling %d bytes at end\n", j); */
+//if(debug)fprint(2, "filling %d bytes at end\n", j);
 		memset(p, 0, j);
 		p += j;
 	}

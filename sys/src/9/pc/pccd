@@ -1,0 +1,103 @@
+dev
+	root
+	cons
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+	cap
+	kprof
+
+	ether		netif
+	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+
+	sd
+	floppy		dma
+	lpt
+
+	audio		dma
+	pccard
+	i82365		cis
+	uart
+	usb
+
+link
+	devpccard
+	devi82365
+	apm		apmjump
+	ether2000	ether8390
+	ether2114x	pci
+	ether589	etherelnk3
+	ether79c970	pci
+	ether8003	ether8390
+	ether82557	pci
+	etherec2t	ether8390
+	etherelnk3	pci
+	ethersink
+	etherwavelan	devi82365 cis pci
+	ethermedium
+	pcmciamodem
+	netdevmedium
+	usbuhci
+#	usbohci
+
+misc
+	nulledf
+	archmp		mp apic
+
+	ipconfig.root
+	9660srv.root
+	factotum.root
+	cfs.root
+
+	sdata		pci sdscsi
+	sd53c8xx		pci sdscsi
+	sdmylex		pci sdscsi
+
+	uarti8250
+
+	vga3dfx		+cur
+	vgaark2000pv	+cur
+	vgabt485	=cur
+	vgaclgd542x	+cur
+	vgaclgd546x	+cur
+	vgact65545	+cur
+	vgacyber938x	+cur
+	vgaet4000	+cur
+	vgahiqvideo	+cur
+	vgai81x	+cur
+	vgamach64xx	+cur
+	vgamga2164w	+cur
+	vganeomagic	+cur
+	vgargb524	=cur
+	vgas3		+cur vgasavage
+	vgat2r4		+cur
+	vgatvp3020	=cur
+	vgatvp3026	=cur
+	vgavmware	+cur
+	vganvidia	+cur
+
+ip
+	il
+	tcp
+	udp
+	ipifc
+	icmp
+
+port
+	int cpuserver = 0;
+
+boot boot #S/sdD0/data
+	il
+	local

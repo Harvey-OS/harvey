@@ -140,26 +140,28 @@ dmastart(int chan,  ulong addr, int count) {
 		return 0;
 	}
 	cachewbregion(addr, count);
-	n = 1;
+	n = 0x100;
 	if ((status & (1<<BIU | 1<<STRTB)) == (1<<BIU | 1<<STRTB) ||
 		(status & (1<<BIU | 1<<STRTA)) == 0) {
 		if (status & 1<<STRTA)
 			iprint("writing busy dma entry 0x%lux\n", status);
 		if (status & 1<<STRTB)
-			n = (last == 1)?2:3;
+			n = (last == 1)?0x200:0x300;
 		last = 2;
 		dmaregs[chan].dstrtA = addr;
 		dmaregs[chan].dxcntA = count;
 		dmaregs[chan].dcsr_set = 1<<RUN | 1<<IE | 1<<STRTA;
+		n |= 1<<DONEA;
 	} else {
 		if (status & 1<<STRTB)
 			iprint("writing busy dma entry 0x%lux\n", status);
 		if (status & 1<<STRTA)
-			n = (last == 2)?2:3;
+			n = (last == 2)?0x200:0x300;
 		last = 1;
 		dmaregs[chan].dstrtB = addr;
 		dmaregs[chan].dxcntB = count;
 		dmaregs[chan].dcsr_set = 1<<RUN | 1<<IE | 1<<STRTB;
+		n |= 1<<DONEB;
 	}
 	return n;
 }

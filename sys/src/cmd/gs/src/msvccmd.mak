@@ -1,27 +1,25 @@
-#    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1997, 1998 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This file is part of Aladdin Ghostscript.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+# or distributor accepts any responsibility for the consequences of using it,
+# or for whether it serves any particular purpose or works at all, unless he
+# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+# License (the "License") for full details.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# Every copy of Aladdin Ghostscript must include a copy of the License,
+# normally in a plain ASCII text file named PUBLIC.  The License grants you
+# the right to copy, modify and redistribute Aladdin Ghostscript, but only
+# under certain conditions described in the License.  Among other things, the
+# License requires that the copyright notice and this notice be preserved on
+# all copies.
 
-# $Id: msvccmd.mak,v 1.5 2000/09/19 19:00:47 lpd Exp $
+# $Id: msvccmd.mak,v 1.1 2000/03/09 08:40:44 lpd Exp $
 # Command definition section for Microsoft Visual C++ 4.x/5.x,
 # Windows NT or Windows 95 platform.
 # Created 1997-05-22 by L. Peter Deutsch from msvc4/5 makefiles.
 # edited 1997-06-xx by JD to factor out interpreter-specific sections
-# edited 2000-03-30 by lpd to make /FPi87 conditional on MSVC version
-# edited 2000-06-05 by lpd to treat empty INCDIR and LIBDIR specially.
 
 # Set up linker differently for MSVC 4 vs. later versions
 
@@ -32,18 +30,13 @@
 QI0f=
 
 # Set up LIB enviromnent variable to include LIBDIR. This is a hack for
-# MSVC4.x, which doesn't have compiler switches to do the deed.
+# MSVC4.x, which doesn't have compiler switches to do the deed
 
-!if "$(LIBDIR)"==""
-LINK_SETUP=
-CCAUX_SETUP=
-!else
-! ifdef LIB
+!ifdef LIB
 LIB=$(LIBDIR);$(LIB)
-! else
+!else
 LINK_SETUP=set LIB=$(LIBDIR)
 CCAUX_SETUP=$(LINK_SETUP)
-! endif
 !endif
 
 !else
@@ -54,11 +47,7 @@ QI0f=/QI0f
 
 # Define linker switch that will select where MS libraries are.
 
-!if "$(LIBDIR)"==""
-LINK_LIB_SWITCH=
-!else
 LINK_LIB_SWITCH=/LIBPATH:$(LIBDIR)
-!endif
 
 # Define separate CCAUX command-line switch that must be at END of line.
 
@@ -108,7 +97,7 @@ CPFLAGS=/GB $(QI0f)
 CPFLAGS=/GB $(QI0f)
 !endif
 
-!if $(FPU_TYPE)>0 && $(MSVC_VERSION)<5
+!if $(FPU_TYPE)>0
 FPFLAGS=/FPi87
 !else
 FPFLAGS=
@@ -205,11 +194,7 @@ CC_NO_WARN=$(CC_)
 
 # Compiler for auxiliary programs
 
-!if "$(INCDIR)"==""
-CCAUX=$(COMPAUX) /O
-!else
 CCAUX=$(COMPAUX) /I$(INCDIR) /O
-!endif
 
 # Compiler for Windows programs.
 # /Ze enables MS-specific extensions (this is also the default).

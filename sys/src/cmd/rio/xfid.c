@@ -6,7 +6,6 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -68,7 +67,7 @@ xfidallocthread(void*)
 				threadcreate(xfidctl, x, 16384);
 			}
 			if(x->ref != 0){
-				threadprint(2, "%p incref %ld\n", x, x->ref);
+				fprint(2, "%p incref %ld\n", x, x->ref);
 				error("incref");
 			}
 			if(x->flushtag != -1)
@@ -78,7 +77,7 @@ xfidallocthread(void*)
 			break;
 		case Free:
 			if(x->ref != 0){
-				threadprint(2, "%p decref %ld\n", x, x->ref);
+				fprint(2, "%p decref %ld\n", x, x->ref);
 				error("decref");
 			}
 			if(x->flushtag != -1)
@@ -149,9 +148,9 @@ void
 xfidattach(Xfid *x)
 {
 	Fcall t;
-	int id;
+	int id, hideit;
 	Window *w;
-	char *err, *n, *dir, errbuf[ERRLEN];
+	char *err, *n, *dir, errbuf[ERRMAX];
 	int pid, newlymade;
 	Rectangle r;
 	Image *i;
@@ -161,6 +160,7 @@ xfidattach(Xfid *x)
 	w = nil;
 	err = Eunkid;
 	newlymade = FALSE;
+	hideit = 0;
 
 	if(x->aname[0] == 'N'){	/* N 100,100, 200, 200 - old syntax */
 		n = x->aname+1;
@@ -181,21 +181,23 @@ xfidattach(Xfid *x)
 		if(!goodrect(r))
 			err = Ebadrect;
 		else{
-			i = allocwindow(wscreen, r, Refbackup, DWhite);
+			if(hideit)
+				i = allocimage(display, r, screen->chan, 0, DWhite);
+			else
+				i = allocwindow(wscreen, r, Refbackup, DWhite);
 			if(i){
 				border(i, r, Selborder, display->black, ZP);
 				if(pid == 0)
 					pid = -1;	/* make sure we don't pop a shell! - UGH */
-				w = new(i, pid, nil, nil, nil);
+				w = new(i, hideit, pid, nil, nil, nil);
 				flushimage(display, 1);
 				newlymade = TRUE;
 			}else
 				err = Ewindow;
 		}
 	}else if(strncmp(x->aname, "new", 3) == 0){	/* new -dx -dy - new syntax, as in wctl */
-		x->aname[sizeof x->aname -1] = '\0';
 		pid = 0;
-		if(parsewctl(nil, ZR, &r, &pid, nil, &dir, x->aname, errbuf) < 0)
+		if(parsewctl(nil, ZR, &r, &pid, nil, &hideit, &dir, x->aname, errbuf) < 0)
 			err = errbuf;
 		else
 			goto Allocate;
@@ -285,6 +287,7 @@ xfidopen(Xfid *x)
 		break;
 	}
 	t.qid = x->f->qid;
+	t.iounit = messagesize-IOHDRSZ;
 	x->f->open = TRUE;
 	x->f->mode = x->mode;
 	filsysrespond(x->fs, x, &t, nil);
@@ -300,10 +303,14 @@ xfidclose(Xfid *x)
 	w = x->f->w;
 	switch(FILE(x->f->qid)){
 	case Qconsctl:
-		if(w->rawing && --w->rawing==FALSE)
+		if(w->rawing){
+			w->rawing = FALSE;
 			wsendctlmesg(w, Rawoff, ZR, nil);
-		if(w->holding && --w->holding==FALSE)
+		}
+		if(w->holding){
+			w->holding = FALSE;
 			wsendctlmesg(w, Holdoff, ZR, nil);
+		}
 		w->ctlopen = FALSE;
 		break;
 	case Qcursor:
@@ -362,7 +369,7 @@ xfidwrite(Xfid *x)
 	case Qcons:
 		nr = x->f->nrpart;
 		if(nr > 0){
-			memmove(x->data+nr, x->data, cnt);
+			memmove(x->data+nr, x->data, cnt);	/* there's room: see malloc in filsysproc */
 			memmove(x->data, x->f->rpart, nr);
 			cnt += nr;
 			x->f->nrpart = 0;
@@ -454,12 +461,14 @@ xfidwrite(Xfid *x)
 		break;
 
 	case Qlabel:
-		if(off > NAMELEN-1)
-			off = NAMELEN-1;
-		if(off+cnt > NAMELEN-1)
-			cnt = NAMELEN-1-off;
-		memmove(w->label+off, x->data, cnt);
-		w->label[off+cnt] = 0;
+		if(off != 0){
+			filsysrespond(x->fs, x, &fc, "non-zero offset writing label");
+			return;
+		}
+		free(w->label);
+		w->label = emalloc(cnt+1);
+		memmove(w->label, x->data, cnt);
+		w->label[cnt] = 0;
 		break;
 
 	case Qmouse:
@@ -526,10 +535,11 @@ xfidwrite(Xfid *x)
 			filsysrespond(x->fs, x, &fc, buf);
 			return;
 		}
+		flushimage(display, 1);
 		break;
 
 	default:
-		threadprint(2, buf, "unknown qid %d in write\n", qid);
+		fprint(2, buf, "unknown qid %d in write\n", qid);
 		sprint(buf, "unknown qid in write");
 		filsysrespond(x->fs, x, &fc, buf);
 		return;
@@ -539,12 +549,12 @@ xfidwrite(Xfid *x)
 }
 
 int
-readwindow(Image *w, char *t, Rectangle r, int offset, int n)
+readwindow(Image *i, char *t, Rectangle r, int offset, int n)
 {
 	int ww, y;
 
 	offset -= 5*12;
-	ww = bytesperline(r, w->depth);
+	ww = bytesperline(r, screen->depth);
 	r.min.y += offset/ww;
 	if(r.min.y >= r.max.y)
 		return 0;
@@ -553,7 +563,7 @@ readwindow(Image *w, char *t, Rectangle r, int offset, int n)
 		r.max.y = y;
 	if(r.max.y <= r.min.y)
 		return 0;
-	return unloadimage(w, r, (uchar*)t, n);
+	return unloadimage(i, r, (uchar*)t, n);
 }
 
 void
@@ -744,26 +754,32 @@ xfidread(Xfid *x)
 
 	case Qscreen:
 		i = display->image;
+		if(i == nil){
+			filsysrespond(x->fs, x, &fc, "no top-level screen");
+			break;
+		}
 		r = i->r;
 		/* fall through */
 
 	caseImage:
 		if(off < 5*12){
 			n = sprint(buf, "%11s %11d %11d %11d %11d ",
-				chantostr(cbuf, display->chan),
+				chantostr(cbuf, screen->chan),
 				i->r.min.x, i->r.min.y, i->r.max.x, i->r.max.y);
 			t = estrdup(buf);
 			goto Text;
 		}
 		t = malloc(cnt);
 		fc.data = t;
-		fc.count = readwindow(i, t, r, off, cnt);
-		if(fc.count < 0){
+		n = readwindow(i, t, r, off, cnt);	/* careful; fc.count is unsigned */
+		if(n < 0){
 			buf[0] = 0;
-			errstr(buf);
+			errstr(buf, sizeof buf);
 			filsysrespond(x->fs, x, &fc, buf);
-		}else
+		}else{
+			fc.count = n;
 			filsysrespond(x->fs, x, &fc, nil);
+		}
 		free(t);
 		return;
 
@@ -817,7 +833,7 @@ xfidread(Xfid *x)
 		break;
 
 	default:
-		threadprint(2, "unknown qid %d in read\n", qid);
+		fprint(2, "unknown qid %d in read\n", qid);
 		sprint(buf, "unknown qid in read");
 		filsysrespond(x->fs, x, &fc, buf);
 		break;

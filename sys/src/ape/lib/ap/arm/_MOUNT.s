@@ -1,4 +1,0 @@
-TEXT _MOUNT(SB), 1, $-4
-MOVW $13, R0
-SWI 0
-RET

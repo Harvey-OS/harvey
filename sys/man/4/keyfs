@@ -243,6 +243,6 @@ to decrypt key files.
 .br
 .B /sys/src/cmd/auth/warning.c
 .SH "SEE ALSO"
-.IR auth (6),
+.IR authsrv (6),
 .IR namespace (6),
 .IR auth (8)

@@ -417,6 +417,7 @@ nvramread(int offset)
 }
 
 void (*etherdetach)(void);
+void (*floppydetach)(void);
 void (*sddetach)(void);
 
 void
@@ -448,6 +449,10 @@ void
 uartputs(IOQ*, char*, int)
 {
 }
+
+void
+uartputc(int)
+{}
 
 void
 uartdrain(void)

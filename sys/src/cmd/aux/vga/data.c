@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
+#include "pci.h"
 #include "vga.h"
 
 int cflag;					/* do not use hwgc */
@@ -31,6 +32,8 @@ Ctlr* ctlrs[] = {
 	&generic,				/* ctlr */
 	&hiqvideo,				/* ctlr */
 	&hiqvideohwgc,				/* hwgc */
+	&i81x,				/* ctlr */
+	&i81xhwgc,				/* hwgc */
 	&ibm8514,				/* ctlr */
 	&icd2061a,				/* clock */
 	&ics2494,				/* clock */
@@ -44,6 +47,8 @@ Ctlr* ctlrs[] = {
 	&mga2164whwgc,				/* hwgc */
 	&neomagic,				/* ctlr */
 	&neomagichwgc,				/* hwgc */
+	&nvidia,				/* ctlr */
+	&nvidiahwgc,				/* hwgc */
 	&palette,				/* ctlr */
 	&rgb524,				/* ramdac */
 	&rgb524hwgc,				/* hwgc */
@@ -71,7 +76,11 @@ Ctlr* ctlrs[] = {
 	&vision864,				/* ctlr */
 	&vision964,				/* ctlr */
 	&vision968,				/* ctlr */
+	&vmware,				/* ctlr */
+	&vmwarehwgc,				/* hwgc */
 	&w30c516,				/* ctlr */
+	&mga4xx,
+	&mga4xxhwgc,
 	0,
 };
 

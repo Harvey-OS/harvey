@@ -10,7 +10,7 @@ struct Disk
 	int	nab;	/* number of allocation blocks */
 	int	b2b;	/* allocation bits to a block */
 	int	p2b;	/* Dptr's per page */
-	char	name[NAMELEN];
+	char	name[KNAMELEN];
 };
 
 int	dinit(Disk*, int, int);

@@ -12,7 +12,6 @@ char	BADEQ[] = "unexpected `='";
 BOOL	executing;
 extern	char	*lp;
 
-extern	char	lastc, peekc;
 char	eqformat[ARB] = "z";
 char	stformat[ARB] = "zMi";
 
@@ -44,8 +43,10 @@ command(char *buf, int defcom)
 	}
 	do {
 		adrflg=expr(0);		/* first address */
-		if (adrflg)
-			dot=ditto=expv;
+		if (adrflg){
+			dot=expv;
+			ditto=expv;
+		}
 		adrval=dot;
 
 		if (rdc()==',' && expr(0)) {	/* count */
@@ -296,7 +297,7 @@ shell(void)
 		error("cannot fork");
 	} else {
 		mkfault = 0;
-		while ((rc = wait(0)) != unixpid){
+		while ((rc = waitpid()) != unixpid){
 			if(rc == -1 && mkfault){
 				mkfault = 0;
 				continue;

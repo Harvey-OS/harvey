@@ -3,15 +3,14 @@
 clunk \- forget about a fid
 .SH SYNOPSIS
 .ta \w'\fLTclunk 'u
-.B
-Tclunk	
+.IR size [4]
+.B Tclunk
 .IR tag [2]
-.IR fid [2]
+.IR fid [4]
 .br
-.B
-Rclunk	
+.IR size [4]
+.B Rclunk
 .IR tag [2]
-.IR fid [2]
 .SH DESCRIPTION
 The
 .B clunk
@@ -19,11 +18,14 @@ request informs the file server
 that the current file represented by
 .I fid 
 is no longer needed by the client.
-The actual file is not removed on the server.
+The actual file is not removed on the server unless the fid had been opened with
+.BR ORCLOSE .
 .PP
 Once a fid has been clunked,
 the same fid can be reused in a new
-.B clone
+.B walk
+or
+.B attach
 request.
 .PP
 Even if the

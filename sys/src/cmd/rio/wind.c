@@ -6,7 +6,6 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -78,6 +77,7 @@ wmk(Image *i, Mousectl *mc, Channel *ck, Channel *cctl)
 	w->notefd = -1;
 	w->scrolling = scrolling;
 	w->dir = estrdup(startdir);
+	w->label = estrdup("<unnamed>");
 	r = insetrect(w->i->r, Selborder);
 	draw(w->i, r, cols[BACK], nil, w->entire.min);
 	wborder(w, Selborder);
@@ -90,20 +90,20 @@ void
 wsetname(Window *w)
 {
 	int i, n;
-	char err[ERRLEN];
+	char err[ERRMAX];
 	
 	n = sprint(w->name, "window.%d.%d", w->id, w->namecount++);
 	for(i='A'; i<='Z'; i++){
 		if(nameimage(w->i, w->name, 1) > 0)
 			return;
-		errstr(err);
+		errstr(err, sizeof err);
 		if(strcmp(err, "image name in use") != 0)
 			break;
 		w->name[n] = i;
 		w->name[n+1] = 0;
 	}
 	w->name[0] = 0;
-	threadprint(2, "rio: setname failed: %s\n", err);
+	fprint(2, "rio: setname failed: %s\n", err);
 }
 
 void
@@ -116,6 +116,7 @@ wresize(Window *w, Image *i, int move)
 		draw(i, i->r, w->i, nil, w->i->r.min);
 	freeimage(w->i);
 	w->i = i;
+	wsetname(w);
 	w->mc.image = i;
 	r = insetrect(i->r, Selborder+1);
 	w->scrollr = r;
@@ -137,7 +138,6 @@ wresize(Window *w, Image *i, int move)
 	}
 	wborder(w, Selborder);
 	w->topped = ++topped;
-	wsetname(w);
 	w->resized = TRUE;
 	w->mouse.counter++;
 }
@@ -503,7 +503,7 @@ wkeyctl(Window *w, Rune r)
 		if(nb > 0){
 			wdelete(w, q0, q0+nb);
 			wsetselect(w, q0, q0);
-		}
+	}
 		return;
 	}
 	/* otherwise ordinary character; just insert */
@@ -643,9 +643,9 @@ wplumb(Window *w)
 		sprint(buf, "click=%d", w->q0-p0);
 		m->attr = plumbunpackattr(buf);
 	}
-	if(p1-p0 > MAXFDATA-256){
+	if(p1-p0 > messagesize-1024){
 		plumbfree(m);
-		return;	/* too large for 9P; how to paramaterize this? */
+		return;	/* too large for 9P */
 	}
 	m->data = runetobyte(w->r+p0, p1-p0, &m->ndata);
 	if(plumbsend(fd, m) < 0){
@@ -880,11 +880,11 @@ wctlmesg(Window *w, int m, Rectangle r, Image *i)
 			freeimage(i);
 			break;
 		}
-		w->wctlready = 1;
 		w->screenr = r;
 		strcpy(buf, w->name);
 		wresize(w, i, m==Moved);
-		proccreate(deletetimeoutproc, buf, 4096);
+		w->wctlready = 1;
+		proccreate(deletetimeoutproc, estrdup(buf), 4096);
 		if(Dx(r) > 0){
 			if(w != input)
 				wcurrent(w);
@@ -925,7 +925,7 @@ wctlmesg(Window *w, int m, Rectangle r, Image *i)
 		if(w->deleted)
 			break;
 		write(w->notefd, "hangup", 6);
-		proccreate(deletetimeoutproc, w->name, 4096);
+		proccreate(deletetimeoutproc, estrdup(w->name), 4096);
 		wclosewin(w);
 		break;
 	case Exited:
@@ -941,6 +941,7 @@ wctlmesg(Window *w, int m, Rectangle r, Image *i)
 		free(w->raw);
 		free(w->r);
 		free(w->dir);
+		free(w->label);
 		free(w);
 		break;
 	}
@@ -1133,15 +1134,21 @@ wclosewin(Window *w)
 }
 
 void
-wsetpid(Window *w, int pid)
+wsetpid(Window *w, int pid, int dolabel)
 {
 	char buf[128];
 	int fd;
 
 	w->pid = pid;
-	sprint(w->label, "rc %d", pid);
+	if(dolabel){
+		sprint(buf, "rc %d", pid);
+		free(w->label);
+		w->label = estrdup(buf);
+	}
 	sprint(buf, "/proc/%d/notepg", pid);
 	fd = open(buf, OWRITE|OCEXEC);
+	if(w->notefd > 0)
+		close(w->notefd);
 	w->notefd = fd;
 }
 
@@ -1162,19 +1169,19 @@ winshell(void *args)
 	dir = arg[4];
 	rfork(RFNAMEG|RFFDG|RFENVG);
 	if(filsysmount(filsys, w->id) < 0){
-		threadprint(2, "mount failed: %r\n");
+		fprint(2, "mount failed: %r\n");
 		sendul(pidc, 0);
 		threadexits("mount failed");
 	}
 	close(0);
 	if(open("/dev/cons", OREAD) < 0){
-		threadprint(2, "can't open /dev/cons: %r\n");
+		fprint(2, "can't open /dev/cons: %r\n");
 		sendul(pidc, 0);
 		threadexits("/dev/cons");
 	}
 	close(1);
 	if(open("/dev/cons", OWRITE) < 0){
-		threadprint(2, "can't open /dev/cons: %r\n");
+		fprint(2, "can't open /dev/cons: %r\n");
 		sendul(pidc, 0);
 		threadexits("open");	/* BUG? was terminate() */
 	}
@@ -1474,7 +1481,7 @@ wfill(Window *w)
 
 	if(w->lastlinefull)
 		return;
-	rp = malloc(MAXFDATA+MAXMSG);
+	rp = malloc(messagesize);
 	do{
 		n = w->nr-(w->org+w->nchars);
 		if(n == 0)

@@ -9,21 +9,21 @@ egsign(EGpriv *priv, mpint *m)
 	EGsig *sig;
 	mpint *pm1, *k, *kinv, *r, *s;
 	mpint *p = pub->p, *alpha = pub->alpha;
-	int plen = mpsignif(p)+1;
+	int plen = mpsignif(p);
 
 	pm1 = mpnew(0);
 	kinv = mpnew(0);
 	r = mpnew(0);
 	s = mpnew(0);
 	mpsub(p, mpone, pm1);
-	k = mprand(plen/2, genrandom, nil);
-	if((k->p[0] & 1) == 0)
-		mpadd(k, mpone, k);
-	// can't assume p is a safe prime
-	mpextendedgcd(k, pm1, r, kinv, s);
-	while( mpcmp(r, mpone) != 0){
-		mpsub(k, mptwo, k);
+	while(1){
+		k = mprand(plen, genrandom, nil);
+		if((mpcmp(mpone, k) > 0) || (mpcmp(k, pm1) >= 0))
+			continue;
 		mpextendedgcd(k, pm1, r, kinv, s);
+		if(mpcmp(r, mpone) != 0)
+			continue;
+		break;
 	}
 	mpmod(kinv, pm1, kinv);  // make kinv positive
 	mpexp(alpha, k, p, r);

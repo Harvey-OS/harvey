@@ -75,31 +75,57 @@ typedef struct Header{
 	uchar	count1;		/* high bits of data size */
 	uchar	data[1];	/* variable size */
 }Header;
+
 /*
  * File transfer protocol schematic, a la Holzmann
- *	
- *	proc h
- *	{	pvar n = 0;
- *		queue h[4];
- *	
- *		do
- *		:: (n <  N)  -> n++; t!Hgrow
- *		:: (n == N)  -> n++; t!Hcheck0
- *		:: h?Trequest -> t!Hdata
- *		:: h?Tcheck  -> t!Hcheck
- *		od
- *	}
- *	proc t
- *	{	queue t[4];
- *		do
- *		:: t?Hgrow -> h!Trequest
- *		:: t?Hdata -> skip
- *		:: t?Hcheck0 -> h!Tcheck
- *		:: t?Hcheck ->
- *			if
- *			:: break
- *			:: h!Trequest; h!Tcheck
- *			fi
- *		od
- *	}
+ * #define N	6
+ * 
+ * chan h = [4] of { mtype };
+ * chan t = [4] of { mtype };
+ * 
+ * mtype = {	Hgrow, Hdata,
+ * 		Hcheck, Hcheck0,
+ * 		Trequest, Tcheck,
+ * 	};
+ * 
+ * active proctype host()
+ * {	byte n;
+ * 
+ * 	do
+ * 	:: n <  N -> n++; t!Hgrow
+ * 	:: n == N -> n++; t!Hcheck0
+ * 
+ * 	:: h?Trequest -> t!Hdata
+ * 	:: h?Tcheck   -> t!Hcheck
+ * 	od
+ * }
+ * 
+ * active proctype term()
+ * {
+ * 	do
+ * 	:: t?Hgrow   -> h!Trequest
+ * 	:: t?Hdata   -> skip
+ * 	:: t?Hcheck0 -> h!Tcheck
+ * 	:: t?Hcheck  ->
+ * 		if
+ * 		:: h!Trequest -> progress: h!Tcheck
+ * 		:: break
+ * 		fi
+ * 	od;
+ * 	printf("term exits\n")
+ * }
+ *
+ * From: gerard@research.bell-labs.com
+ * Date: Tue Jul 17 13:47:23 EDT 2001
+ * To: rob@research.bell-labs.com
+ * 
+ * spin -c 	(or -a) spec
+ * pcc -DNP -o pan pan.c
+ * pan -l
+ * 
+ * proves that there are no non-progress cycles
+ * (infinite executions *not* passing through
+ * the statement marked with a label starting
+ * with the prefix "progress")
+ * 
  */

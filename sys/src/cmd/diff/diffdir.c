@@ -15,7 +15,7 @@ static char **
 scandir(char *name)
 {
 	char **cp;
-	Dir db[32];
+	Dir *db;
 	int nitems;
 	int fd, n;
 
@@ -23,14 +23,14 @@ scandir(char *name)
 		panic(2, "can't open %s\n", name);
 	cp = 0;
 	nitems = 0;
-	while((n = dirread(fd, db, sizeof db)) > 0){
-		n /= sizeof(Dir);
+	if((n = dirreadall(fd, &db)) > 0){
 		while (n--) {
 			cp = REALLOC(cp, char *, (nitems+1));
-			cp[nitems] = MALLOC(char, strlen(db[n].name)+1);
-			strcpy(cp[nitems], db[n].name);
+			cp[nitems] = MALLOC(char, strlen((db+n)->name)+1);
+			strcpy(cp[nitems], (db+n)->name);
 			nitems++;
 		}
+		free(db);
 	}
 	cp = REALLOC(cp, char*, (nitems+1));
 	cp[nitems] = 0;

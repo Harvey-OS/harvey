@@ -1,6 +1,6 @@
 .TH RUNE 2
 .SH NAME
-runetochar, chartorune, runelen, runenlen, fullrune, utflen, utfnlen, utfrune, utfrrune, utfutf \- rune/UTF conversion
+runetochar, chartorune, runelen, runenlen, fullrune, utfecpy, utflen, utfnlen, utfrune, utfrrune, utfutf \- rune/UTF conversion
 .SH SYNOPSIS
 .ta \w'\fLchar*xx'u
 .B #include <u.h>
@@ -17,10 +17,13 @@ int	chartorune(Rune *r, char *s)
 int	runelen(long r)
 .PP
 .B
-int	runenlen(long r, int n)
+int	runenlen(Rune *r, int n)
 .PP
 .B
 int	fullrune(char *s, int n)
+.PP
+.B
+char*	utfecpy(char *s1, char *es1, char *s2)
 .PP
 .B
 int	utflen(char *s)
@@ -76,9 +79,15 @@ required to convert
 .I r
 into
 .SM UTF.
+.PP
 .I Runenlen
-is the same, but takes an integer rune count instead of marking
-termination with a null rune.
+returns the number of bytes
+required to convert the
+.I n
+runes pointed to by
+.I r
+into
+.SM UTF.
 .PP
 .I Fullrune
 returns 1 if the string
@@ -106,6 +115,17 @@ and
 .B rune
 substituted for
 .BR chr .
+.PP
+.I Utfecpy
+copies UTF sequences until a null sequence has been copied, but writes no 
+sequences beyond
+.IR es1 .
+If any sequences are copied,
+.I s1
+is terminated by a null sequence, and a pointer to that sequence is returned.
+Otherwise, the original
+.I s1
+is returned.
 .PP
 .I Utflen
 returns the number of runes that

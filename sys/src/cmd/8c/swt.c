@@ -169,6 +169,8 @@ outstring(char *s, long n)
 {
 	long r;
 
+	if(suppress)
+		return nstring;
 	r = nstring;
 	while(n) {
 		string[mnstring] = *s++;
@@ -194,6 +196,8 @@ outlstring(ushort *s, long n)
 	int c;
 	long r;
 
+	if(suppress)
+		return nstring;
 	while(nstring & 1)
 		outstring("", 1);
 	r = nstring;

@@ -198,7 +198,8 @@ typedef struct Ctlr {
 	int	active;
 	int	id;			/* (pcidev->did<<16)|pcidev->vid */
 
-	uchar	srom[128];
+	uchar*	srom;
+	int	sromsz;			/* address size in bits */
 	uchar*	sromea;			/* MAC address */
 	uchar*	leaf;
 	int	sct;			/* selected connection type */
@@ -347,7 +348,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	n -= len;
 
 	l = snprint(p, READSTR, "srom:");
-	for(i = 0; i < sizeof(ctlr->srom); i++){
+	for(i = 0; i < (1<<(ctlr->sromsz)*sizeof(ushort)); i++){
 		if(i && ((i & 0x0F) == 0))
 			l += snprint(p+l, READSTR-l, "\n     ");
 		l += snprint(p+l, READSTR-l, " %2.2uX", ctlr->srom[i]);
@@ -385,7 +386,7 @@ txstart(Ether* ether)
 		ctlr->tdr[PREV(ctlr->tdrh, ctlr->ntdr)].control &= ~Ic;
 		des = &ctlr->tdr[ctlr->tdrh];
 		des->bp = bp;
-		des->addr = PADDR(bp->rp);
+		des->addr = PCIWADDR(bp->rp);
 		des->control |= control;
 		ctlr->ntq++;
 		coherence();
@@ -470,7 +471,7 @@ interrupt(Ureg*, void* arg)
 					des->bp->wp = des->bp->rp+len;
 					etheriq(ether, des->bp, 1);
 					des->bp = bp;
-					des->addr = PADDR(bp->rp);
+					des->addr = PCIWADDR(bp->rp);
 				}
 
 				des->control &= Er;
@@ -574,22 +575,24 @@ ctlrinit(Ether* ether)
 	 * create and post a setup packet to initialise
 	 * the physical ethernet address.
 	 */
-	ctlr->rdr = malloc(ctlr->nrdr*sizeof(Des));
+	ctlr->rdr = xspanalloc(ctlr->nrdr*sizeof(Des), 8*sizeof(ulong), 0);
 	for(des = ctlr->rdr; des < &ctlr->rdr[ctlr->nrdr]; des++){
-		des->bp = allocb(Rbsz);
+		des->bp = iallocb(Rbsz);
+		if(des->bp == nil)
+			panic("can't allocate ethernet receive ring\n");
 		des->status = Own;
 		des->control = Rbsz;
-		des->addr = PADDR(des->bp->rp);
+		des->addr = PCIWADDR(des->bp->rp);
 	}
 	ctlr->rdr[ctlr->nrdr-1].control |= Er;
 	ctlr->rdrx = 0;
-	csr32w(ctlr, 3, PADDR(ctlr->rdr));
+	csr32w(ctlr, 3, PCIWADDR(ctlr->rdr));
 
 	ctlr->tdr = xspanalloc(ctlr->ntdr*sizeof(Des), 8*sizeof(ulong), 0);
 	ctlr->tdr[ctlr->ntdr-1].control |= Er;
 	ctlr->tdrh = 0;
 	ctlr->tdri = 0;
-	csr32w(ctlr, 4, PADDR(ctlr->tdr));
+	csr32w(ctlr, 4, PCIWADDR(ctlr->tdr));
 
 	/*
 	 * Clear any bits in the Status Register (CSR5) as
@@ -607,7 +610,9 @@ ctlrinit(Ether* ether)
 		bi[i*4+2] = ether->ea[i*2+1];
 		bi[i*4+3] = ether->ea[i*2];
 	}
-	bp = allocb(Eaddrlen*2*16);
+	bp = iallocb(Eaddrlen*2*16);
+	if(bp == nil)
+		panic("can't allocate ethernet setup buffer\n");
 	memset(bp->rp, 0xFF, sizeof(bi));
 	for(i = sizeof(bi); i < sizeof(bi)*16; i += sizeof(bi))
 		memmove(bp->rp+i, bi, sizeof(bi));
@@ -716,7 +721,7 @@ miiw(Ctlr* ctlr, int phyad, int regad, int data)
 static int
 sromr(Ctlr* ctlr, int r)
 {
-	int i, op, data;
+	int i, op, data, size;
 
 	if(ctlr->id == Pnic){
 		i = 1000;
@@ -726,6 +731,9 @@ sromr(Ctlr* ctlr, int r)
 			data = csr32r(ctlr, 19);
 		}while((data & 0x80000000) && --i);
 
+		if(ctlr->sromsz == 0)
+			ctlr->sromsz = 6;
+
 		return csr32r(ctlr, 9) & 0xFFFF;
 	}
 
@@ -734,6 +742,7 @@ sromr(Ctlr* ctlr, int r)
 	 * in the EEPROM is taken straight from Section
 	 * 7.4 of the 21140 Hardware Reference Manual.
 	 */
+reread:
 	csr9w(ctlr, Rd|Ss);
 	csr9w(ctlr, Rd|Ss|Scs);
 	csr9w(ctlr, Rd|Ss|Sclk|Scs);
@@ -747,11 +756,20 @@ sromr(Ctlr* ctlr, int r)
 		csr9w(ctlr, data);
 	}
 
-	for(i = 6-1; i >= 0; i--){
-		data = Rd|Ss|(((r>>i) & 0x01)<<2)|Scs;
+	/*
+	 * First time through must work out the EEPROM size.
+	 */
+	if((size = ctlr->sromsz) == 0)
+		size = 8;
+
+	for(size = size-1; size >= 0; size--){
+		data = Rd|Ss|(((r>>size) & 0x01)<<2)|Scs;
 		csr9w(ctlr, data);
 		csr9w(ctlr, data|Sclk);
 		csr9w(ctlr, data);
+		microdelay(1);
+		if(!(csr32r(ctlr, 9) & Sdo))
+			break;
 	}
 
 	data = 0;
@@ -763,6 +781,11 @@ sromr(Ctlr* ctlr, int r)
 	}
 
 	csr9w(ctlr, 0);
+
+	if(ctlr->sromsz == 0){
+		ctlr->sromsz = 8-size;
+		goto reread;
+	}
 
 	return data & 0xFFFF;
 }
@@ -976,6 +999,103 @@ typephymode(Ctlr* ctlr, uchar* block, int wait)
 }
 
 static int
+typesymmode(Ctlr *ctlr, uchar *block, int wait)
+{
+	uint gpmode, gpdata, command;
+
+	USED(wait);
+	gpmode = block[3] | ((uint) block[4] << 8);
+	gpdata = block[5] | ((uint) block[6] << 8);
+	command = (block[7] | ((uint) block[8] << 8)) & 0x71;
+	if (command & 0x8000) {
+		print("ether2114x.c: FIXME: handle type 4 mode blocks where cmd.active_invalid != 0\n");
+		return -1;
+	}
+	csr32w(ctlr, 15, gpmode);
+	csr32w(ctlr, 15, gpdata);
+	ctlr->csr6 = (command & 0x71) << 18;
+	csr32w(ctlr, 6, ctlr->csr6);
+	return 0;
+}
+
+static int
+type2mode(Ctlr* ctlr, uchar* block, int)
+{
+	uchar *p;
+	int csr6, csr13, csr14, csr15, gpc, gpd;
+
+	csr6 = Sc|Mbo|Ca|Sb|TrMODE;
+	debug("type2mode: medium 0x%2.2uX\n", block[2]);
+
+	/*
+	 * Don't attempt full-duplex
+	 * unless explicitly requested.
+	 */
+	if((block[2] & 0x3F) == 0x04){	/* 10BASE-TFD */
+		if(!ctlr->fd)
+			return -1;
+		csr6 |= Fd;
+	}
+
+	/*
+	 * Operating mode programming values from the datasheet
+	 * unless media specific data is explicitly given.
+	 */
+	p = &block[3];
+	if(block[2] & 0x40){
+		csr13 = (block[4]<<8)|block[3];
+		csr14 = (block[6]<<8)|block[5];
+		csr15 = (block[8]<<8)|block[7];
+		p += 6;
+	}
+	else switch(block[2] & 0x3F){
+	default:
+		return -1;
+	case 0x00:			/* 10BASE-T */
+		csr13 = 0x00000001;
+		csr14 = 0x00007F3F;
+		csr15 = 0x00000008;
+		break;
+	case 0x01:			/* 10BASE-2 */
+		csr13 = 0x00000009;
+		csr14 = 0x00000705;
+		csr15 = 0x00000006;
+		break;
+	case 0x02:			/* 10BASE-5 (AUI) */
+		csr13 = 0x00000009;
+		csr14 = 0x00000705;
+		csr15 = 0x0000000E;
+		break;
+	case 0x04:			/* 10BASE-TFD */
+		csr13 = 0x00000001;
+		csr14 = 0x00007F3D;
+		csr15 = 0x00000008;
+		break;
+	}
+	gpc = *p++<<16;
+	gpc |= *p++<<24;
+	gpd = *p++<<16;
+	gpd |= *p<<24;
+
+	csr32w(ctlr, 13, 0);
+	csr32w(ctlr, 14, csr14);
+	csr32w(ctlr, 15, gpc|csr15);
+	delay(10);
+	csr32w(ctlr, 15, gpd|csr15);
+	csr32w(ctlr, 13, csr13);
+
+	ctlr->csr6 = csr6;
+	csr32w(ctlr, 6, ctlr->csr6);
+
+	debug("type2mode: csr13 %8.8uX csr14 %8.8uX csr15 %8.8uX\n",
+		csr13, csr14, csr15);
+	debug("type2mode: gpc %8.8uX gpd %8.8uX csr6 %8.8uX\n",
+		gpc, gpd, csr6);
+
+	return 0;
+}
+
+static int
 type0link(Ctlr* ctlr, uchar* block)
 {
 	int m, polarity, sense;
@@ -1066,8 +1186,24 @@ mediaxx(Ether* ether, int wait)
 			if(typephymode(ctlr, block, wait))
 				return 0;
 			break;
+		case 2:
+			debug("type2: medium %d block[2] %d\n",
+				ctlr->medium, block[2]);
+			if(ctlr->medium >= 0 && ((block[2] & 0x3F) != ctlr->medium))
+				return 0;
+			if(type2mode(ctlr, block, wait))
+				return 0;
+			break;
 		case 3:
 			if(typephymode(ctlr, block, wait))
+				return 0;
+			break;
+		case 4:
+			debug("type4: medium %d block[2] %d\n",
+				ctlr->medium, block[2]);
+			if(ctlr->medium >= 0 && ((block[2] & 0x3F) != ctlr->medium))
+				return 0;
+			if(typesymmode(ctlr, block, wait))
 				return 0;
 			break;
 		}
@@ -1213,8 +1349,12 @@ srom(Ctlr* ctlr)
 	 * 'Digital Semiconductor 21X4 Serial ROM Format, Version 4.05,
 	 * 2-Mar-98'. Only the 2114[03] are handled, support for other
 	 * controllers can be added as needed.
+	 * Do a dummy read first to get the size and allocate ctlr->srom.
 	 */
-	for(i = 0; i < sizeof(ctlr->srom)/2; i++){
+	sromr(ctlr, 0);
+	if(ctlr->srom == nil)
+		ctlr->srom = malloc((1<<ctlr->sromsz)*sizeof(ushort));
+	for(i = 0; i < (1<<ctlr->sromsz); i++){
 		x = sromr(ctlr, i);
 		ctlr->srom[2*i] = x;
 		ctlr->srom[2*i+1] = x>>8;

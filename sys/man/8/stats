@@ -80,15 +80,21 @@ number of translation lookaside buffer misses per second.
 number of valid pages on the swap device.
 The swap is displayed as a
 fraction of the number of swap pages configured by the machine.
+.TP
+.B "8 802.11b
+display the signal strength detected by the 802.11b wireless ether card; the value
+is usually below 50% unless the receiver is in the same room as the transmitter, so
+a midrange value represents a strong signal.
 .PD
 .PP
 The graphs are plotted with time on the horizontal axis.
-The vertical axes range from 0 to 1000 times the number of processors on the machine.
+The vertical axes range from 0 to 1000, multiplied by the number of processors on the machine
+when appropriate.
 The only exceptions are
 memory
 and swap space,
 which display fractions of the total available, and the Ethernet error count,
-which goes from 0 to 10.
+which goes from 0 to 10..
 If the value of the parameter is too large for the visible range, its value is shown
 in decimal in the upper left corner of the graph.
 .PP

@@ -45,14 +45,12 @@ usage(void)
 void
 fatal(char *fmt, ...)
 {
-	int n;
-	char err[128];
+	char err[ERRMAX];
 	va_list arg;
 
 	va_start(arg, fmt);
-	n = doprint(err, err+sizeof(err), fmt, arg) - err;
+	vsnprint(err, ERRMAX, fmt, arg);
 	va_end(arg);
-	err[n] = 0;
 	fprint(2, "mbr: %s\n", err);
 	exits(err);
 }

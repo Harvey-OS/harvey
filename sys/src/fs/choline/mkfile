@@ -1,0 +1,133 @@
+CONF=choline
+p=9
+
+objtype=386
+</$objtype/mkfile
+
+TARG=$p$CONF'fs'
+
+DEV=\
+	cw.$O\
+	fworm.$O\
+	juke.$O\
+	mworm.$O\
+	wren.$O\
+
+IP=\
+	arp.$O\
+	icmp.$O\
+	il.$O\
+	ip.$O\
+	ipaux.$O\
+	iproute.$O\
+	sntp.$O\
+	udp.$O\
+
+PORT=\
+	9p1.$O\
+	9p1lib.$O\
+	9p2.$O\
+	auth.$O\
+	chk.$O\
+	clock.$O\
+	con.$O\
+	config.$O\
+	console.$O\
+	data.$O\
+	dentry.$O\
+	devcons.$O\
+	fcmd.$O\
+	iobuf.$O\
+	main.$O\
+	print.$O\
+	proc.$O\
+	sub.$O\
+	time.$O\
+	uidgid.$O\
+
+PC=\
+	l.$O\
+	8250.$O\
+	8253.$O\
+	cga.$O\
+	devata.$O\
+	dosfs.$O\
+	floppy.$O\
+	kbd.$O\
+	lock.$O\
+	malloc.$O\
+	mmu.$O\
+	nvr.$O\
+	pc.$O\
+	pci.$O\
+	toy.$O\
+	trap.$O\
+
+ETHER=\
+	etherif.$O\
+	ether2114x.$O\
+	etherelnk3.$O\
+	ether82557.$O\
+
+SCSI=\
+	scsi.$O\
+	scsibuslogic.$O\
+	scsincr53c8xx.$O\
+
+OBJ=\
+	$PC\
+	$PORT\
+	$DEV\
+	$IP\
+	$ETHER\
+	$SCSI\
+	
+HFILES=\
+	../port/all.h\
+	../port/lib.h\
+	../port/portdat.h\
+	../port/portfns.h\
+	./dat.h\
+	./fns.h\
+	./io.h\
+	./mem.h\
+	/$objtype/include/u.h\
+	/$objtype/include/ureg.h\
+
+LIB=\
+	-lauthsrv\
+	/$objtype/lib/libc.a\
+	-lsec\
+
+CFLAGS=-FVw -I. -I../port
+
+all:V:	$TARG
+
+<../pc/mkfile
+<../port/mkfile
+<../dev/mkfile
+<../ip/mkfile
+
+$TARG:	$OBJ $TARG.$O
+	$LD -o $target -l -T0x80100020 $prereq $LIB
+	size $target
+
+$TARG.$O:	$TARG.c
+	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c
+
+install:V: $TARG
+	cp $TARG /$objtype/
+	9fs dinar && cp $TARG /n/dinar/$objtype/
+
+$TARG.$O:	../pc/dosfs.h
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	$HFILES
+
+clean:V:
+	rm -f *.[$OS] [$OS].out $TARG

@@ -72,8 +72,8 @@ screensize(int x, int y, int z, ulong chan)
 	if(gscreen == nil)
 		return -1;
 
-/*	memset(gscreen->data->bdata, 0x15, (x*y*z+7)/8);	/* RSC BUG */
-//	memfillcolor(gscreen, DRed);
+	if(scr->dev && scr->dev->flush)
+		scr->useflush = 1;
 
 	scr->palettedepth = 6;	/* default */
 	scr->gscreendata = &gscreendata;
@@ -130,7 +130,7 @@ attachscreen(Rectangle* r, ulong* chan, int* d, int* width, int *softscreen)
 	if(scr->gscreen == nil || scr->gscreendata == nil)
 		return nil;
 
-	*r = scr->gscreen->r;
+	*r = scr->gscreen->clipr;
 	*chan = scr->gscreen->chan;
 	*d = scr->gscreen->depth;
 	*width = scr->gscreen->width;
@@ -150,6 +150,10 @@ flushmemscreen(Rectangle r)
 	int y, len, incs, off, page;
 
 	scr = &vgascreen[0];
+	if(scr->dev && scr->dev->flush){
+		scr->dev->flush(scr, r);
+		return;
+	}
 	if(scr->gscreen == nil || scr->useflush == 0)
 		return;
 	if(scr->dev == nil || scr->dev->page == nil)
@@ -327,143 +331,9 @@ setcursor(Cursor* curs)
 	scr->cur->load(scr, curs);
 }
 
-static ulong
-pixelbits(Memimage *i, Point pt)
-{
-	uchar *p;
-	ulong val;
-	int off, bpp, npack;
-
-	val = 0;
-	p = byteaddr(i, pt);
-	switch(bpp=i->depth){
-	case 1:
-	case 2:
-	case 4:
-		npack = 8/bpp;
-		off = pt.x%npack;
-		val = p[0] >> bpp*(npack-1-off);
-		val &= (1<<bpp)-1;
-		break;
-	case 8:
-		val = p[0];
-		break;
-	case 16:
-		val = p[0]|(p[1]<<8);
-		break;
-	case 24:
-		val = p[0]|(p[1]<<8)|(p[2]<<16);
-		break;
-	case 32:
-		val = p[0]|(p[1]<<8)|(p[2]<<16)|(p[3]<<24);
-		break;
-	}
-	while(bpp<32){
-		val |= val<<bpp;
-		bpp *= 2;
-	}
-	return val;
-}
-
-
-static ulong
-imgtorgba(Memimage *img, ulong val)
-{
-	uchar r, g, b, a;
-	int nb, ov, v;
-	ulong chan;
-	uchar *p;
-
-	a = 0xFF;
-	r = g = b = 0xAA;	/* garbage */
-	for(chan=img->chan; chan; chan>>=8){
-		nb = NBITS(chan);
-		ov = v = val&((1<<nb)-1);
-		val >>= nb;
-
-		while(nb < 8){
-			v |= v<<nb;
-			nb *= 2;
-		}
-		v >>= (nb-8);
-
-		switch(TYPE(chan)){
-		case CRed:
-			r = v;
-			break;
-		case CGreen:
-			g = v;
-			break;
-		case CBlue:
-			b = v;
-			break;
-		case CAlpha:
-			a = v;
-			break;
-		case CGrey:
-			r = g = b = v;
-			break;
-		case CMap:
-			p = img->cmap->cmap2rgb+3*ov;
-			r = *p++;
-			g = *p++;	
-			b = *p;
-			break;
-		}
-	}
-	return (r<<24)|(g<<16)|(b<<8)|a;	
-}
-
-static ulong
-rgbatoimg(Memimage *img, ulong rgba)
-{
-	ulong chan;
-	int d, nb;
-	ulong v;
-	uchar *p, r, g, b, a, m;
-
-	v = 0;
-	r = rgba>>24;
-	g = rgba>>16;
-	b = rgba>>8;
-	a = rgba;
-	d = 0;
-	for(chan=img->chan; chan; chan>>=8){
-		nb = NBITS(chan);
-		switch(TYPE(chan)){
-		case CRed:
-			v |= (r>>(8-nb))<<d;
-			break;
-		case CGreen:
-			v |= (g>>(8-nb))<<d;
-			break;
-		case CBlue:
-			v |= (b>>(8-nb))<<d;
-			break;
-		case CAlpha:
-			v |= (a>>(8-nb))<<d;
-			break;
-		case CMap:
-			p = img->cmap->rgb2cmap;
-			m = p[(r>>4)*256+(g>>4)*16+(b>>4)];
-			v |= m<<d;
-			break;
-		case CGrey:
-			m = RGB2K(r,g,b);
-			v |= m<<d;
-			break;
-		}
-		d += nb;
-	}
-//	print("rgba2img %.8lux = %.*lux\n", rgba, 2*d/8, v);
-	return v;
-}
-
-Memimage *lastbadi;
-Memdata *lastbad;
-Memimage *lastbadsrc, *lastbaddst;
 int hwaccel = 1;
-int hwblank = 1;
+int hwblank = 0;	/* turned on by drivers that are known good */
+int panning = 0;
 
 int
 hwdraw(Memdrawparam *par)
@@ -482,12 +352,6 @@ hwdraw(Memdrawparam *par)
 
 	if(dst->data->bdata != gscreendata.bdata)
 		return 0;
-
-//	if(dst->data != &gscreendata){
-//		lastbad = dst->data;
-//		lastbadi = dst;
-//		return 0;
-//	}
 
 	if(scr->fill==nil && scr->scroll==nil)
 		return 0;
@@ -509,11 +373,6 @@ hwdraw(Memdrawparam *par)
 	src = par->src;
 	if(scr->scroll && src->data->bdata==dst->data->bdata && !(src->flags&Falpha)
 	&& (par->state&(Simplemask|Fullmask))==(Simplemask|Fullmask)){
-//		if(src->zero != dst->zero){
-//			lastbadsrc = src;
-//			lastbaddst = dst;
-//			iprint("#");
-//		}
 		return scr->scroll(scr, par->r, par->sr);
 	}
 
@@ -526,6 +385,10 @@ blankscreen(int blank)
 	VGAscr *scr;
 
 	scr = &vgascreen[0];
-	if(hwblank && scr->blank)
-		scr->blank(scr, blank);
+	if(hwblank){
+		if(scr->blank)
+			scr->blank(scr, blank);
+		else
+			vgablank(scr, blank);
+	}
 }

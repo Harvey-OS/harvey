@@ -163,13 +163,9 @@ while a button is pressed, it will continue receiving mouse data until the butto
 .TP
 .B screen
 is a read-only file reporting the depth, coordinates, and raster image corresponding to the entire
-.I rio
-display,
+underlying display,
 in the uncompressed format defined in
 .IR image (6).
-If
-.I rio
-is running in a window, this will be the window itself rather than the whole screen.
 .TP
 .B snarf
 returns the string currently in the snarf buffer.
@@ -222,6 +218,8 @@ The commands are
 (enable scrolling in the window),
 .B noscroll
 (disable scrolling),
+.B set
+(change selected properties of the window),
 .B top
 (move the window to the `top', making it fully visible),
 .B bottom
@@ -293,15 +291,27 @@ instead of the default
 .IR rc (1)).
 The
 .B -pid
-option used when mounting
-.I rio
-to make a new window is disregarded by the
-.B wctl
-file.
+.I pid
+option to
+.B new
+identifies the
+.I pid
+of the process whose `note group' should receive interrupt
+and hangup notes generated in the window.
 The initial working directory of the new window may be set by a
 .B -cd
 .I directory
 option.
+The
+.B -hide
+option causes the window to be created off-screen, in the hidden state.
+.IP
+The
+.B set
+command accepts a set of parameters in the same style; only
+.B -pid
+.I pid
+is implemented.
 .IP
 So programs outside name spaces controlled by
 .I rio

@@ -250,33 +250,33 @@ loop:
 }
 
 int
-sprint(char *s, char *fmt, ...)
-{
-
-	return donprint(s, s+PRINTSIZE, fmt, (&fmt+1)) - s;
-}
-
-int
 print(char *fmt, ...)
 {
-	char buf[PRINTSIZE];
 	int n;
+	va_list arg;
+	char buf[PRINTSIZE];
 
-	n = donprint(buf, buf+sizeof(buf), fmt, (&fmt+1)) - buf;
+	va_start(arg, fmt);
+	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
 	putstrn(buf, n);
+
 	return n;
 }
 
 void
 panic(char *fmt, ...)
 {
-	char buf[PRINTSIZE];
 	int n;
+	va_list arg;
+	char buf[PRINTSIZE];
 
 	lights(Lpanic, 1);
 	dumpstack(u);
 	strcpy(buf, "panic: ");
-	n = donprint(buf+7, buf+sizeof(buf)-1, fmt, (&fmt+1)) - buf;
+	va_start(arg, fmt);
+	n = vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
 	buf[n] = '\n';
 	putstrn(buf, n+1);
 	if(!predawn){

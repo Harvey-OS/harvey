@@ -3,7 +3,7 @@
 ssl \- SSL record layer
 .SH SYNOPSIS
 .nf
-.B bind -a #D /net/ssl
+.B bind -a #D /net
 
 .B /net/ssl/clone
 .BI /net/ssl/ n 
@@ -97,7 +97,7 @@ control file, or as a binary byte string using the interface below.
 .TP
 .BI secretout \ base64-secret
 The secret for encrypting and hashing outgoing messages
-can be specfied either as a base64 encoded string by writing to the
+can be specified either as a base64 encoded string by writing to the
 control file, or as a binary byte string using the interface below.
 .PP
 Before enabling digesting or encryption, shared secrets must be agreed upon with

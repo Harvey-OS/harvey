@@ -73,7 +73,7 @@ cmd_cpu(int argc, char *argv[])
 		if(argc > 1)
 			continue;
 	found:
-		print("	%2d %.3s %9s%7F%7F%7F\n",
+		print("	%2d %.3s %9s%7W%7W%7W\n",
 			p->pid, text,
 			statename[p->state],
 			p->time+0, p->time+1, p->time+2);

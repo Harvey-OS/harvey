@@ -2,6 +2,7 @@ dev
 	root
 	cons
 	arch
+	pnp		pci
 	env
 	pipe
 	proc
@@ -9,22 +10,33 @@ dev
 	srv
 	dup
 	rtc
+#	ssl
+#	tls
+	cap
+#	kprof
+#	realtime
 
 	ether		netif
-	ip		arp chandial inferno ip ipaux iproute netlog nullmedium pktmedium ptclbsum386
+	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
 	draw		screen vga vgax
 	mouse		mouse
 	vga
 
 	sd
-
 	floppy		dma
+#	lpt
 
+#	audio		dma
+	pccard
 	i82365		cis
-	ns16552
+	uart
+#	usb
 
 link
+	devpccard
+	devi82365
+#	apm		apmjump
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
@@ -33,20 +45,30 @@ link
 	ether82557	pci
 	etherec2t	ether8390
 	etherelnk3	pci
-	etherwavelan
+#	ethersink
+	etherwavelan	devi82365 cis pci
 	ethermedium
-	ethersmc
 	pcmciamodem
+	netdevmedium
+#	usbuhci
+#	usbohci
 
 misc
-	archmp		mp apic
+	nulledf
+#	archmp		mp apic
 
+#	ipconfig.root
+#	kfs.root
+#	factotum.root
+#	cfs.root
 	bzfs.root
 	bzroot.root
 
 	sdata		pci sdscsi
-	sd53c8xx	pci sdscsi
+	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
+
+	uarti8250
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
@@ -65,6 +87,8 @@ misc
 	vgat2r4		+cur
 	vgatvp3020	=cur
 	vgatvp3026	=cur
+	vgavmware	+cur
+	vganvidia	+cur
 
 ip
 	il
@@ -74,7 +98,7 @@ ip
 	icmp
 
 port
-	int cpuserver = 0;	
+	int cpuserver = 0;
 
 boot glenda boot #f/fd0disk
 	local

@@ -48,6 +48,11 @@ beginning with a letter) per line.
 Other characters are skipped.
 Otherwise, the output follows the original, with the deletions mentioned above.
 .TP
+.B -_
+Like
+.BR -w ,
+but consider underscores to be alphanumeric rather than punctuation.
+.TP
 .B -i
 Ignore
 .L .so

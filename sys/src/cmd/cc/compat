@@ -22,13 +22,18 @@ int
 mywait(int *s)
 {
 	int p;
-	Waitmsg status;
+	Waitmsg *w;
 
-	p = wait(&status);
-	*s = 0;
-	if(status.msg[0])
-		*s = 1;
-	return p;
+	if((w = wait()) == nil)
+		return -1;
+	else{
+		p = w->pid;
+		*s = 0;
+		if(w->msg[0])
+			*s = 1;
+		free(w);
+		return p;
+	}
 }
 
 int

@@ -88,7 +88,7 @@ getrule(String *line, String *type, char *system)
 	s_tolower(re);
 	rp->matchre = s_new();
 	s_append(rp->matchre, s_to_c(re));
-	USE(s_restart(rp->matchre));
+	s_restart(rp->matchre);
 	s_free(re);
 	s_parse(line, s_restart(type));
 	rp->repl1 = rule_parse(line, system, &backl);

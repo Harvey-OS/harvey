@@ -34,26 +34,27 @@ static int nmemo = 0;
 int
 _getpw(int *pnum, char **pname, char **plist)
 {
-	Dir d;
+	Dir *d;
 	int f, n, i, j, matchnum, m, matched;
 	char *eline, *f1, *f2, *f3, *f4;
 	Memo *mem;
 	static char *au = NULL;
+	vlong length;
 
 	if(!pname)
 		return 0;
 	if(au == NULL){
-		char cd[DIRLEN];
-		if(_STAT(admusers, cd) < 0)
+		d = _dirstat(admusers);
+		if(d == nil)
 			return 0;
-		convM2D(cd, &d);
-		if((au = (char *)malloc(d.length+2)) == NULL)
+		length = d->length;
+		free(d);
+		if((au = (char *)malloc(length+2)) == NULL)
 			return 0;
 		f = open(admusers, O_RDONLY);
 		if(f < 0)
 			return 0;
-		n = read(f, au, d.length);
-		close(f);
+		n = read(f, au, length);
 		if(n < 0)
 			return 0;
 		au[n] = 0;

@@ -1,7 +1,7 @@
 <html>
 <head>
-<title>How to prepare a Ghostscript release</title>
-<!-- $Id: Release.htm,v 1.21.2.2 2000/11/28 01:31:25 raph Exp $ -->
+<title>How to prepare an Aladdin Ghostscript release</title>
+<!-- $Id: Release.htm,v 1.6 2000/03/17 04:40:47 lpd Exp $ -->
 <!-- Originally: make.txt -->
 </head>
 
@@ -12,7 +12,7 @@
 
 <table width="100%" border="0">
 <tr><th align="center" bgcolor="#CCCC00"><font size=6>
-How to prepare a Ghostscript release
+How to prepare an Aladdin Ghostscript release
 </font>
 </table>
 
@@ -41,15 +41,9 @@ How to prepare a Ghostscript release
 <ul>
 <li><a href="#Tester_or_beta">Tester or beta distributions</a>
 <li><a href="#Public_releases">Public releases</a>
-</ul>
-</ul>
 <li><a href="#After_releasing">After releasing</a>
-<li><a href="#GNU_releases">GNU Ghostscript releases</a>
-<ul>
-<li><a href="#GNU_code">GNU code</a>
-<li><a href="#GNU_after_releasing">After releasing (GNU)</a>
 </ul>
-<li><a href="#Fonts">Fonts</a>
+</ul>
 </ul></blockquote>
 
 <!-- [1.2 end table of contents] =========================================== -->
@@ -71,20 +65,17 @@ Ghostscript</a>.
 <h1><a name="Introduction"></a>Introduction</h1>
 
 <p>
-This document describes the process that Aladdin Enterprises used to make
-new Ghostscript releases.  As time goes on, it will become a more suitable
-document for others wishing to prepare releases for distribution.  Please
-note that although the <a href="Public.htm">Aladdin Free Public License</a>
-allows anyone to prepare and distribute releases in accordance with its
-terms and conditions, this document is really meant only for developers
-working closely with artofcode LLC, the copyright holder of Ghostscript.
+This document is a rough set of internal notes that Aladdin Enterprises uses
+to manage the process of making new Ghostscript releases.  As time goes on,
+it will become a more suitable document for others wishing to prepare
+releases for distribution.  Although the <a href="Public.htm">Aladdin Free
+Public License</a> allows anyone to prepare and distribute releases, this
+document is really meant only for developers working closely with Aladdin.
 
 <p>
-This document is primarily about AFPL Ghostscript releases.  See the
-section on <a href="#GNU_releases">GNU releases</a> below for information on
-making a GNU Ghostscript release from an existing AFPL Ghostscript
-release, and the section on <a href="#Fonts">fonts</a> for information on
-releasing font packages.
+This document refers to many script files that are not currently part of the
+Ghostscript distribution.  In the course of time, these scripts will become
+part of the distribution, probably in a new subdirectory.
 
 <p>
 File names below that don't include an explicit subdirectory name are in the
@@ -98,12 +89,12 @@ you will want to change.
 
 <li>If you make any significant changes, please edit
 <b><tt>gscdef.c</tt></b> to change <b><tt>GS_PRODUCTFAMILY</tt></b> and
-<b><tt>GS_PRODUCT</tt></b> from "AFPL Ghostscript" to something else, in
-order to avoid confusion with artofcode's releases.
+<b><tt>GS_PRODUCT</tt></b> from "Aladdin Ghostscript" to something else, in
+order to avoid confusion with Aladdin's releases.
 
 <li>In the same file, you may also want to edit <b><tt>GS_COPYRIGHT</tt></b>
-to add your own copyright notice (although you must not remove any
-notice that is there).
+to add your own copyright notice (although you must not remove Aladdin's
+notice).
 
 <li>You will almost certainly want to edit <b><tt>version.mak</tt></b> to
 change the revision date, <b><tt>GS_REVISIONDATE</tt></b>.
@@ -118,7 +109,7 @@ beginning of the file).
 <h1><a name="Servers"></a>Servers</h1>
 
 <p>
-The AFPL Ghostscript files are maintained on sites accessible to the
+The Aladdin Ghostscript files are maintained on sites accessible to the
 public.  One specific site hosts the active CVS repository for code, data,
 and documentation, and the bug report data base; several sites offer
 distributions with version numbers, intended for wider distribution.
@@ -126,9 +117,9 @@ distributions with version numbers, intended for wider distribution.
 <h2><a name="Development_files"></a>Development sources and bug reports</h2>
 
 <p>
-The primary repository for AFPL Ghostscript is SourceForge (<a
+The development site for Aladdin Ghostscript is SourceForge (<a
 href="http://sourceforge.net"><tt>http://sourceforge.net</tt></a>).  Please
-read the SourceForge AFPL Ghostscript home page (<a
+read the SourceForge Aladdin Ghostscript home page (<a
 href=http://ghostscript.sourceforge.net><tt>http://ghostscript.sourceforge.net</tt></a>)
 first.  CVS access information is available at <a
 href="http://sourceforge.net/cvs/?group_id=1897"><tt>http://sourceforge.net/cvs/?group_id=1897</tt></a>.
@@ -136,23 +127,24 @@ href="http://sourceforge.net/cvs/?group_id=1897"><tt>http://sourceforge.net/cvs/
 <h2><a name="Distributions"></a>Distributions</h2>
 
 <p>
-Both stable and development releases are available from
+Both public and tester releases are available from
 <blockquote><pre>
 <a
 href="http://sourceforge.net/project/filelist.php?group_id=1897">http://sourceforge.net/project/filelist.php?group_id=1897</a>
 </pre></blockquote>
 
 <p>
-Stable releases are also distributed from
+Public (tested) releases are distributed from
 <blockquote><pre>
 <a
 href="ftp://ftp.cs.wisc.edu/ghost/aladdin/">ftp://ftp.cs.wisc.edu/ghost/aladdin/</a>
 </pre></blockquote>
 
 <p>
-Development releases are also distributed from
+Tester releases are distributed from
 <blockquote><pre>
 <a href="ftp://ftp.cs.wisc.edu/ghost/aladdin/test/">ftp://ftp.cs.wisc.edu/ghost/aladdin/test/</a>
+<a href="ftp://www.aladdin.com/ghost/aladdin/test/">ftp://www.aladdin.com/ghost/aladdin/test/</a>
 </pre></blockquote>
 
 <h1><a name="Adding_or_removing_files"></a>Adding or removing files</h1>
@@ -162,8 +154,9 @@ When adding or removing files, don't forget to invoke <b><tt>cvs
 add</tt></b> or <b><tt>cvs rm</tt></b>.
 
 <p>
-When adding or removing files other than .c or .h: If the files will be used
-at runtime, check the install list in <b><tt>unixinst.mak</tt></b>.
+When adding or removing files other than .c or .h: If the files are included
+in the fileset (i.e., not just support files), check the install list in
+<b><tt>unixinst.mak</tt></b>.
 
 <p>
 When adding .c files, update the relevant <b><tt>.mak</tt></b> file (usually
@@ -171,17 +164,19 @@ When adding .c files, update the relevant <b><tt>.mak</tt></b> file (usually
 <b><tt>lib.mak</tt></b>).
 
 <p>
-When adding operators, or adding or changing filters, update
-<b><tt>doc/Language.htm</tt></b> if desired.
+When adding operators, update <b><tt>doc/Language.htm</tt></b> if desired.
 
 <p>
 When adding .h files, add a _h definition in the appropriate
 <b><tt>.mak</tt></b> file.
 
 <p>
-When adding or changing fonts, update <b><tt>lib/Fontmap.GS</tt></b>,
+When adding or changing fonts, update <b><tt>Fontmap.GS</tt></b>,
 <b><tt>fonts.mak</tt></b>, and possibly the compiled fonts in
 <b><tt>gs.mak</tt></b> and the examples in <b><tt>doc/Fonts.htm</tt></b>.
+
+<p>
+When adding or changing filters, update <b><tt>doc/Language.htm</tt></b>.
 
 <p>
 When adding .ps files, update <b><tt>doc/Psfiles.htm</tt></b>.
@@ -192,55 +187,43 @@ When adding .ps files, update <b><tt>doc/Psfiles.htm</tt></b>.
 This document only discusses source distributions.  Source distributions
 currently can only be made on Linux systems (but it probably wouldn't take
 much work to support other Unix systems).  Ghostscript as distributed also
-often includes executables or other packages for the Windows and MacOS
-environments, but artofcode does not produce these, and this document does not
-discuss them.  For more information about Windows packages, please contact
-<a href="mailto:bug-gswin@ghostscript.com"><tt>bug-gswin@ghostscript.com</tt></a>;
-for more information about MacOS packages, please contact <a
-href="mailto:mac-gs@ghostscript.com"><tt>mac-gs@ghostscript.com</tt></a>.
+often includes Windows executables or other packages for the Windows
+environment, but Aladdin does not produce these, and this document does not
+discuss them.  For more information about this topic, please contact <a
+href="mailto:bug-gswin@aladdin.com"><tt>bug-gswin@aladdin.com</tt></a> or <a
+href="mailto:gsview@ghostgum.com.au"><tt>gsview@ghostgum.com.au</tt></a>.
 
 <p>
-To make a source distribution, you will need the scripts and data files in
-the <b><tt>toolbin/</tt></b> directory.  You will probably find it
-convenient to include this directory in the PATH, but the instructions below
-don't assume that you have done this.  To run the scripts, you will need
-reasonably current versions of Tcl, freely available from Scriptics (<a
-href="http://www.scriptics.com"><tt>http://www.scriptics.com</tt></a>), and
-Python, freely available from <a
-href="http://www.python.org"><tt>http://www.python.org</tt></a>.
-
-<p>
-The instructions below also refer to some files that are deliberately
-omitted from the public distribution, because they are copyrighted by their
-authors and not freely redistributable.  You will need to provide similar
-files for your environment.
-
+To make a source distribution, you will need the following tools:
 <blockquote><pre>
-<b><tt>data/*/*.ps</tt></b> (PostScript files) - needed for smoke testing
-<b><tt>beta.msg</tt></b> - the announcement message for the release
+<b><tt>cvs2hist.py</tt></b> (Python script -- anywhere in the path)
+<b><tt>cvs2hist</tt></b> (link to <b><tt>cvs2hist.py</tt></b>, ibid.)
+<b><tt>../bin/precheck.tcl</tt></b> (Tcl script)
+<b><tt>master/pre</tt></b> (Tcl script)
+<b><tt>master/pre.chk</tt></b> (data file)
+<b><tt>master/gsmake.tcl</tt></b> (Tcl script)
+<b><tt>master/gsmake</tt></b> (link to <b><tt>gsmake.tcl</tt></b>)
+<b><tt>master/makeset.tcl</tt></b> (Tcl script)
+<b><tt>master/makehist</tt></b> (link to <b><tt>makeset.tcl</tt></b>)
+<b><tt>master/makefonts</tt></b> (ibid.)
+<b><tt>master/maketars</tt></b> (ibid.)
+<b><tt>master/makemaster</tt></b> (ibid.)
+<b><tt>master/smoke.ps</tt></b> (PostScript file)
+<b><tt>data/*/*.ps</tt></b> (PostScript files)
+<b><tt>beta.msg</tt></b>
 </pre></blockquote>
+
+<p>
+Make sure the release date and version number are up to date in
+<b><tt>version.mak</tt></b>, <b><tt>lib/gs_init.ps</tt></b>, and
+<b><tt>doc/News.htm</tt></b>.
 
 <h2><a name="Preparing_source"></a>Preparing the source code</h2>
 
 <p>
-Update references to the date:
-
-<ul>
-
-<li>In <b><tt>version.mak</tt></b>, the numeric date.
-
-<li>In <b><tt>doc/News.htm</tt></b>, in 3 places, skipping the Id: line.
-
-</ul>
-
-<p>
-Also in <b><tt>doc/News.htm</tt></b>, update the number of the highest
-closed bug and the list of open bugs.
-
-<p>
 Check in <b><tt>gscdef.c</tt></b> that the definition of
 <b><tt>GS_PRODUCT</tt></b> includes the appropriate one of "TESTER RELEASE",
-"BETA RELEASE", or neither, and does not include "CVS PRE-RELEASE".
+"BETA RELEASE", or neither.
 
 <p>
 Check for patched configuration parameters, <b><tt>#define TEST</tt></b>s,
@@ -248,15 +231,15 @@ version/date inconsistencies, and mismatches between the working directory
 and the CVS repository by running:
 
 <blockquote><pre>
-toolbin/pre
+master/pre
 </pre></blockquote>
 
 <p>
 This program compares the result of various greps against a check file,
 writing the results of grep on one output file and the differences from the
-check file on another.  See the source code of <b><tt>toolbin/pre</tt></b>
+check file on another.  See the source code of <b><tt>master/pre</tt></b>
 for the default file names.  The important one is the check file,
-<b><tt>toolbin/pre.chk</tt></b>.  <b><tt>pre</tt></b> also verifies that the
+<b><tt>master/pre.chk</tt></b>.  <b><tt>pre</tt></b> also verifies that the
 right information is in the following places:
 <ul>
 <li>version number in <b><tt>man/*.1</tt></b>, <b><tt>doc/*.htm</tt></b>,
@@ -271,14 +254,14 @@ right information is in the following places:
 If necessary, run
 
 <blockquote><pre>
-toolbin/pre update
+master/pre update
 </pre></blockquote>
 
 <p>
 to update the version and revision date in the doc files, and then run
 
 <blockquote><pre>
-toolbin/pre
+master/pre
 </pre></blockquote>
 
 <p>
@@ -289,10 +272,8 @@ Check the consistency of the source code with the makefiles by
 running:
 
 <blockquote><pre>
-toolbin/gsmake.tcl check
+master/gsmake check
 </pre></blockquote>
-
-<h2><a name="Testing"></a>Testing</h2>
 
 <p>
 Edit the makefile (presumably <b><tt>unix-gcc.mak</tt></b>) to set
@@ -316,32 +297,14 @@ make -j2 &gt;&amp; t.log
 and look for warnings and errors in the log file.
 
 <p>
-Do a smoke test in a separate window, replacing <b><tt>/gs</tt></b> with the
-name of the development root directory if necessary:
+Do a smoke test:
 
 <blockquote><pre>
-unset GS_DEVICE GS_FONTPATH GS_LIB GS_OPTIONS
-cd /tmp
-/gs/bin/gs -I/gs/lib -I/gs/fonts -dNOPAUSE -dBATCH /gs/toolbin/smoke.ps | tee t
+bin/gs @b master/smoke.ps
 export TEMP=/gs/tmp
-/gs/bin/gs -I/gs/lib -I/gs/fonts -dNOPAUSE -dBATCH -sDEVICE=bitcmyk\
-  -sOutputFile=/dev/null -r600 -dBufferSpace=50000 /gs/toolbin/smoke.ps | tee t
+bin/gs @b -sDEVICE=bitcmyk -sOutputFile=/dev/null -r600 -dMaxBitmap=1000000\
+  master/smoke.ps
 </pre></blockquote>
-
-<p>
-This reads files named
-
-<blockquote><pre>
-<b><tt>/gs/data/ps/*.ps</tt></b>
-<b><tt>/gs/data/psl2/*.ps</tt></b>
-<b><tt>/gs/data/psl3/*.ps</tt></b>
-<b><tt>/gs/data/test/*.ps</tt></b>
-</pre></blockquote>
-
-<p>
-(Edit <b><tt>toolbin/smoke.ps</tt></b> ad lib to use other test sets.)
-Watch for crashes, unusual error messages, or anomalous displayed output.
-If there are any problems, start over from the beginning of the process.
 
 <p>
 Undo the <b><tt>FEATURE_DEVS</tt></b> and <b><tt>COMPILE_INITS</tt></b>
@@ -361,7 +324,7 @@ to ensure the repository is up to date.
 Execute
 
 <blockquote><pre>
-toolbin/cvs2hist.py -v #.#[#] > doc/Changes.htm
+cvs2hist -v #.#[#] > doc/Changes.htm
 </pre></blockquote>
 
 <p>
@@ -372,9 +335,7 @@ format.
 Run
 
 <blockquote><pre>
-tclsh
-% source toolbin/makeset.tcl
-% makehist
+master/makehist
 </pre></blockquote>
 
 <p>
@@ -386,15 +347,13 @@ cvs commit
 </pre></blockquote>
 
 <p>
-again to check in the Changes and history files.
+again.
 
 <p>
 Make the source archives with
 
 <blockquote><pre>
-tclsh
-% source toolbin/makeset.tcl
-% maketars
+master/maketars
 </pre></blockquote>
 
 <p>
@@ -406,13 +365,49 @@ This creates the files
 <b><tt>ghostscript-#.##gnu.tar.gz</tt></b> (GPL'ed files)
 </pre></blockquote>
 
+<h2><a name="Testing"></a>Testing</h2>
+
+<p>
+Unpack the main archive in a clean directory.  Prepare for building:
+
+<blockquote><pre>
+ln -s src/unix-gcc.mak makefile;\
+ln -s /gs/jpeg jpeg; ln -s /gs/libpng libpng; ln -s /gs/zlib zlib
+</pre></blockquote>
+
+<p>
+Do a full build and smoke test (in a separate window):
+
+<blockquote><pre>
+unset GS_LIB
+bin/gs -Ilib -I/gs/fonts -dNOPAUSE -dBATCH /gs/master/smoke.ps | tee t
+export TEMP=/gs/tmp
+bin/gs -Ilib -I/gs/fonts -dNOPAUSE -dBATCH -sDEVICE=bitcmyk\
+  -sOutputFile=/dev/null -r600 -dMaxBitmap=1000000 /gs/master/smoke.ps | tee t
+</pre></blockquote>
+
+<p>
+This reads files named
+
+<blockquote><pre>
+<b><tt>/gs/data/ps/*.ps</tt></b>
+<b><tt>/gs/data/psl2/*.ps</tt></b>
+<b><tt>/gs/data/psl3/*.ps</tt></b>
+<b><tt>/gs/data/test/*.ps</tt></b>
+</pre></blockquote>
+
+<p>
+(Edit <b><tt>smoke.ps</tt></b> ad lib to use other test sets.)  Watch for
+crashes, unusual error messages, or anomalous displayed output.  If there
+are any problems, start over from the beginning of the process.
+
 <h2><a name="Testing_on_Windows"></a>Testing on Windows</h2>
 
 <p>
 For Windows testing, you will need, in addition to the files listed
 under <a href="Source_distributions">"Source distributions"</a> above:
 <blockquote><pre>
-<b><tt>toolbin/makewin</tt></b> (link to <b><tt>makeset.tcl</tt></b>)
+<b><tt>master/makewin</tt></b> (link to <b><tt>makeset.tcl</tt></b>)
 </pre></blockquote>
 
 <p>
@@ -428,7 +423,7 @@ Make the zip archive of all files needed for a Windows build, and copy it to
 the Windows partition:
 
 <blockquote><pre>
-toolbin/makewin
+master/makewin
 cp gs###.zip /c/work
 </pre></blockquote>
 
@@ -494,12 +489,12 @@ href="#Preparing_source">"Preparing the source code."</a>
 If you are maintaining local master copies, execute
 
 <blockquote><pre>
-toolbin/makemaster
+master/makemaster
 </pre></blockquote>
 
 <p>
-This creates a <b><tt>master/###</tt></b> directory if necessary, and moves
-the archives to it.
+This creates <b><tt>master/###</tt></b> if necessary, and moves the archives
+to it.
 
 <p>
 Tag the source files with the release number by executing
@@ -509,14 +504,8 @@ cvs tag gs#_#[#]
 </pre></blockquote
 
 <p>
-Upload <b><tt>ghostscript-#.##.tar.*</tt></b> to SourceForge (by anonymous
-FTP to <b><tt>download.sourceforge.net</tt></b>, directory
-<b><tt>/incoming</tt></b>), and then post it using the "File Release"
-facility in the AFPL Ghostscript project.  If this is a test release, put
-it in the <b><tt>gs-test</tt></b> module, otherwise put it in the
-<b><tt>ghostscript</tt></b> module.  If you are adding Windows executables
-to an existing source release, please use the same release date as the
-source release, not the current date.
+Upload and post <b><tt>ghostscript-#.##.tar.*</tt></b> to SourceForge using
+the "File Release" facility in the Aladdin Ghostscript project.
 
 <p>
 If <b><tt>ansi2knr.c</tt></b> has changed, put it on
@@ -536,8 +525,12 @@ Upload <b><tt>ghostscript-#.##.tar.*</tt></b> to
 <b><tt>ftp://ftp.cs.wisc.edu/ghost/aladdin/test</tt></b>.
 
 <p>
-Construct the e-mail announcement by editing <b><tt>beta.msg</tt></b>.
-Mail using:
+Copy the same files from there to
+<b><tt>ftp://www.aladdin.com/pub/ftp/ghost/aladdin/test</tt></b>.
+
+<p>
+Construct the e-mail announcement by editing <b><tt>beta.msg</tt></b>;
+include the News section for this release.  Mail using:
 <blockquote><pre>
 To: gs-test
 </pre></blockquote>
@@ -561,109 +554,10 @@ To: gs-announce
 <p>
 Edit the Web pages on the Wisconsin server to reflect the new release.
 
-<h1><a name="After_releasing"></a>After releasing</h1>
+<h3><a name="After_releasing"></a>After releasing</h3>
 
 <p>
-Update the version number by incrementing it:
-
-<ul>
-
-<li>In <b><tt>lib/gs_init.ps</tt></b>, at the very beginning of the file.
-
-<li>In <b><tt>version.mak</tt></b>, in 3 definitions.
-
-<li>In <b><tt>doc/News.htm</tt></b>, in 4 places.
-
-</ul>
-
-<p>
-In <b><tt>gscdef.c</tt></b>, edit the definition of
-<b><tt>GS_PRODUCT</tt></b> to include "CVS PRE-RELEASE".
-
-<p>
-Edit <b><tt>doc/News.htm</tt></b> to remove all the content.
-
-<h1><a name="GNU_releases"></a>GNU Ghostscript releases</h1>
-
-<p>
-artofcode LLC re-releases each tested AFPL Ghostscript version with
-the GPL, as GNU Ghostscript, when the next tested AFPL Ghostscript
-version comes out.
-
-<h2><a name="GNU_code"></a>GNU code</h2>
-
-<p>
-To make a GNU Ghostscript release from AFPL Ghostscript release #.##, run
-
-<blockquote><pre>
-toolbin/makegnu #.##
-</pre></blockquote>
-
-<p>
-This reads the files 
-
-<blockquote><pre>
-/gs/master/#.##/ghostscript-#.##.tar.gz
-/gs/master/#.##/ghostscript-#.##gnu.tar.gz
-</pre></blockquote>
-
-<p>
-and creates the file
-
-<blockquote><pre>
-/tmp/gnu-gs-#.##.tar.gz
-</pre></blockquote>
-
-<p>
-Note that the <b><tt>makegnu</tt></b> script uses a program called
-<b><tt>copyrite</tt></b> that rewrites the copyright notices.  The
-<b><tt>copyrite</tt></b> program is intentionally not distributed with
-Ghostscript.
-
-<p>
-Upload the file <b><tt>/tmp/gnu-gs-#.##.tar.gz</tt></b> to
-<b><tt>ftp://ftp.cs.wisc.edu/ghost/gnu/gs#.##/</tt></b>.  Delete the file
-after uploading.
-
-<h2><a name="GNU_after_releasing"></a>After releasing (GNU)</h2>
-
-<p>
-E-mail the full URL and the <b><tt>md5sum</tt></b> of the new archive(s) to
-<a href="mailto:ftp-upload@gnu.org"><tt>ftp-upload@gnu.org</tt></a>.
-
-<h1><a name="Fonts"></a>Fonts</h1>
-
-<p>
-artofcode LLC distributes a package of the base 35 PostScript fonts, and a
-package of other miscellaneous fonts.  As with the Ghostscript code, each
-package is released both with the Aladdin License and with the GPL; however,
-unlike the Ghostscript code, artofcode releases these versions simultaneously
-rather than with a one-version delay.
-
-<p>
-To make the font packages, run the command
-
-<blockquote><pre>
-toolbin/makefonts #.##
-</pre></blockquote>
-
-<p>
-This creates the following files:
-
-<blockquote><pre>
-ghostscript-fonts-std-#.#[#].tar.gz
-ghostscript-fonts-other-#.#[#].tar.gz
-gnu-gs-fonts-std-#.#[#].tar.gz
-gnu-gs-fonts-other-#.#[#].tar.gz
-</pre></blockquote>
-
-<p>
-The first two of these use the Aladdin License, and should be uploaded to
-<b><tt>ftp://ftp.cs.wisc.edu/ghost/aladdin/fonts/</tt></b>.  The other two
-use the GPL, and should be uploaded to
-<b><tt>ftp://ftp.cs.wisc.edu/ghost/gnu/fonts/</tt></b>.  For the GNU
-release, also see <a href="#GNU_after_releasing">"After releasing
-(GNU)"</a>.
+Edit <b><tt>doc/News.htm</tt></b> to remove all content.
 
 <!-- [2.0 end contents] ==================================================== -->
 
@@ -674,13 +568,13 @@ release, also see <a href="#GNU_after_releasing">"After releasing
 
 <p>Copyright &copy; 1999, 2000 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of AFPL Ghostscript.  See the <a
+<p>This file is part of Aladdin Ghostscript.  See the <a
 href="Public.htm">Aladdin Free Public License</a> (the "License") for full
 details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.
+Aladdin Ghostscript.
 
 <p>
-Ghostscript version 6.32, 27 November 2000
+Ghostscript version 6.01, 16 March 2000
 
 </font>
 

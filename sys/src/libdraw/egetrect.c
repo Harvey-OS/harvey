@@ -70,20 +70,36 @@ egetrect(int but, Mouse *m)
 	return rc;
 }
 
+static
+void
+freetmp(void)
+{
+	freeimage(tmp[0]);
+	freeimage(tmp[1]);
+	freeimage(tmp[2]);
+	freeimage(tmp[3]);
+	freeimage(red);
+	tmp[0] = tmp[1] = tmp[2] = tmp[3] = red = nil;
+}
+
 void
 edrawgetrect(Rectangle rc, int up)
 {
 	int i;
 	Rectangle r, rects[4];
 
+	if(up && tmp[0]!=nil)
+		if(Dx(tmp[0]->r)<Dx(rc) || Dy(tmp[2]->r)<Dy(rc))
+			freetmp();
+
 	if(tmp[0] == 0){
-		r = Rect(0, 0, Dx(display->image->r), W);
-		tmp[0] = allocimage(display, r, display->chan, 0, -1);
-		tmp[1] = allocimage(display, r, display->chan, 0, -1);
-		r = Rect(0, 0, W, Dy(display->image->r));
-		tmp[2] = allocimage(display, r, display->chan, 0, -1);
-		tmp[3] = allocimage(display, r, display->chan, 0, -1);
-		red = allocimage(display, Rect(0,0,1,1), display->chan, 1, DRed);
+		r = Rect(0, 0, Dx(screen->r), W);
+		tmp[0] = allocimage(display, r, screen->chan, 0, -1);
+		tmp[1] = allocimage(display, r, screen->chan, 0, -1);
+		r = Rect(0, 0, W, Dy(screen->r));
+		tmp[2] = allocimage(display, r, screen->chan, 0, -1);
+		tmp[3] = allocimage(display, r, screen->chan, 0, -1);
+		red = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DRed);
 		if(tmp[0]==0 || tmp[1]==0 || tmp[2]==0 || tmp[3]==0 || red==0)
 			drawerror(display, "getrect: allocimage failed");
 	}

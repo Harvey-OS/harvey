@@ -1,0 +1,5 @@
+#!/bin/rc
+
+rfork n
+bind '#$' /mnt
+cat /mnt/pci/*ctl

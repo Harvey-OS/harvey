@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
+#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -46,7 +46,7 @@ void
 scrlresize(void)
 {
 	freeimage(scrtmp);
-	scrtmp = allocimage(display, Rect(0, 0, 32, screen->r.max.y), display->chan, 0, DNofill);
+	scrtmp = allocimage(display, Rect(0, 0, 32, screen->r.max.y), screen->chan, 0, DNofill);
 	if(scrtmp == nil)
 		error("scroll alloc");
 }

@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <libsec.h>
 #include <ip.h>
+#include <auth.h>
 #include "ppp.h"
 
 enum {
@@ -697,7 +698,7 @@ Done:
 	b = allocb(len);
 	memmove(b->wptr, hq, len);
 	b->wptr += len;
-/* netlog("ppp: mppc: len %d bits = %d n=%d\n", len, bits, n); */
+netlog("ppp: mppc: len %d bits = %d n=%d\n", len, bits, n);
 	
 	s->indx += len;
 	if(s->indx > s->size)

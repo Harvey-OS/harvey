@@ -304,7 +304,7 @@ after checking that windows are not dirty.
 With no arguments, change the font of the associated window from fixed-spaced to
 proportional-spaced or
 .I vice
-.I versa .
+.IR versa .
 Given a file name argument, change the font of the window to that stored in the named file.
 If the file name argument is prefixed by
 .B var
@@ -457,6 +457,9 @@ in
 .BR /sys/src/cmd/sam ,
 producing output in a window labeled
 .BR /sys/src/cmd/sam/+Errors .
+The environment of such commands contains the variable
+.B $%
+with value set to the filename of the window in which the command is run.
 .SS "Mouse button 3
 Pointing at text with button 3 instructs
 .I acme

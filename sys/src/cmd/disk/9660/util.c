@@ -87,16 +87,12 @@ struprcpy(char *p, char *s)
 int
 chat(char *fmt, ...)
 {
-	char buf[256];
-	int n;
-	va_list va;
+	va_list arg;
 
 	if(!chatty)
 		return 0;
-
-	va_start(va, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, va) - buf;
-	va_end(va);
-	write(2, buf, n);
-	return n;
+	va_start(arg, fmt);
+	vfprint(2, fmt, arg);
+	va_end(arg);
+	return 1;
 }

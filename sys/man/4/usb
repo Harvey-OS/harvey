@@ -1,0 +1,154 @@
+.TH USB 4
+.SH NAME
+usbmouse,
+usbaudio
+\- Universal Serial Bus user level device drivers
+.SH SYNOPSIS
+.B usb/usbmouse
+[
+.B -f
+] [
+.I ctrlno
+.I n
+]
+.PP
+.B usb/usbaudio
+[
+.B -d
+] [
+.B -v
+.I volume
+] [
+.B -m
+.I mountpoint
+] [
+.I ctrlno
+.I n
+]
+.PP
+.B usbstart
+.SH DESCRIPTION
+These programs implement support for specific USB device classes.
+They should be run after
+.IR usbd (4)
+has had a chance to locate the devices in question and provide
+them with device addresses and minimal configuration.
+Dynamic handling of device insertion and removal is currently not supported.
+.PP
+The script
+.B usbstart
+checks whether a USB driver is present, and if so, starts usbd
+followed by the support programs listed below.
+.SS USB MICE
+.B Usbmouse
+sends mouse events from a USB mouse to
+.B #m/mousein
+where the Plan 9 kernel processes them like other mice.
+.PP
+Without arguments, it scans the USB status files to find a mouse
+and uses the first one it finds.  A pair of numeric arguments overrides this search
+with a specific USB controller and device.
+.PP
+The
+.B -f
+flag runs
+.B usbmouse
+in the foreground.
+.SS USB AUDIO DEVICES
+.B Usbaudio
+configures and manages a usb audio device.  It implements a file system,
+normally mounted in
+.BI /dev ,
+but this can be changed with the
+.B \-m
+flag, with files
+.IR /volume ,
+.IR /audioctl ,
+.IR /audio ,
+and
+.IR /audioin .
+The names
+.I /volume
+and
+.I /audio
+maintain backward compatibility with the soundblaster driver.
+.PP
+Reading
+.I /volume
+or
+.I /audioctl
+yields the device's settings.  The data format of
+.I /volume
+is compatible with the soundblaster and
+produces something like
+.PP
+.EX
+audio out 65
+treb out 0
+bass out 0
+speed out 44100
+.EE
+.PP
+This file can be written using the same syntax.  The keyword
+.I out
+may be omitted.  Settings are given as percentages of the range.
+.PP
+The file
+.I /audioctl
+provides more information, using up to 6 columns of 12 characters each.
+From left to right, the fields are:
+.IR "control name" ,
+.I in
+or
+.IR out ,
+.IR "current value" ,
+.IR "minimum value" ,
+.IR maximum ,
+and
+.IR resolution .
+There are 3, 5, or 6 columns present.
+Maxima and resolution are omitted when they are not available or not applicable.
+The resolution for
+.I speed
+is reported as 1 (one) if the sampling frequency is continuously variable.  It is absent
+if it is settable at a fixed number of discrete values only.
+.PP
+When all values from
+.I /audioctl
+have been read, a zero-sized buffer is returned (the usual end-of-file indication).
+A new read will then block until one of the settings changes and then report its new value.
+.PP
+The file
+.I /audioctl
+can be written like
+.IR /volume .
+.PP
+Audio data is written to
+.I /audio
+and read from
+.IR /audioin .
+The data format is little endian, samples ordered primarily by time and
+secondarily by channel.  Samples occupy the minimum integral number
+of bytes.  Read and write operations of arbitrary size are allowed.
+.SH EXAMPLE
+.LP
+To use a USB mouse and audio device, put the following in your profile
+(replace x by your favorite initial volume setting):
+.PP
+.EX
+.ta 6n
+if (test -r '#U'/usb0) {
+	usb/usbd
+	usb/usbmouse -a 2
+	usb/usbaudio -v x
+}
+.EE
+.PP
+Alternatively, just put
+.B usbstart
+in your profile.
+.SH SOURCE
+.B /sys/src/cmd/usb
+.SH "SEE ALSO"
+.IR usb (3),
+.IR usbd (4)

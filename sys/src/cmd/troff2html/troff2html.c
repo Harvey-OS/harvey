@@ -288,8 +288,11 @@ header(char *s)
 void
 trailer(void)
 {
+	Tm *t;
+
+	t = localtime(time(nil));
 	Bprint(&bout, "<BR><FONT size=1><A HREF=\"http://www.lucent.com/copyright.html\">\n");
-	Bprint(&bout, "Copyright</A> &#169; 2000 Lucent Technologies.  All rights reserved.</FONT>\n");
+	Bprint(&bout, "Copyright</A> &#169; %d Lucent Technologies.  All rights reserved.</FONT>\n", t->year+1900);
 	Bprint(&bout, "\n</BODY></HTML>\n");
 }
 

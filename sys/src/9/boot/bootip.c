@@ -4,9 +4,9 @@
 
 #include "boot.h"
 
-static uchar	fsip[IPaddrlen];
-static uchar	auip[IPaddrlen];
-static char	mpoint[32];
+static	uchar	fsip[IPaddrlen];
+	uchar	auip[IPaddrlen];
+static	char	mpoint[32];
 
 static int isvalidip(uchar*);
 static void netndb(char*, uchar*);
@@ -15,19 +15,19 @@ static void netenv(char*, uchar*);
 void
 configip(void)
 {
-	int argc, pid, wpid;
+	int argc, pid;
 	char **argv, *p;
-	Waitmsg w;
+	Waitmsg *w;
 	char **arg;
 	char buf[32];
 	
-	fmtinstall('I', eipconv);
-	fmtinstall('M', eipconv);
-	fmtinstall('E', eipconv);
+	fmtinstall('I', eipfmt);
+	fmtinstall('M', eipfmt);
+	fmtinstall('E', eipfmt);
 
 	arg = malloc((bargc+1) * sizeof(char*));
 	if(arg == nil)
-		fatal("malloc");
+		fatal("%r");
 	memmove(arg, bargv, (bargc+1) * sizeof(char*));
 
 	argc = bargc;
@@ -43,7 +43,6 @@ configip(void)
 	case 'b':
 	case 'h':
 	case 'm':
-	case 'c':
 		p = ARGF();
 		USED(p);
 		break;
@@ -53,11 +52,13 @@ configip(void)
 	bind("#I", mpoint, MAFTER);
 	bind("#l0", mpoint, MAFTER);
 	bind("#l1", mpoint, MAFTER);
+	bind("#l2", mpoint, MAFTER);
+	bind("#l3", mpoint, MAFTER);
 
 	/* let ipconfig configure the ip interface */
 	switch(pid = fork()){
 	case -1:
-		fatal("configuring ip");
+		fatal("configuring ip: %r");
 	case 0:
 		exec("/ipconfig", arg);
 		fatal("execing /ipconfig");
@@ -67,13 +68,15 @@ configip(void)
 
 	/* wait for ipconfig to finish */
 	for(;;){
-		wpid = wait(&w);
-		if(wpid == pid){
-			if(w.msg[0] != 0)
-				fatal(w.msg);
+		w = wait();
+		if(w != nil && w->pid == pid){
+			if(w->msg[0] != 0)
+				fatal(w->msg);
+			free(w);
 			break;
-		} else if(wpid < 0)
+		} else if(w == nil)
 			fatal("configuring ip");
+		free(w);
 	}
 
 	/* if we didn't get a file and auth server, query user */
@@ -96,56 +99,51 @@ configip(void)
 	}
 }
 
-void
-configil(Method*)
+static void
+setauthaddr(char *proto, int port)
 {
-	configip();
-}
+	char buf[128];
 
-int
-authil(void)
-{
-	char buf[2*NAMELEN];
-
-	sprint(buf, "il!%I!566", auip);
-	return dial(buf, 0, 0, 0);
-}
-
-int
-connectil(void)
-{
-	char buf[2*NAMELEN];
-
-	sprint(buf, "il!%I!17008", fsip);
-	return dial(buf, 0, 0, 0);
+	snprint(buf, sizeof buf, "%s!%I!%d", proto, auip, port);
+	authaddr = strdup(buf);
 }
 
 void
 configtcp(Method*)
 {
+	sleep(100);
+	print("t");
+	sleep(100);
 	configip();
-}
-
-int
-authtcp(void)
-{
-	char buf[2*NAMELEN];
-
-	sprint(buf, "tcp!%I!567", auip);
-	return dial(buf, 0, 0, 0);
+	sleep(100);
+	print(".");
+	sleep(100);
+	setauthaddr("tcp", 567);
 }
 
 int
 connecttcp(void)
 {
-	char buf[2*NAMELEN];
-	int fd;
+	char buf[64];
 
-	sprint(buf, "tcp!%I!564", fsip);
-	fd = dial(buf, 0, 0, 0);
-	if(fd < 0)
-		return -1;
-	return pushfcall(fd);
+	snprint(buf, sizeof buf, "tcp!%I!564", fsip);
+	return dial(buf, 0, 0, 0);
+}
+
+void
+configil(Method*)
+{
+	configip();
+	setauthaddr("il", 566);
+}
+
+int
+connectil(void)
+{
+	char buf[64];
+
+	snprint(buf, sizeof buf, "il!%I!17008", fsip);
+	return dial(buf, 0, 0, 0);
 }
 
 static int

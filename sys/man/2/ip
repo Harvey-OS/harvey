@@ -1,6 +1,6 @@
 .TH IP 2
 .SH NAME
-eipconv, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myetheraddr, maskip, equivip, defmask, isv4, v4tov6, v6tov4, nhgetl, nhgets, hnputl, hnputs, readipifc \- Internet protocol
+eipfmt, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myetheraddr, maskip, equivip, defmask, isv4, v4tov6, v6tov4, nhgetl, nhgets, hnputl, hnputs, ptclbsum, readipifc \- Internet protocol
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -9,7 +9,7 @@ eipconv, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, mye
 .B #include <ip.h>
 .PP
 .B
-int	eipconv(void *o, int f1, int f2, int f3, int chr)
+int	eipfmt(Fmt*)
 .PP
 .B
 ulong	parseip(uchar *ipaddr, char *str)
@@ -18,7 +18,7 @@ ulong	parseip(uchar *ipaddr, char *str)
 ulong	parseipmask(uchar *ipaddr, char *str)
 .PP
 .B
-ulong	v4parseip(uchar *ipaddr, char *str)
+char*	v4parseip(uchar *ipaddr, char *str)
 .PP
 .B
 ulong	v4parsecidr(uchar *addr, uchar *mask, char *str)
@@ -27,7 +27,10 @@ ulong	v4parsecidr(uchar *addr, uchar *mask, char *str)
 int	parseether(uchar *eaddr, char *str)
 .PP
 .B
-int	myetheraddr(uchar *eaddr, char *net)
+int	myetheraddr(uchar *eaddr, char *dev)
+.PP
+.B
+int	myipaddr(uchar *ipaddr, char *net)
 .PP
 .B
 void	maskip(uchar *from, uchar *mask, uchar *to)
@@ -60,7 +63,10 @@ void	hnputs(void *p, ushort v)
 void	hnputl(void *p, uint v)
 .PP
 .B
-Ipifc*	readipifc(char *net, Ipifc *ifc)
+ushort	ptclbsum(uchar *a, int n)
+.PP
+.B
+Ipifc*	readipifc(char *net, Ipifc *ifc, int index)
 .PP
 .B
 uchar	IPv4bcast[IPaddrlen];
@@ -112,7 +118,7 @@ or
 The string representation of Ethernet addresses is exactly
 12 hexadecimal digits.
 .PP
-.I Eipconv
+.I Eipfmt
 is a
 .IR print (2)
 formatter for Ethernet (verb
@@ -160,6 +166,11 @@ to a 4-byte V4 IP address starting at
 and a 4-byte V4 IP mask starting at
 .IR mask .
 .PP
+.I Myipaddr
+returns the first valid IP address in
+the IP stack rooted at
+.IR net .
+.PP
 .I Parseether
 converts a string pointed to by
 .I str
@@ -167,7 +178,7 @@ to a 6-byte Ethernet address starting at
 .IR eaddr .
 .I Myetheraddr
 reads the Ethernet address string from file
-.IB net /1/stats
+.IB dev /1/stats
 and parses it into
 .IR eaddr .
 Both routines return a negative number on errors.
@@ -209,6 +220,12 @@ and
 .I nhgetl
 convert big-endian 2 and 4 byte quantities into integers.
 .PP
+.I Pctlbsum
+returns the one's complement checksum used in IP protocols, typically invoked as
+.EX
+hnputs(hdr->cksum, ~ptclbsum(data, len) & 0xffff);
+.EE
+.PP
 A number of standard IP addresses in V6 format are also defined.  They
 are:
 .IP \f5IPv4bcast
@@ -225,28 +242,83 @@ the V6 null address, all zeros
 the IP V6 prefix to all embedded V4 addresses
 .PP
 .I Readipifc
-updates the linked list of IP
-interfaces,
-.IR ifc ,
-with those currently configured under mountpoint
+returns information about
+a particular interface  (\fIindex\fP >= 0)
+or all IP interfaces (\fIindex\fP < 0)
+configured under a
+mount point
 .IR net ,
 default
 .BR /net .
-The new list is returned.
+Each interface is described by one
+.I Ipifc
+structure which in turn points to a linked list of
+.IR Iplifc
+structures describing the addresses assigned
+to this interface.
+If the list
+.IR ifc
+is supplied,
+that list is freed.
+Thus, subsequent calls can be used
+to free the list returned by the previous call.
 .I Ipifc
 is:
 .PP
 .EX
 typedef struct Ipifc
 {
-	char	dev[64];
-	uchar	ip[IPaddrlen];
-	uchar	mask[IPaddrlen];
-	uchar	net[IPaddrlen];
-	int	mtu;
 	Ipifc	*next;
+	Iplifc	*lifc;		/* local addressses */
+
+	/* per ip interface */
+	int	index;		/* number of interface in ipifc dir */
+	char	dev[64];	/* associated physical device */
+ 	int	mtu;		/* max transfer unit */
+
+	long	validlt;	/* valid life time */
+ 	long	preflt;		/* preferred life time */
+	uchar	sendra6;	/* on == send router adv */
+	uchar	recvra6;	/* on == rcv router adv */
+
+	ulong	pktin;		/* packets read */
+	ulong	pktout;		/* packets written */
+	ulong	errin;		/* read errors */
+	ulong	errout;		/* write errors */
+	Ipv6rp	rp;		/* route advertisement params */
 } Ipifc;
 .EE
+.PP
+.I Iplifc
+is:
+.PP
+.EX
+struct Iplifc
+{
+	Iplifc	*next;
+
+	uchar	ip[IPaddrlen];
+	uchar	mask[IPaddrlen];
+	uchar	net[IPaddrlen];		/* ip & mask */
+	ulong	preflt;			/* preferred lifetime */
+	ulong	validlt;		/* valid lifetime */
+};
+.EE
+.PP
+.I Ipv6rp
+is:
+struct Ipv6rp
+{
+	int	mflag;
+	int	oflag;
+	int 	maxraint;	/* max route adv interval */
+	int	minraint;	/* min route adv interval */
+	int	linkmtu;
+	int	reachtime;
+	int	rxmitra;
+	int	ttl;
+	int	routerlt;	
+};
 .PP
 .I Dev
 contains the first 64 bytes of the device configured with this

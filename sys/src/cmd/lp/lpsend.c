@@ -76,7 +76,7 @@ error(int level, char *s1, ...)
 int
 alarmhandler(void *foo, char *note) {
 	USED(foo);
-	if(strncmp(note, "alarm", ERRLEN)==0) {
+	if(strcmp(note, "alarm")==0) {
 		fprint(stderr, "alarm at %d - %s\n", dbgstate, dbgstrings[dbgstate]);
 		return(1);
 	} else return(0);

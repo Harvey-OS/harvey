@@ -80,8 +80,8 @@ struct	Sym
 	Node*	label;
 	ushort	lexical;
 	char	*name;
-	char	block;
-	char	sueblock;
+	ushort	block;
+	ushort	sueblock;
 	char	class;
 	char	sym;
 	char	aused;
@@ -96,8 +96,8 @@ struct	Decl
 	long	varlineno;
 	long	offset;
 	short	val;
+	ushort	block;
 	char	class;
-	char	block;
 	char	aused;
 };
 #define	D	((Decl*)0)
@@ -533,12 +533,12 @@ Sym*	slookup(char*);
 void	syminit(Sym*);
 void	unget(int);
 long	yylex(void);
-int	Lconv(va_list*, Fconv*);
-int	Tconv(va_list*, Fconv*);
-int	FNconv(va_list*, Fconv*);
-int	Oconv(va_list*, Fconv*);
-int	Qconv(va_list*, Fconv*);
-int	VBconv(va_list*, Fconv*);
+int	Lconv(Fmt*);
+int	Tconv(Fmt*);
+int	FNconv(Fmt*);
+int	Oconv(Fmt*);
+int	Qconv(Fmt*);
+int	VBconv(Fmt*);
 void	setinclude(char*);
 
 /*
@@ -628,6 +628,7 @@ void	dclfunct(Type*, Sym*);
  * sub.c
  */
 void	arith(Node*, int);
+int	deadheads(Node*);
 Type*	dotsearch(Sym*, Type*, Node*, long*);
 long	dotoffset(Type*, Type*, Node*);
 void	gethunk(void);

@@ -71,8 +71,8 @@ main(int argc, char *argv[])
 static int
 gzipf(char *file, int stdout)
 {
-	Dir dir;
-	char ofile[NAMELEN*2], *f, *s;
+	Dir *dir;
+	char ofile[256], *f, *s;
 	int ifd, ofd, ok;
 
 	ifd = open(file, OREAD);
@@ -80,14 +80,16 @@ gzipf(char *file, int stdout)
 		fprint(2, "gzip: can't open %s: %r\n", file);
 		return 0;
 	}
-	if(dirfstat(ifd, &dir) < 0){
+	dir = dirfstat(ifd);
+	if(dir == nil){
 		fprint(2, "gzip: can't stat %s: %r\n", file);
 		close(ifd);
 		return 0;
 	}
-	if(dir.mode & CHDIR){
+	if(dir->mode & DMDIR){
 		fprint(2, "gzip: can't compress a directory\n");
 		close(ifd);
+		free(dir);
 		return 0;
 	}
 
@@ -118,13 +120,14 @@ gzipf(char *file, int stdout)
 		fprint(2, "compressing %s to %s\n", file, ofile);
 
 	Binit(&bout, ofd, OWRITE);
-	ok = gzip(file, dir.mtime, ifd, &bout);
+	ok = gzip(file, dir->mtime, ifd, &bout);
 	if(!ok || Bflush(&bout) < 0){
 		fprint(2, "gzip: error writing %s: %r\n", ofile);
 		if(!stdout)
 			remove(ofile);
 	}
 	Bterm(&bout);
+	free(dir);
 	close(ifd);
 	close(ofd);
 	return ok;

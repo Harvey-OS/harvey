@@ -43,18 +43,27 @@ cyber938xlinear(VGAscr* scr, int* size, int* align)
 {
 	ulong aperture, oaperture;
 	int oapsize, wasupamem;
+	int osize;
 	Pcidev *p;
 
+	osize = *size;
 	oaperture = scr->aperture;
 	oapsize = scr->apsize;
 	wasupamem = scr->isupamem;
 	if(wasupamem)
 		upafree(oaperture, oapsize);
 	scr->isupamem = 0;
+	scr->mmio = 0;
 
 	if(p = pcimatch(nil, 0x1023, 0)){
 		aperture = p->mem[0].bar & ~0x0F;
 		*size = p->mem[0].size;
+		/*
+		 * Heuristic to detect the MMIO space.  We're flying blind
+		 * here, with only the XFree86 source to guide us.
+		 */
+		if(p->mem[1].size == 0x20000)
+			scr->mmio = (ulong*)(p->mem[1].bar & ~0x0F);
 	}
 	else
 		aperture = 0;
@@ -66,6 +75,11 @@ cyber938xlinear(VGAscr* scr, int* size, int* align)
 	}
 	else
 		scr->isupamem = 1;
+
+	if(aperture)
+		addvgaseg("cyber938xscreen", aperture, osize);
+	if(scr->mmio)
+		addvgaseg("cyber938xmmio", (ulong)scr->mmio, 0x20000);
 
 	return aperture;
 }
@@ -194,10 +208,11 @@ cyber938xcurenable(VGAscr* scr)
 VGAdev vgacyber938xdev = {
 	"cyber938x",
 
-	0,				/* enable */
-	0,				/* disable */
+	nil,				/* enable */
+	nil,				/* disable */
 	cyber938xpage,			/* page */
 	cyber938xlinear,		/* linear */
+	nil,				/* drawinit */
 };
 
 VGAcur vgacyber938xcur = {

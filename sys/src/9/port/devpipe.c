@@ -33,10 +33,11 @@ enum
 
 Dirtab pipedir[] =
 {
-	"data",		{Qdata0},	0,			0600,
-	"data1",	{Qdata1},	0,			0600,
+	".",		{Qdir,0,QTDIR},	0,		DMDIR|0500,
+	"data",		{Qdata0},	0,		0600,
+	"data1",	{Qdata1},	0,		0600,
 };
-#define NPIPEDIR 2
+#define NPIPEDIR 3
 
 static void
 pipeinit(void)
@@ -80,53 +81,30 @@ pipeattach(char *spec)
 	p->path = ++pipealloc.path;
 	unlock(&pipealloc);
 
-	c->qid = (Qid){CHDIR|NETQID(2*p->path, Qdir), 0};
+	mkqid(&c->qid, NETQID(2*p->path, Qdir), 0, QTDIR);
 	c->aux = p;
 	c->dev = 0;
 	return c;
 }
 
-static Chan*
-pipeclone(Chan *c, Chan *nc)
-{
-	Pipe *p;
-
-	p = c->aux;
-	nc = devclone(c, nc);
-	qlock(p);
-	p->ref++;
-	if(c->flag & COPEN){
-		switch(NETTYPE(c->qid.path)){
-		case Qdata0:
-			p->qref[0]++;
-			break;
-		case Qdata1:
-			p->qref[1]++;
-			break;
-		}
-	}
-	qunlock(p);
-	return nc;
-}
-
 static int
-pipegen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
+pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 {
-	int id;
+	Qid q;
 	int len;
 	Pipe *p;
 
 	if(i == DEVDOTDOT){
-		devdir(c, c->qid, "#|", 0, eve, CHDIR|0555, dp);
+		devdir(c, c->qid, "#|", 0, eve, DMDIR|0555, dp);
 		return 1;
 	}
-
-	id = NETID(c->qid.path);
+	i++;	/* skip . */
 	if(tab==0 || i>=ntab)
 		return -1;
+
 	tab += i;
 	p = c->aux;
-	switch(tab->qid.path){
+	switch((ulong)tab->qid.path){
 	case Qdata0:
 		len = qlen(p->q[0]);
 		break;
@@ -137,19 +115,41 @@ pipegen(Chan *c, Dirtab *tab, int ntab, int i, Dir *dp)
 		len = tab->length;
 		break;
 	}
-	devdir(c, (Qid){NETQID(id, tab->qid.path),0}, tab->name, len, eve, tab->perm, dp);
+	mkqid(&q, NETQID(NETID(c->qid.path), tab->qid.path), 0, QTFILE);
+	devdir(c, q, tab->name, len, eve, tab->perm, dp);
 	return 1;
 }
 
 
-static int
-pipewalk(Chan *c, char *name)
+static Walkqid*
+pipewalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c, name, pipedir, NPIPEDIR, pipegen);
+	Walkqid *wq;
+	Pipe *p;
+
+	wq = devwalk(c, nc, name, nname, pipedir, NPIPEDIR, pipegen);
+	if(wq != nil && wq->clone != nil && wq->clone != c){
+		p = c->aux;
+		qlock(p);
+		p->ref++;
+		if(c->flag & COPEN){
+			print("channel open in pipewalk\n");
+			switch(NETTYPE(c->qid.path)){
+			case Qdata0:
+				p->qref[0]++;
+				break;
+			case Qdata1:
+				p->qref[1]++;
+				break;
+			}
+		}
+		qunlock(p);
+	}
+	return wq;
 }
 
-static void
-pipestat(Chan *c, char *db)
+static int
+pipestat(Chan *c, uchar *db, int n)
 {
 	Pipe *p;
 	Dir dir;
@@ -158,7 +158,7 @@ pipestat(Chan *c, char *db)
 
 	switch(NETTYPE(c->qid.path)){
 	case Qdir:
-		devdir(c, c->qid, ".", 2*DIRLEN, eve, CHDIR|0555, &dir);
+		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
 		break;
 	case Qdata0:
 		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0660, &dir);
@@ -169,7 +169,10 @@ pipestat(Chan *c, char *db)
 	default:
 		panic("pipestat");
 	}
-	convD2M(&dir, db);
+	n = convD2M(&dir, db, n);
+	if(n < BIT16SZ)
+		error(Eshortstat);
+	return n;
 }
 
 /*
@@ -180,7 +183,7 @@ pipeopen(Chan *c, int omode)
 {
 	Pipe *p;
 
-	if(c->qid.path & CHDIR){
+	if(c->qid.type & QTDIR){
 		if(omode != OREAD)
 			error(Ebadarg);
 		c->mode = omode;
@@ -204,6 +207,7 @@ pipeopen(Chan *c, int omode)
 	c->mode = openmode(omode);
 	c->flag |= COPEN;
 	c->offset = 0;
+	c->iounit = qiomaxatomic;
 	return c;
 }
 
@@ -371,8 +375,8 @@ Dev pipedevtab = {
 
 	devreset,
 	pipeinit,
+	devshutdown,
 	pipeattach,
-	pipeclone,
 	pipewalk,
 	pipestat,
 	pipeopen,

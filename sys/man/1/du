@@ -13,6 +13,12 @@ du \- disk usage
 .B -n
 ]
 [
+.B -q
+]
+[
+.B -s
+]
+[
 .B -t
 ]
 [
@@ -71,5 +77,21 @@ each file rather than the size.
 If the options
 .B -tu
 are specified then the accessed time is printed.
+.PP
+The
+.B -q
+option prints, in the format of
+.B du
+.BR -n ,
+the QID of
+each file rather than the size.
+.PP
+Finally, the
+.B -s
+option causes
+.I du
+to descend the hierarchy as always, but to print only a summary line
+for each
+.IR file .
 .SH SOURCE
 .B /sys/src/cmd/du.c

@@ -302,7 +302,7 @@ dp8390write(Dp8390* ctlr, ulong to, void* from, ulong len)
 				crda = regr(ctlr, Crda0);
 				crda |= regr(ctlr, Crda1)<<8;
 				if(crda != to)
-					panic("crda write %d to %d\n", crda, to);
+					panic("crda write %lud to %lud\n", crda, to);
 	
 				break;
 			}

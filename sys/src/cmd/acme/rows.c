@@ -6,7 +6,6 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <bio.h>
 #include <plumb.h>
@@ -395,7 +394,7 @@ rowdump(Row *row, char *file)
 					w->body.file->nc, fontname);
 			}
 			free(a);
-			winctlprint(w, buf);
+			winctlprint(w, buf, 0);
 			Bwrite(b, buf, strlen(buf));
 			m = min(RBUFSIZE, w->tag.file->nc);
 			bufread(w->tag.file, 0, r, m);
@@ -444,6 +443,36 @@ rdline(Biobuf *b, int *linep)
 	if(l)
 		(*linep)++;
 	return l;
+}
+
+/*
+ * Get font names from load file so we don't load fonts we won't use
+ */
+void
+rowloadfonts(char *file)
+{
+	int i;
+	Biobuf *b;
+	char *l;
+
+	b = Bopen(file, OREAD);
+	if(b == nil)
+		return;
+	/* current directory */
+	l = Brdline(b, '\n');
+	if(l == nil)
+		goto Return;
+	/* global fonts */
+	for(i=0; i<2; i++){
+		l = Brdline(b, '\n');
+		if(l == nil)
+			goto Return;
+		l[Blinelen(b)-1] = 0;
+		if(*l && strcmp(l, fontnames[i])!=0)
+			fontnames[i] = estrdup(l);
+	}
+    Return:
+	Bterm(b);
 }
 
 void
@@ -665,7 +694,7 @@ rowload(Row *row, char *file, int initing)
 		}
 		if(q0>w->body.file->nc || q1>w->body.file->nc || q0>q1)
 			q0 = q1 = 0;
-		textshow(&w->body, q0, q1);
+		textshow(&w->body, q0, q1, 1);
 		w->maxlines = min(w->body.nlines, max(w->maxlines, w->body.maxlines));
 	}
 	Bterm(b);

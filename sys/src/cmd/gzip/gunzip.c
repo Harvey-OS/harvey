@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 static int
 gunzipf(char *file, int stdout)
 {
-	char ofile[NAMELEN], *s;
+	char ofile[256], *s;
 	int ofd, ifd, ok;
 
 	infile = file;
@@ -126,8 +126,7 @@ gunzipf(char *file, int stdout)
 			s++;
 		else
 			s = file;
-		strncpy(ofile, s, NAMELEN);
-		ofile[NAMELEN-1] = '\0';
+		strecpy(ofile, ofile+sizeof ofile, s);
 		s = strrchr(ofile, '.');
 		if(s != nil && s != ofile && strcmp(s, ".gz") == 0)
 			*s = '\0';
@@ -168,7 +167,7 @@ gunzipf(char *file, int stdout)
 static int
 gunzip(int ofd, char *ofile, Biobuf *bin)
 {
-	Dir d;
+	Dir *d;
 	GZHead h;
 	int err;
 
@@ -201,9 +200,10 @@ gunzip(int ofd, char *ofile, Biobuf *bin)
 				print("%-32s %10ld %s", h.file, wlen, ctime(h.mtime));
 			else
 				print("%s\n", h.file);
-		}else if(settimes && h.mtime && dirfstat(ofd, &d) >= 0){
-			d.mtime = h.mtime;
-			dirfwstat(ofd, &d);
+		}else if(settimes && h.mtime && (d=dirfstat(ofd)) != nil){
+			d->mtime = h.mtime;
+			dirfwstat(ofd, d);
+			free(d);
 		}
 
 		free(h.file);
@@ -336,19 +336,18 @@ crcwrite(void *out, void *buf, int n)
 static void
 error(char *fmt, ...)
 {
-	char buf[1024];
 	va_list arg;
 
 	if(gzok)
 		fprint(2, "gunzip: %s: corrupted data after byte %lld ignored\n", infile, gzok);
 	else{
+		fprint(2, "gunzip: ");
+		if(infile)
+			fprint(2, "%s: ", infile);
 		va_start(arg, fmt);
-		doprint(buf, buf+sizeof(buf), fmt, arg);
+		vfprint(2, fmt, arg);
 		va_end(arg);
-		if(infile != nil)
-			fprint(2, "gunzip: %s: %s\n", infile, buf);
-		else
-			fprint(2, "gunzip: %s\n", buf);
+		fprint(2, "\n");
 	
 		if(delfile != nil){
 			fprint(2, "gunzip: removing output file %s\n", delfile);

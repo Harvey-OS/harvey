@@ -98,6 +98,7 @@ main(int argc, char **argv)
 		hputc(hout, ch);
 		n_from++;
 	}
+	hflush(hout);
 	
 	logit(c, "to forwarded %d, returned %d", n_to, n_from);
 	exits(nil);

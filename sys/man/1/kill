@@ -3,12 +3,15 @@
 kill, slay, broke \- print commands to kill processes
 .SH SYNOPSIS
 .B kill
-.I name
+.I name ...
 .PP
 .B slay
-.I name
+.I name ...
 .PP
 .B broke
+[
+.I user
+]
 .SH DESCRIPTION
 .I Kill
 prints commands that will cause all processes called
@@ -44,7 +47,10 @@ prints commands that will cause all processes
 in the
 .I Broken
 state
-and owned by the current user to go away.
+and owned by
+.I user
+(by default, the current user)
+to go away.
 When a process dies because of an error caught by
 the system, it may linger in the
 .I Broken

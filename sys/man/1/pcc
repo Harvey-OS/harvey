@@ -25,10 +25,11 @@ The object files are then loaded using one of the loaders described in
 .IR 2l (1).
 The options are:
 .TP \w'\fL-D\ \fIname=def\ 'u
-.Bi -+
+.B "-+
 Accept C++
 .B //
 comments.
+.TP
 .BI -o " out"
 Place loader output in file
 .I out

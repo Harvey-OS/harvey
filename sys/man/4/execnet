@@ -1,0 +1,67 @@
+.TH EXECNET 4
+.SH NAME
+execnet \- network interface to program execution
+.SH SYNOPSIS
+.B execnet
+[
+.B -n
+.I name
+]
+[
+.B netdir
+]
+.SH DESCRIPTION
+.I Execnet
+presents a network protocol directory
+(see, for example,
+.IR ip (3))
+called
+.IB netdir / name
+(default
+.BR /net/exec ).
+.PP
+Once the protocol directory exists, dialing
+(see
+.IR dial (2))
+strings of
+the form
+.IB name ! cmd
+will connect to a newly executed instance of
+.IR cmd .
+.SH EXAMPLE
+.I Execnet
+can be used to connect to instances of
+.IR u9fs (4)
+running on other hosts:
+.EX
+    g% execnet
+    g% srv -m 'exec!ssh ny start-u9fs' ny /n/ny
+.EE
+This example assumes that the remote command
+.B start-u9fs
+executed on
+.B ny
+will start
+.I u9fs
+appropriately.
+For example, it might be:
+.EX
+    ny% cat start-u9fs
+    #!/bin/sh
+
+    u9fs -na none -u $USER -l $HOME/tmp/u9fs.log
+    ny%
+.EE
+See the 
+.IR u9fs (4)
+man page for more information.
+.SH SOURCE
+.B /sys/src/cmd/execnet
+.SH "SEE ALSO
+.IR dial (2),
+.IR ip (3),
+.IR u9fs (4)
+.SH BUGS
+Almost certainly:
+.IR execnet
+has only been tested as in the example shown.

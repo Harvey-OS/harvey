@@ -1,0 +1,41 @@
+#!/bin/rc
+
+# desc: subdivide plan 9 disk partition
+# prereq: partdisk
+
+switch($1) {
+case checkready
+	if(! test -f /dev/sd*/plan9*){
+		prepdisk=notdone
+		export prepdisk
+	}
+
+case go
+	echo 'The following Plan 9 disk partitions were found.'
+	echo
+	disks=(/dev/sd*/plan9*)
+	for (i in $disks){
+		echo $i
+		echo q | disk/prep -r $i >[2]/dev/null
+		echo
+	}
+	if(~ $#disks 1)
+		default=(-d $disks)
+	if not
+		default=()
+	prompt $default 'Plan 9 partition to subdivide' $disks
+	disk=$rd
+
+	echo 'This is disk/prep; use it to subdivide the Plan 9 partition.'
+	echo 'If it is not yet subdivided, a sensible layout will be suggested;'
+	echo 'you can probably just type ''w'' and then ''q''.'
+	echo
+	disk/prep -a $disk
+	disk/prep -p $disk >`{basename -d $disk}^/ctl >[2]/dev/null
+
+case checkdone
+	if(! test -f /dev/sd*/fs* || ! test -f /dev/sd*/9fat){
+		prepdisk=notdone
+		export prepdisk
+	}
+}

@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
+#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <regexp.h>
 #include <plumb.h>
@@ -121,7 +121,7 @@ look3(Text *t, uint q0, uint q1, int external)
 		m->data = runetobyte(r, q1-q0);
 		m->ndata = strlen(m->data);
 		free(r);
-		if(m->ndata<MAXFDATA-1024 && plumbsend(plumbsendfd, m) >= 0){
+		if(m->ndata<messagesize-1024 && plumbsend(plumbsendfd, m) >= 0){
 			plumbfree(m);
 			goto Return;
 		}
@@ -228,6 +228,7 @@ plumbshow(Plumbmsg *m)
 	r = runemalloc(m->ndata);
 	cvttorunes(m->data, m->ndata, r, &nb, &nr, nil);
 	textinsert(&w->body, 0, r, nr, TRUE);
+	free(r);
 	w->body.file->mod = FALSE;
 	w->dirty = FALSE;
 	winsettag(w);
@@ -288,7 +289,7 @@ search(Text *ct, Rune *r, uint n)
 		/* this runeeq is fishy but the null at b[nb] makes it safe */
 		if(runeeq(b, n, r, n)==TRUE){
 			if(ct->w){
-				textshow(ct, q, q+n);
+				textshow(ct, q, q+n, 1);
 				winsettag(ct->w);
 			}else{
 				ct->q0 = q;
@@ -710,12 +711,14 @@ openfile(Text *t, Expand *e)
 	else{
 		eval = TRUE;
 		r = address(nil, t, (Range){-1, -1}, (Range){t->q0, t->q1}, e->at, e->a0, e->a1, e->agetc, &eval, &dummy);
+		if(eval == FALSE)
+			e->jump = FALSE;	/* don't jump if invalid address */
 	}
 	if(eval == FALSE){
 		r.q0 = t->q0;
 		r.q1 = t->q1;
 	}
-	textshow(t, r.q0, r.q1);
+	textshow(t, r.q0, r.q1, 1);
 	winsettag(t->w);
 	seltext = t;
 	if(e->jump)

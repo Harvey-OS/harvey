@@ -19,7 +19,6 @@ static int machno2apicno[MaxAPICNO+1];	/* inverse map: machno -> APIC ID */
 static Lock mprdthilock;
 static int mprdthi;
 static Ref mpvnoref;			/* unique vector assignment */
-static Lock mpclocksynclock;
 
 static char* buses[] = {
 	"CBUSI ",
@@ -348,14 +347,9 @@ checkmtrr(void)
 	}
 }
 
-#define PDX(va)		((((ulong)(va))>>22) & 0x03FF)
-#define PTX(va)		((((ulong)(va))>>12) & 0x03FF)
-
 static void
 squidboy(Apic* apic)
 {
-	ulong x;
-
 //	iprint("Hello Squidboy\n");
 
 	machinit();
@@ -369,18 +363,10 @@ squidboy(Apic* apic)
 	mprdthi |= (1<<apic->apicno)<<24;
 	unlock(&mprdthilock);
 
-	/*
-	 * Restrain your octopus! Don't let it go out on the sea!
-	 */
-	ilock(&mpclocksynclock);
-	x = MACHP(0)->ticks;
-	while(MACHP(0)->ticks == x)
-		;
-	wrmsr(0x10, MACHP(0)->fastclock); /* synchronize fast counters */
-	iunlock(&mpclocksynclock);
-
 	lapicinit(apic);
 	lapiconline();
+	syncclock();
+	timersinit();
 
 	lock(&active);
 	active.machs |= 1<<m->machno;
@@ -405,7 +391,7 @@ mpstartap(Apic* apic)
 	 * the PTE for the Mach structure.
 	 * Xspanalloc will panic if an allocation can't be made.
 	 */
-	p = xspanalloc(3*BY2PG, BY2PG, 0);
+	p = xspanalloc(4*BY2PG, BY2PG, 0);
 	pdb = (ulong*)p;
 	memmove(pdb, mach0->pdb, BY2PG);
 	p += BY2PG;
@@ -414,17 +400,23 @@ mpstartap(Apic* apic)
 		return;
 	memmove(p, KADDR(PPN(*pte)), BY2PG);
 	*pte = PADDR(p)|PTEWRITE|PTEVALID;
+	if(mach0->havepge)
+		*pte |= PTEGLOBAL;
 	p += BY2PG;
 
 	mach = (Mach*)p;
 	if((pte = mmuwalk(pdb, MACHADDR, 2, 0)) == nil)
 		return;
 	*pte = PADDR(mach)|PTEWRITE|PTEVALID;
+	if(mach0->havepge)
+		*pte |= PTEGLOBAL;
+	p += BY2PG;
 
 	machno = apic->machno;
 	MACHP(machno) = mach;
 	mach->machno = machno;
 	mach->pdb = pdb;
+	mach->gdt = (Segdesc*)p;	/* filled by mmuinit */
 
 	/*
 	 * Tell the AP where its kernel vector and pdb are.
@@ -469,6 +461,7 @@ mpinit(void)
 	Apic *apic, *bpapic;
 
 	i8259init();
+	syncclock();
 
 	if(_mp_ == 0)
 		return;
@@ -554,7 +547,7 @@ mpinit(void)
 	 * and do not appear in the I/O APIC so it is OK
 	 * to set them now.
 	 */
-	intrenable(IrqTIMER, clockintr, 0, BUSUNKNOWN, "clock");
+	intrenable(IrqTIMER, lapicclock, 0, BUSUNKNOWN, "clock");
 	intrenable(IrqERROR, lapicerror, 0, BUSUNKNOWN, "lapicerror");
 	intrenable(IrqSPURIOUS, lapicspurious, 0, BUSUNKNOWN, "lapicspurious");
 	lapiconline();
@@ -583,11 +576,19 @@ mpinit(void)
 	}
 
 	/*
-	 * Remember to set conf.copymode here if nmach > 1.
-	 * Should look for an ExtINT line and enable it.
+	 *  we don't really know the number of processors till
+	 *  here.
+	 *
+	 *  set conf.copymode here if nmach > 1.
+	 *  Should look for an ExtINT line and enable it.
+	 *
+	 *  also need to flush write buffer to make things
+	 *  visible to other processors.
 	 */
-	if(conf.nmach > 1)
+	if(X86FAMILY(m->cpuidax) == 3 || conf.nmach > 1)
 		conf.copymode = 1;
+	if(X86FAMILY(m->cpuidax) >= 5 && conf.nmach > 1)
+		coherence = wbflush;
 }
 
 static int
@@ -644,17 +645,31 @@ mpintrenablex(Vctl* v, int tbdf)
 			continue;
 
 		/*
-		 * Check not already enabled. This is a bad thing as it implies
-		 * the same device is requesting the same interrupt to be
-		 * enabled multiple times. The RDT read here is safe for now
-		 * as currently interrupts are never disabled once enabled.
+		 * Check if already enabled. Multifunction devices may share
+		 * INT[A-D]# so, if already enabled, check the polarity matches
+		 * and the trigger is level.
+		 *
+		 * Should check the devices differ only in the function number,
+		 * but that can wait for the planned enable/disable rewrite.
+		 * The RDT read here is safe for now as currently interrupts
+		 * are never disabled once enabled.
 		 */
 		apic = aintr->apic;
 		ioapicrdtr(apic, aintr->intr->intin, 0, &lo);
 		if(!(lo & ApicIMASK)){
-			print("mpintrenable: multiple enable irq%d, tbdf %uX\n",
-				v->irq, tbdf);
-			return -1;
+			vno = lo & 0xFF;
+			n = mpintrinit(bus, aintr->intr, vno, v->irq);
+			n |= ApicLOGICAL;
+			if(n != lo || !(n & ApicLEVEL)){
+				print("mpintrenable: multiple botch irq%d, tbdf %uX, lo %8.8uX, n %8.8uX\n",
+					v->irq, tbdf, lo, n);
+				return -1;
+			}
+
+			v->isr = lapicisr;
+			v->eoi = lapiceoi;
+
+			return vno;
 		}
 
 		/*

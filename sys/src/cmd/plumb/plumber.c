@@ -33,7 +33,7 @@ mainproc(void *v)
 	c = v;
 	printerrors = 0;
 	makeports(rules);
-	proccreate(startfsys, nil, 8*1024);
+	startfsys();
 	sendp(c, nil);
 }
 
@@ -88,10 +88,10 @@ error(char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	doprint(buf, buf+sizeof buf, fmt, args);
+	vseprint(buf, buf+sizeof buf, fmt, args);
 	va_end(args);
 
-	threadprint(2, "%s: %s\n", progname, buf);
+	fprint(2, "%s: %s\n", progname, buf);
 	threadexitsall("error");
 }
 
@@ -102,12 +102,12 @@ parseerror(char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	doprint(buf, buf+sizeof buf, fmt, args);
+	vseprint(buf, buf+sizeof buf, fmt, args);
 	va_end(args);
 
 	if(printerrors){
 		printinputstack();
-		threadprint(2, "%s\n", buf);
+		fprint(2, "%s\n", buf);
 	}
 	do; while(popinput());
 	lasterror = estrdup(buf);

@@ -140,8 +140,10 @@ routines.
 .B /sys/src/libc/port/malloc.c
 .SH SEE ALSO
 .IR leak (1),
+.I trump
+(in
+.IR acid (1)),
 .IR brk (2),
-.IR debugmalloc (2),
 .IR getcallerpc (2),
 .IR pool (2)
 .SH DIAGNOSTICS
@@ -157,6 +159,29 @@ and
 .I getrealloctag
 return
 .BR ~0 .
+.PP
+After including
+.BR pool.h ,
+the call
+.B poolcheck(mainmem)
+can be used to scan the storage arena for inconsistencies
+such as data written beyond the bounds of allocated blocks.
+It is often useful to combine this with with setting
+.EX
+    mainmem->flags |= POOL_NOREUSE;
+.EE
+at the beginning of your program.
+This will cause malloc not to reallocate blocks even
+once they are freed;
+.B poolcheck(mainmem)
+will then detect writes to freed blocks.
+.PP
+The 
+.I trump
+library for
+.I acid
+can be used to obtain traces of malloc execution; see
+.IR acid (1).
 .SH BUGS
 The different specification of
 .I calloc

@@ -44,7 +44,7 @@ getclust(Dos *dos, long sector)
 	Clustbuf *p, *oldest;
 	int size;
 
-	chat("getclust @ %d\n", sector);
+	chat("getclust @ %ld\n", sector);
 
 	/*
 	 *  if we have it, just return it
@@ -52,7 +52,7 @@ getclust(Dos *dos, long sector)
 	for(p = bio; p < &bio[Nbio]; p++){
 		if(sector == p->sector && dos == p->dos){
 			p->age = m->ticks;
-			chat("getclust %d in cache\n", sector);
+			chat("getclust %ld in cache\n", sector);
 			return p;
 		}
 	}
@@ -78,8 +78,8 @@ getclust(Dos *dos, long sector)
 	/*
 	 *  read in the cluster
 	 */
-	chat("getclust addr %d\n", (sector+dos->start)*dos->sectsize);
-	if((*dos->seek)(dos, (sector+dos->start)*dos->sectsize) < 0){
+	chat("getclust addr %lld\n", (sector+dos->start)*(vlong)dos->sectsize);
+	if((*dos->seek)(dos, (sector+dos->start)*(vlong)dos->sectsize) < 0){
 		chat("can't seek block\n");
 		return 0;
 	}
@@ -91,7 +91,7 @@ getclust(Dos *dos, long sector)
 	p->age = m->ticks;
 	p->dos = dos;
 	p->sector = sector;
-	chat("getclust %d read\n", sector);
+	chat("getclust %ld read\n", sector);
 	return p;
 }
 
@@ -153,7 +153,7 @@ fatwalk(Dos *dos, int n)
 	}
 	else
 		k = k < 0xfff8 ? k : -1;
-	chat("fatwalk %d -> %d\n", n, k);
+	chat("fatwalk %d -> %lud\n", n, k);
 	return k;
 }
 
@@ -167,7 +167,7 @@ fileaddr(Dosfile *fp, long ltarget)
 	long l;
 	long p;
 
-	chat("fileaddr %8.8s %d\n", fp->name, ltarget);
+	chat("fileaddr %8.8s %ld\n", fp->name, ltarget);
 	/*
 	 *  root directory is contiguous and easy (unless FAT32)
 	 */
@@ -175,7 +175,7 @@ fileaddr(Dosfile *fp, long ltarget)
 		if(ltarget*dos->sectsize*dos->clustsize >= dos->rootsize*sizeof(Dosdir))
 			return -1;
 		l = dos->rootaddr + ltarget*dos->clustsize;
-		chat("fileaddr %d -> %d\n", ltarget, l);
+		chat("fileaddr %ld -> %ld\n", ltarget, l);
 		return l;
 	}
 
@@ -205,7 +205,7 @@ fileaddr(Dosfile *fp, long ltarget)
 	 *  clusters start at 2 instead of 0 (why? - presotto)
 	 */
 	l =  dos->dataaddr + (p-2)*dos->clustsize;
-	chat("fileaddr %d -> %d\n", ltarget, l);
+	chat("fileaddr %ld -> %ld\n", ltarget, l);
 	return l;
 }
 
@@ -278,13 +278,13 @@ doswalk(Dosfile *file, char *name)
 
 	file->offset = 0;	/* start at the beginning */
 	while((n = dosread(file, &d, sizeof(d))) == sizeof(d)){
-		chat("comparing to %8.8s.%3.3s\n", d.name, d.ext);
+		chat("comparing to %8.8s.%3.3s\n", (char*)d.name, (char*)d.ext);
 		if(memcmp(file->name, d.name, sizeof(d.name)) != 0)
 			continue;
 		if(memcmp(file->ext, d.ext, sizeof(d.ext)) != 0)
 			continue;
 		if(d.attr & DVLABEL){
-			chat("%8.8s.%3.3s is a LABEL\n", d.name, d.ext);
+			chat("%8.8s.%3.3s is a LABEL\n", (char*)d.name, (char*)d.ext);
 			continue;
 		}
 		file->attr = d.attr;
@@ -404,7 +404,7 @@ bootdump(Dosboot *b)
 		return;
 	print("magic: 0x%2.2x 0x%2.2x 0x%2.2x\n",
 		b->magic[0], b->magic[1], b->magic[2]);
-	print("version: \"%8.8s\"\n", b->version);
+	print("version: \"%8.8s\"\n", (char*)b->version);
 	print("sectsize: %d\n", GSHORT(b->sectsize));
 	print("allocsize: %d\n", b->clustsize);
 	print("nresrv: %d\n", GSHORT(b->nresrv));
@@ -507,7 +507,7 @@ dosboot(Dos *dos, char *path, Boot *b)
 		print("%s not found\n", path);
 		return -1;
 	case 1:
-		print("found %8.8s.%3.3s attr 0x%ux start 0x%lux len %d\n", file.name,
+		print("found %8.8s.%3.3s attr 0x%ux start 0x%lux len %lud\n", file.name,
 			file.ext, file.attr, file.pstart, file.length);
 		break;
 	}

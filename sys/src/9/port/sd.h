@@ -7,22 +7,42 @@ typedef struct SDpart SDpart;
 typedef struct SDperm SDperm;
 typedef struct SDreq SDreq;
 typedef struct SDunit SDunit;
+typedef struct SDwp SDwp;
+typedef struct SDcache SDcache;
 
-typedef struct SDperm {
-	char	name[NAMELEN];
-	char	user[NAMELEN];
+enum {
+	SDcachesize = 20,
+};
+
+struct SDperm {
+	char*	name;
+	char*	user;
 	ulong	perm;
-} SDperm;
+};
 
-typedef struct SDpart {
+struct SDpart {
 	ulong	start;
 	ulong	end;
 	SDperm;
 	int	valid;
 	ulong	vers;
-} SDpart;
+};
 
-typedef struct SDunit {
+struct SDcache {
+	ulong age;
+	ulong bn;
+	uchar *data;
+};
+
+struct SDwp {
+	QLock;
+	ulong age;
+	ulong start;
+	ulong end;
+	SDcache cache[SDcachesize];
+};
+
+struct SDunit {
 	SDev*	dev;
 	int	subno;
 	uchar	inquiry[256];		/* format follows SCSI spec */
@@ -37,29 +57,38 @@ typedef struct SDunit {
 	ulong	vers;
 	SDperm	ctlperm;
 
-	QLock	raw;		/* raw read or write in progress */
-	Lock	rawinuse;		/* really just a test-and-set */
+	QLock	raw;			/* raw read or write in progress */
+	ulong	rawinuse;		/* really just a test-and-set */
 	int	state;
 	SDreq*	req;
 	SDperm	rawperm;
 
-	Log log;
-} SDunit;
+	int	wpunit;			/* whole unit is write protected */
+	SDwp	*wp;			/* block level write prtection */
+};
 
-typedef struct SDev {
+/* 
+ * Each controller is represented by a SDev.
+ * Each controller is responsible for allocating its unit structures.
+ * Each controller has at least one unit.
+ */ 
+struct SDev {
+	Ref	r;			/* Number of callers using device */
 	SDifc*	ifc;			/* pnp/legacy */
-	void	*ctlr;
+	void*	ctlr;
 	int	idno;
-	char	name[NAMELEN];
-	int	index;			/* into unit space */
-	int	nunit;
+	char*	name;
 	SDev*	next;
 
 	QLock;				/* enable/disable */
 	int	enabled;
-} SDev;
+	int	nunit;			/* Number of units */
+	QLock	unitlock;		/* `Loading' of units */
+	int*	unitflg;		/* Unit flags */
+	SDunit**unit;
+};
 
-typedef struct SDifc {
+struct SDifc {
 	char*	name;
 
 	SDev*	(*pnp)(void);
@@ -75,9 +104,12 @@ typedef struct SDifc {
 	int	(*wctl)(SDunit*, Cmdbuf*);
 
 	long	(*bio)(SDunit*, int, int, void*, long, long);
-} SDifc;
+	SDev*	(*probe)(DevConf*);
+	void	(*clear)(SDev*);
+	char*	(*stat)(SDev*, char*, char*);
+};
 
-typedef struct SDreq {
+struct SDreq {
 	SDunit*	unit;
 	int	lun;
 	int	write;
@@ -91,7 +123,7 @@ typedef struct SDreq {
 	int	status;
 	long	rlen;
 	uchar	sense[256];
-} SDreq;
+};
 
 enum {
 	SDnosense	= 0x00000001,

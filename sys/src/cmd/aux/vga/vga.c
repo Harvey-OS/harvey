@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
+#include "pci.h"
 #include "vga.h"
 
 enum {
@@ -308,7 +309,7 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->crt[0x16] = (vrs+1);
 
 	vga->crt[0x17] = 0x83;
-	tmp = ((mode->x*mode->z)/8);
+	tmp = ((vga->virtx*mode->z)/8);
 	if(tmp >= 512){
 		vga->crt[0x14] |= 0x60;
 		tmp /= 8;
@@ -410,7 +411,6 @@ static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	int i;
-	Attr *attr;
 
 	printitem(ctlr->name, "misc");
 	printreg(vga->misc);
@@ -436,6 +436,10 @@ dump(Vga* vga, Ctlr* ctlr)
 	if(dflag)
 		palette.dump(vga, ctlr);
 
+	printitem(ctlr->name, "virtual");
+	Bprint(&stdout, "%ld %ld\n", vga->virtx, vga->virty);
+	printitem(ctlr->name, "panning");
+	Bprint(&stdout, "%s\n", vga->panning ? "on" : "off");
 	if(vga->f[0]){
 		printitem(ctlr->name, "clock[0] f");
 		Bprint(&stdout, "%9ld\n", vga->f[0]);
@@ -470,9 +474,6 @@ dump(Vga* vga, Ctlr* ctlr)
 
 	printitem(ctlr->name, "linear");
 	Bprint(&stdout, "%9d\n", vga->linear);
-
-	for(attr = vga->attr; attr; attr = attr->next)
-		Bprint(&stdout, "%s->attr: %s=%s\n", ctlr->name, attr->attr, attr->val);
 }
 
 Ctlr generic = {

@@ -46,10 +46,31 @@ pixels wide by
 .I Y 
 pixels high.
 This message is optional;
-if this size is smaller than that specified in the
-.I size 
-message, the screen will pan to follow the mouse.
-This is useful on systems with small displays, such as laptops.
+it is used to implement panning and to accommodate
+displays that require the in-memory screen image
+to have certain alignment properties.
+For example, a 1400x1050 screen with a 1408x1050 in-memory image
+will use 
+.B "size 1408x1050
+but
+.BR "actualsize 1400x1050" .
+.TP
+.BI panning " mode"
+Depending on whether
+.I mode
+is 
+.B on
+or
+.BR off ,
+enable or disable panning in a virtual screen.
+If panning is on and the screen's
+.B size
+is larger than its
+.BR actualsize ,
+the displayed portion of the screen will pan to follow the mouse.
+Setting the panning mode after the first attach of the
+.B #i
+driver has no effect.
 .TP
 .BI type " ctlr"
 Set the type of VGA controller being used.

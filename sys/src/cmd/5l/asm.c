@@ -16,8 +16,16 @@ entryvalue(void)
 	s = lookup(a, 0);
 	if(s->type == 0)
 		return INITTEXT;
-	if(s->type != STEXT && s->type != SLEAF)
+	switch(s->type) {
+	case STEXT:
+	case SLEAF:
+		break;
+	case SDATA:
+		if(reloc)
+			return s->value+INITDAT;
+	default:
 		diag("entry not text: %s", s->name);
+	}
 	return s->value;
 }
 
@@ -25,7 +33,7 @@ void
 asmb(void)
 {
 	Prog *p;
-	long t;
+	long t, etext;
 	Optab *o;
 
 	if(debug['v'])
@@ -51,15 +59,20 @@ asmb(void)
 		asmout(p, o);
 		pc += o->size;
 	}
-	while(pc-INITTEXT < textsize) {
-		cput(0);
-		pc++;
-	}
 
 	if(debug['a'])
 		Bprint(&bso, "\n");
 	Bflush(&bso);
 	cflush();
+
+	/* output strings in text segment */
+	etext = INITTEXT + textsize;
+	for(t = pc; t < etext; t += sizeof(buf)-100) {
+		if(etext-t > sizeof(buf)-100)
+			datblk(t, sizeof(buf)-100, 1);
+		else
+			datblk(t, etext-t, 1);
+	}
 
 	curtext = P;
 	switch(HEADTYPE) {
@@ -77,9 +90,9 @@ asmb(void)
 	}
 	for(t = 0; t < datsize; t += sizeof(buf)-100) {
 		if(datsize-t > sizeof(buf)-100)
-			datblk(t, sizeof(buf)-100);
+			datblk(t, sizeof(buf)-100, 0);
 		else
-			datblk(t, datsize-t);
+			datblk(t, datsize-t, 0);
 	}
 
 	symsize = 0;
@@ -281,6 +294,10 @@ asmsym(void)
 				putsymb(s->name, 'B', s->value+INITDAT, s->version);
 				continue;
 
+			case SSTRING:
+				putsymb(s->name, 'T', s->value, s->version);
+				continue;
+
 			case SFILE:
 				putsymb(s->name, 'f', s->value, s->version);
 				continue;
@@ -446,17 +463,21 @@ asmlc(void)
 }
 
 void
-datblk(long s, long n)
+datblk(long s, long n, int str)
 {
+	Sym *v;
 	Prog *p;
 	char *cast;
-	long l, fl, j, d;
+	long a, l, fl, j, d;
 	int i, c;
 
 	memset(buf.dbuf, 0, n+100);
 	for(p = datap; p != P; p = p->link) {
+		if(str != (p->from.sym->type == SSTRING))
+			continue;
 		curp = p;
-		l = p->from.sym->value + p->from.offset - s;
+		a = p->from.sym->value + p->from.offset;
+		l = a - s;
 		c = p->reg;
 		i = 0;
 		if(l < 0) {
@@ -512,14 +533,22 @@ datblk(long s, long n)
 
 		case D_CONST:
 			d = p->to.offset;
-			if(p->to.sym) {
-				if(p->to.sym->type == STEXT ||
-				   p->to.sym->type == SLEAF)
+			v = p->to.sym;
+			if(v) {
+				switch(v->type) {
+				case STEXT:
+					if(v->value == -1)
+						undefsym(v);
+				case SLEAF:
+				case SSTRING:
 					d += p->to.sym->value;
-				if(p->to.sym->type == SDATA)
+					break;
+				case SDATA:
+				case SBSS:
 					d += p->to.sym->value + INITDAT;
-				if(p->to.sym->type == SBSS)
-					d += p->to.sym->value + INITDAT;
+				}
+				if(reloc)
+					undefpc(a + INITDAT);
 			}
 			cast = (char*)&d;
 			switch(c) {
@@ -556,6 +585,7 @@ asmout(Prog *p, Optab *o)
 {
 	long o1, o2, o3, o4, o5, o6, v;
 	int r, rf, rt, rt2;
+	Sym *s;
 
 PP = p;
 	o1 = 0;
@@ -625,7 +655,14 @@ PP = p;
 
 	case 5:		/* bra s */
 		v = -8;
-		if(p->cond != P)
+		if(p->cond == UP) {
+			s = p->to.sym;
+			if(s->value == -1)
+				undefsym(s);
+			v = s->value;
+			undefpc(p->pc);
+		}
+		else if(p->cond != P)
 			v = (p->cond->pc - pc) - 8;
 		o1 = opbra(p->as, p->scond);
 		o1 |= (v >> 2) & 0xffffff;
@@ -682,7 +719,17 @@ PP = p;
 		break;
 
 	case 11:	/* word */
-		aclass(&p->to);
+		switch(aclass(&p->to)) {
+		case C_LCON:
+			if(!reloc)
+				break;
+			if(p->to.name != D_EXTERN && p->to.name != D_STATIC)
+				break;
+		case C_ADDR:
+			if(p->to.offset < 0 || p->to.offset >= (1 << UIXSHIFT))
+				diag("reloc offset out of range: %s %ld\n", p->to.sym->name, p->to.offset);
+			undefpc(p->pc);
+		}
 		o1 = instoffset;
 		break;
 
@@ -1100,8 +1147,84 @@ PP = p;
 		break;
 
 	case 63:	/* bcase */
-		if(p->cond != P)
+		if(p->cond != P) {
+			if(reloc)
+				undefpc(p->pc);
 			o1 = p->cond->pc;
+		}
+		break;
+
+	/* reloc ops */
+	case 64:	/* mov/movb/movbu R,addr */
+		o1 = omvl(p, &p->to, REGTMP);
+		if(!o1)
+			break;
+		o2 = osr(p->as, p->from.reg, 0, REGTMP, p->scond);
+		break;
+
+	case 65:	/* mov/movbu addr,R */
+	case 66:	/* movh/movhu/movb addr,R */
+		o1 = omvl(p, &p->from, REGTMP);
+		if(!o1)
+			break;
+		o2 = olr(0, REGTMP, p->to.reg, p->scond);
+		if(p->as == AMOVBU || p->as == AMOVB)
+			o2 |= 1<<22;
+		if(o->type == 65)
+			break;
+
+		o3 = oprrr(ASLL, p->scond);
+
+		if(p->as == AMOVBU || p->as == AMOVHU)
+			o4 = oprrr(ASRL, p->scond);
+		else
+			o4 = oprrr(ASRA, p->scond);
+
+		r = p->to.reg;
+		o3 |= (r)|(r<<12);
+		o4 |= (r)|(r<<12);
+		if(p->as == AMOVB || p->as == AMOVBU) {
+			o3 |= (24<<7);
+			o4 |= (24<<7);
+		} else {
+			o3 |= (16<<7);
+			o4 |= (16<<7);
+		}
+		break;
+
+	case 67:	/* movh/movhu R,addr -> sb, sb */
+		o1 = omvl(p, &p->to, REGTMP);
+		if(!o1)
+			break;
+		o2 = osr(p->as, p->from.reg, 0, REGTMP, p->scond);
+
+		o3 = oprrr(ASRL, p->scond);
+		o3 |= (8<<7)|(p->from.reg)|(p->from.reg<<12);
+		o3 |= (1<<6);	/* ROR 8 */
+
+		o4 = oprrr(AADD, p->scond);
+		o4 |= (REGTMP << 12) | (REGTMP << 16);
+		o4 |= immrot(1);
+
+		o5 = osr(p->as, p->from.reg, 0, REGTMP, p->scond);
+
+		o6 = oprrr(ASRL, p->scond);
+		o6 |= (24<<7)|(p->from.reg)|(p->from.reg<<12);
+		o6 |= (1<<6);	/* ROL 8 */
+		break;
+
+	case 68:	/* floating point store -> ADDR */
+		o1 = omvl(p, &p->to, REGTMP);
+		if(!o1)
+			break;
+		o2 = ofsr(p->as, p->from.reg, 0, REGTMP, p->scond, p);
+		break;
+
+	case 69:	/* floating point load <- ADDR */
+		o1 = omvl(p, &p->from, REGTMP);
+		if(!o1)
+			break;
+		o2 = ofsr(p->as, p->to.reg, 0, REGTMP, p->scond, p) | (1<<20);
 		break;
 
 	/* ArmV4 ops: */
@@ -1146,6 +1269,9 @@ PP = p;
 			o2 ^= (1<<6);
 		break;
 	}
+
+	if(debug['a'] > 1)
+		Bprint(&bso, "%2d ", o->type);
 
 	v = p->pc;
 	switch(o->size) {

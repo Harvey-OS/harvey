@@ -4,10 +4,13 @@ ps, psu \- process status
 .SH SYNOPSIS
 .B ps
 [
-.B -p
+.B -pa
 ]
 .PP
 .B psu
+[
+.B -pa
+]
 [
 .I user
 ]
@@ -84,6 +87,12 @@ With the
 flag,
 .I ps
 also prints, after the system time, the baseline and current priorities of each process.
+.PP
+The
+.B -a
+flag causes
+.I ps
+to print the arguments for the process.  Newlines in arguments will be translated to spaces for display.
 .SH FILES
 .TF /proc/*/status
 .TP

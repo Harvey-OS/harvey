@@ -29,8 +29,6 @@
 #define	HZ		100			/* clock frequency */
 #define	MS2HZ	(1000/HZ)
 #define	TK2SEC(t)	((t)/HZ)		/* ticks to seconds */
-#define	TK2MS(t)	((t)*MS2HZ)		/* ticks to milliseconds */
-#define	MS2TK(t)	(((t)*HZ+500)/1000)	/* milliseconds to closest tick */
 
 /*
  * Magic registers

@@ -354,10 +354,24 @@ i8042intr(Ureg*, void*)
 			return;
 		case Latin:
 			alt = 1;
-			collecting = 1;
-			nk = 0;
+			/*
+			 * VMware uses Ctl-Alt as the key combination
+			 * to make the VM give up keyboard and mouse focus.
+			 * This has the unfortunate side effect that when you
+			 * come back into focus, Plan 9 thinks you want to type
+			 * a compose sequence (you just typed alt). 
+			 *
+			 * As a clusmy hack around this, we look for ctl-alt
+			 * and don't treat it as the start of a compose sequence.
+			 */
+			if(!ctl){
+				collecting = 1;
+				nk = 0;
+			}
 			return;
 		case Ctrl:
+			collecting = 0;
+			nk = 0;
 			ctl = 1;
 			return;
 		}
@@ -398,16 +412,6 @@ kbdinit(void)
 {
 	int c;
 
-	kbdq = qopen(4*1024, 0, 0, 0);
-	if(kbdq == nil)
-		panic("kbdinit");
-	qnoblock(kbdq, 1);
-
-	ioalloc(Data, 1, 0, "kbd");
-	ioalloc(Cmd, 1, 0, "kbd");
-
-	intrenable(IrqKBD, i8042intr, 0, BUSUNKNOWN, "kbd");
-
 	/* wait for a quiescent controller */
 	while((c = inb(Status)) & (Outbusy | Inready))
 		if(c & Inready)
@@ -432,4 +436,18 @@ kbdinit(void)
 		print("kbd init failed\n");
 	outb(Data, ccc);
 	outready();
+}
+
+void
+kbdenable(void)
+{
+	kbdq = qopen(4*1024, 0, 0, 0);
+	if(kbdq == nil)
+		panic("kbdinit");
+	qnoblock(kbdq, 1);
+
+	ioalloc(Data, 1, 0, "kbd");
+	ioalloc(Cmd, 1, 0, "kbd");
+
+	intrenable(IrqKBD, i8042intr, 0, BUSUNKNOWN, "kbd");
 }

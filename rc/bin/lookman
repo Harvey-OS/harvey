@@ -8,7 +8,7 @@ fn sigexit sigint sighup sigterm{
 	rm -f $t1 $t2
 	exit 1
 }
-*=`{echo $*|tr A-Z a-z|tr -dc 'a-z \012'}	# fold case, delete funny chars
+*=`{echo $*|tr A-Z a-z|tr -dc 'a-z0-9_ \012'}	# fold case, delete funny chars
 if(~ $#* 0){
 	echo Usage: lookman key ... >/fd/2
 	exit 1
@@ -24,6 +24,7 @@ for(i in $*){
 			' > $t2
 	mv $t2 $t1
 }
-sort $t1
+sort $t1 | sed 's;/sys/man/;;
+	s;(.*)/(.*);man \1 \2 # \2(\1);'
 rm -f $t1 $t2
 exit 0

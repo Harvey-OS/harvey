@@ -1,6 +1,6 @@
 .TH PRINT 2
 .SH NAME
-print, fprint, sprint, snprint, seprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint \- print formatted output
+print, fprint, sprint, snprint, seprint, smprint, runesprint, runesnprint, runeseprint, runesmprint, vfprint, vsnprint, vseprint, vsmprint, runevsnprint, runevseprint, runevsmprint \- print formatted output
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -23,25 +23,42 @@ int	snprint(char *s, int len, char *format, ...)
 char*	seprint(char *s, char *e, char *format, ...)
 .PP
 .B
-int	fmtinstall(int c, int (*f)(va_list*, Fconv*))
+char*	smprint(char *format, ...)
 .PP
 .B
-void	strconv(char *s, Fconv *fp)
+int	runesprint(Rune *s, char *format, ...)
 .PP
 .B
-void	Strconv(Rune *s, Fconv *fp)
+int	runesnprint(Rune *s, int len, char *format, ...)
 .PP
 .B
-int	numbconv(va_list *arg, Fconv *fp)
+Rune*	runeseprint(Rune *s, Rune *e, char *format, ...)
 .PP
 .B
-int	fltconv(va_list *arg, Fconv *fp)
+Rune*	runesmprint(char *format, ...)
 .PP
 .B
-char*	doprint(char *s, char *es, char *format, va_list arg)
+int	vfprint(int fd, char *format, va_list v)
 .PP
 .B
-extern int printcol;
+int	vsnprint(char *s, int len, char *format, va_list v)
+.PP
+.B
+char*	vseprint(char *s, char *e, char *format, va_list v)
+.PP
+.B
+char*	vsmprint(char *format, va_list v)
+.PP
+.B
+int	runevsnprint(Rune *s, int len, char *format, va_list v)
+.PP
+.B
+Rune*	runevseprint(Rune *s, Rune *e, char *format, va_list v)
+.PP
+.B
+Rune*	runevsmprint(Rune *format, va_list v)
+.PP
+.B
 .SH DESCRIPTION
 .I Print
 writes text to the standard output.
@@ -82,6 +99,42 @@ except that the end is indicated by a pointer
 .I e
 rather than a count and the return value points to the terminating NUL of the
 resulting string.
+.I Smprint
+is like
+.IR sprint ,
+except that it prints into and returns a string of the required length, which is
+allocated by
+.IR malloc (2).
+.PP
+The routines
+.IR runesprint ,
+.IR runesnprint ,
+.IR runeseprint ,
+and
+.I runesmprint
+are the same as
+.IR sprint ,
+.IR snprint ,
+.IR seprint
+and
+.I smprint
+except that their output is rune strings instead of byte strings.
+.PP
+Finally, the routines
+.IR vfprint ,
+.IR vsnprint ,
+.IR vseprint ,
+.IR vsmprint ,
+.IR runevsnprint ,
+.IR runevseprint ,
+and
+.IR runevsmprint
+are like their
+.BR v-less
+relatives except they take as arguments a
+.B va_list
+parameter, so they can be called within a variadic function.
+The Example section shows a representative usage.
 .PP
 Each of these functions
 converts, formats, and prints its
@@ -113,14 +166,14 @@ The verb is a single character and each flag is a single character or a
 (decimal) numeric string.
 Up to two numeric strings may be used;
 the first is called
-.IR f1 ,
+.IR width ,
 the second
-.IR f2 .
+.IR precision .
 A period can be used to separate them, and if the period is
 present then
-.I f1
+.I width
 and
-.I f2
+.I precision
 are taken to be zero if missing, otherwise they are `omitted'.
 Either or both of the numbers may be replaced with the character
 .BR * ,
@@ -134,20 +187,30 @@ described below.
 The numeric verbs
 .BR d ,
 .BR o ,
+.BR b ,
 .BR x ,
 and
 .B X
 format their arguments in decimal,
-octal, hexadecimal, and upper case hexadecimal.
+octal, binary, hexadecimal, and upper case hexadecimal.
 Each interprets the flags
+.BR 0 ,
 .BR h ,
+.BR hh ,
 .BR l ,
 .BR u ,
 .BR + ,
 .BR - ,
+.BR , ,
 and
 .B #
-to mean short, long, unsigned, always print a sign, left justified, and alternate format.
+to mean pad with zeros,
+short, byte, long, unsigned, always print a sign, left justified, commas every three digits,
+and alternate format.
+Also, a space character in the flag
+position is like
+.BR + ,
+but prints a space instead of a plus sign for non-negative values.
 If neither
 short nor long is specified,
 then the argument is an
@@ -160,12 +223,12 @@ If two
 flags are given,
 then the argument is interpreted as a
 .B vlong
-(a 4-byte or sometimes 8-byte integer).
+(usually an 8-byte, sometimes a 4-byte integer).
 If
-.I f2
+.I precision
 is not omitted, the number is padded on the left with zeros
 until at least
-.I f2
+.I precision
 digits appear.
 Then, if alternate format is specified,
 for
@@ -182,11 +245,11 @@ for
 conversion, the number is preceded by
 .BR 0X .
 Finally, if
-.I f1
+.I width
 is not omitted, the number is padded on the left (or right, if
 left justification is specified) with enough blanks to
 make the field at least
-.I f1
+.I width
 characters long.
 .PP
 The floating point verbs
@@ -209,13 +272,13 @@ always print a sign,
 left justified,
 and
 alternate format.
-.I F1
+.I Width
 is the minimum field width and,
 if the converted value takes up less than
-.I f1
+.I width
 characters, it is padded on the left (or right, if `left justified')
 with spaces.
-.I F2
+.I Precision
 is the number of digits that are converted after the decimal place for
 .BR e ,
 .BR E ,
@@ -223,7 +286,7 @@ and
 .B f
 conversions,
 and
-.I f2
+.I precision
 is the maximum number of significant digits for
 .B g
 and
@@ -273,11 +336,11 @@ The number of characters copied
 .RI ( n )
 is the minimum
 of the size of the string and
-.IR f2 .
+.IR precision .
 These
 .I n
 characters are justified within a field of
-.I f1
+.I width
 characters as described above.
 The
 .B S
@@ -295,7 +358,7 @@ verb copies a single
 (promoted to
 .BR int )
 justified within a field of
-.I f1
+.I width
 characters as described above.
 The
 .B C
@@ -313,147 +376,9 @@ The
 verb takes no arguments; it copies the error string returned by a call to
 .IR errstr (2).
 .PP
-.I Fmtinstall
-is used to install custom verbs and flags labeled by character
-.IR c ,
-which must have value less than 512.
-.I Fn
-should be declared as
-.IP
-.EX
-int	fn(va_list *arg, Fconv *fp)
-.EE
-.PP
-.IB Fp ->chr
-is the flag or verb character to cause
-.I fn
-to be called.
-In
-.IR fn ,
-.IB fp ->f1
-and
-.IB fp ->f2
-are the decoded flags in the conversion.
-A missing
-.IB fp ->f1
-is denoted by the value zero.
-A missing
-.IB fp ->f2
-is denoted by a negative number.
-.IB Fp ->f3
-is the bitwise OR of all the
-flags seen since the most recent
-.LR % .
-The standard flags values are: 1
-.RB ( + ),
-2
-.RB ( - ),
-4
-.RB ( # ),
-8
-.RB ( l ),
-16
-.RB ( h ),
-32
-.RB ( u ),
-and
-64
-.RB ( ll ).
-.I Fn
-is passed a pointer
-.I arg
-to the argument list.
-If
-.IB fp ->chr
-is a verb,
-.I fn
-should use 
-.BR va_arg
-to fetch its argument from the list,
-then format it, and return zero.
-If
-.IB fp ->chr
-is a flag,
-.I fn
-should return a negative value:
-the negation of one of the above flag values, or some otherwise unused power of two.
-All interpretation of
-.IB fp ->f1\f1,
-.IB fp ->f2\f1,
-and
-.IB fp-> f3
-is left up to the conversion routine.
-.I Fmtinstall
-returns 0 if the installation succeeds, \-1 if it fails.
-.PP
-.IR Sprint ,
-.IR snprint ,
-and
-.I seprint
-are re-entrant; they may be called to
-help prepare output in custom conversion routines.
-.PP
-The function
-.I strconv
-formats a
-.SM UTF
-string.
-.I S
-is the string,
-.I fp
-has the same meaning as above.
-The
-.I strconv
-routine interprets the
-.L -
-flag in
-.IB fp ->f3
-as left-justification.
-The function
-.I Strconv
-(with a capital S)
-is like
-.IR strconv ,
-but its input is a rune string, which is converted to
-.SM UTF
-on output.
-.PP
-.I Printcol
-indicates the position of the next output character.
-Tabs, backspaces and carriage returns are interpreted appropriately.
-.PP
-.I Numbconv
-and
-.I fltconv
-are used to implement the integer and floating verbs.
-Their arguments are like those of the function argument to
-.IR fmtinstall .
-Both
-.I numbconv
-and
-.I fltconv
-use
-.I strconv
-to put their results into the current print buffer.
-.PP
-One of
-.IR strconv 
-or
-.I Strconv
-must be called to produce output; no other routine puts characters
-in the output buffer.
-.PP
-.I Doprint
-formats the argument list arg
-.I arg
-into the buffer starting at
-.IR s ,
-but it writes no characters after the address
-.IR es .
-It returns a pointer to the NUL
-terminating the
-formatted string.
-.SH EXAMPLES
+Custom verbs may be installed using
+.IR fmtinstall (2).
+.SH EXAMPLE
 This function prints an error message with a variable
 number of arguments and then quits.
 .IP
@@ -464,80 +389,57 @@ void fatal(char *msg, ...)
 	char buf[1024], *out;
 	va_list arg;
 
-	out = doprint(buf, buf+sizeof(buf), "Fatal error: ");
+	out = vseprint(buf, buf+sizeof(buf), "Fatal error: ");
 	va_start(arg, msg);
-	out = doprint(out, buf+sizeof(buf), msg, arg);
+	out = vseprint(out, buf+sizeof(buf), msg, arg);
 	va_end(arg);
 	write(2, buf, out-buf);
 	exits("fatal error");
 }
 .EE
-.PP
-This example adds a verb to print complex numbers.
-.IP
-.EX
-typedef
-struct {
-	double	r, i;
-} Complex;
-
-int
-Xconv(va_list *arg, Fconv *fp)
-{
-	char str[50];
-	Complex c;
-
-	c = va_arg(*arg, Complex);
-	sprint(str, "(%g,%g)", c.r, c.i);
-	strconv(str, fp);
-	return 0;
-}
-
-main(...)
-{
-	Complex x = (Complex){ 1.5, -2.3 };
-
-	fmtinstall('X', Xconv);
-	print("x = %X\en", x);
-}
-.EE
 .SH SOURCE
-.B /sys/src/libc/port
+.B /sys/src/libc/fmt
 .SH SEE ALSO
+.IR fmtinstall (2),
 .IR fprintf (2),
 .IR utf (6),
 .IR errstr (2)
 .SH DIAGNOSTICS
-.I Print
-and
-.I fprint
+Routines that write to a file descriptor or call
+.IR malloc
 set
 .IR errstr .
 .SH BUGS
 The formatting is close to that specified for ANSI
 .IR fprintf (2);
-the differences are:
-.IP
-the 
-.B -
-flag doesn't work
-.IP
+the main difference is that
+.B b
+is not in ANSI and
 .B u
-is a flag here instead of a verb
-.IP
-there are no
-.B 0
-or space flags here
-.IP
-there are no
-.B P
-or
-.B n
-verbs here
-.PP
+is a flag here instead of a verb.
 Also, and distinctly not a bug,
 .I print
 and friends generate
 .SM UTF
 rather than
 .SM ASCII.
+.PP
+There is no
+.BR runeprint ,
+.BR runefprint ,
+etc. because runes are byte-order dependent and should not be written directly to a file; use the
+UTF output of
+.I print
+or
+.I fprint
+instead.
+Also,
+.I sprint
+is deprecated for safety reasons; use
+.IR snprint ,
+.IR seprint ,
+or
+.I smprint
+instead.
+Safety also precludes the existence of
+.IR runesprint .

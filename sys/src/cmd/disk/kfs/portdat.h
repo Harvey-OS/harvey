@@ -1,15 +1,10 @@
 /*
  * fundamental constants
  */
-#define	ERRREC		64		/* size of a ascii erro message */
-#define	DIRREC		116		/* size of a directory ascii record */
-// #define	NAMELEN		28		/* size of names */
+#define	NAMELEN		28		/* size of names */
 #define	NDBLOCK		6		/* number of direct blocks in Dentry */
 #define	MAXDAT		8192		/* max allowable data message */
-#define	MAXMSG		128		/* max size protocol message sans data */
 #define NTLOCK		200		/* number of active file Tlocks */
-
-#include <auth.h>
 
 typedef	struct	Fbuf	Fbuf;
 typedef	struct	Super1	Super1;
@@ -19,7 +14,7 @@ typedef	struct	Dentry	Dentry;
 typedef	struct	Tag	Tag;
 
 typedef struct	Device	Device;
-typedef	struct	Fcall	Fcall;
+typedef struct	Qid9p1	Qid9p1;
 typedef	struct	File	File;
 typedef	struct	Filsys	Filsys;
 typedef	struct	Filta	Filta;
@@ -36,12 +31,12 @@ typedef	struct	Wpath	Wpath;
 /*
  * DONT TOUCH -- data structures stored on disk
  */
-// /* DONT TOUCH, this is the disk structure */
-// struct	Qid
-// {
-// 	long	path;
-// 	long	vers;
-// };
+/* DONT TOUCH, this is the disk structure */
+struct	Qid9p1
+{
+	long	path;
+	long	version;
+};
 
 /* DONT TOUCH, this is the disk structure */
 struct	Dentry
@@ -57,7 +52,7 @@ struct	Dentry
 		#define	DREAD	0x4
 		#define	DWRITE	0x2
 		#define	DEXEC	0x1
-	Qid	qid;
+	Qid9p1	qid;
 	long	size;
 	long	dblock[NDBLOCK];
 	long	iblock;
@@ -160,6 +155,14 @@ struct	File
 		#define	FREAD	1
 		#define	FWRITE	2
 		#define	FREMOV	4
+	long	doffset;	/* directory reading */
+	ulong	dvers;
+	long	dslot;
+
+	/* for network authentication */
+	int ffd;
+	int authokay;
+
 };
 
 struct	Filsys
@@ -223,108 +226,15 @@ struct	Wpath
 {
 	Wpath	*up;		/* pointer upwards in path */
 	Wpath	*list;		/* link in free chain */
-	long	addr;		/* directory entry addr */
-	long	slot;		/* directory entry slot */
+	long	addr;		/* directory entry addr of parent */
+	long	slot;		/* directory entry slot of parent */
+	long faddr;		/* directory entry addr */
+	long fslot;			/* directory entry slot */
+	Qid qid;			/* qid of current */
 	short	refs;		/* number of files using this structure */
 };
 
-struct	Fcall
-{
-	char	type;
-	short	fid;
-	short	err;
-	short	tag;
-	union
-	{
-		struct
-		{
-			short	uid;		/* T-Userstr */
-			short	oldtag;		/* T-nFlush */
-			Qid	qid;		/* R-Attach, R-Clwalk, R-Walk,
-						 * R-Open, R-Create */
-			char	rauth[AUTHENTLEN];	/* R-attach */
-		};
-		struct
-		{
-			char	uname[NAMELEN];	/* T-nAttach */
-			char	aname[NAMELEN];	/* T-nAttach */
-			char	ticket[TICKETLEN];	/* T-attach */
-			char	auth[AUTHENTLEN];	/* T-attach */
-		};
-		struct
-		{
-			char	ename[ERRREC];	/* R-nError */
-			char	chal[CHALLEN];	/* T-session, R-session */
-			char	authid[NAMELEN];	/* R-session */
-			char	authdom[DOMLEN];	/* R-session */
-		};
-		struct
-		{
-			char	name[NAMELEN];	/* T-Walk, T-Clwalk, T-Create, T-Remove */
-			long	perm;		/* T-Create */
-			short	newfid;		/* T-Clone, T-Clwalk */
-			char	mode;		/* T-Create, T-Open */
-		};
-		struct
-		{
-			long	offset;		/* T-Read, T-Write */
-			long	count;		/* T-Read, T-Write, R-Read */
-			char*	data;		/* T-Write, R-Read */
-		};
-		struct
-		{
-			char	stat[DIRREC];	/* T-Wstat, R-Stat */
-		};
-	};
-};
-
 #define	MAXFDATA	8192
-
-enum
-{
-	Tmux =		48,
-	Rmux,			/* illegal */
-	Tnop =		50,
-	Rnop,
-	Tosession =	52,	/* illegal */
-	Rosession,		/* illegal */
-	Terror =	54,	/* illegal */
-	Rerror,
-	Tflush =	56,
-	Rflush,
-	Toattach =	58,	/* illegal */
-	Roattach,		/* illegal */
-	Tclone =	60,
-	Rclone,
-	Twalk =		62,
-	Rwalk,
-	Topen =		64,
-	Ropen,
-	Tcreate =	66,
-	Rcreate,
-	Tread =		68,
-	Rread,
-	Twrite =	70,
-	Rwrite,
-	Tclunk =	72,
-	Rclunk,
-	Tremove =	74,
-	Rremove,
-	Tstat =		76,
-	Rstat,
-	Twstat =	78,
-	Rwstat,
-	Tclwalk =	80,
-	Rclwalk,
-	Tauth =		82,	/* illegal */
-	Rauth,			/* illegal */
-	Tsession =	84,
-	Rsession,
-	Tattach =	86,
-	Rattach,
-
-	MAXSYSCALL
-};
 
 /*
  * error codes generated from the file server
@@ -333,12 +243,14 @@ enum
 {
 	Ebadspc = 1,
 	Efid,
+	Efidinuse,
 	Echar,
 	Eopen,
 	Ecount,
 	Ealloc,
 	Eqid,
 	Eauth,
+	Eauthmsg,
 	Eaccess,
 	Eentry,
 	Emode,
@@ -358,6 +270,15 @@ enum
 	Eoffset,
 	Elocked,
 	Ebroken,
+	Etoolong,
+	Ersc,
+	Eqidmode,
+	Econvert,
+	Enotm,
+	Enotd,
+	Enotl,
+	Enotw,
+	Esystem,
 
 	MAXERR
 };

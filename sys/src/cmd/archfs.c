@@ -79,11 +79,10 @@ gethdr(Biobuf *b)
 	a = emalloc(sizeof(*a));
 	a->name = estrdup(f[0]);
 	a->mode = strtoul(f[1], 0, 8);
-	strcpy(a->uid, f[2]);
-	strcpy(a->gid, f[3]);
+	a->uid = estrdup(f[2]);
+	a->gid = estrdup(f[3]);
 	a->mtime = strtoll(f[4], 0, 10);
 	a->length = strtoll(f[5], 0, 10);
-
 	return a;
 }
 
@@ -105,80 +104,79 @@ newarch(vlong off, vlong length)
 }
 
 static File*
-fcreatewalk(File *f, char *name, char *u, char *g, ulong m)
+createpath(File *f, char *name, char *u, ulong m)
 {
-	char elem[NAMELEN];
 	char *p;
 	File *nf;
 
 	if(verbose)
-		fprint(2, "fcreatewalk %s\n", name);
-	incref(&f->ref);
+		fprint(2, "createpath %s\n", name);
+	incref(f);
 	while(f && (p = strchr(name, '/'))) {
-		memmove(elem, name, p-name);
-		elem[p-name] = '\0';
+		*p = '\0';
+		if(strcmp(name, "") != 0 && strcmp(name, ".") != 0){
+			/* this would be a race if we were multithreaded */
+			incref(f);	/* so walk doesn't kill it immediately on failure */
+			if((nf = walkfile(f, name)) == nil)
+				nf = createfile(f, name, u, DMDIR|0777, nil);
+			decref(f);
+			f = nf;
+		}
+		*p = '/';
 		name = p+1;
-		if(strcmp(elem, "") == 0)
-			continue;
-		/* this would be a race if we were multithreaded */
-		decref(&f->ref);
-		nf = fwalk(f, elem);
-		if(nf == nil)
-			nf = fcreate(f, elem, u, g, CHDIR|0777);
-		f = nf;
 	}
 	if(f == nil)
 		return nil;
 
-	if(nf = fwalk(f, name)) {
-		decref(&f->ref);
-		return nf;
-	}
-	/* another race */
-	decref(&f->ref);
-	return fcreate(f, name, u, g, m);
+	incref(f);
+	if((nf = walkfile(f, name)) == nil)
+		nf = createfile(f, name, u, m, nil);
+	decref(f);
+	return nf;
 }
 
 static void
-createfile(char *name, Arch *arch, Dir *d)
+archcreatefile(char *name, Arch *arch, Dir *d)
 {
 	File *f;
-	f = fcreatewalk(archtree->root, name, d->uid, d->gid, d->mode);
+	f = createpath(archtree->root, name, d->uid, d->mode);
 	if(f == nil)
 		sysfatal("creating %s: %r", name);
+	free(f->gid);
+	f->gid = estrdup9p(d->gid);
 	f->aux = arch;
-
 	f->mtime = d->mtime;
 	f->length = d->length;
-	decref(&f->ref);
+	decref(f);
 }
 
 static void
-archread(Req *r, Fid *fid, void *buf, long *count, vlong offset)
+fsread(Req *r)
 {
 	Arch *a;
-	long n;
-	char err[ERRLEN];
+	char err[ERRMAX];
+	int n;
 
-	a = fid->file->aux;
-	if(a->length <= offset) 
-		*count = 0;
-	else if(a->length <= offset+*count)
-		*count = a->length - offset;
+	a = r->fid->file->aux;
+	if(a->length <= r->ifcall.offset) 
+		r->ifcall.count = 0;
+	else if(a->length <= r->ifcall.offset+r->ifcall.count)
+		r->ifcall.count = a->length - r->ifcall.offset;
 
-	werrstr("");
-	if(Bseek(b, a->off+offset, 0) < 0 || (n = Bread(b, buf, *count)) < 0) {
+	werrstr("unknown error");
+	if(Bseek(b, a->off+r->ifcall.offset, 0) < 0 
+	|| (n = Bread(b, r->ofcall.data, r->ifcall.count)) < 0) {
 		err[0] = '\0';
-		errstr(err);
+		errstr(err, sizeof err);
 		respond(r, err);
 	} else {
-		*count = n;
+		r->ofcall.count = n;
 		respond(r, nil);	
 	}
 }
 
-Srv archsrv = {
-	.read=	archread,
+Srv fs = {
+	.read=	fsread,
 };
 
 static void
@@ -194,11 +192,14 @@ main(int argc, char **argv)
 	Ahdr *a;
 	ulong flag;
 	char *mtpt;
-	char err[ERRLEN];
+	char err[ERRMAX];
 
 	flag = 0;
 	mtpt = "/mnt/arch";
 	ARGBEGIN{
+	case 'D':
+		chatty9p++;
+		break;
 	case 'a':
 		flag |= MAFTER;
 		break;
@@ -214,9 +215,6 @@ main(int argc, char **argv)
 	case 'm':
 		mtpt = ARGF();
 		break;
-	case 'v':
-		verbose = 1;
-		break;
 	default:
 		usage();
 		break;
@@ -228,17 +226,17 @@ main(int argc, char **argv)
 	if((b = Bopen(argv[0], OREAD)) == nil)
 		sysfatal("open '%s': %r", argv[0]);
 
-	archtree = archsrv.tree = mktree("sys", "sys", CHDIR|0775);
+	archtree = fs.tree = alloctree("sys", "sys", DMDIR|0775, nil);
 	while(a = gethdr(b)) {
-		createfile(a->name, newarch(Boffset(b), a->length), a);
+		archcreatefile(a->name, newarch(Boffset(b), a->length), a);
 		Bseek(b, a->length, 1);
 	}
 
 	err[0] = '\0';
-	errstr(err);
+	errstr(err, sizeof err);
 	if(err[0])
 		sysfatal("reading archive: %s", err);
 
-	postmountsrv(&archsrv, nil, mtpt, flag);
+	postmountsrv(&fs, nil, mtpt, flag);
 	exits(0);
 }

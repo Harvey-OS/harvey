@@ -26,7 +26,7 @@ Biobuf *bio;
 void
 main(int argc, char **argv)
 {
-	Dir dir;
+	Dir *dir;
 	ulong totsz;
 
 	ARGBEGIN{
@@ -73,14 +73,15 @@ main(int argc, char **argv)
 	}
 
 	if(binary) {
-		if(dirfstat(Bfildes(bio), &dir) < 0) {
+		if((dir = dirfstat(Bfildes(bio))) == nil) {
 			fprint(2, "ms2: stat failed %r");
 			exits("dirfstat");
 		}
-		segment(0, dir.length);
+		segment(0, dir->length);
 		Bprint(&stdout, "S9030000FC\n");
 		Bterm(&stdout);
 		Bterm(bio);
+		free(dir);
 		exits(0);
 	}
 

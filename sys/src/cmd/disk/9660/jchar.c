@@ -41,7 +41,7 @@ isjolietfrog(Rune r)
 int
 isbadjoliet(char *s)
 {
-	Rune r[NAMELEN], *p;
+	Rune r[256], *p;	/* BUG */
 
 	strtorune(r, s);
 	for(p=r; *p; p++)
@@ -65,7 +65,7 @@ int
 jolietcmp(const void *va, const void *vb)
 {
 	int i;
-	Rune s1[NAMELEN], s2[NAMELEN], *b1, *b2, *e1, *e2;
+	Rune s1[256], s2[256], *b1, *b2, *e1, *e2;	/*BUG*/
 	const Direc *a, *b;
 
 	a = va;

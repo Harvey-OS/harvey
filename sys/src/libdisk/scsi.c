@@ -23,7 +23,7 @@ static QLock codeqlock;
 static void
 getcodes(void)
 {
-	Dir d;
+	Dir *d;
 	int n, fd;
 
 	if(codes != nil)
@@ -35,21 +35,23 @@ getcodes(void)
 		return;
 	}
 
-	if(dirstat(codefile, &d) < 0 || (fd = open(codefile, OREAD)) < 0) {
+	if((d = dirstat(codefile)) == nil || (fd = open(codefile, OREAD)) < 0) {
 		qunlock(&codeqlock);
 		return;
 	}
 
-	codes = malloc(d.length+1+1);
+	codes = malloc(1+d->length+1);
 	if(codes == nil) {
 		close(fd);
 		qunlock(&codeqlock);
+		free(d);
 		return;
 	}
 
 	codes[0] = '\n';	/* for searches */
-	n = readn(fd, codes+1, d.length);
+	n = readn(fd, codes+1, d->length);
 	close(fd);
+	free(d);
 
 	if(n < 0) {
 		free(codes);

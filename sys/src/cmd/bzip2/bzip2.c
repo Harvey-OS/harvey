@@ -60,8 +60,8 @@ main(int argc, char **argv)
 static int
 bzipf(char *file, int stdout)
 {
-	Dir dir;
-	char ofile[NAMELEN*2], *f, *s;
+	Dir *dir;
+	char ofile[128], *f, *s;
 	int ifd, ofd, ok;
 
 	ifd = open(file, OREAD);
@@ -69,14 +69,16 @@ bzipf(char *file, int stdout)
 		fprint(2, "bzip2: can't open %s: %r\n", file);
 		return 0;
 	}
-	if(dirfstat(ifd, &dir) < 0){
+	dir = dirfstat(ifd);
+	if(dir == nil){
 		fprint(2, "bzip2: can't stat %s: %r\n", file);
 		close(ifd);
 		return 0;
 	}
-	if(dir.mode & CHDIR){
+	if(dir->mode & DMDIR){
 		fprint(2, "bzip2: can't compress a directory\n");
 		close(ifd);
+		free(dir);
 		return 0;
 	}
 
@@ -98,6 +100,7 @@ bzipf(char *file, int stdout)
 		ofd = create(ofile, OWRITE, 0666);
 		if(ofd < 0){
 			fprint(2, "bzip2: can't open %s: %r\n", ofile);
+			free(dir);
 			close(ifd);
 			return 0;
 		}
@@ -107,13 +110,14 @@ bzipf(char *file, int stdout)
 		fprint(2, "compressing %s to %s\n", file, ofile);
 
 	Binit(&bout, ofd, OWRITE);
-	ok = bzip(file, dir.mtime, ifd, &bout);
+	ok = bzip(file, dir->mtime, ifd, &bout);
 	if(!ok || Bflush(&bout) < 0){
 		fprint(2, "bzip2: error writing %s: %r\n", ofile);
 		if(!stdout)
 			remove(ofile);
 	}
 	Bterm(&bout);
+	free(dir);
 	close(ifd);
 	close(ofd);
 	return ok;
@@ -179,6 +183,8 @@ bzip(char *file, long mtime, int ifd, Biobuf *bout)
 		fprint(2, "bzip2: compress end failed (can't happen)\n");
 		return 0;
 	}
+
+	Bterm(&bin);
 
 	return 1;
 }

@@ -1,22 +1,22 @@
-/* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: sfxfd.c,v 1.5 2000/09/19 19:00:49 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: sfxfd.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* File stream implementation using direct OS calls */
 /******
  ****** NOTE: THIS FILE MAY NOT COMPILE ON NON-UNIX PLATFORMS, AND MAY
@@ -51,16 +51,9 @@
  * The interface should be identical to that of sfxstdio.c.  However, in
  * order to allow both implementations to exist in the same executable, we
  * optionally use different names for sread_file, swrite_file, and
- * sappend_file, and omit sread_subfile (the public procedures).
- * See sfxboth.c.
+ * sappend_file (the public procedures).  See sfxboth.c.
  */
-#ifdef KEEP_FILENO_API
-/* Provide prototypes to avoid compiler warnings. */
-void
-    sread_fileno(P4(stream *, FILE *, byte *, uint)),
-    swrite_fileno(P4(stream *, FILE *, byte *, uint)),
-    sappend_fileno(P4(stream *, FILE *, byte *, uint));
-#else
+#ifndef KEEP_FILENO_API
 #  define sread_fileno sread_file
 #  define swrite_fileno swrite_file
 #  define sappend_fileno sappend_file
@@ -82,39 +75,14 @@ private int
 private int
     s_fileno_switch(P2(stream *, bool));
 
+/* ------ File streams ------ */
+
 /* Get the file descriptor number of a stream. */
 inline private int
 sfileno(const stream *s)
 {
     return fileno(s->file);
 }
-
-/* Get the current position of a file descriptor. */
-inline private long
-ltell(int fd)
-{
-    return lseek(fd, 0L, SEEK_CUR);
-}
-
-/* Define the System V interrupts that require retrying a call. */
-private bool
-errno_is_retry(int errn)
-{
-    switch (errn) {
-#ifdef EINTR
-    case EINTR: return true;
-#endif
-#if defined(EAGAIN) && (!defined(EINTR) || EAGAIN != EINTR)
-    case EAGAIN: return true;
-#endif
-#if defined(EWOULDBLOCK) && (!defined(EINTR) || EWOULDBLOCK != EINTR) && (!defined(EAGAIN) || EWOULDBLOCK != EAGAIN)
-    case EWOULDBLOCK: return true;
-#endif
-    default: return false;
-    }
-}
-
-/* ------ File reading ------ */
 
 /* Initialize a stream for reading an OS file. */
 void
@@ -130,7 +98,7 @@ sread_fileno(register stream * s, FILE * file, byte * buf, uint len)
      * but this should work on most systems.
      */
     int fd = fileno(file);
-    long curpos = ltell(fd);
+    long curpos = lseek(fd, 0L, SEEK_CUR);
     bool seekable = (curpos != -1L && lseek(fd, curpos, SEEK_SET) != -1L);
 
     s_std_init(s, buf, len, &p,
@@ -139,52 +107,24 @@ sread_fileno(register stream * s, FILE * file, byte * buf, uint len)
 	      fileno(file));
     s->file = file;
     s->file_modes = s->modes;
-    s->file_offset = 0;
-    s->file_limit = max_long;
 }
-
-/* Confine reading to a subfile.  This is primarily for reusable streams. */
-/*
- * We omit this procedure if we are also include sfxstdio.c, which has an
- * identical definition.
- */
-#ifndef KEEP_FILENO_API
-int
-sread_subfile(stream *s, long start, long length)
-{
-    if (s->file == 0 || s->modes != s_mode_read + s_mode_seek ||
-	s->file_offset != 0 || s->file_limit != max_long ||
-	((s->position < start || s->position > start + length) &&
-	 sseek(s, start) < 0)
-	)
-	return ERRC;
-    s->position -= start;
-    s->file_offset = start;
-    s->file_limit = length;
-    return 0;
-}
-#endif
-
 /* Procedures for reading from a file */
 private int
 s_fileno_available(register stream * s, long *pl)
 {
-    long max_avail = s->file_limit - stell(s);
-    long buf_avail = sbufavailable(s);
     int fd = sfileno(s);
 
-    *pl = min(max_avail, buf_avail);
+    *pl = sbufavailable(s);
     if (sseekable(s)) {
 	long pos, end;
 
-	pos = ltell(fd);
+	pos = lseek(fd, 0L, SEEK_CUR);
 	if (pos < 0)
 	    return ERRC;
-	end = ltell(fd);
+	end = lseek(fd, 0L, SEEK_END);
 	if (lseek(fd, pos, SEEK_SET) < 0 || end < 0)
 	    return ERRC;
-	buf_avail += end - pos;
-	*pl = min(max_avail, buf_avail);
+	*pl += end - pos;
 	if (*pl == 0)
 	    *pl = -1;		/* EOF */
     } else {
@@ -203,9 +143,7 @@ s_fileno_read_seek(register stream * s, long pos)
 	s->srptr = s->cbuf + offset - 1;
 	return 0;
     }
-    if (pos < 0 || pos > s->file_limit ||
-	lseek(sfileno(s), s->file_offset + pos, SEEK_SET) < 0
-	)
+    if (lseek(sfileno(s), pos, SEEK_SET) < 0)
 	return ERRC;
     s->srptr = s->srlimit = s->cbuf - 1;
     s->end_status = 0;
@@ -224,46 +162,6 @@ s_fileno_read_close(stream * s)
     return 0;
 }
 
-/* Process a buffer for a file reading stream. */
-/* This is the first stream in the pipeline, so pr is irrelevant. */
-private int
-s_fileno_read_process(stream_state * st, stream_cursor_read * ignore_pr,
-		      stream_cursor_write * pw, bool last)
-{
-    stream *s = (stream *)st;	/* no separate state */
-    int fd = sfileno(s);
-    uint max_count;
-    int nread, status;
-
-again:
-    max_count = pw->limit - pw->ptr;
-    status = 1;
-    if (s->file_limit < max_long) {
-	long limit_count = s->file_offset + s->file_limit - ltell(fd);
-
-	if (max_count > limit_count)
-	    max_count = limit_count, status = EOFC;
-    }
-    /*
-     * In the Mac MetroWerks compiler, the prototype for read incorrectly
-     * declares the second argument of read as char * rather than void *.
-     * Work around this here.
-     */
-    nread = read(fd, (void *)(pw->ptr + 1), max_count);
-    if (nread > 0)
-	pw->ptr += nread;
-    else if (nread == 0)
-	status = EOFC;
-    else if (errno_is_retry(errno))	/* Handle System V interrupts */
-	goto again;
-    else
-	status = ERRC;
-    process_interrupts();
-    return status;
-}
-
-/* ------ File writing ------ */
-
 /* Initialize a stream for writing an OS file. */
 void
 swrite_fileno(register stream * s, FILE * file, byte * buf, uint len)
@@ -280,8 +178,6 @@ swrite_fileno(register stream * s, FILE * file, byte * buf, uint len)
 	      fileno(file));
     s->file = file;
     s->file_modes = s->modes;
-    s->file_offset = 0;		/* in case we switch to reading later */
-    s->file_limit = max_long;	/* ibid. */
 }
 /* Initialize for appending to an OS file. */
 void
@@ -321,6 +217,53 @@ s_fileno_write_close(register stream * s)
     return s_fileno_read_close(s);
 }
 
+/* Define the System V interrupts that require retrying a call. */
+private bool
+errno_is_retry(int errn)
+{
+    switch (errn) {
+#ifdef EINTR
+    case EINTR: return true;
+#endif
+#if defined(EAGAIN) && (!defined(EINTR) || EAGAIN != EINTR)
+    case EAGAIN: return true;
+#endif
+#if defined(EWOULDBLOCK) && (!defined(EINTR) || EWOULDBLOCK != EINTR) && (!defined(EAGAIN) || EWOULDBLOCK != EAGAIN)
+    case EWOULDBLOCK: return true;
+#endif
+    default: return false;
+    }
+}
+
+/* Process a buffer for a file reading stream. */
+/* This is the first stream in the pipeline, so pr is irrelevant. */
+private int
+s_fileno_read_process(stream_state * st, stream_cursor_read * ignore_pr,
+		      stream_cursor_write * pw, bool last)
+{
+    int nread, status;
+
+again:
+    /*
+     * In the Mac MetroWerks compiler, the prototype for read incorrectly
+     * declares the second argument of read as char * rather than void *.
+     * Work around this here.
+     */
+    nread = read(sfileno((stream *)st), (void *)(pw->ptr + 1),
+		 (uint)(pw->limit - pw->ptr));
+    if (nread > 0) {
+	pw->ptr += nread;
+	status = 0;
+    } else if (nread == 0)
+	status = EOFC;
+    else if (errno_is_retry(errno))	/* Handle System V interrupts */
+	goto again;
+    else
+	status = ERRC;
+    process_interrupts();
+    return status;
+}
+
 /* Process a buffer for a file writing stream. */
 /* This is the last stream in the pipeline, so pw is irrelevant. */
 private int
@@ -350,8 +293,6 @@ again:
     process_interrupts();
     return status;
 }
-
-/* ------ File switching ------ */
 
 /* Switch a file stream to reading or writing. */
 private int

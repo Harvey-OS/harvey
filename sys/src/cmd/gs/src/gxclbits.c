@@ -1,22 +1,22 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: gxclbits.c,v 1.2.2.2 2000/11/09 23:36:53 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gxclbits.c,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* Halftone and bitmap writing for command lists */
 #include "memory_.h"
 #include "gx.h"
@@ -150,15 +150,14 @@ cmd_put_bits(gx_device_clist_writer * cldev, gx_clist_state * pcls,
 	    stream_RLE_state rl;
 	} sstate;
 	int code;
-	int try_size = op_size + min(uncompressed_size, max_size);
 
-	*psize = try_size;
+	*psize = op_size + uncompressed_size;
 	code = (pcls != 0 ?
-		set_cmd_put_op(dp, cldev, pcls, 0, try_size) :
-		set_cmd_put_all_op(dp, cldev, 0, try_size));
+		set_cmd_put_op(dp, cldev, pcls, 0, *psize) :
+		set_cmd_put_all_op(dp, cldev, 0, *psize));
 	if (code < 0)
 	    return code;
-	cmd_uncount_op(0, try_size);
+	cmd_uncount_op(0, *psize);
 	/*
 	 * Note that we currently keep all the padding if we are
 	 * compressing.  This is ridiculous, but it's too hard to
@@ -169,10 +168,12 @@ cmd_put_bits(gx_device_clist_writer * cldev, gx_clist_state * pcls,
 	    clist_cfe_init(&sstate.cf,
 			   uncompressed_raster << 3 /*width_bits*/,
 			   mem);
+	    sstate.ss.template = &s_CFE_template;
 	    compress = cmd_compress_cfe;
 	} else if (compression_mask & (1 << cmd_compress_rle)) {
 	    /* Try RLE compression. */
 	    clist_rle_init(&sstate.rl);
+	    sstate.ss.template = &s_RLE_template;
 	    compress = cmd_compress_rle;
 	}
 	if (compress) {
@@ -197,26 +198,21 @@ cmd_put_bits(gx_device_clist_writer * cldev, gx_clist_state * pcls,
 
 		cmd_shorten_list_op(cldev,
 			     (pcls ? &pcls->list : &cldev->band_range_list),
-				    try_size - (op_size + wcount));
+				    uncompressed_size - wcount);
 		*psize = op_size + wcount;
 		goto out;
 	    }
 	}
 	if (uncompressed_size > max_size) {
-	    /* Shorten to zero, erasing the operation altogether */
-	    if_debug1 ('L', "[L]Uncompressed bits %u too large for buffer\n",
-		       uncompressed_size);
 	    cmd_shorten_list_op(cldev,
 			     (pcls ? &pcls->list : &cldev->band_range_list),
-				try_size);
+				*psize);
 	    return_error(gs_error_limitcheck);
 	}
 	if (uncompressed_size != short_size) {
-	    if_debug2 ('L', "[L]Shortening bits from %u to %u\n",
-		       try_size, op_size + short_size);
 	    cmd_shorten_list_op(cldev,
 			     (pcls ? &pcls->list : &cldev->band_range_list),
-				try_size - (op_size + short_size));
+				uncompressed_size - short_size);
 	    *psize = op_size + short_size;
 	}
 	compress = 0;

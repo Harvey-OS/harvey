@@ -12,54 +12,25 @@ Type types[] = {
 		Fini|Fdos,
 		floppyinit, floppyinitdev,
 		floppygetdospart, 0, floppyboot,
+		floppyprintdevs,
 	},
 	{	Tether,
 		Fbootp,
 		etherinit, etherinitdev,
 		0, 0, bootp,
+		etherprintdevs,
 	},
 	{	Tsd,
 		Fini|Fdos,
 		sdinit, sdinitdev,
 		sdgetdospart, sdaddconf, sdboot,
+		sdprintdevs,
 	},
 	{	Tnil,
 		0,
 		0, 0, 0, 0,
 		{ 0, },
 	},
-};
-
-#include "etherif.h"
-
-extern int ether2114xreset(Ether*);
-extern int elnk3reset(Ether*);
-extern int i82557reset(Ether*);
-extern int elnk3reset(Ether*);
-extern int ether589reset(Ether*);
-extern int ne2000reset(Ether*);
-extern int wd8003reset(Ether*);
-extern int ec2treset(Ether*);
-extern int amd79c970reset(Ether*);
-
-struct {
-	char	*type;
-	int	(*reset)(Ether*);
-} ethercards[] = {
-	{ "21140", ether2114xreset, },
-	{ "2114x", ether2114xreset, },
-	{ "i82557", i82557reset, },
-	{ "elnk3", elnk3reset, },
-	{ "3C509", elnk3reset, },
-	{ "3C589", ether589reset, },
-	{ "3C562", ether589reset, },
-	{ "589E", ether589reset, },
-	{ "NE2000", ne2000reset, },
-	{ "WD8003", wd8003reset, },
-	{ "EC2T", ec2treset, },
-	{ "AMD79C970", amd79c970reset, },
-
-	{ 0, }
 };
 
 #include "sd.h"
@@ -232,7 +203,7 @@ probe(int type, int flag, int dev)
 			if(mp->flag & Fini){
 				mp->flag &= ~Fini;
 				for(partp = parts; *partp; partp++){
-					if((dos = (*tp->getdospart)(i, *partp)) == nil)
+					if((dos = (*tp->getdospart)(i, *partp, 0)) == nil)
 						continue;
 
 					for(ini = inis; *ini; ini++){
@@ -254,7 +225,7 @@ probe(int type, int flag, int dev)
 
 	return 0;
 }
-
+	
 void
 main(void)
 {
@@ -268,29 +239,30 @@ main(void)
 	trapinit();
 	clockinit();
 	alarminit();
+	meminit(0);
 	spllo();
-
 	kbdinit();
 
 	if((ulong)&end > (KZERO|(640*1024)))
 		panic("i'm too big\n");
 
 	readlsconf();
-	
 	for(tp = types; tp->type != Tnil; tp++){
 		if(tp->type == Tether)
 			continue;
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
-print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
+			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
 			dotini(mp->inidos);
 			break;
 		}
 	}
-
 	apminit();
 
 	if((p = getconf("console")) != nil)
 		consinit(p, getconf("baud"));
+
+	devpccardlink();
+	devi82365link();
 
 	/*
  	 * Even after we find the ini file, we keep probing disks,
@@ -298,7 +270,6 @@ print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
 	 * have boot devices for parse.
 	 */
 	probe(Tany, Fnone, Dany);
-
 	tried = 0;
 	mode = Mauto;
 	
@@ -339,7 +310,7 @@ done:
 				flag = 1;
 				print("Boot devices:");
 			}
-			print(" %s", mp->name);
+			(*tp->printdevs)(mp->dev);
 		}
 	}
 	if(flag)
@@ -519,6 +490,7 @@ nvramread(int offset)
 }
 
 void (*etherdetach)(void);
+void (*floppydetach)(void);
 void (*sddetach)(void);
 
 void
@@ -526,6 +498,8 @@ warp9(ulong entry)
 {
 	if(etherdetach)
 		etherdetach();
+	if(floppydetach)
+		floppydetach();
 	if(sddetach)
 		sddetach();
 

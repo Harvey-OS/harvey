@@ -67,7 +67,7 @@ with the name of your ethernet device, if different):
 .EX
 set boot_reset ON
 set boot_file /alpha/bootalphapc
-set bootdev_def ewa0
+set bootdef_dev ewa0
 set ewa0_inet_init bootp
 set ewa0_protocols BOOTP
 .EE

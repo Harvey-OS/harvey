@@ -61,8 +61,8 @@ struct Dev
 	/* fs emulation */
 	int	open;
 	long	perm;
-	char	name[NAMELEN];
-	char	user[NAMELEN];
+	char	*name;
+	char	*user;
 	char	msgbuf[128];
 	Request	*r;
 	Request *rlast;
@@ -104,8 +104,8 @@ char *names[] =
 [Qctl]		"ctl",
 };
 
-#define DEV(q) (((q).path&Devmask)>>8)
-#define TYPE(q) ((q).path&((1<<8)-1))
+#define DEV(q) ((((ulong)(q).path)&Devmask)>>8)
+#define TYPE(q) (((ulong)(q).path)&((1<<8)-1))
 #define MKQID(t, i) ((((i)<<8)&Devmask) | (t))
 
 enum
@@ -242,11 +242,13 @@ Fid	*fids;
 Dev	*dev;
 int	ndev;
 int	mfd[2];
-char	user[NAMELEN];
-char	mdata[MAXMSG+MAXFDATA];
-Fcall	rhdr;
+char	*user;
+uchar	mdata[8192+IOHDRSZ];
+int	messagesize = sizeof mdata;
 Fcall	thdr;
-char	errbuf[ERRLEN+1];
+Fcall	rhdr;
+char	errbuf[ERRMAX];
+uchar	statbuf[STATMAX];
 int	pulsed;
 int	verbose;
 int	maxspeed = 56000;
@@ -254,8 +256,8 @@ char	*srcid = "plan9";
 int	answer = 1;
 
 Fid	*newfid(int);
-void	devstat(Dir*, char*);
-int	devgen(Qid, int, Dir*, char*);
+int	devstat(Dir*, uchar*, int);
+int	devgen(Qid, int, Dir*, uchar*, int);
 void	error(char*);
 void	io(void);
 void	*erealloc(void*, ulong);
@@ -274,21 +276,18 @@ void	receiver(Dev*);
 char*	modemtype(Dev*, int, int);
 
 
-char	*rflush(Fid*), *rnop(Fid*), *rsession(Fid*),
-	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
-	*rclwalk(Fid*), *ropen(Fid*), *rcreate(Fid*),
+char	*rflush(Fid*), *rversion(Fid*),
+	*rattach(Fid*), *rauth(Fid*), *rwalk(Fid*),
+	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
-	*rauth(Fid*);
+	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
 
 char 	*(*fcalls[])(Fid*) = {
 	[Tflush]	rflush,
-	[Tsession]	rsession,
-	[Tnop]		rnop,
+	[Tversion]	rversion,
 	[Tattach]	rattach,
-	[Tclone]	rclone,
+	[Tauth]	rauth,
 	[Twalk]		rwalk,
-	[Tclwalk]	rclwalk,
 	[Topen]		ropen,
 	[Tcreate]	rcreate,
 	[Tread]		rread,
@@ -302,11 +301,10 @@ char 	*(*fcalls[])(Fid*) = {
 char	Eperm[] =	"permission denied";
 char	Enotdir[] =	"not a directory";
 char	Enotexist[] =	"file does not exist";
-char	Eio[] = 	"i/o error";
 char	Ebadaddr[] = 	"bad address";
 char	Eattn[] = 	"can't get modem's attention";
 char	Edial[] = 	"can't dial";
-char	Enoauth[] =	"authentication not implimented";
+char	Enoauth[] =	"telco: authentication not required";
 char	Eisopen[] = 	"file already open for I/O";
 char	Enodev[] = 	"no free modems";
 char	Enostream[] =	"stream closed prematurely";
@@ -364,8 +362,8 @@ main(int argc, char *argv[])
 		error("pipe failed");
 
 	notify(notifyf);
-	fmtinstall('F', fcallconv);
-	strcpy(user, getuser());
+	fmtinstall('F', fcallfmt);
+	user = getuser();
 
 	switch(rfork(RFFDG|RFPROC|RFREND|RFNOTEG)){
 	case -1:
@@ -383,7 +381,7 @@ main(int argc, char *argv[])
 		if(write(fd, buf, strlen(buf)) < 0)
 			error("writing /srv/telco");
 		close(fd);
-		if(amount(p[1], "/net", MBEFORE, "") < 0)
+		if(mount(p[1], -1, "/net", MBEFORE, "") < 0)
 			error("mount failed");
 		exits(0);
 	}
@@ -405,32 +403,35 @@ main(int argc, char *argv[])
 /*
  *  generate a stat structure for a qid
  */
-void
-devstat(Dir *dir, char *buf)
+int
+devstat(Dir *dir, uchar *buf, int nbuf)
 {
 	Dev *d;
 	int t;
+	static char tmp[10][32];
+	static int ntmp;
 
-	memset(dir->name, 0, sizeof(dir->name));
-	memset(dir->uid, 0, sizeof(dir->uid));
-	memset(dir->gid, 0, sizeof(dir->gid));
 	t = TYPE(dir->qid);
 	if(t != Qlvl3)
-		strcpy(dir->name, names[t]);
-	else
+		dir->name = names[t];
+	else{
+		dir->name = tmp[ntmp % nelem(tmp)];
 		sprint(dir->name, "%lud", DEV(dir->qid));
+		ntmp++;
+	}
 	dir->mode = 0755;
-	strcpy(dir->uid, user);
+	dir->uid = user;
+	dir->gid = user;
+	dir->muid = user;
 	if(t >= Qlvl3){
 		d = &dev[DEV(dir->qid)];
 		if(d->open){
 			dir->mode = d->perm;
-			strcpy(dir->uid, d->user);
+			dir->uid = d->user;
 		}
 	}
-	if(dir->qid.path & CHDIR)
-		dir->mode |= CHDIR;
-	strcpy(dir->gid, user);
+	if(dir->qid.type & QTDIR)
+		dir->mode |= DMDIR;
 	if(t == Qdata){
 		d = &dev[DEV(dir->qid)];
 		dir->length = d->wp - d->rp;
@@ -441,14 +442,15 @@ devstat(Dir *dir, char *buf)
 	dir->atime = time(0);
 	dir->mtime = dir->atime;
 	if(buf)
-		convD2M(dir, buf);
+		return convD2M(dir, buf, nbuf);
+	return 0;
 }
 
 /*
  *  enumerate file's we can walk to from q
  */
 int
-devgen(Qid q, int i, Dir *d, char *buf)
+devgen(Qid q, int i, Dir *d, uchar *buf, int nbuf)
 {
 	static ulong v;
 
@@ -457,32 +459,39 @@ devgen(Qid q, int i, Dir *d, char *buf)
 	case Qlvl1:
 		if(i != 0)
 			return -1;
-		d->qid.path = CHDIR|Qlvl2;
+		d->qid.type = QTDIR;
+		d->qid.path = Qlvl2;
 		break;
 	case Qlvl2:
 		switch(i){
 		case -1:
-			d->qid.path = CHDIR|Qlvl1;
+			d->qid.type = QTDIR;
+			d->qid.path = Qlvl1;
 			break;
 		case 0:
+			d->qid.type = QTFILE;
 			d->qid.path = Qclone;
 			break;
 		default:
 			if(i > ndev)
 				return -1;
-			d->qid.path = MKQID(CHDIR|Qlvl3, i-1);
+			d->qid.type = QTDIR;
+			d->qid.path = MKQID(Qlvl3, i-1);
 			break;
 		}
 		break;
 	case Qlvl3:
 		switch(i){
 		case -1:
-			d->qid.path = CHDIR|Qlvl2;
+			d->qid.type = QTDIR;
+			d->qid.path = Qlvl2;
 			break;
 		case 0:
+			d->qid.type = QTFILE;
 			d->qid.path = MKQID(Qdata, DEV(q));
 			break;
 		case 1:
+			d->qid.type = QTFILE;
 			d->qid.path = MKQID(Qctl, DEV(q));
 			break;
 		default:
@@ -492,30 +501,27 @@ devgen(Qid q, int i, Dir *d, char *buf)
 	default:
 		return -1;
 	}
-	devstat(d, buf);
-	return 0;
+	return devstat(d, buf, nbuf);
 }
 
 char*
-rnop(Fid *f)
-{
-	USED(f);
-	return 0;
-}
-
-char*
-rsession(Fid *unused)
+rversion(Fid *)
 {
 	Fid *f;
-
-	USED(unused);
 
 	for(f = fids; f; f = f->next)
 		if(f->busy)
 			rclunk(f);
-	memset(thdr.authid, 0, sizeof(thdr.authid));
-	memset(thdr.authdom, 0, sizeof(thdr.authdom));
-	memset(thdr.chal, 0, sizeof(thdr.chal));
+
+	if(thdr.msize < 256)
+		return "version: message size too small";
+	messagesize = thdr.msize;
+	if(messagesize > sizeof mdata)
+		messagesize = sizeof mdata;
+	rhdr.msize = messagesize;
+	if(strncmp(thdr.version, "9P2000", 6) != 0)
+		return "unrecognized 9P version";
+	rhdr.version = "9P2000";
 	return 0;
 }
 
@@ -529,7 +535,7 @@ rflush(Fid *f)
 	for(d = dev; d < &dev[ndev]; d++){
 		lock(d);
 		for(l = &d->r; r = *l; l = &r->next)
-			if(r->tag == rhdr.oldtag){
+			if(r->tag == thdr.oldtag){
 				*l = r->next;
 				free(r);
 				break;
@@ -550,71 +556,77 @@ char*
 rattach(Fid *f)
 {
 	f->busy = 1;
-	f->qid.path = CHDIR | Qlvl1;
+	f->qid.type = QTDIR;
+	f->qid.path = Qlvl1;
 	f->qid.vers = 0;
-	thdr.qid = f->qid;
-	if(rhdr.uname[0])
-		f->user = strdup(rhdr.uname);
+	rhdr.qid = f->qid;
+	if(thdr.uname[0])
+		f->user = strdup(thdr.uname);
 	else
 		f->user = "none";
 	return 0;
 }
 
 char*
-rclone(Fid *f)
-{
-	Fid *nf;
-
-	if(f->open)
-		return Eisopen;
-	if(f->busy == 0)
-		return Enotexist;
-	nf = newfid(rhdr.newfid);
-	nf->busy = 1;
-	nf->open = 0;
-	nf->qid = f->qid;
-	nf->user = strdup(f->user);
-	return 0;
-}
-
-char*
 rwalk(Fid *f)
 {
-	int i;
-	char *name;
-	Dir dir;
-
-	if((f->qid.path & CHDIR) == 0)
-		return Enotdir;
-	name = rhdr.name;
-	if(strcmp(name, ".") == 0)
-		dir.qid = f->qid;
-	else if(strcmp(name, "..") == 0){
-		if(devgen(f->qid, -1, &dir, 0) < 0)
-			return Enotexist;
-	} else for(i = 0;; i++){
-		if(devgen(f->qid, i, &dir, 0) < 0)
-			return Enotexist;
-		if(strcmp(name, dir.name) == 0)
-			break;
-	}
-	f->qid = dir.qid;
-	thdr.qid = f->qid;
-	return 0;
-}
-
-char *
-rclwalk(Fid *f)
-{
 	Fid *nf;
-	char *err;
+	int i, nqid;
+	char *name, *err;
+	Dir dir;
+	Qid q;
 
-	nf = newfid(rhdr.newfid);
-	nf->busy = 1;
-	nf->qid = f->qid;
-	nf->user = strdup(f->user);
-	if(err = rwalk(nf))
-		rclunk(nf);
+	nf = nil;
+	if(thdr.fid != thdr.newfid){
+		if(f->open)
+			return Eisopen;
+		if(f->busy == 0)
+			return Enotexist;
+		nf = newfid(thdr.newfid);
+		nf->busy = 1;
+		nf->open = 0;
+		nf->qid = f->qid;
+		nf->user = strdup(f->user);
+		f = nf;	/* walk f */
+	}
+
+	err = nil;
+	dir.qid = f->qid;
+	nqid = 0;
+	if(thdr.nwname > 0){
+		for(; nqid < thdr.nwname; nqid++) {
+			if((dir.qid.type & QTDIR) == 0){
+				err = Enotdir;
+				break;
+			}
+			name = thdr.wname[nqid];
+			if(strcmp(name, ".") == 0){
+				/* nothing to do */
+			}else if(strcmp(name, "..") == 0) {
+				if(devgen(f->qid, -1, &dir, 0, 0) < 0)
+					break;
+			}
+			else{
+				q = dir.qid;
+				for(i = 0;; i++){
+					if(devgen(q, i, &dir, 0, 0) < 0)
+						goto Out;
+					if(strcmp(name, dir.name) == 0)
+						break;
+				}
+			}
+			rhdr.wqid[nqid] = dir.qid;
+		}
+    Out:
+		if(nqid == 0 && err == nil)
+			err = Enotexist;
+		if(nf != nil && thdr.fid != thdr.newfid && nqid < thdr.nwname)
+			rclunk(nf);
+	}
+
+	rhdr.nwqid = nqid;
+	if(nqid > 0 && nqid == thdr.nwname)
+		f->qid = dir.qid;
 	return err;
 }
 
@@ -626,12 +638,12 @@ ropen(Fid *f)
 
 	if(f->open)
 		return Eisopen;
-	mode = rhdr.mode;
+	mode = thdr.mode;
 	mode &= OPERM;
-	if(f->qid.path & CHDIR){
+	if(f->qid.type & QTDIR){
 		if(mode != OREAD)
 			return Eperm;
-		thdr.qid = f->qid;
+		rhdr.qid = f->qid;
 		return 0;
 	}
 	if(mode==OEXEC)
@@ -651,7 +663,7 @@ ropen(Fid *f)
 	case Qctl:
 		d = &dev[DEV(f->qid)];
 		if(d->open == 0){
-			strcpy(d->user, f->user);
+			d->user = strdup(f->user);
 			d->perm = 0660;
 		}else {
 			if(mode==OWRITE || mode==ORDWR)
@@ -664,7 +676,8 @@ ropen(Fid *f)
 		d->open++;
 		break;
 	}
-	thdr.qid = f->qid;
+	rhdr.qid = f->qid;
+	rhdr.iounit = messagesize - IOHDRSZ;
 	f->open = 1;
 	return 0;
 }
@@ -692,28 +705,29 @@ char*
 rread(Fid *f)
 {
 	char *buf;
-	long off;
-	int i, n, cnt, t;
+	long off, start;
+	int i, m, n, cnt, t;
 	Dir dir;
 	char num[32];
 	Dev *d;
 	Request *r;
 
 	n = 0;
-	thdr.count = 0;
-	off = rhdr.offset;
-	cnt = rhdr.count;
-	buf = thdr.data;
+	rhdr.count = 0;
+	off = thdr.offset;
+	cnt = thdr.count;
+	buf = rhdr.data;
 	t = TYPE(f->qid);
 	switch(t){
 	default:
-		cnt = (cnt/DIRLEN)*DIRLEN;
-		if(off%DIRLEN)
-			return Eio;
-		for(i = off/DIRLEN; n < cnt; i++){
-			if(devgen(f->qid, i, &dir, buf+n) < 0)
+		start = 0;
+		for(i = 0; n < cnt; i++){
+			m = devgen(f->qid, i, &dir, (uchar*)buf+n, cnt-n);
+			if(m <= BIT16SZ)
 				break;
-			n += DIRLEN;
+			if(start >= off)
+				n += m;
+			start += m;
 		}
 		break;
 	case Qctl:
@@ -729,8 +743,8 @@ rread(Fid *f)
 	case Qdata:
 		d = &dev[DEV(f->qid)];
 		r = mallocz(sizeof(Request), 1);
-		r->tag = rhdr.tag;
-		r->count = rhdr.count;
+		r->tag = thdr.tag;
+		r->count = thdr.count;
 		r->fid = f;
 		r->flushed = 0;
 		lock(d);
@@ -743,7 +757,7 @@ rread(Fid *f)
 		unlock(d);
 		return "";
 	}
-	thdr.count = n;
+	rhdr.count = n;
 	return 0;
 }
 
@@ -759,20 +773,20 @@ rwrite(Fid *f)
 	char *cp;
 	char buf[64];
 
-	off = rhdr.offset;
-	cnt = rhdr.count;
+	off = thdr.offset;
+	cnt = thdr.count;
 	switch(TYPE(f->qid)){
 	default:
 		return "file is a directory";
 	case Qctl:
 		d = &dev[DEV(f->qid)];
 		clen = strlen(cmsg);
-		if(cnt < clen || strncmp(rhdr.data, cmsg, clen) != 0){
+		if(cnt < clen || strncmp(thdr.data, cmsg, clen) != 0){
 			/*
 			 *  send control message to real control file
 			 */
-			if(seek(d->ctl, off, 0) < 0 || write(d->ctl, rhdr.data, cnt) < 0){
-				errstr(errbuf);
+			if(seek(d->ctl, off, 0) < 0 || write(d->ctl, thdr.data, cnt) < 0){
+				errstr(errbuf, sizeof errbuf);
 				return errbuf;
 			}
 		} else {
@@ -784,21 +798,21 @@ rwrite(Fid *f)
 				cnt = sizeof(buf) - 1;
 			if(cnt < 0)
 				return Ebadaddr;
-			strncpy(buf, &rhdr.data[clen], cnt);
+			strncpy(buf, &thdr.data[clen], cnt);
 			buf[cnt] = 0;
 			cp = dialout(d, buf);
 			if(cp)
 				return cp;
 		}
-		thdr.count = cnt;
+		rhdr.count = cnt;
 		break;
 	case Qdata:
 		d = &dev[DEV(f->qid)];
-		if(write(d->data, rhdr.data, cnt) < 0){
-			errstr(errbuf);
+		if(write(d->data, thdr.data, cnt) < 0){
+			errstr(errbuf, sizeof errbuf);
 			return errbuf;
 		}
-		thdr.count = cnt;
+		rhdr.count = cnt;
 		break;
 	}
 	return 0;
@@ -838,7 +852,8 @@ rstat(Fid *f)
 	Dir d;
 
 	d.qid = f->qid;
-	devstat(&d, thdr.stat);
+	rhdr.stat = statbuf;
+	rhdr.nstat = devstat(&d, statbuf, sizeof statbuf);
 	return 0;
 }
 
@@ -851,7 +866,7 @@ rwstat(Fid *f)
 	if(TYPE(f->qid) < Qlvl3)
 		return Eperm;
 
-	convM2D(rhdr.stat, &dir);
+	convM2D(thdr.stat, thdr.nstat, &dir, rhdr.data);	/* rhdr.data is a known place to scribble */
 	d = &dev[DEV(f->qid)];
 
 	/*
@@ -864,7 +879,7 @@ rwstat(Fid *f)
 	}
 
 	/* all ok; do it */
-	d->perm = dir.mode & ~CHDIR;
+	d->perm = dir.mode & ~DMDIR;
 	return 0;
 }
 
@@ -908,32 +923,31 @@ io(void)
 		 * on the processes writing to us,
 		 * so we wait for the error
 		 */
-		n = read9p(mfd[0], mdata, sizeof mdata);
+		n = read9pmsg(mfd[0], mdata, messagesize);
 		if(n == 0)
 			continue;
 		if(n < 0)
 			error("mount read");
-		if(convM2S(mdata, &rhdr, n) == 0)
-			continue;
+		if(convM2S(mdata, n, &thdr) != n)
+			error("convM2S error");
 
-
-		thdr.data = mdata + MAXMSG;
-		if(!fcalls[rhdr.type])
+		rhdr.data = (char*)mdata + IOHDRSZ;
+		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
-			err = (*fcalls[rhdr.type])(newfid(rhdr.fid));
+			err = (*fcalls[thdr.type])(newfid(thdr.fid));
 		if(err){
 			if(*err == 0)
 				continue;	/* assigned to a slave */
-			thdr.type = Rerror;
-			strncpy(thdr.ename, err, ERRLEN);
+			rhdr.type = Rerror;
+			rhdr.ename = err;
 		}else{
-			thdr.type = rhdr.type + 1;
-			thdr.fid = rhdr.fid;
+			rhdr.type = thdr.type + 1;
+			rhdr.fid = thdr.fid;
 		}
-		thdr.tag = rhdr.tag;
-		n = convS2M(&thdr, mdata);
-		if(write9p(mfd[1], mdata, n) != n)
+		rhdr.tag = thdr.tag;
+		n = convS2M(&rhdr, mdata, messagesize);
+		if(write(mfd[1], mdata, n) != n)
 			error("mount write");
 	}
 }
@@ -1273,9 +1287,12 @@ serve(Dev *d)
 {
 	Request *r;
 	int n;
-	Fcall thdr;
-	char mdata[MAXMSG+MAXFDATA];
-	char buf[MAXFDATA];
+	Fcall rhdr;
+	uchar *mdata;
+	char *buf;
+
+	mdata = malloc(messagesize);
+	buf = malloc(messagesize-IOHDRSZ);
 
 	for(;;){
 		if(d->r == 0 || d->rp == d->wp)
@@ -1286,19 +1303,21 @@ serve(Dev *d)
 
 		n = getinput(d, buf, r->count);
 		if(n == 0)
-			return;
+			break;
 		d->r = r->next;
 
-		thdr.type = Rread;
-		thdr.fid = r->fid->fid;
-		thdr.tag = r->tag;
-		thdr.data = buf;
-		thdr.count = n;
-		n = convS2M(&thdr, mdata);
-		if(write9p(mfd[1], mdata, n) != n)
+		rhdr.type = Rread;
+		rhdr.fid = r->fid->fid;
+		rhdr.tag = r->tag;
+		rhdr.data = buf;
+		rhdr.count = n;
+		n = convS2M(&rhdr, mdata, messagesize);
+		if(write(mfd[1], mdata, n) != n)
 			fprint(2, "telco: error writing\n");
 		free(r);
 	}
+	free(mdata);
+	free(buf);
 }
 
 /*
@@ -1310,7 +1329,7 @@ dialout(Dev *d, char *number)
 	int i, m, compress, rateadjust, speed, fax;
 	char *err;
 	char *field[5];
-	char dialstr[2*NAMELEN];
+	char dialstr[128];
 
 	compress = Ok;
 	rateadjust = Failure;
@@ -1392,7 +1411,7 @@ receiver(Dev *d)
 			syslog(0, LOGFILE, "can't open telco: %r");
 			exits(0);
 		}
-		if(mount(fd, "/net", MAFTER, "") < 0){
+		if(mount(fd, -1, "/net", MAFTER, "") < 0){
 			syslog(0, LOGFILE, "can't mount: %r");
 			exits(0);
 		}

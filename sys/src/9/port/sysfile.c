@@ -180,6 +180,7 @@ syspipe(ulong *arg)
 	int fd[2];
 	Chan *c[2];
 	Dev *d;
+	static char *datastr[] = {"data", "data1"};
 
 	validaddr(arg[0], 2*BY2WD, 1);
 	evenaddr(arg[0]);
@@ -195,10 +196,10 @@ syspipe(ulong *arg)
 			cclose(c[1]);
 		nexterror();
 	}
-	c[1] = cclone(c[0], 0);
-	if(walk(&c[0], "data", 1) < 0)
+	c[1] = cclone(c[0]);
+	if(walk(&c[0], datastr+0, 1, 1, nil) < 0)
 		error(Egreg);
-	if(walk(&c[1], "data1", 1) < 0)
+	if(walk(&c[1], datastr+1, 1, 1, nil) < 0)
 		error(Egreg);
 	c[0] = d->open(c[0], ORDWR);
 	c[1] = d->open(c[1], ORDWR);
@@ -316,102 +317,53 @@ unionread(Chan *c, void *va, long n)
 {
 	int i;
 	long nr;
-	Chan *nc;
 	Mhead *m;
 	Mount *mount;
 
-	m = c->mh;
+	qlock(&c->umqlock);
+	m = c->umh;
 	rlock(&m->lock);
 	mount = m->mount;
+	/* bring mount in sync with c->uri and c->umc */
 	for(i = 0; mount != nil && i < c->uri; i++)
 		mount = mount->next;
 
+	nr = 0;
 	while(mount != nil) {
-		if(waserror()) {
-			runlock(&m->lock);
-			nexterror();
-		}
-		if(mount->to == nil)
-			goto next;
-		nc = cclone(mount->to, 0);
-		poperror();
-
 		/* Error causes component of union to be skipped */
-		if(waserror()) {
-			cclose(nc);
-			goto next;
+		if(mount->to && !waserror()) {
+			if(c->umc == nil){
+				c->umc = cclone(mount->to);
+				c->umc = devtab[c->umc->type]->open(c->umc, OREAD);
+			}
+	
+			nr = devtab[c->umc->type]->read(c->umc, va, n, c->umc->offset);
+			c->umc->offset += nr;
+			poperror();
 		}
-
-		nc = devtab[nc->type]->open(nc, OREAD);
-		nc->offset = c->offset;
-		nr = devtab[nc->type]->read(nc, va, n, nc->offset);
-		/* devdirread e.g. changes it */
-		c->offset = nc->offset;
-		poperror();
-
-		cclose(nc);
-		if(nr > 0) {
-			runlock(&m->lock);
-			return nr;
-		}
-		/* Advance to next element */
-	next:
-		c->uri++;
-		mount = mount->next;
-		if(mount == nil)
+		if(nr > 0)
 			break;
-		c->offset = 0;
+
+		/* Advance to next element */
+		c->uri++;
+		if(c->umc) {
+			cclose(c->umc);
+			c->umc = nil;
+		}
+		mount = mount->next;
 	}
 	runlock(&m->lock);
-	return 0;
+	qunlock(&c->umqlock);
+	return nr;
 }
 
-long
-sysread9p(ulong *arg)
+static long
+read(ulong *arg, vlong *offp)
 {
 	int dir;
 	long n;
 	Chan *c;
-
-	validaddr(arg[1], arg[2], 1);
-	c = fdtochan(arg[0], OREAD, 1, 1);
-	if(waserror()) {
-		cclose(c);
-		nexterror();
-	}
-
-	n = arg[2];
-	dir = c->qid.path&CHDIR;
-
-	if(dir) {
-		n -= n%DIRLEN;
-		if(c->offset%DIRLEN || n==0)
-			error(Etoosmall);
-	}
-
-	if(dir && c->mh)
-		n = unionread(c, (void*)arg[1], n);
-	else if(devtab[c->type]->dc != L'M')
-		n = devtab[c->type]->read(c, (void*)arg[1], n, c->offset);
-	else
-		n = mntread9p(c, (void*)arg[1], n, c->offset);
-
-	lock(c);
-	c->offset += n;
-	unlock(c);
-
-	poperror();
-	cclose(c);
-
-	return n;
-}
-
-long
-sysread(ulong *arg)
-{
-	int dir;
-	long n;
-	Chan *c;
+	vlong off;
 
 	n = arg[2];
 	validaddr(arg[1], n, 1);
@@ -422,120 +374,99 @@ sysread(ulong *arg)
 		nexterror();
 	}
 
-	dir = c->qid.path&CHDIR;
+	dir = c->qid.type&QTDIR;
+	/*
+	 * The offset is passed through on directories, normally. sysseek complains but
+	 * pread is used by servers and e.g. exportfs that shouldn't need to worry about this issue.
+	 */
 
-	if(dir) {
-		n -= n%DIRLEN;
-		if(c->offset%DIRLEN || n==0)
-			error(Etoosmall);
-	}
+	if(offp == nil)	/* use and maintain channel's offset */
+		off = c->offset;
+	else
+		off = *offp;
 
-	if(dir && c->mh)
+	if(off < 0)
+		error(Enegoff);
+
+	if(dir && c->umh)
 		n = unionread(c, (void*)arg[1], n);
 	else
-		n = devtab[c->type]->read(c, (void*)arg[1], n, c->offset);
+		n = devtab[c->type]->read(c, (void*)arg[1], n, off);
 
-	lock(c);
-	c->offset += n;
-	unlock(c);
+	if(offp == nil){
+		lock(c);
+		c->offset += n;
+		unlock(c);
+	}
 
 	poperror();
 	cclose(c);
 
 	return n;
+}
+
+long
+sys_read(ulong *arg)
+{
+	return read(arg, nil);
 }
 
 long
 syspread(ulong *arg)
 {
-	long n;
-	Chan *c;
-	union {
-		uvlong v;
-		ulong u[2];
-	} o;
+	vlong v;
+	va_list list;
 
-	n = arg[2];
-	validaddr(arg[1], n, 1);
-	c = fdtochan(arg[0], OREAD, 1, 1);
-	o.u[0] = arg[3];
-	o.u[1] = arg[4];
+	/* use varargs to guarantee alignment of vlong */
+	va_start(list, arg[2]);
+	v = va_arg(list, vlong);
+	va_end(list);
 
-	if(waserror()) {
-		cclose(c);
-		nexterror();
-	}
+	if(v == ~0ULL)
+		return read(arg, nil);
 
-	if(c->qid.path&CHDIR)
-		error(Eisdir);
-
-	n = devtab[c->type]->read(c, (void*)arg[1], n, o.v);
-
-	poperror();
-	cclose(c);
-
-	return n;
+	return read(arg, &v);
 }
 
-long
-syswrite9p(ulong *arg)
-{
-	Chan *c;
-	long n;
-
-	validaddr(arg[1], arg[2], 0);
-	c = fdtochan(arg[0], OWRITE, 1, 1);
-	if(waserror()) {
-		cclose(c);
-		nexterror();
-	}
-
-	if(c->qid.path & CHDIR)
-		error(Eisdir);
-
-	if(devtab[c->type]->dc != L'M')
-		n = devtab[c->type]->write(c, (void*)arg[1], arg[2], c->offset);
-	else
-		n = mntwrite9p(c, (void*)arg[1], arg[2], c->offset);
-	lock(c);
-	c->offset += n;
-	unlock(c);
-
-	poperror();
-	cclose(c);
-
-	return n;
-}
-
-long
-syswrite(ulong *arg)
+static long
+write(ulong *arg, vlong *offp)
 {
 	Chan *c;
 	long m, n;
-	uvlong oo;
+	vlong off;
 
 	validaddr(arg[1], arg[2], 0);
-	n = arg[2];
+	n = 0;
 	c = fdtochan(arg[0], OWRITE, 1, 1);
 	if(waserror()) {
+		if(offp == nil){
+			lock(c);
+			c->offset -= n;
+			unlock(c);
+		}
 		cclose(c);
-		lock(c);
-		c->offset -= n;
-		unlock(c);
 		nexterror();
 	}
 
-	if(c->qid.path & CHDIR)
+	if(c->qid.type & QTDIR)
 		error(Eisdir);
 
-	lock(c);
-	oo = c->offset;
-	c->offset += n;
-	unlock(c);
+	n = arg[2];
 
-	m = devtab[c->type]->write(c, (void*)arg[1], n, oo);
+	if(offp == nil){	/* use and maintain channel's offset */
+		lock(c);
+		off = c->offset;
+		c->offset += n;
+		unlock(c);
+	}else
+		off = *offp;
 
-	if(m < n){
+	if(off < 0)
+		error(Enegoff);
+
+	m = devtab[c->type]->write(c, (void*)arg[1], n, off);
+
+	if(offp == nil && m < n){
 		lock(c);
 		c->offset -= n - m;
 		unlock(c);
@@ -548,42 +479,35 @@ syswrite(ulong *arg)
 }
 
 long
+sys_write(ulong *arg)
+{
+	return write(arg, nil);
+}
+
+long
 syspwrite(ulong *arg)
 {
-	Chan *c;
-	long m, n;
-	union {
-		uvlong v;
-		ulong u[2];
-	} o;
+	vlong v;
+	va_list list;
 
-	validaddr(arg[1], arg[2], 0);
-	n = arg[2];
-	c = fdtochan(arg[0], OWRITE, 1, 1);
-	o.u[0] = arg[3];
-	o.u[1] = arg[4];
-	if(waserror()) {
-		cclose(c);
-		nexterror();
-	}
+	/* use varargs to guarantee alignment of vlong */
+	va_start(list, arg[2]);
+	v = va_arg(list, vlong);
+	va_end(list);
 
-	if(c->qid.path & CHDIR)
-		error(Eisdir);
+	if(v == ~0ULL)
+		return write(arg, nil);
 
-	m = devtab[c->type]->write(c, (void*)arg[1], n, o.v);
-
-	poperror();
-	cclose(c);
-
-	return m;
+	return write(arg, &v);
 }
 
 static void
 sseek(ulong *arg)
 {
 	Chan *c;
-	char buf[DIRLEN];
+	uchar buf[sizeof(Dir)+100];
 	Dir dir;
+	int n;
 	vlong off;
 	union {
 		vlong v;
@@ -595,9 +519,6 @@ sseek(ulong *arg)
 		cclose(c);
 		nexterror();
 	}
-	if(c->qid.path & CHDIR)
-		error(Eisdir);
-
 	if(devtab[c->type]->dc == '|')
 		error(Eisstream);
 
@@ -607,25 +528,42 @@ sseek(ulong *arg)
 	switch(arg[4]){
 	case 0:
 		off = o.v;
+		if((c->qid.type & QTDIR) && off != 0)
+			error(Eisdir);
+		if(off < 0)
+			error(Enegoff);
 		c->offset = off;
 		break;
 
 	case 1:
+		if(c->qid.type & QTDIR)
+			error(Eisdir);
 		lock(c);	/* lock for read/write update */
 		off = o.v + c->offset;
+		if(off < 0)
+			error(Enegoff);
 		c->offset = off;
 		unlock(c);
 		break;
 
 	case 2:
-		devtab[c->type]->stat(c, buf);
-		convM2D(buf, &dir);
+		if(c->qid.type & QTDIR)
+			error(Eisdir);
+		n = devtab[c->type]->stat(c, buf, sizeof buf);
+		if(convM2D(buf, n, &dir, nil) == 0)
+			error("internal error: stat error in seek");
 		off = dir.length + o.v;
+		if(off < 0)
+			error(Enegoff);
 		c->offset = off;
 		break;
+
+	default:
+		error(Ebadarg);
 	}
 	*(vlong*)arg[0] = off;
 	c->uri = 0;
+	c->dri = 0;
 	cclose(c);
 	poperror();
 }
@@ -657,41 +595,70 @@ sysoseek(ulong *arg)
 	return o.v;
 }
 
+void
+validstat(uchar *s, int n)
+{
+	int m;
+	char buf[64];
+
+	if(statcheck(s, n) < 0)
+		error(Ebadstat);
+	/* verify that name entry is acceptable */
+	s += STATFIXLEN - 4*BIT16SZ;	/* location of first string */
+	/*
+	 * s now points at count for first string.
+	 * if it's too long, let the server decide; this is
+	 * only for his protection anyway. otherwise
+	 * we'd have to allocate and waserror.
+	 */
+	m = GBIT16(s);
+	s += BIT16SZ;
+	if(m+1 > sizeof buf)
+		return;
+	memmove(buf, s, m);
+	buf[m] = '\0';
+	/* name could be '/' */
+	if(strcmp(buf, "/") != 0)
+		validname(buf, 0);
+}
+
 long
 sysfstat(ulong *arg)
 {
 	Chan *c;
+	uint l;
 
-	validaddr(arg[1], DIRLEN, 1);
-	evenaddr(arg[1]);
+	l = arg[2];
+	validaddr(arg[1], l, 1);
 	c = fdtochan(arg[0], -1, 0, 1);
 	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
-	devtab[c->type]->stat(c, (char*)arg[1]);
+	l = devtab[c->type]->stat(c, (uchar*)arg[1], l);
 	poperror();
 	cclose(c);
-	return 0;
+	return l;
 }
 
 long
 sysstat(ulong *arg)
 {
 	Chan *c;
+	uint l;
 
-	validaddr(arg[1], DIRLEN, 1);
-	evenaddr(arg[1]);
+	l = arg[2];
+	validaddr(arg[1], l, 1);
 	validaddr(arg[0], 1, 0);
 	c = namec((char*)arg[0], Aaccess, 0, 0);
 	if(waserror()){
 		cclose(c);
 		nexterror();
 	}
-	devtab[c->type]->stat(c, (char*)arg[1]);
+	l = devtab[c->type]->stat(c, (uchar*)arg[1], l);
 	poperror();
 	cclose(c);
-	return 0;
+	return l;
 }
 
 long
@@ -708,20 +675,18 @@ syschdir(ulong *arg)
 }
 
 long
-bindmount(ulong *arg, int ismount)
+bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char* spec)
 {
-	ulong flag;
-	int fd, ret;
-	Chan *c0, *c1, *bc;
+	int ret;
+	Chan *c0, *c1, *ac, *bc;
 	struct{
 		Chan	*chan;
+		Chan	*authchan;
 		char	*spec;
 		int	flags;
 	}bogus;
 
-	flag = arg[2];
-	fd = arg[0];
-	if(flag>MMASK || (flag&MORDER)==(MBEFORE|MAFTER))
+	if((flag&~MMASK) || (flag&MORDER)==(MBEFORE|MAFTER))
 		error(Ebadarg);
 
 	bogus.flags = flag & MCACHE;
@@ -730,33 +695,39 @@ bindmount(ulong *arg, int ismount)
 		if(up->pgrp->noattach)
 			error(Enoattach);
 
+		ac = nil;
 		bc = fdtochan(fd, ORDWR, 0, 1);
 		if(waserror()) {
+			if(ac)
+				cclose(ac);
 			cclose(bc);
 			nexterror();
 		}
+
+		if(afd >= 0)
+			ac = fdtochan(afd, ORDWR, 0, 1);
+
 		bogus.chan = bc;
+		bogus.authchan = ac;
 
-		validaddr(arg[3], 1, 0);
-		if(vmemchr((char*)arg[3], '\0', NAMELEN) == 0)
-			error(Ebadarg);
-
-		bogus.spec = (char*)arg[3];
+		validaddr((ulong)spec, 1, 0);
+		bogus.spec = spec;
 		if(waserror())
 			error(Ebadspec);
-		nameok(bogus.spec, 1);
+		validname(spec, 1);
 		poperror();
 
 		ret = devno('M', 0);
 		c0 = devtab[ret]->attach((char*)&bogus);
 
 		poperror();
+		if(ac)
+			cclose(ac);
 		cclose(bc);
-	}
-	else {
+	}else{
 		bogus.spec = 0;
-		validaddr(arg[0], 1, 0);
-		c0 = namec((char*)arg[0], Aaccess, 0, 0);
+		validaddr((ulong)arg0, 1, 0);
+		c0 = namec(arg0, Abind, 0, 0);
 	}
 
 	if(waserror()){
@@ -764,14 +735,14 @@ bindmount(ulong *arg, int ismount)
 		nexterror();
 	}
 
-	validaddr(arg[1], 1, 0);
-	c1 = namec((char*)arg[1], Amount, 0, 0);
+	validaddr((ulong)arg1, 1, 0);
+	c1 = namec(arg1, Amount, 0, 0);
 	if(waserror()){
 		cclose(c1);
 		nexterror();
 	}
 
-	ret = cmount(c0, c1, flag, bogus.spec);
+	ret = cmount(&c0, c1, flag, bogus.spec);
 
 	poperror();
 	cclose(c1);
@@ -779,19 +750,26 @@ bindmount(ulong *arg, int ismount)
 	cclose(c0);
 	if(ismount)
 		fdclose(fd, 0);
+
 	return ret;
 }
 
 long
 sysbind(ulong *arg)
 {
-	return bindmount(arg, 0);
+	return bindmount(0, -1, -1, (char*)arg[0], (char*)arg[1], arg[2], nil);
 }
 
 long
 sysmount(ulong *arg)
 {
-	return bindmount(arg, 1);
+	return bindmount(1, arg[0], arg[1], nil, (char*)arg[2], arg[3], (char*)arg[4]);
+}
+
+long
+sys_mount(ulong *arg)
+{
+	return bindmount(1, arg[0], -1, nil, (char*)arg[1], arg[2], (char*)arg[3]);
 }
 
 long
@@ -810,6 +788,12 @@ sysunmount(ulong *arg)
 			nexterror();
 		}
 		validaddr(arg[0], 1, 0);
+		/*
+		 * This has to be namec(..., Aopen, ...) because
+		 * if arg[0] is something like /srv/cs or /fd/0,
+		 * opening it is the only way to get at the real
+		 * Chan underneath.
+		 */
 		cmounted = namec((char*)arg[0], Aopen, OREAD, 0);
 		poperror();
 	}
@@ -835,7 +819,7 @@ syscreate(ulong *arg)
 	int fd;
 	Chan *c = 0;
 
-	openmode(arg[1]);	/* error check only */
+	openmode(arg[1]&~OEXCL);	/* error check only; OEXCL okay here */
 	if(waserror()) {
 		if(c)
 			cclose(c);
@@ -856,7 +840,7 @@ sysremove(ulong *arg)
 	Chan *c;
 
 	validaddr(arg[0], 1, 0);
-	c = namec((char*)arg[0], Aaccess, 0, 0);
+	c = namec((char*)arg[0], Aremove, 0, 0);
 	if(waserror()){
 		c->type = 0;	/* see below */
 		cclose(c);
@@ -877,35 +861,148 @@ long
 syswstat(ulong *arg)
 {
 	Chan *c;
+	uint l;
 
-	validaddr(arg[1], DIRLEN, 0);
-	nameok((char*)arg[1], 0);
+	l = arg[2];
+	validaddr(arg[1], l, 0);
+	validstat((uchar*)arg[1], l);
 	validaddr(arg[0], 1, 0);
 	c = namec((char*)arg[0], Aaccess, 0, 0);
 	if(waserror()){
 		cclose(c);
 		nexterror();
 	}
-	devtab[c->type]->wstat(c, (char*)arg[1]);
+	l = devtab[c->type]->wstat(c, (uchar*)arg[1], l);
 	poperror();
 	cclose(c);
-	return 0;
+	return l;
 }
 
 long
 sysfwstat(ulong *arg)
 {
 	Chan *c;
+	uint l;
 
-	validaddr(arg[1], DIRLEN, 0);
-	nameok((char*)arg[1], 0);
+	l = arg[2];
+	validaddr(arg[1], l, 0);
+	validstat((uchar*)arg[1], l);
 	c = fdtochan(arg[0], -1, 1, 1);
 	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
-	devtab[c->type]->wstat(c, (char*)arg[1]);
+	l = devtab[c->type]->wstat(c, (uchar*)arg[1], l);
+	poperror();
+	cclose(c);
+	return l;
+}
+
+static void
+packoldstat(uchar *buf, Dir *d)
+{
+	uchar *p;
+	ulong q;
+
+	/* lay down old stat buffer - grotty code but it's temporary */
+	p = buf;
+	strncpy((char*)p, d->name, 28);
+	p += 28;
+	strncpy((char*)p, d->uid, 28);
+	p += 28;
+	strncpy((char*)p, d->gid, 28);
+	p += 28;
+	q = d->qid.path & ~DMDIR;	/* make sure doesn't accidentally look like directory */
+	if(d->qid.type & QTDIR)	/* this is the real test of a new directory */
+		q |= DMDIR;
+	PBIT32(p, q);
+	p += BIT32SZ;
+	PBIT32(p, d->qid.vers);
+	p += BIT32SZ;
+	PBIT32(p, d->mode);
+	p += BIT32SZ;
+	PBIT32(p, d->atime);
+	p += BIT32SZ;
+	PBIT32(p, d->mtime);
+	p += BIT32SZ;
+	PBIT64(p, d->length);
+	p += BIT64SZ;
+	PBIT16(p, d->type);
+	p += BIT16SZ;
+	PBIT16(p, d->dev);
+}
+
+long
+sys_stat(ulong *arg)
+{
+	Chan *c;
+	uint l;
+	uchar buf[128];	/* old DIRLEN plus a little should be plenty */
+	char strs[128];
+	Dir d;
+	char old[] = "old stat system call - recompile";
+
+	validaddr(arg[1], 116, 1);
+	validaddr(arg[0], 1, 0);
+	c = namec((char*)arg[0], Aaccess, 0, 0);
+	if(waserror()){
+		cclose(c);
+		nexterror();
+	}
+	l = devtab[c->type]->stat(c, buf, sizeof buf);
+	/* buf contains a new stat buf; convert to old. yuck. */
+	if(l <= BIT16SZ)	/* buffer too small; time to face reality */
+		error(old);
+	l = convM2D(buf, l, &d, strs);
+	if(l == 0)
+		error(old);
+	packoldstat((uchar*)arg[1], &d);
+	
 	poperror();
 	cclose(c);
 	return 0;
+}
+
+long
+sys_fstat(ulong *arg)
+{
+	Chan *c;
+	uint l;
+	uchar buf[128];	/* old DIRLEN plus a little should be plenty */
+	char strs[128];
+	Dir d;
+	char old[] = "old fstat system call - recompile";
+
+	validaddr(arg[1], 116, 1);
+	c = fdtochan(arg[0], -1, 0, 1);
+	if(waserror()){
+		cclose(c);
+		nexterror();
+	}
+	l = devtab[c->type]->stat(c, buf, sizeof buf);
+	/* buf contains a new stat buf; convert to old. yuck. */
+	if(l <= BIT16SZ)	/* buffer too small; time to face reality */
+		error(old);
+	l = convM2D(buf, l, &d, strs);
+	if(l == 0)
+		error(old);
+	packoldstat((uchar*)arg[1], &d);
+	
+	poperror();
+	cclose(c);
+	return 0;
+}
+
+long
+sys_wstat(ulong *)
+{
+	error("old wstat system call - recompile");
+	return -1;
+}
+
+long
+sys_fwstat(ulong *)
+{
+	error("old fwstat system call - recompile");
+	return -1;
 }

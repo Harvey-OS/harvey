@@ -261,7 +261,7 @@ loop:
 			execl("/bin/srv", "srv", "-q", "il!jukefs", 0);
 			exits(0);
 		}
-		wait(nil);
+		waitpid();
 		s1 = open("/srv/il!jukefs", ORDWR);
 		if(s1 < 0) {
 			Bprint(&bout, "can't open /srv/il!jukefs: %r\n");
@@ -272,7 +272,7 @@ loop:
 	/*
 	 * mount nfs jukebox server
 	 */
-	if(mount(s1, "/n/njuke", 0, "") < 0) {
+	if(mount(s1, -1, "/n/njuke", 0, "") < 0) {
 		close(s1);
 		Bprint(&bout, "\"mount /srv/il!jukefs /n/juke\" failed: %r\n");
 		goto out;
@@ -287,7 +287,7 @@ loop:
 			execl("/bin/9660srv", "9660srv", 0);
 			exits(0);
 		}
-		wait(nil);
+		waitpid();
 		s2 = open("/srv/9660", ORDWR);
 		if(s2 < 0) {
 			Bprint(&bout, "can't open /srv/9660: %r\n");
@@ -298,7 +298,7 @@ loop:
 	/*
 	 * mount 9660 server
 	 */
-	if(mount(s2, "/n/dss", 0, dssname) < 0) {
+	if(mount(s2, -1, "/n/dss", 0, dssname) < 0) {
 		close(s2);
 		if(count == 0) {
 			// do it again so /n/njuke is in 9660's namespace

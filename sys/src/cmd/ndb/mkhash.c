@@ -15,9 +15,9 @@ ulong nextchain;
 char*
 syserr(void)
 {
-	static char buf[ERRLEN];
+	static char buf[ERRMAX];
 
-	errstr(buf);
+	errstr(buf, sizeof buf);
 	return buf;
 }
 
@@ -68,9 +68,9 @@ main(int argc, char **argv)
 {
 	Ndbtuple *t, *nt;
 	int n;
-	Dir d;	
+	Dir *d;	
 	uchar buf[8];
-	char file[3*NAMELEN+2];
+	char file[128];
 	int fd;
 	ulong off;
 	uchar *p;
@@ -143,8 +143,9 @@ main(int argc, char **argv)
 	close(fd);
 
 	/* make sure file didn't change while we were making the hash */
-	if(dirstat(argv[1], &d) < 0 || d.qid.path != db->qid.path
-	   || d.qid.vers != db->qid.vers){
+	d = dirstat(argv[1]);
+	if(d == nil || d->qid.path != db->qid.path
+	   || d->qid.vers != db->qid.vers){
 		fprint(2, "mkhash: %s changed underfoot\n", argv[1]);
 		remove(file);
 		exits("changed");

@@ -13,7 +13,9 @@ enum
 	Maxreply=		256,
 	Maxrequest=		128,
 	Maxpath=		128,
+	Maxfdata=		8192,
 
+	Qdir=			0,
 	Qcs=			1,
 };
 
@@ -29,7 +31,7 @@ struct Mfile
 {
 	int		busy;
 
-	char		user[NAMELEN];
+	char		*user;
 	Qid		qid;
 	int		fid;
 
@@ -56,6 +58,7 @@ struct Mlist
 	Mfile	mf;
 };
 
+
 //
 //  active requests
 //
@@ -71,7 +74,6 @@ Job	*joblist;
 
 Mlist	*mlist;
 int	mfd[2];
-char	user[NAMELEN];
 int	debug;
 int	paranoia;
 jmp_buf	masterjmp;	/* return through here after a slave process has been created */
@@ -79,13 +81,10 @@ int	*isslave;	/* *isslave non-zero means this is a slave process */
 char	*dbfile;
 Ndb	*db, *netdb;
 
-void	rsession(Job*);
-void	rnop(Job*);
+void	rversion(Job*);
 void	rflush(Job*);
 void	rattach(Job*, Mfile*);
-void	rclone(Job*, Mfile*);
 char*	rwalk(Job*, Mfile*);
-void	rclwalk(Job*, Mfile*);
 void	ropen(Job*, Mfile*);
 void	rcreate(Job*, Mfile*);
 void	rread(Job*, Mfile*);
@@ -94,7 +93,7 @@ void	rclunk(Job*, Mfile*);
 void	rremove(Job*, Mfile*);
 void	rstat(Job*, Mfile*);
 void	rwstat(Job*, Mfile*);
-void	rauth(void);
+void	rauth(Job*);
 void	sendmsg(Job*, char*);
 void	error(char*);
 void	mountinit(char*, char*);
@@ -102,39 +101,21 @@ void	io(void);
 void	ndbinit(void);
 void	netinit(int);
 void	netadd(char*);
-int	lookup(Mfile*);
 char	*genquery(Mfile*, char*);
 char*	ipinfoquery(Mfile*, char**, int);
 int	needproto(Network*, Ndbtuple*);
-Ndbtuple*	lookval(Ndbtuple*, Ndbtuple*, char*, char*);
+int	lookup(Mfile*);
 Ndbtuple*	reorder(Ndbtuple*, Ndbtuple*);
 void	ipid(void);
 void	readipinterfaces(void);
 void*	emalloc(int);
+char*	estrdup(char*);
 Job*	newjob(void);
 void	freejob(Job*);
 void	setext(char*, int, char*);
 void	cleanmf(Mfile*);
 
 extern void	paralloc(void);
-
-char *mname[]={
-	[Tnop]		"Tnop",
-	[Tsession]	"Tsession",
-	[Tflush]	"Tflush",
-	[Tattach]	"Tattach",
-	[Tclone]	"Tclone",
-	[Twalk]		"Twalk",
-	[Topen]		"Topen",
-	[Tcreate]	"Tcreate",
-	[Tclunk]	"Tclunk",
-	[Tread]		"Tread",
-	[Twrite]	"Twrite",
-	[Tremove]	"Tremove",
-	[Tstat]		"Tstat",
-	[Twstat]	"Twstat",
-			0,
-};
 
 Lock	dblock;		/* mutex on database operations */
 Lock	netlock;	/* mutex for netinit() */
@@ -249,10 +230,10 @@ main(int argc, char *argv[])
 	unmount(servefile, mntpt);
 	remove(servefile);
 
-	fmtinstall('E', eipconv);
-	fmtinstall('I', eipconv);
-	fmtinstall('M', eipconv);
-	fmtinstall('F', fcallconv);
+	fmtinstall('E', eipfmt);
+	fmtinstall('I', eipfmt);
+	fmtinstall('M', eipfmt);
+	fmtinstall('F', fcallfmt);
 
 	ndbinit();
 	netinit(0);
@@ -316,7 +297,7 @@ mountinit(char *service, char *mntpt)
 		 *  put ourselves into the file system
 		 */
 		close(p[0]);
-		if(mount(p[1], mntpt, MAFTER, "") < 0)
+		if(mount(p[1], -1, mntpt, MAFTER, "") < 0)
 			error("mount failed\n");
 		_exits(0);
 	}
@@ -411,13 +392,13 @@ io(void)
 	long n;
 	Mfile *mf;
 	int slaveflag;
-	char mdata[MAXFDATA + MAXMSG];
+	uchar mdata[IOHDRSZ + Maxfdata];
 	Job *job;
 
 	/*
 	 *  if we ask dns to fulfill requests,
 	 *  a slave process is created to wait for replies.  The
-	 *  master process returns immediately via a longjmp's
+	 *  master process returns immediately via a longjmp
 	 *  through 'masterjmp'.
 	 *
 	 *  *isslave is a pointer into the call stack to a variable
@@ -428,11 +409,11 @@ io(void)
 	setjmp(masterjmp);
 
 	for(;;){
-		n = read9p(mfd[0], mdata, sizeof mdata);
+		n = read9pmsg(mfd[0], mdata, sizeof mdata);
 		if(n<=0)
 			error("mount read");
 		job = newjob();
-		if(convM2S(mdata, &job->request, n) == 0){
+		if(convM2S(mdata, n, &job->request) != n){
 			syslog(1, logfile, "format error %ux %ux %ux %ux %ux", mdata[0], mdata[1], mdata[2], mdata[3], mdata[4]);
 			freejob(job);
 			continue;
@@ -449,11 +430,11 @@ io(void)
 		default:
 			syslog(1, logfile, "unknown request type %d", job->request.type);
 			break;
-		case Tsession:
-			rsession(job);
+		case Tversion:
+			rversion(job);
 			break;
-		case Tnop:
-			rnop(job);
+		case Tauth:
+			rauth(job);
 			break;
 		case Tflush:
 			rflush(job);
@@ -461,14 +442,8 @@ io(void)
 		case Tattach:
 			rattach(job, mf);
 			break;
-		case Tclone:
-			rclone(job, mf);
-			break;
 		case Twalk:
 			rwalk(job, mf);
-			break;
-		case Tclwalk:
-			rclwalk(job, mf);
 			break;
 		case Topen:
 			ropen(job, mf);
@@ -511,18 +486,24 @@ io(void)
 }
 
 void
-rsession(Job *job)
+rversion(Job *job)
 {
-	memset(job->reply.authid, 0, sizeof(job->reply.authid));
-	memset(job->reply.authdom, 0, sizeof(job->reply.authdom));
-	memset(job->reply.chal, 0, sizeof(job->reply.chal));
-	sendmsg(job, 0);
+	if(job->request.msize > IOHDRSZ + Maxfdata)
+		job->reply.msize = IOHDRSZ + Maxfdata;
+	else
+		job->reply.msize = job->request.msize;
+	if(strncmp(job->request.version, "9P2000", 6) != 0)
+		sendmsg(job, "unknown 9P version");
+	else{
+		job->reply.version = "9P2000";
+		sendmsg(job, 0);
+	}
 }
 
 void
-rnop(Job *job)
+rauth(Job *job)
 {
-	sendmsg(job, 0);
+	sendmsg(job, "no authentication required");
 }
 
 /*
@@ -540,81 +521,85 @@ rattach(Job *job, Mfile *mf)
 {
 	if(mf->busy == 0){
 		mf->busy = 1;
-		strcpy(mf->user, job->request.uname);
+		mf->user = estrdup(job->request.uname);
 	}
 	mf->qid.vers = vers++;
-	mf->qid.path = CHDIR;
+	mf->qid.type = QTDIR;
+	mf->qid.path = 0LL;
 	job->reply.qid = mf->qid;
 	sendmsg(job, 0);
 }
 
-void
-rclone(Job *job, Mfile *mf)
-{
-	Mfile *nmf;
-	char *err=0;
-
-	if(job->request.newfid<0){
-		err = "clone nfid out of range";
-		goto send;
-	}
-	nmf = newfid(job->request.newfid);
-	if(nmf->busy){
-		err = "clone to used channel";
-		goto send;
-	}
-	*nmf = *mf;
-	nmf->fid = job->request.newfid;
-	nmf->qid.vers = vers++;
-    send:
-	sendmsg(job, err);
-}
-
-void
-rclwalk(Job *job, Mfile *mf)
-{
-	Mfile *nmf;
-
-	if(job->request.newfid<0){
-		sendmsg(job, "clone nfid out of range");
-		return;
-	}
-	nmf = newfid(job->request.newfid);
-	if(nmf->busy){
-		sendmsg(job, "clone to used channel");
-		return;
-	}
-	*nmf = *mf;
-	nmf->fid = job->request.newfid;
-	job->request.fid = job->request.newfid;
-	nmf->qid.vers = vers++;
-	if(rwalk(job, nmf))
-		nmf->busy = 0;
-}
 
 char*
 rwalk(Job *job, Mfile *mf)
 {
 	char *err;
-	char *name;
+	char **elems;
+	int nelems;
+	int i;
+	Mfile *nmf;
+	Qid qid;
 
 	err = 0;
-	name = job->request.name;
-	if((mf->qid.path & CHDIR) == 0){
-		err = "not a directory";
-		goto send;
+	nmf = nil;
+	elems = job->request.wname;
+	nelems = job->request.nwname;
+	job->reply.nwqid = 0;
+
+	if(job->request.newfid != job->request.fid){
+		/* clone fid */
+		if(job->request.newfid<0){
+			err = "clone newfid out of range";
+			goto send;
+		}
+		nmf = newfid(job->request.newfid);
+		if(nmf->busy){
+			nmf = nil;
+			err = "clone to used channel";
+			goto send;
+		}
+		*nmf = *mf;
+		nmf->user = estrdup(mf->user);
+		nmf->fid = job->request.newfid;
+		nmf->qid.vers = vers++;
+		mf = nmf;
 	}
-	if(strcmp(name, ".") == 0){
-		mf->qid.path = CHDIR;
-		goto send;
+	/* else nmf will be nil */
+
+	qid = mf->qid;
+	if(nelems > 0){
+		/* walk fid */
+		for(i=0; i<nelems && i<MAXWELEM; i++){
+			if((qid.type & QTDIR) == 0){
+				err = "not a directory";
+				break;
+			}
+			if(strcmp(elems[i], "..") == 0 || strcmp(elems[i], ".") == 0){
+				qid.type = QTDIR;
+				qid.path = Qdir;
+    Found:
+				job->reply.wqid[i] = qid;
+				job->reply.nwqid++;
+				continue;
+			}
+			if(strcmp(elems[i], "cs") == 0){
+				qid.type = QTFILE;
+				qid.path = Qcs;
+				goto Found;
+			}
+			err = "file does not exist";
+			break;
+		}
 	}
-	if(strcmp(name, "cs") == 0){
-		mf->qid.path = Qcs;
-		goto send;
-	}
-	err = "nonexistent file";
+
     send:
-	job->reply.qid = mf->qid;
+	if(nmf != nil && (err!=nil || job->reply.nwqid<nelems)){
+		nmf->busy = 0;
+		nmf->fid = 0;
+	}
+	if(err == nil)
+		mf->qid = qid;
 	sendmsg(job, err);
 	return err;
 }
@@ -627,12 +612,12 @@ ropen(Job *job, Mfile *mf)
 
 	err = 0;
 	mode = job->request.mode;
-	if(mf->qid.path & CHDIR){
+	if(mf->qid.type & QTDIR){
 		if(mode)
 			err = "permission denied";
-	} else
-		cleanmf(mf);
+	}
 	job->reply.qid = mf->qid;
+	job->reply.iounit = 0;
 	sendmsg(job, err);
 }
 
@@ -649,33 +634,30 @@ rread(Job *job, Mfile *mf)
 	int i, n, cnt;
 	long off, toff, clock;
 	Dir dir;
-	char buf[MAXFDATA];
+	uchar buf[Maxfdata];
 	char *err;
 
 	n = 0;
 	err = 0;
 	off = job->request.offset;
 	cnt = job->request.count;
-	if(mf->qid.path & CHDIR){
-		if(off%DIRLEN || cnt%DIRLEN){
-			err = "bad offset";
-			goto send;
-		}
+	if(mf->qid.type & QTDIR){
 		clock = time(0);
 		if(off == 0){
-			memmove(dir.name, "cs", NAMELEN);
+			dir.name = "cs";
+			dir.qid.type = QTFILE;
 			dir.qid.vers = vers;
 			dir.qid.path = Qcs;
 			dir.mode = 0666;
 			dir.length = 0;
-			strcpy(dir.uid, mf->user);
-			strcpy(dir.gid, mf->user);
+			dir.uid = mf->user;
+			dir.gid = mf->user;
+			dir.muid = mf->user;
 			dir.atime = clock;	/* wrong */
 			dir.mtime = clock;	/* wrong */
-			convD2M(&dir, buf+n);
-			n += DIRLEN;
+			n = convD2M(&dir, buf, sizeof buf);
 		}
-		job->reply.data = buf;
+		job->reply.data = (char*)buf;
 	} else {
 		for(;;){
 			/* look for an answer at the right offset */
@@ -708,24 +690,31 @@ send:
 	job->reply.count = n;
 	sendmsg(job, err);
 }
-
 void
 cleanmf(Mfile *mf)
 {
 	int i;
 
-	if(mf->net)
+	if(mf->net != nil){
 		free(mf->net);
-	mf->net = nil;
-	if(mf->host)
+		mf->net = nil;
+	}
+	if(mf->host != nil){
 		free(mf->host);
-	mf->host = nil;
-	if(mf->serv)
+		mf->host = nil;
+	}
+	if(mf->serv != nil){
 		free(mf->serv);
-	mf->serv = nil;
-	if(mf->rem)
+		mf->serv = nil;
+	}
+	if(mf->rem != nil){
 		free(mf->rem);
-	mf->rem = nil;
+		mf->rem = nil;
+	}
+	if(mf->user != nil){
+		free(mf->user);
+		mf->user = nil;
+	}
 	for(i = 0; i < mf->nreply; i++){
 		free(mf->reply[i]);
 		mf->reply[i] = nil;
@@ -744,7 +733,7 @@ rwrite(Job *job, Mfile *mf)
 
 	err = 0;
 	cnt = job->request.count;
-	if(mf->qid.path & CHDIR){
+	if(mf->qid.type & QTDIR){
 		err = "can't write directory";
 		goto send;
 	}
@@ -858,20 +847,23 @@ void
 rstat(Job *job, Mfile *mf)
 {
 	Dir dir;
+	uchar buf[IOHDRSZ+Maxfdata];
 
-	if(mf->qid.path & CHDIR){
-		strcpy(dir.name, ".");
-		dir.mode = CHDIR|0555;
+	if(mf->qid.type & QTDIR){
+		dir.name = ".";
+		dir.mode = DMDIR|0555;
 	} else {
-		strcpy(dir.name, "cs");
+		dir.name = "cs";
 		dir.mode = 0666;
 	}
 	dir.qid = mf->qid;
 	dir.length = 0;
-	strcpy(dir.uid, mf->user);
-	strcpy(dir.gid, mf->user);
+	dir.uid = mf->user;
+	dir.gid = mf->user;
+	dir.muid = mf->user;
 	dir.atime = dir.mtime = time(0);
-	convD2M(&dir, (char*)job->reply.stat);
+	job->reply.nstat = convD2M(&dir, buf, sizeof buf);
+	job->reply.stat = buf;
 	sendmsg(job, 0);
 }
 
@@ -886,24 +878,25 @@ void
 sendmsg(Job *job, char *err)
 {
 	int n;
-	char mdata[MAXFDATA + MAXMSG];
+	uchar mdata[IOHDRSZ + Maxfdata];
+	char ename[ERRMAX];
 
 	if(err){
 		job->reply.type = Rerror;
-		snprint(job->reply.ename, sizeof(job->reply.ename), "cs: %s", err);
+		snprint(ename, sizeof(ename), "cs: %s", err);
+		job->reply.ename = ename;
 	}else{
 		job->reply.type = job->request.type+1;
-		job->reply.fid = job->request.fid;
 	}
 	job->reply.tag = job->request.tag;
-	n = convS2M(&job->reply, mdata);
+	n = convS2M(&job->reply, mdata, sizeof mdata);
 	if(n == 0){
 		syslog(1, logfile, "sendmsg convS2M of %F returns 0", &job->reply);
 		abort();
 	}
 	lock(&joblock);
 	if(job->flushed == 0)
-		if(write9p(mfd[1], mdata, n)!=n)
+		if(write(mfd[1], mdata, n)!=n)
 			error("mount write");
 	unlock(&joblock);
 	if(debug)
@@ -926,20 +919,19 @@ isvalidip(uchar *ip)
 void
 readipinterfaces(void)
 {
-	Ipifc *ifc;
+	Ipifc *nifc;
+	Iplifc *lifc;
 
-	lock(&ipifclock);
-	ipifcs = readipifc(mntpt, ipifcs);
-	unlock(&ipifclock);
-	for(ifc = ipifcs; ifc; ifc = ifc->next){
-		if(isvalidip(ifc->ip)){
-			ipmove(ipa, ifc->ip);
-			sprint(ipaddr, "%I", ipa);
-			if(debug)
-				syslog(0, "dns", "ipaddr is %s\n", ipaddr);
-			break;
-		}
-	}
+	ipifcs = readipifc(mntpt, ipifcs, -1);
+	for(nifc = ipifcs; nifc; nifc = nifc->next)
+		for(lifc = nifc->lifc; lifc; lifc = lifc->next)
+			if(ipcmp(lifc->ip, IPnoaddr) != 0){
+				ipmove(ipa, lifc->ip);
+				sprint(ipaddr, "%I", ipa);
+				if(debug)
+					syslog(0, "dns", "ipaddr is %s\n", ipaddr);
+			}
+	ipmove(ipa, IPnoaddr);
 }
 
 /*
@@ -1032,7 +1024,6 @@ void
 netinit(int background)
 {
 	char clone[Maxpath];
-	Dir d;
 	Network *np;
 	static int working;
 
@@ -1051,7 +1042,7 @@ netinit(int background)
 		if(np->considered)
 			continue;
 		snprint(clone, sizeof(clone), "%s/%s/clone", mntpt, np->net);
-		if(dirstat(clone, &d) < 0)
+		if(access(clone, AEXIST) < 0)
 			continue;
 		if(netlist)
 			last->next = np;
@@ -1263,7 +1254,7 @@ ipserv(Network *np, char *name, char *buf)
 	port[0] = 0;
 	for(p = name; *p; p++){
 		if(isdigit(*p))
-			;
+			{}
 		else if(isalpha(*p) || *p == '-' || *p == '$')
 			alpha = 1;
 		else
@@ -1305,12 +1296,13 @@ ipattrlookup(Ndb *db, char *ipa, char *attr, char *val)
 	t = ndbipinfo(db, "ip", ipa, alist, 1);
 	if(t == nil)
 		return 0;
-	for(nt = t; nt != nil; nt = nt->entry)
+	for(nt = t; nt != nil; nt = nt->entry){
 		if(strcmp(nt->attr, attr) == 0){
 			strcpy(val, nt->val);
 			ndbfree(t);
 			return 1;
 		}
+	}
 
 	/* we shouldn't get here */
 	ndbfree(t);
@@ -1333,6 +1325,7 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	uchar net[IPaddrlen];
 	uchar tnet[IPaddrlen];
 	Ipifc *ifc;
+	Iplifc *lifc;
 
 	USED(nolookup);
 
@@ -1405,17 +1398,19 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	 * reorder according to our interfaces
 	 */
 	lock(&ipifclock);
-	for(ifc = ipifcs; ifc; ifc = ifc->next){
-		maskip(ifc->ip, ifc->mask, net);
-		for(nt = t; nt; nt = nt->entry){
-			if(strcmp(nt->attr, "ip") != 0)
-				continue;
-			parseip(ip, nt->val);
-			maskip(ip, ifc->mask, tnet);
-			if(memcmp(net, tnet, IPaddrlen) == 0){
-				t = reorder(t, nt);
-				unlock(&ipifclock);
-				return t;
+	for(ifc = ipifcs; ifc != nil; ifc = ifc->next){
+		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next){ 
+			maskip(lifc->ip, lifc->mask, net);
+			for(nt = t; nt; nt = nt->entry){
+				if(strcmp(nt->attr, "ip") != 0)
+					continue;
+				parseip(ip, nt->val);
+				maskip(ip, lifc->mask, tnet);
+				if(memcmp(net, tnet, IPaddrlen) == 0){
+					t = reorder(t, nt);
+					unlock(&ipifclock);
+					return t;
+				}
 			}
 		}
 	}
@@ -1454,7 +1449,6 @@ iptrans(Ndbtuple *t, Network *np, char *serv, char *rem, int hack)
 
 	return strdup(reply);
 }
-
 
 /*
  *  lookup a telephone number
@@ -1810,4 +1804,18 @@ emalloc(int size)
 		abort();
 	memset(x, 0, size);
 	return x;
+}
+
+char*
+estrdup(char *s)
+{
+	int size;
+	char *p;
+
+	size = strlen(s)+1;
+	p = malloc(size);
+	if(p == nil)
+		abort();
+	memmove(p, s, size);
+	return p;
 }

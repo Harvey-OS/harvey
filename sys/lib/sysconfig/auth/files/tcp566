@@ -1,0 +1,2 @@
+#!/bin/rc
+/bin/auth/guard.srv -d $3

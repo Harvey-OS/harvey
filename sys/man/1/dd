@@ -74,6 +74,14 @@ records from beginning of output file before copying.
 Copy only
 .I n
 input records.
+.TP
+.BI -trunc\  n\^
+By default,
+.I dd
+truncates the output file when it opens it;
+.B -trunc
+.B 0
+opens it without truncation.
 .HP
 \fL-conv\ ascii\ \ \ \ \fRConvert
 .SM EBCDIC

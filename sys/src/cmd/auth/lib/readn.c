@@ -1,7 +1,6 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
-#include "authsrv.h"
+#include "authcmdlib.h"
 
 /*
  *  read exactly len bytes

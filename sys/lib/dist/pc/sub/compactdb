@@ -1,0 +1,4 @@
+#!/bin/rc
+
+exec cat $*
+

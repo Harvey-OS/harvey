@@ -1,0 +1,9 @@
+#!/bin/rc
+
+scr=(`{cat /dev/draw/new >[2]/dev/null || status=''})
+wid=$scr(11)
+ht=$scr(12)
+if(test $wid -le 1024)
+	echo small
+if not
+	echo normal

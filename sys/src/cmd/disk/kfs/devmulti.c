@@ -57,7 +57,7 @@ statlen(char *ap)
 static void
 wrenpartinit(Device dev, int k)
 {
-	char buf[8*1024], d[DIRREC];
+	char buf[MAXBUFSIZE], d[DIRREC];
 	char file[128], magic[64];
 	Wren *w;
 	int fd, i, nmagic;
@@ -115,7 +115,7 @@ static void
 wrenpartream(Device dev, int k)
 {
 	Wren *w;
-	char buf[8*1024], magic[64];
+	char buf[MAXBUFSIZE], magic[64];
 	int fd, i;
 
 	if(RBUFSIZE % 512)
@@ -156,7 +156,7 @@ wrentag(char *p, int tag, long qpath)
 int
 wrencheck(Device dev)
 {
-	char buf[8*1024];
+	char buf[MAXBUFSIZE];
 
 	if(badmagic)
 		return 1;

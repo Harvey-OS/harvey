@@ -1,4 +1,0 @@
-TEXT _BIND(SB), 1, $0
-MOVL $2, R0
-TRAP $0
-RTS

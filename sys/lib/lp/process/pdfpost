@@ -72,5 +72,5 @@ PATCH=$PATCH'
 '
 echo $PATCH
 
-pdfgs $1 pswrite
+pdfgs $1 pswrite | $LPLIB/process/hpost
 exit ''

@@ -1,0 +1,50 @@
+.TH FMTISECT 8
+.SH NAME
+fmtisect \- format a Venti index section
+.SH SYNOPSIS
+.B venti/fmtisect
+[
+.B -Z
+]
+[
+.B -b
+.I blocksize
+]
+.I name
+.I file
+.SH DESCRIPTION
+.I Fmtisect
+formats the given
+.IR file ,
+typically a disk partition, as a Venti index section with the specified
+.IR name .
+One or more formatted index sections are combined into a Venti
+index using 
+.IR fmtindex (8).
+Each of the index sections within an index must have a unique name.
+.PP
+Options to 
+.I fmtisect
+are:
+.TP
+.BI -b " blocksize
+The size, in bytes, for read and write operations to the file.
+All the index sections within a index must have the same block size.
+The default is 8k. The units for the size can be specified by appending
+.LR k ,
+.LR m ,
+or
+.LR g
+to indicate kilobytes, megabytes, or gigabytes respectively.
+.TP
+.B -Z
+Do not zero the index.
+Using this option reduces the formatting time
+but should only be used when it is known that the file was already zeroed.
+.PP
+.SH SOURCE
+.B /sys/src/cmd/venti
+.SH "SEE ALSO"
+.IR venti (8),
+.IR fmtarenas (8),
+.IR fmtindex (8)

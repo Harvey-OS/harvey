@@ -1,0 +1,72 @@
+.TH FVERSION 2
+.SH NAME
+fversion \- initialize 9P connection and negotiate version
+.SH SYNOPSIS
+.nf
+.PP
+.ft L
+#include <u.h>
+#include <libc.h>
+.PP
+.ft P
+.B
+int   fversion(int fd, int bufsize, char *version, int nversion)
+.SH DESCRIPTION
+.PP
+.I Fversion
+is used to initialize the 9P connection represented by
+.I fd
+and to negotiate the version of the protocol to be used.
+.PP
+The
+.I bufsize
+determines the size of the I/O buffer used to stage 9P requests to the server,
+subject to the constraints of the server itself.
+The
+.I version
+is a text string that represents the highest version level the protocol will support.
+The
+.I version
+will be overwritten with the negotiated, possibly lower, version of the protocol.
+The return value of
+.I fversion
+is the length of the returned version string; the value of
+.I nversion
+is therefore not the length of the version string presented to the system call,
+but the total length of the buffer to accept the final result, in the manner of a read system call.
+.PP
+Default values of zero for
+.I bufsize
+and the empty string for
+.I version
+will negotiate sensible defaults for the connection.
+If
+.I version
+is the empty string,
+.I nversion
+must still be large enough to receive the returned version string.
+.PP
+The interpretation of the version strings is defined in
+.IR version (5).
+.PP
+It is rare to use
+.IR fversion
+directly; usually the default negotiation performed
+by the kernel during
+.B mount
+(see
+.IR bind (2))
+or even more commonly
+.B amount
+(see
+.IR auth (2))
+is sufficient.
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.SH SEE ALSO
+.IR intro (5),
+.IR version (5),
+.IR fauth (2).
+.SH DIAGNOSTICS
+Sets
+.IR errstr .

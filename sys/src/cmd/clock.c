@@ -57,7 +57,7 @@ redraw(Image *screen)
 void
 eresized(int new)
 {
-	if(new && getwindow(display, Refmesg) < 0)
+	if(new && getwindow(display, Refnone) < 0)
 		fprint(2,"can't reattach to window");
 	redraw(screen);
 }

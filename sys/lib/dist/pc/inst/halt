@@ -1,0 +1,19 @@
+#!/bin/rc
+
+echo -n 'Halting file systems...'
+for (i in /srv/kfs*) {
+	if(! ~ $i /srv/kfs*cmd) {
+		n=`{echo $i | sed 's!/srv/kfs\.(.*)!\1!'}
+		if(~ $n /srv/kfs)
+			disk/kfscmd halt
+		if not
+			disk/kfscmd -n$n halt
+	}
+}
+echo done
+echo
+echo Remember to take the install disk out of the floppy drive.
+echo Feel free to turn off your computer.
+while()
+	sleep 3600
+

@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
+#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -52,7 +52,6 @@ error(char *s)
 {
 	fprint(2, "acme: %s: %r\n", s);
 	remove(acmeerrorfile);
-	notify(nil);
 	abort();
 }
 
@@ -87,12 +86,18 @@ errorwin(Rune *dir, int ndir, Rune **incl, int nincl)
 void
 warning(Mntdir *md, char *s, ...)
 {
-	char *buf;
 	Rune *r;
-	int n, nb, nr, q0, owner;
+	int nr, q0, owner;
 	Window *w;
 	Text *t;
 	va_list arg;
+
+	va_start(arg, s);
+	r = runevsmprint(s, arg);
+	va_end(arg);
+	if(r == nil)
+		error("runevsmprint failed");
+	nr = runestrlen(r);
 
 	if(row.ncol == 0){	/* really early error */
 		rowinit(&row, screen->clipr);
@@ -101,13 +106,7 @@ warning(Mntdir *md, char *s, ...)
 		if(row.ncol == 0)
 			error("initializing columns in warning()");
 	}
-	buf = fbufalloc();
-	va_start(arg, s);
-	n = doprint(buf, buf+BUFSIZE, s, arg)-buf;
-	va_end(arg);
-	r = runemalloc(n);
-	cvttorunes(buf, n, r, &nb, &nr, nil);
-	fbuffree(buf);
+
 	if(md)
 		for(;;){
 			w = errorwin(md->dir, md->ndir, md->incl, md->nincl);
@@ -125,7 +124,7 @@ warning(Mntdir *md, char *s, ...)
 		w->owner = 'E';
 	wincommit(w, t);
 	q0 = textbsinsert(t, t->file->nc, r, nr, TRUE, &nr);
-	textshow(t, q0, q0+nr);
+	textshow(t, q0, q0+nr, 1);
 	winsettag(t->w);
 	textscrdraw(t);
 	w->owner = owner;

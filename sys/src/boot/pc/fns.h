@@ -20,13 +20,15 @@ void	delay(int);
 uchar*	etheraddr(int);
 int	etherinit(void);
 void	etherinitdev(int, char*);
+void	etherprintdevs(int);
 int	etherrxpkt(int, Etherpkt*, int);
 int	ethertxpkt(int, Etherpkt*, int, int);
 #define	evenaddr(x)		/* 386 doesn't care */
 int	floppyboot(int, char*, Boot*);
 int	floppyinit(void);
 void	floppyinitdev(int, char*);
-void* floppygetdospart(int, char*);
+void	floppyprintdevs(int);
+void* floppygetdospart(int, char*, int);
 void	freeb(Block*);
 char*	getconf(char*);
 ulong	getcr0(void);
@@ -72,6 +74,8 @@ void	pcicfgw8(Pcidev*, int, int);
 void	pcicfgw16(Pcidev*, int, int);
 void	pcicfgw32(Pcidev*, int, int);
 Pcidev* pcimatch(Pcidev*, int, int);
+uchar pciintl(Pcidev *);
+uchar pciipin(Pcidev *, uchar);
 void	pcireset(void);
 void	pcisetbme(Pcidev*);
 int	pcmcistuple(int, int, void*, int);
@@ -84,9 +88,10 @@ void	qinit(IOQ*);
 void	readlsconf(void);
 void	sdaddconf(int);
 int	sdboot(int, char*, Boot*);
-void*	sdgetdospart(int, char*);
+void*	sdgetdospart(int, char*, int);
 int	sdinit(void);
 void	sdinitdev(int, char*);
+void	sdprintdevs(int);
 int	sdsetpart(int, char*);
 void	setvec(int, void (*)(Ureg*, void*), void*);
 int	splhi(void);
@@ -108,12 +113,12 @@ void*	xspanalloc(ulong, int, ulong);
 
 #define malloc(n)	ialloc(n, 0)
 #define mallocz(n, c)	ialloc(n, 0)
-#define free(v)
+#define free(v) while(0)
 
 #define	GSHORT(p)	(((p)[1]<<8)|(p)[0])
 #define	GLONG(p)	((GSHORT(p+2)<<16)|GSHORT(p))
 #define	GLSHORT(p)	(((p)[0]<<8)|(p)[1])
-#define	GLLONG(p)	((GLSHORT(p)<<16)|GLSHORT(p+2))
+#define	GLLONG(p)	(((ulong)GLSHORT(p)<<16)|GLSHORT(p+2))
 
 #define KADDR(a)	((void*)((ulong)(a)|KZERO))
 #define PADDR(a)	((ulong)(a)&~KZERO)
@@ -123,9 +128,9 @@ void*	xspanalloc(ulong, int, ulong);
 
 
 #define xalloc(n)	ialloc(n, 0)
-#define xfree(v)
-#define lock(l)	if(l);else;
-#define unlock(l)	if(l);else;
+#define xfree(v) while(0)
+#define lock(l)		if(l){/* nothing to do */;}else{/* nothing to do */;}
+#define unlock(l)	if(l){/* nothing to do */;}else{/* nothing to do */;}
 
 int	dmacount(int);
 int	dmadone(int);
@@ -133,3 +138,7 @@ void	dmaend(int);
 void	dmainit(int);
 long	dmasetup(int, void*, long, int);
 
+extern int (*_pcmspecial)(char *, ISAConf *);
+extern void (*_pcmspecialclose)(int);
+extern void devi82365link(void);
+extern void devpccardlink(void);

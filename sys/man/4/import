@@ -5,9 +5,15 @@ import \- import a name space from a remote system
 .B import
 [
 .B -abcC
-]
-[
-.B -f
+] [
+.B "-E clear | ssl"
+.\" .B "| tls"	.\" Not yet implemented
+] [
+.B "-e 'enc auth'"
+] [
+.B -p
+] [
+.B "-s \f2srvname\fP
 ]
 .I system
 .I file
@@ -51,13 +57,42 @@ and
 to control the construction of union directories.
 .PP
 The
-.B -f
+.B -E
 option causes
 .I import
-to push the
-.I fcall
-line discipline on its network connection.  This option is intended for networks that do not
-preserve read/write boundaries.
+to push an authentication protocol on its network connection.
+Currently, the protocols supported are
+.B clear
+(the default) which pushes no protocol,
+and
+.BR ssl .
+There are plans to make
+.B tls
+available too.
+.PP
+The
+.B -e
+option specifies the encryption and authentication algorithms to use for
+encrypting the wire traffic.  The defaults are
+.B rc4_256
+and
+.BR sha1 .
+The full list of supported protocols in in
+.IR ssl (3).
+.PP
+The
+.B -p
+option pushes the
+.B aan
+filter onto the connection.  This filter will protect the connection from
+temporary network outages; see
+.IR aan (1).
+.PP
+The
+.B -s
+option posts the connection's mountable file descriptor in
+.B /srv
+under the given name.
 .SH EXAMPLE
 Assume a machine
 .B kremvax
@@ -78,6 +113,9 @@ telnet /net.alt/tcp!ucbvax
 .B /sys/src/cmd/import.c
 .SH SEE ALSO
 .IR bind (1),
+.IR aan (1),
+.IR exportfs (4),
+.IR ssl (3),
 .B cs
 in
 .IR ndb (8)

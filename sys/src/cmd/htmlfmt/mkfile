@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+TARG=htmlfmt
+OFILES=\
+	main.$O\
+	html.$O\
+	util.$O\
+
+HFILES=\
+	dat.h\
+	/sys/include/html.h\
+
+LIB=
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+CFLAGS=$CFLAGS
+
+$O.out: $OFILES
+	$LD -o $target  $LDFLAGS $OFILES

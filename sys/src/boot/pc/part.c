@@ -13,6 +13,29 @@ enum {
 
 uchar *mbrbuf, *partbuf;
 int nbuf;
+#define trace 0
+
+int
+tsdbio(SDunit *unit, SDpart *part, void *a, vlong off, int mbr)
+{
+	uchar *b;
+
+	if(sdbio(unit, part, a, unit->secsize, off) != unit->secsize){
+		if(trace)
+			print("%s: read %lud at %lld failed\n", unit->name,
+				unit->secsize, (vlong)part->start*unit->secsize+off);
+		return -1;
+	}
+	b = a;
+	if(mbr && (b[0x1FE] != 0x55 || b[0x1FF] != 0xAA)){
+		if(trace)
+			print("%s: bad magic %.2ux %.2ux at %lld\n",
+				unit->name, b[0x1FE], b[0x1FF],
+				(vlong)part->start*unit->secsize+off);
+		return -1;
+	}
+	return 0;
+}
 
 /*
  *  read partition table.  The partition table is just ascii strings.
@@ -39,19 +62,15 @@ oldp9part(SDunit *unit)
 	pp->start = unit->sectors - 2;
 	pp->end = unit->sectors - 1;
 
-	if(sdbio(unit, pp, partbuf, unit->secsize, 0) != unit->secsize){
-//		print("%s: sector read failed\n", unit->name);
+	if(tsdbio(unit, pp, partbuf, 0, 0) < 0)
 		return;
-	}
 
 	if(strncmp((char*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0) {
 		/* not found on 2nd last sector; look on last sector */
 		pp->start++;
 		pp->end++;
-		if(sdbio(unit, pp, partbuf, unit->secsize, 0) != unit->secsize){
-//			print("%s: sector read failed\n", unit->name);
+		if(tsdbio(unit, pp, partbuf, 0, 0) < 0)
 			return;
-		}
 		if(strncmp((char*)partbuf, MAGIC, sizeof(MAGIC)-1) != 0)
 			return;
 		print("%s: using old plan9 partition table on last sector\n", unit->name);
@@ -91,10 +110,8 @@ p9part(SDunit *unit, char *name)
 	if(p == nil)
 		return;
 
-	if(sdbio(unit, p, partbuf, unit->secsize, unit->secsize) != unit->secsize){
-	//	print("%s: sector read failed\n", unit->name);
+	if(tsdbio(unit, p, partbuf, unit->secsize, 0) < 0)
 		return;
-	}
 	partbuf[unit->secsize-1] = '\0';
 
 	if(strncmp((char*)partbuf, "part ", 5) != 0)
@@ -116,6 +133,18 @@ p9part(SDunit *unit, char *name)
 	}
 }
 
+int
+isdos(int t)
+{
+	return t==FAT12 || t==FAT16 || t==FATHUGE || t==FAT32 || t==FAT32X;
+}
+
+int
+isextend(int t)
+{
+	return t==EXTEND || t==EXTHUGE || t==LEXTEND;
+}
+
 /* 
  * Fetch the first dos and all plan9 partitions out of the MBR partition table.
  * We return -1 if we did not find a plan9 partition.
@@ -126,38 +155,34 @@ mbrpart(SDunit *unit)
 	ulong mbroffset;
 	Dospart *dp;
 	ulong start, end;
+	ulong epart, outer, inner;
 	int havedos, i, nplan9;
 	char name[10];
 
-	if(sdbio(unit, &unit->part[0], mbrbuf, unit->secsize, 0) != unit->secsize){
-//		print("%s: sector read failed\n", unit->name);
+	if(tsdbio(unit, &unit->part[0], mbrbuf, 0, 1) < 0)
 		return -1;
-	}
-
-	if(mbrbuf[0x1FE] != 0x55 || mbrbuf[0x1FF] != 0xAA){
-//		print("%s: bad mbr %x %x\n", unit->name, mbrbuf[0x1fe], mbrbuf[0x1ff]);
-		return -1;
-	}
 
 	mbroffset = 0;
 	dp = (Dospart*)&mbrbuf[0x1BE];
 	for(i=0; i<4; i++, dp++)
 		if(dp->type == DMDDO) {
-			mbroffset = 63;
-			if(sdbio(unit, &unit->part[0], mbrbuf, unit->secsize, mbroffset) != unit->secsize){
-//				print("%s: sector read failed\n", unit->name);
+			mbroffset = 63*512;
+			if(trace)
+				print("DMDDO partition found\n");
+			if(tsdbio(unit, &unit->part[0], mbrbuf, mbroffset, 1) < 0)
 				return -1;
-			}
+			i = -1;	/* start over */
 		}
-
-	if(mbrbuf[0x1FE] != 0x55 || mbrbuf[0x1FF] != 0xAA){
-		return -1;
-	}
 
 	nplan9 = 0;
 	havedos = 0;
+	epart = 0;
 	dp = (Dospart*)&mbrbuf[0x1BE];
+	if(trace)
+		print("%s mbr ", unit->name);
 	for(i=0; i<4; i++, dp++) {
+		if(trace)
+			print("dp %d...", dp->type);
 		start = mbroffset+GLONG(dp->start);
 		end = start+GLONG(dp->len);
 
@@ -177,18 +202,119 @@ mbrpart(SDunit *unit)
 		 * so that the partition we call ``dos'' agrees with the
 		 * partition disk/fdisk calls ``dos''. 
 		 */
-		if(havedos == 0){
-			if(dp->type == FAT12 || dp->type == FAT16
-			|| dp->type == FATHUGE || dp->type == FAT32
-			|| dp->type == FAT32X){
+		if(havedos==0 && isdos(dp->type)){
+			havedos = 1;
+			sdaddpart(unit, "dos", start, end);
+		}
+		if(isextend(dp->type)){
+			epart = start;
+			if(trace)
+				print("link %lud...", epart);
+		}
+	}
+	if(trace)
+		print("\n");
+
+	/*
+	 * Search through the chain of extended partition tables.
+	 */
+	outer = epart;
+	while(epart != 0) {
+		if(trace)
+			print("%s ext %lud ", unit->name, epart);
+		if(tsdbio(unit, &unit->part[0], mbrbuf, (vlong)epart*unit->secsize, 1) < 0)
+			break;
+		inner = epart;
+		epart = 0;
+		dp = (Dospart*)&mbrbuf[0x1BE];
+		for(i=0; i<4; i++, dp++) {
+			if(trace)
+				print("dp %d...", dp->type);
+			start = GLONG(dp->start);
+			if(dp->type == PLAN9){
+				start += inner;
+				end = start+GLONG(dp->len);
+				if(nplan9 == 0)
+					strcpy(name, "plan9");
+				else
+					sprint(name, "plan9.%d", nplan9);
+				sdaddpart(unit, name, start, end);
+				p9part(unit, name);
+				nplan9++;
+			}
+			if(havedos==0 && isdos(dp->type)){
+				start += inner;
+				end = start+GLONG(dp->len);
 				havedos = 1;
 				sdaddpart(unit, "dos", start, end);
 			}
+			if(isextend(dp->type)){
+				epart = start + outer;
+				if(trace)
+					print("link %lud...", epart);
+			}
 		}
+		if(trace)
+			print("\n");
 	}
+		
 	return nplan9 ? 0 : -1;
 }
 
+/*
+ * To facilitate booting from CDs, we create a partition for
+ * the boot floppy image embedded in a bootable CD.
+ */
+static int
+part9660(SDunit *unit)
+{
+	uchar buf[2048];
+	ulong a, n;
+	uchar *p;
+
+	if(unit->secsize != 2048)
+		return -1;
+
+	if(sdbio(unit, &unit->part[0], buf, 2048, 17*2048) < 0)
+		return -1;
+
+	if(buf[0] || strcmp((char*)buf+1, "CD001\x01EL TORITO SPECIFICATION") != 0)
+		return -1;
+
+	
+	p = buf+0x47;
+	a = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
+
+	if(sdbio(unit, &unit->part[0], buf, 2048, a*2048) < 0)
+		return -1;
+
+	if(memcmp(buf, "\x01\x00\x00\x00", 4) != 0
+	|| memcmp(buf+30, "\x55\xAA", 2) != 0
+	|| buf[0x20] != 0x88)
+		return -1;
+
+	p = buf+0x28;
+	a = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
+
+	switch(buf[0x21]){
+	case 0x01:
+		n = 1200*1024;
+		break;
+	case 0x02:
+		n = 1440*1024;
+		break;
+	case 0x03:
+		n = 2880*1024;
+		break;
+	default:
+		return -1;
+	}
+	n /= 2048;
+
+	print("found partition %s!cdboot; %lud+%lud\n", unit->name, a, n);
+	sdaddpart(unit, "cdboot", a, a+n);
+	return 0;
+}
 
 enum {
 	NEW = 1<<0,
@@ -202,6 +328,9 @@ partition(SDunit *unit)
 	char *p;
 
 	if(unit->part == 0)
+		return;
+
+	if(part9660(unit) == 0)
 		return;
 
 	p = getconf("partition");
@@ -230,8 +359,9 @@ partition(SDunit *unit)
 		nbuf = unit->secsize;
 	}
 
-	if((type & NEW) && mbrpart(unit) >= 0)
-		;
+	if((type & NEW) && mbrpart(unit) >= 0){
+		/* nothing to do */;
+	}
 	else if(type & OLD)
 		oldp9part(unit);
 }

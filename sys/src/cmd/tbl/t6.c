@@ -157,7 +157,7 @@ maktab(void)			/* define the tab stops of the table */
 		Bprint(&tabout, "\n");
 		Bprint(&tabout, ".nr %d \\n(.l-\\n(%d\n", TMP, TMP);
 		if (boxflg || dboxflg || allflg)
-			/* tsep += 1; */ ;
+			/* tsep += 1; */ {}
 		else
 			tsep -= sep[ncol-1];
 		Bprint(&tabout, ".nr %d \\n(%d/%d\n", TMP, TMP,  tsep);

@@ -5,7 +5,7 @@
 	MOVBLZX	c+4(FP), AX
 	MOVL	n+8(FP), BX
 /*
- * if not enough bytes, just copy
+ * if not enough bytes, just set bytes
  */
 	CMPL	BX, $9
 	JLS	c3
@@ -17,7 +17,7 @@
 	SHLL	$16, CX
 	ORL	CX, AX
 /*
- * copy whole longs
+ * set whole longs
  */
 c1:
 	MOVL	BX, CX
@@ -25,7 +25,7 @@ c1:
 	ANDL	$3, BX
 	REP;	STOSL
 /*
- * copy the rest, by bytes
+ * set the rest, by bytes
  */
 c3:
 	MOVL	BX, CX

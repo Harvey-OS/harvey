@@ -35,26 +35,17 @@ writerawimage(int fd, Rawimage *i)
 	int offs, runlen;			/* offset, length of consumed data */
 	uchar dumpbuf[NDUMP];			/* dump accumulator */
 	int ndump;				/* length of dump accumulator */
+	int ncblock;				/* size of buffer */
 	Rectangle r;
 	uchar *p, *q, *s, *es, *t;
 	char hdr[11+5*12+1], buf[16];
 	ulong desc;
 
 	r = i->r;
-	outbuf = malloc(NCBLOCK);
-	hash = malloc(NHASH*sizeof(Hlist));
-	chain = malloc(NMEM*sizeof(Hlist));
-	if(outbuf == 0 || hash == 0 || chain == 0){
-	ErrOut:
-		free(outbuf);
-		free(hash);
-		free(chain);
-		return -1;
-	}
 	switch(i->chandesc){
 	default:
 		werrstr("can't handle chandesc %d", i->chandesc);
-		goto ErrOut;
+		return -1;
 	case CY:
 		bpl = Dx(r);
 		desc = GREY8;
@@ -80,14 +71,27 @@ writerawimage(int fd, Rawimage *i)
 		desc = RGBA32;
 		break;
 	}
+	ncblock = _compblocksize(r, bpl/Dx(r));
+	outbuf = malloc(ncblock);
+	hash = malloc(NHASH*sizeof(Hlist));
+	chain = malloc(NMEM*sizeof(Hlist));
+	if(outbuf == 0 || hash == 0 || chain == 0){
+	ErrOut:
+		free(outbuf);
+		free(hash);
+		free(chain);
+		return -1;
+	}
 	n = Dy(r)*bpl;
 	data = i->chans[0];
 	sprint(hdr, "compressed\n%11s %11d %11d %11d %11d ",
 		chantostr(buf, desc), r.min.x, r.min.y, r.max.x, r.max.y);
-	if(write(fd, hdr, 11+5*12) != 11+5*12)
+	if(write(fd, hdr, 11+5*12) != 11+5*12){
+		werrstr("i/o error writing header");
 		goto ErrOut;
+	}
 	edata = data+n;
-	eout = outbuf+NCBLOCK;
+	eout = outbuf+ncblock;
 	line = data;
 	r.max.y = r.min.y;
 	while(line != edata){
@@ -185,8 +189,10 @@ writerawimage(int fd, Rawimage *i)
 			r.max.y++;
 		}
 	Bfull:
-		if(loutp == outbuf)
+		if(loutp == outbuf){
+			werrstr("compressor out of sync");
 			goto ErrOut;
+		}
 		n = loutp-outbuf;
 		sprint(hdr, "%11d %11ld ", r.max.y, n);
 		write(fd, hdr, 2*12);

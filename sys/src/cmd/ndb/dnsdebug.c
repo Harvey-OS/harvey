@@ -8,7 +8,7 @@
 
 enum
 {
-	Maxrequest=		4*NAMELEN,
+	Maxrequest=		128,
 	Ncache=			8,
 	Maxpath=		128,
 	Maxreply=		512,
@@ -32,7 +32,7 @@ char	*logfile = "dns";
 char	*dbfile;
 char	mntpt[Maxpath];
 
-int prettyrrconv(va_list*, Fconv*);
+int prettyrrfmt(Fmt*);
 void preloadserveraddrs(void);
 void squirrelserveraddrs(void);
 int setserver(char*);
@@ -46,7 +46,6 @@ main(int argc, char *argv[])
 	Biobuf in;
 	char *p;
 	char *f[4];
-	Ipifc *ifcs;
 
 	strcpy(mntpt, "/net");
 
@@ -62,11 +61,9 @@ main(int argc, char *argv[])
 
 	now = time(0);
 	dninit();
-	fmtinstall('R', prettyrrconv);
-	ifcs = readipifc(mntpt, nil);
-	if(ifcs == nil)
+	fmtinstall('R', prettyrrfmt);
+	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
-	ipmove(ipaddr, ifcs->ip);
 	opendatabase();
 
 	if(resolver)
@@ -120,13 +117,13 @@ longtime(long t)
 }
 
 int
-prettyrrconv(va_list *arg, Fconv *f)
+prettyrrfmt(Fmt *f)
 {
 	RR *rp;
 	char buf[3*Domlen];
 	char *p, *e;
 
-	rp = va_arg(*arg, RR*);
+	rp = va_arg(f->args, RR*);
 	if(rp == 0){
 		strcpy(buf, "<null>");
 		goto out;
@@ -136,7 +133,7 @@ prettyrrconv(va_list *arg, Fconv *f)
 	e = buf + sizeof(buf);
 	p = seprint(p, e, "%-32.32s %-15.15s %-5.5s", rp->owner->name,
 		longtime(rp->db ? rp->ttl : (rp->ttl-now)),
-		rrname(rp->type, buf));
+		rrname(rp->type, buf, sizeof buf));
 
 	if(rp->negative){
 		seprint(p, e, "negative rcode %d\n", rp->negrcode);
@@ -175,6 +172,9 @@ prettyrrconv(va_list *arg, Fconv *f)
 			rp->rmb->name, rp->soa->serial, rp->soa->refresh, rp->soa->retry,
 			rp->soa->expire, rp->soa->minttl);
 		break;
+	case Tnull:
+		seprint(p, e, "\t%.*H", rp->null->dlen, rp->null->data);
+		break;
 	case Ttxt:
 		seprint(p, e, "\t%s", rp->txt->name);
 		break;
@@ -198,8 +198,7 @@ prettyrrconv(va_list *arg, Fconv *f)
 		break;
 	}
 out:
-	strconv(buf, f);
-	return sizeof(RR*);
+	return fmtstrcpy(f, buf);
 }
 
 void
@@ -251,7 +250,7 @@ logreply(int id, uchar *addr, DNSmsg *mp)
 		mp->flags & (Fauth|Rname) == (Fauth|Rname) ?
 		" nx" : "");
 	for(rp = mp->qd; rp != nil; rp = rp->next)
-		print("\tQ:    %s %s\n", rp->owner->name, rrname(rp->type, buf));
+		print("\tQ:    %s %s\n", rp->owner->name, rrname(rp->type, buf, sizeof buf));
 	logsection("Ans:  ", mp->an);
 	logsection("Auth: ", mp->ns);
 	logsection("Hint: ", mp->ar);
@@ -263,7 +262,7 @@ logsend(int id, int subid, uchar *addr, char *sname, char *rname, int type)
 	char buf[12];
 
 	print("%d.%d: sending to %I/%s %s %s\n", id, subid,
-		addr, sname, rname, rrname(type, buf));
+		addr, sname, rname, rrname(type, buf, sizeof buf));
 }
 
 RR*
@@ -372,6 +371,7 @@ doquery(char *name, char *tstr)
 		name[len-1] = 0;
 
 	/* inverse queries may need to be permuted */
+	strncpy(buf, name, sizeof buf);
 	if(strcmp("ptr", tstr) == 0
 	&& strstr(name, "IN-ADDR") == 0
 	&& strstr(name, "in-addr") == 0){
@@ -392,7 +392,6 @@ doquery(char *name, char *tstr)
 		memmove(np, p+1, len);
 		np += len;
 		strcpy(np, "in-addr.arpa");
-		strcpy(name, buf);
 	}
 
 	/* look it up */
@@ -405,7 +404,7 @@ doquery(char *name, char *tstr)
 	getactivity(&req);
 	req.isslave = 1;
 	req.aborttime = now + 60;	/* don't spend more than 60 seconds */
-	rr = dnresolve(name, Cin, type, &req, 0, 0, Recurse, 1, 0);
+	rr = dnresolve(buf, Cin, type, &req, 0, 0, Recurse, 1, 0);
 	if(rr){
 		print("----------------------------\n");
 		for(rp = rr; rp; rp = rp->next)

@@ -15,8 +15,6 @@
 #define INVD		BYTE $0x0F; BYTE $0x08
 #define WBINVD		BYTE $0x0F; BYTE $0x09
 
-#define PADDR(a)	((a) & ~KZERO)
-
 /*
  * Macros for calculating offsets within the page directory base
  * and page tables. Note that these are assembler-specific hence
@@ -64,9 +62,8 @@ TEXT _apbootstrap(SB), $0			/* address APBOOTSTRAP+0x14 */
 	FARJUMP32(SELECTOR(2, SELGDT, 0), _ap32-KZERO(SB))
 
 /*
- * There's a little mystery here - the Pentium Pro appears to need an identity
- * mmu map for the switch to virtual mode. The manual doesn't say this is necessary
- * and it isn't required on the Pentium.
+ * For Pentiums and higher, the code that enables paging must come from
+ * pages that are identity mapped. 
  * To this end double map KZERO at virtual 0 and undo the mapping once virtual
  * nirvana has been obtained.
  */
@@ -109,5 +106,5 @@ TEXT gdt(SB), $0
 	LONG $0xFFFF; LONG $(SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(0)|SEGDATA|SEGW)
 	LONG $0xFFFF; LONG $(SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(0)|SEGEXEC|SEGR)
 TEXT gdtptr(SB), $0
-	WORD	$(3*8)
+	WORD	$(3*8-1)
 	LONG	$gdt-KZERO(SB)

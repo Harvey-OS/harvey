@@ -34,6 +34,7 @@ struct Plumbattr
 };
 
 int			plumbsend(int, Plumbmsg*);
+int			plumbsendtext(int, char*, char*, char*, char*);
 Plumbmsg*	plumbrecv(int);
 char*		plumbpack(Plumbmsg*, int*);
 Plumbmsg*	plumbunpack(char*, int);

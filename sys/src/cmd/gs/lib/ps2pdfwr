@@ -1,8 +1,8 @@
 #!/bin/sh
-# $Id: ps2pdfwr,v 1.5 2000/05/19 06:38:25 lpd Exp $
+# $Id: ps2pdfwr,v 1.1 2000/03/09 08:40:40 lpd Exp $
 # Convert PostScript to PDF without specifying CompatibilityLevel.
 
-OPTIONS="-dSAFER"
+OPTIONS=""
 while true
 do
 	case "$1" in
@@ -13,7 +13,7 @@ do
 done
 
 if [ $# -lt 1 -o $# -gt 2 ]; then
-	echo "Usage: `basename $0` [options...] (input.[e]ps|-) [output.pdf|-]" 1>&2
+	echo "Usage: `basename $0` [options...] (input.ps|-) [output.pdf|-]" 1>&2
 	exit 1
 fi
 
@@ -23,7 +23,6 @@ if [ $# -eq 1 ]
 then
 	case "${infile}" in
 	  -)		outfile=- ;;
-	  *.eps)	base=`basename ${infile} .eps`; outfile=${base}.pdf ;;
 	  *.ps)		base=`basename ${infile} .ps`; outfile=${base}.pdf ;;
 	  *)		base=`basename ${infile}`; outfile=${base}.pdf ;;
 	esac
@@ -31,6 +30,7 @@ else
 	outfile=$2
 fi
 
+# Doing an initial 'save' helps keep fonts from being flushed between pages.
 # We have to include the options twice because -I only takes effect if it
 # appears before other options.
-exec gs $OPTIONS -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$outfile $OPTIONS -c .setpdfwrite -f $infile
+exec gs $OPTIONS -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$outfile $OPTIONS -c save pop -f $infile

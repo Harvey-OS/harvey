@@ -5,7 +5,8 @@
 #include "fns.h"
 #include "../port/error.h"
 
-struct {
+struct
+{
 	ulong	locks;
 	ulong	glare;
 	ulong	inglare;
@@ -30,83 +31,75 @@ lockloop(Lock *l, ulong pc)
 	Proc *p;
 
 	p = l->p;
-	print("lock loop key 0x%lux pc 0x%lux held by pc 0x%lux proc %lud\n",
-		l->key, pc, l->pc, p ? p->pid : 0);
+	print("lock 0x%lux loop key 0x%lux pc 0x%lux held by pc 0x%lux proc %lud\n",
+		l, l->key, pc, l->pc, p ? p->pid : 0);
 	dumpaproc(up);
 	if(p != nil)
 		dumpaproc(p);
-
-	if(up && up->state == Running && islo())
-		sched();
 }
 
-void
+int
 lock(Lock *l)
 {
-	int i, cansched;
-	ulong pc, oldpri;
+	int i;
+	ulong pc;
 
 	pc = getcallerpc(&l);
 
 	lockstats.locks++;
+	if(up)
+		up->nlocks++;	/* prevent being scheded */
 	if(tas(&l->key) == 0){
+		if(up)
+			up->lastlock = l;
 		l->pc = pc;
 		l->p = up;
 		l->isilock = 0;
-		return;
+		return 0;
 	}
+	if(up)
+		up->nlocks--;	/* didn't get the lock, allow scheding */
 
 	lockstats.glare++;
-	cansched = up != nil && up->state == Running;
-	if(cansched){
-		oldpri = up->priority;
-		up->lockwait = 1;
-		up->priority = PriLock;
-	} else
-		oldpri = 0;
-
 	for(;;){
 		lockstats.inglare++;
 		i = 0;
 		while(l->key){
-			if(conf.nmach < 2 && cansched){
-				if(i++ > 1000){
-					i = 0;
-					lockloop(l, pc);
-				}
-				sched();
-			} else {
-				if(i++ > 100000000){
-					i = 0;
-					lockloop(l, pc);
-				}
+			if(i++ > 100000000){
+				i = 0;
+				lockloop(l, pc);
 			}
 		}
+		if(up)
+			up->nlocks++;
 		if(tas(&l->key) == 0){
+			if(up)
+				up->lastlock = l;
 			l->pc = pc;
 			l->p = up;
 			l->isilock = 0;
-			if(cansched){
-				up->lockwait = 0;
-				up->priority = oldpri;
-			}
-			return;
+			return 1;
 		}
+		if(up)
+			up->nlocks--;
 	}
+	return 0;	/* For the compiler */
 }
 
 void
 ilock(Lock *l)
 {
 	ulong x;
-	ulong pc, oldpri;
-	int cansched;
+	ulong pc;
 
 	pc = getcallerpc(&l);
 	lockstats.locks++;
 
 	x = splhi();
 	if(tas(&l->key) == 0){
+		m->ilockdepth++;
+		if(up)
+			up->lastlock = l;
 		l->sr = x;
 		l->pc = pc;
 		l->p = up;
@@ -115,18 +108,10 @@ ilock(Lock *l)
 	}
 
 	lockstats.glare++;
-	cansched = up != nil && up->state == Running;
-	if(cansched){
-		oldpri = up->priority;
-		up->lockwait = 1;
-		up->priority = PriLock;
-	} else
-		oldpri = 0;
-	if(conf.nmach < 2)
-{
-dumplockmem("ilock:", l);
-		panic("ilock: no way out: pc %uX\n", pc);
-}
+	if(conf.nmach < 2){
+		dumplockmem("ilock:", l);
+		panic("ilock: no way out: pc %luX\n", pc);
+	}
 
 	for(;;){
 		lockstats.inglare++;
@@ -135,14 +120,13 @@ dumplockmem("ilock:", l);
 			;
 		x = splhi();
 		if(tas(&l->key) == 0){
+			m->ilockdepth++;
+			if(up)
+				up->lastlock = l;
 			l->sr = x;
 			l->pc = pc;
 			l->p = up;
 			l->isilock = 1;
-			if(cansched){
-				up->lockwait = 0;
-				up->priority = oldpri;
-			}
 			return;
 		}
 	}
@@ -151,9 +135,16 @@ dumplockmem("ilock:", l);
 int
 canlock(Lock *l)
 {
-	if(tas(&l->key))
+	if(up)
+		up->nlocks++;
+	if(tas(&l->key)){
+		if(up)
+			up->nlocks--;
 		return 0;
+	}
 
+	if(up)
+		up->lastlock = l;
 	l->pc = getcallerpc(&l);
 	l->p = up;
 	l->isilock = 0;
@@ -163,14 +154,17 @@ canlock(Lock *l)
 void
 unlock(Lock *l)
 {
-
 	if(l->key == 0)
 		print("unlock: not locked: pc %luX\n", getcallerpc(&l));
 	if(l->isilock)
 		print("unlock of ilock: pc %lux, held by %lux\n", getcallerpc(&l), l->pc);
-	l->pc = 0;
+	if(l->p != up)
+		print("unlock: up changed: pc %lux, acquired at pc %lux, lock p 0x%p, unlock up 0x%p\n", getcallerpc(&l), l->pc, l->p, up);
 	l->key = 0;
 	coherence();
+
+	if(up)
+		--up->nlocks;
 }
 
 void
@@ -182,12 +176,14 @@ iunlock(Lock *l)
 		print("iunlock: not locked: pc %luX\n", getcallerpc(&l));
 	if(!l->isilock)
 		print("iunlock of lock: pc %lux, held by %lux\n", getcallerpc(&l), l->pc);
+	if(islo())
+		print("iunlock while lo: pc %lux, held by %lux\n", getcallerpc(&l), l->pc);
 
 	sr = l->sr;
-	l->pc = 0;
 	l->key = 0;
 	coherence();
 
 	m->splpc = getcallerpc(&l);
+	m->ilockdepth--;
 	splxpc(sr);
 }

@@ -22,6 +22,7 @@ typedef struct Sendreq Sendreq;
 struct Dirtab
 {
 	char		*name;
+	uchar	type;
 	uint		qid;
 	uint		perm;
 	int		nopen;		/* #fids open on this port */
@@ -49,7 +50,7 @@ struct Readreq
 {
 	Fid		*fid;
 	Fcall		*fcall;
-	char		*buf;
+	uchar	*buf;
 	Readreq	*next;
 };
 
@@ -89,49 +90,48 @@ enum
 	NQID	= Qport
 };
 
-
 static Dirtab dir[NDIR] =
 {
-	{ ".",			Qdir|CHDIR,	0500|CHDIR },
-	{ "rules",		Qrules,		0600 },
-	{ "send",		Qsend,		0200 },
+	{ ".",			QTDIR,	Qdir,			0500|DMDIR },
+	{ "rules",		QTFILE,	Qrules,		0600 },
+	{ "send",		QTFILE,	Qsend,		0200 },
 };
 static int	ndir = NQID;
 
 static int		srvfd;
+static int		srvclosefd;			/* rock for end of pipe to close */
 static int		clockfd;
 static int		clock;
 static Fid		*fids[Nhash];
 static QLock	readlock;
 static QLock	queue;
 static char	srvfile[128];
+static int		messagesize = 8192+IOHDRSZ;	/* good start */
 
 static void	fsysproc(void*);
-static void fsysrespond(Fcall*, char*, char*);
+static void fsysrespond(Fcall*, uchar*, char*);
 static Fid*	newfid(int);
 
-static Fcall* fsysflush(Fcall*, char*, Fid*);
-static Fcall* fsyssession(Fcall*, char*, Fid*);
-static Fcall* fsysnop(Fcall*, char*, Fid*);
-static Fcall* fsysattach(Fcall*, char*, Fid*);
-static Fcall* fsysclone(Fcall*, char*, Fid*);
-static Fcall* fsyswalk(Fcall*, char*, Fid*);
-static Fcall* fsysopen(Fcall*, char*, Fid*);
-static Fcall* fsyscreate(Fcall*, char*, Fid*);
-static Fcall* fsysread(Fcall*, char*, Fid*);
-static Fcall* fsyswrite(Fcall*, char*, Fid*);
-static Fcall* fsysclunk(Fcall*, char*, Fid*);
-static Fcall* fsysremove(Fcall*, char*, Fid*);
-static Fcall* fsysstat(Fcall*, char*, Fid*);
-static Fcall* fsyswstat(Fcall*, char*, Fid*);
+static Fcall* fsysflush(Fcall*, uchar*, Fid*);
+static Fcall* fsysversion(Fcall*, uchar*, Fid*);
+static Fcall* fsysauth(Fcall*, uchar*, Fid*);
+static Fcall* fsysattach(Fcall*, uchar*, Fid*);
+static Fcall* fsyswalk(Fcall*, uchar*, Fid*);
+static Fcall* fsysopen(Fcall*, uchar*, Fid*);
+static Fcall* fsyscreate(Fcall*, uchar*, Fid*);
+static Fcall* fsysread(Fcall*, uchar*, Fid*);
+static Fcall* fsyswrite(Fcall*, uchar*, Fid*);
+static Fcall* fsysclunk(Fcall*, uchar*, Fid*);
+static Fcall* fsysremove(Fcall*, uchar*, Fid*);
+static Fcall* fsysstat(Fcall*, uchar*, Fid*);
+static Fcall* fsyswstat(Fcall*, uchar*, Fid*);
 
-Fcall* 	(*fcall[Tmax])(Fcall*, char*, Fid*) =
+Fcall* 	(*fcall[Tmax])(Fcall*, uchar*, Fid*) =
 {
 	[Tflush]	= fsysflush,
-	[Tsession]	= fsyssession,
-	[Tnop]	= fsysnop,
+	[Tversion]	= fsysversion,
+	[Tauth]	= fsysauth,
 	[Tattach]	= fsysattach,
-	[Tclone]	= fsysclone,
 	[Twalk]	= fsyswalk,
 	[Topen]	= fsysopen,
 	[Tcreate]	= fsyscreate,
@@ -145,7 +145,6 @@ Fcall* 	(*fcall[Tmax])(Fcall*, char*, Fid*) =
 
 char	Ebadfcall[] =	"bad fcall type";
 char	Eperm[] = 	"permission denied";
-char	Eoffset[] =		"bad offset in directory";
 char	Enomem[] =	"malloc failed for buffer";
 char	Enotdir[] =	"not a directory";
 char	Enoexist[] =	"plumb file does not exist";
@@ -192,32 +191,32 @@ getclock(void)
 }
 
 void
-startfsys(void*)
+startfsys(void)
 {
 	int p[2], fd;
 
-	fmtinstall('F', fcallconv);
+	fmtinstall('F', fcallfmt);
 	clockfd = open("/dev/time", OREAD|OCEXEC);
 	clock = getclock();
 	if(pipe(p) < 0)
 		error("can't create pipe: %r");
 	/* 0 will be server end, 1 will be client end */
 	srvfd = p[0];
+	srvclosefd = p[1];
 	sprint(srvfile, "/srv/plumb.%s.%d", user, getpid());
 	if(putenv("plumbsrv", srvfile) < 0)
 		error("can't write $plumbsrv: %r");
 	fd = create(srvfile, OWRITE|OCEXEC|ORCLOSE, 0600);
 	if(fd < 0)
 		error("can't create /srv file: %r");
-	if(threadprint(fd, "%d", p[1]) <= 0)
+	if(fprint(fd, "%d", p[1]) <= 0)
 		error("can't write /srv/file: %r");
 	/* leave fd open; ORCLOSE will take care of it */
 
-	proccreate(fsysproc, nil, Stack);
+	procrfork(fsysproc, nil, Stack, RFFDG);
 
-	rfork(RFFDG);
 	close(p[0]);
-	if(mount(p[1], "/mnt/plumb", MREPL, "") < 0)
+	if(mount(p[1], -1, "/mnt/plumb", MREPL, "") < 0)
 		error("can't mount /mnt/plumb: %r");
 	close(p[1]);
 }
@@ -228,30 +227,35 @@ fsysproc(void*)
 	int n;
 	Fcall *t;
 	Fid *f;
-	char *buf;
+	uchar *buf;
 
+	close(srvclosefd);
+	srvclosefd = -1;
 	t = nil;
 	for(;;){
-		buf = malloc(MAXFDATA+MAXMSG);	/* avoid memset of emalloc */
+		buf = malloc(messagesize);	/* avoid memset of emalloc */
 		if(buf == nil)
 			error("malloc failed: %r");
 		qlock(&readlock);
-		n = read(srvfd, buf, MAXFDATA+MAXMSG);
-		if(n <= 0)
-			error("i/o error on server channel");
+		n = read9pmsg(srvfd, buf, messagesize);
+		if(n <= 0){
+			if(n < 0)
+				error("i/o error on server channel");
+			threadexitsall("unmounted");
+		}
 		if(readlock.head == nil)	/* no other processes waiting to read; start one */
 			proccreate(fsysproc, nil, Stack);
 		qunlock(&readlock);
 		if(t == nil)
 			t = emalloc(sizeof(Fcall));
-		if(convM2S(buf, t, n) != n)
+		if(convM2S(buf, n, t) != n)
 			error("convert error in convM2S");
 		if(DEBUG)
-			threadprint(2, "%F\n", t);
+			fprint(2, "<= %F\n", t);
 		if(fcall[t->type] == nil)
 			fsysrespond(t, buf, Ebadfcall);
 		else{
-			if(t->type==Tnop || t->type==Tsession)
+			if(t->type==Tversion || t->type==Tauth)
 				f = nil;
 			else
 				f = newfid(t->fid);
@@ -261,24 +265,24 @@ fsysproc(void*)
 }
 
 static void
-fsysrespond(Fcall *t, char *buf, char *err)
+fsysrespond(Fcall *t, uchar *buf, char *err)
 {
 	int n;
 
 	if(err){
 		t->type = Rerror;
-		strncpy(t->ename, err, ERRLEN);
+		t->ename = err;
 	}else
 		t->type++;
 	if(buf == nil)
-		buf = emalloc(MAXFDATA+MAXMSG);
-	n = convS2M(t, buf);
+		buf = emalloc(messagesize);
+	n = convS2M(t, buf, messagesize);
 	if(n < 0)
 		error("convert error in convS2M");
 	if(write(srvfd, buf, n) != n)
 		error("write error in respond");
 	if(DEBUG)
-		threadprint(2, "%F\n", t);
+		fprint(2, "=> %F\n", t);
 	free(buf);
 }
 
@@ -310,21 +314,23 @@ newfid(int fid)
 	return f;
 }
 
-static void
-dostat(Dirtab *dir, char *buf, uint clock)
+static uint
+dostat(Dirtab *dir, uchar *buf, uint nbuf, uint clock)
 {
 	Dir d;
 
+	d.qid.type = dir->type;
 	d.qid.path = dir->qid;
 	d.qid.vers = 0;
 	d.mode = dir->perm;
 	d.length = 0;	/* would be nice to do better */
-	strncpy(d.name, dir->name, NAMELEN);
-	memmove(d.uid, user, NAMELEN);
-	memmove(d.gid,user, NAMELEN);
+	d.name = dir->name;
+	d.uid = user;
+	d.gid = user;
+	d.muid = user;
 	d.atime = clock;
 	d.mtime = clock;
-	convD2M(&d, buf);
+	return convD2M(&d, buf, nbuf);
 }
 
 static void
@@ -355,7 +361,7 @@ queuesend(Dirtab *d, Plumbmsg *m)
 }
 
 static void
-queueread(Dirtab *d, Fcall *t, char *buf, Fid *f)
+queueread(Dirtab *d, Fcall *t, uchar *buf, Fid *f)
 {
 	Readreq *r;
 
@@ -388,8 +394,8 @@ drainqueue(Dirtab *d)
 					/* exchange the stuff... */
 					r->fcall->data = s->pack+r->fid->offset;
 					n = s->npack - r->fid->offset;
-					if(n > MAXFDATA)
-						n = MAXFDATA;
+					if(n > messagesize-IOHDRSZ)
+						n = messagesize-IOHDRSZ;
 					if(n > r->fcall->count)
 						n = r->fcall->count;
 					r->fcall->count = n;
@@ -515,7 +521,7 @@ queueheld(Dirtab *d)
 }
 
 static void
-dispose(Fcall *t, char *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
+dispose(Fcall *t, uchar *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
 {
 	int i;
 	char *err;
@@ -549,26 +555,33 @@ dispose(Fcall *t, char *buf, Plumbmsg *m, Ruleset *rs, Exec *e)
 }
 
 static Fcall*
-fsysnop(Fcall *t, char *buf, Fid*)
+fsysversion(Fcall *t, uchar *buf, Fid*)
 {
+	if(t->msize < 256){
+		fsysrespond(t, buf, "version: message size too small");
+		return t;
+	}
+	if(t->msize < messagesize)
+		messagesize = t->msize;
+	t->msize = messagesize;
+	if(strncmp(t->version, "9P2000", 6) != 0){
+		fsysrespond(t, buf, "unrecognized 9P version");
+		return t;
+	}
+	t->version = "9P2000";
 	fsysrespond(t, buf, nil);
 	return t;
 }
 
 static Fcall*
-fsyssession(Fcall *t, char *buf, Fid*)
+fsysauth(Fcall *t, uchar *buf, Fid*)
 {
-	Fcall out;
-
-	memset(&out, 0, sizeof(Fcall));
-	out.type = t->type;
-	out.tag = t->tag;
-	fsysrespond(&out, buf, nil);
+	fsysrespond(t, buf, "plumber: authentication not required");
 	return t;
 }
 
 static Fcall*
-fsysattach(Fcall *t, char *buf, Fid *f)
+fsysattach(Fcall *t, uchar *buf, Fid *f)
 {
 	Fcall out;
 
@@ -578,7 +591,9 @@ fsysattach(Fcall *t, char *buf, Fid *f)
 	}
 	f->busy = 1;
 	f->open = 0;
-	f->qid = (Qid){CHDIR|Qdir, 0};
+	f->qid.type = QTDIR;
+	f->qid.path = Qdir;
+	f->qid.vers = 0;
 	f->dir = dir;
 	memset(&out, 0, sizeof(Fcall));
 	out.type = t->type;
@@ -590,7 +605,7 @@ fsysattach(Fcall *t, char *buf, Fid *f)
 }
 
 static Fcall*
-fsysflush(Fcall *t, char *buf, Fid*)
+fsysflush(Fcall *t, uchar *buf, Fid*)
 {
 	int i;
 
@@ -603,61 +618,89 @@ fsysflush(Fcall *t, char *buf, Fid*)
 }
 
 static Fcall*
-fsysclone(Fcall *t, char *buf, Fid *f)
+fsyswalk(Fcall *t, uchar *buf, Fid *f)
 {
+	Fcall out;
 	Fid *nf;
+	ulong path;
+	Dirtab *d, *dir;
+	Qid q;
+	int i;
+	uchar type;
+	char *err;
 
 	if(f->open){
-		fsysrespond(t, buf, "is open");
+		fsysrespond(t, buf, "clone of an open fid");
 		return t;
 	}
-	nf = newfid(t->newfid);
-	nf->busy = 1;
-	nf->open = 0;
-	nf->dir = f->dir;
-	nf->qid = f->qid;
 
-	fsysrespond(t, buf, nil);
-	return t;
-}
-
-static Fcall*
-fsyswalk(Fcall *t, char *buf, Fid *f)
-{
-	ulong qid;
-	Dirtab *d;
-
-	if((f->qid.path & CHDIR) == 0){
-		fsysrespond(t, buf, Enotdir);
-		return t;
-	}
-	if(strcmp(t->name, "..") == 0){
-		qid = Qdir|CHDIR;
-		goto Found;
-	}
-	d = dir;
-	d++;	/* skip '.' */
-	for(; d->name; d++)
-		if(strcmp(t->name, d->name) == 0){
-			qid = d->qid;
-			f->dir = d;
-			goto Found;
+	nf = nil;
+	if(t->fid  != t->newfid){
+		nf = newfid(t->newfid);
+		if(nf->busy){
+			fsysrespond(t, buf, "clone to a busy fid");
+			return t;
 		}
+		nf->busy = 1;
+		nf->open = 0;
+		nf->dir = f->dir;
+		nf->qid = f->qid;
+		f = nf;	/* walk f */
+	}
 
-	fsysrespond(t, buf, Enoexist);
-	return t;
+	out.nwqid = 0;
+	err = nil;
+	dir = f->dir;
+	q = f->qid;
 
-    Found:
-	f->qid = (Qid){qid, 0};
-	t->qid = f->qid;
-	fsysrespond(t, buf, nil);
+	if(t->nwname > 0){
+		for(i=0; i<t->nwname; i++){
+			if((q.type & QTDIR) == 0){
+				err = Enotdir;
+				break;
+			}
+			if(strcmp(t->wname[i], "..") == 0){
+				type = QTDIR;
+				path = Qdir;
+	Accept:
+				q.type = type;
+				q.vers = 0;
+				q.path = path;
+				out.wqid[out.nwqid++] = q;
+				continue;
+			}
+			d = dir;
+			d++;	/* skip '.' */
+			for(; d->name; d++)
+				if(strcmp(t->wname[i], d->name) == 0){
+					type = d->type;
+					path = d->qid;
+					dir = d;
+					goto Accept;
+				}
+			err = Enoexist;
+			break;
+		}
+	}
+
+	out.type = t->type;
+	out.tag = t->tag;
+	if(err!=nil || out.nwqid<t->nwname){
+		if(nf)
+			nf->busy = 0;
+	}else if(out.nwqid == t->nwname){
+		f->qid = q;
+		f->dir = dir;
+	}
+
+	fsysrespond(&out, buf, err);
 	return t;
 }
 
 static Fcall*
-fsysopen(Fcall *t, char *buf, Fid *f)
+fsysopen(Fcall *t, uchar *buf, Fid *f)
 {
-	int m, clearrules;
+	int m, clearrules, mode;
 
 	clearrules = 0;
 	if(t->mode & OTRUNC){
@@ -666,11 +709,11 @@ fsysopen(Fcall *t, char *buf, Fid *f)
 		clearrules = 1;
 	}
 	/* can't truncate anything, so just disregard */
-	t->mode &= ~(OTRUNC|OCEXEC);
+	mode = t->mode & ~(OTRUNC|OCEXEC);
 	/* can't execute or remove anything */
-	if(t->mode==OEXEC || (t->mode&ORCLOSE))
+	if(mode==OEXEC || (mode&ORCLOSE))
 		goto Deny;
-	switch(t->mode){
+	switch(mode){
 	default:
 		goto Deny;
 	case OREAD:
@@ -683,9 +726,9 @@ fsysopen(Fcall *t, char *buf, Fid *f)
 		m = 0600;
 		break;
 	}
-	if(((f->dir->perm&~(CHDIR|CHAPPEND))&m) != m)
+	if(((f->dir->perm&~(DMDIR|DMAPPEND))&m) != m)
 		goto Deny;
-	if(f->qid.path==Qrules && (t->mode==OWRITE || t->mode==ORDWR)){
+	if(f->qid.path==Qrules && (mode==OWRITE || mode==ORDWR)){
 		lock(&rulesref);
 		if(rulesref.ref++ != 0){
 			rulesref.ref--;
@@ -700,8 +743,9 @@ fsysopen(Fcall *t, char *buf, Fid *f)
 		rules[0] = nil;
 	}
 	t->qid = f->qid;
+	t->iounit = 0;
 	qlock(&queue);
-	f->mode = t->mode;
+	f->mode = mode;
 	f->open = 1;
 	f->dir->nopen++;
 	f->nextopen = f->dir->fopen;
@@ -717,14 +761,14 @@ fsysopen(Fcall *t, char *buf, Fid *f)
 }
 
 static Fcall*
-fsyscreate(Fcall *t, char *buf, Fid*)
+fsyscreate(Fcall *t, uchar *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysreadrules(Fcall *t, char *buf)
+fsysreadrules(Fcall *t, uchar *buf)
 {
 	char *p;
 	int n;
@@ -745,13 +789,15 @@ fsysreadrules(Fcall *t, char *buf)
 }
 
 static Fcall*
-fsysread(Fcall *t, char *buf, Fid *f)
+fsysread(Fcall *t, uchar *buf, Fid *f)
 {
-	char *b;
+	uchar *b;
 	int i, n, o, e;
+	uint len;
 	Dirtab *d;
+	uint clock;
 
-	if(f->qid.path != (Qdir|CHDIR)){
+	if(f->qid.path != Qdir){
 		if(f->qid.path == Qrules)
 			return fsysreadrules(t, buf);
 		/* read from port */
@@ -765,13 +811,10 @@ fsysread(Fcall *t, char *buf, Fid *f)
 		qunlock(&queue);
 		return nil;
 	}
-	if(t->offset % DIRLEN){
-		fsysrespond(t, buf, Eoffset);
-		return t;
-	}
 	o = t->offset;
 	e = t->offset+t->count;
-	b = malloc(MAXFDATA+MAXMSG);
+	clock = getclock();
+	b = malloc(messagesize-IOHDRSZ);
 	if(b == nil){
 		fsysrespond(t, buf, Enomem);
 		return t;
@@ -779,14 +822,15 @@ fsysread(Fcall *t, char *buf, Fid *f)
 	n = 0;
 	d = dir;
 	d++;	/* first entry is '.' */
-	for(i=0; d->name!=nil && i+DIRLEN<e; i+=DIRLEN){
-		if(i >= o){
-			dostat(d, b+n, clock);
-			n += DIRLEN;
-		}
+	for(i=0; d->name!=nil && i<e; i+=len){
+		len = dostat(d, b+n, messagesize-IOHDRSZ-n, clock);
+		if(len <= BIT16SZ)
+			break;
+		if(i >= o)
+			n += len;
 		d++;
 	}
-	t->data = b;
+	t->data = (char*)b;
 	t->count = n;
 	fsysrespond(t, buf, nil);
 	free(b);
@@ -794,7 +838,7 @@ fsysread(Fcall *t, char *buf, Fid *f)
 }
 
 static Fcall*
-fsyswrite(Fcall *t, char *buf, Fid *f)
+fsyswrite(Fcall *t, uchar *buf, Fid *f)
 {
 	Plumbmsg *m;
 	int i, n;
@@ -802,8 +846,8 @@ fsyswrite(Fcall *t, char *buf, Fid *f)
 	char *data;
 	Exec *e;
 
-	switch(f->qid.path){
-	case Qdir|CHDIR:
+	switch((int)f->qid.path){
+	case Qdir:
 		fsysrespond(t, buf, Eisdir);
 		return t;
 	case Qrules:
@@ -861,29 +905,32 @@ fsyswrite(Fcall *t, char *buf, Fid *f)
 }
 
 static Fcall*
-fsysstat(Fcall *t, char *buf, Fid *f)
+fsysstat(Fcall *t, uchar *buf, Fid *f)
 {
-	dostat(f->dir, t->stat, clock);
+	t->stat = emalloc(messagesize-IOHDRSZ);
+	t->nstat = dostat(f->dir, t->stat, messagesize-IOHDRSZ, clock);
 	fsysrespond(t, buf, nil);
+	free(t->stat);
+	t->stat = nil;
 	return t;
 }
 
 static Fcall*
-fsyswstat(Fcall *t, char *buf, Fid*)
+fsyswstat(Fcall *t, uchar *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysremove(Fcall *t, char *buf, Fid*)
+fsysremove(Fcall *t, uchar *buf, Fid*)
 {
 	fsysrespond(t, buf, Eperm);
 	return t;
 }
 
 static Fcall*
-fsysclunk(Fcall *t, char *buf, Fid *f)
+fsysclunk(Fcall *t, uchar *buf, Fid *f)
 {
 	Fid *prev, *p;
 	Dirtab *d;

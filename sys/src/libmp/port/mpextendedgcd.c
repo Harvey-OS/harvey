@@ -3,9 +3,12 @@
 
 #define iseven(a)	(((a)->p[0] & 1) == 0)
 
-// extended binary gcd from Handbook of Applied Cryptography, Menezes et al,
-// pg 608.  For a anv b it solves, v = gcd(a,b) and finds x and y s.t.
+// extended binary gcd
+//
+// For a anv b it solves, v = gcd(a,b) and finds x and y s.t.
 // ax + by = v
+//
+// Handbook of Applied Cryptography, Menezes et al, 1997, pg 608.  
 void
 mpextendedgcd(mpint *a, mpint *b, mpint *v, mpint *x, mpint *y)
 {

@@ -151,7 +151,7 @@ wingetevent(Window *w, Event *e)
 void
 winwriteevent(Window *w, Event *e)
 {
-	threadprint(w->event, "%c%c%d %d\n", e->c1, e->c2, e->q0, e->q1);
+	fprint(w->event, "%c%c%d %d\n", e->c1, e->c2, e->q0, e->q1);
 }
 
 static int

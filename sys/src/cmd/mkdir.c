@@ -9,12 +9,12 @@ main(int argc, char *argv[])
 
 	e = nil;
 	for(i=1; i<argc; i++){
-		if(access(argv[i], 0) == 0){
+		if(access(argv[i], 0) == AEXIST){
 			fprint(2, "mkdir: %s already exists\n", argv[i]);
 			e = "error";
 			continue;
 		}
-		f = create(argv[i], OREAD, CHDIR + 0777L);
+		f = create(argv[i], OREAD, DMDIR | 0777L);
 		if(f < 0){
 			fprint(2, "mkdir: can't create %s: %r\n", argv[i]);
 			e = "error";

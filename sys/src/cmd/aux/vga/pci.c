@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "vga.h"
 #include "pci.h"
+#include "vga.h"
 
 /*
  * PCI support code.
@@ -58,6 +58,7 @@ pciscan(int bno, Pcidev** list)
 			p->tbdf = tbdf;
 			p->vid = l;
 			p->did = l>>16;
+			p->rid = pcicfgr8(p, PciRID);	
 
 			if(pcilist != nil)
 				pcitail->list = p;

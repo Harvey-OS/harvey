@@ -326,7 +326,6 @@ again:
 			if(r->sense[12] != 0x28 || r->sense[13] != 0)
 				break;
 			if(unit->inquiry[1] & 0x80){
-print("change %s\n", unit->name);
 				unit->sectors = 0;
 			}
 			break;

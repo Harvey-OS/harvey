@@ -2,6 +2,8 @@
 #include <libc.h>
 #include <auth.h>
 
+#define	NAMELEN	64	/* reasonable upper limit for name elements */
+
 typedef struct Service	Service;
 struct Service
 {
@@ -19,7 +21,6 @@ struct Announce
 };
 
 int	readstr(char*, char*, char*, int);
-void	protochown(int, char*);
 void	dolisten(char*, char*, int, char*);
 void	newcall(int, char*, char*, Service*);
 int 	findserv(char*, char*, Service*, char*);
@@ -35,7 +36,6 @@ int	quiet;
 char	*cpu;
 char	*proto;
 Announce *announcements;
-int	debug;
 #define SEC 1000
 
 char *namespace;
@@ -58,9 +58,6 @@ main(int argc, char *argv[])
 		error("can't get cputype");
 
 	ARGBEGIN{
-	case 'D':
-		debug++;
-		break;
 	case 'd':
 		servdir = ARGF();
 		break;
@@ -185,7 +182,7 @@ listendir(char *protodir, char *srvdir, int trusted)
 		/* pick up any children that gave up and sleep for at least 60 seconds */
 		start = time(0);
 		alarm(60*1000);
-		while((pid = wait(0)) > 0)
+		while((pid = waitpid()) > 0)
 			for(a = announcements; a; a = a->next)
 				if(a->announced == pid)
 					a->announced = 0;
@@ -203,15 +200,13 @@ listendir(char *protodir, char *srvdir, int trusted)
 void
 addannounce(char *fmt, ...)
 {
-	int n;
 	Announce *a, **l;
 	char str[128];
 	va_list arg;
 
 	va_start(arg, fmt);
-	n = doprint(str, str+sizeof(str), fmt, arg) - str;
+	vseprint(str, str+sizeof(str), fmt, arg);
 	va_end(arg);
-	str[n] = 0;
 
 	/* look for duplicate */
 	l = &announcements;
@@ -235,24 +230,22 @@ void
 scandir(char *proto, char *protodir, char *dname)
 {
 	int fd, i, n, nlen;
-	Dir db[32];
+	Dir *db;
 
 	fd = open(dname, OREAD);
-	if(fd < 0){
-		syslog(0, listenlog, "opening %s: %r", dname);
+	if(fd < 0)
 		return;
-	}
 
 	nlen = strlen(proto);
-	while((n=dirread(fd, db, sizeof db)) > 0){
-		n /= sizeof(Dir);
+	while((n=dirread(fd, &db)) > 0){
 		for(i=0; i<n; i++){
-			if(db[i].qid.path&CHDIR)
+			if(db[i].qid.type&QTDIR)
 				continue;
 			if(strncmp(db[i].name, proto, nlen) != 0)
 				continue;
 			addannounce("%s!*!%s", protodir, db[i].name+nlen);
 		}
+		free(db);
 	}
 
 	close(fd);
@@ -332,12 +325,10 @@ dolisten(char *proto, char *dir, int ctl, char *srvdir)
 int 
 findserv(char *proto, char *dir, Service *s, char *srvdir)
 {
-	char dbuf[DIRLEN];
-
 	if(!getserv(proto, dir, s))
 		return 0;
 	sprint(s->prog, "%s/%s", srvdir, s->serv);
-	if(stat(s->prog, dbuf) >= 0)
+	if(access(s->prog, AEXIST) >= 0)
 		return 1;
 	return 0;
 }
@@ -422,7 +413,7 @@ newcall(int fd, char *proto, char *dir, Service *s)
 	close(fd);
 
 	/*
-	 * close the stupid syslog fds
+	 * close all the fds
 	 */
 	for(fd=3; fd<20; fd++)
 		close(fd);
@@ -460,17 +451,4 @@ readstr(char *dir, char *info, char *s, int len)
 	close(fd);
 
 	return n+1;
-}
-
-void
-protochown(int fd, char *user)
-{
-	Dir d;
-
-	if(dirfstat(fd, &d) < 0)
-		return;
-	strncpy(d.uid, user, NAMELEN);
-	strncpy(d.gid, user, NAMELEN);
-	d.mode = 0600;
-	dirfwstat(fd, &d);
 }

@@ -155,7 +155,7 @@ struct File
 	Buffer		delta;		/* transcript of changes */
 	Buffer		epsilon;	/* inversion of delta for redo */
 	String		name;		/* name of associated file */
-	uint		qidpath;	/* of file when read */
+	uvlong		qidpath;	/* of file when read */
 	uint		mtime;		/* of file when read */
 	int		dev;		/* of file when read */
 	int		unread;		/* file has not been read from disk */
@@ -250,6 +250,7 @@ void	*emalloc(ulong);
 void	*erealloc(void*, ulong);
 void	error(Err);
 void	error_c(Err, int);
+void	error_r(Err, char*);
 void	error_s(Err, char*);
 int	execute(File*, Posn, Posn);
 int	filematch(File*, String*);
@@ -293,8 +294,8 @@ void	snarf(File*, Posn, Posn, Buffer*, int);
 void	sortname(File*);
 void	startup(char*, int, char**, char**);
 void	state(File*, int);
-int	statfd(int, ulong*, ulong*, long*, long*, long*);
-int	statfile(char*, ulong*, ulong*, long*, long*, long*);
+int	statfd(int, ulong*, uvlong*, long*, long*, long*);
+int	statfile(char*, ulong*, uvlong*, long*, long*, long*);
 void	Straddc(String*, int);
 void	Strclose(String*);
 int	Strcmp(String*, String*);

@@ -7,10 +7,30 @@ include fileaddr
 plumb to seemail
 plumb to showmail
 
+# doc and rtf files go to wdoc2txt
+type is text
+data matches '[a-zA-Z¡-￿0-9_\-./]+'
+data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(doc|rtf)'
+arg isfile	$0
+plumb to msword
+plumb start wdoc2txt $file
+
+# start rule for microsoft word documents without .doc suffix
+type is text
+dst is msword
+plumb to msword
+plumb start wdoc2txt $file
+
+# email addresses get a new mail window
+type is text
+data matches '[a-zA-Z0-9_.\-]+@[a-zA-Z0-9_.\-]*'
+plumb to sendmail
+plumb start window rc -c '''echo % mail '''$0'; mail '$0
+
 # image files go to page
 type is text
 data matches '[a-zA-Z¡-￿0-9_\-./]+'
-data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(jpe?g|gif|bit|tiff|ppm)'
+data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(jpe?g|JPE?G|gif|GIF|tiff?|TIFF?|ppm|bit)'
 arg isfile	$0
 plumb to image
 plumb client page -wi
@@ -19,16 +39,10 @@ plumb client page -wi
 # the port is here for reference but is unused
 type is text
 data matches '[a-zA-Z¡-￿0-9_\-./]+'
-data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(ps|pdf|dvi)'
+data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(ps|PS|eps|EPS|pdf|PDF|dvi|DVI)'
 arg isfile	$0
 plumb to postscript
 plumb start page -w $file
-
-# URLs go to charon
-#type is text
-#data matches '(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|prospero)://[a-zA-Z0-9_@]+([.:][a-zA-Z0-9_@]+)*/?[a-zA-Z0-9_?,%#~&/\-=]+([:.][a-zA-Z0-9_?,%#~&/\-=]+)*'
-#plumb to web
-#plumb start echo START charon $0
 
 # existing files, possibly tagged by line number, go to editor
 type is text
@@ -43,6 +57,15 @@ plumb client window $editor
 type is text
 data matches '([a-zA-Z¡-￿0-9]+\.h)('$addr')?'
 arg isfile	/sys/include/$1
+data set	$file
+attr add	addr=$3
+plumb to edit
+plumb client window $editor
+
+# .m files are looked up in /sys/module and passed to edit
+type is text
+data matches '([a-zA-Z¡-￿0-9]+\.m)('$addr')?'
+arg isfile	/sys/module/$1
 data set	$file
 attr add	addr=$3
 plumb to edit
@@ -69,3 +92,8 @@ plumb client page -wi
 dst is postscript
 arg isfile $data
 plumb start page -w $data
+
+type	is	text
+data	matches	'Local (.*)'
+plumb	to	none
+plumb	start	rc -c $1

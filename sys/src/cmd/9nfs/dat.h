@@ -187,7 +187,7 @@ struct Xfile
 {
 	Xfile *	next;		/* hash chain */
 	Session	*s;
-	ulong	qidpath;	/* from stat */
+	Qid		qid;	/* from stat */
 	Xfile *	parent;
 	Xfile *	child;		/* if directory */
 	Xfile *	sib;		/* siblings */
@@ -222,21 +222,29 @@ struct Fid
 	long	tstale;		/* auto-clunk */
 };
 
+enum
+{
+	Maxfdata = 8192,
+	Maxstatdata = 2048,
+};
+
 struct Session
 {
 	Session *next;
 	char *	service;		/* for dial */
 	int	fd;
+#define CHALLEN 1
 	char	cchal[CHALLEN];		/* client challenge */
 	char	schal[CHALLEN];		/* server challenge */
-	char	authid[NAMELEN];	/* server encryption uid */
+	char	authid[ANAMELEN];	/* server encryption uid */
 	char	authdom[DOMLEN];	/* server encryption domain */
 	int	count;			/* number of attaches */
 	char *	spec;			/* for attach */
 	Xfile *	root;			/* to answer mount rpc */
 	ushort	tag;
 	Fcall	f;
-	char	data[MAXFDATA+MAXMSG];
+	uchar	data[IOHDRSZ+Maxfdata];
+	uchar	statbuf[Maxstatdata];
 	Fid *	free;			/* available */
 	Fid	list;			/* active, most-recently-used order */
 	Fid	fids[1000];
@@ -252,11 +260,11 @@ struct Chalstuff
 };
 
 extern int	rpcdebug;
+extern int	p9debug;
 extern int	chatty;
-extern Progmap progmap[];
-extern int	myport;
 extern void	(*rpcalarm)(void);
 extern long	starttime;
 extern long	nfstime;
 extern char *	config;
 extern int staletime;
+extern int	messagesize;

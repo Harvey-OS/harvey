@@ -3,6 +3,7 @@
 #include <bio.h>
 #include <ndb.h>
 
+#include "pci.h"
 #include "vga.h"
 
 static Ndb*
@@ -47,7 +48,7 @@ static Ctlr*
 addctlr(Vga* vga, char* val)
 {
 	Ctlr **ctlr;
-	char name[NAMELEN+1], *p;
+	char name[Namelen+1], *p;
 	int i;
 
 	/*
@@ -57,8 +58,8 @@ addctlr(Vga* vga, char* val)
 	 * The linked copy of the controller struct gets the
 	 * full name with extension.
 	 */
-	strncpy(name, val, NAMELEN);
-	name[NAMELEN] = 0;
+	strncpy(name, val, Namelen);
+	name[Namelen] = 0;
 	if(p = strchr(name, '-'))
 		*p = 0;
 
@@ -69,7 +70,7 @@ addctlr(Vga* vga, char* val)
 			;
 		*ctlr = alloc(sizeof(Ctlr));
 		**ctlr = *ctlrs[i];
-		strncpy((*ctlr)->name, val, NAMELEN);
+		strncpy((*ctlr)->name, val, Namelen);
 		return *ctlr;	
 	}
 
@@ -78,79 +79,139 @@ addctlr(Vga* vga, char* val)
 }
 
 int
+dbbios(Vga *vga, Ndbtuple *tuple)
+{
+	char *bios, *p, *string;
+	int len;
+	long offset, offset1;
+	Ndbtuple *t;
+
+	for(t = tuple->entry; t; t = t->entry){
+		if((offset = strtol(t->attr, 0, 0)) == 0)
+			continue;
+
+		string = t->val;
+		len = strlen(string);
+
+		if(p = strchr(t->attr, '-')) {
+			if((offset1 = strtol(p+1, 0, 0)) < offset+len)
+				continue;
+		} else
+			offset1 = offset+len;
+
+		if(vga->offset) {
+			if(offset > vga->offset || vga->offset+len > offset1)
+				continue;
+			offset = vga->offset;
+			offset1 = offset+len;
+		}
+
+		for(; offset+len<=offset1; offset++) {
+			if(vga->bios)
+				bios = vga->bios;
+			else
+				bios = readbios(len, offset);
+			if(strncmp(bios, string, len) == 0){
+				if(vga->bios == 0){
+					vga->bios = alloc(len+1);
+					strncpy(vga->bios, bios, len);
+				}
+				addattr(&vga->attr, t);
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+int
+dbpci(Vga *vga, Ndbtuple *tuple)
+{
+	int did, vid;
+	Ndbtuple *t, *td;
+	Pcidev *pci;
+
+	for(t = tuple->entry; t; t = t->entry){
+		if(strcmp(t->attr, "vid") != 0 || (vid=atoi(t->val)) == 0)
+			continue;
+		for(td = t->line; td != t; td = td->line){
+			if(strcmp(td->attr, "did") == 0
+			&& (did=atoi(td->val)) != 0
+			&& (pci=pcimatch(nil, vid, did)) != 0){
+				vga->pci = pci;
+				addattr(&vga->attr, t);
+				addattr(&vga->attr, td);
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+static void
+save(Vga *vga, Ndbtuple *tuple)
+{
+	Ndbtuple *t;
+
+	for(t = tuple->entry; t; t = t->entry){
+		if(strcmp(t->attr, "ctlr") == 0)
+			vga->ctlr = addctlr(vga, t->val);
+		else if(strcmp(t->attr, "ramdac") == 0)
+			vga->ramdac = addctlr(vga, t->val);
+		else if(strcmp(t->attr, "clock") == 0)
+			vga->clock = addctlr(vga, t->val);
+		else if(strcmp(t->attr, "hwgc") == 0)
+			vga->hwgc = addctlr(vga, t->val);
+		else if(strcmp(t->attr, "link") == 0)
+			addctlr(vga, t->val);
+		else if(strcmp(t->attr, "linear") == 0)
+			vga->linear = strtol(t->val, 0, 0);
+		else if(strcmp(t->attr, "membw") == 0)
+			vga->membw = strtol(t->val, 0, 0)*1000000;
+		else if(strcmp(t->attr, "vid")==0 || strcmp(t->attr, "did")==0)
+			{}
+		else if(strtol(t->attr, 0, 0) == 0)
+			addattr(&vga->attr, t);
+	}
+}
+
+int
 dbctlr(char* name, Vga* vga)
 {
 	Ndb *db;
 	Ndbs s;
-	Ndbtuple *t, *tuple;
-	char *bios, *p, *string;
-	long offset, offset1;
-	int len;
+	Ndbtuple *tuple;
+	Ndbtuple *pcituple;
 
 	db = dbopen(name);
 
+	/*
+	 * Search vgadb for a matching BIOS string or PCI id.
+	 * If we have both, the BIOS string wins.
+	 */
+	pcituple = nil;
 	for(tuple = ndbsearch(db, &s, "ctlr", ""); tuple; tuple = ndbsnext(&s, "ctlr", "")){
-		for(t = tuple->entry; t; t = t->entry){
-			if((offset = strtol(t->attr, 0, 0)) == 0)
-				continue;
-
-			string = t->val;
-			len = strlen(string);
-
-			if(p = strchr(t->attr, '-')) {
-				if((offset1 = strtol(p+1, 0, 0)) < offset+len)
-					continue;
-			} else
-				offset1 = offset+len;
-
-			if(vga->offset) {
-				if(offset > vga->offset || vga->offset+len > offset1)
-					continue;
-				offset = vga->offset;
-				offset1 = offset+len;
-			}
-
-			for(; offset+len<=offset1; offset++) {
-				if(vga->bios)
-					bios = vga->bios;
-				else
-					bios = readbios(len, offset);
-				if(strncmp(bios, string, len) == 0){
-					addattr(&vga->attr, t);
-					for(t = tuple->entry; t; t = t->entry){
-						if(strcmp(t->attr, "ctlr") == 0)
-							vga->ctlr = addctlr(vga, t->val);
-						else if(strcmp(t->attr, "ramdac") == 0)
-							vga->ramdac = addctlr(vga, t->val);
-						else if(strcmp(t->attr, "clock") == 0)
-							vga->clock = addctlr(vga, t->val);
-						else if(strcmp(t->attr, "hwgc") == 0)
-							vga->hwgc = addctlr(vga, t->val);
-						else if(strcmp(t->attr, "link") == 0)
-							addctlr(vga, t->val);
-						else if(strcmp(t->attr, "linear") == 0)
-							vga->linear = strtol(t->val, 0, 0);
-						else if(strcmp(t->attr, "membw") == 0)
-							vga->membw = strtol(t->val, 0, 0)*1000000;
-						else if(strtol(t->attr, 0, 0) == 0)
-							addattr(&vga->attr, t);
-					}
-	
-					if(vga->bios == 0){
-						vga->bios = alloc(len+1);
-						strncpy(vga->bios, bios, len);
-					}
-	
-					ndbfree(tuple);
-					ndbclose(db);
-					return 1;
-				}
-			}
+		if(!pcituple && dbpci(vga, tuple))
+			pcituple = tuple;
+		if(dbbios(vga, tuple)){
+			save(vga, tuple);
+			if(pcituple && pcituple != tuple)
+				ndbfree(pcituple);
+			ndbfree(tuple);
+			ndbclose(db);
+			return 1;
 		}
-		ndbfree(tuple);
+		if(tuple != pcituple)
+			ndbfree(tuple);
 	}
 
+	if(pcituple){
+		save(vga, pcituple);
+		ndbfree(pcituple);
+	}
 	ndbclose(db);
+	if(pcituple)
+		return 1;
 	return 0;
 }
 
@@ -159,7 +220,7 @@ dbmonitor(Ndb* db, Mode* mode, char* type, char* size)
 {
 	Ndbs s;
 	Ndbtuple *t, *tuple;
-	char *p, attr[NAMELEN+1], val[NAMELEN+1], buf[2*NAMELEN+1], vbuf[Ndbvlen];
+	char *p, attr[Namelen+1], val[Namelen+1], buf[2*Namelen+1], vbuf[Ndbvlen];
 	int clock, x;
 
 	/*
@@ -259,7 +320,7 @@ dbmode(char* name, char* type, char* size)
 	Ndbs s;
 	Ndbtuple *t, *tuple;
 	Mode *mode;
-	char attr[NAMELEN+1];
+	char attr[Namelen+1];
 	ulong videobw;
 
 	db = dbopen(name);

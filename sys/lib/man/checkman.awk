@@ -21,6 +21,20 @@ BEGIN {
 	Weight["DIAGNOSTICS"] = 256
 	Weight["SYSTEM CALLS"] = 512
 	Weight["BUGS"] = 1024
+
+	Skipdirs["X11"] = 1
+	Skipdirs["ape"] = 1
+	Skipdirs["aux"] = 1
+	Skipdirs["aviation"] = 1
+	Skipdirs["c++"] = 1
+	Skipdirs["fb"] = 1
+	Skipdirs["pub"] = 1
+	Skipdirs["games"] = 1
+	Skipdirs["gnu"] = 1
+	Skipdirs["lml"] = 1
+	Skipdirs["type1"] = 1
+	Skipdirs["service.alt"] = 1
+
 	Omitted["411"] = 1
 	Omitted["Kill"] = 1
 	Omitted["cb"] = 1
@@ -161,8 +175,10 @@ $0 ~ /^\.[A-Z].*\([1-9]\)/ {
 END {
 	print "Checking Cross-Referenced Pages"
 	for (i in Refs) {
-		if (!(i in Pages))
-			print "Need", tolower(i)
+		if (!(i in Pages)){
+			split(tolower(i), a, "/")
+			print "grep -n " a[2] ".*" a[1] " ?/* # Need " tolower(i)
+		}
 	}
 	print ""
 	print "Checking commands"
@@ -170,17 +186,6 @@ END {
 	getindex("/sys/man/4")
 	getindex("/sys/man/7")
 	getindex("/sys/man/8")
-	Skipdirs["X11"] = 1
-	Skipdirs["ape"] = 1
-	Skipdirs["aux"] = 1
-	Skipdirs["c++"] = 1
-	Skipdirs["fb"] = 1
-	Skipdirs["odraw"] = 1
-	Skipdirs["pub"] = 1
-	Skipdirs["games"] = 1
-	Skipdirs["lml"] = 1
-	Skipdirs["type1"] = 1
-	Skipdirs["service.alt"] = 1
 	getbinlist("/386/bin")
 	getbinlist("/rc/bin")
 	for (i in List) {
@@ -199,16 +204,17 @@ END {
 	getindex("/sys/man/2")
 	getnmlist("/386/lib/lib9p.a")
 	getnmlist("/386/lib/libauth.a")
+	getnmlist("/386/lib/libauthsrv.a")
 	getnmlist("/386/lib/libbin.a")
 	getnmlist("/386/lib/libbio.a")
 	getnmlist("/386/lib/libc.a")
 	getnmlist("/386/lib/libcontrol.a")
-	getnmlist("/386/lib/libdebugmalloc.a")
 	getnmlist("/386/lib/libdisk.a")
 	getnmlist("/386/lib/libdraw.a")
 	getnmlist("/386/lib/libflate.a")
 	getnmlist("/386/lib/libframe.a")
 	getnmlist("/386/lib/libgeometry.a")
+	getnmlist("/386/lib/libhtml.a")
 	getnmlist("/386/lib/libhttpd.a")
 	getnmlist("/386/lib/libip.a")
 	getnmlist("/386/lib/libmach.a")
@@ -218,7 +224,6 @@ END {
 	getnmlist("/386/lib/libndb.a")
 	getnmlist("/386/lib/libplumb.a")
 	getnmlist("/386/lib/libregexp.a")
-	getnmlist("/386/lib/libscribble.a")
 	getnmlist("/386/lib/libsec.a")
 	getnmlist("/386/lib/libstdio.a")
 	getnmlist("/386/lib/libString.a")

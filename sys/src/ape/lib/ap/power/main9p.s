@@ -8,4 +8,7 @@ TEXT	_mainp(SB), 1, $16
 	MOVW	R3, 4(R1)
 	MOVW	R4, 8(R1)
 	BL	main(SB)
-	RETURN
+loop:
+	MOVW	R3, 4(R1)
+	BL	exit(SB)
+	BR	loop

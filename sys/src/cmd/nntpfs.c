@@ -23,10 +23,14 @@ struct Netbuf {
 	Biobuf bw;
 	int lineno;
 	int fd;
-	int code;	/* last response code */
+	int code;			/* last response code */
+	int auth;			/* Authorization required? */
 	char response[128];	/* last response */
 	Group *currentgroup;
 	char *addr;
+	char *user;
+	char *pass;
+	ulong extended;	/* supported extensions */
 };
 
 struct Group {
@@ -39,6 +43,24 @@ struct Group {
 	int canpost;
 	int isgroup;	/* might just be piece of hierarchy */
 	ulong mtime;
+	ulong atime;
+};
+
+/*
+ * First eight fields are, in order: 
+ *	article number, subject, author, date, message-ID, 
+ *	references, byte count, line count 
+ * We don't support OVERVIEW.FMT; when I see a server with more
+ * interesting fields, I'll implement support then.  In the meantime,
+ * the standard defines the first eight fields.
+ */
+
+/* Extensions */
+enum {
+	Nxover   = (1<<0),
+	Nxhdr    = (1<<1),
+	Nxpat    = (1<<2),
+	Nxlistgp = (1<<3),
 };
 
 Group *root;
@@ -167,37 +189,205 @@ nntpresponse(Netbuf *n, int e, char *cmd)
 	return r;
 }
 
+int nntpauth(Netbuf*);
+int nntpxcmdprobe(Netbuf*);
+int nntpcurrentgroup(Netbuf*, Group*);
+
+/* XXX: bug OVER/XOVER et al. */
+static struct {
+	ulong n;
+	char *s;
+} extensions [] = {
+	{ Nxover, "OVER" },
+	{ Nxhdr, "HDR" },
+	{ Nxpat, "PAT" },
+	{ Nxlistgp, "LISTGROUP" },
+	{ 0, nil }
+};
+
+static int indial;
+
+int
+nntpconnect(Netbuf *n)
+{
+	n->currentgroup = nil;
+	close(n->fd);
+	if((n->fd = dial(n->addr, nil, nil, nil)) < 0){	
+		snprint(n->response, sizeof n->response, "dial: %r");
+		return -1;
+	}
+	Binit(&n->br, n->fd, OREAD);
+	Binit(&n->bw, n->fd, OWRITE);
+	if(nntpresponse(n, 20, "greeting") < 0)
+		return -1;
+	readonly = (n->code == 201);
+
+	indial = 1;
+	if(n->auth != 0)
+		nntpauth(n);
+//	nntpxcmdprobe(n);
+	indial = 0;
+	return 0;
+}
+
 int
 nntpcmd(Netbuf *n, char *cmd, int e)
 {
-	int tries;
+	int tried;
 
-	for(tries=0;; tries++){
+	tried = 0;
+	for(;;){
+		if(netdebug)
+			fprint(2, "<- %s\n", cmd);
 		Bprint(&n->bw, "%s\r\n", cmd);
-		if(nntpresponse(n, e, cmd)>=0 && n->code/100 != 5)
+		if(nntpresponse(n, e, cmd)>=0 && (e < 0 || n->code/100 != 5))
 			return 0;
 
 		/* redial */
-		if(tries==1)
-			return -1;
-
-		n->currentgroup = nil;
-		close(n->fd);
-		if((n->fd = dial(n->addr, nil, nil, nil)) < 0){	
-			snprint(n->response, sizeof n->response, "dial: %r");
-			return -1;
-		}
-		Binit(&n->br, n->fd, OREAD);
-		Binit(&n->bw, n->fd, OWRITE);
-		if(nntpresponse(n, 20, "greeting") < 0)
+		if(indial || tried++ || nntpconnect(n) < 0)
 			return -1;
 	}
+
+	return -1;	/* shut up 8c */
+}
+
+int
+nntpauth(Netbuf *n)
+{
+	char cmd[256];
+
+	snprint(cmd, sizeof cmd, "AUTHINFO USER %s", n->user);
+	if (nntpcmd(n, cmd, -1) < 0 || n->code != 381) {
+		fprint(2, "Authentication failed: %s\n", n->response);
+		return -1;
+	}
+
+	snprint(cmd, sizeof cmd, "AUTHINFO PASS %s", n->pass);
+	if (nntpcmd(n, cmd, -1) < 0 || n->code != 281) {
+		fprint(2, "Authentication failed: %s\n", n->response);
+		return -1;
+	}
+
+	return 0;
+}
+
+int
+nntpxcmdprobe(Netbuf *n)
+{
+	int i;
+	char *p;
+
+	n->extended = 0;
+	if (nntpcmd(n, "LIST EXTENSIONS", 0) < 0 || n->code != 202)
+		return 0;
+
+	while((p = Nrdline(n)) != nil) {
+		if (strcmp(p, ".") == 0)
+			break;
+
+		for(i=0; extensions[i].s != nil; i++)
+			if (cistrcmp(extensions[i].s, p) == 0) {
+				n->extended |= extensions[i].n;
+				break;
+			}
+	}
+	return 0;
+}
+
+/* XXX: searching, lazy evaluation */
+static int
+overcmp(void *v1, void *v2)
+{
+	int a, b;
+
+	a = atoi(*(char**)v1);
+	b = atoi(*(char**)v2);
+
+	if(a < b)
+		return -1;
+	else if(a > b)
+		return 1;
+	return 0;
+}
+
+enum {
+	XoverChunk = 100,
+};
+
+char *xover[XoverChunk];
+int xoverlo;
+int xoverhi;
+int xovercount;
+Group *xovergroup;
+
+char*
+nntpover(Netbuf *n, Group *g, int m)
+{
+	int i, lo, hi, mid, msg;
+	char *p;
+	char cmd[64];
+
+	if (g->isgroup == 0)	/* BUG: should check extension capabilities */
+		return nil;
+
+	if(g != xovergroup || xoverlo > m || m >= xoverhi){
+		lo = (m/XoverChunk)*XoverChunk;
+		hi = lo+XoverChunk;
+	
+		if(lo < g->lo)
+			lo = g->lo;
+		else if (lo > g->hi)
+			lo = g->hi;
+		if(hi < lo || hi > g->hi)
+			hi = g->hi;
+	
+		if(nntpcurrentgroup(n, g) < 0)
+			return nil;
+	
+		if(lo == hi)
+			snprint(cmd, sizeof cmd, "XOVER %d", hi);
+		else
+			snprint(cmd, sizeof cmd, "XOVER %d-%d", lo, hi-1);
+	
+		if(nntpcmd(n, cmd, 224) < 0)
+			return nil;
+
+		for(i=0; (p = Nrdline(n)) != nil; i++) {
+			if(strcmp(p, ".") == 0)
+				break;
+			if(i >= XoverChunk)
+				sysfatal("news server doesn't play by the rules");
+			free(xover[i]);
+			xover[i] = estrdup(p);
+		}
+		qsort(xover, i, sizeof(xover[0]), overcmp);
+
+		xovercount = i;
+
+		xovergroup = g;
+		xoverlo = lo;
+		xoverhi = hi;
+	}
+
+	lo = 0;
+	hi = xovercount;
+	/* search for message */
+	while(lo+1 < hi){
+		mid = (lo+hi)/2;
+		msg = atoi(xover[mid]);
+		if(m < msg)
+			hi = mid;
+		else
+			lo = mid;
+	}
+	return xover[lo];
 }
 
 /*
  * Return the new Group structure for the group name.
  * Destroys name.
  */
+static int printgroup(char*,Group*);
 Group*
 findgroup(Group *g, char *name, int mk)
 {
@@ -226,6 +416,14 @@ findgroup(Group *g, char *name, int mk)
 				return nil;
 			if(g->nkid%16 == 0)
 				g->kid = erealloc(g->kid, (g->nkid+16)*sizeof(g->kid[0]));
+
+			/* 
+			 * if we're down to a single place 'twixt lo and hi, the insertion might need
+			 * to go at lo or at hi.  strcmp to find out.  the list needs to stay sorted.
+		 	 */
+			if(lo==hi-1 && strcmp(p, g->kid[lo]->name) < 0)
+				hi = lo;
+
 			if(hi < g->nkid)
 				memmove(g->kid+hi+1, g->kid+hi, sizeof(g->kid[0])*(g->nkid-hi));
 			g->nkid++;
@@ -287,6 +485,7 @@ Nreaddata(Netbuf *n)
 char*
 nntpget(Netbuf *n, Group *g, int msg, char *retr)
 {
+	char *s;
 	char cmd[1024];
 
 	if(g->isgroup == 0){
@@ -294,20 +493,36 @@ nntpget(Netbuf *n, Group *g, int msg, char *retr)
 		return nil;
 	}
 
-	if(n->currentgroup != g){
-		strcpy(cmd, "GROUP ");
-		printgroup(cmd, g);
-		if(nntpcmd(n, cmd, 21) < 0)
-			return nil;
-		n->currentgroup = g;
+	if(strcmp(retr, "XOVER") == 0){
+		s = nntpover(n, g, msg);
+		if(s == nil)
+			s = "";
+		return estrdup(s);
 	}
 
+	if(nntpcurrentgroup(n, g) < 0)
+		return nil;
 	sprint(cmd, "%s %d", retr, msg);
 	nntpcmd(n, cmd, 0);
 	if(n->code/10 != 22)
 		return nil;
 
 	return Nreaddata(n);
+}
+
+int
+nntpcurrentgroup(Netbuf *n, Group *g)
+{
+	char cmd[1024];
+
+	if(n->currentgroup != g){
+		strcpy(cmd, "GROUP ");
+		printgroup(cmd, g);
+		if(nntpcmd(n, cmd, 21) < 0)
+			return -1;
+		n->currentgroup = g;
+	}
+	return 0;
 }
 
 void
@@ -355,6 +570,9 @@ nntprefresh(Netbuf *n, Group *g)
 	if(g->isgroup==0)
 		return;
 
+	if(time(0) - g->atime < 30)
+		return;
+
 	strcpy(cmd, "GROUP ");
 	printgroup(cmd, g);
 	if(nntpcmd(n, cmd, 21) < 0){
@@ -377,6 +595,7 @@ nntprefresh(Netbuf *n, Group *g)
 			g->lo = lo;
 		g->hi = hi;
 	}
+	g->atime = time(0);
 }
 
 char*
@@ -416,7 +635,7 @@ nntppost(Netbuf *n, char *msg)
  * things in this file system).  In the next version of 9P, we'll
  * have more QID bits to play with.
  * 
- * The newsgroup is encoded in the top 14 bits (after CHDIR)
+ * The newsgroup is encoded in the top 15 bits
  * of the path.  The message number is the bottom 17 bits.
  * The file within the message directory is in the version [sic].
  */
@@ -425,24 +644,27 @@ enum {	/* file qids */
 	Qhead,
 	Qbody,
 	Qarticle,
+	Qxover,
 	Nfile,
 };
 char *filename[] = {
 	"header",
 	"body",
 	"article",
+	"xover",
 };
 char *nntpname[] = {
 	"HEAD",
 	"BODY",
 	"ARTICLE",
+	"XOVER",
 };
 
 #define GROUP(p)	(((p)>>17)&0x3FFF)
 #define MESSAGE(p)	((p)&0x1FFFF)
 #define FILE(v)		((v)&0x3)
 
-#define PATH(d,g,m)	((d)|(((g)&0x3FFF)<<17)|((m)&0x1FFFF))
+#define PATH(g,m)	((((g)&0x3FFF)<<17)|((m)&0x1FFFF))
 #define POST(g)	PATH(0,g,0)
 #define VERS(f)		((f)&0x3)
 
@@ -454,13 +676,16 @@ struct Aux {
 	int file;
 	char *s;
 	int ns;
+	int offset;
 };
 
 static void
-fsattach(Req *r, Fid *fid, char *spec, Qid *qid)
+fsattach(Req *r)
 {
 	Aux *a;
+	char *spec;
 
+	spec = r->ifcall.aname;
 	if(spec && spec[0]){
 		respond(r, "invalid attach specifier");
 		return;
@@ -469,14 +694,26 @@ fsattach(Req *r, Fid *fid, char *spec, Qid *qid)
 	a = emalloc(sizeof *a);
 	a->g = root;
 	a->n = -1;
-	fid->aux = a;
+	r->fid->aux = a;
 	
-	*qid = (Qid){CHDIR, 0};
+	r->ofcall.qid = (Qid){0, 0, QTDIR};
+	r->fid->qid = r->ofcall.qid;
 	respond(r, nil);
 }
 
-static void
-fswalk(Req *r, Fid *fid, char *name, Qid *qid)
+static char*
+fsclone(Fid *ofid, Fid *fid)
+{
+	Aux *a;
+
+	a = emalloc(sizeof(*a));
+	*a = *(Aux*)ofid->aux;
+	fid->aux = a;
+	return nil;
+}
+
+static char*
+fswalk1(Fid *fid, char *name, Qid *qid)
 {
 	char *p;
 	int i, isdotdot, n;
@@ -484,133 +721,119 @@ fswalk(Req *r, Fid *fid, char *name, Qid *qid)
 	Group *ng;
 
 	isdotdot = strcmp(name, "..")==0;
+
 	a = fid->aux;
-
-	if(a->s){	/* file */
-		respond(r, "protocol botch");
-		return;
-	}
-
+	if(a->s)	/* file */
+		return "protocol botch";
 	if(a->n != -1){
 		if(isdotdot){
-			*qid = (Qid){PATH(CHDIR, a->g->num, 0), 0};
+			*qid = (Qid){PATH(a->g->num, 0), 0, QTDIR};
+			fid->qid = *qid;
 			a->n = -1;
-			respond(r, nil);
-			return;
+			return nil;
 		}
 		for(i=0; i<Nfile; i++){ 
 			if(strcmp(name, filename[i])==0){
 				if(a->s = nntpget(net, a->g, a->n, nntpname[i])){
-					*qid = (Qid){PATH(0, a->g->num, a->n), Qbody};
+					*qid = (Qid){PATH(a->g->num, a->n), Qbody, 0};
+					fid->qid = *qid;
 					a->file = i;
-					respond(r, nil);
+					return nil;
 				}else
-					respond(r, "file does not exist");
-				return;
+					return "file does not exist";
 			}
 		}
-		respond(r, "file does not exist");
-		return;
+		return "file does not exist";
 	}
 
 	if(isdotdot){
 		a->g = a->g->parent;
-		*qid = (Qid){PATH(CHDIR, a->g->num, 0), 0};
-		respond(r, nil);
-		return;
+		*qid = (Qid){PATH(a->g->num, 0), 0, QTDIR};
+		fid->qid = *qid;
+		return nil;
 	}
 
 	if(a->g->isgroup && !readonly && a->g->canpost
 	&& strcmp(name, "post")==0){
 		a->ispost = 1;
-		*qid = (Qid){PATH(0, a->g->num, 0), 0};
-		respond(r, nil);
-		return;
+		*qid = (Qid){PATH(a->g->num, 0), 0, 0};
+		fid->qid = *qid;
+		return nil;
 	}
 
 	if(ng = findgroup(a->g, name, 0)){
 		a->g = ng;
-		*qid = (Qid){PATH(CHDIR, a->g->num, 0), 0};
-		respond(r, nil);
-		return;
+		*qid = (Qid){PATH(a->g->num, 0), 0, QTDIR};
+		fid->qid = *qid;
+		return nil;
 	}
 
 	n = strtoul(name, &p, 0);
 	if('0'<=name[0] && name[0]<='9' && *p=='\0' && a->g->lo<=n && n<a->g->hi){
 		a->n = n;
-		*qid = (Qid){PATH(CHDIR, a->g->num, n+1-a->g->lo), 0};
-		respond(r, nil);
-		return;
+		*qid = (Qid){PATH(a->g->num, n+1-a->g->lo), 0, QTDIR};
+		fid->qid = *qid;
+		return nil;
 	}
 
-	respond(r, "file does not exist");
-	return;
+	return "file does not exist";
 }
 
 static void
-fsopen(Req *r, Fid *fid, int omode, Qid*)
+fsopen(Req *r)
 {
 	Aux *a;
 
-	a = fid->aux;
-	if((a->ispost && (omode&~OTRUNC) != OWRITE)
-	|| (!a->ispost && omode != OREAD))
+	a = r->fid->aux;
+	if((a->ispost && (r->ifcall.mode&~OTRUNC) != OWRITE)
+	|| (!a->ispost && r->ifcall.mode != OREAD))
 		respond(r, "permission denied");
 	else
 		respond(r, nil);
 }
 
 static void
-fsclone(Req *r, Fid *old, Fid *new)
-{
-	Aux *a;
-
-	a = emalloc(sizeof(*a));
-	*a = *(Aux*)old->aux;
-	new->aux = a;
-	respond(r, nil);
-}
-
-static void
 fillstat(Dir *d, Aux *a)
 {
+	char buf[32];
 	Group *g;
 
 	memset(d, 0, sizeof *d);
-	strcpy(d->uid, "nntp");
-	strcpy(d->gid, "nntp");
+	d->uid = estrdup("nntp");
+	d->gid = estrdup("nntp");
 	g = a->g;
 	d->atime = d->mtime = g->mtime;
 
 	if(a->ispost){
-		strcpy(d->name, "post");
+		d->name = estrdup("post");
 		d->mode = 0222;
-		d->qid = (Qid){PATH(0, g->num, 0), 0};
+		d->qid = (Qid){PATH(g->num, 0), 0, 0};
 		d->length = a->ns;
 		return;
 	}
 
 	if(a->s){	/* article file */
-		strcpy(d->name, filename[a->file]);
+		d->name = estrdup(filename[a->file]);
 		d->mode = 0444;
-		d->qid = (Qid){PATH(0, g->num, a->n+1-g->lo), a->file};
+		d->qid = (Qid){PATH(g->num, a->n+1-g->lo), a->file, 0};
 		return;
 	}
 
 	if(a->n != -1){	/* article directory */
-		sprint(d->name, "%d", a->n);
-		d->mode = CHDIR|0555;
-		d->qid = (Qid){PATH(CHDIR, g->num, a->n+1-g->lo), 0};
+		sprint(buf, "%d", a->n);
+		d->name = estrdup(buf);
+		d->mode = DMDIR|0555;
+		d->qid = (Qid){PATH(g->num, a->n+1-g->lo), 0, QTDIR};
 		return;
 	}
 
 	/* group directory */
 	if(g->name[0])
-		strecpy(d->name, d->name+NAMELEN, g->name);
+		d->name = estrdup(g->name);
 	else
-		strcpy(d->name, "/");
-	d->mode = CHDIR|0555;
-	d->qid = (Qid){PATH(CHDIR, g->num, 0), g->hi-1};
+		d->name = estrdup("/");
+	d->mode = DMDIR|0555;
+	d->qid = (Qid){PATH(g->num, 0), g->hi-1, QTDIR};
 }
 
 static int
@@ -618,10 +841,12 @@ dirfillstat(Dir *d, Aux *a, int i)
 {
 	int ndir;
 	Group *g;
+	char buf[32];
 
 	memset(d, 0, sizeof *d);
-	strcpy(d->uid, "nntp");
-	strcpy(d->gid, "nntp");
+	d->uid = estrdup("nntp");
+	d->gid = estrdup("nntp");
+
 	g = a->g;
 	d->atime = d->mtime = g->mtime;
 
@@ -629,17 +854,17 @@ dirfillstat(Dir *d, Aux *a, int i)
 		if(i >= Nfile)
 			return -1;
 
-		strcpy(d->name, filename[i]);
+		d->name = estrdup(filename[i]);
 		d->mode = 0444;
-		d->qid = (Qid){PATH(0, g->num, a->n), i};
+		d->qid = (Qid){PATH(g->num, a->n), i, 0};
 		return 0;
 	}
 
 	/* hierarchy directory: child groups */
 	if(i < g->nkid){
-		strecpy(d->name, d->name+NAMELEN, g->kid[i]->name);
-		d->mode = CHDIR|0555;
-		d->qid = (Qid){PATH(CHDIR, g->kid[i]->num, 0), g->kid[i]->hi-1};
+		d->name = estrdup(g->kid[i]->name);
+		d->mode = DMDIR|0555;
+		d->qid = (Qid){PATH(g->kid[i]->num, 0), g->kid[i]->hi-1, QTDIR};
 		return 0;
 	}
 	i -= g->nkid;
@@ -647,9 +872,9 @@ dirfillstat(Dir *d, Aux *a, int i)
 	/* group directory: post file */
 	if(g->isgroup && !readonly && g->canpost){
 		if(i < 1){
-			strcpy(d->name, "post");
+			d->name = estrdup("post");
 			d->mode = 0222;
-			d->qid = (Qid){PATH(0, g->num, 0), 0};
+			d->qid = (Qid){PATH(g->num, 0), 0, 0};
 			return 0;
 		}
 		i--;
@@ -658,9 +883,10 @@ dirfillstat(Dir *d, Aux *a, int i)
 	/* group directory: child articles */
 	ndir = g->hi - g->lo;
 	if(i < ndir){
-		sprint(d->name, "%d", g->lo+i);
-		d->mode = CHDIR|0555;
-		d->qid = (Qid){PATH(CHDIR, g->num, i+1), 0};
+		sprint(buf, "%d", g->lo+i);
+		d->name = estrdup(buf);
+		d->mode = DMDIR|0555;
+		d->qid = (Qid){PATH(g->num, i+1), 0, QTDIR};
 		return 0;
 	}
 
@@ -668,52 +894,68 @@ dirfillstat(Dir *d, Aux *a, int i)
 }
 
 static void
-fsstat(Req *r, Fid *fid, Dir *d)
+fsstat(Req *r)
 {
 	Aux *a;
 
-	a = fid->aux;
-	if(fid->qid.path == CHDIR)
+	a = r->fid->aux;
+	if(r->fid->qid.path == 0 && r->fid->qid.type == QTDIR)
 		nntprefreshall(net);
 	else if(a->g->isgroup)
 		nntprefresh(net, a->g);
-	fillstat(d, a);
+	fillstat(&r->d, a);
 	respond(r, nil);
 }
 
 static void
-fsread(Req *r, Fid *fid, void *buf, long *count, vlong offset)
+fsread(Req *r)
 {
-	int i, j, n;
+	int offset, n;
 	Aux *a;
+	char *p, *ep;
 	Dir d;
 
-	a = fid->aux;
+	a = r->fid->aux;
 	if(a->s){
-		readstr(offset, buf, count, a->s);
+		readstr(r, a->s);
 		respond(r, nil);
 		return;
 	}
 
-	n = *count/DIRLEN;
-	i = offset/DIRLEN;
-	for(j=0; j<n; j++){
-		if(dirfillstat(&d, a, i+j) < 0)
+	if(r->ifcall.offset == 0)
+		offset = 0;
+	else
+		offset = a->offset;
+
+	p = r->ofcall.data;
+	ep = r->ofcall.data+r->ifcall.count;
+	for(; p+2 < ep; p += n){
+		if(dirfillstat(&d, a, offset) < 0)
 			break;
-		convD2M(&d, (char*)buf+j*DIRLEN);
+		n=convD2M(&d, (uchar*)p, ep-p);
+		free(d.name);
+		free(d.uid);
+		free(d.gid);
+		free(d.muid);
+		if(n <= BIT16SZ)
+			break;
+		offset++;
 	}
-	*count = j*DIRLEN;
+	a->offset = offset;
+	r->ofcall.count = p - r->ofcall.data;
 	respond(r, nil);
 }
 
 static void
-fswrite(Req *r, Fid *fid, void *buf, long *count, vlong offset)
+fswrite(Req *r)
 {
 	Aux *a;
+	long count;
+	vlong offset;
 
-	a = fid->aux;
+	a = r->fid->aux;
 
-	if(*count == 0){	/* commit */
+	if(r->ifcall.count == 0){	/* commit */
 		respond(r, nntppost(net, a->s));
 		free(a->s);
 		a->ns = 0;
@@ -721,18 +963,20 @@ fswrite(Req *r, Fid *fid, void *buf, long *count, vlong offset)
 		return;
 	}
 
-	if(a->ns < *count+offset+1){
-		a->s = erealloc(a->s, *count+offset+1);
-		a->ns = *count+offset;
+	count = r->ifcall.count;
+	offset = r->ifcall.offset;
+	if(a->ns < count+offset+1){
+		a->s = erealloc(a->s, count+offset+1);
+		a->ns = count+offset;
 		a->s[a->ns] = '\0';
 	}
-	memmove(a->s+offset, buf, *count);
+	memmove(a->s+offset, r->ifcall.data, count);
+	r->ofcall.count = count;
 	respond(r, nil);
-
 }
 
 static void
-fsclunkaux(Fid *fid)
+fsdestroyfid(Fid *fid)
 {
 	Aux *a;
 
@@ -748,10 +992,10 @@ fsclunkaux(Fid *fid)
 }
 
 Srv nntpsrv = {
+.destroyfid=	fsdestroyfid,
 .attach=	fsattach,
-.clunkaux=	fsclunkaux,
 .clone=	fsclone,
-.walk=	fswalk,
+.walk1=	fswalk1,
 .open=	fsopen,
 .read=	fsread,
 .write=	fswrite,
@@ -761,26 +1005,45 @@ Srv nntpsrv = {
 void
 usage(void)
 {
-	fprint(2, "usage: nntpsrv [-s service] [-m mtpt] [nntp.server]\n");
+	fprint(2, "usage: nntpsrv [-s service] [-m mtpt] [-a user] [nntp.server]\n");
 	exits("usage");
+}
+
+void
+dumpgroups(Group *g, int ind)
+{
+	int i;
+
+	print("%*s%s\n", ind*4, "", g->name);
+	for(i=0; i<g->nkid; i++)
+		dumpgroups(g->kid[i], ind+1);
 }
 
 void
 main(int argc, char **argv)
 {
-	char *mtpt, *service, *where;
-	int x;
+	int auth, x;
+	char *mtpt, *service, *where, *user;
 	Netbuf n;
+	UserPasswd *up;
 
 	mtpt = "/mnt/news";
 	service = nil;
-
+	memset(&n, 0, sizeof n);
+	user = nil;
+	auth = 0;
 	ARGBEGIN{
 	case 'D':
-		lib9p_chatty++;
+		chatty9p++;
 		break;
 	case 'N':
 		netdebug = 1;
+		break;
+	case 'a':
+		auth = 1;
+		break;
+	case 'u':
+		user = EARGF(usage());
 		break;
 	case 's':
 		service = EARGF(usage());
@@ -788,6 +1051,8 @@ main(int argc, char **argv)
 	case 'm':
 		mtpt = EARGF(usage());
 		break;
+	default:
+		usage();
 	}ARGEND
 
 	if(argc > 1)
@@ -799,31 +1064,35 @@ main(int argc, char **argv)
 
 	now = time(0);
 
-	memset(&n, 0, sizeof n);
-	n.addr = netmkaddr(where, "tcp", "nntp");
-	n.fd = dial(n.addr, nil, nil, nil);
-	if(n.fd < 0)
-		sysfatal("dial: %r\n");
-
-	Binit(&n.br, n.fd, OREAD);
-	Binit(&n.bw, n.fd, OWRITE);
 	net = &n;
+	if(auth) {
+		n.auth = 1;
+		if(user)
+			up = auth_getuserpasswd(auth_getkey, "proto=pass service=nntp host=%q user=%q", where, user);
+		else
+			up = auth_getuserpasswd(auth_getkey, "proto=pass service=nntp host=%q", where);
+		if(up == nil)
+			sysfatal("no password: %r");
 
-	if(nntpresponse(&n, 20, "greeting") < 0)
-		sysfatal("failed greeting: %r");
-	if(n.code/10 != 20)
-		sysfatal("greeting: %r");
+		n.user = up->user;
+		n.pass = up->passwd;
+	}
 
-	if(n.code == 201)
-		readonly = 1;
+	n.addr = netmkaddr(where, "tcp", "nntp");
 
-	x=netdebug;
-	netdebug=0;
 	root = emalloc(sizeof *root);
 	root->name = estrdup("");
 	root->parent = root;
+
+	n.fd = -1;
+	if(nntpconnect(&n) < 0)
+		sysfatal("nntpconnect: %s", n.response);
+
+	x=netdebug;
+	netdebug=0;
 	nntprefreshall(&n);
 	netdebug=x;
+//	dumpgroups(root, 0);
 
 	postmountsrv(&nntpsrv, service, mtpt, MREPL);
 	exits(nil);

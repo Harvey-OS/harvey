@@ -7,8 +7,6 @@
 /*
  * these should be in libraries
  */
-void	initchal(Chalstate*);
-void	closechal(Chalstate*);
 char	*csquery(char *attr, char *val, char *rattr);
 
 /*
@@ -177,7 +175,7 @@ static	ParseCmd	SSelected[] =
 };
 
 static	char		*atomStop = "(){%*\"\\";
-static	Chalstate	chal;
+static	Chalstate	*chal;
 static	int		chaled;
 static	ParseCmd	*imapState;
 static	jmp_buf		parseJmp;
@@ -189,13 +187,14 @@ static	int		idlepid = -1;
 
 Biobuf	bout;
 Biobuf	bin;
-char	username[NAMELEN];
-char	mboxDir[3 * NAMELEN];
+char	username[UserNameLen];
+char	mboxDir[MboxNameLen];
 char	*servername;
 char	*site;
 char	*remote;
 Box	*selected;
 Bin	*parseBin;
+int	debug;
 
 void
 main(int argc, char *argv[])
@@ -224,17 +223,18 @@ main(int argc, char *argv[])
 	case 's':
 		servername = ARGF();
 		break;
+	case 'v':
+		debug = 1;
+		debuglog("imap4d debugging enabled\n");
+		break;
 	default:
 		fprint(2, "usage: ip/imap4d [-ap] [-d site] [-r remotehost] [-s servername]\n");
 		bye("usage");
 		break;
 	}ARGEND
 
-	if(preauth){
-		strncpy(username, getuser(), NAMELEN);
-		username[NAMELEN-1] = '\0';
-		setupuser();
-	}
+	if(preauth)
+		setupuser(nil);
 
 	if(servername == nil){
 		servername = csquery("sys", sysname(), "dom");
@@ -288,7 +288,6 @@ imap4(int preauth)
 		writeErr();
 
 	chaled = 0;
-	initchal(&chal);
 
 	tg = nil;
 	cmd = nil;
@@ -337,14 +336,14 @@ imap4(int preauth)
 void
 bye(char *fmt, ...)
 {
-	char buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
-	va_end(arg);
-
-	Bprint(&bout, "* bye %s\r\n", buf);
+	Bprint(&bout, "* bye ");
+	Bvprint(&bout, fmt, arg);
+	Bprint(&bout, "\r\n");
+	Bflush(&bout);
+exits("rob2");
 	exits(0);
 }
 
@@ -473,7 +472,6 @@ check(void)
 static void
 appendCmd(char *tg, char *cmd)
 {
-	Dir d;
 	char *mbox, head[128];
 	ulong t, n, now;
 	int flags, ok;
@@ -504,7 +502,7 @@ appendCmd(char *tg, char *cmd)
 		Bprint(&bout, "%s no %s bad mailbox\r\n", tg, cmd);
 		return;
 	}
-	if(cdDirstat(mboxDir, mbox, &d) < 0){
+	if(!cdExists(mboxDir, mbox)){
 		check();
 		Bprint(&bout, "%s no [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);
 		return;
@@ -528,16 +526,10 @@ authenticateCmd(char *tg, char *cmd)
 	mustBe(' ');
 	s = atom();
 	crnl();
-	closechal(&chal);
+	auth_freechal(chal);
+	chal = nil;
 	if(cistrcmp(s, "cram-md5") == 0){
 		t = cramauth();
-		if(t == nil){
-			Bprint(&bout, "%s ok %s\r\n", tg, cmd);
-			imapState = SAuthed;
-		}else
-			Bprint(&bout, "%s no %s failed %s\r\n", tg, cmd, t);
-	}else if(cistrcmp(s, "login") == 0){
-		t = loginauth();
 		if(t == nil){
 			Bprint(&bout, "%s ok %s\r\n", tg, cmd);
 			imapState = SAuthed;
@@ -578,7 +570,6 @@ copyCmd(char *tg, char *cmd)
 static void
 copyUCmd(char *tg, char *cmd, int uids)
 {
-	Dir d;
 	MsgSet *ms;
 	char *uid, *mbox;
 	ulong max;
@@ -600,7 +591,7 @@ copyUCmd(char *tg, char *cmd, int uids)
 		Bprint(&bout, "%s no %s%s bad mailbox\r\n", tg, uid, cmd);
 		return;
 	}
-	if(cdDirstat(mboxDir, mbox, &d) < 0){
+	if(!cdExists(mboxDir, mbox)){
 		check();
 		Bprint(&bout, "%s no [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);
 		return;
@@ -657,7 +648,6 @@ createCmd(char *tg, char *cmd)
 static void
 deleteCmd(char *tg, char *cmd)
 {
-	Dir d;
 	char *mbox, *imp;
 
 	mustBe(' ');
@@ -673,7 +663,7 @@ deleteCmd(char *tg, char *cmd)
 
 	imp = impName(mbox);
 	if(cistrcmp(mbox, "inbox") == 0
-	|| imp != nil && cdRemove(mboxDir, imp) < 0 && cdDirstat(mboxDir, imp, &d) >= 0
+	|| imp != nil && cdRemove(mboxDir, imp) < 0 && cdExists(mboxDir, imp)
 	|| cdRemove(mboxDir, mbox) < 0)
 		Bprint(&bout, "%s no %s cannot delete mailbox %s\r\n", tg, cmd, mbox);
 	else
@@ -761,6 +751,7 @@ idleCmd(char *tg, char *cmd)
 				sleep(15*1000);
 				enableForwarding();
 			}
+_exits("rob3");
 			_exits(0);
 		}
 		idlepid = pid;
@@ -780,6 +771,7 @@ idleCmd(char *tg, char *cmd)
 			qlock(&imaplock);
 			if(!exiting)
 				cleaner();
+_exits("rob4");
 			_exits(0);
 		}
 		if(c == '\n')
@@ -788,7 +780,9 @@ idleCmd(char *tg, char *cmd)
 
 	qlock(&imaplock);
 	if(exiting)
+{_exits("rob5");
 		_exits(0);
+}
 
 	/*
 	 * child may have changed curDir, but it doesn't change our .
@@ -900,6 +894,7 @@ static void
 loginCmd(char *tg, char *cmd)
 {
 	char *s, *t;
+	AuthInfo *ai;
 
 	mustBe(' ');
 	s = astring();	/* uid */
@@ -907,32 +902,15 @@ loginCmd(char *tg, char *cmd)
 	t = astring();	/* password */
 	crnl();
 	if(allowPass){
-		if(passCheck(s, t)){
-			strncpy(username, s, NAMELEN);
-			username[NAMELEN-1] = '\0';
-			setupuser();
+		if(ai = passLogin(s, t)){
+			setupuser(ai);
 			Bprint(&bout, "%s ok %s succeeded\r\n", tg, cmd);
 			imapState = SAuthed;
 		}else
 			Bprint(&bout, "%s no %s failed check\r\n", tg, cmd);
 		return;
 	}
-
-	if(chaled && strcmp(s, username) == 0 && chalreply(&chal, t) >= 0){
-		setupuser();
-		Bprint(&bout, "%s ok %s succeeded\r\n", tg, cmd);
-		imapState = SAuthed;
-	}else{
-		closechal(&chal);
-		if(getchal(&chal, s) >= 0){
-			chaled = 1;
-			strncpy(username, s, NAMELEN);
-			username[NAMELEN-1] = '\0';
-			Bprint(&bout, "* ok [ALERT] Encrypt challenge %s, send as password\r\n", chal.chal);
-			Bprint(&bout, "%s no %s need response to challenge %s\r\n", tg, cmd, chal.chal);
-		}else
-			Bprint(&bout, "%s no %s failed\r\n", tg, cmd);
-	}
+	Bprint(&bout, "%s no %s plaintext passwords disallowed\r\n", tg, cmd);
 }
 
 /*
@@ -949,6 +927,7 @@ logoutCmd(char *tg, char *cmd)
 	}
 	Bprint(&bout, "* bye\r\n");
 	Bprint(&bout, "%s ok %s completed\r\n", tg, cmd);
+exits("rob6");
 	exits(0);
 }
 
@@ -1104,13 +1083,13 @@ selectCmd(char *tg, char *cmd)
 	selected->toldRecent = selected->recent;
 	for(m = selected->msgs; m != nil; m = m->next){
 		if(!m->expunged && (m->flags & MSeen) != MSeen){
-			Bprint(&bout, "* ok [unseen %ld]\r\n", m->seq);
+			Bprint(&bout, "* ok [UNSEEN %ld]\r\n", m->seq);
 			break;
 		}
 	}
-	Bprint(&bout, "* ok [permanentflags (\\Seen \\Answered \\Flagged \\Draft)]\r\n");
-	Bprint(&bout, "* ok [uidnext %ld]\r\n", selected->uidnext);
-	Bprint(&bout, "* ok [uidvalidity %ld]\r\n", selected->uidvalidity);
+	Bprint(&bout, "* ok [PERMANENTFLAGS (\\Seen \\Answered \\Flagged \\Draft)]\r\n");
+	Bprint(&bout, "* ok [UIDNEXT %ld]\r\n", selected->uidnext);
+	Bprint(&bout, "* ok [UIDVALIDITY %ld]\r\n", selected->uidvalidity);
 	s = "READ-ONLY";
 	if(selected->writable)
 		s = "READ-WRITE";

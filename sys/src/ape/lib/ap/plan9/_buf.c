@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <lock.h>
 #include <sys/time.h>
-#include <select.h>
+#include <sys/select.h>
+#include <unistd.h>
 #include "sys9.h"
 
 typedef struct Muxseg {

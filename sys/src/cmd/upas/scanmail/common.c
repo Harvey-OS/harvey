@@ -35,6 +35,7 @@ Word	hrefs[] =
 {
 	"a href=",	7,
 	"a title=",	8,
+	"a target=",	9,
 	"base href=",	10,
 	"img src=",	8,
 	"img border=",	11,
@@ -295,14 +296,32 @@ htmlchk(char **msg, char *end)
 	return *p;
 }
 
+/*
+ * decode a base 64 encode body
+ */
 void
+conv64(char *msg, char *end, char *buf, int bufsize)
+{
+	int len, i;
+	char *cp;
+
+	len = end - msg;
+	i = (len*3)/4+1;	// room for max chars + null
+	cp = Malloc(i);
+	len = dec64((uchar*)cp, i, msg, len);
+	convert(cp, cp+len, buf, bufsize, 1);
+	free(cp);
+}
+
+int
 convert(char *msg, char *end, char *buf, int bufsize, int isbody)
 {
 
 	char *p;
-	int c, lastc;
+	int c, lastc, base64;
 
 	lastc = 0;
+	base64 = 0;
 	while(msg < end && bufsize > 0){
 		c = *msg++;
 
@@ -330,6 +349,14 @@ convert(char *msg, char *end, char *buf, int bufsize, int isbody)
 				continue;
 			c = ' ';
 			break;
+		case 'C':	/* check for MIME base 64 encoding in header */
+		case 'c':
+			if(isbody == 0)
+			if(msg < end-32 && *msg == 'o' && msg[1] == 'n')
+			if(cistrncmp(msg+2, "tent-transfer-encoding: base64", 30) == 0)
+				base64 = 1;
+			c = 'c';
+			break;
 		default:
 			c = tolower(c);
 			break;
@@ -339,6 +366,7 @@ convert(char *msg, char *end, char *buf, int bufsize, int isbody)
 		bufsize--;
 	}
 	*buf = 0;
+	return base64;
 }
 
 /*
@@ -598,3 +626,42 @@ xprint(int fd, char *type, Resub *m)
 
 	fprint(fd, "%s %.*s~%.*s~%.*s\n", type, (int)(m->sp-p), p, (int)(m->ep-m->sp), m->sp, (int)(q-m->ep), m->ep);
 }
+
+enum {
+	INVAL=	255
+};
+
+static uchar t64d[256] = {
+/*00 */	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*10*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*20*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL,    62, INVAL, INVAL, INVAL,    63,
+/*30*/	   52,	  53,	 54,	55,    56,    57,    58,    59,
+	   60,	  61, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*40*/	INVAL,    0,      1,     2,     3,     4,     5,     6,
+	    7,    8,      9,    10,    11,    12,    13,    14,
+/*50*/	   15,   16,     17,    18,    19,    20,    21,    22,
+	   23,   24,     25, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*60*/	INVAL,   26,     27,    28,    29,    30,    31,    32,
+	   33,   34,     35,    36,    37,    38,    39,    40,
+/*70*/	   41,   42,     43,    44,    45,    46,    47,    48,
+	   49,   50,     51, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*80*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*90*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*A0*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*B0*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*C0*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*D0*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*E0*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+/*F0*/	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+	INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL, INVAL,
+};

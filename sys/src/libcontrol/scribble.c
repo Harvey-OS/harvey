@@ -29,10 +29,13 @@ enum{
 	EBordercolor,
 	EFocus,
 	EFont,
+	EHide,
 	EImage,
 	ELinecolor,
 	ERect,
+	EReveal,
 	EShow,
+	ESize,
 };
 
 static char *cmds[] = {
@@ -41,16 +44,17 @@ static char *cmds[] = {
 	[EBordercolor] ="bordercolor",
 	[EFocus] = 	"focus",
 	[EFont] =		"font",
+	[EHide] =		"hide",
 	[EImage] =	"image",
 	[ELinecolor] =	"linecolor",
 	[ERect] =		"rect",
+	[EReveal] =	"reveal",
 	[EShow] =		"show",
+	[ESize] =		"size",
 	nil
 };
 
-static void	scribctl(Control*, char*);
 static void	scribshow(Scrib*);
-static void	scribfree(Scrib*);
 static void scribchar(Scrib*, Rune);
 
 static void	resetstroke(Scrib *w);
@@ -59,76 +63,35 @@ static void	displaylast(Scrib *w);
 static void	addpoint(Scrib *w, Point p);
 
 static void
-scribthread(void *v)
+scribmouse(Control *c, Mouse *m)
 {
-	char buf[32];
 	Scrib *b;
 	Rune r;
 
-	b = v;
-
-	snprint(buf, sizeof buf, "scrib-%s-0x%p", b->name, b);
-	threadsetname(buf);
-
-	b->image = _getctlimage("white");
-	b->color = _getctlimage("black");
-	b->bordercolor = _getctlimage("black");
-	b->align = Aupperleft;
-	b->format = ctlstrdup("%q: value 0x%x");
-	b->font = _getctlfont("font");
-	b->scrib = scribblealloc();
-	b->lastbut = 0;
-	b->bordercolor = _getctlimage("black");
-	b->border = 0;
-
-	for(;;){
-		switch(alt(b->alts)){
-		default:
-			ctlerror("%q: unknown message", b->name);
-		case AKey:
-			/* ignore keystrokes */
-			break;
-		case AMouse:
-			if (b->m.buttons & 0x1) {
-				if ((b->lastbut & 0x1) == 0) {
-					/* mouse went down */
-					resetstroke(b);
-				}
-				/* mouse is down */
-				addpoint(b, b->m.xy);
-			} else if (b->lastbut & 0x1) {
-				/* mouse went up */
-				r = recognize(b->scrib);
-				scribchar(b, r);
-				scribshow(b);
-				if (r) printctl(b->event, b->format, b->name, r);
-			}
-			b->lastbut = b->m.buttons;
-			break;
-		case ACtl:
-			_ctlcontrol(b, b->str, scribctl);
-			free(b->str);
-			break;
-		case AWire:
-			_ctlrewire(b);
-			break;
-		case AExit:
-			scribfree(b);
-			sendul(b->exit, 0);
-			return;
+	b = (Scrib*)c;
+	if (m->buttons & 0x1) {
+		if ((b->lastbut & 0x1) == 0) {
+			/* mouse went down */
+			resetstroke(b);
 		}
+		/* mouse is down */
+		addpoint(b, m->xy);
+	} else if (b->lastbut & 0x1) {
+		/* mouse went up */
+		r = recognize(b->scrib);
+		scribchar(b, r);
+		scribshow(b);
+		if (r) chanprint(b->event, b->format, b->name, r);
 	}
-}
-
-Control*
-createscribble(Controlset *cs, char *name)
-{
-	return _createctl(cs, "scrib", sizeof(Scrib), name, scribthread, 64*1024);
+	b->lastbut = m->buttons;
 }
 
 static void
-scribfree(Scrib *b)
+scribfree(Control *c)
 {
+	Scrib *b;
+
+	b = (Scrib*)c;
 	_putctlimage(b->image);
 	_putctlimage(b->color);
 	_putctlimage(b->bordercolor);
@@ -159,6 +122,8 @@ scribshow(Scrib *b)
 	Scribble *s = b->scrib;
 	char buf[32];
 
+	if (b->hidden)
+		return;
 	if(b->border > 0){
 		r = insetrect(b->rect, b->border);
 		border(b->screen, b->rect, b->border, b->bordercolor->image, ZP);
@@ -188,60 +153,84 @@ scribshow(Scrib *b)
 }
 
 static void
-scribctl(Control *c, char *str)
+scribctl(Control *c, CParse *cp)
 {
 	int cmd;
-	CParse cp;
 	Rectangle r;
 	Scrib *b;
 
 	b = (Scrib*)c;
-	cmd = _ctlparse(&cp, str, cmds);
+	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", b->name, cp.str);
+		abort();
+		ctlerror("%q: unrecognized message '%s'", b->name, cp->str);
 		break;
 	case EAlign:
-		_ctlargcount(b, &cp, 2);
-		b->align = _ctlalignment(cp.args[1]);
+		_ctlargcount(b, cp, 2);
+		b->align = _ctlalignment(cp->args[1]);
 		break;
 	case EBorder:
-		_ctlargcount(b, &cp, 2);
-		if(cp.iargs[1] < 0)
-			ctlerror("%q: bad border: %c", b->name, cp.str);
-		b->border = cp.iargs[1];
+		_ctlargcount(b, cp, 2);
+		if(cp->iargs[1] < 0)
+			ctlerror("%q: bad border: %c", b->name, cp->str);
+		b->border = cp->iargs[1];
 		break;
 	case EBordercolor:
-		_ctlargcount(b, &cp, 2);
-		_setctlimage(b, &b->bordercolor, cp.args[1]);
+		_ctlargcount(b, cp, 2);
+		_setctlimage(b, &b->bordercolor, cp->args[1]);
 		break;
 	case EFocus:
 		break;
 	case EImage:
-		_ctlargcount(b, &cp, 2);
-		_setctlimage(b, &b->image, cp.args[1]);
+		_ctlargcount(b, cp, 2);
+		_setctlimage(b, &b->image, cp->args[1]);
 		break;
 	case ELinecolor:
-		_ctlargcount(b, &cp, 2);
-		_setctlimage(b, &b->bordercolor, cp.args[1]);
+		_ctlargcount(b, cp, 2);
+		_setctlimage(b, &b->bordercolor, cp->args[1]);
 		break;
 	case ERect:
-		_ctlargcount(b, &cp, 5);
-		r.min.x = cp.iargs[1];
-		r.min.y = cp.iargs[2];
-		r.max.x = cp.iargs[3];
-		r.max.y = cp.iargs[4];
+		_ctlargcount(b, cp, 5);
+		r.min.x = cp->iargs[1];
+		r.min.y = cp->iargs[2];
+		r.max.x = cp->iargs[3];
+		r.max.y = cp->iargs[4];
 		if(Dx(r)<0 || Dy(r)<0)
-			ctlerror("%q: bad rectangle: %s", b->name, cp.str);
+			ctlerror("%q: bad rectangle: %s", b->name, cp->str);
 		b->rect = r;
 		break;
+	case EReveal:
+		_ctlargcount(b, cp, 1);
+		b->hidden = 0;
+		scribshow(b);
+		break;
 	case EShow:
-		_ctlargcount(b, &cp, 1);
+		_ctlargcount(b, cp, 1);
 		scribshow(b);
 		break;
 	case EFont:
-		_ctlargcount(b, &cp, 2);
-		_setctlfont(b, &b->font, cp.args[1]);
+		_ctlargcount(b, cp, 2);
+		_setctlfont(b, &b->font, cp->args[1]);
+		break;
+	case EHide:
+		_ctlargcount(b, cp, 1);
+		b->hidden = 1;
+		break;
+	case ESize:
+		if (cp->nargs == 3)
+			r.max = Pt(0x7fffffff, 0x7fffffff);
+		else{
+			_ctlargcount(b, cp, 5);
+			r.max.x = cp->iargs[3];
+			r.max.y = cp->iargs[4];
+		}
+		r.min.x = cp->iargs[1];
+		r.min.y = cp->iargs[2];
+		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
+			ctlerror("%q: bad sizes: %s", b->name, cp->str);
+		b->size.min = r.min;
+		b->size.max = r.max;
 		break;
 	}
 }
@@ -308,4 +297,26 @@ addpoint(Scrib *w, Point p)
 	s->ps.npts++;
 	
 	displaylast(w);
+}
+
+Control*
+createscribble(Controlset *cs, char *name)
+{
+	Scrib *b;
+
+	b = (Scrib*)_createctl(cs, "scribble", sizeof(Scrib), name);
+	b->image = _getctlimage("white");
+	b->color = _getctlimage("black");
+	b->bordercolor = _getctlimage("black");
+	b->align = Aupperleft;
+	b->format = ctlstrdup("%q: value 0x%x");
+	b->font = _getctlfont("font");
+	b->scrib = scribblealloc();
+	b->lastbut = 0;
+	b->bordercolor = _getctlimage("black");
+	b->border = 0;
+	b->ctl = scribctl;
+	b->mouse = scribmouse;
+	b->exit = scribfree;
+	return (Control*)b;
 }

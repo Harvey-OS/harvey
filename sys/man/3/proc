@@ -5,6 +5,7 @@ proc \- running processes
 .nf
 .B bind #p /proc
 
+.BI /proc/ n /args
 .BI /proc/ n /ctl
 .BI /proc/ n /fd
 .BI /proc/ n /fpregs
@@ -78,7 +79,10 @@ write,
 .RB ( w ),
 or both
 .RB ( rw );
-the type, device number, and qid of the file; its I/O offset; and its name at the time it was opened.
+the type, device number, and qid of the file; its I/O unit (the amount of data
+that may be transferred on the file as a contiguous piece; see
+.IR iounit (2)),
+its I/O offset; and its name at the time it was opened.
 .PP
 The read-only
 .B ns
@@ -130,6 +134,22 @@ in units of 1024 bytes
 .IP \-
 the base and current scheduling priority, each 11 character numbers
 .PP
+The read-only
+.B args
+file contains the arguments of the program when it was created by
+.IR exec (2).
+If the program was not created by
+.BR exec ,
+such as by
+.IR fork (2),
+its
+.B args
+file will be empty.
+The format of the file is a list of quoted strings suitable for
+.BR tokenize ;
+see
+.IR getfields (2).
+.PP
 The
 .B text
 file is a pseudonym for the file
@@ -139,8 +159,10 @@ its main use is to recover the symbol table of the process.
 The
 .B wait
 file may be read to recover
-.B Waitmsg
-records from the exiting children of the process.
+records from the exiting children of the process in the format of
+.B await
+(see
+.IR wait (2)).
 If the process has no extant children, living or exited,
 a read of
 .B wait
@@ -152,10 +174,10 @@ When a process's
 .B wait
 file is being read,
 the process will draw an error
-if it attempts a
-.B wait
-system call; similarly, if a process is in a
-.B wait
+if it attempts an
+.B await
+system call; similarly, if a process is in an
+.B await
 system call, its
 .B wait
 file cannot be read by any process.
@@ -204,8 +226,15 @@ when it completes an
 system call, it will enter the
 .B Stopped
 state before returning to user mode.
-This bit is inherited across a
-.IR fork (2).
+This bit is inherited across
+.IR fork (2)
+and
+.IR exec (2).
+.TP 10n
+.B "close\ \fIn
+Close file descriptor
+.I n
+in the process.
 .TP 10n
 .B closefiles
 Close all open file descriptors in the process.
@@ -215,6 +244,12 @@ Clear the hang bit.
 .TP 10n
 .B kill
 Kill the process the next time it crosses the user/kernel boundary.
+.TP 10n
+.B private
+Make it impossible to read the process's user memory.
+This property is inherited on fork, cleared on
+.IR exec (2),
+and is not otherwise resettable.
 .TP 10n
 .B "pri\ \fIn
 Set the base priority for the process to the integer

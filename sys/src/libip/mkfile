@@ -1,13 +1,15 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libip.a
-OFILES = eipconv.$O\
+OFILES = eipfmt.$O\
 	parseip.$O\
 	parseether.$O\
 	myetheraddr.$O\
+	myipaddr.$O\
 	classmask.$O\
 	bo.$O\
 	readipifc.$O\
 	ipaux.$O\
+	ptclbsum.$O\
 
 </sys/src/cmd/mksyslib

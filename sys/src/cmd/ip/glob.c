@@ -1,349 +1,194 @@
 #include <u.h>
 #include <libc.h>
+#include <regexp.h>
+#include <String.h>
 #include "glob.h"
 
-char *globname;
-Glob *globv;
-Glob *lastglob;
-
-#define	GLOB	((char)0x01)
-
 /*
- * onebyte(c), twobyte(c), threebyte(c)
- * Is c the first character of a one- two- or three-byte utf sequence?
+ *  I wrote this glob so that there would be no limit
+ *  on element or path size.  The one in rc is probably
+ *  better, certainly faster. - presotto
  */
-#define	onebyte(c)	((c&0x80)==0x00)
-#define	twobyte(c)	((c&0xe0)==0xc0)
-#define	threebyte(c)	((c&0xf0)==0xe0)
 
-static Glob*	newGlob(char*, Glob*);
-static int	globsize(char*);
-static void	deglob(char*);
-static void	globsort(Glob*, Glob*);
-static void	globdir(char*, char*);
-static int	equtf(char*, char*);
-static char*	nextutf(char*);
-static int	unicode(char*);
-static int	matchfn(char*, char*);
-static int	match(char*, char*, int);
-
-/*
- *  return a list of matches
- */
-Glob*
-glob(char *p)
+static Glob*
+globnew(void)
 {
-	Glob *svglobv = globv;
-	int globlen, isglob;
-	char *gp, *tp;
+	Glob *g;
 
-	/* add GLOB's before special characters */
-	gp = malloc(2*strlen(p)+1);
-	tp = gp;
-	isglob = 0;
-	globlen = NAMELEN + 1;
-	while(*p){
-		globlen++;
-		switch(*p){
-		case '*':
-			globlen += NAMELEN;
-		case '?':
-		case '[':
-		case ']':
-			isglob = 1;
-			*tp++ = GLOB;
-			break;
-		}
-		globlen++;
-		*tp++ = *p++;
-	}
-	*tp = 0;
-
-	if(!isglob){
-		globv = newGlob(gp, globv);
-		lastglob = globv;
-		svglobv = globv;
-		globv = 0;
-		return svglobv;
-	}
-	p = gp;
-	globname = malloc(globlen);
-	globname[0] = '\0';
-	globdir(p, globname);
-	free(globname);
-	if(svglobv == globv){
-		deglob(p);
-		globv = newGlob(p, globv);
-	} else
-		globsort(globv, svglobv);
-	svglobv = globv;
-	for(lastglob = globv; lastglob->next; lastglob = lastglob->next)
-		;
-	globv = 0;
-
-	return svglobv;
+	g = mallocz(sizeof(*g), 1);
+	if(g == nil)
+		sysfatal("globnew: %r");
+	return g;
 }
 
-/*
- *  free the match list
- */
-void
+static void
 globfree(Glob *g)
 {
 	Glob *next;
 
-	for(; g; g = next){
+	for(; g != nil; g = next){
 		next = g->next;
-		free(g->glob);
+		s_free(g->glob);
 		free(g);
 	}
 }
 
-/*
- *  add to the end of the glob list
- */
+static Globlist*
+globlistnew(char *x)
+{
+	Globlist *gl;
+
+	gl = mallocz(sizeof *gl, 1);
+	if(gl == nil)
+		sysfatal("globlistnew: %r");
+	gl->first = globnew();
+	gl->first->glob = s_copy(x);
+	gl->l = &gl->first->next;
+	return gl;
+}
+
 void
-globadd(char *cp)
+globlistfree(Globlist *gl)
 {
-	Glob *p;
-
-	p = newGlob(cp, 0);	
-	lastglob->next = p;
-	lastglob = p;	
+	if(gl == nil)
+		return;
+	globfree(gl->first);
+	free(gl);
 }
 
-static Glob*
-newGlob(char *wd, Glob *next)
+void
+globadd(Globlist *gl, char *dir, char *file)
 {
-	Glob *p;
+	Glob *g;
 
-	p = malloc(sizeof(Glob));
-	p->glob = strdup(wd);
-	p->next = next;
-	return p;
+	g = globnew();
+	g->glob = s_copy(dir);
+	if(strcmp(dir, "/") != 0 && *dir != 0)
+		s_append(g->glob, "/");
+	s_append(g->glob, file);
+	*(gl->l) = g;
+	gl->l = &(g->next); 
 }
 
-/*
- *  maximum length after globing
- */
-/*
- * delete all the GLOB marks from s, in place
- */
 static void
-deglob(char *s)
+globdir(Globlist *gl, char *dir, Reprog *re)
 {
-	char *t = s;
+	Dir *d;
+	int i, n, fd;
 
-	do{
-		if(*t == GLOB)
-			t++;
-		*s++ = *t;
-	}while(*t++);
+	if(*dir == 0)
+		fd = open(".", OREAD);
+	else
+		fd = open(dir, OREAD);
+	if(fd < 0)
+		return;
+	n = dirreadall(fd, &d);
+	if(n == 0)
+		return;
+	close(fd);
+	for(i = 0; i < n; i++)
+		if(regexec(re, d[i].name, nil, 0))
+			globadd(gl, dir, d[i].name);
+	free(d);
 }
-static int
-globcmp(void *v1, void *v2)
-{
-	char **s, **t;
 
-	s = v1;
-	t = v2;
-	return strcmp(*s, *t);
-}
 static void
-globsort(Glob *left, Glob *right)
+globdot(Globlist *gl, char *dir)
 {
-	char **list;
-	Glob *a;
-	int n = 0;
+	Dir *d;
 
-	for(a = left; a != right; a = a->next)
-		n++;
-	list = (char **)malloc(n*sizeof(char *));
-	for(a = left,n = 0; a != right; a = a->next,n++)
-		list[n] = a->glob;
-	qsort((char *)list, n, sizeof(char *), globcmp);
-	for(a = left,n = 0; a != right; a = a->next,n++)
-		a->glob = list[n];
-	free((char *)list);
-}
-/*
- * Push names prefixed by globname and suffixed by a match of p onto the astack.
- * namep points to the end of the prefix in globname.
- */
-static void
-globdir(char *p, char *namep)
-{
-	char *t, *newp;
-	int f;
-	Dir d;
-
-	/* scan the pattern looking for a component with a metacharacter in it */
-	if(*p == '\0'){
-		globv = newGlob(globname, globv);
+	if(*dir == 0){
+		globadd(gl, "", ".");
 		return;
 	}
-	t = namep;
-	newp = p;
-	while(*newp){
-		if(*newp == GLOB)
+	d = dirstat(dir);
+	if(d == nil)
+		return;
+	if(d->qid.type & QTDIR)
+		globadd(gl, dir, ".");
+	free(d);
+}
+
+static void
+globnext(Globlist *gl, char *pattern)
+{
+	String *np;
+	Glob *g, *inlist;
+	Reprog *re;
+	int c;
+
+	/* nothing left */
+	if(*pattern == 0)
+		return;
+
+	inlist = gl->first;
+	gl->first = nil;
+	gl->l = &gl->first;
+
+	/* pick off next pattern and turn into a reg exp */
+	np = s_new();
+	s_putc(np, '^');
+	for(; c = *pattern; pattern++){
+		if(c == '/'){
+			pattern++;
 			break;
-		*t = *newp++;
-		if(*t++ == '/'){
-			namep = t;
-			p = newp;
 		}
-	}
-	/* If we ran out of pattern, append the name if accessible */
-	if(*newp == '\0'){
-		*t = '\0';
-		if(access(globname, 0) == 0)
-			globv = newGlob(globname, globv);
-		return;
-	}
-	/* read the directory and recur for any entry that matches */
-	*namep = '\0';
-	if((f = open(globname[0]?globname:".", OREAD))<0)
-		return;
-	if(dirfstat(f, &d) < 0 || (d.mode & CHDIR) == 0){
-		close(f);
-		return;
-	}
-	while(*newp != '/' && *newp != '\0')
-		newp++;
-	while(dirread(f, &d, sizeof(d)) > 0){
-		strcpy(namep, d.name);
-		if(matchfn(namep, p)){
-			for(t = namep;*t;t++)
-				;
-			globdir(newp, t);
-		}
-	}
-	close(f);
-}
-/*
- * Do p and q point at equal utf codes
- */
-static int
-equtf(char *p, char *q)
-{
-	if(*p != *q)
-		return 0;
-	if(twobyte(*p))
-		return p[1] == q[1];
-	if(threebyte(*p)){
-		if(p[1] != q[1])
-			return 0;
-		if(p[1] == '\0')
-			return 1;	/* broken code at end of string! */
-		return p[2] == q[2];
-	}
-	return 1;
-}
-/*
- * Return a pointer to the next utf code in the string,
- * not jumping past nuls in broken utf codes!
- */
-static char*
-nextutf(char *p)
-{
-	if(twobyte(*p))
-		return p[1] == '\0'?p+1:p+2;
-	if(threebyte(*p))
-		return p[1] == '\0'?p+1:p[2] == '\0'?p+2:p+3;
-	return p+1;
-}
-/*
- * Convert the utf code at *p to a unicode value
- */
-static int
-unicode(char *p)
-{
-	int u = *p&0xff;
-
-	if(twobyte(u))
-		return ((u&0x1f)<<6)|(p[1]&0x3f);
-	if(threebyte(u))
-		return (u<<12)|((p[1]&0x3f)<<6)|(p[2]&0x3f);
-	return u;
-}
-/*
- * Does the string s match the pattern p
- * . and .. are only matched by patterns starting with .
- * * matches any sequence of characters
- * ? matches any single character
- * [...] matches the enclosed List of characters
- */
-static int
-matchfn(char *s, char *p)
-{
-	if(s[0] == '.' && (s[1] == '\0' || s[1] == '.' && s[2] == '\0') && p[0] != '.')
-		return 0;
-	return match(s, p, '/');
-}
-static int
-match(char *s, char *p, int stop)
-{
-	int compl, hit, lo, hi, t, c;
-
-	for(; *p != stop && *p != '\0'; s = nextutf(s),p = nextutf(p)){
-		if(*p != GLOB){
-			if(!equtf(p, s))
-				return 0;
-		}
-		else switch(*++p){
-		case GLOB:
-			if(*s != GLOB)
-				return 0;
+		switch(c){
+		case '|':
+		case '+':
+		case '.':
+		case '^':
+		case '$':
+		case '(':
+		case ')':
+			s_putc(np, '\\');
+			s_putc(np, c);
+			break;
+		case '?':
+			s_putc(np, '.');
 			break;
 		case '*':
-			for(;;){
-				if(match(s, nextutf(p), stop))
-					return 1;
-				if(!*s)
-					break;
-				s = nextutf(s);
-			}
-			return 0;
-		case '?':
-			if(*s == '\0')
-				return 0;
+			s_putc(np, '.');
+			s_putc(np, '*');
 			break;
-		case '[':
-			if(*s == '\0')
-				return 0;
-			c = unicode(s);
-			p++;
-			compl = *p == '~';
-			if(compl) p++;
-			hit = 0;
-			while(*p != ']'){
-				if(*p == '\0')
-					return 0;		/* syntax error */
-				lo = unicode(p);
-				p = nextutf(p);
-				if(*p != '-')
-					hi = lo;
-				else{
-					p++;
-					if(*p == '\0')
-						return 0;	/* syntax error */
-					hi = unicode(p);
-					p = nextutf(p);
-					if(hi<lo){
-						t = lo;
-						lo = hi;
-						hi = t;
-					}
-				}
-				if(lo <= c && c <= hi)
-					hit = 1;
-			}
-			if(compl)
-				hit = !hit;
-			if(!hit)
-				return 0;
+		default:
+			s_putc(np, c);
 			break;
 		}
 	}
-	return *s == '\0';
+	s_putc(np, '$');
+	s_terminate(np);
+	if(strcmp(s_to_c(np), "^\\.$") == 0){
+		/* anything that's a directory works */
+		for(g = inlist; g != nil; g = g->next)
+			globdot(gl, s_to_c(g->glob));
+	} else {
+		re = regcomp(s_to_c(np));
+
+		/* run input list as directories */
+		for(g = inlist; g != nil; g = g->next)
+			globdir(gl, s_to_c(g->glob), re);
+		free(re);
+	}
+	s_free(np);
+	globfree(inlist);
+
+	if(gl->first != nil)
+		globnext(gl, pattern);
+}
+
+Globlist*
+glob(char *pattern)
+{
+	Globlist *gl;
+
+	if(pattern == nil || *pattern == 0)
+		return nil;
+	if(*pattern == '/'){
+		pattern++;
+		gl = globlistnew("/");
+	} else
+		gl = globlistnew("");
+	globnext(gl, pattern);
+	return gl;
 }

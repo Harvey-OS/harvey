@@ -118,6 +118,7 @@ enum
 	SLEAF,
 	SFILE,
 	SCONST,
+	SSTRING,
 
 	LFROM		= 1<<0,
 	LTO		= 1<<1,
@@ -166,6 +167,8 @@ enum
 	C_ROREG,
 	C_SROREG,	/* both S and R */
 	C_LOREG,
+
+	C_ADDR,		/* relocatable address */
 
 	C_GOK,
 
@@ -254,6 +257,23 @@ EXTERN	Prog	zprg;
 EXTERN	int	dtype;
 EXTERN	int	armv4;
 
+EXTERN	int	reloc;
+EXTERN	Adr*	reloca;
+EXTERN	long	relocv;
+EXTERN	char*	undefs;
+EXTERN	Sym**	undefv;
+EXTERN	int	undefn;
+EXTERN	Prog	undefp;
+
+#define	UP	(&undefp)
+
+enum
+{
+	UIXSHIFT	= 18,
+	UIXBITS		= 27 - UIXSHIFT,
+	UIXLIM		= 1 << UIXBITS,
+};
+
 extern	char*	anames[];
 extern	Optab	optab[];
 
@@ -274,12 +294,12 @@ EXTERN	Prog*	prog_modu;
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"S"	char*
 
-int	Aconv(va_list*, Fconv*);
-int	Cconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Nconv(va_list*, Fconv*);
-int	Pconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
+int	Aconv(Fmt*);
+int	Cconv(Fmt*);
+int	Dconv(Fmt*);
+int	Nconv(Fmt*);
+int	Pconv(Fmt*);
+int	Sconv(Fmt*);
 int	aclass(Adr*);
 void	addhist(long, int);
 void	append(Prog*, Prog*);
@@ -296,7 +316,7 @@ int	chipfloat(Ieee*);
 int	cmp(int, int);
 int	compound(Prog*);
 double	cputime(void);
-void	datblk(long, long);
+void	datblk(long, long, int);
 void	diag(char*, ...);
 void	dodata(void);
 void	doprof1(void);
@@ -344,14 +364,16 @@ void	prepend(Prog*, Prog*);
 Prog*	prg(void);
 int	pseudo(Prog*);
 void	putsymb(char*, int, long, int);
+void	readundefs(void);
 long	regoff(Adr*);
 int	relinv(int);
 long	rnd(long, long);
 void	span(void);
 void	strnput(char*, int);
 void	undef(void);
+void	undefpc(long);
+void	undefsym(Sym*);
 void	xdefine(char*, int, long);
-void	xfol(Prog*);
 void	xfol(Prog*);
 void	noops(void);
 long	immrot(ulong);

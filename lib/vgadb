@@ -16,6 +16,16 @@
 # is done without the extension.
 #
 ctlr
+	vid=0x8086 did=0x7121		# Intel 82810
+	vid=0x8086 did=0x7123		# Intel 82810-DC100
+	vid=0x8086 did=0x7125		# Intel 82810E
+	vid=0x8086 did=0x1132		# Intel 82815 chipset, fully featured, internal graphics
+	vid=0x8086 did=0x1112		# Intel 82815 chipset, internal graphics only
+	vid=0x8086 did=0x1102		# Intel 82815 chipset, internal graphics (100MHz dram limit)
+	link=vga
+	ctlr=i81x linear=1
+	hwgc=i81xhwgc
+ctlr
 	0xC006F="8C801"					# STB PowerGraph X-24
 	link=vga
 	ramdac=att20c491-100
@@ -67,7 +77,7 @@ ctlr
 	link=s3clock clock=tvp3025clock
 ctlr
 	0xC00F6="#9 T2R4 SB BIOS"			# #9 Revolution IV
-	0xC000A="3.06.04"				# #9 Revolution IV
+	vid=0x105D did=0x5348		# #9 Revolution IV
 	ctlr=t2r4 linear=1
 	ramdac=rgb524mn-250 rgb524mnrefclk=37500000
 	hwgc=t2r4hwgc
@@ -97,6 +107,7 @@ ctlr
 	link=ibm8514
 	hwgc=rgb524hwgc
 ctlr
+	0xC0045="Stealth 64 DRAM Vers. 2.01"
 	0xC0045="Stealth 64 DRAM Vers. 2.02"
 	0xC0045="Stealth 64 DRAM Vers. 2.09"
 	0xC0045="Stealth 64 DRAM Vers. 1.14"
@@ -107,24 +118,33 @@ ctlr
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.2-07"
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.5-07"
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. PCI Version 1.1"	# ishwar@pali.cps.umich.edu
-	0xC0048="S3 86C775/86C785 Video BIOS."	# marcello.magnifico@rccr.cremona.it
+	0xC0000-0xC0100="S3 86C775/86C785 Video BIOS."	# marcello.magnifico@rccr.cremona.it
 	0xC0044="Phoenix S3 TRIO64V+ Enhanced VGA BIOS. Version 1."
 	0xC0044="S3 86C325 Video BIOS. Version 1.00-05"
 	0xC0094="#9-764 BIOS Version 1.02.00u"
 	0xC0094="#9-764 BIOS Version 1.02.01u"
 	0xC0044="S3 86C765 Video BIOS"
+	0xC0044="Stealth64 Video 2001"
 	link=vga
 	hwgc=s3hwgc
 	ctlr=trio64 linear=1
 	link=ibm8514
-# does not work; did not work on mar 1 1999, jun 1 1999. -rsc
 ctlr
-	0xC0044="Stealth64 Video 2001"			# Trio64V+
-	link=vga
-	hwgc=s3hwgc
-	ctlr=trio64
-	link=ibm8514
-ctlr
+	vid=0x5333 did=0x5631		# ViRGE
+	vid=0x5333 did=0x8A01		# ViRGE DX/GX
+	vid=0x5333 did=0x8A10		# ViRGE GX/2
+	# vid=0x5333 did=0x8A20		# Savage 3D, not supported
+	# vid=0x5333 did=0x8A21		# Savage 3DMV, not supported
+	vid=0x5333 did=0x8A22		# Savage 4
+	vid=0x5333 did=0x883D		# ViRGE VX
+	vid=0x5333 did=0x8C01		# ViRGE MX
+	vid=0x5333 did=0x8C03		# ViRGE MXP
+	vid=0x5333 did=0x8C10		# Savage MX/MV
+	# vid=0x5333 did=0x8C11		# Savage MX, not supported
+	vid=0x5333 did=0x8C12		# Savage IX/MV
+	# vid=0x5333 did=0x8C13		# Savage IX, not supported
+	vid=0x5333 did=0x8C2E		# SuperSavage IXC/16 (Thinkpad T23)
+	# vid=0x5333 did=0x9102		# Savage 2000, not supported
 	0xC0048="Stealth 3D 2000 Vers. 1.03"
 	0xC0043="Stealth 3D 2000 Vers. 1.04"
 	0xC0048="Stealth 3D 2000 Vers. 2.03"
@@ -134,6 +154,7 @@ ctlr
 	0xC0043="Stealth 3D 3000 Vers. 2.01"
 	0xC0043="Stealth 3D 3000 Vers. 2.02"
 	0xC004B="Stealth III S540"		# Savage4-based
+	0xC004B="S3 86C395/396/397 Video BIOS."
 	0xC0044="STB Velocity 3D BIOS. Version 1.10"	# STB Velocity 3D
 	0xC00D8="#9-325 BIOS Version 2.18.08"		# #9FX Reality 332
 	0xC001A="PNTNIBM VGA Compatible BIOS" 	# Hercules Terminator
@@ -162,6 +183,7 @@ ctlr							# CL-GD542x
 	0xC0039="CL-GD542X VGA BIOS"			# NCR 3230
 	0xE0039="CL-GD540x/542x VGA BIOS"		# NCR 3230
 	0xC0039="CL-GD543x"
+	0xC0039="CL-GD5440"
 	0xC003B="SpeedStar PRO"				# Diamond SpeedStar Pro
 	0xC0038="SpeedStar 64"				# Diamond SpeedStar 64
 	0xC00F4="KELVIN 64"				# Orchid Kelvin 64
@@ -170,20 +192,34 @@ ctlr							# CL-GD542x
 	ctlr=clgd542x
 	hwgc=clgd542xhwgc
 ctlr
-	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.10" # CP5000M SBC
-	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.25" # Ziatech ZT 5512 SBC
-	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.20"
-	0xC0039="CL-GD5446 PCI VGA BIOS Version 1.33"	 # CPV5000 SBC
+	0xC0039="CL-GD5436/46 PCI VGA BIOS Version"
+	0xC0039="CL-GD5446 PCI VGA BIOS Version"	
 	link=vga
 	ctlr=clgd542x linear=1
 	hwgc=clgd542xhwgc
 ctlr
+	vid=0x1013 did=0x00D0		# CL-GD5462
+	vid=0x1013 did=0x00D4		# CL-GD5464
+	vid=0x1013 did=0x00D6		# CL=GD5465
 	0xC0039="CL-GD546x Laguna PCI VGA BIOS Version 1.71D" # ZT5550 SBC
 	0xC0039="CL-GD546x Laguna PCI VGA BIOS Version 1.61a" # HP Kayak
 	link=vga
 	ctlr=clgd546x linear=1
 	hwgc=clgd546xhwgc
 ctlr
+	vid=0x1002 did=0x4354		# CT
+	vid=0x1002 did=0x4742		# GB
+	vid=0x1002 did=0x474D		# GM
+	vid=0x1002 did=0x4750		# GP
+	vid=0x1002 did=0x4752		# GR
+	vid=0x1002 did=0x4756		# GV
+	vid=0x1002 did=0x475A		# GZ
+	vid=0x1002 did=0x4C42		# LB
+	vid=0x1002 did=0x4C49		# LI
+	vid=0x1002 did=0x4C4D		# LM
+	vid=0x1002 did=0x4C50		# LP
+	vid=0x1002 did=0x5654		# VT
+	vid=0x1002 did=0x5656		# VV
 	0xC00DC="MACH64CTPCIU"				# ATI Graphics Xpression
 	0xC00E7="MACH64GPPCIM"				# ATI xpert@work
 	0xC00E7="MACH64GBPCIM"				# ATI xpert@work
@@ -193,6 +229,7 @@ ctlr
 	0xC00E0="MACH64GBPCIMTSGU"			# MS-6131 NLX mb
 	0xC00E1="MACH64GBPCIMTSGU"			# MS-6131 NLX mb
 	0xC00CA="MACH64GBPCIMTSGU"			# Dell Optiplex GX1
+	0xC00ED="MACH64GDPCIMTSGU"			# Dell OptiPlex GXa
 	0xC00EB="MACH64GPPCIMTSGU"			# ATI Xpert 98
 	0xC00F7="MACH64LIPCIMTSDU"			# Xpert LCD PCI
 	0xC00F7="MACH64LBPCIMTSGU"			# Xpert LCD AGP
@@ -200,15 +237,15 @@ ctlr
 	0xC00F6="MACH64LMPC"				# COMPAQ Armada E500
 	0xC00E1="MACH64GTPCIUYMU"			# ATI Rage II PCI
 	0xC0000-0xC0200="MACH64CT"			# generic entries
-	0xC0000-0xC0200="MACH64GP"
 	0xC0000-0xC0200="MACH64GB"
 	0xC0000-0xC0200="MACH64GM"
-	0xC0000-0xC0200="MACH64GZ"
+	0xC0000-0xC0200="MACH64GP"
 	0xC0000-0xC0200="MACH64GV"
+	0xC0000-0xC0200="MACH64GZ"
 	0xC0000-0xC0200="MACH64LB"
-	0xC0000-0xC0200="MACH64LP"
 	0xC0000-0xC0200="MACH64LI"
 	0xC0000-0xC0200="MACH64LM"
+	0xC0000-0xC0200="MACH64LP"
 	0xC0000-0xC0200="MACH64VT"
 	0xC0000-0xC0200="MACH64VV"
 	link=vga
@@ -235,15 +272,18 @@ ctlr
 	ctlr=ct65540 linear=1
 	hwgc=ct65545hwgc
 ctlr
-	0xC7345="TVGA BIOS  Z6.1I (0.02)"			# IBM Thinkpad 760ED (U9A)
+	0xC7345="TVGA BIOS  Z6.1I (0.02)"		# IBM Thinkpad 760ED (U9A)
 	0xC7367="TVGA BIOS  Z6.1I (0.05) "		# IBM Thinkpad 560E
-	0xC7845="TVGA BIOS WEN 6.1 (31)   "		# NEC Versa SX
-	0xC7A95="TVGA BIOS WEN 6.1 (35)   "		# NEC Versa SX
-	0xC7A97="TVGA BIOS WEN 6.1 (36)   "		# NEC Versa SX
+	0xC7800-0xC7B00="TVGA BIOS WEN 6.1"		# NEC Versa SX
+	0xC0078="Trident CYBER 8620"			# Acer TravelMate 350
+	0xC0093="Trident TGUI96xx"
 	link=vga
 	ctlr=cyber938x linear=1
 	hwgc=cyber938xhwgc
 ctlr
+	vid=0x102C did=0x00C0		# 69000 HiQVideo
+	vid=0x102C did=0x00E0		# 65550 HiQVideo
+	vid=0x102C did=0x00E4		# 65554 HiQVideo
 	0xC0090="CHIPS 65550 PCI & VL Accelerated VGA BIOS"	# NEC Versa 6030X/6200MX
 	0xC0090="CHIPS 6X554 PCI Accelerated VGA BIOS"	# Digital HiNote Ultra 2000
 	0xC0090="CHIPS 69000 PCI Accelerated VGA BIOS"	# Rackmount
@@ -251,6 +291,9 @@ ctlr
 	ctlr=hiqvideo linear=1
 	hwgc=hiqvideohwgc
 ctlr
+	vid=0x102B did=0x0519		# MGA 2064
+	vid=0x102B did=0x051B		# MGA 2164
+	vid=0x102B did=0x051F		# MGA 2164 AGP
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V1.9 )"	# Millennium
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V3.0 )"	# Millennium
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V2.2 )"	# Millennium
@@ -260,6 +303,13 @@ ctlr
 	ctlr=mga2164w linear=1
 	hwgc=mga2164whwgc
 ctlr
+	# vid=0x10C8 did=0x0001		# MagicGraph 128, not supported
+	# vid=0x10C8 did=0x0002		# MagicGraph 128 V, not supported
+	# vid=0x10C8 did=0x0003		# MagicGraph 128 ZV, not supported
+	# vid=0x10C8 did=0x0083		# MagicGraph 128 ZV+, not supported
+	vid=0x10C8 did=0x0004		# MagicGraph 128 XD
+	vid=0x10C8 did=0x0005		# MagicMedia 256 AV
+	vid=0x10C8 did=0x0006		# MagicMedia 256 ZX
 	0xC0048="MagicGraph 128XD"			# IBM Thinkpad 560X
 	0xC0048="MagicMedia 256AV"			# IBM Thinkpad 600E
 	0xC0048="MagicGraph 256 AV"			# IBM Thinkpad 570, 600E
@@ -289,6 +339,8 @@ ctlr
 	ctlr=et4000-w32p
 	hwgc=et4000hwgc
 ctlr
+	vid=0x121A did=0x0003		# Banshee
+	vid=0x121A did=0x0005		# Avenger (a.k.a. Voodoo3)
 	0xC0056="Voodoo3 1000 16MB BIOS"		# Voodoo3 1000
 	0xC0056="Voodoo3 2000 BIOS"			# Voodoo3 2000
 	0xC0056="Voodoo3 3000 BIOS"			# Voodoo3 3000
@@ -296,6 +348,42 @@ ctlr
 	link=vga
 	ctlr=3dfx linear=1
 	hwgc=3dfxhwgc
+ctlr
+	vid=0x10DE did=0x0020		# Riva TNT
+	vid=0x10DE did=0x0028		# Riva TNT2
+	vid=0x10DE did=0x0029		# Riva TNT2 Ultra
+	vid=0x10DE did=0x002C		# Riva TNT2 Vanta
+	vid=0x10DE did=0x002D		# Riva TNT2 M64
+	vid=0x10DE did=0x00A0		# Riva TNT2 Integrated
+	vid=0x10DE did=0x0100		# GeForce 256
+	vid=0x10DE did=0x0101		# GeForce DDR
+	vid=0x10DE did=0x0103		# Quadro
+	vid=0x10DE did=0x0110		# GeForce2 MMX
+	vid=0x10DE did=0x0111		# GeForce2 MMX DDR
+	vid=0x10DE did=0x0112		# GeForce2 Go
+	vid=0x10DE did=0x0113		# Quadro 2 MXR
+	vid=0x10DE did=0x0150		# GeForce2 GTS
+	vid=0x10DE did=0x0151		# GeForce2 GTS (rev 1)
+	vid=0x10DE did=0x0152		# GeForce2 Ultra
+	vid=0x10DE did=0x0153		# Quadro 2 Pro	
+	vid=0x10DE did=0x0200		# GeForce3
+	link=vga
+	ctlr=nvidia linear=1
+	hwgc=nvidiahwgc
+
+ctlr
+	vid=0x15AD did=0x0710		# VMware 1
+	vid=0x15AD did=0x0405		# VMware 2
+	link=vga
+	ctlr=vmware linear=1
+	hwgc=vmwarehwgc
+
+ctlr
+	0xC002D="MATROX/Matrox G400"
+	0xC002D="MATROX/Matrox G450"
+	link=vga
+	ctlr=mga4xx linear=1
+	hwgc=mga4xxhwgc
 
 #
 # mode:
@@ -358,7 +446,7 @@ include = 1024x768@60Hz					# 60Hz, 48.4KHz
 
 include = 1024x768					# 70Hz, 57.2KHz
 	defaultclock=75
-	shb=1096 ehb=1232 ht=1328
+	shb=1096 ehb=1232 ht=1344
 	shs=1072
 	vrs=771 vre=777 vt=806
 	hsync=- vsync=-
@@ -540,6 +628,21 @@ cm801u = 1376x1024						# ??Hz, ??.?KHz
 	shs=1424
 	vrs=1028 vre=1034 vt=1064
 
+#
+# IBM Thinkpad T23 14.1" 1400x1050 LCD
+#
+t23
+	alias=xga
+# We can't seem to set the clock higher than 100MHz here.
+# Maybe it's because we don't have clock doubling code in aux/vga,
+# maybe it's because the chip won't go that high.  
+# Using a clock of 75 produces noticeable refresh pulsing on the LCD,
+# a clock of 100 seems okay.  I'd like to go higher.
+# If only we had documentation.  -rsc
+t23 = 1400x1050							# 50Hz, ??.?KHz
+	clock=100
+	shb=1460 ehb=1644 ht=1820
+	vrs=1060 vre=1068 vt=1100
 #
 # IDEK 5421
 #
@@ -848,6 +951,11 @@ p815 = 1800x1350					# 70Hz, xx.xKHz
 	shb=1872 ehb=2128 ht=2248
 	shs=1824 ehs=1896
 	vrs=1356 vre=1368 vt=1394
+p815 = 1792x1350					# 70Hz, xx.xKHz
+	defaultclock=220
+	shb=1872 ehb=2128 ht=2248
+	shs=1824 ehs=1896
+	vrs=1356 vre=1368 vt=1394
 p815 = 1600x1200					# 75.4Hz, 93.5KHz
 	defaultclock=200
 	shb=1664 ehb=2088 ht=2144
@@ -882,9 +990,24 @@ multilink = 1600x1024
 	vrs=1027 vre=1030 vt=1055
 	hsync=- vsync=-
 #
+# IBM X20
+#
+x20 = 1024x768
+	clock=100
+	shb=1096 ehb=1232 ht=1328
+	shs=1072
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+#
 # Viewsonic VPD150
 # Usually coupled with an ATI Xpert LCD PCI/AGP.
 #
+vpd150 = 1280x1024
+	clock=65.14
+	shb=1096 ehb=1232 ht=1344
+	shs=1064 ehs=1200
+	vrs=770 vre=776 vt=806
+	hsync=- vsync=-
 vpd150 = 1024x768
 	clock=65.14
 	shb=1096 ehb=1232 ht=1344
@@ -923,6 +1046,14 @@ raptop = 1024x768
 	clock=65
 	include=1024x768
 
+xga@99 = 1024x768
+	clock=99
+	include=1024x768
+
+xga@101 = 1024x768
+	clock=101
+	include=1024x768
+
 #
 # Viglen VL700
 #
@@ -930,3 +1061,29 @@ vl700 = 1280x1024
 	defaultclock=110
 	shb=1328 ehb=1520 ht=1712
 	vrs=1025 vre=1028 vt=1054
+
+#
+# IIYAMA Vision Master Pro 450
+#
+a901ht
+videobw=300
+	alias=multisync
+a901ht = 1920x1440
+	defaultclock=297
+	shb=2064 ehb=2288 ht=2640
+	shs=2030
+	vrs=1441 vre=1444 vt=1500
+	hsync=- vsync=-
+a901ht = 1800x1350     # 60Hz, 89.4KHz
+	defaultclock=220# 219.5MHz @ 1800x1440
+	shb=1872 ehb=2128 ht=2248
+	shs=1824 ehs=1896
+	vrs=1356 vre=1368 vt=1394
+a901ht = 1600x1200     # 72Hz, 90.0KHz
+	defaultclock=200# 195.9MHz
+	shb=1664 ehb=2088 ht=2144
+	shs=1648
+	vrs=1202 vre=1208 vt=1240
+a901ht = 1024x768
+	clock=79
+	include=1024x768

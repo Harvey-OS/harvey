@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gzht.h,v 1.3.2.1 2000/11/09 21:26:51 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gzht.h,v 1.1 2000/03/09 08:40:43 lpd Exp $ */
 /* Internal procedures for halftones */
 /* Requires gxdevice.h, gxdcolor.h */
 
@@ -54,7 +54,6 @@ struct gs_screen_enum_s {
     gs_halftone halftone;	/* supplied by client */
     gx_ht_order order;
     gs_matrix mat;		/* for mapping device x,y to rotated cell */
-    gs_matrix mat_inv;		/* the inversion of mat */
     int x, y;
     int strip, shift;
     gs_state *pgs;
@@ -71,9 +70,8 @@ int gs_sethalftone_prepare(P3(gs_state *, gs_halftone *,
 
 /* Allocate and initialize a spot screen. */
 /* This is the first half of gs_screen_init_accurate/memory. */
-int gs_screen_order_alloc(P2(gx_ht_order *, gs_memory_t *));
 int gs_screen_order_init_memory(P5(gx_ht_order *, const gs_state *,
-				   gs_screen_halftone *, bool, gs_memory_t *));
+				gs_screen_halftone *, bool, gs_memory_t *));
 
 #define gs_screen_order_init(porder, pgs, phsp, accurate)\
   gs_screen_order_init_memory(porder, pgs, phsp, accurate, pgs->memory)
@@ -81,7 +79,7 @@ int gs_screen_order_init_memory(P5(gx_ht_order *, const gs_state *,
 /* Prepare to sample a spot screen. */
 /* This is the second half of gs_screen_init_accurate/memory. */
 int gs_screen_enum_init_memory(P5(gs_screen_enum *, const gx_ht_order *,
-				  gs_state *, const gs_screen_halftone *,
+				  gs_state *, gs_screen_halftone *,
 				  gs_memory_t *));
 
 #define gs_screen_enum_init(penum, porder, pgs, phsp)\

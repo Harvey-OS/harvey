@@ -1,21 +1,21 @@
 %    Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This file is part of Aladdin Ghostscript.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
 
-% $Id: gs_res.ps,v 1.13.2.1 2000/11/09 18:54:57 rayjj Exp $
+% $Id: gs_res.ps,v 1.2 2000/03/10 04:54:15 lpd Exp $
 % Initialization file for Level 2 resource machinery.
 % When this is run, systemdict is still writable,
 % but (almost) everything defined here goes into level2dict.
@@ -25,8 +25,8 @@ level2dict begin
 (BEGIN RESOURCES) VMDEBUG
 
 % We keep track of (global) instances with another entry in the resource
-% dictionary, an .Instances dictionary.  For categories with implicit
-% instances, the values in .Instances are the same as the keys;
+% dictionary, an Instances dictionary.  For categories with implicit
+% instances, the values in Instances are the same as the keys;
 % for other categories, the values are [instance status size].
 
 % Note that the dictionary that defines a resource category is stored
@@ -37,7 +37,7 @@ level2dict begin
 % the obvious place to keep track of the instances, can't be used to keep
 % track of local instances.  Instead, we define a dictionary in local VM
 % called localinstancedict, in which the key is the category name and
-% the value is the analogue of .Instances for local instances.
+% the value is the analogue of Instances for local instances.
 
 % We don't currently implement automatic resource unloading.
 % When and if we do, it should be hooked to the garbage collector.
@@ -70,7 +70,7 @@ setglobal
 %		*ResourceFileName
 %			<key> <scratch> ResourceFileName <filename>
 %	Additional, specific to our implementation:
-%		.Instances (dictionary)
+%		Instances (dictionary)
 %		.LocalInstances
 %			- .LocalInstances <dict>
 %		.GetInstance
@@ -80,15 +80,12 @@ setglobal
 %			<key> <value> .CheckResource <key> <value> <ok>
 %			  (or may give an error if not OK)
 %		.DoLoadResource
-%			<key> .DoLoadResource <key> (may give an error)
+%			<key> .DoLoadResource - (may give an error)
 %		.LoadResource
 %			<key> .LoadResource - (may give an error)
 %		.ResourceFile
 %			<key> .ResourceFile <file> -true-
 %			<key> .ResourceFile <key> -false-
-%		.ResourceFileStatus
-%			<key> .ResourceFileStatus 2 <vmusage> -true-
-%			<key> .ResourceFileStatus -false-
 % All the above procedures expect that the top dictionary on the d-stack
 % is the resource dictionary.
 
@@ -110,48 +107,39 @@ setglobal
   load exec end
 } bind def
 
-% .getvminstance treats instances on disk as undefined.
-/.getvminstance {	% <key> .getvminstance <instance> -true-
-			% <key> .getvminstance -false-
-  .GetInstance {
-    dup 1 get 2 ne { true } { pop false } ifelse
-  } {
-    false
-  } ifelse
-} bind def
-
-20 dict begin
+15 dict begin
 
 		% Standard entries
 
 /Category /Category def
 /InstanceType /dicttype def
 
-/DefineResource {
-	.CheckResource {
-	  dup /Category 3 index cvlit .growput
-	  dup [ exch 0 -1 ] exch
-	  .Instances 4 2 roll put
-		% Make the Category dictionary read-only.  We will have to
-		% use .forceput / .forcedef later to replace the dummy,
-		% empty .Instances dictionary with the real one later.
-	  readonly
-	} {
-	  /defineresource load /typecheck signalerror
-	} ifelse
-} bind def
+/DefineResource
+	{ .CheckResource
+	   { dup /Category 3 index cvlit .growput
+		% We would like to make Category dictionaries read-only,
+		% and we used to do that here, but we can't do it,
+		% because we have to be able to replace the dummy, empty
+		% Instances dictionary with the real one later.
+	     dup [ exch 0 -1 ] exch
+	     Instances 4 2 roll put
+	   }
+	   { /defineresource load /typecheck signalerror
+	   }
+	  ifelse
+	} bind def
 /FindResource		% (redefined below)
-	{ .Instances exch get 0 get
+	{ Instances exch get 0 get
 	} bind def
 
 		% Additional entries
 
-/.Instances 30 dict def
-.Instances /Category [currentdict 0 -1] put
+/Instances 30 dict def
+Instances /Category [currentdict 0 -1] put
 
 /.LocalInstances 0 dict def
 /.GetInstance
-	{ .Instances exch .knownget
+	{ Instances exch .knownget
 	} bind def
 /.CheckResource
 	{ dup gcheck currentglobal and
@@ -163,7 +151,7 @@ setglobal
 	  true
 	} bind def
 
-.Instances end begin	% for the base case of findresource
+Instances end begin	% for the base case of findresource
 
 (END CATEGORY) VMDEBUG
 
@@ -175,15 +163,7 @@ setglobal
 % the operands of resourceforall on the stack, but we can make it work for
 % the others.
 
-% findresource is the only operator that needs to bind //Category.
-/findresource {		% <key> <category> findresource <instance>
-	2 copy dup /Category eq
-	  { pop //Category 0 get begin } { .findcategory } ifelse
-	/FindResource .resourceexec exch pop exch pop
-} bind
-end		% .Instances of Category
-odef
-
+mark
 /defineresource {	% <key> <instance> <category> defineresource <instance>
 	3 copy .findcategory
 	currentdict /InstanceType known {
@@ -194,51 +174,41 @@ odef
 	} if
 	/DefineResource .resourceexec
 	4 1 roll pop pop pop
-} bind odef
-% We must prevent resourceforall from automatically restoring the stacks,
-% because we don't want the stacks restored if proc causes an error.
-% On the other hand, resourceforall is defined in the PLRM as an operator,
-% so it must have type /operatortype.  We hack this by taking advantage of
-% the fact that the interpreter optimizes tail calls, so stack protection
-% doesn't apply to the very last token of an operator procedure.
-/resourceforall1 {	% <template> <proc> <scratch> <category> resourceforall1 -
+}
+/findresource {		% <key> <category> findresource <instance>
+	2 copy dup /Category eq
+	  { pop //Category 0 get begin } { .findcategory } ifelse
+	/FindResource .resourceexec exch pop exch pop
+}
+/resourceforall {	% <template> <proc> <scratch> <category> resourceforall -
 	dup /Category findresource begin
 	/ResourceForAll load
 		% Make sure we can recover the original operands.
-		% We must create the array in local VM, in case any of the
-		% operands are local.
 		% Stack: ...operands... proc
-	5 copy pop .currentglobal false .setglobal 5 1 roll
-	4 packedarray exch .setglobal count
+	5 copy pop 4 packedarray count
 		% Stack: ...operands... proc saved count
 	4 -1 roll pop		% pop the category
 	/stopped load 3 1 roll
 	3 .execn
 		% Stack: ... stopped saved count
 	3 -1 roll {
-	  .currentstackprotect {
 		% The count is the original stack depth + 2.
-	    count exch 4 sub sub { exch pop } repeat
-	    aload pop end
-	  } {
-		% Don't restore the stacks.
-	    pop pop
-	  } ifelse stop
+	  count exch 4 sub sub { exch pop } repeat
+	  aload pop stop
 	} {
-	  pop pop end
-	} ifelse
-} bind def
-/resourceforall {	% <template> <proc> <scratch> <category> resourceforall1 -
-	//resourceforall1 exec		% see above
-} bind odef
+	  pop pop
+	} ifelse end
+}
 /resourcestatus {	% <key> <category> resourcestatus <status> <size> true
 			% <key> <category> resourcestatus false
 	2 copy .findcategory /ResourceStatus .resourceexec
 	 { 4 2 roll pop pop true } { pop pop false } ifelse
-} bind odef
+}
 /undefineresource {	% <key> <category> undefineresource -
 	2 copy .findcategory /UndefineResource .resourceexec pop pop
-} bind odef
+}
+end		% Instances of Category
+counttomark 2 idiv { bind odef } repeat pop
 
 % Define the system parameters used for the Generic implementation of
 % ResourceFileName.
@@ -259,12 +229,6 @@ end
  { 3 -1 roll //.rfnstring cvs concatstrings exch copy
  } bind def
 
-% Define a procedure for making a packed array in local VM.
-/.localpackedarray {	% <obj1> ... <objn> <n> .localpackedarray <packedarray>
-  .currentglobal false .setglobal 1 index 2 add 1 roll
-  packedarray exch .setglobal
-} bind def
-
 % Define the Generic category.
 
 /Generic mark
@@ -275,54 +239,17 @@ end
 % Leave room for the /Category entry.
 /Category null
 
-% Implement the body of Generic resourceforall for local, global, and
-% external cases.  'args' is [template proc scratch resdict].
-/.enumerateresource {	% <key> [- <proc> <scratch>] .enumerateresource -
-  1 index type dup /stringtype eq exch /nametype eq or {
-    exch 1 index 2 get cvs exch
-  } if
-	% Use .setstackprotect to prevent the stacks from being restored if
-	% an error occurs during execution of proc.
-  1 get false .setstackprotect exec true .setstackprotect
-} bind def
-/.localresourceforall {		% <key> <value> <args> .localr'forall -
-  exch pop
-  2 copy 0 get .stringmatch { .enumerateresource } { pop pop } ifelse
-} bind def
-/.globalresourceforall {	% <key> <value> <args> .globalr'forall -
-  exch pop
-  2 copy 0 get .stringmatch {
-    dup 3 get begin .LocalInstances end 2 index known not {
-      .enumerateresource
-    } if
-  } {
-    pop pop
-  } ifelse
-} bind def
-/.externalresourceforall {	% <filename> <len> <args> .externalr'forall -
-  3 1 roll 1 index length 1 index sub getinterval exch
-  dup 3 get begin .Instances .LocalInstances end
-		% Stack: key args insts localinsts
-  3 index known {
-    pop pop pop
-  } {
-    2 index known { pop pop } { .enumerateresource } ifelse
-  } ifelse
-} bind def
-
-/DefineResource {
-	.CheckResource
+/DefineResource
+	{ .CheckResource
 	   { dup [ exch 0 -1 ]
 			% Stack: key value instance
 	     currentglobal
 	      { false setglobal 2 index UndefineResource	% remove local def if any
 		true setglobal
-		.Instances dup //.emptydict eq {
-		  pop 3 dict
-			% As noted above, Category dictionaries are read-only,
-			% so we have to use .forcedef here.
-		  /.Instances 1 index .forcedef	% Category dict is read-only
-		} if
+		Instances dup //.emptydict eq
+		 { pop 3 dict /Instances 1 index def
+		 }
+		if
 	      }
 	      { .LocalInstances dup //.emptydict eq
 	         { pop 3 dict localinstancedict Category 2 index put
@@ -338,8 +265,8 @@ end
 	   }
 	   { /defineresource load /typecheck signalerror
 	   }
-	ifelse
-} bind executeonly		% executeonly to prevent access to .forcedef
+	  ifelse
+	} bind
 /UndefineResource
 	{  { dup 2 index .knownget
 	      { dup 1 get 1 ge
@@ -352,74 +279,69 @@ end
 	     ifelse
 	   }
 	  currentglobal
-	   { 2 copy .Instances exch exec
+	   { 2 copy Instances exch exec
 	   }
 	  if .LocalInstances exch exec
 	} bind
-% Because of some badly designed code in Adobe's CID font downloader that
-% makes findresource and resourcestatus deliberately inconsistent with each
-% other, the default FindResource must not call ResourceStatus if there is
-% an instance of the desired name already defined in VM.
-/FindResource {
-	dup .getvminstance {
-	  exch pop 0 get
-	} {
-	  dup ResourceStatus {
-	    pop 1 gt {
-	      .DoLoadResource .getvminstance not {
-		/findresource load /undefinedresource signalerror
-	      } if 0 get
-	    } {
-	      .GetInstance pop 0 get
-	    } ifelse
-	  } {
-	   /findresource load /undefinedresource signalerror
-	  } ifelse
-	} ifelse
-} bind
-% Because of some badly designed code in Adobe's CID font downloader, the
-% definition of ResourceStatus for Generic and Font must be the same (!).
-% We patch around this by using an intermediate .ResourceFileStatus procedure.
-/ResourceStatus {
-	dup .GetInstance {
-	  exch pop dup 1 get exch 2 get true
-	} {
-	  .ResourceFileStatus
-	} ifelse
-} bind
-/.ResourceFileStatus {
-	.ResourceFile { closefile 2 -1 true } { pop false } ifelse
-} bind
-/ResourceForAll {
-		% **************** Doesn't present instance groups in
+/FindResource
+	{ dup ResourceStatus
+	   { pop 1 gt			% not in VM
+	      { .DoLoadResource
+	      }
+	     if
+	     .GetInstance pop		% can't fail
+	     0 get
+	   }
+	   { /findresource load /undefinedresource signalerror
+	   }
+	  ifelse
+	} bind
+/ResourceStatus
+	{ dup .GetInstance
+	   { exch pop dup 1 get exch 2 get true }
+	   { .ResourceFile
+	      { closefile 2 -1 true }
+	      { pop false }
+	     ifelse
+	   }
+	  ifelse
+	} bind
+/ResourceForAll
+	{	% **************** Doesn't present instance groups in
 		% **************** the correct order yet.
 		% Construct a new procedure to hold the arguments.
-		% All objects constructed here must be in local VM to avoid
-		% a possible invalidaccess.
-	currentdict 4 .localpackedarray	% [template proc scratch resdict]
+		% It must be in local VM to avoid a possible invalidaccess.
+	  .currentglobal 4 1 roll false .setglobal
+	  3 packedarray		% template, proc, scratch
+	  { exch pop	% stack contains: key, {template, proc, scratch}
+	    2 copy 0 get .stringmatch
+	     { 1 index type dup /stringtype eq exch /nametype eq or
+		{ 2 copy 2 get cvs
+		  exch 1 get 3 -1 roll pop
+		}
+		{ 1 get
+		}
+	       ifelse exec
+	     }
+	     { pop pop
+	     }
+	    ifelse
+	  } /exec cvx 3 packedarray
+		% Stack: global? iterproc
 		% We must pop the resource dictionary off the dict stack
 		% when doing the actual iteration, and restore it afterwards.
-	.currentglobal not {
-	  .LocalInstances length 0 ne {
+	  exch {
+	    true .setglobal
+	  } {
+	    .LocalInstances length 0 ne {
 		% We must do local instances, and do them first.
-	    //.localresourceforall {exec} 0 get 3 .localpackedarray cvx
-	    .LocalInstances exch {forall} 0 get 1 index 0 get
-	    currentdict end 3 .execn begin
-	  } if
-	} if
-		% Do global instances next.
-	//.globalresourceforall {exec} 0 get 3 .localpackedarray cvx
-	.Instances exch cvx {forall} 0 get 1 index 0 get
-	currentdict end 3 .execn begin
-	currentdict /ResourceFileName known {
-		% Finally, do instances stored on files.
-	  dup 0 get 100 string ResourceFileName
-	  dup length 2 index 0 get length sub 3 -1 roll
-	  //.externalresourceforall {exec} 0 get 4 .localpackedarray cvx
-	  100 string {filenameforall} 0 get
-	  currentdict end 2 .execn begin null	% for pop
-	} if pop
-} bind
+	      .LocalInstances exch cvx /forall cvx 1 index cvlit
+	      currentdict end 3 .execn begin
+	    } if
+	  } ifelse
+	  Instances exch cvx
+	  /forall cvx currentdict end 2 .execn begin
+	} bind
 /ResourceFileName
 	{ /GenericResourceDir getsystemparam 
 	  Category .namestring concatstrings
@@ -429,23 +351,23 @@ end
 
 		% Additional entries
 
-% Unfortunately, we can't create the real .Instances dictionary now,
+% Unfortunately, we can't create the real Instances dictionary now,
 % because if someone copies the Generic category (which pp. 95-96 of the
 % 2nd Edition Red Book says is legitimate), they'll wind up sharing
-% the .Instances.  Instead, we have to create .Instances on demand,
+% the Instances.  Instead, we have to create Instances on demand,
 % just like the entry in localinstancedict.
 % We also have to prevent anyone from creating instances of Generic itself.
-/.Instances //.emptydict
+/Instances //.emptydict
 
 /.LocalInstances
 	{ localinstancedict Category .knownget not { //.emptydict } if
 	} bind
 /.GetInstance
 	{ currentglobal
-	   { .Instances exch .knownget }
+	   { Instances exch .knownget }
 	   { .LocalInstances 1 index .knownget
 	      { exch pop true }
-	      { .Instances exch .knownget }
+	      { Instances exch .knownget }
 	     ifelse
 	   }
 	  ifelse
@@ -453,25 +375,16 @@ end
 /.CheckResource
 	{ true
 	} bind
-/.DoLoadResource {
-		% .LoadResource may push entries on the operand stack.
-		% It is an undocumented feature of Adobe implementations,
-		% which we must match for the sake of some badly written
-		% font downloading code, that such entries are popped
-		% automatically.
-	count 1 index cvlit vmstatus pop exch pop
-		% Stack: key count litkey memused
-	{.LoadResource} 4 1 roll 4 .execn
-		% Stack: ... count key memused
-	vmstatus pop exch pop exch sub
-	1 index .getvminstance not {
-	  pop dup /undefinedresource signalerror	% didn't load
-	} if
-	dup 1 1 put
-	2 3 -1 roll put
-		% Stack: ... count key
-	exch count 1 sub exch sub {exch pop} repeat
-} bind
+/.DoLoadResource
+	{ dup vmstatus pop exch pop exch
+	  .LoadResource
+	  vmstatus pop exch pop exch sub
+	  1 index .GetInstance not
+	   { pop dup /undefinedresource signalerror }	% didn't load
+	  if
+	  dup 1 1 put
+	  2 3 -1 roll put
+	} bind
 /.LoadResource
 	{ dup .ResourceFile
 	   { exch pop currentglobal
@@ -504,11 +417,11 @@ end
 
 % Fill in the rest of the Category category.
 /Category /Category findresource dup
-/Generic /Category findresource begin {
-  /FindResource /ResourceForAll /ResourceStatus /.ResourceFileStatus
-  /UndefineResource /ResourceFileName
-  /.ResourceFile /.LoadResource /.DoLoadResource
-} { dup load put dup } forall
+/Generic /Category findresource begin
+ { /FindResource /ResourceForAll /ResourceStatus /UndefineResource
+   /ResourceFileName /.ResourceFile /.LoadResource /.DoLoadResource
+ }
+ { dup load put dup } forall
 pop readonly pop end
 
 (END GENERIC) VMDEBUG
@@ -565,7 +478,7 @@ counttomark 2 idiv
 	   { /defineresource load /invalidaccess signalerror }
 	   { 2 copy ne
 	      { /defineresource load /rangecheck signalerror }
-	      { dup .Instances 4 -2 roll .growput }
+	      { dup Instances 4 -2 roll .growput }
 	     ifelse
 	   }
 	  ifelse
@@ -573,13 +486,13 @@ counttomark 2 idiv
    /UndefineResource
 	{ /undefineresource load /invalidaccess signalerror } bind
    /FindResource
-	{ .Instances 1 index .knownget
+	{ Instances 1 index .knownget
 	   { exch pop }
 	   { /findresource load /undefinedresource signalerror }
 	  ifelse
 	} bind
    /ResourceStatus
-	{ .Instances exch known { 0 0 true } { false } ifelse } bind
+	{ Instances exch known { 0 0 true } { false } ifelse } bind
    /ResourceForAll
 	/Generic /Category findresource /ResourceForAll get
 
@@ -587,9 +500,9 @@ counttomark 2 idiv
 
    counttomark 2 add -1 roll
    dup length dict dup begin exch { dup def } forall end
-		% We'd like to make the .Instances readonly here,
+		% We'd like to make the Instances readonly here,
 		% but because optional features may add entries, we can't.
-   /.Instances exch
+   /Instances exch
    /.LocalInstances	% used by ResourceForAll
 	0 dict def
 
@@ -601,7 +514,7 @@ counttomark 2 idiv
 % Define the other built-in categories.
 
 /.definecategory	% <name> -mark- <key1> ... <valuen> .definecategory -
- { counttomark 2 idiv 2 add		% .Instances, Category
+ { counttomark 2 idiv 2 add		% Instances, Category
    /Generic /Category findresource dup maxlength 3 -1 roll add
    dict .copydict begin
    counttomark 2 idiv { def } repeat pop	% pop the mark
@@ -652,42 +565,40 @@ counttomark 2 idiv
 % We keep track of whether there are any local definitions for any of
 % the Default keys.  This information must get saved and restored in
 % parallel with the local instance dictionary, so it must be stored in
-% local VM.
-userdict /.localcsdefaults false put
+% local VM.  Therefore, we use a local array (actually, a procedure)
+% to hold the flag.
+
+% We'll need to use .forceput to initialize this correctly.
+/.LocalDefaults null
 
 /DefineResource {
   2 copy /Generic /Category findresource /DefineResource get exec
   exch pop
   exch //.defaultcsnames exch .knownget {
     1 index .definedefaultcs
-    currentglobal not { .userdict /.localcsdefaults true put } if
+    currentglobal not { /.LocalDefaults load 0 true put } if
   } if
 } bind
 
 /UndefineResource {
   dup /Generic /Category findresource /UndefineResource get exec
-  //.defaultcsnames 1 index .knownget {
-	% Stack: resname index
-    currentglobal {
-      .undefinedefaultcs pop
-    } {
-	% We removed the local definition, but there might be a global one.
-      exch .GetInstance {
-	0 get .definedefaultcs
-      } {
-	.undefinedefaultcs
-      } ifelse
-	% Recompute .localcsdefaults by scanning.  This is rarely needed.
-      .userdict /.localcsdefaults false //.defaultcsnames {
+  //.defaultcsnames exch .knownget {
+    .undefinedefaultcs
+    currentglobal not {
+	% Recompute .LocalDefaults by scanning.  This is rarely needed.
+      /.LocalDefaults load 0 false //.defaultcsnames {
 	pop .LocalInstances exch known { pop true exit } if
       } forall put
-    } ifelse
-  } {
-    pop
-  } ifelse
+    } if
+  } if
 } bind
 
 .definecategory			% ColorSpace
+
+currentglobal false setglobal
+/ColorSpace /Category findresource
+  /.LocalDefaults [false] cvx .forceput	% category is global, array is local
+setglobal
 
 % Define the Encoding category.
 
@@ -698,7 +609,7 @@ userdict /.localcsdefaults false put
 % Handle already-registered encodings, including lazily loaded encodings
 % that aren't loaded yet.
 
-/.Instances mark
+/Instances mark
   EncodingDirectory
    { dup length 256 eq { [ exch readonly 0 -1 ] } { pop [null 2 -1] } ifelse
    } forall
@@ -775,49 +686,49 @@ userdict /.localcsdefaults false put
 	{ dup //undefinefont
 	  /Generic /Category findresource /UndefineResource get exec
 	} bind
-/FindResource {
-	dup .getvminstance {
-	  exch pop 0 get
-	} {
-	  dup ResourceStatus {
-	    pop 1 gt { .loadfontresource } { .GetInstance pop 0 get } ifelse
-	  } {
-	    .loadfontresource
-	  } ifelse
-	} ifelse
-} bind
+/FindResource
+	{ dup ResourceStatus
+	   { pop 1 gt { .loadfont } { .GetInstance pop 0 get } ifelse }
+	   { .loadfont }
+	  ifelse
+	} bind
 /ResourceForAll {
 	{ .scannextfontdir not { exit } if } loop
 	/Generic /Category findresource /ResourceForAll get exec
 } bind
-/.ResourceFileStatus {
-	.fontstatus { pop 2 -1 true } { pop false } ifelse
+/ResourceStatus {
+	dup .GetInstance {
+	  exch pop dup 1 get exch 2 get true
+	} {
+	  .fontstatus { pop 2 -1 true } { pop false } ifelse
+	} ifelse
 } bind
 
-/.loadfontresource {
-	dup vmstatus pop exch pop exch
+/.loadfont
+	{ dup vmstatus pop exch pop exch
 		% Hack: rebind .currentresourcefile so that all calls of
 		% definefont will know these are built-in fonts.
-	currentfile {pop //findfont exec} .execasresource  % (findfont is a procedure)
-	exch vmstatus pop exch pop exch sub
+	  currentfile {pop //findfont exec} .execasresource  % (findfont is a procedure)
+	  exch vmstatus pop exch pop exch sub
 		% stack: name font vmused
 		% findfont has the prerogative of not calling definefont
 		% in certain obscure cases of font substitution.
-	2 index .getvminstance {
-	  dup 1 1 put
-	  2 3 -1 roll put
-	} {
-	  pop
-	} ifelse exch pop
-} bind
+	  2 index .GetInstance
+	   { dup 1 1 put
+	     2 3 -1 roll put
+	   }
+	   { pop
+	   }
+	  ifelse exch pop
+	} bind
 
-/.Instances FontDirectory length 2 mul dict
+/Instances FontDirectory length 2 mul dict
 
 .definecategory			% Font
 
 % Redefine font "operators".
 /.definefontmap
- { /Font /Category findresource /.Instances get
+ { /Font /Category findresource /Instances get
    dup 3 index known
     { pop
     }
@@ -912,7 +823,7 @@ end				% level2dict
     /.shadingtypes where { pop /ShadingType } if
   ] {
     /Category findresource
-    dup /.Instances get readonly pop
+    dup /Instances get readonly pop
     .LocalInstances readonly pop
     readonly pop
   } forall

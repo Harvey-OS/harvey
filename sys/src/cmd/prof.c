@@ -142,24 +142,29 @@ void
 datas(char *dout)
 {
 	int fd;
-	Dir d;
+	Dir *d;
 	int i;
 
 	if((fd = open(dout, 0)) < 0){
 		perror(dout);
 		exits("open");
 	}
-	dirfstat(fd, &d);
-	ndata = d.length/sizeof(data[0]);
+	d = dirfstat(fd);
+	if(d == nil){
+		perror(dout);
+		exits("stat");
+	}
+	ndata = d->length/sizeof(data[0]);
 	data = malloc(ndata*sizeof(Data));
 	if(data == 0){
 		fprint(2, "prof: can't malloc data\n");
 		exits("data malloc");
 	}
-	if(read(fd, data, d.length) != d.length){
+	if(read(fd, data, d->length) != d->length){
 		fprint(2, "prof: can't read data file\n");
 		exits("data read");
 	}
+	free(d);
 	close(fd);
 	for (i = 0; i < ndata; i++)
 		swapdata(data+i);

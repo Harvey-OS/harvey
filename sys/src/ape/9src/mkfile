@@ -1,6 +1,7 @@
 </$objtype/mkfile
 
-TARG = ptyfs\
+#	ptyfs\	# for X11, not going to bother
+TARG=\
 	stty\
 	tar\
 

@@ -1,2 +1,0 @@
-#!/bin/rc
-/bin/aux/trampoline 'tcp!$auth!567' >[2] /dev/null

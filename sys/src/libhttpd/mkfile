@@ -2,15 +2,26 @@
 
 LIB=/$objtype/lib/libhttpd.a
 OFILES=\
+	alloc.$O\
+	checkcontent.$O\
 	date.$O\
+	fail.$O\
+	gethead.$O\
 	hio.$O\
+	httpfmt.$O\
+	httpunesc.$O\
+	lower.$O\
+	okheaders.$O\
 	parse.$O\
 	parsereq.$O\
 	query.$O\
+	redirected.$O\
+	unallowed.$O\
+	urlfmt.$O\
+	urlunesc.$O\
 
 HFILES=\
 	/sys/include/httpd.h\
 	escape.h\
 
 </sys/src/cmd/mksyslib
-

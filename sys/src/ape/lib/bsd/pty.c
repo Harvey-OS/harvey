@@ -12,7 +12,6 @@
 #include "lib.h"
 #include "sys9.h"
 #include "dir.h"
-#include "fcall.h"
 
 /*
  * return the name of the slave
@@ -20,17 +19,16 @@
 char*
 ptsname(int fd)
 {
-	Dir d;
-	char cd[DIRLEN];
+	Dir *d;
 	static char buf[32];
 
-	if(_FSTAT(fd, cd) < 0) {
+	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4){
+		free(d);
 		_syserrno();
 		return 0;
 	}
-	convM2D(cd, &d);
-
-	sprintf(buf, "/dev/ptty%d", atoi(d.name+4));
+	sprintf(buf, "/dev/ptty%d", atoi(d->name+4));
+	free(d);
 	return buf;
 }
 
@@ -40,17 +38,16 @@ ptsname(int fd)
 char*
 ptmname(int fd)
 {
-	Dir d;
-	char cd[DIRLEN];
+	Dir *d;
 	static char buf[32];
 
-	if(_FSTAT(fd, cd) < 0) {
+	if((d = _dirfstat(fd)) == nil || strlen(d->name) < 4){
+		free(d);
 		_syserrno();
 		return 0;
 	}
-	convM2D(cd, &d);
 
-	sprintf(buf, "/dev/ttym%d", atoi(d.name+4));
+	sprintf(buf, "/dev/ttym%d", atoi(d->name+4));
 	return buf;
 }
 
@@ -61,10 +58,20 @@ static void
 mkserver(void)
 {
 	int fd, i;
-	char *argv[3], tbuf[2*TICKETLEN];
+	char *argv[3];
 
-	fd = _OPEN(fssrv, 3);
-	if(_MOUNT(fd, "/dev", MAFTER, "") < 0) {
+	fd = _OPEN(fssrv, O_RDWR);
+	if(_MOUNT(fd, -1, "/dev", MAFTER, "") < 0) {
+		/*
+		 * remove fssrv here, if it exists, to avoid a race
+		 * between the loop in the default case below and the
+		 * new ptyfs removing fssrv when it starts.
+		 * we otherwise might be unlucky enough to open the old
+		 * (hung channel) fssrv before ptyfs removes it and break
+		 * out of the loop with an open fd to a hung channel?
+		 */
+		_CLOSE(fd);
+		_REMOVE(fssrv);
 		switch(_RFORK(RFPROC|RFFDG)) {
 		case -1:
 			return;
@@ -75,18 +82,18 @@ mkserver(void)
 			_EXITS(0);
 		default:
 			for(i = 0; i < 3; i++) {
-				fd = _OPEN(fssrv, 3);
+				fd = _OPEN(fssrv, O_RDWR);
 				if(fd >= 0)
 					break;
-				sleep(1);
+				_SLEEP(1000);
 			}
 		}
 		if(fd < 0)
 			return;
-		memset(tbuf, 0, sizeof(tbuf));
-		_FSESSION(fd, tbuf);
-		_MOUNT(fd, "/dev", MAFTER, "");
+		if(_MOUNT(fd, -1, "/dev", MAFTER, "") < 0)
+			_CLOSE(fd);
 	}
+	/* successful _MOUNT closes fd */
 }
 
 /*

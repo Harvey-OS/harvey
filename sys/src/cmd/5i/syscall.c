@@ -4,52 +4,20 @@
 #include <mach.h>
 #define	EXTERN
 #include "arm.h"
-#undef CHDIR
 
-char 	errbuf[ERRLEN];
+#define	ODIRLEN	116	/* compatibility; used in _stat etc. */
+#define	OERRLEN	64	/* compatibility; used in _stat etc. */
+
+char 	errbuf[ERRMAX];
 ulong	nofunc;
 
-#define	SYSR1		0
-#define	ERRSTR		1
-#define	BIND		2
-#define	CHDIR		3
-#define	CLOSE		4
-#define	DUP		5
-#define	ALARM		6
-#define	EXEC		7
-#define	EXITS		8
-#define	FORK		9
-#define	FORKPGRP	10
-#define	FSTAT		11
-#define	SEGBRK		12
-#define	MOUNT		13
-#define	OPEN		14
-#define	READ		15
-#define	SEEK		16
-#define	SLEEP		17
-#define	STAT		18
-#define	WAIT		19
-#define	WRITE		20
-#define	PIPE		21
-#define	CREATE		22
-#define	RFORK		23
-#define	BRK_		24
-#define	REMOVE		25
-#define	WSTAT		26
-#define	FWSTAT		27
-#define	NOTIFY		28
-#define	NOTED		29
-#define SEGATTACH 	30
-#define SEGDETACH 	31
-#define SEGFREE   	32
-#define SEGFLUSH	33
-#define RENDEZVOUS	34
-#define UNMOUNT		35
+#include "/sys/src/libc/9syscall/sys.h"
+
 
 char*	sysctab[] =
 {
 	[SYSR1]		"Running",
-	[ERRSTR]	"Errstr",
+	[_ERRSTR]		"_errstr",
 	[BIND]		"Bind",
 	[CHDIR]		"Chdir",
 	[CLOSE]		"Close",
@@ -57,33 +25,44 @@ char*	sysctab[] =
 	[ALARM]		"Alarm",
 	[EXEC]		"Exec",
 	[EXITS]		"Exits",
-	[FORK]		"Fork",
-	[FORKPGRP]	"Forkpgrp",
-	[FSTAT]		"Fstat",
-	[SEGBRK]	"Segbrk",
+	[_FSESSION]	"_Fsession",
+	[FAUTH]		"Fauth",
+	[_FSTAT]		"_fstat",
+	[SEGBRK]		"Segbrk",
 	[MOUNT]		"Mount",
 	[OPEN]		"Open",
-	[READ]		"Read",
-	[SEEK]		"Seek",
+	[_READ]		"_Read",
+	[OSEEK]		"Oseek",
 	[SLEEP]		"Sleep",
-	[STAT]		"Stat",
-	[WAIT]		"Wait",
-	[WRITE]		"Write",
-	[PIPE]		"Pipe",
-	[CREATE]	"Create",
+	[_STAT]		"_Stat",
 	[RFORK]		"Rfork",
-	[BRK_]		"Brk",
-	[REMOVE]	"Remove",
-	[WSTAT]		"Wstat",
-	[FWSTAT]	"Fwstat",
-	[NOTIFY]	"Notify",
+	[_WRITE]		"_Write",
+	[PIPE]		"Pipe",
+	[CREATE]		"Create",
+	[FD2PATH]	"Fd2path",
+	[BRK_]		"Brk_",
+	[REMOVE]		"Remove",
+	[_WSTAT]		"_Wstat",
+	[_FWSTAT]	"_Fwstat",
+	[NOTIFY]		"Notify",
 	[NOTED]		"Noted",
 	[SEGATTACH]	"Segattach",
 	[SEGDETACH]	"Segdetach",
-	[SEGFREE]	"Segfree",
+	[SEGFREE]		"Segfree",
 	[SEGFLUSH]	"Segflush",
-	[RENDEZVOUS]	"Rendez",
+	[RENDEZVOUS]	"Rendezvous",
 	[UNMOUNT]	"Unmount",
+	[_WAIT]		"_Wait",
+	[SEEK]		"Seek",
+	[FVERSION]	"Fversion",
+	[ERRSTR]		"Errstr",
+	[STAT]		"Stat",
+	[FSTAT]		"Fstat",
+	[WSTAT]		"Wstat",
+	[FWSTAT]		"Fwstat",
+	[PREAD]		"Pread",
+	[PWRITE]		"Pwrite",
+	[AWAIT]		"Await",
 };
 
 void
@@ -94,7 +73,7 @@ sys1(void)
 }
 
 void
-syserrstr(void)
+sys_errstr(void)
 {
 	ulong str;
 
@@ -102,9 +81,28 @@ syserrstr(void)
 	if(sysdbg)
 		itrace("errstr(0x%lux)", str);
 
-	memio(errbuf, str, ERRLEN, MemWrite);
+	memio(errbuf, str, OERRLEN, MemWrite);
 	strcpy(errbuf, "no error");
-	reg.r[1] = 0;
+	reg.r[REGRET] = 0;
+	
+}
+
+void
+syserrstr(void)
+{
+	ulong str;
+	int n;
+
+	str = getmem_w(reg.r[13]+4);
+	n = getmem_w(reg.r[13]+8);
+	if(sysdbg)
+		itrace("errstr(0x%lux, 0x%lux)", str, n);
+
+	if(n > strlen(errbuf)+1)
+		n = strlen(errbuf)+1;
+	memio(errbuf, str, n, MemWrite);
+	strcpy(errbuf, "no error");
+	reg.r[REGRET] = n;
 	
 }
 void
@@ -124,9 +122,35 @@ sysbind(void)
 
 	n = bind(name, old, flags);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
+}
+
+void
+sysfd2path(void)
+{
+	ulong str;
+	uint fd, n;
+	char buf[1024];
+
+	fd = getmem_w(reg.r[13]+4);
+	str = getmem_w(reg.r[13]+8);
+	n = getmem_w(reg.r[13]+12);
+	if(sysdbg)
+		itrace("fd2path(0x%lux, 0x%lux, 0x%lux)", fd, str, n);
+	reg.r[1] = -1;
+	if(n > sizeof buf){
+		strcpy(errbuf, "buffer too big");
+		return;
+	}
+	n = fd2path(fd, buf, sizeof buf);
+	if(n < 0)
+		errstr(buf, sizeof buf);
+	else
+		memio(errbuf, str, n, MemWrite);
+	reg.r[REGRET] = n;
+	
 }
 
 void
@@ -143,9 +167,9 @@ syschdir(void)
 	
 	n = chdir(file);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 
-	reg.r[1] = n;
+	reg.r[REGRET] = n;
 }
 
 void
@@ -160,8 +184,8 @@ sysclose(void)
 
 	n = close(fd);
 	if(n < 0)
-		errstr(errbuf);
-	reg.r[1] = n;
+		errstr(errbuf, sizeof errbuf);
+	reg.r[REGRET] = n;
 }
 
 void
@@ -177,14 +201,14 @@ sysdup(void)
 
 	n = dup(oldfd, newfd);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 	reg.r[REGRET] = n;
 }
 
 void
 sysexits(void)
 {
-	char buf[ERRLEN];
+	char buf[OERRLEN];
 	ulong str;
 
 	str = getmem_w(reg.r[13]+4);
@@ -193,7 +217,7 @@ sysexits(void)
 
 	count = 1;
 	if(str != 0) {
-		memio(buf, str, ERRLEN, MemRead);
+		memio(buf, str, sizeof buf, MemRead);
 		Bprint(bioout, "exits(%s)\n", buf);
 	}
 	else
@@ -213,7 +237,7 @@ sysopen(void)
 	
 	n = open(file, mode);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 
 	if(sysdbg)
 		itrace("open(0x%lux='%s', 0x%lux) = %d", name, file, mode, n);
@@ -221,8 +245,9 @@ sysopen(void)
 	reg.r[REGRET] = n;
 };
 
+
 void
-sysread(void)
+sysread(vlong offset)
 {
 	int fd;
 	ulong size, a;
@@ -251,22 +276,67 @@ sysread(void)
 		}
 	}
 	else
-		n = read(fd, buf, size);
+		n = pread(fd, buf, size, offset);
 
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 	else
 		memio(buf, a, n, MemWrite);
 
 	if(sysdbg)
-		itrace("read(%d, 0x%lux, %d) = %d", fd, a, size, n);
+		itrace("read(%d, 0x%lux, %d, 0x%llx) = %d", fd, a, size, offset, n);
 
 	free(buf);
 	reg.r[REGRET] = n;
 }
 
 void
+sys_read(void)
+{
+	sysread(-1LL);
+}
+
+void
+syspread(void)
+{
+	union {
+		vlong v;
+		ulong u[2];
+	} o;
+
+	o.u[0] = getmem_w(reg.r[13]+16);
+	o.u[1] = getmem_w(reg.r[13]+20);
+	sysread(o.v);
+}
+
+void
 sysseek(void)
+{
+	int fd;
+	ulong mode;
+	ulong retp;
+	union {
+		vlong v;
+		ulong u[2];
+	} o;
+
+	retp = getmem_w(reg.r[13]+4);
+	fd = getmem_w(reg.r[13]+8);
+	o.u[0] = getmem_w(reg.r[13]+12);
+	o.u[1] = getmem_w(reg.r[13]+16);
+	mode = getmem_w(reg.r[13]+20);
+	if(sysdbg)
+		itrace("seek(%d, %lld, %d)", fd, o.v, mode);
+
+	o.v = seek(fd, o.v, mode);
+	if(o.v < 0)
+		errstr(errbuf, sizeof errbuf);	
+
+	memio((char*)o.u, retp, sizeof(vlong), MemWrite);
+}
+
+void
+sysoseek(void)
 {
 	int fd, n;
 	ulong off, mode;
@@ -279,7 +349,7 @@ sysseek(void)
 
 	n = seek(fd, off, mode);
 	if(n < 0)
-		errstr(errbuf);	
+		errstr(errbuf, sizeof errbuf);	
 
 	reg.r[REGRET] = n;
 }
@@ -296,17 +366,18 @@ syssleep(void)
 
 	n = sleep(len);
 	if(n < 0)
-		errstr(errbuf);	
+		errstr(errbuf, sizeof errbuf);	
 
 	reg.r[REGRET] = n;
 }
 
 void
-sysstat(void)
+sys_stat(void)
 {
 	char nambuf[1024];
-	char buf[DIRLEN];
+	char buf[ODIRLEN];
 	ulong edir, name;
+	extern int _stat(char*, char*);	/* old system call */
 	int n;
 
 	name = getmem_w(reg.r[13]+4);
@@ -315,19 +386,46 @@ sysstat(void)
 	if(sysdbg)
 		itrace("stat(0x%lux='%s', 0x%lux)", name, nambuf, edir);
 
-	n = stat(nambuf, buf);
+	n = _stat(nambuf, buf);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 	else
-		memio(buf, edir, DIRLEN, MemWrite);
+		memio(buf, edir, ODIRLEN, MemWrite);
 
 	reg.r[REGRET] = n;
 }
 
 void
-sysfstat(void)
+sysstat(void)
 {
-	char buf[DIRLEN];
+	char nambuf[1024];
+	uchar buf[STATMAX];
+	ulong edir, name;
+	int n;
+
+	name = getmem_w(reg.r[13]+4);
+	edir = getmem_w(reg.r[13]+8);
+	n = getmem_w(reg.r[13]+12);
+	memio(nambuf, name, sizeof(nambuf), MemReadstring);
+	if(sysdbg)
+		itrace("stat(0x%lux='%s', 0x%lux, 0x%lux)", name, nambuf, edir, n);
+	if(n > sizeof buf)
+		errstr(errbuf, sizeof errbuf);
+	else{	
+		n = stat(nambuf, buf, n);
+		if(n < 0)
+			errstr(errbuf, sizeof errbuf);
+		else
+			memio((char*)buf, edir, n, MemWrite);
+	}
+	reg.r[REGRET] = n;
+}
+
+void
+sys_fstat(void)
+{
+	char buf[ODIRLEN];
+	extern int _fstat(int, char*);	/* old system call */
 	ulong edir;
 	int n, fd;
 
@@ -336,17 +434,43 @@ sysfstat(void)
 	if(sysdbg)
 		itrace("fstat(%d, 0x%lux)", fd, edir);
 
-	n = fstat(fd, buf);
+	n = _fstat(fd, buf);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 	else
-		memio(buf, edir, DIRLEN, MemWrite);
+		memio(buf, edir, ODIRLEN, MemWrite);
 
 	reg.r[REGRET] = n;
 }
 
 void
-syswrite(void)
+sysfstat(void)
+{
+	uchar buf[STATMAX];
+	ulong edir;
+	int n, fd;
+
+	fd = getmem_w(reg.r[13]+4);
+	edir = getmem_w(reg.r[13]+8);
+	n = getmem_w(reg.r[13]+12);
+	if(sysdbg)
+		itrace("fstat(%d, 0x%lux, 0x%lux)", fd, edir, n);
+
+	reg.r[REGRET] = -1;
+	if(n > sizeof buf){
+		strcpy(errbuf, "stat buffer too big");
+		return;
+	}
+	n = fstat(fd, buf, n);
+	if(n < 0)
+		errstr(errbuf, sizeof errbuf);
+	else
+		memio((char*)buf, edir, n, MemWrite);
+	reg.r[REGRET] = n;
+}
+
+void
+syswrite(vlong offset)
 {
 	int fd;
 	ulong size, a;
@@ -356,15 +480,38 @@ syswrite(void)
 	fd = getmem_w(reg.r[13]+4);
 	a = getmem_w(reg.r[13]+8);
 	size = getmem_w(reg.r[13]+12);
-	if(sysdbg)
-		itrace("write(%d, %lux, %d)", fd, a, size);
+
+	Bflush(bioout);
 	buf = memio(0, a, size, MemRead);
-	n = write(fd, buf, size);
+	n = pwrite(fd, buf, size, offset);
 	if(n < 0)
-		errstr(errbuf);	
+		errstr(errbuf, sizeof errbuf);	
+
+	if(sysdbg)
+		itrace("write(%d, %lux, %d, 0x%llx) = %d", fd, a, size, offset, n);
+
 	free(buf);
 
 	reg.r[REGRET] = n;
+}
+
+void
+sys_write(void)
+{
+	syswrite(-1LL);
+}
+
+void
+syspwrite(void)
+{
+	union {
+		vlong v;
+		ulong u[2];
+	} o;
+
+	o.u[0] = getmem_w(reg.r[13]+16);
+	o.u[1] = getmem_w(reg.r[13]+20);
+	syswrite(o.v);
 }
 
 void
@@ -379,7 +526,7 @@ syspipe(void)
 
 	n = pipe(p);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 	else {
 		putmem_w(fd, p[0]);
 		putmem_w(fd+4, p[1]);
@@ -403,7 +550,7 @@ syscreate(void)
 	
 	n = create(file, mode, perm);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 
 	reg.r[REGRET] = n;
 }
@@ -453,7 +600,7 @@ sysremove(void)
 
 	n = remove(nambuf);
 	if(n < 0)
-		errstr(errbuf);
+		errstr(errbuf, sizeof errbuf);
 	reg.r[REGRET] = n;
 }
 
@@ -468,7 +615,13 @@ sysnotify(void)
 }
 
 void
-syswait(void)
+sys_wait(void)
+{
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
+	exits(0);
+}
+void
+sysawait(void)
 {
 	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
@@ -486,7 +639,19 @@ syswstat(void)
 	exits(0);
 }
 void
+sys_wstat(void)
+{
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
+	exits(0);
+}
+void
 sysfwstat(void)
+{
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
+	exits(0);
+}
+void
+sys_fwstat(void)
 {
 	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
 	exits(0);
@@ -569,11 +734,29 @@ sysexec(void)
 	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
  	exits(0);
 }
+void
+sys_fsession(void)
+{
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
+ 	exits(0);
+}
+void
+sysfauth(void)
+{
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
+ 	exits(0);
+}
+void
+sysfversion(void)
+{
+	Bprint(bioout, "No system call %s\n", sysctab[reg.r[REGARG]]);
+ 	exits(0);
+}
 
 void	(*systab[])(void) =
 {
 	[SYSR1]		sys1,
-	[ERRSTR]	syserrstr,
+	[_ERRSTR]		sys_errstr,
 	[BIND]		sysbind,
 	[CHDIR]		syschdir,
 	[CLOSE]		sysclose,
@@ -581,33 +764,44 @@ void	(*systab[])(void) =
 	[ALARM]		sysalarm,
 	[EXEC]		sysexec,
 	[EXITS]		sysexits,
-	[FORK]		sysfork,
-	[FORKPGRP]	sysforkpgrp,
-	[FSTAT]		sysfstat,
-	[SEGBRK]	syssegbrk,
+	[_FSESSION]	sys_fsession,
+	[FAUTH]		sysfauth,
+	[_FSTAT]		sys_fstat,
+	[SEGBRK]		syssegbrk,
 	[MOUNT]		sysmount,
 	[OPEN]		sysopen,
-	[READ]		sysread,
-	[SEEK]		sysseek,
+	[_READ]		sys_read,
+	[OSEEK]		sysoseek,
 	[SLEEP]		syssleep,
-	[STAT]		sysstat,
-	[WAIT]		syswait,
-	[WRITE]		syswrite,
-	[PIPE]		syspipe,
-	[CREATE]	syscreate,
+	[_STAT]		sys_stat,
 	[RFORK]		sysrfork,
+	[_WRITE]		sys_write,
+	[PIPE]		syspipe,
+	[CREATE]		syscreate,
+	[FD2PATH]	sysfd2path,
 	[BRK_]		sysbrk_,
-	[REMOVE]	sysremove,
-	[WSTAT]		syswstat,
-	[FWSTAT]	sysfwstat,
-	[NOTIFY]	sysnotify,
+	[REMOVE]		sysremove,
+	[_WSTAT]		sys_wstat,
+	[_FWSTAT]	sys_fwstat,
+	[NOTIFY]		sysnotify,
 	[NOTED]		sysnoted,
 	[SEGATTACH]	syssegattach,
 	[SEGDETACH]	syssegdetach,
-	[SEGFREE]	syssegfree,
+	[SEGFREE]		syssegfree,
 	[SEGFLUSH]	syssegflush,
 	[RENDEZVOUS]	sysrendezvous,
 	[UNMOUNT]	sysunmount,
+	[_WAIT]		sys_wait,
+	[SEEK]		sysseek,
+	[FVERSION]	sysfversion,
+	[ERRSTR]		syserrstr,
+	[STAT]		sysstat,
+	[FSTAT]		sysfstat,
+	[WSTAT]		syswstat,
+	[FWSTAT]		sysfwstat,
+	[PREAD]		syspread,
+	[PWRITE]		syspwrite,
+	[AWAIT]		sysawait,
 };
 
 void
@@ -616,10 +810,11 @@ Ssyscall(ulong)
 	int call;
 
 	call = reg.r[REGARG];
-	if(call < 0 || call > UNMOUNT) {
+	if(call < 0 || call > PWRITE || systab[call] == nil) {
 		Bprint(bioout, "bad system call\n");
 		dumpreg();
 	}
+
 	if(trace)
 		itrace("SWI\t%s", sysctab[call]);
 	(*systab[call])();

@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <auth.h>
 #include "imap4d.h"
 
 char *fetchPartNames[FPMax] =
@@ -368,6 +369,21 @@ fetchBodyStr(Fetch *f, char *buf, ulong size)
 	Bwrite(&bout, &buf[p.start], p.stop-p.start);
 }
 
+char*
+printnlist(NList *sect)
+{
+	static char buf[100];
+	char *p;
+
+	for(p= buf; sect; sect=sect->next){
+		p += sprint(p, "%ld", sect->n);
+		if(sect->next)
+			*p++ = '.';
+	}
+	*p = '\0';
+	return buf;
+}
+
 /*
  * find the numbered sub-part of the message
  */
@@ -378,6 +394,17 @@ findMsgSect(Msg *m, NList *sect)
 
 	for(; sect != nil; sect = sect->next){
 		id = sect->n;
+#ifdef HACK
+		/* HACK to solve extra level of structure not visible from upas/fs  */
+		if(m->kids == 0 && id == 1 && sect->next == nil){
+			if(m->mime.type->s && strcmp(m->mime.type->s, "message")==0)
+			if(m->mime.type->t && strcmp(m->mime.type->t, "rfc822")==0)
+			if(m->head.type->s && strcmp(m->head.type->s, "text")==0)
+			if(m->head.type->t && strcmp(m->head.type->t, "plain")==0)
+				break;
+		}
+		/* end of HACK */
+#endif HACK
 		for(m = m->kids; m != nil; m = m->next)
 			if(m->id == id)
 				break;
@@ -469,7 +496,7 @@ fetchBodyStruct(Msg *m, Header *h, int extensions)
 
 	/*
 	 * this is so strange: return lengths for a body[text] response,
-	 * except in the case of a multipart message, when return lengths for a body[] repsonse
+	 * except in the case of a multipart message, when return lengths for a body[] response
 	 */
 	len = m->size;
 	if(h == &m->mime)

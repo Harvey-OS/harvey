@@ -1,0 +1,65 @@
+APE=/sys/src/ape
+<$APE/config
+LIB=/$objtype/lib/ape/libap.a
+OFILES=\
+	_IO_getc.$O\
+	_IO_putc.$O\
+	_dtoa.$O\
+	_fconv.$O\
+	clearerr.$O\
+	exit.$O\
+	fclose.$O\
+	fdopen.$O\
+	feof.$O\
+	ferror.$O\
+	fflush.$O\
+	fgetc.$O\
+	fgetpos.$O\
+	fgets.$O\
+	fileno.$O\
+	fopen.$O\
+	fprintf.$O\
+	fputc.$O\
+	fputs.$O\
+	fread.$O\
+	freopen.$O\
+	fscanf.$O\
+	fseek.$O\
+	fsetpos.$O\
+	ftell.$O\
+	ftoa.$O\
+	fwrite.$O\
+	getc.$O\
+	getchar.$O\
+	gets.$O\
+	perror.$O\
+	pow10.$O\
+	printf.$O\
+	putc.$O\
+	putchar.$O\
+	puts.$O\
+	remove.$O\
+	rewind.$O\
+	scanf.$O\
+	sclose.$O\
+	setbuf.$O\
+	setvbuf.$O\
+	snprintf.$O\
+	sopenr.$O\
+	sopenw.$O\
+	sprintf.$O\
+	sscanf.$O\
+	stdio.$O\
+	strerror.$O\
+	strtod.$O\
+	tmpnam.$O\
+	ungetc.$O\
+	vfprintf.$O\
+	vfscanf.$O\
+	vprintf.$O\
+	vsprintf.$O\
+	vsnprintf.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -D_POSIX_SOURCE

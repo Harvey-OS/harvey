@@ -48,5 +48,5 @@ Image	*darkgrey;
 void
 iconinit(void)
 {
-	darkgrey = allocimage(display, Rect(0, 0, 1, 1), display->chan, 1, 0x444444FF);
+	darkgrey = allocimage(display, Rect(0, 0, 1, 1), screen->chan, 1, 0x444444FF);
 }

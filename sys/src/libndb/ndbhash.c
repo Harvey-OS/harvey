@@ -53,18 +53,21 @@ hfopen(Ndb *db, char *attr)
 	Ndbhf *hf;
 	char buf[sizeof(hf->attr)+sizeof(db->file)+2];
 	uchar *p;
-	Dir d;
+	Dir *d;
 
 	/* try opening the data base if it's closed */
 	if(db->mtime==0 && ndbreopen(db) < 0)
 		return 0;
 
 	/* if the database has changed, throw out hash files and reopen db */
-	if(dirfstat(Bfildes(&db->b), &d) < 0 || db->qid.path != d.qid.path
-	|| db->qid.vers != d.qid.vers){
-		if(ndbreopen(db) < 0)
+	if((d = dirfstat(Bfildes(&db->b))) == nil || db->qid.path != d->qid.path
+	|| db->qid.vers != d->qid.vers){
+		if(ndbreopen(db) < 0){
+			free(d);
 			return 0;
+		}
 	}
+	free(d);
 
 	if(db->nohash)
 		return 0;
@@ -112,14 +115,25 @@ Ndbtuple*
 ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 {
 	uchar *p;
+	Ndbtuple *t;
 
 	memset(s, 0, sizeof(*s));
+	if(_ndbcachesearch(db, s, attr, val, &t) == 0){
+		/* found in cache */
+		if(t != nil)
+			return t;	/* answer from this file */
+		if(db->next == nil)
+			return nil;
+		return ndbsearch(db->next, s, attr, val);
+	}
+
+	s->db = db;
 	s->hf = hfopen(db, attr);
 	if(s->hf){
 		s->ptr = ndbhash(val, s->hf->hlen)*NDBPLEN;
 		p = hfread(s->hf, s->ptr+NDBHLEN, NDBPLEN);
 		if(p == 0)
-			return 0;
+			return _ndbcacheadd(db, s, attr, val, nil);
 		s->ptr = NDBGETP(p);
 		s->type = Cptr1;
 	} else if(db->length > 128*1024){
@@ -128,15 +142,17 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 
 		/* advance search to next db file */
 		s->ptr = NDBNAP;
+		_ndbcacheadd(db, s, attr, val, nil);
 		if(db->next == 0)
-			return 0;
+			return nil;
 		return ndbsearch(db->next, s, attr, val);
 	} else {
 		s->ptr = 0;
 		s->type = Dptr;
 	}
-	s->db = db;
-	return ndbsnext(s, attr, val);
+	t = ndbsnext(s, attr, val);
+	_ndbcacheadd(db, s, attr, val, (t != nil && s->db == db)?t:nil);
+	return t;
 }
 
 static Ndbtuple*

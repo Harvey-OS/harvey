@@ -4,11 +4,15 @@
 
 #define DEBUGFILE	"iostats.out"
 #define DONESTR		"done"
-#define DEBUG		if(!dbg);else fprint
+#define DEBUG		if(!dbg){}else fprint
 #define MAXPROC		16
-#define DIRCHUNK	(50*DIRLEN)
 #define FHASHSIZE	64
 #define fidhash(s)	fhash[s%FHASHSIZE]
+
+enum{
+	Maxfdata	= 8192,	/* max size of data in 9P message */
+	Maxrpc	= 20000,	/* number of RPCs we'll log */
+};
 
 typedef struct Fsrpc Fsrpc;
 typedef struct Fid Fid;
@@ -46,7 +50,7 @@ struct Stats
 	ulong	totwrite;
 	ulong	nrpc;
 	ulong	nproto;
-	Rpc	rpc[MAXRPC];
+	Rpc	rpc[Maxrpc];
 };
 
 struct Fsrpc
@@ -56,13 +60,12 @@ struct Fsrpc
 	int	canint;			/* Interrupt gate */
 	int	flushtag;		/* Tag on which to reply to flush */
 	Fcall	work;			/* Plan 9 incoming Fcall */
-	char	buf[MAXFDATA+MAXMSG];	/* Data buffer */
+	uchar	buf[IOHDRSZ+Maxfdata];	/* Data buffer */
 };
 
 struct Fid
 {
 	int	fid;			/* system fd for i/o */
-	vlong	offset;			/* current file offset */
 	File	*f;			/* File attached to this fid */
 	int	mode;
 	int	nr;			/* fid number */
@@ -71,11 +74,12 @@ struct Fid
 	ulong	nwrite;
 	ulong	bread;
 	ulong	bwrite;
+	vlong	offset;	/* for directories */
 };
 
 struct File
 {
-	char	name[NAMELEN];
+	char	*name;
 	Qid	qid;
 	int	inval;
 	File	*parent;
@@ -97,16 +101,6 @@ enum
 	Fidchunk	= 1000,
 };
 
-enum
-{
-	Ebadfid,
-	Enotdir,
-	Edupfid,
-	Eopen,
-	Exmnt,
-	Enoauth,
-};
-
 Extern Fsrpc	*Workq;
 Extern int  	dbg;
 Extern File	*root;
@@ -118,12 +112,13 @@ Extern int	done;
 Extern Stats	*stats;
 Extern Frec	*frhead;
 Extern Frec	*frtail;
+Extern int		myiounit;
 
 /* File system protocol service procedures */
 void Xcreate(Fsrpc*), Xclunk(Fsrpc*); 
-void Xnop(Fsrpc*), Xsession(Fsrpc*), Xflush(Fsrpc*); 
-void Xattach(Fsrpc*), Xclone(Fsrpc*), Xwalk(Fsrpc*), Xauth(Fsrpc*);
-void Xremove(Fsrpc*), Xstat(Fsrpc*), Xwstat(Fsrpc*), Xclwalk(Fsrpc*);
+void Xversion(Fsrpc*), Xauth(Fsrpc*), Xflush(Fsrpc*); 
+void Xattach(Fsrpc*), Xwalk(Fsrpc*), Xauth(Fsrpc*);
+void Xremove(Fsrpc*), Xstat(Fsrpc*), Xwstat(Fsrpc*);
 void slave(Fsrpc*);
 
 void	reply(Fcall*, Fcall*, char*);
@@ -140,7 +135,6 @@ void	slaveread(Fsrpc*);
 void	slavewrite(Fsrpc*);
 void	blockingslave(void);
 void	reopen(Fid *f);
-void	fileseek(Fid*, vlong);
 void	noteproc(int, char*);
 void	flushaction(void*, char*);
 void	catcher(void*, char*);

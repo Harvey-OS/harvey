@@ -29,10 +29,10 @@ void
 fatal(char *fmt, ...)
 {
 	va_list arg;
-	char buf[3*ERRLEN];
+	char buf[512];
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "pcmcia: %s\n", buf);
 	exits(buf);

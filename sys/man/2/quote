@@ -1,6 +1,6 @@
 .TH QUOTE 2
 .SH NAME
-quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrconv, quoterunestrconv, quotefmtinstall, doquote \- quoted character strings
+quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrfmt, quoterunestrfmt, quotefmtinstall, doquote \- quoted character strings
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -19,10 +19,10 @@ char *unquotestrdup(char *s)
 Rune *unquoterunestrdup(Rune *s)
 .PP
 .B
-int quotestrconv(va_list *arg, Fconv *fp)
+int quotestrfmt(Fmt*)
 .PP
 .B
-int quoterunestrconv(va_list *arg, Fconv *fp)
+int quoterunestrfmt(Fmt*)
 .PP
 .B
 void quotefmtinstall(void)
@@ -118,9 +118,9 @@ Regardless of the return value of
 .IR *doquote ,
 blanks, control characters, and quotes are always quoted.
 .PP
-.I Quotestrconv
+.I Quotestrfmt
 and
-.I quoterunestrconv
+.I quoterunestrfmt
 are
 .IR print (2)
 formatting routines that produce quoted strings as output.
@@ -130,9 +130,13 @@ installs them under the standard format characters
 .B q
 and
 .BR Q .
-(They are not installed automatically because they use
-.IR malloc ,
-which no other standard format requires.)
+(They are not installed automatically.)
+If the format string includes the alternate format character
+.BR # ,
+for example
+.BR %#q ,
+the printed string will always be quoted; otherwise quotes will only be provided if necessary
+to avoid ambiguity.
 In
 .B <libc.h>
 there are
@@ -147,7 +151,7 @@ format strings.
 .SH SOURCE
 .B /sys/src/libc/port/quote.c
 .br
-.B /sys/src/libc/port/printquote.c
+.B /sys/src/libc/fmt/fmtquote.c
 .SH "SEE ALSO
 .IR rc (1),
 .IR malloc (2),

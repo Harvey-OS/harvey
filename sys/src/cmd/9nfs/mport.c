@@ -23,7 +23,7 @@ char *	mach;
 void
 main(int argc, char **argv)
 {
-	char addr[2*NAMELEN], dir[2*NAMELEN], name[3*NAMELEN];
+	char addr[64], dir[64], name[128];
 	char buf[32], *p;
 	uchar *dataptr, *argptr;
 	int i, fd, n, remport;
@@ -38,7 +38,7 @@ main(int argc, char **argv)
 	}ARGEND
 	if(argc != 1)
 		exits("usage");
-	sprint(addr, "udp!%s!111", argv[0]);
+	snprint(addr, sizeof addr, "udp!%s!111", argv[0]);
 	r.data = dial(addr, 0, dir, &r.ctl);
 	if(r.data < 0){
 		fprint(2, "dial %s: %r\n", addr);
@@ -68,7 +68,7 @@ main(int argc, char **argv)
 	for(i=0; i<4; i++, p++)
 		r.cmd.host = (r.cmd.host<<8)|strtol(p, &p, 10);
 	r.cmd.port = strtol(p, 0, 10);
-	fprint(2, "host=%d.%d.%d.%d, port=%d\n",
+	fprint(2, "host=%ld.%ld.%ld.%ld, port=%lud\n",
 		(r.cmd.host>>24)&0xff, (r.cmd.host>>16)&0xff,
 		(r.cmd.host>>8)&0xff, r.cmd.host&0xff, r.cmd.port);
 	fprint(r.ctl, "disconnect");
@@ -180,7 +180,7 @@ rpccall(Rpcconn *r, int narg)
 		rpcprint(2, &r->reply);
 	if(r->reply.mtype != REPLY || r->reply.stat != MSG_ACCEPTED ||
 	   r->reply.astat != SUCCESS){
-		fprint(2, "rpc mtype, stat, astat = %d, %d, %d\n",
+		fprint(2, "rpc mtype, stat, astat = %ld, %ld, %ld\n",
 			r->reply.mtype, r->reply.stat, r->reply.astat);
 		exits("rpc");
 	}

@@ -29,7 +29,7 @@ extern int		scsiverbose;
 typedef struct Disk Disk;
 struct Disk {
 	char *prefix;
-	char part[NAMELEN];
+	char *part;
 	int fd;
 	int wfd;
 	int ctlfd;
@@ -62,6 +62,4 @@ enum {
 /* proto file parsing */
 typedef void Protoenum(char *new, char *old, Dir *d, void *a);
 typedef void Protowarn(char *msg, void *a);
-
-int	rdproto(char*, char*, Protoenum*, Protowarn*, void*);
-
+int rdproto(char*, char*, Protoenum*, Protowarn*, void*);

@@ -113,9 +113,9 @@ printregs(int c)
 				continue;
 		}
 		if(rp->rformat == 'Y')
-			dprint("%-8s %-20llux", rp->rname, getreg(cormap, rp));
+			dprint("%-8s %-20#llux", rp->rname, getreg(cormap, rp));
 		else
-			dprint("%-8s %-12lux", rp->rname, (ulong)getreg(cormap, rp));
+			dprint("%-8s %-12#lux", rp->rname, (ulong)getreg(cormap, rp));
 		if ((i % 3) == 0) {
 			dprint("\n");
 			i = 0;

@@ -3,6 +3,7 @@ typedef struct SacDir SacDir;
 
 enum {
 	Magic = 0x5acf5,
+	NAMELEN = 28,
 };
 
 struct SacDir

@@ -53,6 +53,7 @@ void
 main(int argc, char **argv)
 {
 	HConnect *c;
+	HSPriv *hp;
 	Hio *hout, *hin;
 	char *s;
 
@@ -75,13 +76,16 @@ main(int argc, char **argv)
 		hprint(hout, "\r\n");
 	}
 	hprint(hout, "<HEAD><META http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\"><TITLE>Echo</TITLE></HEAD><BODY><h1>Echo</h1>\r\n");
-	hprint(hout, "You requested a %s, version HTTP/%d.%d on %s",
+	hp = c->private;
+	hprint(hout, "You connected from sys %s, serv %s\r\n",
+		hp->remotesys, hp->remoteserv);
+	hprint(hout, "<p>You requested a %s, version HTTP/%d.%d on %s",
 		hq(c->req.meth), c->req.vermaj, c->req.vermin, hq(c->req.uri));
 	if(c->req.search)
 		hprint(hout, " with search string %s", hq(c->req.search));
-	hprint(hout, ".\n");
+	hprint(hout, ".\r\n");
 
-	hprint(hout, "Your client sent the following headers:<p><PRE>\n");
+	hprint(hout, "<p>Your client sent the following headers:<p><PRE>\r\n");
 	hqwrite(hout, (char*)(c->header), c->hstop - c->header);
 
 	if(strcmp(c->req.meth, "POST") == 0){

@@ -1,3 +1,4 @@
+typedef struct Fsevent Fsevent;
 typedef struct Event Event;
 typedef struct Message Message;
 typedef struct Window Window;
@@ -8,8 +9,14 @@ enum
 	NPIPEDATA	= 8000,
 	NPIPE		= NPIPEDATA+32,
 	/* EVENTSIZE is really 256 in acme, but we use events internally and want bigger buffers */
-	EVENTSIZE	= 1024,
+	EVENTSIZE	= 8192,
 	NEVENT		= 5,
+};
+
+struct Fsevent
+{
+	int	type;
+	void	*r;
 };
 
 struct Event
@@ -69,12 +76,20 @@ extern	char*	eappend(char*, char*, char*);
 extern	void		error(char*, ...);
 
 extern	void		startpipe(void);
-extern	int		sendinput(Window*, ulong, ulong);
 extern	void		sendit(char*);
 extern	void		execevent(Window *w, Event *e, int (*)(Window*, char*));
+
+extern	void		mountcons(void);
+extern	void		fsloop(void*);
+
+extern	int		newpipewin(int, char*);
+extern	void		startpipe(void);
+extern	int		pipecommand(Window*, char*);
+extern	void		pipectl(void*);
 
 #pragma	varargck	argpos	error	1
 #pragma	varargck	argpos	ctlprint	2
 
 extern	Window	*win;
-extern	int		hostpt;
+extern	Channel	*fschan, *writechan;
+

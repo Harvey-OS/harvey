@@ -29,14 +29,14 @@ main(void)
 	active.machs = 1;
 
 	rs232power(1);
+	quotefmtinstall();
 	iprint("\nPlan 9 bitsy kernel\n");
 	confinit();
 	xinit();
 	mmuinit();
 	machinit();
 	trapinit();
-	sa1100_uartsetup(1);
-	rs232power(1);
+	sa1110_uartsetup(1);
 	dmainit();
 	screeninit();
 	printinit();	/* from here on, print works, before this we need iprint */
@@ -48,8 +48,17 @@ main(void)
 	pageinit();
 	swapinit();
 	userinit();
+	powerinit();
 	schedinit();
 }
+
+/* need to do better */
+void
+reboot(void*, void*, ulong)
+{
+	exit(0);
+}
+
 
 /*
  *  exit kernel either on a panic or user request
@@ -89,20 +98,21 @@ init0(void)
 	up->slash = namec("#/", Atodir, 0, 0);
 	cnameclose(up->slash->name);
 	up->slash->name = newcname("/");
-	up->dot = cclone(up->slash, 0);
+	up->dot = cclone(up->slash);
 
 	chandevinit();
 
 	if(!waserror()){
-		ksetenv("terminal", "bitsy");
-		ksetenv("cputype", "arm");
+		ksetenv("terminal", "bitsy", 0);
+		ksetenv("cputype", "arm", 0);
 		if(cpuserver)
-			ksetenv("service", "cpu");
+			ksetenv("service", "cpu", 0);
 		else
-			ksetenv("service", "terminal");
+			ksetenv("service", "terminal", 0);
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
+	kproc("power", powerkproc, 0);
 
 	touser(sp);
 }
@@ -188,8 +198,9 @@ userinit(void)
 	p->rgrp = newrgrp();
 	p->procmode = 0640;
 
-	strcpy(p->text, "*init*");
-	strcpy(p->user, eve);
+	kstrdup(&eve, "");
+	kstrdup(&p->text, "*init*");
+	kstrdup(&p->user, eve);
 
 	/*
 	 * Kernel Stack
@@ -361,6 +372,7 @@ ulong *egpioreg = (ulong*)EGPIOREGS;
 PPCregs *ppcregs;
 MemConfRegs *memconfregs;
 PowerRegs *powerregs;
+ResetRegs *resetregs;
 
 /*
  *  configure the machine
@@ -394,6 +406,9 @@ machinit(void)
 
 	/* memory configuraton */
 	memconfregs = mapspecial(MEMCONFREGS, 32);
+
+	/* reset controller */
+	resetregs = mapspecial(RESETREGS, 32);
 }
 
 
@@ -416,18 +431,35 @@ void
 rs232power(int on)
 {
 	egpiobits(EGPIO_rs232_power, on);
+	delay(50);
+}
+
+void
+audioamppower(int on)
+{
+	egpiobits(EGPIO_audio_power, on);
+	delay(50);
+}
+
+void
+audioicpower(int on)
+{
+	egpiobits(EGPIO_audio_ic_power, on);
+	delay(50);
 }
 
 void
 irpower(int on)
 {
 	egpiobits(EGPIO_ir_power, on);
+	delay(50);
 }
 
 void
 lcdpower(int on)
 {
 	egpiobits(EGPIO_lcd_3v|EGPIO_lcd_ic_power|EGPIO_lcd_5v|EGPIO_lcd_9v, on);
+	delay(50);
 }
 
 void

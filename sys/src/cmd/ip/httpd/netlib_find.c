@@ -165,7 +165,7 @@ init800fs(char*name,char*pat)
 	fd800fs = open(name, ORDWR);
 	if(fd800fs < 0)
 		exits("can't connect to 800fs server");
-	if(mount(fd800fs, "/mnt", MREPL, "") < 0)
+	if(mount(fd800fs, -1, "/mnt", MREPL, "") < 0)
 		exits("can't mount /mnt");
 	fd800fs = open("/mnt/search", ORDWR);
 	n = strlen("search=")+strlen(pat)+1;
@@ -250,6 +250,7 @@ send(HConnect *c)
 	}
 	if(strcmp(c->req.meth, "HEAD") == 0){
 		writelog(c, "Reply: 200 netlib_find 0\n");
+		hflush(hout);
 		exits(nil);
 	}
 

@@ -9,8 +9,6 @@
 
 static long	round(long, long);
 
-extern	char	lastc, peekc;
-
 extern	ADDR	ditto;
 vlong	expv;
 
@@ -18,18 +16,10 @@ static WORD
 ascval(void)
 {
 	Rune r;
-	int i;
-	char buf[UTFmax+1];
 
-	for (i = 0; i < UTFmax; i++) {	/* extract a rune */
-		if (fullrune(buf, i))
-			break;
-		if (readchar() == 0)
-			return (0);
-		buf[i] = lastc;
-	}
-	buf[i] = 0;
-	chartorune(&r, buf);
+	if (readchar() == 0)
+		return (0);
+	r = lastc;
 	while(quotchar())	/*discard chars to ending quote */
 		;
 	return((WORD) r);
@@ -325,11 +315,14 @@ void
 readsym(char *isymbol)
 {
 	char	*p;
+	Rune r;
 
 	p = isymbol;
 	do {
-		if (p < &isymbol[MAXSYM-1])
-			*p++ = lastc;
+		if (p < &isymbol[MAXSYM-UTFmax-1]){
+			r = lastc;
+			p += runetochar(p, &r);
+		}
 		readchar();
 	} while (symchar(1));
 	*p = 0;
@@ -339,13 +332,13 @@ void
 readfname(char *filename)
 {
 	char	*p;
-	char	c;
+	Rune	c;
 
 	/* snarf chars until un-escaped char in terminal char set */
 	p = filename;
 	do {
-		if ((c = lastc) != '\\' && p < &filename[MAXSYM-1])
-			*p++ = c;
+		if ((c = lastc) != '\\' && p < &filename[MAXSYM-UTFmax-1])
+			p += runetochar(p, &c);
 		readchar();
 	} while (c == '\\' || strchr(CMD_VERBS, lastc) == 0);
 	*p = 0;
@@ -370,7 +363,7 @@ symchar(int dig)
 		readchar();
 		return(TRUE);
 	}
-	return(isalpha(lastc) || lastc=='_' || dig && isdigit(lastc));
+	return(isalpha(lastc) || lastc>0x80 || lastc=='_' || dig && isdigit(lastc));
 }
 
 static long

@@ -1,8 +1,8 @@
 </$objtype/mkfile
 
 TARG=\
+	mkwnew\
 	spout\
-	wnew\
 
 OFILES=
 HFILES=

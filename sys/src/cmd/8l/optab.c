@@ -172,6 +172,13 @@ uchar	ydivb[] =
 	Ymb,	Ynone,	Zm_o,	2,
 	0
 };
+uchar	yimul[] =
+{
+	Yml,	Ynone,	Zm_o,	2,
+	Yi8,	Yrl,	Zib_rr,	1,
+	Yi32,	Yrl,	Zil_rr,	1,
+	0
+};
 uchar	ybyte[] =
 {
 	Yi32,	Ynone,	Zbyte,	1,
@@ -365,9 +372,9 @@ Optab optab[] =
 	{ AIDIVB,	ydivb,	Pb, 0xf6,(07) },
 	{ AIDIVL,	ydivl,	Px, 0xf7,(07) },
 	{ AIDIVW,	ydivl,	Pe, 0xf7,(07) },
-	{ AIMULB,	ydivb,	Pb, 0xf6,(05) },	/* botch, only does DX,AX version */
-	{ AIMULL,	ydivl,	Px, 0xf7,(05) },
-	{ AIMULW,	ydivl,	Pe, 0xf7,(05) },
+	{ AIMULB,	ydivb,	Pb, 0xf6,(05) },
+	{ AIMULL,	yimul,	Px, 0xf7,(05),0x6b,0x69 },
+	{ AIMULW,	yimul,	Pe, 0xf7,(05),0x6b,0x69 },
 	{ AINB,		yin,	Pb, 0xe4,0xec },
 	{ AINL,		yin,	Px, 0xe5,0xed },
 	{ AINW,		yin,	Pe, 0xe5,0xed },

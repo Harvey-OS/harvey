@@ -15,4 +15,3 @@ OFILES=\
 HFILES=/sys/include/frame.h
 
 < /sys/src/cmd/mksyslib
-

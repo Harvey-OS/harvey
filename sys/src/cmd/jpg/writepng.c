@@ -17,7 +17,8 @@ enum{	IDATSIZE = 	20000,
 };
 
 typedef struct ZlibR{
-	Memimage *r;
+	uchar *data;
+	int nrow, ncol;
 	int row, col;	// next pixel to send
 } ZlibR;
 
@@ -62,11 +63,10 @@ static int
 zread(void *va, void *buf, int n)
 {
 	ZlibR *z = va;
-	Memimage *r = z->r;
-	int nrow = r->r.max.y - r->r.min.y;
-	int ncol = r->r.max.x - r->r.min.x;
+	int nrow = z->nrow;
+	int ncol = z->ncol;
 	uchar *b = buf, *e = b+n, *img;
-	int pixels;  // number of pixels in row that can be sent now
+	int i, pixels;  // number of pixels in row that can be sent now
 
 	while(b+3 <= e){ // loop over image rows
 		if(z->row >= nrow)
@@ -76,9 +76,17 @@ zread(void *va, void *buf, int n)
 		pixels = (e-b)/3;
 		if(pixels > ncol - z->col)
 			pixels = ncol - z->col;
-		img = r->data->bdata + 3 * z->row * ncol + 3 * z->col;
-		memmove(b, img, 3*pixels);
-		b += 3*pixels;
+		img = z->data + 3 * z->row * ncol + 3 * z->col;
+
+		// Plan 9 image format is BGR?!!!
+		// memmove(b, img, 3*pixels);
+		// b += 3*pixels;
+		for(i=0; i<pixels; i++, img += 3){
+			*b++ = img[2];
+			*b++ = img[1];
+			*b++ = img[0];
+		}
+
 		z->col += pixels;
 		if(z->col >= ncol){
 			z->col = 0;
@@ -188,7 +196,9 @@ memwritepng(Biobuf *bo, Memimage *r, ImageInfo *II)
 	}
 
 	// image chunks
-	zr.r = rgb;
+	zr.nrow = nrow;
+	zr.ncol = ncol;
+	zr.data = rgb->data->bdata;
 	zr.row = zr.col = 0;
 	zw.bo = bo;
 	zw.buf = malloc(IDATSIZE);

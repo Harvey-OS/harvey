@@ -1,4 +1,0 @@
-TEXT _SLEEP(SB), 1, $-4
-MOVW $17, R0
-SWI 0
-RET

@@ -8,7 +8,7 @@
 int _finishing = 0;
 int _sessleader = 0;
 
-static char exitstatus[ERRLEN];
+static char exitstatus[ERRMAX];
 
 void
 _exit(int status)
@@ -29,7 +29,8 @@ _finish(int status, char *term)
 		cp = _ultoa(exitstatus, status & 0xFF);
 		*cp = 0;
 	}else if(term){
-		strncpy(exitstatus, term, ERRLEN);
+		strncpy(exitstatus, term, ERRMAX);
+		exitstatus[ERRMAX-1] = '\0';
 	}
 	if(_sessleader)
 		kill(0, SIGTERM);

@@ -36,6 +36,8 @@ main(int argc, char *argv[])
 			usage();
 		II.fields_set |= II_GAMMA;
 		break;
+	case 't':
+		break;
 	default:
 		usage();
 	}ARGEND

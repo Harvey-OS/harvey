@@ -1,0 +1,76 @@
+</$objtype/mkfile
+
+CFLAGS=$CFLAGS
+
+LIBOFILES=\
+	arena.$O\
+	arenas.$O\
+	buildbuck.$O\
+	clump.$O\
+	config.$O\
+	conv.$O\
+	dcache.$O\
+	dump.$O\
+	httpd.$O\
+	icache.$O\
+	ifile.$O\
+	index.$O\
+	lump.$O\
+	lumpcache.$O\
+	lumpqueue.$O\
+	part.$O\
+	score.$O\
+	sortientry.$O\
+	stats.$O\
+	syncarena.$O\
+	syncindex.$O\
+	unwhack.$O\
+	utils.$O\
+	unittoull.$O\
+	whack.$O\
+	xml.$O\
+	zeropart.$O\
+
+SLIB=libvs.a.$O
+LIB=$SLIB\
+
+HFILES=	dat.h\
+	fns.h\
+	stdinc.h\
+	zeropart.c\
+
+TARG=\
+	venti\
+	fmtarenas\
+	fmtisect\
+	fmtindex\
+	buildindex\
+	checkarenas\
+	checkindex\
+	clumpstats\
+	findscore\
+	rdarena\
+	sync\
+	verifyarena\
+#	dumparena\
+
+BIN=/$objtype/bin/venti
+
+it:V: all
+
+</sys/src/cmd/mkmany
+
+INC=-I../include -I../lib/venti
+CFLAGS=$INC $CFLAGS
+
+acid:	$HFILES icache.c
+	$CC $INC -a icache.c > acid || rm acid
+
+xml.c:	mkxml dat.h
+	mkxml dat.h > xml.c
+
+$SLIB(%.$O):N: %.$O
+$SLIB:	${LIBOFILES:%=$SLIB(%)}
+	names = `{echo $newprereq |sed 's/ /\n/g' |sed -n 's/'$SLIB'\(([^)]+)\)/\1/gp'}
+	ar vu $SLIB $names
+	rm $names

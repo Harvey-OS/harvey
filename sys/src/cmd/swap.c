@@ -6,7 +6,7 @@ void error(char *);
 void
 main(int argc, char **argv)
 {
-	Dir d;
+	Dir *d;
 	int swapfd, cswfd;
 	char buf[128], *p;
 	int i, j;
@@ -16,11 +16,12 @@ main(int argc, char **argv)
 		exits("swap: failed");
 	}
 
-	if(dirstat(argv[1], &d) < 0){
+	d = dirstat(argv[1]);
+	if(d == nil){
 		print("swap: can't stat %s: %r\n", argv[1]);
 		exits("swap: failed");
 	}
-	if(d.type != 'M'){		/* kernel device */
+	if(d->type != 'M'){		/* kernel device */
 		swapfd = open(argv[1], ORDWR);
 		p = argv[1];
 	}

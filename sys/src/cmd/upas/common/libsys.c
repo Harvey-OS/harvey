@@ -7,7 +7,7 @@
  */
 int nsysfile=3;
 
-static char err[ERRLEN];
+static char err[Errlen];
 
 /*
  *  return the date
@@ -67,7 +67,7 @@ lockname(char *path)
 		cp = path;
 	}
 	s_append(lp, "L.");
-	s_nappend(lp, cp, NAMELEN-3);
+	s_nappend(lp, cp, Elemlen-3);
 
 	return lp;
 }
@@ -75,7 +75,7 @@ lockname(char *path)
 int
 syscreatelocked(char *path, int mode, int perm)
 {
-	return create(path, mode, CHEXCL|perm);
+	return create(path, mode, DMEXCL|perm);
 }
 
 int
@@ -98,23 +98,26 @@ static int
 openlockfile(Mlock *l)
 {
 	int fd;
-	Dir d;
+	Dir *d;
 	char *p;
 
-	fd = open(s_to_c(l->name), OWRITE);
+	fd = open(s_to_c(l->name), OREAD);
 	if(fd >= 0){
 		l->fd = fd;
 		return 0;
 	}
 
-	if(dirstat(s_to_c(l->name), &d) < 0){
+	d = dirstat(s_to_c(l->name));
+	if(d == nil){
 		/* file doesn't exist */
 		/* try creating it */
-		fd = create(s_to_c(l->name), OWRITE, CHEXCL|0666);
+		fd = create(s_to_c(l->name), OREAD, DMEXCL|0666);
 		if(fd >= 0){
-			if(dirfstat(fd, &d) >= 0){
-				d.mode |= CHEXCL|0666;
-				dirfwstat(fd, &d);
+			d = dirfstat(fd);
+			if(d != nil){
+				d->mode |= DMEXCL|0666;
+				dirfwstat(fd, d);
+				free(d);
 			}
 			l->fd = fd;
 			return 0;
@@ -134,7 +137,8 @@ openlockfile(Mlock *l)
 			if(fd < 0)
 				return -1;	/* give up */
 		}
-	}
+	} else
+		free(d);
 
 	return 1; /* try again later */
 }
@@ -207,8 +211,7 @@ trylock(char *path)
 		fd = l->fd;
 		for(;;){
 			sleep(1000*60);
-			seek(fd, 0, 0);
-			if(write(fd, buf, 1) < 0)
+			if(pread(fd, buf, 1, 0) < 0)
 				break;
 		}
 		_exits(0);
@@ -221,8 +224,7 @@ syslockrefresh(Mlock *l)
 {
 	char buf[1];
 
-	seek(l->fd, 0, 0);
-	read(l->fd, buf, 1);
+	pread(l->fd, buf, 1, 0);
 }
 
 extern void
@@ -258,7 +260,7 @@ sysopen(char *path, char *mode, ulong perm)
 	int docreate;
 	int append;
 	int truncate;
-	Dir d;
+	Dir *d;
 	Biobuf *bp;
 
 	/*
@@ -279,10 +281,10 @@ sysopen(char *path, char *mode, ulong perm)
 			docreate = 1;
 			break;
 		case 'l':
-			sysperm |= CHEXCL;
+			sysperm |= DMEXCL;
 			break;
 		case 'a':
-			sysperm |= CHAPPEND;
+			sysperm |= DMAPPEND;
 			break;
 		case 'w':
 			if(sysmode == -1)
@@ -308,7 +310,7 @@ sysopen(char *path, char *mode, ulong perm)
 	case ORDWR:
 		break;
 	default:
-		if(sysperm&CHAPPEND)
+		if(sysperm&DMAPPEND)
 			sysmode = OWRITE;
 		else
 			sysmode = OREAD;
@@ -322,19 +324,24 @@ sysopen(char *path, char *mode, ulong perm)
 		sysmode |= OTRUNC;
 	fd = open(path, sysmode);
 	if(fd < 0){
-		if(dirstat(path, &d) < 0){
+		d = dirstat(path);
+		if(d == nil){
 			if(docreate == 0)
 				return 0;
 
 			fd = create(path, sysmode, sysperm|perm);
 			if(fd < 0)
 				return 0;
-			if(dirfstat(fd, &d) >= 0){
-				d.mode |= sysperm|perm;
-				dirfwstat(fd, &d);
+			d = dirfstat(fd);
+			if(d != nil){
+				d->mode |= sysperm|perm;
+				dirfwstat(fd, d);
+				free(d);
 			}
-		} else
+		} else {
+			free(d);
 			return 0;
+		}
 	}
 
 	bp = (Biobuf*)malloc(sizeof(Biobuf));
@@ -381,7 +388,7 @@ sysmkdir(char *file, ulong perm)
 {
 	int fd;
 
-	if((fd = create(file, OREAD, CHDIR|perm)) < 0)
+	if((fd = create(file, OREAD, DMDIR|perm)) < 0)
 		return -1;
 	close(fd);
 	return 0;
@@ -393,20 +400,24 @@ sysmkdir(char *file, ulong perm)
 int
 syschgrp(char *file, char *group)
 {
-	Dir d;
+	Dir *d;
+	int rv;
 
 	if(group == 0)
 		return -1;
-	if(dirstat(file, &d) < 0)
+	d = dirstat(file);
+	if(d == nil)
 		return -1;
-	strncpy(d.gid, group, sizeof(d.gid));
-	return dirwstat(file, &d);
+	strncpy(d->gid, group, sizeof(d->gid));
+	rv = dirwstat(file, d);
+	free(d);
+	return rv;
 }
 
 extern int
-sysdirread(int fd, Dir *d, int n)
+sysdirreadall(int fd, Dir **d)
 {
-	return read(fd, d, n);
+	return dirreadall(fd, d);
 }
 
 /*
@@ -504,7 +515,7 @@ domainname_read(void)
 extern int
 e_nonexistent(void)
 {
-	errstr(err);
+	rerrstr(err, sizeof(err));
 	return strcmp(err, "file does not exist") == 0;
 }
 
@@ -515,7 +526,7 @@ e_nonexistent(void)
 extern int
 e_locked(void)
 {
-	errstr(err);
+	rerrstr(err, sizeof(err));
 	return strcmp(err, "open/create -- file is locked") == 0;
 }
 
@@ -525,11 +536,15 @@ e_locked(void)
 extern long
 sysfilelen(Biobuf *fp)
 {
-	Dir	d;
+	Dir *d;
+	long rv;
 
-	if(dirfstat(Bfildes(fp), &d)<0)
+	d = dirfstat(Bfildes(fp));
+	if(d == nil)
 		return -1;
-	return d.length;
+	rv = d->length;
+	free(d);
+	return rv;
 }
 
 /*
@@ -547,9 +562,10 @@ sysremove(char *path)
 extern int
 sysrename(char *old, char *new)
 {
-	Dir d;
+	Dir *d;
 	char *obase;
 	char *nbase;
+	int rv;
 
 	obase = strrchr(old, '/');
 	nbase = strrchr(new, '/');
@@ -564,11 +580,14 @@ sysrename(char *old, char *new)
 			return -1;
 		nbase = new;
 	}
-	if(dirstat(old, &d) < 0)
+	d = dirstat(old);
+	if(d == nil)
 		return -1;
-	memset(d.name, 0, sizeof(d.name));
-	strcpy(d.name, nbase);
-	return dirwstat(old, &d);
+	memset(d->name, 0, sizeof(d->name));
+	strcpy(d->name, nbase);
+	rv = dirwstat(old, d);
+	free(d);
+	return rv;
 }
 
 /*
@@ -577,9 +596,13 @@ sysrename(char *old, char *new)
 extern int
 sysexist(char *file)
 {
-	Dir	d;
+	Dir	*d;
 
-	return dirstat(file, &d) == 0;
+	d = dirstat(file);
+	if(d == nil)
+		return 0;
+	free(d);
+	return 1;
 }
 
 /*
@@ -674,38 +697,18 @@ exit(int i)
 	exits(buf);
 }
 
-/*
- *  become powerless user
- */
-int
-become(char **cmd, char *who)
-{
-	int fd;
-
-	USED(cmd);
-	if(strcmp(who, "none") == 0) {
-		fd = open("#c/user", OWRITE);
-		if(fd < 0 || write(fd, "none", strlen("none")) < 0) {
-			werrstr("can't become none");
-			return -1;
-		}
-		close(fd);
-		if(newns("none", 0)) {
-			werrstr("can't set new namespace");
-			return -1;
-		}
-	}
-	return 0;
-}
-
 static int
 islikeatty(int fd)
 {
-	Dir d;
+	Dir *d;
+	int rv;
 
-	if(dirfstat(fd, &d) < 0)
+	d = dirfstat(fd);
+	if(d == nil)
 		return 0;
-	return strcmp(d.name, "cons") == 0;
+	rv = strcmp(d->name, "cons") == 0;
+	free(d);
+	return rv;
 }
 
 extern int
@@ -880,12 +883,74 @@ remoteaddr(int fd, char *dir)
 	return "";
 }
 
-/*
- *	stub to read locked current directory - this is different in unix version
- */
+//  create a mailbox
 int
-sysreaddot(int fd, Dir *dir, long n)
+creatembox(char *user, char *folder)
 {
-	return dirread(fd, dir, n);
+	char *p;
+	String *mailfile;
+	char buf[512];
+	int fd;
+	Dir *d;
+	Mlock *ml;
 
+	mailfile = s_new();
+	if(folder == 0)
+		mboxname(user, mailfile);
+	else {
+		snprint(buf, sizeof(buf), "%s/mbox", folder);
+		mboxpath(buf, user, mailfile, 0);
+	}
+
+	// don't destroy existing mailbox
+	if(access(s_to_c(mailfile), 0) == 0){
+		fprint(2, "mailbox already exists\n");
+		return -1;
+	}
+	fprint(2, "creating new mbox: %s\n", s_to_c(mailfile));
+
+	//  make sure preceding levels exist
+	for(p = s_to_c(mailfile); p; p++) {
+		if(*p == '/')	/* skip leading or consecutive slashes */
+			continue;
+		p = strchr(p, '/');
+		if(p == 0)
+			break;
+		*p = 0;
+		if(access(s_to_c(mailfile), 0) != 0){
+			if((fd = create(s_to_c(mailfile), OREAD, DMDIR|0711)) < 0){
+				fprint(2, "couldn't create %s\n", s_to_c(mailfile));
+				return -1;
+			}
+			close(fd);
+		}
+		*p = '/';
+	}
+
+	//  create the mbox
+	fd = create(s_to_c(mailfile), OREAD, 0622|DMAPPEND|DMEXCL);
+	if(fd < 0){
+		fprint(2, "couldn't create %s\n", s_to_c(mailfile));
+		return -1;
+	}
+	d = dirfstat(fd);
+	if(d == nil){
+		close(fd);
+		fprint(2, "couldn't chmod %s\n", s_to_c(mailfile));
+		return -1;
+	}
+	d->mode = 0622|DMAPPEND|DMEXCL;
+	if(dirfwstat(fd, d) < 0)
+		fprint(2, "couldn't chmod %s\n", s_to_c(mailfile));
+	free(d);
+	close(fd);
+
+	/*
+	 *  create the lock file if it doesn't exist
+	 */
+	ml = trylock(s_to_c(mailfile));
+	if(ml != nil)
+		sysunlock(ml);
+
+	return 0;
 }

@@ -48,20 +48,20 @@ TEXT mmuinvalidateaddr(SB), $-4
 TEXT cacheflush(SB), $-4
 	/* splhi */
 	MOVW	CPSR, R3
-	ORR	$(PsrDirq), R3, R1
+	ORR		$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
 
 	/* write back any dirty data */
 	MOVW	$0xe0000000,R0
-	ADD	$(8*1024),R0,R1
+	ADD		$(8*1024),R0,R1
 _cfloop:
 	MOVW.P	32(R0),R2
 	CMP.S	R0,R1
 	BGE	_cfloop
 	
 	/* drain write buffer and invalidate i cache contents */
-	MCR	CpMMU, 0, R0, C(CpCacheFlush), C(0xa), 4
-	MCR	CpMMU, 0, R0, C(CpCacheFlush), C(0x5), 0
+	MCR		CpMMU, 0, R0, C(CpCacheFlush), C(0xa), 4
+	MCR		CpMMU, 0, R0, C(CpCacheFlush), C(0x5), 0
 
 	/* drain prefetch */
 	MOVW	R0,R0						
@@ -78,12 +78,12 @@ TEXT cachewb(SB), $-4
 	/* write back any dirty data */
 _cachewb:
 	MOVW	$0xe0000000,R0
-	ADD	$(8*1024),R0,R1
+	ADD		$(8*1024),R0,R1
 _cwbloop:
 	MOVW.P	32(R0),R2
 	CMP.S	R0,R1
 	BGE	_cwbloop
-	
+
 	/* drain write buffer */
 	MCR	CpMMU, 0, R0, C(CpCacheFlush), C(0xa), 4
 	RET
@@ -134,6 +134,24 @@ TEXT getfsr(SB), $-4
 	MRC	CpMMU, 0, R0, C(CpFSR), C(0x0)
 	RET
 
+/* return mmu control register */
+TEXT getcontrol(SB), $-4
+	SUB R0, R0
+	MRC	CpMMU, 0, R0, C(CpControl), C(0x0)
+	RET
+
+/* return mmu dac register */
+TEXT getdac(SB), $-4
+	SUB R0, R0
+	MRC	CpMMU, 0, R0, C(CpDAC), C(0x0)
+	RET
+
+/* return mmu ttb register */
+TEXT getttb(SB), $-4
+	SUB R0, R0
+	MRC	CpMMU, 0, R0, C(CpTTB), C(0x0)
+	RET
+
 /* return fault address */
 TEXT getfar(SB), $-4
 	MRC	CpMMU, 0, R0, C(CpFAR), C(0x0)
@@ -151,6 +169,10 @@ TEXT mmuenable(SB), $-4
 	MRC	CpMMU, 0, R0, C(CpControl), C(0x0)
 	ORR	$(CpCmmuena|CpCdcache|CpCicache|CpCwb), R0
 	MCR     CpMMU, 0, R0, C(CpControl), C(0x0)
+	MOVW R0, R0
+	MOVW R0, R0
+	MOVW R0, R0
+	MOVW R0, R0
 	RET
 
 TEXT mmudisable(SB), $-4
@@ -413,6 +435,14 @@ TEXT spsrr(SB), $-4
 	MOVW	SPSR, R0
 	RET
 
+TEXT getsp(SB), $-4
+	MOVW	R13, R0
+	RET
+
+TEXT getlink(SB), $-4
+	MOVW	R14, R0
+	RET
+
 TEXT getcallerpc(SB), $-4
 	MOVW	0(R13), R0
 	RET
@@ -443,6 +473,266 @@ TEXT gotolabel(SB), $-4
 	MOVW	$1, R0
 	RET
 
+/* save the state machine in power_state[] for an upcoming suspend
+ */
+TEXT setpowerlabel(SB), $-4
+	MOVW	$power_state+0(SB), R0
+	/* svc */				/* power_state[]: what */
+	MOVW	R1, 0(R0)
+	MOVW	R2, 4(R0)
+	MOVW	R3, 8(R0)
+	MOVW	R4, 12(R0)
+	MOVW	R5, 16(R0)
+	MOVW	R6, 20(R0)
+	MOVW	R7, 24(R0)
+	MOVW	R8, 28(R0)
+	MOVW	R9, 32(R0)
+	MOVW	R10,36(R0)
+	MOVW	R11,40(R0)
+	MOVW	R12,44(R0)
+	MOVW	R13,48(R0)
+	MOVW	R14,52(R0)
+	MOVW	SPSR, R1
+	MOVW	R1, 56(R0)
+	MOVW	CPSR, R2
+	MOVW	R2, 60(R0)
+	/* copro */
+	MRC		CpMMU, 0, R3, C(CpDAC), C(0x0)
+	MOVW	R3, 144(R0)
+	MRC		CpMMU, 0, R3, C(CpTTB), C(0x0)
+	MOVW	R3, 148(R0)
+	MRC		CpMMU, 0, R3, C(CpControl), C(0x0)
+	MOVW	R3, 152(R0)
+	MRC		CpMMU, 0, R3, C(CpFSR), C(0x0)
+	MOVW	R3, 156(R0)
+	MRC		CpMMU, 0, R3, C(CpFAR), C(0x0)
+	MOVW	R3, 160(R0)
+	MRC		CpMMU, 0, R3, C(CpPID), C(0x0)
+	MOVW	R3, 164(R0)
+	/* irq */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(PsrDirq|PsrMirq), R3
+	MOVW	R3, CPSR
+	MOVW	SPSR, R11
+	MOVW	R11, 64(R0)
+	MOVW	R12, 68(R0)
+	MOVW	R13, 72(R0)
+	MOVW	R14, 76(R0)
+	/* und */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(PsrDirq|PsrMund), R3
+	MOVW	R3, CPSR
+	MOVW	SPSR, R11
+	MOVW	R11, 80(R0)
+	MOVW	R12, 84(R0)
+	MOVW	R13, 88(R0)
+	MOVW	R14, 92(R0)
+	/* abt */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(PsrDirq|PsrMabt), R3
+	MOVW	R3, CPSR
+	MOVW	SPSR, R11
+	MOVW	R11, 96(R0)
+	MOVW	R12, 100(R0)
+	MOVW	R13, 104(R0)
+	MOVW	R14, 108(R0)
+	/* fiq */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(PsrDirq|PsrMfiq), R3
+	MOVW	R3, CPSR
+	MOVW	SPSR, R7
+	MOVW	R7, 112(R0)
+	MOVW	R8, 116(R0)
+	MOVW	R9, 120(R0)
+	MOVW	R10,124(R0)
+	MOVW	R11,128(R0)
+	MOVW	R12,132(R0)
+	MOVW	R13,136(R0)
+	MOVW	R14,140(R0)
+	/* done */
+	MOVW	R2, CPSR
+	MOVW	R1, SPSR
+	MOVW	$0, R0
+	RET
+
+/* Entered after a resume from suspend state.
+ * The bootldr jumps here after a processor reset.
+ */
+TEXT power_resume(SB), $-4
+	MOVW	$setR12(SB), R12		/* load the SB */
+	/* SVC mode, interrupts disabled */
+	MOVW	$(PsrDirq|PsrDfiq|PsrMsvc), R1
+	MOVW	R1, CPSR
+	/* gotopowerlabel() */
+	/* svc */
+
+	MOVW	$power_state+0(SB), R0
+	MOVW	56(R0), R1		/* R1: SPSR, R2: CPSR */
+	MOVW	60(R0), R2
+	MOVW	R1, SPSR
+	MOVW	R2, CPSR
+	/* copro */
+	/* flush caches */
+	MCR		CpMMU, 0, R0, C(CpCacheFlush), C(0x7), 0
+	/* drain prefetch */
+	MOVW	R0,R0						
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	/* drain write buffer */
+	MCR		CpMMU, 0, R0, C(CpCacheFlush), C(0xa), 4
+	MCR		CpMMU, 0, R0, C(CpTLBFlush), C(0x7)
+	MOVW	144(R0), R3
+	MCR		CpMMU, 0, R3, C(CpDAC), C(0x0)
+	MOVW	148(R0), R3
+	MCR		CpMMU, 0, R3, C(CpTTB), C(0x0)
+	MOVW	156(R0), R3
+	MCR		CpMMU, 0, R3, C(CpFSR), C(0x0)
+	MOVW	160(R0), R3
+	MCR		CpMMU, 0, R3, C(CpFAR), C(0x0)
+	MOVW	164(R0), R3
+	MCR		CpMMU, 0, R3, C(CpPID), C(0x0)
+	MOVW	152(R0), R3
+	MCR		CpMMU, 0, R3, C(CpControl), C(0x0)	/* Enable cache */
+	MOVW	R0,R0						
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	/* flush i&d caches */
+	MCR		CpMMU, 0, R0, C(CpCacheFlush), C(0x7), 0
+	/* flush tlb */
+	MCR		CpMMU, 0, R0, C(CpTLBFlush), C(0x7), 0
+	/* drain prefetch */
+	MOVW	R0,R0						
+	MOVW	R0,R0
+	MOVW	R0,R0
+	MOVW	R0,R0
+	/* irq */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(PsrDirq|PsrMirq), R3
+	MOVW	R3, CPSR
+	MOVW	64(R0), R11
+	MOVW	68(R0), R12
+	MOVW	72(R0), R13
+	MOVW	76(R0), R14
+	MOVW	R11, SPSR
+	/* und */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(PsrDirq|PsrMund), R3
+	MOVW	R3, CPSR
+	MOVW	80(R0), R11
+	MOVW	84(R0), R12
+	MOVW	88(R0), R13
+	MOVW	92(R0), R14
+	MOVW	R11, SPSR
+	/* abt */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(PsrDirq|PsrMabt), R3
+	MOVW	R3, CPSR
+	MOVW	96(R0), R11
+	MOVW	100(R0), R12
+	MOVW	104(R0), R13
+	MOVW	108(R0), R14
+	MOVW	R11, SPSR
+	/* fiq */
+	BIC		$(PsrMask), R2, R3
+	ORR		$(PsrDirq|PsrMfiq), R3
+	MOVW	R3, CPSR
+	MOVW	112(R0), R7
+	MOVW	116(R0), R8
+	MOVW	120(R0), R9
+	MOVW	124(R0), R10
+	MOVW	128(R0), R11
+	MOVW	132(R0), R12
+	MOVW	136(R0), R13
+	MOVW	140(R0), R14
+	MOVW	R7, SPSR
+	/* svc */
+	MOVW	56(R0), R1
+	MOVW	60(R0), R2
+	MOVW	R1, SPSR
+	MOVW	R2, CPSR
+	MOVW	0(R0), R1
+	MOVW	4(R0), R2
+	MOVW	8(R0), R3
+	MOVW	12(R0),R4
+	MOVW	16(R0),R5
+	MOVW	20(R0),R6
+	MOVW	24(R0),R7
+	MOVW	28(R0),R8
+	MOVW	32(R0),R9
+	MOVW	36(R0),R10
+	MOVW	40(R0),R11
+	MOVW	44(R0),R12
+	MOVW	48(R0),R13
+	MOVW	52(R0),R14
+	RET
+loop:
+	B		loop
+
+TEXT power_down(SB), $-4
+
+	TEXT	sa1100_power_off<>+0(SB),$8
+	MOVW	resetregs+0(SB),R7
+	MOVW	gpioregs+0(SB),R6
+	MOVW	memconfregs+0(SB),R5
+	MOVW	powerregs+0(SB),R3
+	MOVW	0x1c(R5),R4
+	ORR		$0x30400000,R4
+	AND		$(~0xfff0),R4
+	MOVW	$0x80000003,R2
+	MOVW	R2,0xc(R3)
+	MOVW	$15,R2
+	MOVW	R2,0x4(R7)
+	MOVW	$7,R2
+	MOVW	R2,0x10(R3)
+	MOVW	$0,R2
+	MOVW	R2,0x18(R3)
+/*	MOVW	$power_resume+0(SB),R2	*/
+	MOVW	$0,R2
+	MOVW	R2,0x8(R3)
+	MOVW	$0,R2
+	MOVW	R2,0x4(R6)
+	MOVW	0x1c(R5),R2
+	ORR		$0x400000,R2
+	MOVW	R2,0x1c(R5)
+	MOVW	$(90*206),R0
+l13:	SUB		$1,R0
+	BGT		l13
+	MOVW	powerregs+0(SB),R3
+	MOVW	$0,R2
+	MOVW	R2,20(R3)
+	MOVW	$(90*206),R0
+l14:	SUB		$1,R0
+	BGT		l14
+	MOVW	powerregs+0(SB),R5
+	ORR		$0x80000000,R4,R6
+	AND		$(~0x80100000),R6,R11
+
+	MOVW	memconfregs+0(SB),R3
+	MOVW	0x0(R3),R12
+	AND		$(~0x30003),R12
+
+	MOVW	0x10(R3),R2
+	AND		$(~0x00030003),R2
+	MOVW	R2,0x10(R3)
+	MOVW	0x14(R3),R2
+	AND		$(~0x00030003),R2
+	MOVW	R2,0x14(R3)
+	MOVW	0x2c(R3),R2
+	AND		$(~0x00030003),R2
+	MOVW	R2,0x2c(R3)
+	MOVW	R0,R0			/* filler */
+
+	MOVW	$1,R2
+	MOVW	R4,0x1c(R3)
+//	MOVW	R6,0x1c(R3)
+	MOVW	R12,0x0(R3)
+//	MOVW	R11,0x1c(R3)
+	MOVW	R2,0x0(R5)
+
+slloop:
+	B		slloop			/* loop waiting for sleep */
 
 /* The first MCR instruction of this function needs to be on a cache-line
  * boundary; to make this happen, it will be copied (in trap.c).
@@ -459,7 +749,7 @@ TEXT _doze(SB), $-4
 	MOVW	R0,R0
 	MOVW	R0,R0
 	MOVW	R0,R0
-	MCR     CpPWR, 0, R0, C(CpTest), C(0x2), 2
+	MCR   	CpPWR, 0, R0, C(CpTest), C(0x2), 2
 	MOVW	(R1), R0
-	MCR     CpPWR, 0, R0, C(CpTest), C(0x8), 2
+	MCR  	CpPWR, 0, R0, C(CpTest), C(0x8), 2
 	RET

@@ -232,7 +232,7 @@ gscmd(GSInfo *gs, char *fmt, ...)
 
 	va_list v;
 	va_start(v, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, v) - buf;
+	n = vseprint(buf, buf+sizeof buf, fmt, v) - buf;
 	if(n <= 0)
 		return n;
 

@@ -1,27 +1,25 @@
-/* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1994, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: ztoken.c,v 1.6 2000/09/19 19:00:55 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: ztoken.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
 /* Token reading operators */
-#include "string_.h"
 #include "ghost.h"
 #include "oper.h"
-#include "dstack.h"		/* for dict_find_name */
 #include "estack.h"
 #include "gsstruct.h"		/* for iscan.h */
 #include "stream.h"
@@ -29,10 +27,7 @@
 #include "store.h"
 #include "strimpl.h"		/* for sfilter.h */
 #include "sfilter.h"		/* for iscan.h */
-#include "idict.h"
-#include "iname.h"
 #include "iscan.h"
-#include "itoken.h"		/* for prototypes */
 
 /* <file> token <obj> -true- */
 /* <string> token <post> <obj> -true- */
@@ -111,8 +106,6 @@ again:
     op = osp;
     switch (code) {
 	default:		/* error */
-	    if (code > 0)	/* comment, not possible */
-		code = gs_note_error(e_syntaxerror);
 	    push(1);
 	    ref_assign(op, &fref);
 	    break;
@@ -189,6 +182,7 @@ tokenexec_continue(i_ctx_t *i_ctx_p, stream * s, scanner_state * pstate,
 {
     os_ptr op = osp;
     int code;
+
     /* Note that scan_token may change osp! */
     /* Also, we must temporarily remove the file from the o-stack */
     /* when calling scan_token, in case we are scanning a procedure. */
@@ -197,7 +191,6 @@ tokenexec_continue(i_ctx_t *i_ctx_p, stream * s, scanner_state * pstate,
     ref_assign(&fref, op);
     pop(1);
 again:
-    check_estack(1);
     code = scan_token(i_ctx_p, s, (ref *) (esp + 1), pstate);
     op = osp;
     switch (code) {
@@ -225,11 +218,7 @@ again:
 		case o_push_estack:
 		    return code;
 	    }
-	    break;		/* error */
-	case scan_Comment:
-	case scan_DSC_Comment:
-	    return ztoken_handle_comment(i_ctx_p, &fref, pstate, esp + 1, code,
-					 save, true, ztokenexec_continue);
+	    /* falls through */
 	default:		/* error */
 	    break;
     }
@@ -241,126 +230,6 @@ again:
 	ifree_object(pstate, "token_continue");
     }
     return code;
-}
-
-/*
- * Handle a scan_Comment or scan_DSC_Comment return from scan_token
- * (scan_code) by calling out to %Process[DSC]Comment.  The continuation
- * procedure expects the file and scanner state on the o-stack.
- */
-int
-ztoken_handle_comment(i_ctx_t *i_ctx_p, const ref *fop, scanner_state *sstate,
-		      const ref *ptoken, int scan_code,
-		      bool save, bool push_file, op_proc_t cont)
-{
-    const char *proc_name;
-    scanner_state *pstate;
-    os_ptr op;
-    ref *ppcproc;
-    int code;
-
-    switch (scan_code) {
-    case scan_Comment:
-	proc_name = "%ProcessComment";
-	break;
-    case scan_DSC_Comment:
-	proc_name = "%ProcessDSCComment";
-	break;
-    default:
-	return_error(e_Fatal);	/* can't happen */
-    }
-    /*
-     * We can't use check_ostack here, because it returns on overflow.
-     */
-    /*check_ostack(2);*/
-    if (ostop - osp < 2) {
-	code = ref_stack_extend(&o_stack, 2);
-	if (code < 0)
-	    return code;
-    }
-    check_estack(4);
-    code = name_enter_string(proc_name, esp + 4);
-    if (code < 0)
-	return code;
-    if (save) {
-	pstate = ialloc_struct(scanner_state, &st_scanner_state,
-			       "ztoken_handle_comment");
-	if (pstate == 0)
-	    return_error(e_VMerror);
-	*pstate = *sstate;
-    } else
-	pstate = sstate;
-    /* Save the token now -- it might be on the e-stack. */
-    if (!pstate->s_pstack)
-	osp[2] = *ptoken;
-    /*
-     * Push the continuation, scanner state, file, and callout procedure
-     * on the e-stack.
-     */
-    make_op_estack(esp + 1, cont);
-    make_istruct(esp + 2, 0, pstate);
-    esp[3] = *fop;
-    r_clear_attrs(esp + 3, a_executable);
-    ppcproc = dict_find_name(esp + 4);
-    if (ppcproc == 0) {
-	/*
-	 * This can only happen during initialization.
-	 * Pop the comment string from the o-stack if needed (see below).
-	 */
-	if (pstate->s_pstack)
-	    --osp;
-	esp += 3;		/* do run the continuation */
-    } else {
-	/*
-	 * Push the file and comment string on the o-stack.
-	 * If we were inside { }, the comment string is already on the stack.
-	 */
-	if (pstate->s_pstack) {
-	    op = ++osp;
-	    *op = op[-1];
-	} else {
-	    op = osp += 2;
-	    /* *op = *ptoken; */	/* saved above */
-	}
-	op[-1] = *fop;
-	esp[4] = *ppcproc;
-	esp += 4;
-    }
-    return o_push_estack;
-}
-
-/*
- * Update the cached scanner_options in the context state after doing a
- * setuserparams.  (We might move this procedure somewhere else eventually.)
- */
-int
-ztoken_scanner_options(const ref *upref, int old_options)
-{
-    typedef struct named_scanner_option_s {
-	const char *pname;
-	int option;
-    } named_scanner_option_t;
-    static const named_scanner_option_t named_options[2] = {
-	{"ProcessComment", SCAN_PROCESS_COMMENTS},
-	{"ProcessDSCComment", SCAN_PROCESS_DSC_COMMENTS}
-    };
-    int options = old_options;
-    int i;
-
-    for (i = 0; i < countof(named_options); ++i) {
-	const named_scanner_option_t *pnso = &named_options[i];
-	ref *ppcproc;
-	int code = dict_find_string(upref, pnso->pname, &ppcproc);
-
-	/* Update the options only if the parameter has changed. */
-	if (code >= 0) {
-	    if (r_has_type(ppcproc, t_null))
-		options &= ~pnso->option;
-	    else
-		options |= pnso->option;
-	}
-    }
-    return options;
 }
 
 /* ------ Initialization procedure ------ */

@@ -12,24 +12,24 @@ ALLOFILES=\
 	atof.$O\
 	atol.$O\
 	atoll.$O\
-	charstod.$O\
 	cistrcmp.$O\
 	cistrncmp.$O\
 	cistrstr.$O\
+	charstod.$O\
 	cleanname.$O\
 	crypt.$O\
 	ctype.$O\
-	doprint.$O\
+	encodefmt.$O\
 	execl.$O\
 	exp.$O\
 	fabs.$O\
 	fastrand.$O\
-	fltconv.$O\
 	floor.$O\
 	fmod.$O\
 	frexp.$O\
 	getcallerpc.$O\
 	getfields.$O\
+	getuser.$O\
 	hangup.$O\
 	hypot.$O\
 	lock.$O\
@@ -45,12 +45,12 @@ ALLOFILES=\
 	nan.$O\
 	netcrypt.$O\
 	netmkaddr.$O\
+	nfastrand.$O\
+	ntruerand.$O\
 	perror.$O\
 	pool.$O\
 	pow.$O\
 	pow10.$O\
-	print.$O\
-	printquote.$O\
 	profile.$O\
 	qsort.$O\
 	quote.$O\
@@ -98,11 +98,15 @@ ALLOFILES=\
 	tanh.$O\
 	tokenize.$O\
 	toupper.$O\
+	utfecpy.$O\
 	utflen.$O\
 	utfnlen.$O\
 	utfrune.$O\
 	utfrrune.$O\
 	utfutf.$O\
+	u16.$O\
+	u32.$O\
+	u64.$O\
 
 # cull things in the per-machine directories from this list
 OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}

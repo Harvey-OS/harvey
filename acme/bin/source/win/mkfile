@@ -1,8 +1,8 @@
 </$objtype/mkfile
-CPUS=mips 386
 
 TARG=win
 OFILES=\
+	fs.$O\
 	main.$O\
 	pipe.$O\
 	util.$O\

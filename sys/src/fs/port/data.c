@@ -1,28 +1,6 @@
 #include	"all.h"
 
-void
-(*p9call[MAXSYSCALL])(Chan*, Fcall*, Fcall*) =
-{
-	[Tnop]		f_nop,
-	[Tosession]	f_session,
-	[Tsession]	f_session,
-	[Tflush]	f_flush,
-	[Toattach]	f_attach,
-	[Tattach]	f_attach,
-	[Tclone]	f_clone,
-	[Twalk]		f_walk,
-	[Topen]		f_open,
-	[Tcreate]	f_create,
-	[Tread]		f_read,
-	[Twrite]	f_write,
-	[Tclunk]	f_clunk,
-	[Tremove]	f_remove,
-	[Tstat]		f_stat,
-	[Twstat]	f_wstat,
-	[Tclwalk]	f_clwalk,
-};
-
-char	*errstr[MAXERR] =
+char	*errstr9p[MAXERR] =
 {
 	[Ebadspc]	"attach -- bad specifier",
 	[Efid]		"unknown fid",
@@ -38,20 +16,36 @@ char	*errstr[MAXERR] =
 	[Edir2]		"create -- in a non-directory",
 	[Ephase]	"phase error -- cannot happen",
 	[Eexist]	"create/wstat -- file exists",
-	[Edot]		"create -- . and .. illegal names",
+	[Edot]		"create/wstat -- . and .. illegal names",
 	[Eempty]	"remove -- directory not empty",
-	[Ebadu]		"attach -- unknown user",
+	[Ebadu]		"attach -- unknown user or failed authentication",
 	[Enoattach]	"attach -- system maintenance",
-	[Enotu]		"wstat -- not owner",
-	[Enotg]		"wstat -- not in group",
+	[Ewstatb]	"wstat -- unknown bits in qid.type/mode",
+	[Ewstatd]	"wstat -- attempt to change directory",
+	[Ewstatg]	"wstat -- not in group",
+	[Ewstatl]	"wstat -- attempt to change length",
+	[Ewstatm]	"wstat -- attempt to change muid",
+	[Ewstato]	"wstat -- not owner or group leader",
+	[Ewstatp]	"wstat -- attempt to change qid.path",
+	[Ewstatq]	"wstat -- qid.type/dir.mode mismatch",
+	[Ewstatu]	"wstat -- not owner",
+	[Ewstatv]	"wstat -- attempt to change qid.vers",
 	[Ename]		"create/wstat -- bad character in file name",
 	[Ewalk]		"walk -- too many (system wide)",
 	[Eronly]	"file system read only",
 	[Efull]		"file system full",
 	[Eoffset]	"read/write -- offset negative",
 	[Elocked]	"open/create -- file is locked",
-	[Ebroken]	"close/read/write -- lock is broken",
+	[Ebroken]	"read/write -- lock is broken",
 	[Eauth]		"attach -- authentication failed",
+	[Eauth2]	"read/write -- authentication unimplemented",
+	[Etoolong]	"name too long",
+	[Efidinuse]	"fid in use",
+	[Econvert]	"protocol botch",
+	[Eversion]	"version conversion",
+	[Eauthnone]	"auth -- user 'none' requires no authentication",
+	[Eauthdisabled]	"auth -- authentication disabled",	/* development */
+	[Eedge]		"at the bleeding edge",		/* development */
 };
 
 char*	wormscode[0x80] =

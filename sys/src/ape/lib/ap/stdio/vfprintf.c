@@ -383,7 +383,7 @@ static int
 ocvt_p(FILE *f, va_list *args, int flags, int width, int precision)
 {
 	return ocvt_fixed(f, args, flags|PTR|ALT, width, precision, 16, 0,
-		"0123456789ABCDEF", "0X");
+		"0123456789ABCDEF", "0x");
 }
 
 static int

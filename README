@@ -1,23 +1,25 @@
-This is a re-release of the 3rd Edition of Plan 9 from Bell Labs.
+This is a re-release of the 4th Edition of Plan 9 from Bell Labs.
 
-3rd Edition was originally released by Lucent Technologies in 2000. It
-was the first release available freely to the general public, under a
-custom open source license, the Plan 9 Open Source License Agreement.
-Although the ideas behind the system are the same, the 3rd Edition
-represents an extensive reworking of many of the interfaces. A new
-graphics model replaces bitblit, and with it rio(1) and draw(3)
-replace 8½. Alef is gone, but thread(2) has arrived to bring a
-CSP-style threading to C. And the plumber(4) makes its first
-appearance. The original release notes for this edition can be found
-at /sys/doc/release3.ms.
+4th Edition was originally released by Lucent Technologies in 2002. It
+was released under the terms the Lucent Public License Version 1.02.
+4th Edition continues the development of the same ideas, but in many
+ways represents the base of what most people think of as "modern" Plan
+9 today. The ubiquitous file protocol, 9P, got its first revision, to
+9P2000, which caused changes to many parts of the system. It also saw
+the debut of venti(8) and fossil(4), which began replacing the
+venerable old file server, fs(4). Authentication largely moved to a
+separate agent, factotum(4). Updates moved to replica, and the wiki
+was created. The original release notes for this edition can be found
+at /sys/doc/release4.ms.
 
-Given its age, this release is mostly for educational and research
-purposes, although given the inclination and appropriate hardware we
-believe you should be able to run it. Note, however, that the 9p
-protocol and authentication mechanism have changed between this
-release and modern Plan 9, so interoperability might be tricky.
+While this release is a recognizable ancestor of the latest Plan 9
+available, it is still quite old, and this release is mostly for
+educational and research purposes. The file protocol and
+authentication mechanisms are continued in modern Plan 9, though, so
+researchers looking to run this should have an easier time than with
+all previous releases.
 
-The only changes between this release and the original 3rd Edition
+The only changes between this release and the original 4th Edition
 release are the new NOTICE, LICENSE, and README files, and moving the
 old ones. In particular, any copyright notices attributing things to
 Lucent Technologies or Bell Labs, or notices on restrictions of their

@@ -15,12 +15,15 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
+	edf.$O\
 	fault.$O\
 	latin1.$O\
 	log.$O\
+	rebootcmd.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
+	portclock.$O\
 	print.$O\
 	proc.$O\
 	qio.$O\
@@ -55,10 +58,12 @@ LIB=\
 	/$objtype/lib/libmemlayer.a\
 	/$objtype/lib/libmemdraw.a\
 	/$objtype/lib/libdraw.a\
-	/$objtype/lib/libauth.a\
 	/$objtype/lib/libc.a\
 	/$objtype/lib/libsec.a\
 
+ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
+VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
+SDEV=`{echo devsd.c sd*.c | sed 's/\.c/.'$O'/g'}
 
 loadaddr = 0x80400020
 
@@ -75,7 +80,7 @@ install:V: $p$CONF
 
 init.h:	initcode /sys/src/libc/9syscall/sys.h
 	$AS initcode
-	$LD -l -s -o init.out -R8 initcode.$O -lc
+	$LD -l -s -R8 -o init.out initcode.$O -lc
 	{echo 'uchar initcode[]={'
 	 xd -r -1x init.out |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
@@ -87,6 +92,19 @@ sd53c8xx.$O:	sd53c8xx.i
 
 sd53c8xx.i:	../pc/sd53c8xx.n
 	aux/na $prereq > $target
+
+devfloppy.$O:	../pc/devfloppy.c
+ether2114x.$O:	../pc/ether2114x.c
+mouse.$O:	../pc/mouse.c
+sdata.$O:	../pc/sdata.c
+sdscsi.$O:	../pc/sdscsi.c
+uarti8250.$O:	../pc/uarti8250.c
+vga.$O:		../pc/vga.c
+vgargb524.$O:	../pc/vgargb524.c
+vgas3.$O:	../pc/vgas3.c
+vgasavage.$O:	../pc/vgasavage.c
+vgatvp3026.$O:	../pc/vgatvp3026.c
+vgax.$O:	../pc/vgax.c
 
 acid:V:
 	$CC -a -w -I. ../port/qio.c>acid

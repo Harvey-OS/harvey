@@ -112,7 +112,7 @@ Mach mpower =
 	"setSB",	/* static base register name */
 	0,		/* value */
 	0x1000,		/* page size */
-	0x20000000,	/* kernel base */
+	0x80000000,	/* kernel base */
 	0,		/* kernel text mask */
 	4,		/* quantization of pc */
 	4,		/* szaddr */

@@ -11,8 +11,10 @@
 #define CPUID		BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
 #define WRMSR		BYTE $0x0F; BYTE $0x30	/* WRMSR, argument in AX/DX (lo/hi) */
 #define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
+#define RDTSC 		BYTE $0x0F; BYTE $0x31
 #define WBINVD		BYTE $0x0F; BYTE $0x09
 #define HLT		BYTE $0xF4
+#define SFENCE		BYTE $0x0F; BYTE $0xAE; BYTE $0xF8
 
 /*
  * Macros for calculating offsets within the page directory base
@@ -23,29 +25,29 @@
 #define PTO(a)		(((((a))>>12) & 0x03FF)<<2)
 
 /*
- * Entered here from the bootstrap programme possibly via a jump to 0x00100020, so
- * need to make another jump to set the correct virtual address.
- * In protected mode with paging turned on, the first 4MB of physical memory mapped
- * to KZERO and up.
+ * For backwards compatiblity with 9load - should go away when 9load is changed
+ * 9load currently sets up the mmu, however the first 16MB of memory is identity
+ * mapped, so behave as if the mmu was not setup
+ */
+TEXT _start0x80100020(SB),$0
+	MOVL	$_start0x00100020(SB), AX
+	ANDL	$~KZERO, AX
+	JMP*	AX
+/*
+ * In protected mode with paging turned off and segment registers setup to linear map all memory.
+ * Entered via a jump to 0x00100020, the physical address of the virtual kernel entry point of 0x80100020
+ * Make the basic page tables for processor 0. Four pages are needed for the basic set:
+ * a page directory, a page table for mapping the first 4MB of physical memory to KZERO,
+ * and virtual and physical pages for mapping the Mach structure.
+ * The remaining PTEs will be allocated later when memory is sized.
+ * An identity mmu map is also needed for the switch to virtual mode.  This
+ * identity mapping is removed once the MMU is going and the JMP has been made
+ * to virtual memory.
  */
 TEXT _start0x00100020(SB),$0
-	CLI
-	MOVL	$_start0x80100020(SB), AX
-	JMP*	AX
+	CLI					/* make sure interrupts are off */
 
-/*
- * First check if the bootstrap programme left the first 4MB nicely mapped, otherwise
- * make the basic page tables for processor 0. Four pages are needed for the basic set:
- * a page directory, a page table for mapping the first 4MB of physical memory, and
- * virtual and physical pages for mapping the Mach structure.
- * The remaining PTEs will be allocated later when memory is sized.
- */
-TEXT _start0x80100020(SB), $0
-	MOVL	CR3, AX				/* check the page directory base */
-	CMPL	AX, $PADDR(CPU0PDB)
-	JEQ	_clearbss
-
-	MOVL	$CPU0PDB, DI			/* clear 4 pages for the tables etc. */
+	MOVL	$PADDR(CPU0PDB), DI		/* clear 4 pages for the tables etc. */
 	XORL	AX, AX
 	MOVL	$(4*BY2PG), CX
 	SHRL	$2, CX
@@ -53,13 +55,13 @@ TEXT _start0x80100020(SB), $0
 	CLD
 	REP;	STOSL
 
-	MOVL	$CPU0PDB, AX
+	MOVL	$PADDR(CPU0PDB), AX
 	ADDL	$PDO(KZERO), AX			/* page directory offset for KZERO */
 	MOVL	$PADDR(CPU0PTE), (AX)		/* PTE's for 0x80000000 */
 	MOVL	$(PTEWRITE|PTEVALID), BX	/* page permissions */
 	ORL	BX, (AX)
 
-	MOVL	$CPU0PTE, AX			/* first page of page table */
+	MOVL	$PADDR(CPU0PTE), AX		/* first page of page table */
 	MOVL	$1024, CX			/* 1024 pages in 4MB */
 _setpte:
 	MOVL	BX, (AX)
@@ -67,7 +69,7 @@ _setpte:
 	ADDL	$4, AX
 	LOOP	_setpte
 
-	MOVL	$CPU0PTE, AX
+	MOVL	$PADDR(CPU0PTE), AX
 	ADDL	$PTO(MACHADDR), AX		/* page table entry offset for MACHADDR */
 	MOVL	$PADDR(CPU0MACH), (AX)		/* PTE for Mach */
 	MOVL	$(PTEWRITE|PTEVALID), BX	/* page permissions */
@@ -75,18 +77,12 @@ _setpte:
 
 /*
  * Now ready to use the new map. Make sure the processor options are what is wanted.
- * It is necessary on some processors to follow mode switching with a JMP instruction
+ * It is necessary on some processors to immediately follow mode switching with a JMP instruction
  * to clear the prefetch queues.
- * There's a little mystery here - the Pentium Pro appears to need an identity
- * mmu map for the switch to virtual mode. The manual doesn't say this is necessary
- * and it isn't required on the Pentium.
- * To this end double map KZERO at virtual 0 and undo the mapping once virtual
- * nirvana has been attained.
  */
 	MOVL	$PADDR(CPU0PDB), CX		/* load address of page directory */
-	MOVL	CX, BX
-	MOVL	(PDO(KZERO))(BX), DX		/* double-map KZERO at 0 */
-	MOVL	DX, (PDO(0))(BX)
+	MOVL	(PDO(KZERO))(CX), DX		/* double-map KZERO at 0 */
+	MOVL	DX, (PDO(0))(CX)
 	MOVL	CX, CR3
 	DELAY					/* JMP .+2 */
 
@@ -94,9 +90,9 @@ _setpte:
 	ORL	$0x80010000, DX			/* PG|WP */
 	ANDL	$~0x6000000A, DX		/* ~(CD|NW|TS|MP) */
 
-	MOVL	$_startpg(SB), AX
+	MOVL	$_startpg(SB), AX		/* this is a virtual address */
 	MOVL	DX, CR0				/* turn on paging */
-	JMP*	AX
+	JMP*	AX				/* jump to the virtual nirvana */
 
 /*
  * Basic machine environment set, can clear BSS and create a stack.
@@ -106,9 +102,7 @@ _setpte:
  * be initialised here.
  */
 TEXT _startpg(SB), $0
-	MOVL	CX, AX				/* physical address of PDB */
-	ORL	$KZERO, AX
-	MOVL	$0, (PDO(0))(AX)		/* undo double-map of KZERO at 0 */
+	MOVL	$0, (PDO(0))(CX)		/* undo double-map of KZERO at 0 */
 	MOVL	CX, CR3				/* load and flush the mmu */
 
 _clearbss:
@@ -124,6 +118,7 @@ _clearbss:
 	MOVL	$MACHADDR, SP
 	MOVL	SP, m(SB)			/* initialise global Mach pointer */
 	MOVL	$0, 0(SP)			/* initialise m->machno */
+
 
 	ADDL	$(MACHSIZE-4), SP		/* initialise stack */
 
@@ -283,11 +278,18 @@ TEXT putcr4(SB), $0
 	MOVL	AX, CR4
 	RET
 
+TEXT rdtsc(SB), $0				/* time stamp counter; cycles since power up */
+	RDTSC
+	MOVL	vlong+0(FP), CX			/* &vlong */
+	MOVL	AX, 0(CX)			/* lo */
+	MOVL	DX, 4(CX)			/* hi */
+	RET
+
 TEXT rdmsr(SB), $0				/* model-specific register */
 	MOVL	index+0(FP), CX
 	RDMSR
 	MOVL	vlong+4(FP), CX			/* &vlong */
-	MOVL	AX, (CX)			/* lo */
+	MOVL	AX, 0(CX)			/* lo */
 	MOVL	DX, 4(CX)			/* hi */
 	RET
 	
@@ -300,6 +302,10 @@ TEXT wrmsr(SB), $0
 
 TEXT wbinvd(SB), $0
 	WBINVD
+	RET
+
+TEXT sfence(SB), $0
+	SFENCE
 	RET
 
 /*
@@ -497,6 +503,16 @@ TEXT gotolabel(SB), $0
 	MOVL	$1, AX				/* return 1 */
 	RET
 
+TEXT swaplabel(SB), $0
+	MOVL	label+0(FP), AX
+	MOVL	pc+4(FP), BX
+	MOVL	0(AX), SP			/* restore sp */
+	MOVL	4(AX), CX			/* put return pc on the stack */
+	MOVL	CX, 0(SP)
+	MOVL	BX, 4(AX)			/* put caller pc where return pc was */
+	MOVL	$1, AX				/* return 1 */
+	RET
+
 TEXT setlabel(SB), $0
 	MOVL	label+0(FP), AX
 	MOVL	SP, 0(AX)			/* store sp */
@@ -509,6 +525,14 @@ TEXT setlabel(SB), $0
  * Attempt at power saving. -rsc
  */
 TEXT halt(SB), $0
+	CLI
+	CMPL	nrdy(SB), $0
+	JEQ	_nothingready
+	STI
+	RET
+
+_nothingready:
+	STI
 	HLT
 	RET
 

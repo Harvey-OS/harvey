@@ -16,6 +16,8 @@ typedef	struct	Prog	Prog;
 typedef	struct	Sym	Sym;
 typedef	struct	Auto	Auto;
 typedef	struct	Optab	Optab;
+typedef	struct	Reloc	Reloc;
+typedef	struct	Relocsym	Relocsym;
 
 struct	Adr
 {
@@ -83,6 +85,18 @@ struct	Optab
 	uchar	prefix;
 	uchar	op[10];
 };
+struct	Reloc
+{
+	char	type;
+	long	pc;
+	Reloc	*link;
+};
+struct	Relocsym
+{
+	Sym	*s;
+	Reloc	*reloc;
+	Relocsym	*link;
+};
 
 enum
 {
@@ -93,6 +107,7 @@ enum
 	SXREF,
 	SFILE,
 	SCONST,
+	SUNDEF,
 
 	NHASH		= 10007,
 	NHUNK		= 100000,
@@ -156,6 +171,8 @@ enum
 	Z_il,
 	Zm_ibo,
 	Zm_ilo,
+	Zib_rr,
+	Zil_rr,
 	Zclr,
 	Zbyte,
 	Zmov,
@@ -238,7 +255,6 @@ EXTERN	long	nsymbol;
 EXTERN	char*	noname;
 EXTERN	char*	outfile;
 EXTERN	long	pc;
-extern	int	printcol;
 EXTERN	long	spsize;
 EXTERN	Sym*	symlist;
 EXTERN	long	symsize;
@@ -249,14 +265,23 @@ EXTERN	int	version;
 EXTERN	Prog	zprg;
 EXTERN	int	dtype;
 
+EXTERN	int	reloc;
+EXTERN	Adr*	reloca;
+EXTERN	Relocsym*	relocs;
+EXTERN	char*	undefs[32];
+EXTERN	int	undefsp;
+EXTERN	Prog	undefp;
+
+#define	UP	(&undefp)
+
 extern	Optab	optab[];
 extern	char*	anames[];
 
-int	Aconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Pconv(va_list*, Fconv*);
-int	Rconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
+int	Aconv(Fmt*);
+int	Dconv(Fmt*);
+int	Pconv(Fmt*);
+int	Rconv(Fmt*);
+int	Sconv(Fmt*);
 void	addhist(long, int);
 Prog*	appendp(Prog*);
 void	asmb(void);
@@ -301,16 +326,18 @@ void	objfile(char*);
 int	opsize(Prog*);
 void	patch(void);
 Prog*	prg(void);
+void	readundefs(void);
 int	relinv(int);
 long	reuse(Prog*, Sym*);
 long	rnd(long, long);
 void	s8put(char*);
 void	span(void);
 void	undef(void);
+long	vaddr(Adr*);
+void	wreloc(Sym*, long);
 void	xdefine(char*, int, long);
 void	xfol(Prog*);
 int	zaddr(uchar*, Adr*, Sym*[]);
-long	vaddr(Adr*);
 
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"P"	Prog*

@@ -19,7 +19,8 @@ static RR*	soarr(Ndbtuple*, Ndbtuple*);
 static RR*	ptrrr(Ndbtuple*, Ndbtuple*);
 static Ndbtuple* look(Ndbtuple*, Ndbtuple*, char*);
 static RR*	doaxfr(Ndb*, char*);
-
+static RR*	nullrr(Ndbtuple *entry, Ndbtuple *pair);
+static RR*	txtrr(Ndbtuple *entry, Ndbtuple *pair);
 static Lock	dblock;
 
 static int	implemented[Tall] =
@@ -30,6 +31,8 @@ static int	implemented[Tall] =
 	[Tmx]		1,
 	[Tptr]		1,
 	[Tcname]	1,
+	[Tnull]		1,
+	[Ttxt]		1,
 };
 
 int
@@ -164,6 +167,10 @@ dblookup1(char *name, int type, int auth, int ttl)
 		attr = "ip";
 		f = addrrr;
 		break;
+	case Tnull:
+		attr = "nullrr";
+		f = nullrr;
+		break;
 	case Tns:
 		attr = "ns";
 		f = nsrr;
@@ -288,6 +295,27 @@ addrrr(Ndbtuple *entry, Ndbtuple *pair)
 	USED(entry);
 	rp = rralloc(Ta);
 	rp->ip = dnlookup(pair->val, Cin, 1);
+	return rp;
+}
+static RR*
+nullrr(Ndbtuple *entry, Ndbtuple *pair)
+{
+	RR *rp;
+
+	USED(entry);
+	rp = rralloc(Tnull);
+	rp->null->data = (uchar*)estrdup(pair->val);
+	rp->null->dlen = strlen((char*)rp->null->data);
+	return rp;
+}
+static RR*
+txtrr(Ndbtuple *entry, Ndbtuple *pair)
+{
+	RR *rp;
+
+	USED(entry);
+	rp = rralloc(Ttxt);
+	rp->txt = dnlookup(pair->val, Cin, 1);
 	return rp;
 }
 static RR*
@@ -575,9 +603,7 @@ addarea(DN *dp, RR *rp, Ndbtuple *t)
 	 *  The owner of the the soa rr should stick around as long
 	 *  as the area does.
 	 */
-	s = mallocz(sizeof(*s), 1);
-	if(s == 0)
-		abort(); /* "out of memory" */;
+	s = emalloc(sizeof(*s));
 	s->len = strlen(dp->name);
 	rrcopy(rp, &s->soarr);
 	s->soarr->owner = dp;
@@ -637,6 +663,10 @@ dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 		rp = mxrr(entry, pair);
 	} else if(cistrcmp(pair->attr, "cname") == 0){
 		rp = cnamerr(entry, pair);
+	} else if(cistrcmp(pair->attr, "nullrr") == 0){
+		rp = nullrr(entry, pair);
+	} else if(cistrcmp(pair->attr, "txtrr") == 0){
+		rp = txtrr(entry, pair);
 	}
 
 	if(rp == 0)
@@ -691,7 +721,7 @@ void
 db2cache(int doit)
 {
 	Ndb *ndb;
-	Dir d;
+	Dir *d;
 	ulong youngest, temp;
 	static ulong lastcheck;
 	static ulong lastyoungest;
@@ -718,10 +748,12 @@ db2cache(int doit)
 		youngest = 0;
 		for(ndb = db; ndb; ndb = ndb->next){
 			/* the dirfstat avoids walking the mount table each time */
-			if(dirfstat(Bfildes(&db->b), &d) < 0 || dirstat(ndb->file, &d) >= 0){
-				temp = d.mtime;		/* ulong vs int crap */
+			if((d = dirfstat(Bfildes(&ndb->b))) != nil ||
+			   (d = dirstat(ndb->file)) != nil){
+				temp = d->mtime;		/* ulong vs int crap */
 				if(temp > youngest)
 					youngest = temp;
+				free(d);
 			}
 		}
 		if(!doit && youngest == lastyoungest){
@@ -806,7 +838,7 @@ lookupinfo(char *attr)
 	char *a[2];
 	static Ndbtuple *t;
 
-	sprint(buf, "%I", ipaddr);
+	snprint(buf, sizeof buf, "%I", ipaddr);
 	a[0] = attr;
 	
 	lock(&dblock);
@@ -911,9 +943,7 @@ dnsservers(int class)
 
 	p = getenv("DNSSERVER");
 	if(p != nil){
-		buf = strdup(p);
-		if(buf == nil)
-			return nil;
+		buf = estrdup(p);
 		n = tokenize(buf, args, nelem(args));
 		for(i = 0; i < n; i++)
 			addlocaldnsserver(dp, class, args[i], i);

@@ -17,7 +17,7 @@ main(int argc, char **argv)
 	int i;
 	long pid, me;
 	Biobuf *b;
-	Dir d;
+	Dir *d;
 	Proc *p;
 
 	ofile = "/fd/1";
@@ -33,7 +33,7 @@ main(int argc, char **argv)
 		usage();
 
 	/* get kernel compilation time */
-	if(dirstat("#/", &d) < 0) {
+	if((d = dirstat("#/")) == nil) {
 		fprint(2, "cannot stat #/ ???\n");
 		exits("stat");
 	}
@@ -53,13 +53,13 @@ main(int argc, char **argv)
 		term = "unknown terminal type";
 
 	Bprint(b, "process snapshot %ld %s@%s %s %ld \"%s\"\n",
-		time(0), user, sys, arch, d.mtime, term);
+		time(0), user, sys, arch, d->mtime, term);
 	me = getpid();
 	for(i=0; i<argc; i++) {
 		if((pid = atol(argv[i])) == me)
 			fprint(2, "warning: will not snapshot self\n");
 		else if(p = snap(pid, 1))
-				writesnap(b, p);
+			writesnap(b, p);
 	}
 	exits(0);
 }

@@ -218,7 +218,7 @@ main(int argc, char **argv)
 		else if(b = findblock(d->val-8-8))	// sometimes malloc header 2 words
 			n16 += markblock(b, d->addr);
 		else
-			;//print("noblock %.8lux\n", d->val);
+			{}//print("noblock %.8lux\n", d->val);
 	}
 
 	Binit(&bio, 1, OWRITE);

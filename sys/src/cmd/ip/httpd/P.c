@@ -61,5 +61,6 @@ main(int argc, char **argv)
 		hputc(hout, ch);
 		n_from++;
 	}
+	hflush(hout);
 	exits(nil);
 }

@@ -55,7 +55,7 @@ main(int argc, char *argv[])
 		if(p == 0)
 			continue;
 		if(regexec(p, s_to_c(mp->sender), match, 10)){
-			regsub(argv[i+1], file, match, 10);
+			regsub(argv[i+1], file, sizeof(file), match, 10);
 			break;
 		}
 		if(header == 0 && body == 0)
@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 		if(regexec(p, s_to_c(mp->body), match, 10)){
 			if(body == 0 && match[0].sp >= cp)
 				continue;
-			regsub(argv[i+1], file, match, 10);
+			regsub(argv[i+1], file, sizeof(file), match, 10);
 			break;
 		}
 	}

@@ -179,7 +179,7 @@ inmesg(Hmesg type, int count)
 		i = whichmenu(m);
 		if(i>=0) {
 			t = text[i];
-			if (t)
+			if(t)
 				t->lock++;
 			outTs(Tcheck, m);
 		}
@@ -189,7 +189,7 @@ inmesg(Hmesg type, int count)
 		i = whichmenu(m);
 		if(i>=0) {
 			t = text[i];
-			if (t && t->lock)
+			if(t && t->lock)
 				t->lock--;
 			hcheck(m);
 		}

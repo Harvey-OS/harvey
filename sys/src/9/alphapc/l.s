@@ -110,7 +110,7 @@ TEXT	spldone(SB), $0
 TEXT	islo(SB), $0
 	CALL_PAL $PALrdps
 	AND	$IPL, R0
-	XOR	$IPL, R0
+	XOR	$HI_IPL, R0
 	RET
 
 TEXT	mb(SB), $-8

@@ -15,9 +15,9 @@ int paperlength = 11*72;
 int paperwidth = 612;	/* 8.5*72 */
 
 void
-error(void)
+error(char *s)
 {
-	fprint(2, "p9bitpost: can't read file %s: %r\n", file);
+	fprint(2, "p9bitpost: can't %s file %s: %r\n", s, file);
 	exits("error");
 }
 
@@ -64,11 +64,11 @@ main(int argc, char *argv[]) {
 			optstr = argv[++i];
 			if(optstr == nil)
 				goto Usage;
-			paperlength = 72*atoi(optstr);
+			paperlength = 72*atof(optstr);
 			optstr = argv[++i];
 			if(optstr == nil)
 				goto Usage;
-			paperwidth = 72*atoi(optstr);
+			paperwidth = 72*atof(optstr);
 			if(paperlength < 72 || paperwidth < 72)
 				goto Usage;
 			break;
@@ -83,13 +83,13 @@ main(int argc, char *argv[]) {
 		file = argv[i];
 		fd = open(file, OREAD);
 		if (fd < 0)
-			error();
+			error("open");
 	}
 
 	memimageinit();
 	memimage = readmemimage(fd);
 	if(memimage == nil)
-		error();
+		error("alloc memory for");
 
 	psinit(0, 0);
 	if(xmag != 1.0)

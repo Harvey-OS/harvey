@@ -301,6 +301,14 @@ says that the format verb
 .B s
 processes an argument of type
 .BR char *.
+The
+.B #pragma
+.EX
+    #pragma varargck flag 'c'
+.EE
+says that
+.B c
+is a flag character.
 These
 .B #pragmas
 are used, if the
@@ -337,7 +345,7 @@ and
 .BR sub.c :
 .IP
 .EX
-2c -w main.c sub.c
+2c -FVw main.c sub.c
 2l -o prog main.2 sub.2
 .EE
 .SH FILES
@@ -385,4 +393,6 @@ The default preprocessor only handles
 and
 .LR #ifndef .
 For a full ANSI preprocessor, use
-the p option.
+the
+.B p
+option.

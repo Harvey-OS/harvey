@@ -31,10 +31,12 @@ struct Fid
 ulong	path;		// incremented for each new file
 Fid	*fids;
 int	mfd[2];
-char	user[NAMELEN];
-char	mdata[MAXMSG+MAXFDATA];
-Fcall	rhdr;
+char	user[Elemlen];
+int	messagesize = 4*1024*IOHDRSZ;
+uchar	mdata[8*1024*IOHDRSZ];
+uchar	mbuf[8*1024*IOHDRSZ];
 Fcall	thdr;
+Fcall	rhdr;
 int	fflg;
 char	*mntpt;
 int	biffing;
@@ -55,20 +57,19 @@ int		cistrncmp(char*, char*, int);
 int		tokenconvert(String*, char*, int);
 void		post(char*, char*, int);
 
-char	*rflush(Fid*), *rnop(Fid*), *rsession(Fid*),
-	*rattach(Fid*), *rclone(Fid*), *rwalk(Fid*),
-	*rclwalk(Fid*), *ropen(Fid*), *rcreate(Fid*),
+char	*rflush(Fid*), *rauth(Fid*),
+	*rattach(Fid*), *rwalk(Fid*),
+	*ropen(Fid*), *rcreate(Fid*),
 	*rread(Fid*), *rwrite(Fid*), *rclunk(Fid*),
-	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*);
+	*rremove(Fid*), *rstat(Fid*), *rwstat(Fid*),
+	*rversion(Fid*);
 
 char 	*(*fcalls[])(Fid*) = {
 	[Tflush]	rflush,
-	[Tsession]	rsession,
-	[Tnop]		rnop,
+	[Tversion]	rversion,
+	[Tauth]	rauth,
 	[Tattach]	rattach,
-	[Tclone]	rclone,
 	[Twalk]		rwalk,
-	[Tclwalk]	rclwalk,
 	[Topen]		ropen,
 	[Tcreate]	rcreate,
 	[Tread]		rread,
@@ -116,6 +117,7 @@ char *dirtab[] =
 [Qsubject]	"subject",
 [Qto]		"to",
 [Qtype]		"type",
+[Qunixdate]	"unixdate",
 [Qunixheader]	"unixheader",
 [Qctl]		"ctl",
 [Qmboxctl]	"ctl",
@@ -213,7 +215,7 @@ main(int argc, char *argv[])
 	}
 
 	if(debug)
-		fmtinstall('F', fcallconv);
+		fmtinstall('F', fcallfmt);
 
 	if(mboxfile != nil){
 		err = newmbox(mboxfile, "mbox", std);
@@ -225,8 +227,8 @@ main(int argc, char *argv[])
 	case -1:
 		error("fork");
 	case 0:
-		henter(CHDIR|PATH(0, Qtop), dirtab[Qctl],
-			(Qid){PATH(0, Qctl), 0}, nil, nil);
+		henter(PATH(0, Qtop), dirtab[Qctl],
+			(Qid){PATH(0, Qctl), 0, QTFILE}, nil, nil);
 		close(p[1]);
 		io();
 		postnote(PNGROUP, getpid(), "die yankee pig dog");
@@ -237,7 +239,7 @@ main(int argc, char *argv[])
 			sprint(srvfile, "/srv/upasfs.%s", user);
 			post(srvfile, "upasfs", p[1]);
 		} else {
-			if(mount(p[1], mntpt, MREPL, "") < 0)
+			if(mount(p[1], -1, mntpt, MREPL, "") < 0)
 				error("mount failed");
 		}
 	}
@@ -445,13 +447,14 @@ readinfo(Message *m, char *buf, long off, int count)
 	for(i = 0; len < count && infofields[i] >= 0; i++){
 		n = fileinfo(m, infofields[i], &p);
 		s_reset(s);
-		if(tokenconvert(s, p, n) == 0){
-			p = s_to_c(s);
-			n = strlen(p);
-		}
+		if(tokenconvert(s, p, n) != 0)
+			s_append(s, p);
+		s_append(s, "\n");
+		p = s_to_c(s);
+		n = strlen(p);
 		if(off > 0){
-			if(off >= n+1){
-				off -= n+1;
+			if(off >= n){
+				off -= n;
 				continue;
 			}
 			p += off;
@@ -463,9 +466,6 @@ readinfo(Message *m, char *buf, long off, int count)
 		if(buf)
 			memmove(buf+len, p, n);
 		len += n;
-		if(buf)
-			buf[len] = '\n';
-		len++;
 	}
 	s_free(s);
 	return len;
@@ -476,63 +476,67 @@ mkstat(Dir *d, Mailbox *mb, Message *m, int t)
 {
 	char *p;
 
-	strncpy(d->uid, user, NAMELEN);
-	strncpy(d->gid, user, NAMELEN);
+	d->uid = user;
+	d->gid = user;
+	d->muid = user;
 	d->mode = 0444;
 	d->qid.vers = 0;
+	d->qid.type = QTFILE;
 	d->type = 0;
 	d->dev = 0;
+	if(mb != nil && mb->d != nil){
+		d->atime = mb->d->atime;
+		d->mtime = mb->d->mtime;
+	} else {
+		d->atime = time(0);
+		d->mtime = d->atime;
+	}
 
 	switch(t){
 	case Qtop:
-		strcpy(d->name, ".");
-		d->mode = CHDIR|0555;
+		d->name = ".";
+		d->mode = DMDIR|0555;
 		d->atime = d->mtime = time(0);
 		d->length = 0;
-		d->qid.path = CHDIR|PATH(0, Qtop);
+		d->qid.path = PATH(0, Qtop);
+		d->qid.type = QTDIR;
 		break;
 	case Qmbox:
-		strcpy(d->name, mb->name);
-		d->mode = CHDIR|0555;
-		d->atime = mb->d.atime;
-		d->mtime = mb->d.mtime;
+		d->name = mb->name;
+		d->mode = DMDIR|0555;
 		d->length = 0;
-		d->qid.path = CHDIR|PATH(mb->id, Qmbox);
+		d->qid.path = PATH(mb->id, Qmbox);
+		d->qid.type = QTDIR;
 		d->qid.vers = mb->vers;
 		break;
 	case Qdir:
-		strcpy(d->name, m->name);
-		d->mode = CHDIR|0555;
-		d->atime = mb->d.atime;
-		d->mtime = mb->d.mtime;
+		d->name = m->name;
+		d->mode = DMDIR|0555;
 		d->length = 0;
-		d->qid.path = CHDIR|PATH(m->id, Qdir);
+		d->qid.path = PATH(m->id, Qdir);
+		d->qid.type = QTDIR;
 		break;
 	case Qctl:
-		strncpy(d->name, dirtab[t], NAMELEN);
+		d->name = dirtab[t];
 		d->mode = 0666;
 		d->atime = d->mtime = time(0);
 		d->length = 0;
 		d->qid.path = PATH(0, Qctl);
 		break;
 	case Qmboxctl:
-		strncpy(d->name, dirtab[t], NAMELEN);
+		d->name = dirtab[t];
 		d->mode = 0222;
 		d->atime = d->mtime = time(0);
 		d->length = 0;
 		d->qid.path = PATH(mb->id, Qmboxctl);
 		break;
 	case Qinfo:
-		strncpy(d->name, dirtab[t], NAMELEN);
-		d->atime = mb->d.atime;
-		d->mtime = mb->d.mtime;
+		d->name = dirtab[t];
 		d->length = readinfo(m, nil, 0, 1<<30);
 		d->qid.path = PATH(m->id, t);
 		break;
 	default:
-		strncpy(d->name, dirtab[t], NAMELEN);
-		d->atime = mb->d.atime;
-		d->mtime = mb->d.mtime;
+		d->name = dirtab[t];
 		d->length = fileinfo(m, t, &p);
 		d->qid.path = PATH(m->id, t);
 		break;
@@ -540,26 +544,29 @@ mkstat(Dir *d, Mailbox *mb, Message *m, int t)
 }
 
 char*
-rnop(Fid *f)
-{
-	USED(f);
-	return 0;
-}
-
-char*
-rsession(Fid *unused)
+rversion(Fid*)
 {
 	Fid *f;
 
-	USED(unused);
-
+	if(thdr.msize < 256)
+		return "max messagesize too small";
+	if(thdr.msize < messagesize)
+		messagesize = thdr.msize;
+	rhdr.msize = messagesize;
+	if(strncmp(thdr.version, "9P2000", 6) != 0)
+		return "unknown 9P version";
+	else
+		rhdr.version = "9P2000";
 	for(f = fids; f; f = f->next)
 		if(f->busy)
 			rclunk(f);
-	memset(thdr.authid, 0, sizeof(thdr.authid));
-	memset(thdr.authdom, 0, sizeof(thdr.authdom));
-	memset(thdr.chal, 0, sizeof(thdr.chal));
-	return 0;
+	return nil;
+}
+
+char*
+rauth(Fid*)
+{
+	return "upas/fs: no authentication required";
 }
 
 char*
@@ -575,22 +582,23 @@ rattach(Fid *f)
 	f->busy = 1;
 	f->m = nil;
 	f->mb = nil;
-	thdr.qid.path = f->qid.path = CHDIR|PATH(0, Qtop);
+	f->qid.path = PATH(0, Qtop);
+	f->qid.type = QTDIR;
 	f->qid.vers = 0;
-	thdr.qid.vers = 0;
-	if(strcmp(rhdr.uname, user) != 0)
+	rhdr.qid = f->qid;
+	if(strcmp(thdr.uname, user) != 0)
 		return Eperm;
 	return 0;
 }
 
-char*
-rclone(Fid *f)
+static Fid*
+doclone(Fid *f, int nfid)
 {
 	Fid *nf;
 
-	if(f->open)
-		return Eisopen;
-	nf = newfid(rhdr.newfid);
+	nf = newfid(nfid);
+	if(nf->busy)
+		return nil;
 	nf->busy = 1;
 	nf->open = 0;
 	nf->m = f->m;
@@ -604,19 +612,17 @@ rclone(Fid *f)
 		qunlock(f->mb);
 	}
 	nf->qid = f->qid;
-	return 0;
+	return nf;
 }
 
 char*
-rwalk(Fid *f)
+dowalk(Fid *f, char *name)
 {
-	char *name;
 	int t;
 	Mailbox *omb, *mb;
 	char *rv, *p;
 	Hash *h;
 
-	name = rhdr.name;
 	t = FILE(f->qid.path);
 
 	rv = Enotexist;
@@ -646,7 +652,6 @@ retry:
 			break;
 		}
 		f->qid = h->qid;
-		thdr.qid = f->qid;
 		rv = nil;
 	} else if((p = strchr(name, '.')) != nil && *name != '.'){
 		*p = 0;
@@ -660,23 +665,22 @@ retry:
 	if(rv == nil)
 		return rv;
 
-
-	if(strcmp(name, ".") == 0){
-		thdr.qid = f->qid;
+	if(strcmp(name, ".") == 0)
 		return nil;
-	}
 
-	if((f->qid.path&CHDIR) != CHDIR)
+	if(f->qid.type != QTDIR)
 		return Enotdir;
 
 	if(strcmp(name, "..") == 0){
 		switch(t){
 		case Qtop:
-			f->qid.path = CHDIR|PATH(0, Qtop);
+			f->qid.path = PATH(0, Qtop);
+			f->qid.type = QTDIR;
 			f->qid.vers = 0;
 			break;
 		case Qmbox:
-			f->qid.path = CHDIR|PATH(0, Qtop);
+			f->qid.path = PATH(0, Qtop);
+			f->qid.type = QTDIR;
 			f->qid.vers = 0;
 			qlock(&mbllock);
 			mb = f->mb;
@@ -687,46 +691,67 @@ retry:
 		case Qdir:
 			qlock(f->mb);
 			if(f->m->whole == f->mb->root){
-				f->qid.path = CHDIR|PATH(f->mb->id, Qmbox);
-				f->qid.vers = f->mb->d.qid.vers;
+				f->qid.path = PATH(f->mb->id, Qmbox);
+				f->qid.type = QTDIR;
+				f->qid.vers = f->mb->d->qid.vers;
 				msgdecref(f->mb, f->mtop);
 				f->m = f->mtop = nil;
 			} else {
 				f->m = f->m->whole;
-				f->qid.path = CHDIR|PATH(f->m->id, Qdir);
+				f->qid.path = PATH(f->m->id, Qdir);
+				f->qid.type = QTDIR;
 			}
 			qunlock(f->mb);
 			break;
 		}
-		thdr.qid = f->qid;
 		rv = nil;
 	}
-
 	return rv;
 }
 
-char *
-rclwalk(Fid *f)
+char*
+rwalk(Fid *f)
 {
 	Fid *nf;
-	char *err;
+	char *rv;
+	int i;
 
-	nf = newfid(rhdr.newfid);
-	nf->busy = 1;
-	nf->open = 0;
-	if(f->mb != nil)
-		mboxincref(f->mb);
-	if(f->mtop != nil){
-		qlock(f->mb);
-		msgincref(f->m);
-		qunlock(f->mb);
+	if(f->open)
+		return Eisopen;
+
+	rhdr.nwqid = 0;
+	nf = nil;
+
+	/* clone if requested */
+	if(thdr.newfid != thdr.fid){
+		nf = doclone(f, thdr.newfid);
+		if(nf == nil)
+			return "new fid in use";
+		f = nf;
 	}
-	nf->mtop = f->mtop;
-	nf->m = f->m;
-	nf->mb = f->mb;
-	if(err = rwalk(nf))
-		rclunk(nf);
-	return err;
+
+	/* if it's just a clone, return */
+	if(thdr.nwname == 0 && nf != nil)
+		return nil;
+
+	/* walk each element */
+	rv = nil;
+	for(i = 0; i < thdr.nwname; i++){
+		rv = dowalk(f, thdr.wname[i]);
+		if(rv != nil){
+			if(nf != nil)	
+				rclunk(nf);
+			break;
+		}
+		rhdr.wqid[i] = f->qid;
+	}
+	rhdr.nwqid = i;
+
+	/* we only error out if no walk  */
+	if(i > 0)
+		rv = nil;
+
+	return rv;
 }
 
 char *
@@ -738,7 +763,7 @@ ropen(Fid *f)
 		return Eisopen;
 
 	file = FILE(f->qid.path);
-	if(rhdr.mode != OREAD)
+	if(thdr.mode != OREAD)
 		if(file != Qctl && file != Qmboxctl)
 			return Eperm;
 
@@ -750,7 +775,8 @@ ropen(Fid *f)
 			convert(f->m);
 	}
 
-	thdr.qid = f->qid;
+	rhdr.iounit = 0;
+	rhdr.qid = f->qid;
 	f->open = 1;
 	return 0;
 }
@@ -762,117 +788,126 @@ rcreate(Fid*)
 }
 
 int
-readtopdir(Fid*, char *buf, long off, int cnt)
+readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
 {
 	Dir d;
-	int n;
+	int m, n;
+	long pos;
 	Mailbox *mb;
 
 	n = 0;
-	if(cnt == 0)
-		return 0;
-	if(off == 0){
-		mkstat(&d, nil, nil, Qctl);
-		convD2M(&d, &buf[n]);
-		n += DIRLEN;
-		cnt--;
-	} else
-		off--;
+	pos = 0;
+	mkstat(&d, nil, nil, Qctl);
+	m = convD2M(&d, &buf[n], blen);
+	if(off <= pos){
+		if(m <= BIT16SZ || m > cnt)
+			return 0;
+		n += m;
+		cnt -= m;
+	}
+	pos += m;
 		
-	for(mb = mbl; cnt > 0 && mb != nil; mb = mb->next){
-		if(off > 0){
-			off--;
-			continue;
-		}
+	for(mb = mbl; mb != nil; mb = mb->next){
 		mkstat(&d, mb, nil, Qmbox);
-		convD2M(&d, &buf[n]);
-		n += DIRLEN;
-		cnt--;
+		m = convD2M(&d, &buf[n], blen-n);
+		if(off <= pos){
+			if(m <= BIT16SZ || m > cnt)
+				break;
+			n += m;
+			cnt -= m;
+		}
+		pos += m;
 	}
 	return n;
 }
 
 int
-readmboxdir(Fid *f, char *buf, long off, int cnt)
+readmboxdir(Fid *f, uchar *buf, long off, int cnt, int blen)
 {
 	Dir d;
-	int n;
-	Message *m;
+	int n, m;
 	long pos;
+	Message *msg;
 
 	n = 0;
 	if(f->mb->ctl){
+		mkstat(&d, f->mb, nil, Qmboxctl);
+		m = convD2M(&d, &buf[n], blen);
 		if(off == 0){
-			mkstat(&d, f->mb, nil, Qmboxctl);
-			convD2M(&d, &buf[n]);
-			n += DIRLEN;
-			cnt--;
+			if(m <= BIT16SZ || m > cnt){
+				f->fptr = nil;
+				return 0;
+			}
+			n += m;
+			cnt -= m;
 		} else
-			off--;
+			off -= m;
 	}
 
 	// to avoid n**2 reads of the directory, use a saved finger pointer
-	if(f->mb->vers == f->fvers && off >= f->foff && f->foff > 0){
-		m = f->fptr;
+	if(f->mb->vers == f->fvers && off >= f->foff && f->fptr != nil){
+		msg = f->fptr;
 		pos = f->foff;
 	} else {
-		m = f->mb->root->part;
+		msg = f->mb->root->part;
 		pos = 0;
 	} 
 
-	for(; cnt > 0 && m != nil; m = m->next){
+	for(; cnt > 0 && msg != nil; msg = msg->next){
 		// act like deleted files aren't there
-		if(m->deleted)
+		if(msg->deleted)
 			continue;
 
-		// skip till we've passed the offset
-		if(off > pos){
-			pos++;
- 			continue;
+		mkstat(&d, f->mb, msg, Qdir);
+		m = convD2M(&d, &buf[n], blen-n);
+		if(off <= pos){
+			if(m <= BIT16SZ || m > cnt)
+				break;
+			n += m;
+			cnt -= m;
 		}
-
-		mkstat(&d, f->mb, m, Qdir);
-		convD2M(&d, &buf[n]);
-		n += DIRLEN;
-		cnt--;
-		pos++;
+		pos += m;
 	}
 
 	// save a finger pointer for next read of the mbox directory
 	f->foff = pos;
-	f->fptr = m;
+	f->fptr = msg;
 	f->fvers = f->mb->vers;
 
 	return n;
 }
 
 int
-readmsgdir(Fid *f, char *buf, long off, int cnt)
+readmsgdir(Fid *f, uchar *buf, long off, int cnt, int blen)
 {
 	Dir d;
-	int i, n;
-	Message *m;
+	int i, n, m;
+	long pos;
+	Message *msg;
 
 	n = 0;
-	for(i = 0; cnt > 0 && i < Qmax; i++){
-		if(off > 0){
-			off--;
-			continue;
-		}
+	pos = 0;
+	for(i = 0; i < Qmax; i++){
 		mkstat(&d, f->mb, f->m, i);
-		convD2M(&d, &buf[n]);
-		n += DIRLEN;
-		cnt--;
-	}
-	for(m = f->m->part; cnt > 0 && m != nil; m = m->next){
-		if(off > 0){
-			off--;
-			continue;
+		m = convD2M(&d, &buf[n], blen-n);
+		if(off <= pos){
+			if(m <= BIT16SZ || m > cnt)
+				return n;
+			n += m;
+			cnt -= m;
 		}
-		mkstat(&d, f->mb, m, Qdir);
-		convD2M(&d, &buf[n]);
-		n += DIRLEN;
-		cnt--;
+		pos += m;
+	}
+	for(msg = f->m->part; msg != nil; msg = msg->next){
+		mkstat(&d, f->mb, msg, Qdir);
+		m = convD2M(&d, &buf[n], blen-n);
+		if(off <= pos){
+			if(m <= BIT16SZ || m > cnt)
+				break;
+			n += m;
+			cnt -= m;
+		}
+		pos += m;
 	}
 
 	return n;
@@ -881,50 +916,48 @@ readmsgdir(Fid *f, char *buf, long off, int cnt)
 char*
 rread(Fid *f)
 {
-	char *buf;
 	long off;
 	int t, i, n, cnt;
 	char *p;
 
-	thdr.count = 0;
-	off = rhdr.offset;
-	buf = thdr.data;
-	cnt = rhdr.count;
+	rhdr.count = 0;
+	off = thdr.offset;
+	cnt = thdr.count;
+
+	if(cnt > messagesize - IOHDRSZ)
+		cnt = messagesize - IOHDRSZ;
+
+	rhdr.data = (char*)mbuf;
 
 	t = FILE(f->qid.path);
-	if(f->qid.path & CHDIR){
-		cnt /= DIRLEN;
-		if(off%DIRLEN)
-			return "i/o error";
-		off /= DIRLEN;
-
+	if(f->qid.type & QTDIR){
 		if(t == Qtop) {
 			qlock(&mbllock);
-			n = readtopdir(f, buf, off, cnt);
+			n = readtopdir(f, mbuf, off, cnt, messagesize - IOHDRSZ);
 			qunlock(&mbllock);
 		} else if(t == Qmbox) {
 			qlock(f->mb);
 			if(off == 0)
 				syncmbox(f->mb, 1);
-			n = readmboxdir(f, buf, off, cnt);
+			n = readmboxdir(f, mbuf, off, cnt, messagesize - IOHDRSZ);
 			qunlock(f->mb);
 		} else if(t == Qmboxctl) {
 			n = 0;
 		} else {
-			n = readmsgdir(f, buf, off, cnt);
+			n = readmsgdir(f, mbuf, off, cnt, messagesize - IOHDRSZ);
 		}
 
-		thdr.count = n;
+		rhdr.count = n;
 		return nil;
 	}
 
 	if(FILE(f->qid.path) == Qheader){
-		thdr.count = readheader(f->m, buf, off, cnt);
+		rhdr.count = readheader(f->m, (char*)mbuf, off, cnt);
 		return nil;
 	}
 
 	if(FILE(f->qid.path) == Qinfo){
-		thdr.count = readinfo(f->m, buf, off, cnt);
+		rhdr.count = readinfo(f->m, (char*)mbuf, off, cnt);
 		return nil;
 	}
 
@@ -932,8 +965,8 @@ rread(Fid *f)
 	if(off < i){
 		if((off + cnt) > i)
 			cnt = i - off;
-		memmove(buf, p + off, cnt);
-		thdr.count = cnt;
+		memmove(mbuf, p + off, cnt);
+		rhdr.count = cnt;
 	}
 	return nil;
 }
@@ -947,15 +980,16 @@ rwrite(Fid *f)
 	String *file;
 
 	t = FILE(f->qid.path);
+	rhdr.count = thdr.count;
 	switch(t){
 	case Qctl:
-		if(rhdr.count == 0)
+		if(thdr.count == 0)
 			return Ebadctl;
-		if(rhdr.data[rhdr.count-1] == '\n')
-			rhdr.data[rhdr.count-1] = 0;
+		if(thdr.data[thdr.count-1] == '\n')
+			thdr.data[thdr.count-1] = 0;
 		else
-			rhdr.data[rhdr.count] = 0;
-		n = tokenize(rhdr.data, token, nelem(token));
+			thdr.data[thdr.count] = 0;
+		n = tokenize(thdr.data, token, nelem(token));
 		if(n == 0)
 			return Ebadctl;
 		if(strcmp(token[0], "open") == 0){
@@ -977,7 +1011,6 @@ rwrite(Fid *f)
 				break;
 			}
 			s_free(file);
-			thdr.count = rhdr.count;
 			return err;
 		}
 		if(strcmp(token[0], "close") == 0){
@@ -990,24 +1023,18 @@ rwrite(Fid *f)
 			if(n < 3)
 				return nil;
 			delmessages(n-1, &token[1]);
-			thdr.count = rhdr.count;
 			return nil;
 		}
-//		if(strcmp(token[0], "pooldump") == 0){
-//			print("msgallocd %d, msgfreed %d\n", msgallocd, msgfreed);
-//			pooldump("Main");
-//			return nil;
-//		}
 		return Ebadctl;
 	case Qmboxctl:
 		if(f->mb && f->mb->ctl){
-			if(rhdr.count == 0)
+			if(thdr.count == 0)
 				return Ebadctl;
-			if(rhdr.data[rhdr.count-1] == '\n')
-				rhdr.data[rhdr.count-1] = 0;
+			if(thdr.data[thdr.count-1] == '\n')
+				thdr.data[thdr.count-1] = 0;
 			else
-				rhdr.data[rhdr.count] = 0;
-			n = tokenize(rhdr.data, token, nelem(token));
+				thdr.data[thdr.count] = 0;
+			n = tokenize(thdr.data, token, nelem(token));
 			if(n == 0)
 				return Ebadctl;
 			return (*f->mb->ctl)(f->mb, n, token);
@@ -1032,6 +1059,7 @@ rclunk(Fid *f)
 	mb = f->mb;
 	if(mb != nil){
 		f->mb = nil;
+		assert(mb->refs > 0);
 		qlock(&mbllock);
 		mboxdecref(mb);
 		qunlock(&mbllock);
@@ -1042,9 +1070,11 @@ rclunk(Fid *f)
 char *
 rremove(Fid *f)
 {
-	if(f->m->deleted == 0)
-		mailplumb(f->mb, f->m, 1);
-	f->m->deleted = 1;
+	if(f->m != nil){
+		if(f->m->deleted == 0)
+			mailplumb(f->mb, f->m, 1);
+		f->m->deleted = 1;
+	}
 	return rclunk(f);
 }
 
@@ -1059,7 +1089,8 @@ rstat(Fid *f)
 		qunlock(f->mb);
 	}
 	mkstat(&d, f->mb, f->m, FILE(f->qid.path));
-	convD2M(&d, thdr.stat);
+	rhdr.nstat = convD2M(&d, mbuf, messagesize - IOHDRSZ);
+	rhdr.stat = mbuf;
 	return 0;
 }
 
@@ -1082,10 +1113,12 @@ newfid(int fid)
 			ff = f;
 	if(ff){
 		ff->fid = fid;
+		ff->fptr = nil;
 		return ff;
 	}
 	f = emalloc(sizeof *f);
 	f->fid = fid;
+	f->fptr = nil;
 	f->next = fids;
 	fids = f;
 	return f;
@@ -1110,7 +1143,7 @@ io(void)
 	char *err;
 	int n;
 
-	// start a process to watch the mailboxes
+	/* start a process to watch the mailboxes*/
 	if(plumbing){
 		switch(rfork(RFPROC|RFMEM)){
 		case -1:
@@ -1133,33 +1166,33 @@ io(void)
 		 * on the processes writing to us,
 		 * so we wait for the error
 		 */
-		n = read(mfd[0], mdata, sizeof mdata);
+		n = read9pmsg(mfd[0], mdata, messagesize);
 		if(n == 0)
 			continue;
 		if(n < 0)
 			return;
-		if(convM2S(mdata, &rhdr, n) == 0)
+		if(convM2S(mdata, n, &thdr) == 0)
 			continue;
 
 		if(debug)
-			fprint(2, "%s:<-%F\n", argv0, &rhdr);
+			fprint(2, "%s:<-%F\n", argv0, &thdr);
 
-		thdr.data = mdata + MAXMSG;
-		if(!fcalls[rhdr.type])
+		rhdr.data = (char*)mdata + messagesize;
+		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
-			err = (*fcalls[rhdr.type])(newfid(rhdr.fid));
+			err = (*fcalls[thdr.type])(newfid(thdr.fid));
 		if(err){
-			thdr.type = Rerror;
-			strncpy(thdr.ename, err, ERRLEN);
+			rhdr.type = Rerror;
+			rhdr.ename = err;
 		}else{
-			thdr.type = rhdr.type + 1;
-			thdr.fid = rhdr.fid;
+			rhdr.type = thdr.type + 1;
+			rhdr.fid = thdr.fid;
 		}
-		thdr.tag = rhdr.tag;
+		rhdr.tag = thdr.tag;
 		if(debug)
-			fprint(2, "%s:->%F\n", argv0, &thdr);/**/
-		n = convS2M(&thdr, mdata);
+			fprint(2, "%s:->%F\n", argv0, &rhdr);/**/
+		n = convS2M(&rhdr, mdata, messagesize);
 		if(write(mfd[1], mdata, n) != n)
 			error("mount write");
 	}
@@ -1169,7 +1202,7 @@ void
 reader(void)
 {
 	ulong t;
-	Dir d;
+	Dir *d;
 	Mailbox *mb;
 
 	sleep(15*1000);
@@ -1177,20 +1210,24 @@ reader(void)
 		t = time(0);
 		qlock(&mbllock);
 		for(mb = mbl; mb != nil; mb = mb->next){
+			assert(mb->refs > 0);
 			if(mb->waketime != 0 && t > mb->waketime){
 				qlock(mb);
 				mb->waketime = 0;
 				break;
 			}
 
-			if(dirstat(mb->path, &d) < 0)
+			d = dirstat(mb->path);
+			if(d == nil)
 				continue;
 
-			if(d.qid.path != mb->d.qid.path
-			   || d.qid.vers != mb->d.qid.vers){
+			if(d->qid.path != mb->d->qid.path
+			   || d->qid.vers != mb->d->qid.vers){
 				qlock(mb);
+				free(d);
 				break;
 			}
+			free(d);
 		}
 		qunlock(&mbllock);
 		if(mb != nil){

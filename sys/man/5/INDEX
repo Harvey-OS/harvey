@@ -1,11 +1,8 @@
 0intro 0intro
 intro 0intro
 attach attach
-nop attach
-session attach
-clone clone
+auth attach
 clunk clunk
-clwalk clwalk
 error error
 flush flush
 create open
@@ -15,4 +12,5 @@ write read
 remove remove
 stat stat
 wstat stat
+version version
 walk walk

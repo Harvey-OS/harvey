@@ -1,0 +1,17 @@
+#!/bin/rc
+
+switch($#*){
+case 0
+	exit
+case 1
+	switch($1){
+	case *.rtf
+		pub/rtf2text $1 >[2]/dev/null | plumb -i -d edit -a 'action=showdata filename='$1
+	case *.doc *
+		doc2txt $1 | plumb -i -d edit -a 'action=showdata filename='$1
+	}
+	exit
+case *
+	for(i in *)
+		wdoc2txt $i
+}

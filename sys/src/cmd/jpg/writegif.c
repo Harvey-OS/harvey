@@ -354,8 +354,8 @@ writedata(Biobuf *fd, Image *image, Memimage *memimage)
 	else
 		ndata = unloadimage(image, r, data, ndata);
 	if(ndata < 0){
-		err = gifmalloc(ERRLEN);
-		snprint(err, ERRLEN, "WriteGIF: %r");
+		err = gifmalloc(ERRMAX);
+		snprint(err, ERRMAX, "WriteGIF: %r");
 		free(data);
 		return err;
 	}

@@ -1,6 +1,6 @@
 .TH AUTH 8
 .SH NAME
-changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv, login \- maintain authentication databases
+changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv, login, disable, enable \- maintain authentication databases
 .SH SYNOPSIS
 .B auth/changeuser
 .RB [ -np ]
@@ -20,6 +20,12 @@ changeuser, wrkey, convkeys, convkeys2, printnetkey, status, auth.srv, guard.srv
 .I user
 .PP
 .B auth/status
+.I user
+.PP
+.B auth/enable
+.I user
+.PP
+.B auth/disable
 .I user
 .PP
 .B auth/auth.srv
@@ -141,6 +147,10 @@ hand-held Securenet box.
 is a shell script that prints out everything known about
 a user and the user's key status.
 .PP
+.I Enable/disable
+are shell scripts that enable/disable both the Plan 9 and
+Netkey keys for individual users.
+.PP
 .I Auth.srv
 is the program, run only on the authentication server, that handles ticket requests
 on IL port 566.
@@ -151,7 +161,7 @@ are the network connection.
 .I Auth.srv
 executes the authentication server's end of the appropriate protocol as
 described in
-.IR auth (6).
+.IR authsrv (6).
 .PP
 .I Guard.srv
 is similar.  It is called whenever a foreign (e.g. Unix) system wants

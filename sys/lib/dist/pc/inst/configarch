@@ -1,0 +1,40 @@
+#!/bin/rc
+
+# desc: set source of distribution archives
+# prereq: mountfs
+
+switch($1) {
+case go
+	echo
+	echo 'Will you be using a distribution archive on local media or the internet?'
+	echo
+
+	prompt 'Distribution is from' local internet
+	archmedium=$rd
+	export archmedium
+
+	switch($archmedium) {
+	case local
+		exec configlocal go
+	case internet
+		exec configip go
+	}
+
+case checkdone
+	switch($#archmedium) {
+	case 1
+		switch($archmedium) {
+		case local
+			exec configlocal checkdone
+		case internet
+			exec configip checkdone
+		case *
+			configarch=notdone
+			export configarch
+		}
+	case *
+		configarch=notdone
+		export configarch
+	}
+}
+		

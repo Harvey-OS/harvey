@@ -13,7 +13,7 @@
 double
 charstod(int(*f)(void*), void *vp)
 {
-	char str[400], *s, *e;
+	char str[400], *s, *e, *start;
 	int c;
 
 	s = str;
@@ -24,6 +24,7 @@ charstod(int(*f)(void*), void *vp)
 	if(c == '-' || c == '+'){
 		ADVANCE;
 	}
+	start = s;
 	while(c >= '0' && c <= '9'){
 		ADVANCE;
 	}
@@ -33,7 +34,7 @@ charstod(int(*f)(void*), void *vp)
 			ADVANCE;
 		}
 	}
-	if(c == 'e' || c == 'E'){
+	if(s > start && (c == 'e' || c == 'E')){
 		ADVANCE;
 		if(c == '-' || c == '+'){
 			ADVANCE;
@@ -41,7 +42,7 @@ charstod(int(*f)(void*), void *vp)
 		while(c >= '0' && c <= '9'){
 			ADVANCE;
 		}
-	}else if(c == 'i' || c == 'I'){
+	}else if(s == start && (c == 'i' || c == 'I')){
 		ADVANCE;
 		if(c != 'n' && c != 'N')
 			return NaN();
@@ -65,7 +66,7 @@ charstod(int(*f)(void*), void *vp)
 			return NaN();
 		ADVANCE;  /* so caller can back up uniformly */
 		USED(c);
-	}else if(c == 'n' || c == 'N'){
+	}else if(s == str && (c == 'n' || c == 'N')){
 		ADVANCE;
 		if(c != 'a' && c != 'A')
 			return NaN();

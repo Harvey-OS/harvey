@@ -96,33 +96,36 @@ strip(char *file)
 	int fd;
 	Exec exec;
 	char *data;
-	Dir d;
+	Dir *d;
 	long n, len;
 	int i, j;
 
 	/*
 	 *  make sure file is executable
 	 */
-	if(dirstat(file, &d) < 0){
+	d = dirstat(file);
+	if(d == nil){
 		perror(file);
 		return 1;
 	}
-	if((d.qid.path & (CHDIR|CHAPPEND|CHEXCL))){
+	if((d->qid.path & (DMDIR|DMAPPEND|DMEXCL))){
 		fprint(2, "strip: %s must be executable\n", file);
 		return 1;
 	}
 	/*
-	 *  read it's header and see if that makes sense
+	 *  read its header and see if that makes sense
 	 */
 	fd = open(file, OREAD);
 	if(fd < 0){
 		perror(file);
+		free(d);
 		return 1;
 	}
 	n = read(fd, &exec, sizeof exec);
 	if (n != sizeof(exec)) {
 		fprint(2, "strip: Unable to read header of %s\n", file);
 		close(fd);
+		free(d);
 		return 1;
 	}
 	i = ben(exec.magic);
@@ -132,18 +135,21 @@ strip(char *file)
 	if (j >= 24) {
 		fprint(2, "strip: %s is not a recognizable binary\n", file);
 		close(fd);
+		free(d);
 		return 1;
 	}
 
 	len = ben(exec.data) + ben(exec.text);
-	if(len+sizeof(exec) == d.length) {
+	if(len+sizeof(exec) == d->length) {
 		fprint(2, "strip: %s is already stripped\n", file);
 		close(fd);
+		free(d);
 		return 0;
 	}
-	if(len+sizeof(exec) > d.length) {
+	if(len+sizeof(exec) > d->length) {
 		fprint(2, "strip: %s has strange length\n", file);
 		close(fd);
+		free(d);
 		return 1;
 	}
 	/*
@@ -154,6 +160,7 @@ strip(char *file)
 	if (!data) {
 		fprint(2, "strip: Malloc failure. %s too big to strip.\n", file);
 		close(fd);
+		free(d);
 		return 1;
 	}
 	/*
@@ -167,18 +174,21 @@ strip(char *file)
 	if (n != len) {
 		perror(file);
 		close(fd);
+		free(d);
 		return 1;
 	}
 	close(fd);
 	if(remove(file) < 0) {
 		perror(file);
 		free(data);
+		free(d);
 		return 1;
 	}
-	fd = create(file, OWRITE, d.mode);
+	fd = create(file, OWRITE, d->mode);
 	if (fd < 0) {
 		perror(file);
 		free(data);
+		free(d);
 		return 1;
 	}
 	n = write(fd, data, len+sizeof(exec));
@@ -186,9 +196,11 @@ strip(char *file)
 		perror(file);
 		close(fd);
 		free(data);
+		free(d);
 		return 1;
 	} 
 	close(fd);
 	free(data);
+	free(d);
 	return 0;
 }

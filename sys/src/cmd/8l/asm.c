@@ -14,8 +14,15 @@ entryvalue(void)
 	s = lookup(a, 0);
 	if(s->type == 0)
 		return INITTEXT;
-	if(s->type != STEXT)
+	switch(s->type) {
+	case STEXT:
+		break;
+	case SDATA:
+		if(reloc)
+			return s->value+INITDAT;
+	default:
 		diag("entry not text: %s", s->name);
+	}
 	return s->value;
 }
 void
@@ -39,7 +46,7 @@ void
 asmb(void)
 {
 	Prog *p;
-	long v;
+	long v, magic;
 	int a;
 	uchar *op1;
 
@@ -68,8 +75,13 @@ asmb(void)
 			Bprint(&bso, pcstr, pc);
 			for(op1 = and; op1 < andptr; op1++)
 				Bprint(&bso, "%.2ux", *op1 & 0xff);
-			Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-			Bprint(&bso, "%P\n", curp);
+			Bprint(&bso, "\t%P\n", curp);
+		}
+		if(reloc) {
+			if(p->as == ATEXT)
+				reloca = nil;
+			else if(reloca != nil)
+				diag("reloc failure: %P\n", curp);
 		}
 		memmove(cbp, and, a);
 		cbp += a;
@@ -238,7 +250,10 @@ asmb(void)
 		lputl(0x200);			/* flags comment only */
 		break;
 	case 2:	/* plan9 */
-		lput(4*11*11+7);		/* magic */
+		magic = 4*11*11+7;
+		if(reloc)
+			magic |= 0x80000000;
+		lput(magic);		/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
@@ -360,8 +375,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[fnuxi4[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi4[i]];
@@ -374,8 +388,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[fnuxi8[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
@@ -390,8 +403,7 @@ datblk(long s, long n)
 				Bprint(&bso, pcstr, l+s+INITDAT);
 				for(j=0; j<c; j++)
 					Bprint(&bso, "%.2ux", p->to.scon[j] & 0xff);
-				Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-				Bprint(&bso, "%P\n", curp);
+				Bprint(&bso, "\t%P\n", curp);
 			}
 			for(; i<c; i++) {
 				buf.dbuf[l] = p->to.scon[i];
@@ -404,8 +416,10 @@ datblk(long s, long n)
 				if(p->to.index != D_STATIC && p->to.index != D_EXTERN)
 					diag("DADDR type%P\n", p);
 				if(p->to.sym) {
+					if(reloc)
+						wreloc(p->to.sym, l+s+INITDAT);
 					fl += p->to.sym->value;
-					if(p->to.sym->type != STEXT)
+					if(p->to.sym->type != STEXT && p->to.sym->type != SUNDEF)
 						fl += INITDAT;
 				}
 			}
@@ -419,8 +433,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[inuxi1[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi1[i]];
@@ -432,8 +445,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[inuxi2[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "]\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi2[i]];
@@ -445,8 +457,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[inuxi4[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi4[i]];

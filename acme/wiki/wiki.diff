@@ -1,0 +1,12 @@
+#!/bin/rc
+
+rfork n
+cd $1
+*=(`{ls -drp [0-9]*})
+
+diff -n index.txt $1/index.txt | sed 's/^(.*)index.txt:(.*)index.txt:/\1current:\2:/g'
+while(! ~ $#* 0 1){
+	diff -n $1/index.txt $2/index.txt | sed 's/^(.*)index.txt:(.*)index.txt:/\1:\2:/g'
+	shift
+}
+echo clean >/dev/ctl >[2]/dev/null

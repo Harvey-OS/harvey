@@ -94,7 +94,7 @@ loopbackread(void *a)
 		if(ifc->lifc == nil)
 			freeb(bp);
 		else
-			ipiput(lb->f, ifc->lifc->local, bp);
+			ipiput(lb->f, ifc, bp);
 		runlock(ifc);
 		poperror();
 	}

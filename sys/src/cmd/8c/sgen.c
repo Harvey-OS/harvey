@@ -61,13 +61,31 @@ codgen(Node *n, Node *nn)
 }
 
 void
+supgen(Node *n)
+{
+	long spc;
+	Prog *sp;
+
+	if(n == Z)
+		return;
+	suppress++;
+	spc = pc;
+	sp = lastp;
+	gen(n);
+	lastp = sp;
+	pc = spc;
+	sp->link = nil;
+	suppress--;
+}
+
+void
 gen(Node *n)
 {
 	Node *l, nod;
 	Prog *sp, *spc, *spb;
 	Case *cn;
 	long sbc, scc;
-	int o;
+	int f, o;
 
 loop:
 	if(n == Z)
@@ -142,6 +160,8 @@ loop:
 			diag(Z, "label undefined: %s", n->sym->name);
 			return;
 		}
+		if(suppress)
+			return;
 		gbranch(OGOTO);
 		if(n->xoffset) {
 			patch(p, n->xoffset);
@@ -234,7 +254,7 @@ loop:
 		patch(spc, pc);
 		if(n->op == OWHILE)
 			patch(sp, pc);
-		bcomplex(l);		/* test */
+		bcomplex(l, Z);		/* test */
 		patch(p, breakpc);
 
 		if(n->op == ODWHILE)
@@ -268,7 +288,7 @@ loop:
 		gen(l->right->right);	/* inc */
 		patch(sp, pc);	
 		if(l->left != Z) {	/* test */
-			bcomplex(l->left);
+			bcomplex(l->left, Z);
 			patch(p, breakpc);
 		}
 		gen(n->right);		/* body */
@@ -300,17 +320,34 @@ loop:
 
 	case OIF:
 		l = n->left;
-		bcomplex(l);
-		sp = p;
-		if(n->right->left != Z)
-			gen(n->right->left);
-		if(n->right->right != Z) {
-			gbranch(OGOTO);
-			patch(sp, pc);
-			sp = p;
-			gen(n->right->right);
+		if(bcomplex(l, n->right)) {
+			if(typefd[l->type->etype])
+				f = !l->fconst;
+			else
+				f = !l->vconst;
+			if(debug['c'])
+				print("%L const if %s\n", nearln, f ? "false" : "true");
+			if(f) {
+				supgen(n->right->left);
+				gen(n->right->right);
+			}
+			else {
+				gen(n->right->left);
+				supgen(n->right->right);
+			}
 		}
-		patch(sp, pc);
+		else {
+			sp = p;
+			if(n->right->left != Z)
+				gen(n->right->left);
+			if(n->right->right != Z) {
+				gbranch(OGOTO);
+				patch(sp, pc);
+				sp = p;
+				gen(n->right->right);
+			}
+			patch(sp, pc);
+		}
 		break;
 
 	case OSET:
@@ -745,8 +782,8 @@ indx(Node *n)
 	}
 }
 
-void
-bcomplex(Node *n)
+int
+bcomplex(Node *n, Node *c)
 {
 
 	complex(n);
@@ -754,8 +791,11 @@ bcomplex(Node *n)
 	if(tcompat(n, T, n->type, tnot))
 		n->type = T;
 	if(n->type != T) {
+		if(c != Z && n->op == OCONST && deadheads(c))
+			return 1;
 		bool64(n);
 		boolgen(n, 1, Z);
 	} else
 		gbranch(OGOTO);
+	return 0;
 }

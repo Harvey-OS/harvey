@@ -16,7 +16,7 @@ YFILES=gram.y
 BIN=$APEBIN
 </sys/src/cmd/mkone
 
-CFLAGS=-c -DSHELLCOM'="/bin/ape/sh"'
+CFLAGS=-c -DSHELLCOM'="/bin/sh"'
 YFLAGS=-S
 
 gram.c:	y.tab.c

@@ -22,13 +22,13 @@ int istitlerune(Rune c)
 int isupperrune(Rune c)
 .PP
 .B
-int tolowerrune(Rune c)
+Rune tolowerrune(Rune c)
 .PP
 .B
-int totitlerune(Rune c)
+Rune totitlerune(Rune c)
 .PP
 .B
-int toupperrune(Rune c)
+Rune toupperrune(Rune c)
 .SH DESCRIPTION
 These routines examine and operate on Unicode characters,
 in particular a subset of their properties as defined in the Unicode standard.

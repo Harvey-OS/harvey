@@ -2,6 +2,7 @@ dev
 	root
 	cons
 	arch
+	pnp		pci
 	env
 	pipe
 	proc
@@ -10,7 +11,9 @@ dev
 	dup
 #	rtc
 	ssl
-	bridge
+	cap
+	kprof
+#	loopback
 
 	ether		netif
 	ip		arp chandial inferno ip ipaux iproute netlog nullmedium pktmedium ptclbsum
@@ -22,7 +25,8 @@ dev
 	sd
 	floppy		dma
 
-	ns16552
+	audio		dma
+	uart
 
 link
 	ether2114x	pci
@@ -32,23 +36,25 @@ misc
 	arch164
 
 	ipconfig.root
+	kfs.root
+	factotum.root
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 
+	uarti8250
+
 	vgargb524	=cur
 	vgas3		+cur
+	vgas3		+cur vgasavage
 	vgatvp3026	=cur
 
 ip
 	il
 	tcp
 	udp
-	rudp
 	ipifc
 	icmp
-	gre
-	ipmux
 
 port
 	int cpuserver = 0;

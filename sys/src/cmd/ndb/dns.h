@@ -102,6 +102,7 @@ typedef struct Request	Request;
 typedef struct Key	Key;
 typedef struct Cert	Cert;
 typedef struct Sig	Sig;
+typedef struct Null	Null;
 
 /*
  *  a structure to track a request and any slave process handling it
@@ -162,6 +163,11 @@ struct Sig
 	int	dlen;
 	uchar	*data;
 };
+struct Null
+{
+	int	dlen;
+	uchar	*data;
+};
 
 /*
  *  an unpacked resource record
@@ -188,6 +194,7 @@ struct RR
 		DN	*mb;	/* mailbox - mg, minfo */
 		DN	*ip;	/* ip addrss - a */
 		DN	*txt;	/* first text string - txt, rp */
+		int	cruftlen;
 		ulong	arg0;
 	};
 	union {
@@ -204,6 +211,7 @@ struct RR
 		Key	*key;
 		Cert	*cert;
 		Sig	*sig;
+		Null	*null;
 	};
 };
 
@@ -279,11 +287,10 @@ extern RR*	rrcat(RR**, RR*);
 extern RR**	rrcopy(RR*, RR**);
 extern RR*	rrremneg(RR**);
 extern RR*	rrremtype(RR**, int);
-extern int	rrconv(va_list*, Fconv*);
-extern int	rravconv(va_list*, Fconv*);
+extern int	rrfmt(Fmt*);
+extern int	rravfmt(Fmt*);
 extern int	rrtype(char*);
-extern char*	rrname(int, char*);
-extern int	cistrcmp(char*, char*);
+extern char*	rrname(int, char*, int);
 extern int	tsame(int, int);
 extern void	dndump(char*);
 extern int	getactivity(Request*);
@@ -295,6 +302,8 @@ extern void	dncheck(void*, int);
 extern void	unique(RR*);
 extern int	subsume(char*, char*);
 extern RR*	randomize(RR*);
+extern void*	emalloc(int);
+extern char*	estrdup(char*);
 
 /* dblookup.c */
 extern RR*	dblookup(char*, int, int, int, int);

@@ -3,6 +3,7 @@ intro 0intro
 apm apm
 arch arch
 audio audio
+cap cap
 cons cons
 draw draw
 dup dup
@@ -18,14 +19,17 @@ mnt mnt
 cursor mouse
 mouse mouse
 pipe pipe
+pnp pnp
 proc proc
+realtime realtime
 root root
 rtc rtc
 sd sd
+segment segment
 srv srv
 ssl ssl
-astar uart
-duart uart
+tls tls
 eia uart
 uart uart
+usb usb
 vga vga

@@ -61,6 +61,9 @@ All empty unwritable directories, place holders for mounted services and directo
 .TP
 .B /mnt
 A directory containing mount points for applications.
+.B /mnt/factotum
+Mount point for
+.IR factotum (4).
 .TP
 .B /n
 A directory containing mount points for file trees imported from
@@ -198,7 +201,7 @@ Directory of
 .IR acid (1)
 load modules.
 .TP
-.B /sys/lib/pcdist
+.B /sys/lib/dist
 Software used to assemble the distribution's installation floppy.
 .TP
 .B /sys/lib/troff

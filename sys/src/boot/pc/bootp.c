@@ -277,7 +277,7 @@ if(debug) print("okay udp...");
 		if(nhgets(h->udpcksum)) {
 			csm = ptcl_csum(&h->ttl, len+UDP_PHDRSIZE);
 			if(csm != 0) {
-				print("udp chksum error csum #%4lux len %d\n", csm, n);
+				print("udp chksum error csum #%4ux len %d\n", csm, n);
 				break;
 			}
 		}
@@ -295,7 +295,7 @@ if(debug) print("bad ip\n");
 
 		len -= UDP_HDRSIZE-UDP_PHDRSIZE;
 		if(len > dlen) {
-			print("udp: packet too big\n");
+			print("udp: packet too big: %d > %d; from addr 0x%.8lux\n", len, dlen, addr);
 			continue;
 		}
 
@@ -336,7 +336,7 @@ tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 
 		case Tftp_ERROR:
 			print("tftpopen: error (%d): %s\n",
-				(tftp->header[2]<<8)|tftp->header[3], tftp->data);
+				(tftp->header[2]<<8)|tftp->header[3], (char*)tftp->data);
 			return -1;
 
 		case Tftp_DATA:

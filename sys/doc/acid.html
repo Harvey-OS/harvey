@@ -1,0 +1,2921 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Acid Manual
+</H1>
+<DL><DD><I>Phil Winterbottom<br>
+philw@plan9.bell-labs.com<br>
+</I></DL>
+<H4>Introduction
+</H4>
+<P>
+Acid is a general purpose, source level symbolic debugger.
+The debugger is built around a simple command language. 
+The command language, distinct from the language of the program being debugged,
+provides a flexible user interface that allows the debugger
+interface to be customized for a specific application or architecture.
+Moreover, it provides an opportunity to write test and
+verification code independently of a program's source code.
+Acid is able to debug multiple
+processes provided they share a common set of symbols, such as the processes in
+a threaded program.
+</P>
+<P>
+Like other language-based solutions, Acid presents a poor user interface but
+provides a powerful debugging tool.
+Application of Acid to hard problems is best approached by writing functions off-line
+(perhaps loading them with the
+<TT>include</TT>
+function or using the support provided by
+<A href="/magic/man2html/1/acme"><I>acme</I>(1)),
+</A>rather than by trying to type intricate Acid operations
+at the interactive prompt.
+</P>
+<P>
+Acid allows the execution of a program to be controlled by operating on its
+state while it is stopped and by monitoring and controlling its execution
+when it is running. Each program action that causes a change 
+of execution state is reflected by the execution
+of an Acid function, which may be user defined.
+A library of default functions provides the functionality of a normal debugger.
+</P>
+<P>
+A Plan 9 process is controlled by writing messages to a control file in the
+<A href="/magic/man2html/3/proc"><I>proc</I>(3)
+</A>file system. Each control message has a corresponding Acid function, which
+sends the message to the process. These functions take a process id
+(<I>pid</I>)
+as an
+argument. The memory and text file of the program may be manipulated using
+the indirection operators. The symbol table, including source cross reference,
+is available to an Acid program. The combination allows complex operations
+to be performed both in terms of control flow and data manipulation.
+</P>
+<H4>Input format and <TT>whatis</TT>
+</H4>
+<P>
+Comments start with
+<TT>//</TT>
+and continue to the end of the line.
+Input is a series of statements and expressions separated by semicolons.
+At the top level of the interpreter, the builtin function
+<TT>print</TT>
+is called automatically to display the result of all expressions except function calls.
+A unary
+<TT>+</TT>
+may be used as a shorthand to force the result of a function call to be printed.
+</P>
+<P>
+Also at the top level, newlines are treated as semicolons
+by the parser, so semicolons are unnecessary when evaluating expressions.
+</P>
+<P>
+When Acid starts, it loads the default program modules,
+enters interactive mode, and prints a prompt. In this state Acid accepts
+either function definitions or statements to be evaluated.
+In this interactive mode
+statements are evaluated immediately, while function definitions are
+stored for later invocation.
+</P>
+<P>
+The
+<TT>whatis</TT>
+operator can be used to report the state of identifiers known to the interpreter.
+With no argument,
+<TT>whatis</TT>
+reports the name of all defined Acid functions; when supplied with an identifier
+as an argument it reports any variable, function, or type definition
+associated with the identifier.
+Because of the way the interpreter handles semicolons,
+the result of a
+<TT>whatis</TT>
+statement can be returned directly to Acid without adding semicolons.
+A syntax error or interrupt returns Acid to the normal evaluation
+mode; any partially evaluated definitions are lost.
+</P>
+<H4>Using the Library Functions
+</H4>
+<P>
+After loading the program binary, Acid loads the portable and architecture-specific
+library functions  that form the standard debugging environment.
+These files are Acid source code and are human-readable.
+The following example uses the standard debugging library to show how
+language and program interact:
+<DL><DT><DD><TT><PRE>
+% acid /bin/ls
+/bin/ls:mips plan 9 executable
+
+/sys/lib/acid/port
+/sys/lib/acid/mips
+acid: new()
+75721: system call  _main ADD  $-0x14,R29
+75721: breakpoint   main+0x4   MOVW  R31,0x0(R29)
+acid: bpset(ls)
+acid: cont()
+75721: breakpoint   ls    ADD  $-0x16c8,R29
+acid: stk()
+At pc:0x0000141c:ls /sys/src/cmd/ls.c:87
+ls(s=0x0000004d,multi=0x00000000) /sys/src/cmd/ls.c:87
+    called from main+0xf4 /sys/src/cmd/ls.c:79
+main(argc=0x00000000,argv=0x7ffffff0) /sys/src/cmd/ls.c:48
+    called from _main+0x20 /sys/src/libc/mips/main9.s:10
+acid: PC
+0xc0000f60
+acid: *PC
+0x0000141c
+acid: ls
+0x0000141c
+</PRE></TT></DL>
+The function
+<TT>new()</TT>
+creates a new process and stops it at the first instruction.
+This change in state is reported by a call to the
+Acid function
+<TT>stopped</TT>,
+which is called by the interpreter whenever the debugged program stops.
+<TT>Stopped</TT>
+prints the status line giving the pid, the reason the program stopped
+and the address and instruction at the current PC.
+The function
+<TT>bpset</TT>
+makes an entry in the breakpoint table and plants a breakpoint in memory.
+The
+<TT>cont</TT>
+function continues the process, allowing it to run until some condition
+causes it to stop. In this case the program hits the breakpoint placed on
+the function
+<TT>ls</TT>
+in the C program. Once again the
+<TT>stopped</TT>
+routine is called to print the status of the program. The function
+<TT>stk</TT>
+prints a C stack trace of the current process. It is implemented using
+a builtin Acid function that returns the stack trace as a list; the code
+that formats the information is all written in Acid. 
+The Acid variable
+<TT>PC</TT>
+holds the address of the 
+cell where the current value of the processor register
+<TT>PC</TT>
+is stored. By indirecting through
+the value of
+<TT>PC</TT>
+the address where the program is stopped can be found.
+All of the processor registers are available by the same mechanism.
+</P>
+<H4>Types
+</H4>
+<P>
+An Acid variable has one of four types:
+<I>integer</I>,
+<I>float</I>,
+<I>list</I>,
+or
+<I>string</I>.
+The type of a variable is inferred from the type of the right-hand
+side of the assignment expression which last set its value.
+Referencing a variable that has not yet
+been assigned draws a "used but not set" error. Many of the operators may
+be applied to more than
+one type; for these operators the action of the operator is determined by
+the types of its operands. The action of each operator is defined in the
+<I>Expressions</I>
+section of this manual.
+</P>
+<H4>Variables
+</H4>
+<P>
+Acid has three kinds of variables: variables defined by the symbol table
+of the debugged program, variables that are defined and maintained
+by the interpreter as the debugged program changes state, and variables
+defined and used by Acid programs.
+</P>
+<P>
+Some examples of variables maintained by the interpreter are the register
+pointers listed by name in the Acid list variable
+<TT>registers</TT>,
+and the symbol table listed by name and contents in the Acid variable
+<TT>symbols</TT>.
+</P>
+<P>
+The variable
+<TT>pid</TT>
+is updated by the interpreter to select the most recently created process
+or the process selected by the
+<TT>setproc</TT>
+builtin function.
+</P>
+<H4>Formats
+</H4>
+<P>
+In addition to a type, variables have formats. The format is a code
+letter that determines the printing style and the effect of some of the
+operators on that variable. The format codes are derived from the format
+letters used by
+<A href="/magic/man2html/1/db"><I>db</I>(1).
+</A>By default, symbol table variables and numeric constants
+are assigned the format code
+<TT>X</TT>,
+which specifies 32-bit hexadecimal.
+Printing a variable with this code yields the output
+<TT>0x00123456</TT>.
+The format code of a variable may be changed from the default by using the 
+builtin function
+<TT>fmt</TT>.
+This function takes two arguments, an expression and a format code. After
+the expression is evaluated the new format code is attached to the result
+and forms the return value from
+<TT>fmt</TT>.
+The backslash operator is a short form of
+<TT>fmt</TT>.
+The format supplied by the backslash operator must be the format character
+rather than an expression.
+If the result is assigned to a variable the new format code is maintained
+in the variable. For example:
+<DL><DT><DD><TT><PRE>
+acid: x=10
+acid: print(x)
+0x0000000a 
+acid: x = fmt(x, 'D')
+acid: print(x, fmt(x, 'X'))
+10 0x0000000a
+acid: x
+10
+acid: x\o
+12
+</PRE></TT></DL>
+The supported format characters are:
+<DL><DD>
+</P>
+<DL COMPACT>
+<DT>&lt;TT&gt;o&lt;/TT&gt;<DD>
+Print two-byte integer in octal.
+<DT>&lt;TT&gt;O&lt;/TT&gt;<DD>
+Print four-byte integer in octal.
+<DT>&lt;TT&gt;q&lt;/TT&gt;<DD>
+Print two-byte integer in signed octal.
+<DT>&lt;TT&gt;Q&lt;/TT&gt;<DD>
+Print four-byte integer in signed octal.
+<DT>&lt;TT&gt;B&lt;/TT&gt;<DD>
+Print four-byte integer in binary.
+<DT>&lt;TT&gt;d&lt;/TT&gt;<DD>
+Print two-byte integer in signed decimal.
+<DT>&lt;TT&gt;D&lt;/TT&gt;<DD>
+Print four-byte integer in signed decimal.
+<DT>&lt;TT&gt;Y&lt;/TT&gt;<DD>
+Print eight-byte integer in signed decimal.
+<DT>&lt;TT&gt;Z&lt;/TT&gt;<DD>
+Print eight-byte integer in unsigned decimal.
+<DT>&lt;TT&gt;x&lt;/TT&gt;<DD>
+Print two-byte integer in hexadecimal.
+<DT>&lt;TT&gt;X&lt;/TT&gt;<DD>
+Print four-byte integer in hexadecimal.
+<DT>&lt;TT&gt;Y&lt;/TT&gt;<DD>
+Print eight-byte integer in hexadecimal.
+<DT>&lt;TT&gt;u&lt;/TT&gt;<DD>
+Print two-byte integer in unsigned decimal.
+<DT>&lt;TT&gt;U&lt;/TT&gt;<DD>
+Print four-byte integer in unsigned decimal.
+<DT>&lt;TT&gt;f&lt;/TT&gt;<DD>
+Print single-precision floating point number.
+<DT>&lt;TT&gt;F&lt;/TT&gt;<DD>
+Print double-precision floating point number.
+<DT>&lt;TT&gt;g&lt;/TT&gt;<DD>
+Print a single precision floating point number in string format.
+<DT>&lt;TT&gt;G&lt;/TT&gt;<DD>
+Print a double precision floating point number in string format.
+<DT>&lt;TT&gt;b&lt;/TT&gt;<DD>
+Print byte in hexadecimal.
+<DT>&lt;TT&gt;c&lt;/TT&gt;<DD>
+Print byte as an ASCII character.
+<DT>&lt;TT&gt;C&lt;/TT&gt;<DD>
+Like
+<TT>c</TT>,
+with
+printable ASCII characters represented normally and
+others printed in the form <TT>\x</TT><I>nn</I>.
+<DT>&lt;TT&gt;s&lt;/TT&gt;<DD>
+Interpret the addressed bytes as UTF characters
+and print successive characters until a zero byte is reached.
+<DT>&lt;TT&gt;r&lt;/TT&gt;<DD>
+Print a two-byte integer as a rune.
+<DT>&lt;TT&gt;R&lt;/TT&gt;<DD>
+Print successive two-byte integers as runes
+until a zero rune is reached.
+<DT>&lt;TT&gt;i&lt;/TT&gt;<DD>
+Print as machine instructions.
+<DT>&lt;TT&gt;I&lt;/TT&gt;<DD>
+As
+<TT>i</TT>
+above, but print the machine instructions in
+an alternate form if possible:
+<TT>sunsparc</TT>
+and
+<TT>mipsco</TT>
+reproduce the manufacturers' syntax.
+<DT>&lt;TT&gt;a&lt;/TT&gt;<DD>
+Print the value in symbolic form.
+</DL>
+</dl>
+<H4>Complex types
+</H4>
+<P>
+Acid permits the definition of the layout of memory.
+The usual method is to use the
+<TT>-a</TT>
+flag of the compilers to produce Acid-language descriptions of data structures (see
+<A href="/magic/man2html/1/2c"><I>2c</I>(1))
+</A>although such definitions can be typed interactively.
+The keywords
+<TT>complex</TT>,
+<TT>adt</TT>,
+<TT>aggr</TT>,
+and
+<TT>union</TT>
+are all equivalent; the compiler uses the synonyms to document the declarations.
+A complex type is described as a set of members, each containing a format letter,
+an offset in the structure, and a name.  For example, the C structure
+<DL><DT><DD><TT><PRE>
+struct List {
+	int         type;
+	struct List *next;
+};
+</PRE></TT></DL>
+is described by the Acid statement
+<DL><DT><DD><TT><PRE>
+complex List {
+	'D'	0	type;
+	'X'	4	next;
+};
+</PRE></TT></DL>
+</P>
+<H4>Scope
+</H4>
+<P>
+Variables are global unless they are either parameters to functions
+or are declared as
+<TT>local</TT>
+in a function body. Parameters and local variables are available only in
+the body of the function in which they are instantiated.
+Variables are dynamically bound: if a function declares a local variable
+with the same name as a global variable, the global variable will be hidden
+whenever the function is executing.
+For example, if a function
+<TT>f</TT>
+has a local called
+<TT>main</TT>,
+any function called below
+<TT>f</TT>
+will see the local version of
+<TT>main</TT>,
+not the external symbol.
+</P>
+<H4>Addressing
+</H4>
+<P>
+Since the symbol table specifies addresses,
+to access the value of program variables
+an extra level of indirection
+is required relative to the source code.
+For consistency, the registers are maintained as pointers as well; Acid variables with the names
+of processor registers point to cells holding the saved registers.
+</P>
+<P>
+The location in a file or memory image associated with
+an address is calculated from a map
+associated with the file.
+Each map contains one or more quadruples (<I>t</I>,
+<I>b</I>,
+<I>e</I>,
+<I>f</I>),
+defining a segment named
+<I>t</I>
+(usually 
+<TT>text</TT>,
+<TT>data</TT>,
+<TT>regs</TT>,
+or
+<TT>fpregs</TT>)
+mapping addresses in the range
+<I>b</I>
+through
+<I>e</I>
+to the part of the file
+beginning at
+offset
+<I>f</I>.
+The memory model of a Plan 9 process assumes
+that segments are disjoint.  There
+can be more than one segment of a given type (e.g., a process
+may have more than one text segment) but segments
+may not overlap.
+An address
+<I>a</I>
+is translated
+to a file address
+by finding a segment
+for which
+<I>b</I>
++
+<I>a</I>
+&lt;
+<I>e</I>;
+the location in the file
+is then
+<I>address</I>
++
+<I>f</I>
+-
+<I>b</I>.
+</P>
+<P>
+Usually,
+the text and initialized data of a program
+are mapped by segments called 
+<TT>text</TT>
+and
+<TT>data</TT>.
+Since a program file does not contain bss, stack, or register data,
+these data are
+not mapped by the data segment.
+The text segment is mapped similarly in the memory image of
+a normal (i.e., non-kernel) process.
+However, the segment called 
+<TT>*data</TT>
+maps memory from the beginning to the end of the program's data space.
+This region contains the program's static data, the bss, the
+heap and the stack.  A segment
+called
+<TT>*regs</TT>
+maps the registers;
+<TT>*fpregs</TT>
+maps the floating point registers.
+</P>
+<P>
+Sometimes it is useful to define a map with a single segment
+mapping the region from 0 to 0xFFFFFFFF; such a map
+allows the entire file to be examined
+without address translation.  The builtin function
+<TT>map</TT>
+examines and modifies Acid's map for a process.
+</P>
+<H4>Name Conflicts
+</H4>
+<P>
+Name conflicts between keywords in the Acid language, symbols in the program,
+and previously defined functions are resolved when the interpreter starts up.
+Each name is made unique by prefixing enough
+<TT>$</TT>
+characters to the front of the name to make it unique. Acid reports
+a list of each name change at startup. The report looks like this:
+<DL><DT><DD><TT><PRE>
+/bin/sam: mips plan 9 executable
+/lib/acid/port
+/lib/acid/mips
+Symbol renames:
+	append=$append T/0xa4e40
+acid:
+</PRE></TT></DL>
+The symbol
+<TT>append</TT>
+is both a keyword and a text symbol in the program. The message reports
+that the text symbol is now named
+<TT>$append</TT>.
+</P>
+<H4>Expressions
+</H4>
+<P>
+Operators have the same
+binding and precedence as in C.
+For operators of equal precedence, expressions are evaluated from left to right. 
+</P>
+<H4>Boolean expressions
+</H4>
+<P>
+If an expression is evaluated for a boolean condition the test
+performed depends on the type of the result. If the result is of
+<I>integer</I>
+or
+<I>floating</I>
+type the result is true if the value is non-zero. If the expression is a
+<I>list</I>
+the result is true if there are any members in the list.
+If the expression is a
+<I>string</I>
+the result is true if there are any characters in the string.
+<DL><DT><DD><TT><PRE>
+	primary-expression:
+		identifier
+		identifier <TT>:</TT> identifier
+		constant
+		<TT>(</TT> expression <TT>)</TT>
+		<TT>{</TT> elist <TT>}</TT>
+
+	elist:
+		expression
+		elist , expression
+</PRE></TT></DL>
+An identifier may be any legal Acid variable. The colon operator returns the
+address of parameters or local variables in the current stack of a program.
+For example:
+<DL><DT><DD><TT><PRE>
+*main:argc
+</PRE></TT></DL>
+prints the number of arguments passed into main. Local variables and parameters
+can only be referenced after the frame has been established. It may be necessary to
+step a program over the first few instructions of a breakpointed function to properly set
+the frame.
+</P>
+<P>
+Constants follow the same lexical rules as C.
+A list of expressions delimited by braces forms a list constructor.
+A new list is produced by evaluating each expression when the constructor is executed.
+The empty list is formed from
+<TT>{}</TT>.
+<DL><DT><DD><TT><PRE>
+acid: x = 10
+acid: l = { 1, x, 2\D }
+acid: x = 20
+acid: l
+{0x00000001 , 0x0000000a , 2 }
+</PRE></TT></DL>
+</P>
+<H4>Lists
+</H4>
+<P>
+Several operators manipulate lists.
+<DL><DT><DD><TT><PRE>
+	list-expression:
+		primary-expression
+		<TT>head</TT> primary-expression
+		<TT>tail</TT> primary-expression
+		<TT>append</TT> expression <TT>,</TT> primary-expression
+		<TT>delete</TT> expression <TT>,</TT> primary-expression
+</PRE></TT></DL>
+The
+<I>primary-expression</I>
+for
+<TT>head</TT>
+and
+<TT>tail</TT>
+must yield a value of type
+<I>list</I>.
+If there are no elements in the list the value of
+<TT>head</TT>
+or
+<TT>tail</TT>
+will be the empty list. Otherwise
+<TT>head</TT>
+evaluates to the first element of the list and
+<TT>tail</TT>
+evaluates to the rest.
+<DL><DT><DD><TT><PRE>
+acid: head {}
+{}
+acid: head {1, 2, 3, 4}
+0x00000001 
+acid: tail {1, 2, 3, 4}
+{0x00000002 , 0x00000003 , 0x00000004 }
+</PRE></TT></DL>
+The first operand of
+<TT>append</TT>
+and
+<TT>delete</TT>
+must be an expression that yields a
+<I>list</I>.
+<TT>Append</TT>
+places the result of evaluating
+<I>primary-expression</I>
+at the end of the list.
+The
+<I>primary-expression</I>
+supplied to
+<TT>delete</TT>
+must evaluate to an integer;
+<TT>delete</TT>
+removes the 
+<I>n</I>'th
+item from the list, where
+<I>n</I>
+is integral value of
+<I>primary-expression.</I>
+List indices are zero-based.
+<DL><DT><DD><TT><PRE>
+	acid: append {1, 2}, 3
+	{0x00000001 , 0x00000002 , 0x00000003 }
+	acid: delete {1, 2, 3}, 1
+	{0x00000001 , 0x00000003 }
+</PRE></TT></DL>
+</P>
+<P>
+Assigning a list to a variable copies a reference to the list; if a list variable
+is copied it still points at the same list.  To copy a list, the elements must
+be copied piecewise using
+<TT>head</TT>
+and
+<TT>append</TT>.
+</P>
+<H4>Operators
+</H4>
+<P>
+<DL><DT><DD><TT><PRE>
+	postfix-expression:
+		list-expression
+		postfix-expression <TT>[</TT> expression <TT>]</TT>
+		postfix-expression <TT>(</TT> argument-list <TT>)</TT>
+		postfix-expression <TT>.</TT> tag
+		postfix-expression <TT>-&gt;</TT> tag 
+		postfix-expression <TT>++</TT>
+		postfix-expression <TT>--</TT>
+
+	argument-list:
+		expression
+		argument-list , expression
+</PRE></TT></DL>
+The
+<TT>[</TT>
+<I>expression</I>
+<TT>]</TT>
+operator performs indexing.
+The indexing expression must result in an expression of
+<I>integer</I>
+type, say
+<I>n</I>.
+The operation depends on the type of
+<I>postfix-expression</I>.
+If the
+<I>postfix-expression</I>
+yields an
+<I>integer</I>
+it is assumed to be the base address of an array in the memory image.
+The index offsets into this array; the size of the array members is
+determined by the format associated with the
+<I>postfix-expression</I>.
+If the 
+<I>postfix-expression</I>
+yields a
+<I>string</I>
+the index operator fetches the
+<I>n</I>'th
+character
+of the string. If the index points beyond the end
+of the string, a zero is returned.
+If the
+<I>postfix-expression</I>
+yields a
+<I>list</I>
+then the indexing operation returns the
+<I>n</I>'th
+item of the list.
+If the list contains less than
+<I>n</I>
+items the empty list
+<TT>{}</TT>
+is returned.
+</P>
+<P>
+The
+<TT>++</TT>
+and
+<TT>--</TT>
+operators increment and decrement integer variables.
+The amount of increment or decrement depends on the format code. These postfix
+operators return the value of the variable before the increment or decrement
+has taken place.
+<DL><DT><DD><TT><PRE>
+	unary-expression:
+		postfix-expression
+		<TT>++</TT> unary-expression
+		<TT>--</TT> unary-expression
+
+	unary-operator: one of
+		<TT>*</TT> <TT>@</TT> <TT>+</TT> <TT>-</TT> ~ <TT>!</TT>
+</PRE></TT></DL>
+The operators
+<TT>*</TT>
+and
+<TT>@</TT>
+are the indirection operators.
+<TT>@</TT>
+references a value from the text file of the program being debugged.
+The size of the value depends on the format code. The
+<TT>*</TT>
+operator fetches a value from the memory image of a process. If either
+operator appears on the left-hand side of an assignment statement, either the file
+or memory will be written. The file can only be modified when Acid is invoked
+with the
+<TT>-w</TT>
+option.
+The prefix
+<TT>++</TT>
+and
+<TT>--</TT>
+operators perform the same operation as their postfix counterparts but
+return the value after the increment or decrement has been performed. Since the
+<TT>++</TT>
+and
+<TT>*</TT>
+operators fetch and increment the correct amount for the specified format,
+the following function prints correct machine instructions on a machine with
+variable length instructions, such as the 68020 or 386:
+<DL><DT><DD><TT><PRE>
+	defn asm(addr)
+	{
+		addr = fmt(addr, 'i');
+		loop 1, 10 do
+			print(*addr++, "\n");
+	}
+</PRE></TT></DL>
+The operators
+<TT>~</TT>
+and
+<TT>!</TT>
+perform bitwise and logical negation respectively. Their operands must be of
+<I>integer</I>
+type.
+<DL><DT><DD><TT><PRE>
+	cast-expression:
+		unary-expression
+		unary-expression <TT>\</TT> format-char
+		<TT>(</TT> complex-name <TT>)</TT> unary-expression		
+</PRE></TT></DL>
+A unary expression may be preceded by a cast. The cast has the effect of
+associating the value of 
+<I>unary-expression</I>
+with a complex type structure.
+The result may then be dereferenced using the
+<TT>.</TT>
+and
+<TT>-&gt;</TT>
+operators.
+</P>
+<P>
+An Acid variable may be associated with a complex type
+to enable accessing the type's members:
+<DL><DT><DD><TT><PRE>
+acid: complex List {
+	'D'	0	type;
+	'X'	4	next;
+};
+acid: complex List lhead
+acid: lhead.type
+10
+acid: lhead = ((List)lhead).next
+acid: lhead.type
+-46
+</PRE></TT></DL>
+Note that the
+<TT>next</TT>
+field cannot be given a complex type automatically.
+</P>
+<P>
+When entered at the top level of the interpreter,
+an expression of complex type
+is treated specially.
+If the type is called
+<TT>T</TT>
+and an Acid function also called
+<TT>T</TT>
+exists,
+then that function will be called with the expression as its argument.
+The compiler options
+<TT>-a</TT>
+and
+<TT>-aa</TT>
+will generate Acid source code defining such complex types and functions; see
+<A href="/magic/man2html/1/2c"><I>2c</I>(1).
+</A></P>
+<P>
+A
+<I>unary-expression</I>
+may be qualified with a format specifier using the
+<TT>o</TT>
+perator. This has the same effect as passing the expression to the
+<TT>fmt</TT>
+builtin function.
+<DL><DT><DD><TT><PRE>
+	multiplicative-expression:
+		cast-expression
+		multiplicative-expression <TT>*</TT> multiplicative-expression
+		multiplicative-expression <TT>/</TT> multiplicative-expression
+		multiplicative-expression <TT>%</TT> multiplicative-expression
+</PRE></TT></DL>
+These operate on
+<I>integer</I>
+and 
+<I>float</I>
+types and perform the expected operations:
+<TT>*</TT>
+multiplication,
+<TT>/</TT>
+division,
+<TT>%</TT>
+modulus.
+<DL><DT><DD><TT><PRE>
+	additive-expression:
+		multiplicative-expression
+		additive-expression <TT>+</TT> multiplicative-expression
+		additive-expression <TT>-</TT> multiplicative-expression
+</PRE></TT></DL>
+These operators perform as expected for
+<I>integer</I>
+and 
+<I>float</I>
+operands.
+Unlike in C,
+<TT>+</TT>
+and
+<TT>-</TT>
+do not scale the addition based on the format of the expression.
+This means that
+<TT>i=i+1</TT>
+will always add 1 but
+<TT>i++</TT>
+will add the size corresponding to the format stored with
+<TT>i</TT>.
+If both operands are of either
+<I>string</I>
+or
+<I>list</I>
+type  then addition is defined as concatenation. Subtraction is undefined for
+these two types.
+<DL><DT><DD><TT><PRE>
+	shift-expression:
+		additive-expression
+		shift-expression <TT>&lt;&lt;</TT> additive-expression
+		shift-expression <TT>&gt;&gt;</TT> additive-expression
+</PRE></TT></DL>
+The
+<TT>&gt;&gt;</TT>
+and
+<TT>&lt;&lt;</TT>
+operators perform bitwise right and left shifts respectively. Both
+require operands of
+<I>integer</I>
+type.
+<DL><DT><DD><TT><PRE>
+	relational-expression:
+		relational-expression <TT>&lt;</TT> shift-expression
+		relational-expression <TT>&gt;</TT> shift-expression
+		relational-expression <TT>&lt;=</TT> shift-expression
+		relational-expression <TT>&gt;=</TT> shift-expression
+
+	equality-expression:
+		relational-expression
+		relational-expression <TT>==</TT> equality-expression
+		relational-expression <TT>!=</TT> equality-expression
+</PRE></TT></DL>
+The comparison operators are
+<TT>&lt;</TT>
+(less than),
+<TT>&gt;</TT>
+(greater than),
+<TT>&lt;=</TT>
+(less than or equal to),
+<TT>&gt;=</TT>
+(greater than or equal to),
+<TT>==</TT>
+(equal to) and
+<TT>!=</TT>
+(not equal to). The result of a comparison is 0
+if the condition is false, otherwise 1. The relational operators can only be
+applied to operands of
+<I>integer</I>
+and
+<I>float</I>
+type. The equality operators apply to all types.  Comparing mixed types is legal.
+Mixed integer and float compare on the integral value.  Other mixtures are always unequal.
+Two lists are equal if they
+have the same number of members and a pairwise comparison of the members results
+in equality.
+<DL><DT><DD><TT><PRE>
+	AND-expression:
+		equality-expression
+		AND-expression <TT>&amp;</TT> equality-expression
+
+	XOR-expression:
+		AND-expression
+		XOR-expression <TT>^</TT> AND-expression
+
+	OR-expression:
+		XOR-expression
+		OR-expression <TT>|</TT> XOR-expression
+</PRE></TT></DL>
+These operators perform bitwise logical operations and apply only to the
+<I>integer</I>
+type.
+The operators are
+<TT>&</TT>
+(logical and),
+<TT>^</TT>
+(exclusive or) and
+<TT>|</TT>
+(inclusive or).
+<DL><DT><DD><TT><PRE>
+	logical-AND-expression:
+		OR-expression
+		logical-AND-expression <TT>&amp;&amp;</TT> OR-expression
+
+	logical-OR-expression:
+		logical-AND-expression
+		logical-OR-expression <TT>||</TT> logical-AND-expression
+</PRE></TT></DL>
+The
+<TT>&&</TT>
+operator returns 1 if both of its operands evaluate to boolean true, otherwise 0.
+The
+<TT>||</TT>
+operator returns 1 if either of its operands evaluates to boolean true,
+otherwise 0.
+</P>
+<H4>Statements
+</H4>
+<P>
+<DL><DT><DD><TT><PRE>
+	<TT>if</TT> expression <TT>then</TT> statement <TT>else</TT> statement
+	<TT>if</TT> expression <TT>then</TT> statement
+</PRE></TT></DL>
+The
+<I>expression</I>
+is evaluated as a boolean. If its value is true the statement after
+the
+<TT>then</TT>
+is executed, otherwise the statement after the
+<TT>else</TT>
+is executed. The 
+<TT>else</TT>
+portion may be omitted.
+<DL><DT><DD><TT><PRE>
+	<TT>while</TT> expression <TT>do</TT> statement
+</PRE></TT></DL>
+In a while loop, the
+<I>statement</I>
+is executed while the boolean
+<I>expression</I>
+evaluates
+true.
+<DL><DT><DD><TT><PRE>
+	<TT>loop</TT> startexpr, endexpr <TT>do</TT> statement
+</PRE></TT></DL>
+The two expressions
+<I>startexpr</I>
+and
+<I>endexpr</I>
+are evaluated prior to loop entry.
+<I>Statement</I>
+is evaluated while the value of
+<I>startexpr</I>
+is less than or equal to
+<I>endexpr</I>.
+Both expressions must yield
+<I>integer</I>
+values. The value of
+<I>startexpr</I>
+is
+incremented by one for each loop iteration.
+Note that there is no explicit loop variable; the
+<I>expressions</I>
+are just values.
+<DL><DT><DD><TT><PRE>
+	<TT>return</TT> expression
+</PRE></TT></DL>
+<TT>return</TT>
+terminates execution of the current function and returns to its caller.
+The value of the function is given by expression. Since
+<TT>return</TT>
+requires an argument, nil-valued functions should return the empty list
+<TT>{}</TT>.
+<DL><DT><DD><TT><PRE>
+	<TT>local</TT> variable
+</PRE></TT></DL>
+The
+<TT>local</TT>
+statement creates a local instance of
+<I>variable</I>,
+which exists for the duration
+of the instance of the function in which it is declared. Binding is dynamic: the local variable,
+rather than the previous value of
+<I>variable</I>,
+is visible to called functions.
+After a return from the current function the previous value of
+<I>variable</I>
+is
+restored.
+</P>
+<P>
+If Acid is interrupted, the values of all local variables are lost,
+as if the function returned.
+<DL><DT><DD><TT><PRE>
+	<TT>defn</TT> function-name <TT>(</TT> parameter-list <TT>)</TT> body
+
+	parameter-list:
+		variable
+		parameter-list , variable
+
+	body:
+		<TT>{</TT> statement <TT>}</TT>
+</PRE></TT></DL>
+Functions are introduced by the
+<TT>defn</TT>
+statement. The definition of parameter names suppresses any variables
+of the same name until the function returns. The body of a function is a list
+of statements enclosed by braces.
+</P>
+<H4>Code variables
+</H4>
+<P>
+Acid permits the delayed evaluation of a parameter to a function.  The parameter
+may then be evaluated at any time with the
+<TT>eval</TT>
+operator.  Such parameters are called
+<I>code variables</I>
+and are defined by prefixing their name with an asterisk in their declaration.
+</P>
+<P>
+For example, this function wraps up an expression for later evaluation:
+<DL><DT><DD><TT><PRE>
+acid: defn code(*e) { return e; }
+acid: x = code(v+atoi("100")\D)
+acid: print(x)
+(v+atoi("100"))\D;
+acid: eval x
+&lt;stdin&gt;:5: (error) v used but not set
+acid: v=5
+acid: eval x
+105
+</PRE></TT></DL>
+</P>
+<H4>Source Code Management
+</H4>
+<P>
+Acid provides the means to examine source code. Source code is
+represented by lists of strings. Builtin functions provide mapping
+from address to lines and vice-versa. The default debugging environment
+has the means to load and display source files.
+</P>
+<H4>Builtin Functions
+</H4>
+<P>
+The Acid interpreter has a number of builtin functions, which cannot be redefined.
+These functions perform machine- or operating system-specific functions such as
+symbol table and process management.
+The following section presents a description of each builtin function.
+The notation
+<TT>{}</TT>
+is used to denote the empty list, which is the default value of a function that
+does not execute a
+<TT>return</TT>
+statement.
+The type and number of parameters for each function are specified in the
+description; where a parameter can be of any type it is specified as type
+<I>item</I>.
+
+
+
+</P>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>Access</TT>
+returns the integer 1 if the file name in
+<I>string</I>
+can be read by the builtin functions
+<TT>file</TT>,
+<TT>readfile</TT>,
+or
+<TT>include</TT>,
+otherwise 0. A typical use of this function is to follow
+a search path looking for a source file; it is used by
+<TT>findsrc</TT>.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+if access("main.c") then
+	return file("main.c");
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>atof</TT>
+converts the string supplied as its argument into a floating point
+number. The function accepts strings in the same format as the C
+function of the same name. The value returned has the format code
+<TT>f</TT>.
+<TT>atof</TT>
+returns the value 0.0 if it is unable to perform the conversion.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: +atof("10.4e6")
+1.04e+07
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>atoi</TT>
+converts the argument
+to an integer value.
+The function accepts strings in the same format as the C function of the
+same name. The value returned has the format code
+<TT>D</TT>.
+<TT>atoi</TT>
+returns the integer 0 if it is unable to perform a conversion.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: +atoi("-1255")
+-1255
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>error</TT>
+generates an error message and returns the interpreter to interactive
+mode. If an Acid program is running, it is aborted.
+Processes being debugged are not affected. The values of all local variables are lost.
+<TT>error</TT>
+is commonly used to stop the debugger when some interesting condition arises
+in the debugged program.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+while 1 do {
+	step();
+	if *main != @main then
+		error("memory corrupted");
+}
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>file</TT>
+reads the contents of the file specified by
+<I>string</I>
+into a list.
+Each element in the list is a string corresponding to a line in the file.
+<TT>file</TT>
+breaks lines at the newline character, but the newline
+characters are not returned as part each string.
+<TT>file</TT>
+returns the empty list if it encounters an error opening or reading the data.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: print(file("main.c")[0])
+#include	&lt;u.h&gt;
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>filepc</TT>
+interprets its
+<I>string</I>
+argument as a source file address in the form of a file name and line offset.
+<TT>filepc</TT>
+uses the symbol table to map the source address into a text address
+in the debugged program. The
+<I>integer</I>
+return value has the format
+<TT>X</TT>.
+<TT>filepc</TT>
+returns an address of -1 if the source address is invalid.
+The source file address uses the same format as
+<A href="/magic/man2html/1/acme"><I>acme</I>(1).
+</A>This function is commonly used to set breakpoints from the source text.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: bpset(filepc("main:10"))
+acid: bptab()
+	0x00001020 usage  ADD	$-0xc,R29
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>fmt</TT>
+evaluates the expression
+<I>item</I>
+and sets the format of the result to
+<I>fmt</I>.
+The format of a value determines how it will be printed and
+what kind of object will be fetched by the
+<TT>*</TT>
+and
+<TT>@</TT>
+operators. The
+<TT>o</TT>
+perator is a short-hand form of the
+<TT>fmt</TT>
+builtin function. The
+<TT>fmt</TT>
+function leaves the format of the
+<I>item</I>
+unchanged.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: main=fmt(main, 'i') // as instructions
+acid: print(main\X, "\t", *main)
+0x00001020 ADD	$-64,R29
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>fnbound</TT>
+interprets its
+<I>integer</I>
+argument as an address in the text of the debugged program.
+<TT>fnbound</TT>
+returns a list containing two integers corresponding to
+the start and end addresses of the function containing the supplied address.
+If the
+<I>integer</I>
+address is not in the text segment of the program then the empty list is returned.
+<TT>fnbound</TT>
+is used by
+<TT>next</TT>
+to detect stepping into new functions.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: print(fnbound(main))
+{0x00001050, 0x000014b8}
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+The follow set is defined as the set of program counter values that could result
+from executing an instruction.
+<TT>follow</TT>
+interprets its
+<I>integer</I>
+argument as a text address, decodes the instruction at
+that address and, with the current register set, builds a list of possible
+next program counter values. If the instruction at the specified address
+cannot be decoded
+<TT>follow</TT>
+raises an error.
+<TT>follow</TT>
+is used to plant breakpoints on
+all potential paths of execution. The following code fragment
+plants breakpoints on top of all potential following instructions.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+lst = follow(*PC);
+while lst do
+{
+	*head lst = bpinst;
+	lst = tail lst;
+}
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>include</TT>
+opens the file specified by
+<I>string</I>
+and uses its contents as command input to the interpreter.
+The interpreter restores input to its previous source when it encounters
+either an end of file or an error.
+<TT>include</TT>
+can be used to incrementally load symbol table information without
+leaving the interpreter.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: include("/sys/src/cmd/acme/syms")
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>interpret</TT>
+evaluates the
+<I>string</I>
+expression and uses its result as command input for the interpreter.
+The interpreter restores input to its previous source when it encounters
+either the end of string or an error. The
+<TT>interpret</TT>
+function allows Acid programs to write Acid code for later evaluation.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: interpret("main+10;")
+0x0000102a
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>itoa</TT>
+takes an integer argument and converts it into an ASCII string
+in the
+<TT>D</TT>
+format.
+an alternate format string
+may be provided in the
+<TT>%</TT>
+style of
+<A href="/magic/man2html/2/print"><I>print</I>(2).
+</A>This function is commonly used to build
+<TT>rc</TT>
+command lines.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: rc("cat /proc/"+itoa(pid)+"/segment")
+Stack    7fc00000 80000000    1
+Data     00001000 00009000    1
+Data     00009000 0000a000    1
+Bss      0000a000 0000c000    1
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>kill</TT>
+writes a kill control message into the control file of the process
+specified by the
+<I>integer</I>
+pid.
+If the process was previously installed by
+<TT>setproc</TT>
+it will be removed from the list of active processes.
+If the
+<I>integer</I>
+has the same value as
+<TT>pid</TT>,
+then
+<TT>pid</TT>
+will be set to 0.
+To continue debugging, a new process must be selected using
+<TT>setproc</TT>.
+For example, to kill all the active processes:
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+while proclist do {
+	kill(head proclist);
+	proclist = tail proclist;
+}
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>map</TT>
+either retrieves all the mappings associated with a process or sets a single
+map entry to a new value.
+If the
+<I>list</I>
+argument is omitted then
+<TT>map</TT>
+returns a list of lists. Each sublist has four values and describes a
+single region of contiguous addresses in the
+memory or file image of the debugged program. The first entry is the name of the
+mapping. If the name begins with
+<TT>*</TT>
+it denotes a map into the memory of an active process.
+The second and third values specify the base and end
+address of the region and the fourth number specifies the offset in the file
+corresponding to the first location of the region.
+A map entry may be set by supplying a list in the same format as the sublist
+described above. The name of the mapping must match a region already defined
+by the current map.
+Maps are set automatically for Plan 9 processes and some kernels; they may
+need to be set by hand for other kernels and programs that run on bare hardware.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: map({"text", _start, end, 0x30})
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>match</TT>
+compares each item in
+<I>list</I>
+using the equality operator
+<TT>==</TT>
+with
+<I>item</I>.
+The
+<I>item</I>
+can be of any type. If the match succeeds the result is the integer index
+of the matching value, otherwise -1.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: list={8,9,10,11}
+acid: print(list[match(10, list)]\D)
+10
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>newproc</TT>
+starts a new process with an argument vector constructed from
+<I>string</I>.
+The argument vector excludes the name of the program to execute and
+each argument in
+<I>string</I>
+must be space separated. A new process can accept no more
+than 512 arguments. The internal variable
+<TT>pid</TT>
+is set to the pid of the newly created process. The new pid
+is also appended to the list of active processes stored in the variable
+<TT>proclist</TT>.
+The new process is created then halted at the first instruction, causing
+the debugger to call
+<TT>stopped</TT>.
+The library functions
+<TT>new</TT>
+and
+<TT>win</TT>
+should be used to start processes when using the standard debugging
+environment.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: newproc("-l .")
+56720: system call	_main	ADD	$-0x14,R29
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>pcfile</TT>
+interprets its
+<I>integer</I>
+argument as a text address in the debugged program. The address and symbol table
+are used to generate a string containing the name of the source file
+corresponding to the text address. If the address does not lie within the
+program the string
+<TT>?file?</TT>
+is returned.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: print("Now at ", pcfile(*PC), ":", pcline(*PC))
+Now at ls.c:46 
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>pcline</TT>
+interprets its
+<I>integer</I>
+argument as a text address in the debugged program. The address and symbol table
+are used to generate an integer containing the line number in the source file
+corresponding to the text address. If the address does not lie within the
+program the integer 0 is returned.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: +file("main.c")[pcline(main)]
+main(int argc, char *argv[])
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>print</TT>
+evaluates each
+<I>item</I>
+supplied in its argument list and prints it to standard output. Each
+argument will be printed according to its associated format character.
+When the interpreter is executing, output is buffered and flushed every
+5000 statements or when the interpreter returns to interactive mode.
+<TT>print</TT>
+accepts a maximum of 512 arguments.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: print(10, "decimal ", 10\D, "octal ", 10\o)
+0x0000000a decimal 10 octal 000000000012 
+acid: print({1, 2, 3})
+{0x00000001 , 0x00000002 , 0x00000003 }
+acid: print(main, main\a, "\t", @main\i)
+0x00001020 main	ADD	$-64,R29
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>printto</TT>
+offers a limited form of output redirection. The first
+<I>string</I>
+argument is used as the path name of a new file to create.
+Each
+<I>item</I>
+is then evaluated and printed to the newly created file. When all items
+have been printed the file is closed.
+<TT>printto</TT>
+accepts a maximum of 512 arguments.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: printto("/env/foo", "hello")
+acid: rc("echo -n $foo")
+hello
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>rc</TT>
+evaluates
+<I>string</I>
+to form a shell command. A new command interpreter is started
+to execute the command. The Acid interpreter blocks until the command
+completes. The return value is the empty string
+if the command succeeds, otherwise the exit status of the failed command.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: rc("B "+itoa(-pcline(addr))+" "+pcfile(addr));
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>readfile</TT>
+takes the contents of the file specified by
+<I>string</I>
+and returns its contents as a new string.
+If
+<TT>readfile</TT>
+encounters a zero byte in the file, it terminates.
+If
+<TT>readfile</TT>
+encounters an error opening or reading the file then the empty list
+is returned.
+<TT>readfile</TT>
+can be used to read the contents of device files whose lines are not
+terminated with newline characters.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: ""+readfile("/dev/label")
+helix
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>reason</TT>
+uses machine-dependent information to generate a string explaining
+why a process has stopped. The
+<I>integer</I>
+argument is the value of an architecture dependent status register,
+for example
+<TT>CAUSE</TT>
+on the MIPS.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: print(reason(*CAUSE))
+system call
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>regexp</TT>
+matches the
+<I>pattern</I>
+string supplied as its first argument with the 
+<I>string</I>
+supplied as its second.
+If the pattern matches the result is the value 1, otherwise 0.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: print(regexp(".*bar", "foobar"))
+1
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>setproc</TT>
+selects the default process used for memory and control operations. It effectively
+shifts the focus of control between processes. The 
+<I>integer</I>
+argument specifies the pid of the process to look at.
+The variable
+<TT>pid</TT>
+is set to the pid of the selected process. If the process is being
+selected for the first time its pid is added to the list of active
+processes
+<TT>proclist</TT>.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: setproc(68382)
+acid: procs()
+&gt;68382: Stopped at main+0x4 setproc(68382)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>start</TT>
+writes a
+<TT>start</TT>
+message to the control file of the process specified by the pid
+supplied as its
+<I>integer</I>
+argument.
+<TT>start</TT>
+draws an error if the process is not in the
+<TT>Stopped</TT>
+state.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: start(68382)
+acid: procs()
+&gt;68382: Running at main+0x4 setproc(68382)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>startstop</TT>
+performs the same actions as a call to
+<TT>start</TT>
+followed by a call to
+<TT>stop</TT>.
+The
+<I>integer</I>
+argument specifies the pid of the process to control. The process
+must be in the
+<TT>Stopped</TT>
+state.
+Execution is restarted, the debugger then waits for the process to
+return to the
+<TT>Stopped</TT>
+state. A process will stop if a startstop message has been written to its control
+file and any of the following conditions becomes true: the process executes or returns from
+a system call, the process generates a trap or the process receives a note.
+<TT>startstop</TT>
+is used to implement single stepping.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: startstop(pid)
+75374: breakpoint	ls	ADD	$-0x16c8,R29
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>status</TT>
+uses the pid supplied by its
+<I>integer</I>
+argument to generate a string describing the state of the process.
+The string corresponds to the state returned by the
+sixth column of the
+<A href="/magic/man2html/1/ps"><I>ps</I>(1)
+</A>command.
+A process must be in the
+<TT>Stopped</TT>
+state to modify its memory or registers.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: ""+status(pid)
+Stopped
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>stop</TT>
+writes a
+<TT>stop</TT>
+message to the control file of the process specified by the
+pid supplied as its
+<I>integer</I>
+argument.
+The interpreter blocks until the debugged process enters the
+<TT>Stopped</TT>
+state.
+A process will stop if a stop message has been written to its control
+file and any of the following conditions becomes true: the process executes or returns from
+a system call, the process generates a trap, the process is scheduled or the
+process receives a note.
+<TT>stop</TT>
+is used to wait for a process to halt before planting a breakpoint since Plan 9
+only allows a process's memory to be written while it is in the
+<TT>Stopped</TT>
+state.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+defn bpset(addr) {
+	if (status(pid)!="Stopped") then {
+		print("Waiting...\n");
+		stop(pid);
+	}
+	...
+}
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>strace</TT>
+generates a list of lists corresponding to procedures called by the debugged
+program. Each sublist describes a single stack frame in the active process.
+The first element is an
+<I>integer</I>
+of format
+<TT>X</TT>
+specifying the address of the called function. The second element is the value
+of the program counter when the function was called. The third and fourth elements
+contain lists of parameter and automatic variables respectively.
+Each element of these lists
+contains a string with the name of the variable and an
+<I>integer</I>
+value of format
+<TT>X</TT>
+containing the current value of the variable.
+The arguments to
+<TT>strace</TT>
+are the current value of the program counter, the current value of the
+stack pointer, and the address of the link register. All three parameters
+must be integers.
+The setting of 
+<I>linkreg</I>
+is architecture dependent. On the MIPS linkreg is set to the address of saved
+<TT>R31</TT>,
+on the SPARC to the address of saved
+<TT>R15</TT>.
+For the other architectures
+<I>linkreg</I>
+is not used, but must point to valid memory.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: print(strace(*PC, *SP, linkreg))
+{{0x0000141c, 0xc0000f74,
+{{"s", 0x0000004d}, {"multi", 0x00000000}}, 
+{{"db", 0x00000000}, {"fd", 0x000010a4},
+{"n", 0x00000001}, {"i", 0x00009824}}}}
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>waitstop</TT>
+writes a waitstop message to the control file of the process specified by the
+pid supplied as its
+<I>integer</I>
+argument.
+The interpreter will remain blocked until the debugged process enters the
+<TT>Stopped</TT>
+state.
+A process will stop if a waitstop message has been written to its control
+file and any of the following conditions becomes true: the process generates a trap
+or receives a note. Unlike
+<TT>stop</TT>,
+the
+<TT>waitstop</TT>
+function is passive; it does not itself cause the program to stop.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: waitstop(pid)
+75374: breakpoint	ls	ADD	$-0x16c8,R29
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<H4>Library Functions
+</H4>
+<P>
+A standard debugging environment is provided by modules automatically
+loaded when
+Acid is started.
+These modules are located in the directory
+<TT>/sys/lib/acid</TT>.
+These functions may be overridden, personalized, or added to by code defined in
+<TT>$home/lib/acid</TT>.
+The implementation of these functions can be examined using the
+<TT>whatis</TT>
+operator and then modified during debugging sessions.
+
+
+
+</P>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>Bsrc</TT>
+interprets the
+<I>integer</I>
+argument as a text address. The text address is used to produce a pathname
+and line number suitable for the
+<TT>B</TT>
+command
+to send to the text editor
+<A href="/magic/man2html/1/sam"><I>sam</I>(1)
+</A>or
+<A href="/magic/man2html/1/acme"><I>acme</I>(1).
+</A><TT>Bsrc</TT>
+builds an
+<A href="/magic/man2html/1/rc"><I>rc</I>(1)
+</A>command to invoke
+<TT>B</TT>,
+which either selects an existing source file or loads a new source file into the editor.
+The line of source corresponding to the text address is then selected.
+In the following example
+<TT>stopped</TT>
+is redefined so that the editor
+follows and displays the source line currently being executed.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+defn stopped(pid) {
+	pstop(pid);
+	Bsrc(*PC);
+}
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+For machines equipped with floating point,
+<TT>Fpr</TT>
+displays the contents of the floating point registers as double precision
+values.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: Fpr()
+F0   0.	F2   0.
+F4   0.	F6   0.
+F8   0.	F10  0.
+...
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>Ureg</TT>
+interprets the integer passed as its first argument as the address of a
+kernel
+<TT>Ureg</TT>
+structure. Each element of the structure is retrieved and printed.
+The size and contents of the
+<TT>Ureg</TT>
+structure are architecture dependent.
+This function can be used to decode the first argument passed to a
+<A href="/magic/man2html/2/notify"><I>notify</I>(2)
+</A>function after a process has received a note.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: Ureg(*notehandler:ur)
+	status	0x3000f000
+	pc	0x1020
+	sp	0x7ffffe00
+	cause	0x00004002
+...
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>acidinit</TT>
+is called by the interpreter after all
+modules have been loaded at initialization time.
+It is used to set up machine specific variables and the default source path.
+<TT>acidinit</TT>
+should not be called by user code.
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>addsrcdir</TT>
+interprets its string argument as a new directory
+<TT>findsrc</TT>
+should search when looking for source code files.
+<TT>addsrcdir</TT>
+draws an error if the directory is already in the source search path. The search
+path may be examined by looking at the variable
+<TT>srcpath</TT>.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: rc("9fs fornax")
+acid: addsrcpath("/n/fornax/sys/src/cmd")
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>asm</TT>
+interprets its integer argument as a text address from which to disassemble
+machine instructions.
+<TT>asm</TT>
+prints the instruction address in symbolic and hexadecimal form, then prints
+the instructions with addressing modes. Up to twenty instructions will
+be disassembled.
+<TT>asm</TT>
+stops disassembling when it reaches the end of the current function.
+Instructions are read from the file image using the
+<TT>@</TT>
+operator.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: asm(main)
+main     0x00001020 ADD    $-0x64,R29
+main+0x4 0x00001024 MOVW   R31,0x0(R29)
+main+0x8 0x00001028 MOVW   R1,argc+4(FP)
+main+0xc 0x0000102c MOVW   $bin(SB),R1
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>bpdel</TT>
+removes a previously set breakpoint from memory.
+The
+<I>integer</I>
+supplied as its argument must be the address of a previously set breakpoint.
+The breakpoint address is deleted from the active breakpoint list
+<TT>bplist</TT>,
+then the original instruction is copied from the file image to the memory
+image so that the breakpoint is removed.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: bpdel(main+4)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>bpset</TT>
+places a breakpoint instruction at the address specified
+by its
+<I>integer</I>
+argument, which must be in the text segment.
+<TT>bpset</TT>
+draws an error if a breakpoint has already been set at the specified address.
+A list of current breakpoints is maintained in the variable
+<TT>bplist</TT>.
+Unlike in
+<A href="/magic/man2html/1/db"><I>db</I>(1),
+</A>breakpoints are left in memory even when a process is stopped, and
+the process must exist, perhaps by being
+created by either
+<TT>new</TT>
+or
+<TT>win</TT>,
+in order to place a breakpoint.
+(<TT>Db</TT>
+accepts breakpoint commands before the process is started.)
+On the
+MIPS and SPARC architectures,
+breakpoints at function entry points should be set 4 bytes into the function
+because the
+instruction scheduler may fill
+<TT>JAL</TT>
+branch delay slots with the first instruction of the function.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: bpset(main+4)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>bptab</TT>
+prints a list of currently installed breakpoints. The list contains the
+breakpoint address in symbolic and hexadecimal form as well as the instruction
+the breakpoint replaced. Breakpoints are not maintained across process creation
+using
+<TT>new</TT>
+and
+<TT>win</TT>.
+They are maintained across a fork, but care must be taken to keep control of
+the child process.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: bpset(ls+4)
+acid: bptab()
+	0x00001420 ls+0x4  MOVW	R31,0x0(R29)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>casm</TT>
+continues to disassemble instructions from where the last
+<TT>asm</TT>
+or
+<TT>casm</TT>
+command stopped. Like
+<TT>asm</TT>,
+this command stops disassembling at function boundaries.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: casm()
+main+0x10 0x00001030	MOVW	$0x1,R3
+main+0x14 0x00001034	MOVW	R3,0x8(R29)
+main+0x18 0x00001038	MOVW	$0x1,R5
+main+0x1c 0x0000103c	JAL	Binit(SB)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>cont</TT>
+restarts execution of the currently active process.
+If the process is stopped on a breakpoint, the breakpoint is first removed,
+the program is single stepped, the breakpoint is replaced and the program
+is then set executing. This may cause
+<TT>stopped()</TT>
+to be called twice.
+<TT>cont</TT>
+causes the interpreter to block until the process enters the
+<TT>Stopped</TT>
+state.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: cont()
+95197: breakpoint	ls+0x4	MOVW	R31,0x0(R29)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>dump</TT>
+interprets its first argument as an address, its second argument as a
+count and its third as a format string.
+<TT>dump</TT>
+fetches an object from memory at the current address and prints it according
+to the format. The address is incremented by the number of bytes specified by
+the format and the process is repeated count times. The format string is any
+combination of format characters, each preceded by an optional count.
+For each object,
+<TT>dump</TT>
+prints the address in hexadecimal, a colon, the object and then a newline.
+<TT>dump</TT>
+uses
+<TT>mem</TT>
+to fetch each object.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: dump(main+35, 4, "X2bi")
+0x00001043: 0x0c8fa700 108 143 lwc2 r0,0x528f(R4) 
+0x0000104d: 0xa9006811   0   0 swc3 r0,0x0(R24) 
+0x00001057: 0x2724e800   4  37 ADD  $-0x51,R23,R31 
+0x00001061: 0xa200688d   6   0 NOOP
+0x0000106b: 0x2710c000   7   0 BREAK
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>findsrc</TT>
+interprets its
+<I>string</I>
+argument as a source file. Each directory in the source path is searched
+in turn for the file. If the file is found, the source text is loaded using
+<TT>file</TT>
+and stored in the list of active source files called
+<TT>srctext</TT>.
+The name of the file is added to the source file name list
+<TT>srcfiles</TT>.
+Users are unlikely to call
+<TT>findsrc</TT>
+from the command line, but may use it from scripts to preload source files
+for a debugging session. This function is used by
+<TT>src</TT>
+and
+<TT>line</TT>
+to locate and load source code. The default search path for the MIPS
+is
+<TT>./</TT>,
+<TT>/sys/src/libc/port</TT>,
+<TT>/sys/src/libc/9sys</TT>,
+<TT>/sys/src/libc/mips</TT>.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: findsrc(pcfile(main));
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+For machines equipped with floating point,
+<TT>fpr</TT>
+displays the contents of the floating point registers as single precision
+values. When the interpreter stores or manipulates floating point values
+it converts into double precision values.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: fpr()
+F0   0.	F1   0.
+F2   0.	F3   0.
+F4   0.	F5   0.
+...
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>func</TT>
+single steps the active process until it leaves the current function
+by either calling another function or returning to its caller.
+<TT>func</TT>
+will execute a single instruction after leaving the current function.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: func()
+95197: breakpoint	ls+0x8	MOVW	R1,R8
+95197: breakpoint	ls+0xc	MOVW	R8,R1
+95197: breakpoint	ls+0x10	MOVW	R8,s+4(FP)
+95197: breakpoint	ls+0x14	MOVW	$0x2f,R5
+95197: breakpoint	ls+0x18	JAL	utfrrune(SB)
+95197: breakpoint	utfrrune	ADD	$-0x18,R29
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>gpr</TT>
+prints the values of the general purpose processor registers.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: gpr()
+R1	0x00009562 R2	0x000010a4 R3	0x00005d08
+R4	0x0000000a R5	0x0000002f R6	0x00000008
+...
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>labstk</TT>
+performs a stack trace from a Plan 9
+<I>label.</I>
+The kernel,
+C compilers store continuations in a common format. Since the
+compilers all use caller save conventions a continuation may be saved by
+storing a
+<TT>PC</TT>
+and
+<TT>SP</TT>
+pair. This data structure is called a label and is used by the
+the C function
+<TT>longjmp</TT>
+and the kernel to schedule threads and processes.
+<TT>labstk</TT>
+interprets its
+<I>integer</I>
+argument as the address of a label and produces a stack trace for
+the thread of execution. The value of the function
+<TT>ALEF_tid</TT>
+is a suitable argument for
+<TT>labstk</TT>.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: labstk(*mousetid)
+At pc:0x00021a70:Rendez_Sleep+0x178 rendez.l:44
+Rendez_Sleep(r=0xcd7d8,bool=0xcd7e0,t=0x0) rendez.l:5
+	called from ALEF_rcvmem+0x198 recvmem.l:45
+ALEF_rcvmem(c=0x000cd764,l=0x00000010) recvmem.l:6
+...
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>lstk</TT>
+produces a long format stack trace.
+The stack trace includes each function in the stack,
+where it was called from, and the value of the parameters and automatic
+variables for each function.
+<TT>lstk</TT>
+displays the value rather than the address of each variable and all
+variables are assumed to be an integer in format
+<TT>X</TT>.
+To print a variable in its correct format use the
+<TT>:</TT>
+operator to find the address and apply the appropriate format before indirection
+with the
+<TT>*</TT>
+operator. It may be necessary to single step a couple of instructions into
+a function to get a correct stack trace because the frame pointer adjustment
+instruction may get scheduled down into the body of the function.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: lstk()
+At pc:0x00001024:main+0x4 ls.c:48
+main(argc=0x00000001,argv=0x7fffefec) ls.c:48
+	called from _main+0x20 main9.s:10
+	_argc=0x00000000
+	_args=0x00000000
+	fd=0x00000000
+	buf=0x00000000
+	i=0x00000000
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>mem</TT>
+interprets its first
+<I>integer</I>
+argument as the address of an object to be printed according to the
+format supplied in its second
+<I>string</I>
+argument.
+The format string can be any combination of format characters, each preceded
+by an optional count.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: mem(bdata+0x326, "2c2Xb")
+P = 0xa94bc464 0x3e5ae44d  19 
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>new</TT>
+starts a new copy of the debugged program. The new program is started
+with the program arguments set by the variable
+<TT>progargs</TT>.
+The new program is stopped in the second instruction of
+<TT>main</TT>.
+The breakpoint list is reinitialized.
+<TT>new</TT>
+may be used several times to instantiate several copies of a program
+simultaneously. The user can rotate between the copies using
+<TT>setproc</TT>.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: progargs="-l"
+acid: new()
+60: external interrupt	_main	ADD	$-0x14,R29
+60: breakpoint	main+0x4	MOVW	R31,0x0(R29)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>next</TT>
+steps through a single language level statement without tracing down
+through each statement in a called function. For each statement,
+<TT>next</TT>
+prints the machine instructions executed as part of the statement. After
+the statement has executed, source lines around the current program
+counter are displayed.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: next()
+60: breakpoint	Binit+0x4 MOVW	R31,0x0(R29)
+60: breakpoint	Binit+0x8 MOVW	f+8(FP),R4
+binit.c:93
+ 88	
+ 89	int
+ 90	Binit(Biobuf *bp, int f, int mode)
+ 91	{
+&gt;92		return Binits(bp, f, mode, bp-&gt;b, BSIZE);
+ 93	}
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>notestk</TT>
+interprets its
+<I>integer</I>
+argument as the address of a
+<TT>Ureg</TT>
+structure passed by the kernel to a
+<A href="/magic/man2html/2/notify"><I>notify</I>(2)
+</A>function during note processing.
+<TT>notestk</TT>
+uses the
+<TT>PC</TT>,
+<TT>SP</TT>,
+and link register from the
+<TT>Ureg</TT>
+to print a stack trace corresponding to the point in the program where the note
+was received.
+To get a valid stack trace on the MIPS and SPARC architectures from a notify
+routine, the program must stop in a new function called from the notify routine
+so that the link register is valid and the notify routine's parameters are
+addressable.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: notestk(*notify:ur)
+Note pc:0x00001024:main+0x4 ls.c:48
+main(argc=0x00000001,argv=0x7fffefec) ls.c:48
+	called from _main+0x20 main9.s:10
+	_argc=0x00000000
+	_args=0x00000000
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>pfl</TT>
+interprets its argument as a text address and uses it to print
+the source file and line number corresponding to the address. The output
+has the same format as file addresses in
+<A href="/magic/man2html/1/acme"><I>acme</I>(1).
+</A><DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: pfl(main)
+ls.c:48
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>procs</TT>
+prints a list of active process attached to the debugger. Each process
+produces a single line of output giving the pid, process state, the address
+the process is currently executing, and the
+<TT>setproc</TT>
+command required to make that process current.
+The current process is marked in the first column with a
+<TT>&gt;</TT>
+character. The debugger maintains a list of processes in the variable
+<TT>proclist</TT>.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: procs()
+&gt;62: Stopped at main+0x4 setproc(62)
+ 60: Stopped at Binit+0x8 setproc(60)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>pstop</TT>
+prints the status of the process specified by the
+<I>integer</I>
+pid supplied as its argument.
+<TT>pstop</TT>
+is usually called from
+<TT>stopped</TT>
+every time a process enters the
+<TT>Stopped</TT>
+state.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: pstop(62)
+0x0000003e: breakpoint	main+0x4	MOVW	R31,0x0(R29)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>regs</TT>
+prints the contents of both the general and special purpose registers.
+<TT>regs</TT>
+calls
+<TT>spr</TT>
+then
+<TT>gpr</TT>
+to display the contents of the registers.
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>source</TT>
+prints the directory search path followed by a list of currently loaded
+source files. The source management functions
+<TT>src</TT>
+and
+<TT>findsrc</TT>
+use the search path to locate and load source files. Source files are
+loaded incrementally into a source data base during debugging. A list
+of loaded files is stored in the variable
+<TT>srcfiles</TT>
+and the contents of each source file in the variable
+<TT>srctext</TT>.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: source()
+/n/bootes/sys/src/libbio/
+/sys/src/libc/port/
+/sys/src/libc/9sys/
+/sys/src/libc/mips/
+	binit.c
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>spr</TT>
+prints the contents of the processor control and memory management
+registers. Where possible, the contents of the registers are decoded
+to provide extra information; for example the
+<TT>CAUSE</TT>
+register on the MIPS is
+printed both in hexadecimal and using the
+<TT>reason</TT>
+function.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: spr()
+PC	0x00001024 main+0x4  ls.c:48
+SP	0x7fffef68 LINK	0x00006264 _main+0x28 main9.s:12
+STATUS	0x0000ff33 CAUSE	0x00000024 breakpoint
+TLBVIR	0x000000d3 BADVADR	0x00001020
+HI	0x00000004 LO		0x00001ff7
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>src</TT>
+interprets its
+<I>integer</I>
+argument as a text address and uses this address to print 5 lines
+of source before and after the address. The current line is marked with a
+<TT>&gt;</TT>
+character.
+<TT>src</TT>
+uses the source search path maintained by
+<TT>source</TT>
+and
+<TT>addsrcdir</TT>
+to locate the required source files.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: src(*PC)
+ls.c:47
+ 42	Biobuf	bin;
+ 43	
+ 44	#define		HUNK	50
+ 45	
+ 46	void
+&gt;47	main(int argc, char *argv[])
+ 48	{
+ 49		int i, fd;
+ 50		char buf[64];
+ 51	
+ 52		Binit(&amp;bin, 1, OWRITE);
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>step</TT>
+causes the debugged process to execute a single machine level instruction.
+If the program is stopped on a breakpoint set by
+<TT>bpset</TT>
+it is first removed, the single step executed, and the breakpoint replaced.
+<TT>step</TT>
+uses
+<TT>follow</TT>
+to predict the address of the program counter after the current instruction
+has been executed. A breakpoint is placed at each of these predicted addresses
+and the process is started. When the process stops the breakpoints are removed.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: step()
+62: breakpoint	main+0x8	MOVW	R1,argc+4(FP)
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>stk</TT>
+produces a short format stack trace. The stack trace includes each function
+in the stack, where it was called from, and the value of the parameters.
+The short format omits the values of automatic variables.
+Parameters are assumed to be integer values in the format
+<TT>X</TT>;
+to print a parameter in the correct format use the
+<TT>:</TT>
+to obtain its address, apply the correct format, and use the
+<TT>*</TT>
+indirection operator to find its value.
+It may be necessary to single step a couple of instructions into
+a function to get a correct stack trace because the frame pointer adjustment
+instruction may get scheduled down into the body of the function.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: stk()
+At pc:0x00001028:main+0x8 ls.c:48
+main(argc=0x00000002,argv=0x7fffefe4) ls.c:48
+	called from _main+0x20 main9.s:10
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>stmnt</TT>
+executes a single language level statement.
+<TT>stmnt</TT>
+displays each machine level instruction as it is executed. When the executed
+statement is completed the source for the next statement is displayed.
+Unlike
+<TT>next</TT>,
+the
+<TT>stmnt</TT>
+function will trace down through function calls.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: stmnt()
+62: breakpoint	main+0x18 MOVW	R5,0xc(R29)
+62: breakpoint	main+0x1c JAL	Binit(SB)
+62: breakpoint	Binit     ADD	$-0x18,R29
+binit.c:91
+ 89	int
+ 90	Binit(Biobuf *bp, int f, int mode)
+&gt;91	{
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>stopped</TT>
+is called automatically by the interpreter
+every time a process enters the
+<TT>Stopped</TT>
+state, such as when it hits a breakpoint.
+The pid is passed as the
+<I>integer</I>
+argument.  The default implementation just calls
+<TT>pstop</TT>,
+but the function may be changed to provide more information or perform fine control
+of execution.  Note that
+<TT>stopped</TT>
+should return; for example, calling
+<TT>step</TT>
+in
+<TT>stopped</TT>
+will recur until the interpreter runs out of stack space.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: defn stopped(pid) {
+	if *lflag != 0 then error("lflag modified");
+	}
+acid: progargs = "-l"
+acid: new();
+acid: while 1 do step();
+&lt;stdin&gt;:7: (error) lflag modified
+acid: stk()
+At pc:0x00001220:main+0x200 ls.c:54
+main(argc=0x00000001,argv=0x7fffffe8) ls.c:48
+	called from _main+0x20 main9.s:10
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>symbols</TT>
+uses the regular expression supplied by
+<I>string</I>
+to search the symbol table for symbols whose name matches the
+regular expression.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: symbols("main")
+main	T	0x00001020
+_main	T	0x0000623c
+</PRE></TT></DL>
+<br>
+
+
+
+</dl>
+<br>&#32;<br>
+<DL>
+<DT><DT>&#32;<DD>
+<TT>win</TT>
+performs exactly the same function as
+<TT>new</TT>
+but uses the window system to create a new window for the debugged process.
+The variable
+<TT>progargs</TT>
+supplies arguments to the new process.
+The environment variable
+<TT>$8&#189;srv</TT>
+must be set to allow the interpreter to locate the mount channel for the
+window system.
+The window is created in the top left corner of the screen and is
+400x600 pixels in size. The
+<TT>win</TT>
+function may be modified to alter the geometry.
+The window system will not be able to deliver notes in the new window
+since the pid of the created process is not passed when the server is
+mounted to create a new window.
+<DT><DT>&#32;<DD>
+<DL><DT><DD><TT><PRE>
+<br>
+acid: win()
+</PRE></TT></DL>
+<br>
+</dl>
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
+</body></html>

@@ -2,27 +2,14 @@
 #include <libc.h>
 #include <httpd.h>
 
-static	void	hexit(void);
-
-static	Hio	*files[16];
-static	int	maxfiles;
-static	int	isinited;
 static	char	hstates[] = "nrewE";
 static	char	hxfers[] = " x";
-
 
 int
 hinit(Hio *h, int fd, int mode)
 {
-	if(!isinited){
-		atexit(hexit);
-		isinited = 1;
-	}
-
 	if(fd == -1 || mode != Hread && mode != Hwrite)
 		return -1;
-
-	files[maxfiles++] = h;
 	h->hh = nil;
 	h->fd = fd;
 	h->seek = 0;
@@ -214,9 +201,9 @@ hbodypush(Hio *hh, ulong len, HFields *te)
 		if(cistrcmp(te->s, "chunked") == 0){
 			xe = 1;
 			len = 0;
-		}else if(cistrcmp(te->s, "identity") == 0)
+		}else if(cistrcmp(te->s, "identity") == 0){
 			;
-		else
+		}else
 			return nil;
 	}
 
@@ -304,7 +291,7 @@ hload(Hio *h, char *buf)
 			if(p[1] != 0x80)
 				c = 0;
 			else
-				s++;
+				p++;
 		}
 		*t++ = c;
 		if(t >= stop)
@@ -317,31 +304,16 @@ hload(Hio *h, char *buf)
 	return 1;
 }
 
-static void
-hexit(void)
-{
-	int i;
-
-	for(i = 0; i < maxfiles; i++)
-		if(files[i] != nil && files[i]->state == Hwrite)
-			hxferenc(files[i], 0);
-}
-
 void
 hclose(Hio *h)
 {
-	int i;
-
 	if(h->fd >= 0){
-		hxferenc(h, 0);
+		if(h->state == Hwrite)
+			hxferenc(h, 0);
 		close(h->fd);
 	}
 	h->stop = h->pos = nil;
 	h->fd = -1;
-
-	for(i = 0; i < maxfiles; i++)
-		if(files[i] == h)
-			files[i] = nil;
 }
 
 /*
@@ -374,25 +346,48 @@ hputc(Hio *h, int c)
 }
 
 int
+fmthflush(Fmt *f)
+{
+	Hio *h;
+
+	h = f->farg;
+	h->pos = f->to;
+	if(hflush(h) < 0)
+		return 0;
+	f->stop = h->stop;
+	f->to = h->pos;
+	f->start = h->pos;
+	return 1;
+}
+
+int
+hvprint(Hio *h, char *fmt, va_list args)
+{
+	int n;
+	Fmt f;
+
+	f.runes = 0;
+	f.stop = h->stop;
+	f.to = h->pos;
+	f.start = h->pos;
+	f.flush = fmthflush;
+	f.farg = h;
+	f.nfmt = 0;
+	f.args = args;
+	n = dofmt(&f, fmt);
+	h->pos = f.to;
+	return n;
+}
+
+int
 hprint(Hio *h, char *fmt, ...)
 {
-	uchar *ep, *out;
 	int n;
 	va_list arg;
 
-	ep = h->stop;
 	va_start(arg, fmt);
-	out = (uchar*)doprint((char*)h->pos, (char*)ep, fmt, arg);
-	if(out >= ep-5) {
-		if(hflush(h) < 0)
-			return -1;
-		out = (uchar*)doprint((char*)h->pos, (char*)ep, fmt, arg);
-		if(out >= ep-5)
-			return -1;
-	}
+	n = hvprint(h, fmt, arg);
 	va_end(arg);
-	n = out - h->pos;
-	h->pos = out;
 	return n;
 }
 

@@ -8,6 +8,8 @@ listen, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il1703
 .IR srvdir ]
 .RB [ -t
 .IR trustsrvdir ]
+.RB [ -n
+.IR namespace ]
 .RI[ net
 .RI [ name ]]
 .SH DESCRIPTION
@@ -42,7 +44,13 @@ as executed as the user who started
 .IR listen .
 Option
 .B -q
-suppresses affirmative log information.
+suppresses affirmative log information;
+option
+.B -n
+sets an alternate
+.I namespace
+file (default
+.BR /lib/namespace ).
 .PP
 Service names are made by concatenating the name of
 the network with the name of the service or port.
@@ -160,5 +168,5 @@ The other commands are
 scripts in
 .BR /rc/bin/service .
 .SH "SEE ALSO"
-.IR auth (6),
+.IR authsrv (6),
 .IR dial (2)

@@ -22,6 +22,7 @@ enum {
 	SAVAGEMX	= 0x8C11,
 	SAVAGEIXMV	= 0x8C12,
 	SAVAGEIX	= 0x8C13,
+	SUPERSAVAGEIXC16 = 0x8C2E,
 	SAVAGE2000	= 0x9102,
 
 	VIRGE		= 0x5631,
@@ -90,7 +91,6 @@ s3linear(VGAscr* scr, int* size, int* align)
 	ulong aperture, oaperture, mmiobase, mmiosize;
 	int i, id, j, osize, oapsize, wasupamem;
 	Pcidev *p;
-	Physseg seg;
 
 	osize = *size;
 	oaperture = scr->aperture;
@@ -100,7 +100,18 @@ s3linear(VGAscr* scr, int* size, int* align)
 	mmiosize = 0;
 	mmiobase = 0;
 	mmioname = nil;
-	if(p = pcimatch(nil, PCIS3, 0)){
+
+	/*
+	 * S3 makes cards other than display controllers, so
+	 * look for the first S3 display controller (device class 3)
+	 * and not one of their sound cards.
+	 */
+	p = nil;
+	while(p = pcimatch(p, PCIS3, 0)){
+		if(p->ccrb == 0x03)
+			break;
+	}
+	if(p != nil){
 		for(i=0; i<nelem(p->mem); i++){
 			if(p->mem[i].size >= *size
 			&& ((p->mem[i].bar & ~0x0F) & (*align-1)) == 0)
@@ -114,7 +125,9 @@ s3linear(VGAscr* scr, int* size, int* align)
 		*size = p->mem[i].size;
 
 		id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
-		if(id == SAVAGE4){		/* find Savage4 mmio */
+		switch(id){			/* find mmio */
+		case SAVAGE4:
+		case SUPERSAVAGEIXC16:
 			/*
 			 * We could assume that the MMIO registers
 			 * will be in the screen segment and just use
@@ -130,8 +143,8 @@ s3linear(VGAscr* scr, int* size, int* align)
 				if(p->mem[j].size==512*1024 || p->mem[j].size==16*1024*1024){
 					mmiobase = p->mem[j].bar & ~0x0F;
 					mmiosize = 512*1024;
-					scr->mmio = (ulong*)upamalloc(mmiobase, mmiosize, 16*1024*1024);
-					mmioname = "savage4mmio";
+					scr->mmio = (ulong*)upamalloc(mmiobase, mmiosize, 0);
+					mmioname = "savagemmio";
 					break;
 				}
 			}
@@ -155,25 +168,13 @@ s3linear(VGAscr* scr, int* size, int* align)
 	else
 		scr->isupamem = 1;
 
-	if(oaperture)
+	if(oaperture && oaperture != aperture)
 		print("warning (BUG): redefinition of aperture does not change s3screen segment\n");
-	memset(&seg, 0, sizeof(seg));
-	seg.attr = SG_PHYSICAL;
-	seg.name = smalloc(NAMELEN);
-	snprint(seg.name, NAMELEN, "s3screen");
-	seg.pa = aperture;
-	seg.size = osize;
-	addphysseg(&seg);
+	addvgaseg("s3screen", aperture, osize);
 
-	if(mmiosize){
-		memset(&seg, 0, sizeof(seg));
-		seg.attr = SG_PHYSICAL;
-		seg.name = smalloc(NAMELEN);
-		snprint(seg.name, NAMELEN, mmioname);
-		seg.pa = mmiobase;
-		seg.size = mmiosize;
-		addphysseg(&seg);
-	}
+	if(mmiosize)
+		addvgaseg(mmioname, mmiobase, mmiosize);
+
 	return aperture;
 }
 
@@ -206,7 +207,7 @@ static void
 s3load(VGAscr* scr, Cursor* curs)
 {
 	uchar *p;
-	int id, opage, x, y;
+	int id, dolock, opage, x, y;
 
 	/*
 	 * Disable the cursor and
@@ -223,12 +224,16 @@ s3load(VGAscr* scr, Cursor* curs)
 	case VIRGEDXGX:
 	case VIRGEGX2:
 	case VIRGEVX:	
+	case SAVAGEMXMV:
 	case SAVAGEIXMV:
 	case SAVAGE4:
+	case SUPERSAVAGEIXC16:
+		dolock = 0;
 		p += scr->storage;
 		break;
 
 	default:
+		dolock = 1;
 		lock(&scr->devlock);
 		opage = s3pageset(scr, scr->storage>>16);
 		p += (scr->storage & 0xFFFF);
@@ -265,20 +270,9 @@ s3load(VGAscr* scr, Cursor* curs)
 		}
 	}
 
-	switch(id){
-
-	case VIRGE:
-	case VIRGEDXGX:
-	case VIRGEGX2:
-	case VIRGEVX:	
-	case SAVAGEIXMV:
-	case SAVAGE4:
-		break;
-
-	default:
+	if(dolock){
 		s3pageset(scr, opage);
 		unlock(&scr->devlock);
-		break;
 	}
 
 	/*
@@ -538,7 +532,7 @@ enum {
 };
 
 static void
-s3blank(int blank)
+s3blank(VGAscr*, int blank)
 {
 	uchar x;
 
@@ -548,7 +542,6 @@ s3blank(int blank)
 		x |= VsyncLo | HsyncLo;
 	vgaxo(Seqx, CursorSyncCtl, x);
 }
-
 
 static void
 s3drawinit(VGAscr *scr)
@@ -566,6 +559,9 @@ s3drawinit(VGAscr *scr)
 	 * know that size, I'm not turning them on.  See waitforlinearfifo
 	 * above.
 	 */
+	scr->blank = s3blank;
+	/* hwblank = 1;		not known to work well */
+
 	switch(id){
 	case VIRGE:
 	case VIRGEVX:
@@ -573,12 +569,13 @@ s3drawinit(VGAscr *scr)
 		scr->mmio = (ulong*)(scr->aperture+0x1000000);
 		scr->fill = hwfill;
 		scr->scroll = hwscroll;
-		/* scr->blank = hwblank; */
 		break;
+	case SAVAGEMXMV:
 	case SAVAGEIXMV:
 		scr->mmio = (ulong*)(scr->aperture+0x1000000);
 		savageinit(scr);	
 		break;
+	case SUPERSAVAGEIXC16:
 	case SAVAGE4:
 		/* scr->mmio is set by s3linear */
 		savageinit(scr);

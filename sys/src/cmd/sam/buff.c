@@ -246,7 +246,7 @@ bufload(Buffer *b, uint q0, int fd, int *nulls)
 		if(n > 0)
 			l -= UTFmax;
 		cvttorunes(p, l, r, &nb, &nr, nulls);
-		runemove(p, p+nb, m-nb);
+		memmove(p, p+nb, m-nb);
 		m -= nb;
 		bufinsert(b, q1, r, nr);
 		q1 += nr;

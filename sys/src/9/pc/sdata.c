@@ -199,11 +199,13 @@ typedef struct Ctlr {
 
 	Pcidev*	pcidev;
 	void	(*ienable)(Ctlr*);
+	void (*idisable)(Ctlr*);
 	SDev*	sdev;
 
 	Drive*	drive[2];
 
 	Prd*	prdt;			/* physical region descriptor table */
+	void* prdtbase;
 
 	QLock;				/* current command */
 	Drive*	curdrive;
@@ -330,7 +332,7 @@ atadebug(int cmdport, int ctlport, char* fmt, ...)
 	}
 
 	va_start(arg, fmt);
-	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
 
 	if(cmdport){
@@ -369,8 +371,9 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 		 * can be used as a test for !Bsy.
 		 */
 		as = inb(ctlport+As);
-		if(as & reset)
-			;
+		if(as & reset){
+			/* nothing to do */
+		}
 		else if(dev){
 			outb(cmdport+Dh, dev);
 			dev = 0;
@@ -401,7 +404,7 @@ atacsf(Drive* drive, vlong csf, int supported)
 		info = &drive->info[Icsfs];
 	else
 		info = &drive->info[Icsfe];
-	
+
 	for(i = 0; i < 3; i++){
 		x = (csf>>(16*i)) & 0xFFFF;
 		if(x == 0)
@@ -530,10 +533,10 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 static Drive*
 atadrive(int cmdport, int ctlport, int dev)
 {
-	ushort *sp;
 	Drive *drive;
 	int as, i, pkt;
 	uchar buf[512], *p;
+	ushort iconfig, *sp;
 
 	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
 	pkt = 1;
@@ -566,8 +569,18 @@ retry:
 	}
 
 	drive->secsize = 512;
-	if((drive->info[Iconfig] & 0xC000) == 0x8000){
-		if(drive->info[Iconfig] & 0x01)
+
+	/*
+	 * Beware the CompactFlash Association feature set.
+	 * Now, why this value in Iconfig just walks all over the bit
+	 * definitions used in the other parts of the ATA/ATAPI standards
+	 * is a mystery and a sign of true stupidity on someone's part.
+	 * Anyway, the standard says if this value is 0x848A then it's
+	 * CompactFlash and it's NOT a packet device.
+	 */
+	iconfig = drive->info[Iconfig];
+	if(iconfig != 0x848A && (iconfig & 0xC000) == 0x8000){
+		if(iconfig & 0x01)
 			drive->pkt = 16;
 		else
 			drive->pkt = 12;
@@ -597,7 +610,7 @@ retry:
 	if(DEBUG & DbgCONFIG){
 		print("dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
 			dev, cmdport,
-			drive->info[Iconfig], drive->info[Icapabilities]);
+			iconfig, drive->info[Icapabilities]);
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
@@ -631,9 +644,12 @@ ataprobe(int cmdport, int ctlport, int irq)
 	Drive *drive;
 	int dev, error, rhi, rlo;
 
-	if(ioalloc(cmdport, 8, 0, "atacmd") < 0)
+	if(ioalloc(cmdport, 8, 0, "atacmd") < 0) {
+		print("ataprobe: Cannot allocate %X\n", cmdport);
 		return nil;
+	}
 	if(ioalloc(ctlport+As, 1, 0, "atactl") < 0){
+		print("ataprobe: Cannot allocate %X\n", ctlport + As);
 		iofree(cmdport);
 		return nil;
 	}
@@ -733,11 +749,13 @@ tryedd1:
 		free(drive);
 		goto release;
 	}
+	memset(ctlr, 0, sizeof(Ctlr));
 	if((sdev = malloc(sizeof(SDev))) == nil){
 		free(ctlr);
 		free(drive);
 		goto release;
 	}
+	memset(sdev, 0, sizeof(SDev));
 	drive->ctlr = ctlr;
 	if(dev == Dev0){
 		ctlr->drive[0] = drive;
@@ -775,6 +793,47 @@ tryedd1:
 	ctlr->sdev = sdev;
 
 	return sdev;
+}
+
+static void
+ataclear(SDev *sdev)
+{
+	Ctlr* ctlr;
+
+	ctlr = sdev->ctlr;
+	iofree(ctlr->cmdport);
+	iofree(ctlr->ctlport + As);
+
+	if (ctlr->drive[0])
+		free(ctlr->drive[0]);
+	if (ctlr->drive[1])
+		free(ctlr->drive[1]);
+	if (sdev->name)
+		free(sdev->name);
+	if (sdev->unitflg)
+		free(sdev->unitflg);
+	if (sdev->unit)
+		free(sdev->unit);
+	free(ctlr);
+	free(sdev);
+}
+
+static char *
+atastat(SDev *sdev, char *p, char *e)
+{
+	Ctlr *ctlr = sdev->ctlr;
+
+	return seprint(p, e, "%s ata port %X ctl %X irq %d\n", 
+		    	       sdev->name, ctlr->cmdport, ctlr->ctlport, ctlr->irq);
+}
+
+static SDev*
+ataprobew(DevConf *cf)
+{
+	if (cf->nports != 2)
+		error(Ebadarg);
+
+	return ataprobe(cf->ports[0].port, cf->ports[1].port, cf->interrupt);
 }
 
 static int
@@ -1499,7 +1558,7 @@ atainterrupt(Ureg*, void* arg)
 	if((drive = ctlr->curdrive) == nil){
 		iunlock(ctlr);
 		if((DEBUG & DbgDEBUG) && ctlr->command != Cedd)
-			print("Inil%2.2uX/%2.2uX+", ctlr->command, status);
+			print("Inil%2.2uX+", ctlr->command);
 		return;
 	}
 
@@ -1651,6 +1710,7 @@ atapnp(void)
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
+		case (0x248A<<16)|0x8086:	/* not sure (on Thinkpad T23) */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */
 			break;
@@ -1665,8 +1725,10 @@ atapnp(void)
 					continue;
 
 				ctlr = sdev->ctlr;
-				if(ispc87415)
+				if(ispc87415) {
 					ctlr->ienable = pc87415ienable;
+					print("pc87415disable: not yet implemented\n");
+				}
 
 				if(head != nil)
 					tail->next = sdev;
@@ -1687,6 +1749,42 @@ atapnp(void)
 		}
 	}
 
+if(0){
+	int port;
+	ISAConf isa;
+
+	/*
+	 * Hack for PCMCIA drives.
+	 * This will be tidied once we figure out how the whole
+	 * removeable device thing is going to work.
+	 */
+	memset(&isa, 0, sizeof(isa));
+	isa.port = 0x180;		/* change this for your machine */
+	isa.irq = 11;			/* change this for your machine */
+
+	port = isa.port+0x0C;
+	channel = pcmspecial("MK2001MPL", &isa);
+	if(channel == -1)
+		channel = pcmspecial("SunDisk", &isa);
+	if(channel == -1){
+		isa.irq = 10;
+		channel = pcmspecial("CF", &isa);
+	}
+	if(channel == -1){
+		isa.irq = 10;
+		channel = pcmspecial("OLYMPUS", &isa);
+	}
+	if(channel == -1){
+		port = isa.port+0x204;
+		channel = pcmspecial("ATA/ATAPI", &isa);
+	}
+	if(channel >= 0 && (sdev = ataprobe(isa.port, port, isa.irq)) != nil){
+		if(head != nil)
+			tail->next = sdev;
+		else
+			head = sdev;
+	}
+}
 	return head;
 }
 
@@ -1701,6 +1799,7 @@ ataid(SDev* sdev)
 {
 	int i;
 	Ctlr *ctlr;
+	char name[32];
 
 	/*
 	 * Legacy controllers are always 'C' and 'D' and if
@@ -1726,7 +1825,8 @@ ataid(SDev* sdev)
 				sdev->idno = 'C'+i;
 				i++;
 			}
-			snprint(sdev->name, NAMELEN, "sd%c", sdev->idno);
+			snprint(name, sizeof(name), "sd%c", sdev->idno);
+			kstrdup(&sdev->name, name);
 		}
 		sdev = sdev->next;
 	}
@@ -1738,22 +1838,45 @@ static int
 ataenable(SDev* sdev)
 {
 	Ctlr *ctlr;
-	char name[NAMELEN];
+	char name[32];
 
 	ctlr = sdev->ctlr;
 
 	if(ctlr->bmiba){
+#define ALIGN	(4 * 1024)
 		if(ctlr->pcidev != nil)
 			pcisetbme(ctlr->pcidev);
-		ctlr->prdt = xspanalloc(Nprd*sizeof(Prd), 4, 4*1024);
+		// ctlr->prdt = xspanalloc(Nprd*sizeof(Prd), 4, 4*1024);
+		ctlr->prdtbase = xalloc(Nprd * sizeof(Prd) + ALIGN);
+		ctlr->prdt = (Prd *)(((ulong)ctlr->prdtbase + ALIGN) & ~(ALIGN - 1));
 	}
-	snprint(name, NAMELEN, "%s (%s)", sdev->name, sdev->ifc->name);
+	snprint(name, sizeof(name), "%s (%s)", sdev->name, sdev->ifc->name);
 	intrenable(ctlr->irq, atainterrupt, ctlr, ctlr->tbdf, name);
 	outb(ctlr->ctlport+Dc, 0);
 	if(ctlr->ienable)
 		ctlr->ienable(ctlr);
 
 	return 1;
+}
+
+static int
+atadisable(SDev *sdev)
+{
+	Ctlr *ctlr;
+	char name[32];
+
+	ctlr = sdev->ctlr;
+	outb(ctlr->ctlport+Dc, Nien);		/* disable interrupts */
+	if (ctlr->idisable)
+		ctlr->idisable(ctlr);
+	snprint(name, sizeof(name), "%s (%s)", sdev->name, sdev->ifc->name);
+	intrdisable(ctlr->irq, atainterrupt, ctlr, ctlr->tbdf, name);
+	if (ctlr->bmiba) {
+		if (ctlr->pcidev)
+			pciclrbme(ctlr->pcidev);
+		xfree(ctlr->prdtbase);
+	}
+	return 0;
 }
 
 static int
@@ -1862,7 +1985,7 @@ SDifc sdataifc = {
 	atalegacy,			/* legacy */
 	ataid,				/* id */
 	ataenable,			/* enable */
-	nil,				/* disable */
+	atadisable,		/* disable */
 
 	scsiverify,			/* verify */
 	scsionline,			/* online */
@@ -1871,4 +1994,7 @@ SDifc sdataifc = {
 	atawctl,			/* wctl */
 
 	scsibio,			/* bio */
+	ataprobew,		/* probe */
+	ataclear,			/* clear */
+	atastat,			/* stat */
 };

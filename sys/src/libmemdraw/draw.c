@@ -29,6 +29,8 @@ Memimage *memblack;
 Memimage *memtransparent;
 Memimage *memopaque;
 
+int _ifmt(Fmt*);
+
 void
 memimageinit(void)
 {
@@ -45,9 +47,9 @@ memimageinit(void)
 	mktables();
 	_memmkcmap();
 
-	fmtinstall('R', Rconv); 
-	fmtinstall('P', Pconv);
-	fmtinstall('b', numbconv);
+	fmtinstall('R', Rfmt); 
+	fmtinstall('P', Pfmt);
+	fmtinstall('b', _ifmt);
 
 	memones = allocmemimage(Rect(0,0,1,1), GREY1);
 	memones->flags |= Frepl;
@@ -322,8 +324,8 @@ mktables(void)
 	if(tablesbuilt)
 		return;
 
-	fmtinstall('R', Rconv);
-	fmtinstall('P', Pconv);
+	fmtinstall('R', Rfmt);
+	fmtinstall('P', Pfmt);
 	tablesbuilt = 1;
 	/* bit replication up to 8 bits */
 	for(i=0; i<256; i++){

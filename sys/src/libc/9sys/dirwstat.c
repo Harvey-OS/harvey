@@ -1,13 +1,19 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
 #include <fcall.h>
 
 int
-dirwstat(char *name, Dir *dir)
+dirwstat(char *name, Dir *d)
 {
-	char buf[DIRLEN];
+	uchar *buf;
+	int r;
 
-	convD2M(dir, buf);
-	return wstat(name, buf);
+	r = sizeD2M(d);
+	buf = malloc(r);
+	if(buf == nil)
+		return -1;
+	convD2M(d, buf, r);
+	r = wstat(name, buf, r);
+	free(buf);
+	return r;
 }

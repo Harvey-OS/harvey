@@ -136,7 +136,7 @@ restart:
 				req.id, buf, ((uh->rport[0])<<8)+uh->rport[1],
 				reqmsg.id,
 				reqmsg.qd->owner->name,
-				rrname(reqmsg.qd->type, tname));
+				rrname(reqmsg.qd->type, tname, sizeof tname));
 		}
 
 		p = clientrxmit(&reqmsg, buf);
@@ -219,7 +219,7 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 		syslog(0, logfile, "%d: reply (%I/%d) %d %s %s an %R ns %R ar %R",
 			reqp->id, buf, ((buf[4])<<8)+buf[5],
 			rep->id, rep->qd->owner->name,
-			rrname(rep->qd->type, tname), rep->an, rep->ns, rep->ar);
+			rrname(rep->qd->type, tname, sizeof tname), rep->an, rep->ns, rep->ar);
 
 	len = convDNS2M(rep, &buf[Udphdrsize], Maxudp);
 	if(len <= 0){

@@ -1,0 +1,33 @@
+</$objtype/mkfile
+
+TARG=ml\
+	mlowner\
+	mlmgr\
+
+
+LIB=../common/libcommon.av\
+
+HFILES= ../common/common.h\
+	../common/sys.h\
+	dat.h\
+
+LIB=../common/libcommon.a$O\
+
+BIN=/$objtype/bin/upas
+</sys/src/cmd/mkmany
+CFLAGS=$CFLAGS -I../common
+
+$O.ml: ml.$O common.$O ../smtp/rfc822.tab.$O
+	$LD $LDFLAGS -o $target $prereq $LIB
+
+$O.mlowner: mlowner.$O common.$O ../smtp/rfc822.tab.$O
+	$LD $LDFLAGS -o $target $prereq $LIB
+
+$O.mlmgr: mlmgr.$O common.$O
+	$LD $LDFLAGS -o $target $prereq $LIB
+
+../smtp/y.tab.h ../smtp/rfc822.tab.$O:
+	@{
+		cd ../smtp
+		mk rfc822.tab.$O
+	}

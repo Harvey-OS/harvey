@@ -42,10 +42,10 @@ writedata(Biobuf *fd, Image *image, Memimage *memimage)
 	else
 		ndata = unloadimage(image, r, data, ndata);
 	if(ndata < 0){
-		err = malloc(ERRLEN);
+		err = malloc(ERRMAX);
 		if(err == nil)
 			return "WritePPM: malloc failed";
-		snprint(err, ERRLEN, "WriteGIF: %r");
+		snprint(err, ERRMAX, "WriteGIF: %r");
 		free(data);
 		return err;
 	}
@@ -85,7 +85,7 @@ writedata(Biobuf *fd, Image *image, Memimage *memimage)
 		break;
 	case RGB24:
 		for(i=0; i<ndata; i+=3){
-			col += Bprint(fd, "%d %d %d", data[i], data[i+1], data[i+2]);
+			col += Bprint(fd, "%d %d %d", data[i+2], data[i+1], data[i]);
 			if(col >= MAXLINE-(4+4+4+1)){
 				Bprint(fd, "\n");
 				col = 0;

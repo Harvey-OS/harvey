@@ -1,37 +1,33 @@
-/* Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gdevpdfw.c,v 1.5 2000/09/19 19:00:17 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gdevpdfw.c,v 1.1 2000/03/09 08:40:41 lpd Exp $ */
 /* Font writing for pdfwrite driver. */
 #include "memory_.h"
 #include "string_.h"
 #include "gx.h"
-#include "gsbittab.h"
 #include "gserrors.h"
 #include "gsmalloc.h"		/* for patching font memory */
 #include "gsmatrix.h"
 #include "gsutil.h"		/* for bytes_compare */
-#include "gxfcid.h"
 #include "gxfont.h"
-#include "gxfont0.h"
 #include "gdevpdfx.h"
 #include "gdevpdff.h"
-#include "gdevpsf.h"
 #include "scommon.h"
 
 /* Get the ID of various kinds of resources, with type checking. */
@@ -51,21 +47,136 @@ pdf_char_proc_id(const pdf_char_proc_t *pcp)
     return pdf_resource_id((const pdf_resource_t *)pcp);
 }
 
-/* Write CIDSystemInfo for a CIDFont or CMap. */
-private void
-pdf_write_CIDSystemInfo(gx_device_pdf *pdev,
-			const gs_cid_system_info_t *pcidsi)
+/* Begin writing FontFile* data. */
+private int
+pdf_begin_fontfile(gx_device_pdf *pdev, long *plength_id)
+{
+    stream *s;
+
+    *plength_id = pdf_obj_ref(pdev);
+    s = pdev->strm;
+    pputs(s, "<<");
+    if (!pdev->binary_ok)
+	pputs(s, "/Filter/ASCII85Decode");
+    pprintld1(s, "/Length %ld 0 R", *plength_id);
+    return 0;
+}
+
+/* Finish writing FontFile* data. */
+private int
+pdf_end_fontfile(gx_device_pdf *pdev, long start, long length_id)
 {
     stream *s = pdev->strm;
+    long length;
 
-    pputs(s, "/CISystemInfo<<\n/Registry");
-    s_write_ps_string(s, pcidsi->Registry.data, pcidsi->Registry.size,
-		      PRINT_HEX_NOT_OK);
-    pputs(s, "\n/Ordering");
-    s_write_ps_string(s, pcidsi->Ordering.data, pcidsi->Ordering.size,
-		      PRINT_HEX_NOT_OK);
-    pprintd1(s, "\n/Supplement %d\n>>\n", pcidsi->Supplement);
+    pputs(s, "\n");
+    length = pdf_stell(pdev) - start;
+    pputs(s, "endstream\n");
+    pdf_end_separate(pdev);
+    pdf_open_separate(pdev, length_id);
+    pprintld1(pdev->strm, "%ld\n", length);
+    pdf_end_separate(pdev);
+    return 0;
 }
+
+/* Write the FontFile data for an embedded Type 1 font. */
+private int
+pdf_embed_font_type1(gx_device_pdf *pdev, gs_font_type1 *font,
+		     long FontFile_id, gs_glyph subset_glyphs[256],
+		     uint subset_size, const gs_const_string *pfname)
+{
+    stream poss;
+    int lengths[3];
+    int code;
+    long length_id;
+    long start;
+    psdf_binary_writer writer;
+
+    swrite_position_only(&poss);
+    /*
+     * We omit the 512 zeros and the cleartomark, and set Length3 to 0.
+     * Note that the interpreter adds them implicitly (per documentation),
+     * so we must set MARK so that the encrypted portion pushes a mark on
+     * the stack.
+     */
+#define TYPE1_OPTIONS (WRITE_TYPE1_EEXEC | WRITE_TYPE1_EEXEC_MARK)
+    code = psdf_write_type1_font(&poss, font, TYPE1_OPTIONS,
+				 subset_glyphs, subset_size, pfname, lengths);
+    if (code < 0)
+	return code;
+    pdf_open_separate(pdev, FontFile_id);
+    pdf_begin_fontfile(pdev, &length_id);
+    pprintd2(pdev->strm, "/Length1 %d/Length2 %d/Length3 0>>stream\n",
+	     lengths[0], lengths[1]);
+    start = pdf_stell(pdev);
+    code = psdf_begin_binary((gx_device_psdf *)pdev, &writer);
+    if (code < 0)
+	return code;
+#ifdef DEBUG
+    {
+	int check_lengths[3];
+
+	psdf_write_type1_font(writer.strm, font, TYPE1_OPTIONS,
+			      subset_glyphs, subset_size, pfname,
+			      check_lengths);
+	if (writer.strm == pdev->strm &&
+	    (check_lengths[0] != lengths[0] ||
+	     check_lengths[1] != lengths[1] ||
+	     check_lengths[2] != lengths[2])
+	    ) {
+	    lprintf7("Type 1 font id %ld, lengths mismatch: (%d,%d,%d) != (%d,%d,%d)\n",
+		     ((gs_font *)font)->id, lengths[0], lengths[1], lengths[2],
+		     check_lengths[0], check_lengths[1], check_lengths[2]);
+	}
+    }
+#else
+    psdf_write_type1_font(writer.strm, font, TYPE1_OPTIONS,
+			  subset_glyphs, subset_size, pfname,
+			  lengths /*ignored*/);
+#endif
+#undef TYPE1_OPTIONS
+    psdf_end_binary(&writer);
+    pdf_end_fontfile(pdev, start, length_id);
+    return 0;
+}
+
+/* Write the FontFile2 data for an embedded TrueType font. */
+private int
+pdf_embed_font_type42(gx_device_pdf *pdev, gs_font_type42 *font,
+		      long FontFile_id, gs_glyph subset_glyphs[256],
+		      uint subset_size, const gs_const_string *pfname)
+{
+    stream poss;
+    int length;
+    int code;
+    long length_id;
+    long start;
+    psdf_binary_writer writer;
+    /* Acrobat Reader 3 doesn't handle cmap format 6 correctly. */
+    const int options = WRITE_TRUETYPE_CMAP | WRITE_TRUETYPE_NAME |
+	(pdev->CompatibilityLevel <= 1.2 ?
+	 WRITE_TRUETYPE_NO_TRIMMED_TABLE : 0);
+
+    swrite_position_only(&poss);
+    code = psdf_write_truetype_font(&poss, font, options,
+				    subset_glyphs, subset_size, pfname);
+    if (code < 0)
+	return code;
+    length = stell(&poss);
+    pdf_open_separate(pdev, FontFile_id);
+    pdf_begin_fontfile(pdev, &length_id);
+    pprintd1(pdev->strm, "/Length1 %d>>stream\n", length);
+    start = pdf_stell(pdev);
+    code = psdf_begin_binary((gx_device_psdf *)pdev, &writer);
+    if (code < 0)
+	return code;
+    psdf_write_truetype_font(writer.strm, font, options,
+			     subset_glyphs, subset_size, pfname);
+    psdf_end_binary(&writer);
+    pdf_end_fontfile(pdev, start, length_id);
+    return 0;
+}
+
 
 /* Write the Widths for a font. */
 private int
@@ -145,47 +256,27 @@ pdf_write_synthesized_type3(gx_device_pdf *pdev, const pdf_font_t *pef)
 }
 
 /* Write a font descriptor. */
-int
-pdf_write_FontDescriptor(gx_device_pdf *pdev, const pdf_font_descriptor_t *pfd)
+private int
+pdf_write_FontDescriptor(gx_device_pdf *pdev,
+			 const pdf_font_descriptor_t *pfd)
 {
-    gs_font *font = pfd->base_font;
-    bool is_subset =
-	pdf_has_subset_prefix(pfd->FontName.chars, pfd->FontName.size);
-    long cidset_id = 0;		/* pro forma initialization */
     stream *s;
     int code = 0;
 
-    /* If this is a CIDFont subset, write the CIDSet now. */
-    if (font && is_subset) {
-	switch (pfd->values.FontType) {
-	case ft_CID_encrypted:
-	case ft_CID_TrueType: {
-	    int i;
-
-	    cidset_id = pdf_begin_separate(pdev);
-	    s = pdev->strm;
-	    /****** ADD COMPRESSION + ASCII85 ******/
-	    pprintd1(s, "<</Length %d>>stream\n", (int)pfd->chars_used.size);
-	    for (i = 0; i < pfd->chars_used.size; ++i)
-		pputc(s, byte_reverse_bits[pfd->chars_used.data[i]]);
-	    pputs(s, "endstream\n");
-	    pdf_end_separate(pdev);
-	}
-	default:
-	    break;
-	}
-    }
     pdf_open_separate(pdev, pdf_font_descriptor_id(pfd));
     s = pdev->strm;
     pputs(s, "<</Type/FontDescriptor/FontName");
     pdf_put_name(pdev, pfd->FontName.chars, pfd->FontName.size);
-    if (font) {		/* not a built-in font */
+    if (pfd->base_font) {	/* not a built-in font */
 	param_printer_params_t params;
+	static const param_printer_params_t ppp_defaults = {
+	    param_printer_params_default_values
+	};
 	printer_param_list_t rlist;
 	gs_param_list *const plist = (gs_param_list *)&rlist;
 
 	pdf_write_font_bbox(pdev, &pfd->values.FontBBox);
-	params = param_printer_params_default;
+	params = ppp_defaults;
 	code = s_init_param_printer(&rlist, &params, s);
 	if (code >= 0) {
 #define DESC_INT(str, memb)\
@@ -224,39 +315,33 @@ pdf_write_FontDescriptor(gx_device_pdf *pdev, const pdf_font_descriptor_t *pfd)
 	    gs_param_write_items(plist, pfd, &defaults, optional_items);
 	    s_release_param_printer(&rlist);
 	}
-	if (is_subset) {
-	    switch (pfd->values.FontType) {
-	    case ft_CID_encrypted:
-	    case ft_CID_TrueType:
-		pprintld1(s, "/CIDSet %ld 0 R\n", cidset_id);
-		break;
-	    case ft_composite:
-		return_error(gs_error_rangecheck);
-	    default: {
-		gs_glyph subset_glyphs[256];
-		uint subset_size = psf_subset_glyphs(subset_glyphs, font,
-						     pfd->chars_used.data);
-		int i;
+	if (pdf_has_subset_prefix(pfd->FontName.chars, pfd->FontName.size)) {
+	    gs_font *font = pfd->base_font;
+	    gs_glyph subset_glyphs[256];
+	    uint subset_size = psdf_subset_glyphs(subset_glyphs, font,
+						  pfd->chars_used);
+	    int i;
 
-		pputs(s, "/CharSet(");
-		for (i = 0; i < subset_size; ++i) {
-		    uint len;
-		    const char *str = font->procs.callbacks.glyph_name
-			(subset_glyphs[i], &len);
+	    pputs(s, "/CharSet(");
+	    for (i = 0; i < subset_size; ++i) {
+		uint len;
+		const char *str = font->procs.callbacks.glyph_name
+		    (subset_glyphs[i], &len);
 
-		    /* Don't include .notdef. */
-		    if (bytes_compare((const byte *)str, len,
-				      (const byte *)".notdef", 7))
-			pdf_put_name(pdev, (const byte *)str, len);
-		}
-		pputs(s, ")\n");
+		/* Don't include .notdef. */
+		if (bytes_compare((const byte *)str, len,
+				  (const byte *)".notdef", 7))
+		    pdf_put_name(pdev, (const byte *)str, len);
 	    }
-	    }
+	    pputs(s, ")\n");
 	}
 	if (pfd->FontFile_id) {
 	    const char *FontFile_key;
 
 	    switch (pfd->values.FontType) {
+	    case ft_encrypted:
+		FontFile_key = "/FontFile";
+		break;
 	    case ft_TrueType:
 	    case ft_CID_TrueType:
 		FontFile_key = "/FontFile2";
@@ -264,12 +349,6 @@ pdf_write_FontDescriptor(gx_device_pdf *pdev, const pdf_font_descriptor_t *pfd)
 	    default:
 		code = gs_note_error(gs_error_rangecheck);
 		/* falls through */
-	    case ft_encrypted:
-		if (pdev->CompatibilityLevel < 1.2) {
-		    FontFile_key = "/FontFile";
-		    break;
-		}
-		/* For PDF 1.2 and later, write Type 1 fonts as Type1C. */
 	    case ft_encrypted2:
 	    case ft_CID_encrypted:
 		FontFile_key = "/FontFile3";
@@ -285,8 +364,8 @@ pdf_write_FontDescriptor(gx_device_pdf *pdev, const pdf_font_descriptor_t *pfd)
 }
 
 /*
- * Write a font resource, including Widths and/or Encoding if relevant,
- * but not the FontDescriptor or embedded font data.  Note that the
+ * Write a Type 1 or TrueType font resource, including Widths and/or
+ * Encoding if relevant, but not the FontDescriptor.  Note that the
  * font itself may not be available.
  */
 private int
@@ -303,48 +382,23 @@ pdf_write_font_resource(gx_device_pdf *pdev, const pdf_font_t *pef,
     pdf_open_separate(pdev, pdf_font_id(pef));
     s = pdev->strm;
     switch (pef->FontType) {
-    case ft_composite:
-	pputs(s, "<</Subtype/Type0");
-	goto bfname;
-    case ft_encrypted:
-    case ft_encrypted2: {
-	if (pef->is_MM_instance) {
+    case ft_encrypted: {
 	/*
-	 * If the font is a Multiple Master instance, it should be
-	 * identified as such.  However, Acrobat Reader doesn't seem to
-	 * recognize the MMType1 subtype, but will accept MM Type 1
-	 * instances happily if they are tagged as Type1 (!).
+	 * If the font is a Multiple Master instance, it needs to be
+	 * identified as such.
 	 */
-#if 0
-	    pputs(s, "<</Subtype/MMType1");
+	if (pef->is_MM_instance) {
+	    pputs(s, "<</Subtype/MMType1/BaseFont");
 	    /****** NAME IS WRONG ******/
-#else
-	    pputs(s, "<</Subtype/Type1");
-#endif
+	    pdf_put_name(pdev, pbfname->data, pbfname->size);
 	} else {
-	    pputs(s, "<</Subtype/Type1");
+	    pputs(s, "<</Subtype/Type1/BaseFont");
+	    pdf_put_name(pdev, pbfname->data, pbfname->size);
 	}
     }
-    bfname:
-	pputs(s, "/BaseFont");
-	pdf_put_name(pdev, pbfname->data, pbfname->size);
 	break;
-    case ft_CID_encrypted:
-	pputs(s, "<</Subtype/CIDFontType0");
-	/****** REQUIRES FONT TO EXIST ******/
-	pdf_write_CIDSystemInfo(pdev, &((const gs_font_cid0 *)pfd->base_font)->
-				cidata.common.CIDSystemInfo);
-	goto bfname;
-    case ft_CID_TrueType:
-	pputs(s, "<</Subtype/CIDFontType2");
-	/****** REQUIRES FONT TO EXIST ******/
-	pdf_write_CIDSystemInfo(pdev, &((const gs_font_cid2 *)pfd->base_font)->
-				cidata.common.CIDSystemInfo);
-	goto ttname;
     case ft_TrueType:
-	pputs(s, "<</Subtype/TrueType");
-    ttname:
-	pputs(s, "/BaseFont");
+	pputs(s, "<</Subtype/TrueType/BaseFont");
 	/****** WHAT ABOUT STYLE INFO? ******/
 	pdf_put_name(pdev, pbfname->data, pbfname->size);
 	break;
@@ -356,7 +410,6 @@ pdf_write_font_resource(gx_device_pdf *pdev, const pdf_font_t *pef,
 	pprintld1(s, "/FontDescriptor %ld 0 R", pdf_font_descriptor_id(pfd));
     if (pef->write_Widths)
 	pdf_write_Widths(pdev, pef->FirstChar, pef->LastChar, pef->Widths);
-    /****** WRITE CIDFont [D]W[2] ******/
     if (pef->Differences) {
 	long diff_id = pdf_obj_ref(pdev);
 	int prev = 256;
@@ -384,6 +437,89 @@ pdf_write_font_resource(gx_device_pdf *pdev, const pdf_font_t *pef,
     }
     pputs(s, ">>\n");
     return pdf_end_separate(pdev);
+}
+
+/*
+ * Write the FontDescriptor and FontFile* data for an embedded font.
+ * Return a rangecheck error if the font can't be embedded.
+ */
+private int
+pdf_write_embedded_font(gx_device_pdf *pdev, pdf_font_descriptor_t *pfd)
+{
+    gs_font *font = pfd->base_font;
+    gs_const_string font_name;
+    byte *fnchars = pfd->FontName.chars;
+    uint fnsize = pfd->FontName.size;
+    bool do_subset = pfd->subset_ok && pdev->params.SubsetFonts &&
+	pdev->params.MaxSubsetPct > 0;
+    long FontFile_id = pfd->FontFile_id;
+    gs_glyph subset_glyphs[256];
+    gs_glyph *glyph_subset = 0;
+    uint subset_size = 0;
+    gs_matrix save_mat;
+    int code;
+
+    /* Determine whether to subset the font. */
+    if (do_subset) {
+	int used, i, total, index;
+	gs_glyph ignore_glyph;
+
+	for (i = 0, used = 0; i < 256/8; ++i)
+	    used += byte_count_bits[pfd->chars_used[i]];
+	for (index = 0, total = 0;
+	     (font->procs.enumerate_glyph(font, &index, GLYPH_SPACE_INDEX,
+					  &ignore_glyph), index != 0);
+	     )
+	    ++total;
+	if ((double)used / total > pdev->params.MaxSubsetPct / 100.0)
+	    do_subset = false;
+	else {
+	    subset_size = psdf_subset_glyphs(subset_glyphs, font,
+					     pfd->chars_used);
+	    glyph_subset = subset_glyphs;
+	}
+    }
+
+    /* Generate an appropriate font name. */
+    if (pdf_has_subset_prefix(fnchars, fnsize)) {
+	/* Strip off any existing subset prefix. */
+	fnsize -= SUBSET_PREFIX_SIZE;
+	memmove(fnchars, fnchars + SUBSET_PREFIX_SIZE, fnsize);
+    }
+    if (do_subset) {
+	memmove(fnchars + SUBSET_PREFIX_SIZE, fnchars, fnsize);
+	pdf_make_subset_prefix(fnchars, FontFile_id);
+	fnsize += SUBSET_PREFIX_SIZE;
+    }
+    font_name.data = fnchars;
+    font_name.size = pfd->FontName.size = fnsize;
+    code = pdf_write_FontDescriptor(pdev, pfd);
+    if (code >= 0) {
+	pfd->written = true;
+
+	/*
+	 * Finally, write the font (or subset), using the original
+	 * (unscaled) FontMatrix.
+	 */
+	save_mat = font->FontMatrix;
+	font->FontMatrix = pfd->orig_matrix;
+	switch (font->FontType) {
+	case ft_encrypted:
+	    code = pdf_embed_font_type1(pdev, (gs_font_type1 *)font,
+					FontFile_id, glyph_subset,
+					subset_size, &font_name);
+	    break;
+	case ft_TrueType:
+	    code = pdf_embed_font_type42(pdev, (gs_font_type42 *)font,
+					 FontFile_id, glyph_subset,
+					 subset_size, &font_name);
+	    break;
+	default:
+	    code = gs_note_error(gs_error_rangecheck);
+	}
+	font->FontMatrix = save_mat;
+    }
+    return code;
 }
 
 /* Register a font for eventual writing (embedded or not). */
@@ -528,7 +664,6 @@ pdf_font_unreg_proc(void *vpfn /*proc_data*/)
 
     gs_free_object(pfn->memory, vpfn, "pdf_font_unreg_proc");
 }
-/* Write out the font resources when wrapping up the output. */
 int
 pdf_write_font_resources(gx_device_pdf *pdev)
 {
@@ -576,5 +711,10 @@ pdf_write_font_resources(gx_device_pdf *pdev)
 	    }
 	}
     }
+
+    /* Unregister the standard fonts. */
+
+    pdf_unregister_fonts(pdev);
+
     return 0;
 }

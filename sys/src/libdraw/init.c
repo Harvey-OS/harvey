@@ -2,8 +2,6 @@
 #include <libc.h>
 #include <draw.h>
 
-Point	ZP;
-Rectangle ZR;
 Display	*display;
 Font	*font;
 Image	*screen;
@@ -13,30 +11,6 @@ static char deffontname[] = "*default*";
 Screen	*_screen;
 
 int		debuglockdisplay = 0;
-
-int
-Rconv(va_list *arg, Fconv *f)
-{
-	Rectangle r;
-	char buf[128];
-
-	r = va_arg(*arg, Rectangle);
-	sprint(buf, "%P %P", r.min, r.max);
-	strconv(buf, f);
-	return 0;
-}
-
-int
-Pconv(va_list *arg, Fconv *f)
-{
-	Point p;
-	char buf[64];
-
-	p = va_arg(*arg, Point);
-	sprint(buf, "[%d %d]", p.x, p.y);
-	strconv(buf, f);
-	return 0;
-}
 
 static void
 drawshutdown(void)
@@ -67,7 +41,7 @@ geninitdraw(char *devdir, void(*error)(Display*, char*), char *fontname, char *l
 	df = getdefont(display);
 	display->defaultsubfont = df;
 	if(df == nil){
-		_drawprint(2, "imageinit: can't open default subfont: %r\n");
+		fprint(2, "imageinit: can't open default subfont: %r\n");
     Error:
 		closedisplay(display);
 		display = nil;
@@ -94,13 +68,13 @@ geninitdraw(char *devdir, void(*error)(Display*, char*), char *fontname, char *l
 //BUG: Need something better for this	installsubfont("*default*", df);
 		font = buildfont(display, buf, deffontname);
 		if(font == nil){
-			_drawprint(2, "imageinit: can't open default font: %r\n");
+			fprint(2, "imageinit: can't open default font: %r\n");
 			goto Error;
 		}
 	}else{
 		font = openfont(display, fontname);	/* BUG: grey fonts */
 		if(font == nil){
-			_drawprint(2, "imageinit: can't open font %s: %r\n", fontname);
+			fprint(2, "imageinit: can't open font %s: %r\n", fontname);
 			goto Error;
 		}
 	}
@@ -123,7 +97,8 @@ geninitdraw(char *devdir, void(*error)(Display*, char*), char *fontname, char *l
 		}
 	}
 
-	if(getwindow(display, ref) < 0)
+	snprint(buf, sizeof buf, "%s/winname", display->windir);
+	if(gengetwindow(display, buf, &screen, &_screen, ref) < 0)
 		goto Error;
 
 	atexit(drawshutdown);
@@ -135,10 +110,9 @@ int
 initdraw(void(*error)(Display*, char*), char *fontname , char *label)
 {
 	char *dev = "/dev";
-	char dir[DIRLEN];
 
-	if(stat("/dev/draw/new", dir)<0 && bind("#i", "/dev", MAFTER)<0){
-		_drawprint(2, "imageinit: can't bind /dev/draw: %r");
+	if(access("/dev/draw/new", AEXIST)<0 && bind("#i", "/dev", MAFTER)<0){
+		fprint(2, "imageinit: can't bind /dev/draw: %r");
 		return -1;
 	}
 	return geninitdraw(dev, error, fontname, label, dev, Refnone);
@@ -154,37 +128,57 @@ gengetwindow(Display *d, char *winname, Image **winp, Screen **scrp, int ref)
 	int n, fd;
 	char buf[64+1];
 	Image *image;
+	Rectangle r;
 
 	fd = open(winname, OREAD);
 	if(fd<0 || (n=read(fd, buf, sizeof buf-1))<=0){
-		*winp = d->image;
-		assert(*winp && (*winp)->chan != 0);
-		return 1;
+		if((image=d->image) == nil){
+			fprint(2, "gengetwindow: %r\n");
+			*winp = nil;
+			d->screenimage = nil;
+			return -1;
+		}
+		strcpy(buf, "noborder");
+	}else{
+		close(fd);
+		buf[n] = '\0';
+		if(*winp != nil){
+			_freeimage1(*winp);
+			freeimage((*scrp)->image);
+			freescreen(*scrp);
+			*scrp = nil;
+		}
+		image = namedimage(d, buf);
+		if(image == 0){
+			fprint(2, "namedimage %s failed: %r\n", buf);
+			*winp = nil;
+			d->screenimage = nil;
+			return -1;
+		}
+		assert(image->chan != 0);
 	}
-	close(fd);
-	buf[n] = '\0';
-	if(*winp != nil){
-		_freeimage1(*winp);
-		freeimage((*scrp)->image);
-		freescreen(*scrp);
-		*scrp = nil;
-	}
-	image = namedimage(d, buf);
-	if(image == 0){
-		*winp = nil;
-		return -1;
-	}
-	assert(image->chan != 0);
 
+	d->screenimage = image;
 	*scrp = allocscreen(image, d->white, 0);
 	if(*scrp == nil){
+		freeimage(d->screenimage);
 		*winp = nil;
+		d->screenimage = nil;
 		return -1;
 	}
 
-	*winp = _allocwindow(*winp, *scrp, insetrect(image->r, Borderwidth), ref, DWhite);
-	if(*winp == nil)
+	r = image->r;
+	if(strncmp(buf, "noborder", 8) != 0)
+		r = insetrect(image->r, Borderwidth);
+	*winp = _allocwindow(*winp, *scrp, r, ref, DWhite);
+	if(*winp == nil){
+		freescreen(*scrp);
+		*scrp = nil;
+		freeimage(image);
+		d->screenimage = nil;
 		return -1;
+	}
+	d->screenimage = *winp;
 	assert((*winp)->chan != 0);
 	return 1;
 }
@@ -203,15 +197,14 @@ getwindow(Display *d, int ref)
 Display*
 initdisplay(char *dev, char *win, void(*error)(Display*, char*))
 {
-	char buf[128], info[NINFO+1], *t;
-	int datafd, ctlfd, reffd;
+	char buf[128], info[NINFO+1], *t, isnew;
+	int n, datafd, ctlfd, reffd;
 	Display *disp;
+	Dir *dir;
 	Image *image;
-	Dir dir;
-	ulong chan;
 
-	fmtinstall('P', Pconv);
-	fmtinstall('R', Rconv);
+	fmtinstall('P', Pfmt);
+	fmtinstall('R', Rfmt);
 	if(dev == 0)
 		dev = "/dev";
 	if(win == 0)
@@ -237,17 +230,17 @@ initdisplay(char *dev, char *win, void(*error)(Display*, char*))
 	}
 	if(ctlfd < 0)
 		goto Error1;
-	if(read(ctlfd, info, sizeof info) < NINFO){
+	if((n=read(ctlfd, info, sizeof info)) < 12){
     Error2:
 		close(ctlfd);
 		goto Error1;
 	}
-
-	if((chan=strtochan(info+2*12)) == 0){
-		werrstr("bad channel in %s", buf);
-		goto Error2;
-	}
-
+	if(n==NINFO+1)
+		n = NINFO;
+	buf[n] = '\0';
+	isnew = 0;
+	if(n < NINFO)	/* this will do for now, we need something better here */
+		isnew = 1;
 	sprint(buf, "%s/draw/%d/data", dev, atoi(info+0*12));
 	datafd = open(buf, ORDWR|OCEXEC);
 	if(datafd < 0)
@@ -259,49 +252,63 @@ initdisplay(char *dev, char *win, void(*error)(Display*, char*))
 		close(datafd);
 		goto Error2;
 	}
-	disp = malloc(sizeof(Display));
+	disp = mallocz(sizeof(Display), 1);
 	if(disp == 0){
     Error4:
 		close(reffd);
 		goto Error3;
 	}
-	image = malloc(sizeof(Image));
-	if(image == 0){
+	image = nil;
+	if(0){
     Error5:
+		free(image);
 		free(disp);
 		goto Error4;
 	}
-	memset(image, 0, sizeof(Image));
-	memset(disp, 0, sizeof(Display));
-	image->display = disp;
-	image->id = 0;
-	image->chan = chan;
-	image->depth = chantodepth(chan);
-	image->repl = atoi(info+3*12);
-	image->r.min.x = atoi(info+4*12);
-	image->r.min.y = atoi(info+5*12);
-	image->r.max.x = atoi(info+6*12);
-	image->r.max.y = atoi(info+7*12);
-	image->clipr.min.x = atoi(info+8*12);
-	image->clipr.min.y = atoi(info+9*12);
-	image->clipr.max.x = atoi(info+10*12);
-	image->clipr.max.y = atoi(info+11*12);
+	if(n >= NINFO){
+		image = mallocz(sizeof(Image), 1);
+		if(image == nil)
+			goto Error5;
+		image->display = disp;
+		image->id = 0;
+		image->chan = strtochan(info+2*12);
+		image->depth = chantodepth(image->chan);
+		image->repl = atoi(info+3*12);
+		image->r.min.x = atoi(info+4*12);
+		image->r.min.y = atoi(info+5*12);
+		image->r.max.x = atoi(info+6*12);
+		image->r.max.y = atoi(info+7*12);
+		image->clipr.min.x = atoi(info+8*12);
+		image->clipr.min.y = atoi(info+9*12);
+		image->clipr.max.x = atoi(info+10*12);
+		image->clipr.max.y = atoi(info+11*12);
+	}
+
+	disp->_isnewdisplay = isnew;
+	disp->bufsize = iounit(datafd);
+	if(disp->bufsize <= 0)
+		disp->bufsize = 8000;
+	if(disp->bufsize < 512){
+		werrstr("iounit %d too small", disp->bufsize);
+		goto Error5;
+	}
+	disp->buf = malloc(disp->bufsize+5);	/* +5 for flush message */
+	if(disp->buf == nil)
+		goto Error5;
+
+	disp->image = image;
 	disp->dirno = atoi(info+0*12);
 	disp->fd = datafd;
 	disp->ctlfd = ctlfd;
 	disp->reffd = reffd;
-	disp->image = image;
 	disp->bufp = disp->buf;
 	disp->error = error;
-	disp->chan = image->chan;
-	disp->depth = image->depth;
 	disp->windir = t;
 	disp->devdir = strdup(dev);
 	qlock(&disp->qlock);
 	disp->white = allocimage(disp, Rect(0, 0, 1, 1), GREY1, 1, DWhite);
 	disp->black = allocimage(disp, Rect(0, 0, 1, 1), GREY1, 1, DBlack);
 	if(disp->white == nil || disp->black == nil){
-		free(image);
 		free(disp->devdir);
 		free(disp->white);
 		free(disp->black);
@@ -309,12 +316,15 @@ initdisplay(char *dev, char *win, void(*error)(Display*, char*))
 	}
 	disp->opaque = disp->white;
 	disp->transparent = disp->black;
-	if(dirfstat(ctlfd, &dir)>=0 && dir.type=='i'){
+	dir = dirfstat(ctlfd);
+	if(dir!=nil && dir->type=='i'){
 		disp->local = 1;
-		disp->dataqid = dir.qid.path;
+		disp->dataqid = dir->qid.path;
 	}
+	if(dir!=nil && dir->qid.vers==1)	/* other way to tell */
+		disp->_isnewdisplay = 1;
+	free(dir);
 
-	assert(disp->chan != 0 && image->chan != 0);
 	return disp;
 }
 
@@ -345,7 +355,6 @@ closedisplay(Display *disp)
 	free(disp->windir);
 	freeimage(disp->white);
 	freeimage(disp->black);
-	free(disp->image);
 	close(disp->fd);
 	close(disp->ctlfd);
 	/* should cause refresh slave to shut down */
@@ -360,7 +369,7 @@ lockdisplay(Display *disp)
 	if(debuglockdisplay){
 		/* avoid busy looping; it's rare we collide anyway */
 		while(!canqlock(&disp->qlock)){
-			_drawprint(1, "proc %d waiting for display lock...\n", getpid());
+			fprint(1, "proc %d waiting for display lock...\n", getpid());
 			sleep(1000);
 		}
 	}else
@@ -373,34 +382,16 @@ unlockdisplay(Display *disp)
 	qunlock(&disp->qlock);
 }
 
-/* use static buffer to avoid stack bloat */
-int
-_drawprint(int fd, char *fmt, ...)
-{
-	int n;
-	va_list arg;
-	static char buf[1024];
-	static QLock l;
-
-	qlock(&l);
-	va_start(arg, fmt);
-	doprint(buf, buf+sizeof buf, fmt, arg);
-	va_end(arg);
-	n = write(fd, buf, strlen(buf));
-	qunlock(&l);
-	return n;
-}
-
 void
 drawerror(Display *d, char *s)
 {
-	char err[ERRLEN];
+	char err[ERRMAX];
 
 	if(d->error)
 		d->error(d, s);
 	else{
-		errstr(err);
-		_drawprint(2, "draw: %s: %s\n", s, err);
+		errstr(err, sizeof err);
+		fprint(2, "draw: %s: %s\n", s, err);
 		exits(s);
 	}
 }
@@ -417,7 +408,7 @@ doflush(Display *d)
 
 	if(write(d->fd, d->buf, n) != n){
 		if(_drawdebug)
-			_drawprint(2, "flushimage fail: d=%p: %r\n", d); /**/
+			fprint(2, "flushimage fail: d=%p: %r\n", d); /**/
 		d->bufp = d->buf;	/* might as well; chance of continuing */
 		return -1;
 	}
@@ -428,8 +419,13 @@ doflush(Display *d)
 int
 flushimage(Display *d, int visible)
 {
-	if(visible)
-		*d->bufp++ = 'v';	/* one byte always reserved for this */
+	if(visible){
+		*d->bufp++ = 'v';	/* five bytes always reserved for this */
+		if(d->_isnewdisplay){
+			BPLONG(d->bufp, d->screenimage->id);
+			d->bufp += 4;
+		}
+	}
 	return doflush(d);
 }
 
@@ -438,11 +434,11 @@ bufimage(Display *d, int n)
 {
 	uchar *p;
 
-	if(n<0 || n>Displaybufsize){
+	if(n<0 || n>d->bufsize){
 		werrstr("bad count in bufimage");
 		return 0;
 	}
-	if(d->bufp+n > d->buf+Displaybufsize)
+	if(d->bufp+n > d->buf+d->bufsize)
 		if(doflush(d) < 0)
 			return 0;
 	p = d->bufp;

@@ -17,6 +17,8 @@ match(char *name, char *template, char *stem)
 	if(!PERCENT(*template))
 		return 0;
 	n = strlen(name)-strlen(template+1);
+	if (n < 0)
+		return 0;
 	if (strcmp(template+1, name+n))
 		return 0;
 	strncpy(stem, name, n);
@@ -27,21 +29,26 @@ match(char *name, char *template, char *stem)
 }
 
 void
-subst(char *stem, char *template, char *dest)
+subst(char *stem, char *template, char *dest, int dlen)
 {
 	Rune r;
-	char *s;
+	char *s, *e;
 	int n;
 
+	e = dest+dlen-1;
 	while(*template){
 		n = chartorune(&r, template);
 		if (PERCENT(r)) {
 			template += n;
 			for (s = stem; *s; s++)
-				*dest++ = *s;
+				if(dest < e)
+					*dest++ = *s;
 		} else
-			while (n--)
-				*dest++ = *template++;
+			while (n--){
+				if(dest < e)
+					*dest++ = *template;
+				template++;
+			}
 	}
 	*dest = 0;
 }

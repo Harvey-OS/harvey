@@ -21,7 +21,7 @@ char	*fpexcname(Ureg*, ulong, char*);
 void
 fptrap(Ureg *ur)
 {
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 	int i;
 	ulong reason;
 

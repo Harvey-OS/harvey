@@ -1,22 +1,22 @@
-/* Copyright (C) 1994, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1994, 1995, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gsdevice.h,v 1.3 2000/09/19 19:00:27 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gsdevice.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* Device and page control API */
 
 #ifndef gsdevice_INCLUDED
@@ -48,13 +48,6 @@ int gs_opendevice(P1(gx_device *));
 int gs_copyscanlines(P6(gx_device *, int, byte *, uint, int *, uint *));
 const gx_device *gs_getdevice(P1(int));
 int gs_copydevice(P3(gx_device **, const gx_device *, gs_memory_t *));
-/*
- * If keep_open is true and dev->is_open is true, the copy *may* have
- * is_open = true; otherwise, the copy will have is_open = false.
- * copydevice is equivalent to copydevice2 with keep_open = false.
- */
-int gs_copydevice2(P4(gx_device **pnew_dev, const gx_device *dev,
-		      bool keep_open, gs_memory_t *mem));
 
 #define gs_makeimagedevice(pdev, pmat, w, h, colors, colors_size, mem)\
   gs_makewordimagedevice(pdev, pmat, w, h, colors, colors_size, false, true, mem)

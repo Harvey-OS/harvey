@@ -1,0 +1,14 @@
+</$objtype/mkfile
+
+TARG=Wiki
+
+OFILES=\
+	main.$O\
+	util.$O\
+	wiki.$O\
+	win.$O\
+
+HFILES=awiki.h
+BIN=../../bin/$objtype
+
+</sys/src/cmd/mkone

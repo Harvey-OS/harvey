@@ -17,10 +17,14 @@ gensafeprime(mpint *p, mpint *alpha, int n, int accuracy)
 		if(probably_prime(p, accuracy))
 			break;
 	}
+	// now find a generator alpha of the multiplicative
+	// group Z*_p of order p-1=2q
 	b = mpnew(0);
 	while(1){
 		mprand(n, prng, alpha);
+		mpmod(alpha, p, alpha);
 		mpmul(alpha, alpha, b);
+		mpmod(b, p, b);
 		if(mpcmp(b, mpone) == 0)
 			continue;
 		mpexp(alpha, q, p, b);

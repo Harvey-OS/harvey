@@ -27,7 +27,7 @@ fromauth(Method *mp, char *trbuf, char *tbuf)
 	int afd;
 	char t;
 	char *msg;
-	static char error[2*ERRLEN];
+	static char error[2*ERRMAX];
 
 	if(mp->auth == 0)
 		fatal("no method for accessing auth server");
@@ -51,12 +51,12 @@ fromauth(Method *mp, char *trbuf, char *tbuf)
 		}
 		break;
 	case AuthErr:
-		if(readn(afd, error, ERRLEN) < 0) {
+		if(readn(afd, error, ERRMAX) < 0) {
 			sprint(error, "%s: %r", pbmsg);
 			msg = error;
 		}
 		else {
-			error[ERRLEN-1] = 0;
+			error[ERRMAX-1] = 0;
 			msg = error;
 		}
 		break;
@@ -77,7 +77,7 @@ doauthenticate(int fd, Method *mp)
 	char tbuf[2*TICKETLEN];
 
 	print("session...");
-	if(fsession(fd, trbuf) < 0)
+	if(fsession(fd, trbuf, sizeof trbuf) < 0)
 		fatal("session command failed");
 
 	/* no authentication required? */
@@ -86,7 +86,9 @@ doauthenticate(int fd, Method *mp)
 		return;
 
 	/* try getting to an auth server */
+	print("getting ticket...");
 	msg = fromauth(mp, trbuf, tbuf);
+	print("authenticating...");
 	if(msg == 0)
 		if(fauth(fd, tbuf) >= 0)
 			return;

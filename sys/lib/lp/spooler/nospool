@@ -4,31 +4,18 @@ if (! ~ $DEBUG '') flag x +
 if (~ $LPCLASS *sendEOT*) SENDEOT=1
 if not SENDEOT=0
 
-if (~ $OUTDEV -) {
-	if (~ $#* 0) {
-		@{bind -b $LPLIB/process /bin; $LPPROC}
-		if (~ $SENDEOT 1) echo -n `{ascii -t 4}
-	}
-	if not {
-		if (! ~ $DEBUG '') echo input files $*
-		for (i in $*) {
-			@{bind -b $LPLIB/process /bin; $LPPROC} < $i
-			if (~ $SENDEOT 1) echo -n `{ascii -t 4}
-		}
-	}
+if (~ $OUTDEV -) OUTDEV=/fd/1
+if (~ $#* 0) {
+	if (! ~ $DEBUG '') echo input file is stdin >[1=2]
+	@{bind -b $LPLIB/process /bin; $LPPROC} > $OUTDEV
+	if (~ $SENDEOT 1) echo -n `{ascii -t 4} > $OUTDEV
 }
 if not {
-	if (~ $#* 0) {
-		@{bind -b $LPLIB/process /bin; $LPPROC} > $OUTDEV
+	if (! ~ $DEBUG '') echo input files $* >[1=2]
+	for (i in $*) {
+		if (! ~ $DEBUG '') echo processing $i >[1=2]
+		@{bind -b $LPLIB/process /bin; $LPPROC} < $i  > $OUTDEV
 		if (~ $SENDEOT 1) echo -n `{ascii -t 4} > $OUTDEV
-	}
-	if not {
-		if (! ~ $DEBUG '') echo input files $*
-		for (i in $*) {
-			echo processing $i >[1=2]
-			@{bind -b $LPLIB/process /bin; $LPPROC} < $i > $OUTDEV
-			if (~ $SENDEOT 1) echo -n `{ascii -t 4} > $OUTDEV
-		}
 	}
 }
 exit ''

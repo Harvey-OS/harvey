@@ -1,5 +1,5 @@
 CONF=pc
-CONFLIST=pc pccpu pcdisk pccpudisk
+CONFLIST=pc pccpu pcdisk
 
 objtype=386
 </$objtype/mkfile
@@ -17,7 +17,6 @@ PORT=\
 	dev.$O\
 	fault.$O\
 	latin1.$O\
-	log.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\
@@ -26,6 +25,7 @@ PORT=\
 	proc.$O\
 	qio.$O\
 	qlock.$O\
+	rebootcmd.$O\
 	segment.$O\
 	swap.$O\
 	sysfile.$O\
@@ -38,8 +38,6 @@ OBJ=\
 	l.$O\
 	plan9l.$O\
 	cga.$O\
-	clock.$O\
-	cycintr.$O\
 	i8253.$O\
 	i8259.$O\
 	kbd.$O\
@@ -52,13 +50,11 @@ OBJ=\
 	$DEVS\
 	$PORT\
 	boot$CONF.root.$O\
-	kpmemmove.$O\
 
 LIB=\
 	/$objtype/lib/libmemlayer.a\
 	/$objtype/lib/libmemdraw.a\
 	/$objtype/lib/libdraw.a\
-	/$objtype/lib/libauth.a\
 	/$objtype/lib/libc.a\
 	/$objtype/lib/libsec.a\
 
@@ -80,7 +76,6 @@ install:V: $p$CONF $p$CONF.gz
 <../boot/bootmkfile
 <../port/portmkfile
 
-clock.$O devether.$O main.$O trap.$O:	/$objtype/include/ureg.h
 
 $ETHER: 			etherif.h ../port/netif.h
 ether8003.$O ether8390.$O:	ether8390.h
@@ -90,28 +85,34 @@ archmp.$O mp.$O:		apbootstrap.h
 apic.$O archmp.$O mp.$O:	mp.h
 $SDEV:				../port/sd.h
 sd53c8xx.$O:			sd53c8xx.i
-thwack.$O unthwack.$O:		../port/thwack.h
+main.$O:			init.h reboot.h
+
+devusb.$O usbuhci.$O usbohci.$O:	usb.h
 
 sd53c8xx.i:	sd53c8xx.n
 	aux/na $prereq > $target
 
-dossrv.root.s:	/$objtype/bin/dossrv
-	cp $prereq dossrv.out
-	../port/mkroot dossrv kfs
-
-init.h:	initcode /sys/src/libc/9syscall/sys.h
-	$AS initcode
-	$LD -l -s -R4 -o init.out initcode.$O
+init.h:	initcode.s /sys/src/libc/9syscall/sys.h
+	$AS initcode.s
+	$LD -l -R4 -o init.out initcode.$O
 	{echo 'uchar initcode[]={'
-	 xd -r -1x init.out |
+	 xd -1x init.out |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
+
+reboot.h:	rebootcode.s
+	$AS rebootcode.s
+	$LD -l -s -T0x1000 -R4 -o reboot.out rebootcode.$O
+	{echo 'uchar rebootcode[]={'
+	 xd -1x reboot.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > reboot.h
 
 apbootstrap.h:	apbootstrap.s mem.h
 	$AS $prereq
 	$LD -o apbootstrap.out -T0x80001000 -R4 -l -s apbootstrap.$O
 	{echo 'uchar apbootstrap[]={'
-	 xd -r -1x apbootstrap.out |
+	 xd -1x apbootstrap.out |
 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > $target
 

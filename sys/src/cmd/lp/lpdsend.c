@@ -70,7 +70,8 @@ char  strbuf[120];
 char hostname[MAXHOSTNAMELEN], *username, *printername, *killarg;
 char *inputname;
 char filetype = 'o';	/* 'o' is for PostScript */
-int seqno = 1;
+int seqno = 0;
+char *seqfilename;
 
 void
 killjob(int printerfd) {
@@ -215,7 +216,7 @@ main(int argc, char *argv[]) {
 		fprintf(stderr, "failed to set alarm handler\n");
 		exit(1);
 	}
-	while ((c = getopt(argc, argv, "Dd:k:qt:H:P:")) != -1)
+	while ((c = getopt(argc, argv, "Dd:k:qs:t:H:P:")) != -1)
 		switch (c) {
 		case 'D':
 			debugflag = 1;
@@ -238,6 +239,11 @@ main(int argc, char *argv[]) {
 				exit(1);
 			}	
 			statflag = 1;
+			break;
+		case 's':
+			seqno = strtol(optarg, NULL, 10);
+			if (seqno < 0 || seqno > 999)
+				seqno = 0;
 			break;
 		case 't':
 			switch (filetype) {
@@ -266,7 +272,6 @@ main(int argc, char *argv[]) {
 		case 'P':
 			username = optarg;
 			break;
-
 		default:
 		case '?':
 			fprintf(stderr, "unknown option %c\n", c);
@@ -278,7 +283,7 @@ main(int argc, char *argv[]) {
 	} else
 		usgflg++;
 	if (usgflg) {
-		fprintf(stderr, "usage: to send a job - %s -d printer -H hostname -P username [-t[cdfgklnoprtvz]] desthost [filename]\n", argv[0]);
+		fprintf(stderr, "usage: to send a job - %s -d printer -H hostname -P username [-s seqno] [-t[cdfgklnoprtvz]] desthost [filename]\n", argv[0]);
 		fprintf(stderr, "     to check status - %s -d printer -q desthost\n", argv[0]);
 		fprintf(stderr, "       to kill a job - %s -d printer -P username -k jobname desthost\n", argv[0]);
 		exit(1);

@@ -30,15 +30,15 @@ flstart(Rectangle r)
 
 	/* Main text is yellowish */
 	maincols[BACK] = allocimagemix(display, DPaleyellow, DWhite);
-	maincols[HIGH] = allocimage(display, Rect(0,0,1,1), display->chan, 1, DDarkyellow);
-	maincols[BORD] = allocimage(display, Rect(0,0,2,2), display->chan, 1, DYellowgreen);
+	maincols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DDarkyellow);
+	maincols[BORD] = allocimage(display, Rect(0,0,2,2), screen->chan, 1, DYellowgreen);
 	maincols[TEXT] = display->black;
 	maincols[HTEXT] = display->black;
 
 	/* Command text is blueish */
 	cmdcols[BACK] = allocimagemix(display, DPalebluegreen, DWhite);
-	cmdcols[HIGH] = allocimage(display, Rect(0,0,1,1), display->chan, 1, DPalegreygreen);
-	cmdcols[BORD] = allocimage(display, Rect(0,0,2,2), display->chan, 1, DPurpleblue);
+	cmdcols[HIGH] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DPalegreygreen);
+	cmdcols[BORD] = allocimage(display, Rect(0,0,2,2), screen->chan, 1, DPurpleblue);
 	cmdcols[TEXT] = display->black;
 	cmdcols[HTEXT] = display->black;
 }
@@ -92,7 +92,7 @@ flclose(Flayer *l)
 		draw(screen, l->entire, display->white, nil, ZP);
 	else if(l->visible == Some){
 		if(l->f.b == 0)
-			l->f.b = allocimage(display, l->entire, display->chan, 0, DNofill);
+			l->f.b = allocimage(display, l->entire, screen->chan, 0, DNofill);
 		if(l->f.b){
 			draw(l->f.b, l->entire, display->white, nil, ZP);
 			flrefresh(l, l->entire, 0);
@@ -406,7 +406,7 @@ flprepare(Flayer *l)
 	if(f->b == 0){
 		if(l->visible == All)
 			f->b = screen;
-		else if((f->b = allocimage(display, l->entire, display->chan, 0, 0))==0)
+		else if((f->b = allocimage(display, l->entire, screen->chan, 0, 0))==0)
 			return 0;
 		draw(f->b, l->entire, f->cols[BACK], nil, ZP);
 		border(f->b, l->entire, l==llist[0]? FLMARGIN : 1, f->cols[BORD], ZP);

@@ -1,0 +1,11 @@
+#!/bin/rc
+
+fn clientmount { 9fs kfs }
+c=/n/kfs/dist/replica
+clientroot=/n/kfs
+clientproto=$c/plan9.proto
+clientdb=$c/client/plan9.db
+clientexclude=(dist/replica/client)
+clientlog=$c/client/plan9.log
+
+applyopt=(-u -T$c/client/plan9.time)

@@ -54,9 +54,6 @@ getdir(Hblock *hp, Dir *sp)
 
 	if (hp->dbuf.name[0] == '\0')
 		return 0;
-	sp->mode = strtol(hp->dbuf.mode, 0, 8);
-	strncpy(sp->uid, "adm", sizeof(sp->uid));
-	strncpy(sp->gid, "adm", sizeof(sp->gid));
 	sp->length = strtol(hp->dbuf.size, 0, 8);
 	sp->mtime = strtol(hp->dbuf.mtime, 0, 8);
 	chksum = strtol(hp->dbuf.chksum, 0, 8);

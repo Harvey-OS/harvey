@@ -1,0 +1,14 @@
+#!/bin/rc
+
+if(! ~ $#* 1) {
+	echo usage: fedex 123456789012 >[1=2]
+	exit usage
+}
+
+rfork e
+
+
+hget 'http://www.fedex.com/cgi-bin/track_it?airbill_list='$1'&kurrent_airbill='$1'&language=english&cntry_code=us&state=0' |
+	sed -n '/BEGIN TRACKING/,/END TRACKING/p' |
+	sed 's/<[^>]+>//g;s/[ 	]+$//' | grep .
+

@@ -131,13 +131,17 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 int
 isfile(char *file, ulong maskon, ulong maskoff)
 {
-	Dir d;
+	Dir *d;
+	int mode;
 
-	if(dirstat(file, &d) < 0)
+	d = dirstat(file);
+	if(d == nil)
 		return 0;
-	if((d.mode & maskon) == 0)
+	mode = d->mode;
+	free(d);
+	if((mode & maskon) == 0)
 		return 0;
-	if(d.mode & maskoff)
+	if(mode & maskoff)
 		return 0;
 	return 1;
 }
@@ -273,9 +277,9 @@ matchpat(Plumbmsg *m, Exec *e, Rule *r)
 	case VIs:
 		return verbis(r->obj, m, r);
 	case VIsdir:
-		return verbisfile(r->obj, m, r, e, CHDIR, 0, &e->dir);
+		return verbisfile(r->obj, m, r, e, DMDIR, 0, &e->dir);
 	case VIsfile:
-		return verbisfile(r->obj, m, r, e, ~CHDIR, CHDIR, &e->file);
+		return verbisfile(r->obj, m, r, e, ~DMDIR, DMDIR, &e->file);
 	case VMatches:
 		return verbmatches(r->obj, m, r, e);
 	case VSet:

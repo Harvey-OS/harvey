@@ -1,6 +1,11 @@
 #include	"all.h"
 #include	"io.h"
 
+/*
+ * This is needed for IP configuration.
+ */
+#include	"../ip/ip.h"
+
 struct
 {
 	char*	icharp;
@@ -16,6 +21,8 @@ struct
 	Device*	devlist;
 } f;
 
+static Device* confdev;
+
 int
 devcmpr(Device *d1, Device *d2)
 {
@@ -28,7 +35,7 @@ loop:
 
 	switch(d1->type) {
 	default:
-		print("cant compare dev: %D\n", d1);
+		print("can't compare dev: %Z\n", d1);
 		panic("devcmp");
 		break;
 
@@ -215,7 +222,7 @@ config(void)
 
 	case 'w':	/* w[#.]# wren [ctrl] unit [part] */
 	case 'r':	/* r[#.]#[.#] worm [ctrl] unit [part] */
-	case 'l':	/* r[#.]#[.#] worm [ctrl] unit [part] */
+	case 'l':	/* l[#.]#[.#] worm [ctrl] unit [part] */
 		icp = f.charp;
 		d->type = Devwren;
 		d->wren.ctrl = 0;
@@ -385,28 +392,28 @@ line:
 	}
 	if(astrcmp(word, "ip") == 0) {
 		cp = getwd(word, cp);
-		if(!nzip(ipaddr[aindex].sysip))
+		if(!isvalidip(ipaddr[aindex].sysip))
 			if(chartoip(ipaddr[aindex].sysip, word))
 				goto bad;
 		goto loop;
 	}
 	if(astrcmp(word, "ipgw") == 0) {
 		cp = getwd(word, cp);
-		if(!nzip(ipaddr[aindex].defgwip))
+		if(!isvalidip(ipaddr[aindex].defgwip))
 			if(chartoip(ipaddr[aindex].defgwip, word))
 				goto bad;
 		goto loop;
 	}
 	if(astrcmp(word, "ipsntp") == 0) {
 		cp = getwd(word, cp);
-		if (!nzip(sntpip))
+		if (!isvalidip(sntpip))
 			if (chartoip(sntpip, word))
 				goto bad;
 		goto loop;
 	}
 	if(astrcmp(word, "ipmask") == 0) {
 		cp = getwd(word, cp);
-		if(!nzip(ipaddr[aindex].defmask))
+		if(!isvalidip(ipaddr[aindex].defmask))
 			if(chartoip(ipaddr[aindex].defmask, word))
 				goto bad;
 		goto loop;
@@ -434,12 +441,42 @@ bad:
 }
 
 void
+cmd_printconf(int, char *[])
+{
+	char *p, *s;
+	Iobuf *iob;
+
+	iob = getbuf(confdev, 0, Bread);
+	if(iob == nil)
+		return;
+	if(checktag(iob, Tconfig, 0)){
+		putbuf(iob);
+		return;
+	}
+
+	print("config %s\n", nvrgetconfig());
+	s = p = iob->iobuf;
+	while(*p != 0 && p < iob->iobuf+BUFSIZE){
+		if(*p++ != '\n')
+			continue;
+		print("%.*s", (int)(p-s), s);
+		s = p;
+	}
+	if(p != s)
+		print("%.*s", (int)(p-s), s);
+	print("end\n");
+
+	putbuf(iob);
+}
+
+void
 sysinit(void)
 {
 	Filsys *fs;
 	int error, i;
 	Device *d;
 	Iobuf *p;
+	char *cp;
 
 	dofilter(u->time+0, C0a, C0b, 1);
 	dofilter(u->time+1, C1a, C1b, 1);
@@ -462,7 +499,7 @@ sysinit(void)
 	dofilter(cons.binit+0, C0a, C0b, 1);
 	dofilter(cons.binit+1, C1a, C1b, 1);
 	dofilter(cons.binit+2, C2a, C2b, 1);
-	cons.chan = chaninit(Devcon, 1);
+	cons.chan = chaninit(Devcon, 1, 0);
 
 start:
 	/*
@@ -470,9 +507,10 @@ start:
 	 */
 	devnone = iconfig("n");
 
-	print("config %s\n", nvr.config);
+	cp = nvrgetconfig();
+	print("config %s\n", cp);
 
-	d = iconfig(nvr.config);
+	confdev = d = iconfig(cp);
 	devinit(d);
 	if(f.newconf) {
 		p = getbuf(d, 0, Bmod);
@@ -495,12 +533,15 @@ start:
 		sprint(strchr(p->iobuf, 0), "ipauth %I\n", authip);
 		sprint(strchr(p->iobuf, 0), "ipsntp %I\n", sntpip);
 		for(i=0; i<10; i++) {
-			sprint(strchr(p->iobuf, 0),
-				"ip%d %I\n", i, ipaddr[i].sysip);
-			sprint(strchr(p->iobuf, 0),
-				"ipgw%d %I\n", i, ipaddr[i].defgwip);
-			sprint(strchr(p->iobuf, 0),
-				"ipmask%d %I\n", i, ipaddr[i].defmask);
+			if(isvalidip(ipaddr[i].sysip))
+				sprint(strchr(p->iobuf, 0),
+					"ip%d %I\n", i, ipaddr[i].sysip);
+			if(isvalidip(ipaddr[i].defgwip))
+				sprint(strchr(p->iobuf, 0),
+					"ipgw%d %I\n", i, ipaddr[i].defgwip);
+			if(isvalidip(ipaddr[i].defmask))
+				sprint(strchr(p->iobuf, 0),
+					"ipmask%d %I\n", i, ipaddr[i].defmask);
 		}
 		putbuf(p);
 		f.modconf = 0;
@@ -514,7 +555,7 @@ start:
 	print("ipauth  %I\n", authip);
 	print("ipsntp  %I\n", sntpip);
 	for(i=0; i<10; i++) {
-		if(nzip(ipaddr[i].sysip)) {
+		if(isvalidip(ipaddr[i].sysip)) {
 			print("ip%d     %I\n", i, ipaddr[i].sysip);
 			print("ipgw%d   %I\n", i, ipaddr[i].defgwip);
 			print("ipmask%d %I\n", i, ipaddr[i].defmask);
@@ -590,29 +631,14 @@ arginit(void)
 	char line[300], word[300], *cp;
 	uchar localip[Pasize];
 	Filsys *fs;
-	uchar csum;
 
-	print("nvr read\n");
-	nvread(NVRAUTHADDR, &nvr, sizeof(nvr));
-	csum = nvcsum(nvr.authkey, sizeof(nvr.authkey));
-	if(csum != nvr.authsum) {
-		print("\n\n ** NVR key checksum is incorrect  **\n");
-		print(" ** set password to allow attaches **\n\n");
-		memset(nvr.authkey, 0, sizeof(nvr.authkey));
-		goto loop;
-	}
-	csum = nvcsum(nvr.config, sizeof(nvr.config));
-	if(csum != nvr.configsum) {
-		print("\n\n ** NVR config checksum is incorrect  **\n");
-		memset(nvr.config, 0, sizeof(nvr.config));
-		goto loop;
-	}
-
-	print("for config mode hit a key within 5 seconds\n");
-	c = rawchar(5);
-	if(c == 0) {
-		print("	no config\n");
-		return;
+	if(nvrcheck() == 0){
+		print("for config mode hit a key within 5 seconds\n");
+		c = rawchar(5);
+		if(c == 0) {
+			print("	no config\n");
+			return;
+		}
 	}
 
 loop:
@@ -654,30 +680,16 @@ loop:
 		getwd(word, cp);
 		if(testconfig(word))
 			goto loop;
-		c = strlen(word);
-		if(c >= sizeof(nvr.config)) {
-			print("config string too long\n");
+		if(nvrsetconfig(word) != 0)
 			goto loop;
-		}
-		memset(nvr.config, 0, sizeof(nvr.config));
-		memmove(nvr.config, word, c);
-		nvr.configsum = nvcsum(nvr.config, sizeof(nvr.config));
-		nvwrite(NVRAUTHADDR, &nvr, sizeof(nvr));
 		goto loop;
 	}
 	if(strcmp(word, "config") == 0) {
 		getwd(word, cp);
 		if(testconfig(word))
 			goto loop;
-		c = strlen(word);
-		if(c >= sizeof(nvr.config)) {
-			print("config string too long\n");
+		if(nvrsetconfig(word) != 0)
 			goto loop;
-		}
-		memset(nvr.config, 0, sizeof(nvr.config));
-		memmove(nvr.config, word, c);
-		nvr.configsum = nvcsum(nvr.config, sizeof(nvr.config));
-		nvwrite(NVRAUTHADDR, &nvr, sizeof(nvr));
 		f.newconf = 1;
 		goto loop;
 	}

@@ -41,7 +41,7 @@ PDData(Data *d)
 void
 usage(void)
 {
-	fprint(2, "usage: snapfs [-m mtpt] file\n");
+	fprint(2, "usage: snapfs [-a] [-m mtpt] file\n");
 	exits("usage");
 }
 
@@ -80,20 +80,45 @@ dataread(Data *d, void *buf, long *count, vlong offset)
 }
 
 void
-snapread(Req *r, Fid *fid, void *buf, long *count, vlong offset)
+fsread(Req *r)
 {
+	char *e;
 	PD *pd;
+	Fid *fid;
+	void *data;
+	vlong offset;
+	long count;
 
+	fid = r->fid;
+	data = r->ofcall.data;
+	offset = r->ifcall.offset;
+	count = r->ifcall.count;
 	pd = fid->file->aux;
+
 	if(pd->isproc)
-		respond(r, memread(pd->p, fid->file, buf, count, offset));
+		e = memread(pd->p, fid->file, data, &count, offset);
 	else
-		respond(r, dataread(pd->d, buf, count, offset));
+		e = dataread(pd->d, data, &count, offset);
+
+	if(e == nil)
+		r->ofcall.count = count;
+	respond(r, e);
 }
 
-Srv snapsrv = {
-	.read = snapread,
+Srv fs = {
+	.read = fsread,
 };
+
+File*
+ecreatefile(File *a, char *b, char *c, ulong d, void *e)
+{
+	File *f;
+
+	f = createfile(a, b, c, d, e);
+	if(f == nil)
+		sysfatal("error creating snap tree: %r");
+	return f;
+}
 
 void
 main(int argc, char **argv)
@@ -103,13 +128,19 @@ main(int argc, char **argv)
 	File *fdir, *f;
 	Proc *p, *plist;
 	Tree *tree;
-	char *mtpt, buf[NAMELEN];
+	char *mtpt, buf[32];
 	int i, mflag;
 
 	mtpt = "/proc";
 	mflag = MBEFORE;
 
 	ARGBEGIN{
+	case 'D':
+		chatty9p++;
+		break;
+	case 'd':
+		debug = 1;
+		break;
 	case 'a':
 		mflag = MAFTER;
 		break;
@@ -134,33 +165,27 @@ main(int argc, char **argv)
 		exits("readsnap");
 	}
 
-	tree = mktree(nil, nil, CHDIR|0555);
-	snapsrv.tree = tree;
+	tree = alloctree(nil, nil, DMDIR|0555, nil);
+	fs.tree = tree;
 
 	for(p=plist; p; p=p->link) {
-		print("process %ld %.*s\n", p->pid, NAMELEN, p->d[Pstatus] ? p->d[Pstatus]->data : "");
+		print("process %ld %.*s\n", p->pid, 28, p->d[Pstatus] ? p->d[Pstatus]->data : "");
 
-		sprint(buf, "%ld", p->pid);
-		fdir = fcreate(tree->root, buf, nil, nil, CHDIR|0555);
+		snprint(buf, sizeof buf, "%ld", p->pid);
+		fdir = ecreatefile(tree->root, buf, nil, DMDIR|0555, nil);
+		ecreatefile(fdir, "ctl", nil, 0777, nil);
+		if(p->text)
+			ecreatefile(fdir, "text", nil, 0777, PDProc(p));
 
-		fcreate(fdir, "ctl", nil, nil, 0777);
-		if(p->text) {
-			f = fcreate(fdir, "text", nil, nil, 0777);
-			f->aux = PDProc(p);
-		}
-
-		f = fcreate(fdir, "mem", nil, nil, 0666);
-		f->aux = PDProc(p);
-
+		ecreatefile(fdir, "mem", nil, 0666, PDProc(p));
 		for(i=0; i<Npfile; i++) {
 			if(d = p->d[i]) {
-				f = fcreate(fdir, pfile[i], nil, nil, 0666);
-				f->aux = PDData(d);
+				f = ecreatefile(fdir, pfile[i], nil, 0666, PDData(d));
 				f->length = d->len;
 			}
 		}
 	}
 
-	postmountsrv(&snapsrv, nil, mtpt, mflag);
+	postmountsrv(&fs, nil, mtpt, mflag);
 	exits(0);
 }

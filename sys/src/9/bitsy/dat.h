@@ -1,6 +1,5 @@
 typedef struct Cisdat 		Cisdat;
 typedef struct Conf		Conf;
-typedef struct Cycintr		Cycintr;
 typedef struct FPU		FPU;
 typedef struct FPenv		FPenv;
 typedef struct FPsave		FPsave;
@@ -23,6 +22,8 @@ typedef struct Vctl		Vctl;
 typedef struct Uart		Uart;
 
 typedef void IntrHandler(Ureg*, void*);
+
+#define MAXSYSARG	5	/* for mount(fd, mpt, flag, arg, srv) */
 
 /*
  *  parameters for sysproc.c
@@ -135,13 +136,14 @@ struct Mach
 	vlong	intrts;			/* time stamp of last interrupt */
 	ulong	spuriousintr;
 	int	lastintr;
+	int		ilockdepth;
 
 	int	flushmmu;		/* make current proc flush it's mmu state */
 	Proc	*pid2proc[31];		/* what proc holds what pid */
 	int	lastpid;		/* highest assigned pid slot */
 
 	int	cpumhz;			/* speed of cpu */
-	int	cpuhz;			/* ... *
+	vlong	cpuhz;			/* ... */
 
 	/* save areas for exceptions */
 	ulong	sfiq[5];
@@ -150,17 +152,6 @@ struct Mach
 	ulong	sabt[5];
 
 	int	stack[1];
-};
-
-/*
- * fasttick timer interrupts
- */
-struct Cycintr
-{
-	vlong	when;			/* fastticks when f should be called */
-	void	(*f)(Ureg*, Cycintr*);
-	void	*a;
-	Cycintr	*next;
 };
 
 /*
@@ -187,83 +178,6 @@ extern Proc	*up;
 enum
 {
 	OneMeg=	1024*1024,
-};
-
-/*
- *  routines to access UART hardware
- */
-struct PhysUart
-{
-	void	(*enable)(Uart*, int);
-	void	(*disable)(Uart*);
-	void	(*kick)(Uart*);
-	void	(*intr)(Ureg*, void*);
-	void	(*dobreak)(Uart*, int);
-	void	(*baud)(Uart*, int);
-	void	(*bits)(Uart*, int);
-	void	(*stop)(Uart*, int);
-	void	(*parity)(Uart*, int);
-	void	(*modemctl)(Uart*, int);
-	void	(*rts)(Uart*, int);
-	void	(*dtr)(Uart*, int);
-	long	(*status)(Uart*, void*, long, long);
-};
-
-enum {
-	Stagesize=	1024
-};
-
-/*
- *  software UART
- */
-struct Uart
-{
-	QLock;
-	int	type;
-	int	dev;
-	int	opens;
-	void	*regs;
-	PhysUart	*phys;
-
-	int	enabled;
-	Uart	*elist;			/* next enabled interface */
-	char	name[NAMELEN];
-
-	uchar	sticky[4];		/* sticky write register values */
-	ulong	freq;			/* clock frequency */
-	uchar	mask;			/* bits/char */
-	int	baud;			/* baud rate */
-
-	int	parity;			/* parity errors */
-	int	frame;			/* framing errors */
-	int	overrun;		/* rcvr overruns */
-
-	/* buffers */
-	int	(*putc)(Queue*, int);
-	Queue	*iq;
-	Queue	*oq;
-
-	uchar	istage[Stagesize];
-	uchar	*iw;
-	uchar	*ir;
-	uchar	*ie;
-
-	Lock	tlock;			/* transmit */
-	uchar	ostage[Stagesize];
-	uchar	*op;
-	uchar	*oe;
-
-	int	modem;			/* hardware flow control on */
-	int	xonoff;			/* software flow control on */
-	int	blocked;
-	int	cts, dsr, dcd, dcdts;		/* keep track of modem status */ 
-	int	ctsbackoff;
-	int	hup_dsr, hup_dcd;	/* send hangup upstream? */
-	int	dohup;
-
-	int	kinuse;		/* device in use by kernel */
-
-	Rendez	r;
 };
 
 /*
@@ -304,17 +218,6 @@ struct PCMconftab
 };
 
 /*
- *  For walking a PCMCIA card's information structure
- */
-struct Cisdat
-{
-	uchar	*cisbase;
-	int	cispos;
-	int	cisskip;
-	int	cislen;
-};
-
-/*
  *  PCMCIA card slot
  */
 struct PCMslot
@@ -342,9 +245,6 @@ struct PCMslot
 	PCMconftab	ctab[8];
 	PCMconftab	*def;		/* default conftab */
 
-	/* for walking through cis */
-	Cisdat;
-
 	/* maps are fixed */
 	PCMmap memmap;
 	PCMmap attrmap;
@@ -355,10 +255,10 @@ struct PCMslot
  */
 struct DevConf
 {
-	ulong	mem;		/* mapped memory address */
+	ulong	mem;	/* mapped memory address */
 	ulong	port;		/* mapped i/o regs */
-	int	size;		/* access size */
-	int	itype;		/* type of interrupt */
+	int		size;		/* access size */
+	int		itype;	/* type of interrupt */
 	ulong	interrupt;	/* interrupt number */
-	char	type[NAMELEN];	/* card type */
+	char		*type;	/* card type, mallocated */
 };

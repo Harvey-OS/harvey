@@ -6,26 +6,24 @@
  * Sizes
  */
 #define	BI2BY		8			/* bits per byte */
-#define BI2WD		32			/* bits per word */
+#define	BI2WD		32			/* bits per word */
 #define	BY2WD		4			/* bytes per word */
 #define	BY2V		8			/* bytes per double word */
 #define	BY2PG		4096			/* bytes per page */
 #define	WD2PG		(BY2PG/BY2WD)		/* words per page */
 #define	PGSHIFT		12			/* log(BY2PG) */
-#define ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
-#define PGROUND(s)	ROUND(s, BY2PG)
+#define	ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
+#define	PGROUND(s)	ROUND(s, BY2PG)
 #define	BLOCKALIGN	8
 
-#define	MAXMACH		1			/* max # cpus system can run */
+#define	MAXMACH	1			/* max # cpus system can run */
 
 /*
  * Time
  */
 #define	HZ		(20)				/* clock frequency */
-#define	MS2HZ		(1000/HZ)			/* millisec per clock tick */
+#define	MS2HZ	(1000/HZ)		/* millisec per clock tick */
 #define	TK2SEC(t)	((t)/HZ)			/* ticks to seconds */
-#define	TK2MS(t)	((((ulong)(t))*1000)/HZ)	/* ticks to milliseconds */
-#define	MS2TK(t)	((((ulong)(t))*HZ)/1000)	/* milliseconds to ticks */
 
 /*
  *  Virtual addresses:
@@ -41,8 +39,8 @@
  *  kernel.  This can be changed by providing a mapping in l.s
  *  before calling main.
  */
-#define	UZERO		0			/* base of user address space */
-#define	UTZERO		(UZERO+BY2PG)		/* first address in user text */
+#define	UZERO		0				/* base of user address space */
+#define	UTZERO		(UZERO+BY2PG)	/* first address in user text */
 #define	KZERO		0xC0000000		/* base of kernel address space */
 #define	KTZERO		0xC0008000		/* first address in kernel text */
 #define	EMEMZERO	0x90000000		/* 256 meg for add on memory */
@@ -52,26 +50,26 @@
 #define	FLASHZERO	0xB0000000		/* 128 meg for flash */
 #define	FLASHTOP	0xB8000000		/* ... */
 #define	DRAMZERO	0xC0000000		/* 128 meg for dram */
-#define DRAMTOP		0xC8000000		/* ... */
+#define	DRAMTOP		0xC8000000		/* ... */
 #define	UCDRAMZERO	0xC8000000		/* 128 meg for dram (uncached/unbuffered) */
-#define UCDRAMTOP	0xD0000000		/* ... */
+#define	UCDRAMTOP	0xD0000000		/* ... */
 #define	NULLZERO	0xE0000000		/* 128 meg for cache flush zeroes */
-#define NULLTOP		0xE8000000		/* ... */
+#define	NULLTOP		0xE8000000		/* ... */
 #define	USTKTOP		0x2000000		/* byte just beyond user stack */
-#define	USTKSIZE	(8*1024*1024)		/* size of user stack */
+#define	USTKSIZE		(8*1024*1024)		/* size of user stack */
 #define	TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */
-#define TSTKSIZ 	100
-#define MACHADDR	(KZERO+0x00001000)
+#define	TSTKSIZ	 	100
+#define	MACHADDR	(KZERO+0x00001000)
 #define	EVECTORS	0xFFFF0000		/* virt base of exception vectors */
 
-#define KSTACK		(16*1024)		/* Size of kernel stack */
+#define	KSTACK		(16*1024)			/* Size of kernel stack */
 
 /*
  *  Offsets into flash
  */
 #define Flash_bootldr	(FLASHZERO+0x0)		/* boot loader */
 #define Flash_kernel	(FLASHZERO+0x10000)	/* boot kernel */
-#define	Flash_tar	(FLASHZERO+0x100000)	/* tar file containing fs.sac */
+#define Flash_tar		(FLASHZERO+0x200000)	/* fs.sac (tar file) */
 
 /*
  *  virtual MMU
@@ -97,17 +95,18 @@
  *  peripheral control module physical addresses
  */
 #define USBREGS		0x80000000	/* serial port 0 - USB */
-#define UART1REGS	0x80010000	/* serial port 1 - UART */
-#define GPCLKREGS	0x80020060	/* serial port 1 - general purpose clock */
-#define UART2REGS	0x80030000	/* serial port 2 - low speed IR */
-#define HSSPREGS	0x80040060	/* serial port 2 - high speed IR */
-#define UART3REGS	0x80050000	/* serial port 3 - RS232 UART */
+#define UART1REGS		0x80010000	/* serial port 1 - UART */
+#define GPCLKREGS		0x80020060	/* serial port 1 - general purpose clock */
+#define UART2REGS		0x80030000	/* serial port 2 - low speed IR */
+#define HSSPREGS		0x80040060	/* serial port 2 - high speed IR */
+#define UART3REGS		0x80050000	/* serial port 3 - RS232 UART */
 #define MCPREGS		0x80060000	/* serial port 4 - multimedia comm port */
 #define SSPREGS		0x80070060	/* serial port 4 - synchronous serial port */
 #define OSTIMERREGS	0x90000000	/* operating system timer registers */
-#define POWERREGS	0x90020000	/* power management */
-#define GPIOREGS	0x90040000	/* 28 general purpose IO pins */
-#define INTRREGS	0x90050000	/* interrupt registers */
+#define POWERREGS		0x90020000	/* power management */
+#define RESETREGS		0x90030000	/* reset controller */
+#define GPIOREGS		0x90040000	/* 28 general purpose IO pins */
+#define INTRREGS		0x90050000	/* interrupt registers */
 #define PPCREGS		0x90060000	/* peripheral pin controller */
 #define MEMCONFREGS	0xA0000000	/* memory configuration */
 #define LCDREGS		0xB0100000	/* display */
@@ -160,7 +159,7 @@
 #define CpTLBFlush	8		/* W: TLB flushing */
 #define CpRBFlush	9		/* W: Read Buffer ops */
 #define CpPID		13		/* RW: PID for virtual mapping */
-#define	CpBpt		14		/* W: Breakpoint register */
+#define CpBpt		14		/* W: Breakpoint register */
 #define CpTest		15		/* W: Test, Clock and Idle Control */
 
 /*

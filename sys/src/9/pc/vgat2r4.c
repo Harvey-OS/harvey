@@ -105,7 +105,6 @@ static void
 t2r4enable(VGAscr* scr)
 {
 	Pcidev *p;
-	Physseg seg;
 	int size, align;
 	ulong aperture, mmio;
 
@@ -129,14 +128,7 @@ t2r4enable(VGAscr* scr)
 	mmio = upamalloc(p->mem[4].bar & ~0x0F, p->mem[4].size, 0);
 	if(mmio == 0)
 		return;
-
-	memset(&seg, 0, sizeof(seg));
-	seg.attr = SG_PHYSICAL;
-	seg.name = smalloc(NAMELEN);
-	snprint(seg.name, NAMELEN, "t2r4mmio");
-	seg.pa = mmio;
-	seg.size = p->mem[4].size;
-	addphysseg(&seg);
+	addvgaseg("t2r4mmio", mmio, p->mem[4].size);
 
 	scr->mmio = KADDR(mmio);
 
@@ -146,13 +138,7 @@ t2r4enable(VGAscr* scr)
 	if(aperture){
 		scr->aperture = aperture;
 		scr->apsize = size;
-		memset(&seg, 0, sizeof(seg));
-		seg.attr = SG_PHYSICAL;
-		seg.name = smalloc(NAMELEN);
-		snprint(seg.name, NAMELEN, "t2r4screen");
-		seg.pa = aperture;
-		seg.size = size;
-		addphysseg(&seg);
+		addvgaseg("t2r4screen", aperture, size);
 	}
 }
 
@@ -576,6 +562,7 @@ t2r4drawinit(VGAscr *scr)
 	scr->fill = t2r4hwfill;
 	scr->scroll = t2r4hwscroll;
 	scr->blank = t2r4blank;
+	hwblank = 1;
 }
 
 VGAdev vgat2r4dev = {

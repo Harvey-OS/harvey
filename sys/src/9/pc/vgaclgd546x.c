@@ -75,7 +75,6 @@ static void
 clgd546xenable(VGAscr* scr)
 {
 	Pcidev *p;
-	Physseg seg;
 	int size, align;
 	ulong aperture;
 
@@ -101,14 +100,7 @@ clgd546xenable(VGAscr* scr)
 	scr->io = upamalloc(p->mem[1].bar & ~0x0F, p->mem[1].size, 0);
 	if(scr->io == 0)
 		return;
-
-	memset(&seg, 0, sizeof(seg));
-	seg.attr = SG_PHYSICAL;
-	seg.name = smalloc(NAMELEN);
-	snprint(seg.name, NAMELEN, "clgd546xmmio");
-	seg.pa = scr->io;
-	seg.size = p->mem[1].size;
-	addphysseg(&seg);
+	addvgaseg("clgd546xmmio", scr->io, p->mem[1].size);
 
 	scr->io = (ulong)KADDR(scr->io);
 
@@ -118,13 +110,7 @@ clgd546xenable(VGAscr* scr)
 	if(aperture) {
 		scr->aperture = aperture;
 		scr->apsize = size;
-		memset(&seg, 0, sizeof(seg));
-		seg.attr = SG_PHYSICAL;
-		seg.name = smalloc(NAMELEN);
-		snprint(seg.name, NAMELEN, "clgd546xscreen");
-		seg.pa = aperture;
-		seg.size = size;
-		addphysseg(&seg);
+		addvgaseg("clgd546xscreen", aperture, size);
 	}
 }
 

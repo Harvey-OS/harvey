@@ -7,21 +7,20 @@
 
 /* see also: ../stdio/strerror.c, with errno-> string mapping */
 
-char _plan9err[ERRLEN];
+char _plan9err[ERRMAX];
 
 static struct errmap {
 	int	errno;
 	char	*ename;
 } map[] = {
-	/* from Brazil power errstr.h */
-	{EINVAL,	"never mind"},
+	/* from /sys/src/9/port/errstr.h */
 	{EINVAL,	"inconsistent mount"},
 	{EINVAL,	"not mounted"},
 	{EINVAL,	"not in union"},
 	{EIO,		"mount rpc error"},
 	{EIO,		"mounted device shut down"},
 	{EPERM,	"mounted directory forbids creation"},
-	{ENOENT,	"file does not exist"},
+	{ENOENT,	"does not exist"},
 	{ENXIO,	"unknown device in # filename"},
 	{ENOTDIR,	"not a directory"},
 	{EISDIR,	"file is a directory"},
@@ -34,50 +33,28 @@ static struct errmap {
 	{EIO,		"i/o error"},
 	{EIO,		"read or write too large"},
 	{EIO,		"read or write too small"},
-	{EINVAL,	"bad network address"},
-	{EMSGSIZE,	"message is too big for protocol"},
-	{EISCON,	"network device is busy or allocated"},
-	{EPFNOSUPPORT,	"network protocol not supported"},
 	{EADDRINUSE,	"network port not available"},
-	{ENETDOWN,	"bad interface or no free interface slots"},
-	{ENOTCONN,	"not announced"},
 	{ESHUTDOWN,	"write to hungup stream"},
-	{EINVAL,	"bad process or stream control request"},
+	{ESHUTDOWN,	"i/o on hungup channel"},
+	{EINVAL,	"bad process or channel control request"},
 	{EBUSY,	"no free devices"},
-	{EBUSY,	"no free environment resources"},
-	{ESHUTDOWN,	"mux server shut down"},
-	{EBUSY,	"all mux channels busy"},
-	{EIO,		"bad mux message format or mismatch"},
 	{ESRCH,		"process exited"},
 	{ECHILD,	"no living children"},
 	{EIO,		"i/o error in demand load"},
 	{ENOMEM,	"virtual memory allocation failed"},
-	{EINVAL,	"illegal line discipline"},
 	{EBADF,	"fd out of range or not open"},
+	{EMFILE,	"no free file descriptors"},
 	{ESPIPE,	"seek on a stream"},
 	{ENOEXEC,	"exec header invalid"},
 	{ETIMEDOUT,	"connection timed out"},
 	{ECONNREFUSED,	"connection refused"},
-	{ENETUNREACH,	"network unreachable"},
+	{ECONNREFUSED,	"connection in use"},
 	{EINTR,		"interrupted"},
-	{ENETDOWN,	"service required for tcp/udp/il calls"},
 	{ENOMEM,	"kernel allocate failed"},
-	{ENOENT,	"subfont not cached"},
 	{EINVAL,	"segments overlap"},
-	{EINVAL,	"mouse type already set"},
-	{EIO,		"failed to recover fd"},
 	{EIO,		"i/o count too small"},
-	{ENOMEM,	"out of screen memory"},
-	{EGREG,	"coherency problem"},
+	{EGREG,	"ken has left the building"},
 	{EINVAL,	"bad attach specifier"},
-
-	/* extra ones from Plan 9 power errstr.h */
-	{EINVAL,	"bad bitblt or bitmap request"},
-	{EINVAL,	"unallocated bitmap"},
-	{ENOMEM,	"out of bitmap descriptors"},
-	{ENOMEM,	"out of bitmap storage"},
-	{EINVAL,	"unallocated font"},
-	{EGREG,	"it's a thermal problem"},
 
 	/* from exhausted() calls in kernel */
 	{ENFILE,	"no free file descriptors"},
@@ -135,10 +112,13 @@ _syserrno(void)
 {
 	int i;
 
-	if(_ERRSTR(_plan9err) < 0)
+	if(_ERRSTR(_plan9err, sizeof _plan9err) < 0)
 		errno = EINVAL;
-	for(i = 0; i < NERRMAP; i++)
-		if(strcmp(_plan9err, map[i].ename) == 0)
-			break;
-	errno = (i < NERRMAP)? map[i].errno : EINVAL;
+	else{
+		for(i = 0; i < NERRMAP; i++)
+			if(strstr(_plan9err, map[i].ename) != 0)
+				break;
+		_ERRSTR(_plan9err, sizeof _plan9err);
+		errno = (i < NERRMAP)? map[i].errno : EINVAL;
+	}
 }

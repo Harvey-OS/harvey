@@ -4,6 +4,7 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include	"../ip/ip.h"
 
 typedef struct DS DS;
 static Chan*	call(char*, char*, DS*);
@@ -12,7 +13,6 @@ static void	_dial_string_parse(char*, DS*);
 enum
 {
 	Maxstring=	128,
-	Maxpath=	256,
 };
 
 struct DS
@@ -53,7 +53,7 @@ call(char *clone, char *dest, DS *ds)
 {
 	int n;
 	Chan *dchan, *cchan;
-	char name[3*NAMELEN+5], data[3*NAMELEN+10], *p;
+	char name[Maxpath], data[Maxpath], *p;
 
 	cchan = namec(clone, Aopen, ORDWR, 0);
 
@@ -70,7 +70,7 @@ call(char *clone, char *dest, DS *ds)
 	p = strrchr(clone, '/');
 	*p = 0;
 	if(ds->dir)
-		snprint(ds->dir, 2*NAMELEN, "%s/%s", clone, name);
+		snprint(ds->dir, Maxpath, "%s/%s", clone, name);
 	snprint(data, sizeof(data), "%s/%s/data", clone, name);
 
 	/* connect */

@@ -31,8 +31,8 @@ enum
 	Nhash=		64,	/* Fid hash buckets */
 };
 
-#define TYPE(x) (x.path & 0xf)
-#define CONS(x) ((x.path >> 4)&0xfff)
+#define TYPE(x) (((ulong)x.path) & 0xf)
+#define CONS(x) ((((ulong)x.path) >> 4)&0xfff)
 #define QID(c, x) (((c)<<4) | (x))
 
 struct Request
@@ -41,7 +41,7 @@ struct Request
 	Fid	*fid;
 	Fs	*fs;
 	Fcall	f;
-	char	buf[1];
+	uchar	buf[1];
 };
 
 struct Reqlist
@@ -61,7 +61,7 @@ struct Fid
 
 	int	attached;
 	int	open;
-	char	user[NAMELEN];
+	char	*user;
 	Qid	qid;
 
 	Console	*c;
@@ -97,6 +97,7 @@ struct Fs
 	Lock;
 
 	int	fd;		/* to kernel mount point */
+	int	messagesize;
 	Fid	*hash[Nhash];
 	Console	*cons[Maxcons];
 	int	ncons;
@@ -109,16 +110,15 @@ extern	void	fsreader(void*);
 extern	void	fsrun(void*);
 extern	Fid*	fsgetfid(Fs*, int);
 extern	void	fsputfid(Fs*, Fid*);
-extern	int	fsdirgen(Fs*, Qid, int, Dir*, char*);
+extern	int	fsdirgen(Fs*, Qid, int, Dir*, uchar*, int);
 extern	void	fsreply(Fs*, Request*, char*);
 extern	void	fskick(Fs*, Fid*);
 extern	int	fsreopen(Fs*, Console*);
 
-extern	void	fsnop(Fs*, Request*, Fid*);
-extern	void	fssession(Fs*, Request*, Fid*);
+extern	void	fsversion(Fs*, Request*, Fid*);
 extern	void	fsflush(Fs*, Request*, Fid*);
+extern	void	fsauth(Fs*, Request*, Fid*);
 extern	void	fsattach(Fs*, Request*, Fid*);
-extern	void	fsclone(Fs*, Request*, Fid*);
 extern	void	fswalk(Fs*, Request*, Fid*);
 extern	void	fsclwalk(Fs*, Request*, Fid*);
 extern	void	fsopen(Fs*, Request*, Fid*);
@@ -134,10 +134,9 @@ extern	void	fswstat(Fs*, Request*, Fid*);
 void 	(*fcall[])(Fs*, Request*, Fid*) =
 {
 	[Tflush]	fsflush,
-	[Tsession]	fssession,
-	[Tnop]		fsnop,
+	[Tversion]	fsversion,
+	[Tauth]	fsauth,
 	[Tattach]	fsattach,
-	[Tclone]	fsclone,
 	[Twalk]		fswalk,
 	[Topen]		fsopen,
 	[Tcreate]	fscreate,
@@ -153,12 +152,13 @@ char Eperm[]   = "permission denied";
 char Eexist[]  = "file does not exist";
 char Enotdir[] = "not a directory";
 char Eisopen[] = "file already open";
-char Ebadoffset[] = "bad read/write offset";
 char Ebadcount[] = "bad read/write count";
 char Enofid[] = "no such fid";
 
 char *consoledb = "/lib/ndb/consoledb";
 char *mntpt = "/mnt/consoles";
+
+int	messagesize = 8192+IOHDRSZ;
 
 void
 fatal(char *fmt, ...)
@@ -168,7 +168,7 @@ fatal(char *fmt, ...)
 
 	write(2, "consolefs: ", 10);
 	va_start(arg, fmt);
-	doprint(buf, buf+1024, fmt, arg);
+	vseprint(buf, buf+1024, fmt, arg);
 	va_end(arg);
 	write(2, buf, strlen(buf));
 	write(2, "\n", 1);
@@ -262,21 +262,20 @@ remtag(Reqlist *l, int tag)
 Qid
 parentqid(Qid q)
 {
-	if(q.path & CHDIR)
-		return (Qid){CHDIR|QID(0, Textern), 0};
+	if(q.type & QTDIR)
+		return (Qid){QID(0, Textern), 0, QTDIR};
 	else
-		return (Qid){CHDIR|QID(0, Ttopdir), 0};
+		return (Qid){QID(0, Ttopdir), 0, QTDIR};
 }
 
 int
-fsdirgen(Fs *fs, Qid parent, int i, Dir *d, char *buf)
+fsdirgen(Fs *fs, Qid parent, int i, Dir *d, uchar *buf, int nbuf)
 {
-	char name[NAMELEN];
+	static char name[64];
 	char *p;
 	int xcons;
 
-	strcpy(d->uid, "network");
-	strcpy(d->gid, "network");
+	d->uid = d->gid = d->muid = "network";
 	d->length = 0;
 	d->atime = time(nil);
 	d->mtime = d->atime;
@@ -288,8 +287,10 @@ fsdirgen(Fs *fs, Qid parent, int i, Dir *d, char *buf)
 		if(i != 0)
 			return -1;
 		p = "consoles";
-		d->mode = CHDIR|0555;
-		d->qid = (Qid){CHDIR|QID(0, Ttopdir), 0};
+		d->mode = DMDIR|0555;
+		d->qid.type = QTDIR;
+		d->qid.path = QID(0, Ttopdir);
+		d->qid.vers = 0;
 		break;
 	case Ttopdir:
 		xcons = i/3;
@@ -298,17 +299,23 @@ fsdirgen(Fs *fs, Qid parent, int i, Dir *d, char *buf)
 		p = fs->cons[xcons]->name;
 		switch(i%3){
 		case 0:
-			snprint(name, NAMELEN, "%sctl", p);
+			snprint(name, sizeof name, "%sctl", p);
 			p = name;
-			d->qid = (Qid){QID(xcons, Qctl), 0};
+			d->qid.type = QTFILE;
+			d->qid.path = QID(xcons, Qctl);
+			d->qid.vers = 0;
 			break;
 		case 1:
-			snprint(name, NAMELEN, "%sstat", p);
+			snprint(name, sizeof name, "%sstat", p);
 			p = name;
-			d->qid = (Qid){QID(xcons, Qstat), 0};
+			d->qid.type = QTFILE;
+			d->qid.path = QID(xcons, Qstat);
+			d->qid.vers = 0;
 			break;
 		case 2:
-			d->qid = (Qid){QID(xcons, Qdata), 0};
+			d->qid.type = QTFILE;
+			d->qid.path = QID(xcons, Qdata);
+			d->qid.vers = 0;
 			break;
 		}
 		d->mode = 0666;
@@ -316,11 +323,10 @@ fsdirgen(Fs *fs, Qid parent, int i, Dir *d, char *buf)
 	default:
 		return -1;
 	}
-	memset(d->name, 0, NAMELEN);
-	strcpy(d->name, p);
+	d->name = p;
 	if(buf != nil)
-		convD2M(d, buf);
-	return 1;
+		return convD2M(d, buf, nbuf);
+	return 0;
 }
 
 /*
@@ -331,8 +337,7 @@ fsmount(char *mntpt)
 {
 	Fs *fs;
 	int pfd[2], srv;
-	char trbuf[TICKREQLEN], buf[32];
-	Dir d;
+	char buf[32];
 	int n;
 	static void *v[2];
 
@@ -347,7 +352,7 @@ fsmount(char *mntpt)
 	proccreate(fsrun, v, 16*1024);
 
 	/* Typically mounted before /srv exists */
-	if(dirstat("#s/consoles", &d) < 0){
+	if(access("#s/consoles", AEXIST) < 0){
 		srv = create("#s/consoles", OWRITE, 0666);
 		if(srv < 0)
 			fatal("post: %r");
@@ -359,8 +364,7 @@ fsmount(char *mntpt)
 		close(srv);
 	}
 
-	if(fsession(pfd[1], trbuf) >= 0)
-		mount(pfd[1], mntpt, MBEFORE, "");
+	mount(pfd[1], -1, mntpt, MBEFORE, "");
 	close(pfd[1]);
 	return fs;
 }
@@ -529,7 +533,7 @@ bcastmembers(Fs *fs, Console *c, char *msg, Fid *f)
 	char buf[512];
 
 	sprint(buf, "[%s%s", msg, f->user);
-	for(fl = c->flist; fl != nil && strlen(buf) + NAMELEN + 8 < sizeof(buf); fl = fl->cnext){
+	for(fl = c->flist; fl != nil && strlen(buf) + 64 < sizeof(buf); fl = fl->cnext){
 		if(f == fl)
 			continue;
 		strcat(buf, ", ");
@@ -632,7 +636,7 @@ fsrun(void *v)
 	int n, t;
 	Request *r;
 	Fid *f;
-	Dir d;
+	Dir *d;
 	void **a = v;
 	Fs* fs;
 	int *pfd;
@@ -641,17 +645,18 @@ fsrun(void *v)
 	pfd = a[1];
 	fs->fd = pfd[0];
 	for(;;){
-		dirstat(consoledb, &d);
-		if(d.mtime != dbmtime){
-			dbmtime = d.mtime;
+		d = dirstat(consoledb);
+		if(d != nil && d->mtime != dbmtime){
+			dbmtime = d->mtime;
 			readdb(fs);
 		}
-		r = allocreq(fs, MAXRPC);
-		n = read9p(fs->fd, r->buf, MAXRPC);
+		free(d);
+		r = allocreq(fs, messagesize);
+		n = read9pmsg(fs->fd, r->buf, messagesize);
 		if(n <= 0)
 			fatal("unmounted");
 
-		if(convM2S(r->buf, &r->f, n) == 0){
+		if(convM2S(r->buf, n, &r->f) == 0){
 			fprint(2, "can't convert %ux %ux %ux\n", r->buf[0],
 				r->buf[1], r->buf[2]);
 			free(r);
@@ -662,7 +667,7 @@ fsrun(void *v)
 		f = fsgetfid(fs, r->f.fid);
 		r->fid = f;
 		if(debug)
-			fprint(2, "%F path %lux\n", &r->f, f->qid.path);
+			fprint(2, "%F path %llux\n", &r->f, f->qid.path);
 
 		t = r->f.type;
 		r->f.type++;
@@ -711,22 +716,34 @@ fsputfid(Fs *fs, Fid *f)
 			break;
 		}
 	unlock(fs);
+	free(f->user);
 	free(f);
 }
 
 
 void
-fsnop(Fs *fs, Request *r, Fid*)
+fsauth(Fs *fs, Request *r, Fid*)
 {
-	fsreply(fs, r, nil);
+	fsreply(fs, r, "consolefs: authentication not required");
 }
 
 void
-fssession(Fs *fs, Request *r, Fid*)
+fsversion(Fs *fs, Request *r, Fid*)
 {
-	memset(r->f.authid, 0, sizeof(r->f.authid));
-	memset(r->f.authdom, 0, sizeof(r->f.authdom));
-	memset(r->f.chal, 0, sizeof(r->f.chal));
+
+	if(r->f.msize < 256){
+		fsreply(fs, r, "message size too small");
+		return;
+	}
+	messagesize = r->f.msize;
+	if(messagesize > 8192+IOHDRSZ)
+		messagesize = 8192+IOHDRSZ;
+	r->f.msize = messagesize;
+	if(strncmp(r->f.version, "9P2000", 6) != 0){
+		fsreply(fs, r, "unrecognized 9P version");
+		return;
+	}
+	r->f.version = "9P2000";
 
 	fsreply(fs, r, nil);
 }
@@ -747,12 +764,14 @@ fsflush(Fs *fs, Request *r, Fid *f)
 void
 fsattach(Fs *fs, Request *r, Fid *f)
 {
-	f->qid = (Qid){CHDIR|QID(0, Ttopdir), 0};
+	f->qid.type = QTDIR;
+	f->qid.path = QID(0, Ttopdir);
+	f->qid.vers = 0;
 
 	if(r->f.uname[0])
-		memmove(f->user, r->f.uname, sizeof(f->user));
+		f->user = strdup(r->f.uname);
 	else
-		strcpy(f->user, "none");
+		f->user = strdup("none");
 
 	/* hold down the fid till the clunk */
 	f->attached = 1;
@@ -760,30 +779,7 @@ fsattach(Fs *fs, Request *r, Fid *f)
 	f->ref++;
 	unlock(fs);
 
-	memset(r->f.rauth, 0, sizeof(r->f.rauth));
 	r->f.qid = f->qid;
-	fsreply(fs, r, nil);
-}
-
-void
-fsclone(Fs *fs, Request *r, Fid *f)
-{
-	Fid *nf;
-
-	if(f->attached == 0){
-		fsreply(fs, r, Enofid);
-		return;
-	}
-
-	nf = fsgetfid(fs, r->f.newfid);
-	nf->attached = f->attached;
-	nf->open = f->open;
-	nf->qid = f->qid;
-	memmove(nf->user, f->user, sizeof(f->user));
-	nf->c = f->c;
-	nf->wp = nf->buf;
-	nf->rp = nf->wp;
-
 	fsreply(fs, r, nil);
 }
 
@@ -792,30 +788,65 @@ fswalk(Fs *fs, Request *r, Fid *f)
 {
 	char *name;
 	Dir d;
-	int i;
+	int i, nqid, nwname;
+	Qid qid, wqid[MAXWELEM];
+	Fid *nf;
+	char *err;
 
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
 		return;
 	}
 
-	name = r->f.name;
-	if(strcmp(name, "..") == 0)
-		f->qid = parentqid(f->qid);
-	else if(strcmp(name, ".") != 0){
-		for(i = 0; ; i++){
-			if(fsdirgen(fs, f->qid, i, &d, nil) < 0){
-				fsreply(fs, r, Eexist);
-				return;
-			}
-			if(strcmp(name, d.name) == 0){
-				f->qid = d.qid;
+	nf = nil;
+	if(r->f.fid != r->f.newfid){
+		nf = fsgetfid(fs, r->f.newfid);
+		nf->attached = f->attached;
+		nf->open = f->open;
+		nf->qid = f->qid;
+		nf->user = strdup(f->user);
+		nf->c = f->c;
+		nf->wp = nf->buf;
+		nf->rp = nf->wp;
+		f = nf;
+	}
+
+	qid = f->qid;
+	err = nil;
+	nwname = r->f.nwname;
+	nqid = 0;
+	if(nwname > 0){
+		for(; err == nil && nqid < nwname; nqid++){
+			if(nqid >= MAXWELEM){
+				err = "too many name elements";
 				break;
 			}
+			name = r->f.wname[nqid];
+			if(strcmp(name, "..") == 0)
+				qid = parentqid(qid);
+			else if(strcmp(name, ".") != 0){
+				for(i = 0; ; i++){
+					if(fsdirgen(fs, qid, i, &d, nil, 0) < 0){
+						err = Eexist;
+						break;
+					}
+					if(strcmp(name, d.name) == 0){
+						qid = d.qid;
+						break;
+					}
+				}
+			}
+			wqid[nqid] = qid;
 		}
+		if(nf != nil && nqid < nwname)
+			fsputfid(fs, nf);
+		if(nqid == nwname)
+			f->qid = qid;
 	}
-	r->f.qid = f->qid;
-	fsreply(fs, r, nil);
+
+	memmove(r->f.wqid, wqid, nqid*sizeof(Qid));
+	r->f.nwqid = nqid;
+	fsreply(fs, r, err);
 }
 
 int
@@ -882,7 +913,7 @@ fsopen(Fs *fs, Request *r, Fid *f)
 
 	mode = r->f.mode & 3;
 
-	if((CHDIR & f->qid.path) && mode != OREAD){
+	if((QTDIR & f->qid.type) && mode != OREAD){
 		fsreply(fs, r, Eperm);
 		return;
 	}
@@ -924,6 +955,7 @@ fsopen(Fs *fs, Request *r, Fid *f)
 	}
 
 	f->open = 1;
+	r->f.iounit = messagesize-IOHDRSZ;
 	r->f.qid = f->qid;
 	fsreply(fs, r, nil);
 }
@@ -937,10 +969,11 @@ fscreate(Fs *fs, Request *r, Fid*)
 void
 fsread(Fs *fs, Request *r, Fid *f)
 {
-	char *p, *e;
-	int i;
+	uchar *p, *e;
+	int i, m, off;
+	vlong offset;
 	Dir d;
-	char sbuf[128];
+	char sbuf[ERRMAX];
 
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
@@ -952,24 +985,20 @@ fsread(Fs *fs, Request *r, Fid *f)
 		return;
 	}
 
-	if(CHDIR & f->qid.path){
-		if((r->f.offset % DIRLEN) != 0){
-			fsreply(fs, r, Ebadoffset);
-			return;
-		}
-		if(r->f.count < DIRLEN){
-			fsreply(fs, r, Ebadcount);
-			return;
-		}
-		p = r->buf;
-		e = r->buf + (r->f.count/DIRLEN)*DIRLEN;
-		for(i = r->f.offset/DIRLEN; p < e; i++){
-			if(fsdirgen(fs, f->qid, i, &d, p) < 0)
+	if(QTDIR & f->qid.type){
+		p = r->buf + IOHDRSZ;
+		e = p + r->f.count;
+		offset = r->f.offset;
+		off = 0;
+		for(i=0; p<e; i++, off+=m){
+			m = fsdirgen(fs, f->qid, i, &d, p, e-p);
+			if(m <= BIT16SZ)
 				break;
-			p += DIRLEN;
+			if(off >= offset)
+				p += m;
 		}
-		r->f.data = r->buf;
-		r->f.count = p - r->buf;
+		r->f.data = (char*)r->buf + IOHDRSZ;
+		r->f.count = (char*)p - r->f.data;
 	} else {
 		switch(TYPE(f->qid)){
 		case Qdata:
@@ -977,16 +1006,15 @@ fsread(Fs *fs, Request *r, Fid *f)
 			fskick(fs, f);
 			return;
 		case Qctl:
-			r->f.data = r->buf;
+			r->f.data = (char*)r->buf+IOHDRSZ;
 			r->f.count = 0;
 			break;
 		case Qstat:
-			seek(f->c->sfd, r->f.offset, 0);
 			if(r->f.count > sizeof(sbuf))
 				r->f.count = sizeof(sbuf);
-			i = read(f->c->sfd, sbuf, r->f.count);
+			i = pread(f->c->sfd, sbuf, r->f.count, r->f.offset);
 			if(i < 0){
-				errstr(sbuf);
+				errstr(sbuf, sizeof sbuf);
 				fsreply(fs, r, sbuf);
 				return;
 			}
@@ -1016,7 +1044,7 @@ fswrite(Fs *fs, Request *r, Fid *f)
 		return;
 	}
 
-	if(CHDIR & f->qid.path){
+	if(QTDIR & f->qid.type){
 		fsreply(fs, r, Eperm);
 		return;
 	}
@@ -1084,7 +1112,8 @@ fsstat(Fs *fs, Request *r, Fid *f)
 
 	q = parentqid(f->qid);
 	for(i = 0; ; i++){
-		if(fsdirgen(fs, q, i, &d, r->f.stat) < 0){
+		r->f.stat = r->buf+IOHDRSZ;
+		if((r->f.nstat = fsdirgen(fs, q, i, &d, r->f.stat, messagesize-IOHDRSZ)) <= BIT16SZ){
 			fsreply(fs, r, Eexist);
 			return;
 		}
@@ -1104,17 +1133,17 @@ void
 fsreply(Fs *fs, Request *r, char *err)
 {
 	int n;
-	char buf[MAXRPC];
+	uchar buf[8192+IOHDRSZ];
 
 	if(err){
 		r->f.type = Rerror;
-		strncpy(r->f.ename, err, sizeof(r->f.ename));
+		r->f.ename = err;
 	}
-	n = convS2M(&r->f, buf);
+	n = convS2M(&r->f, buf, messagesize);
 	if(debug)
-		fprint(2, "%F path %lux\n", &r->f, r->fid->qid.path);
+		fprint(2, "%F path %llux n=%d\n", &r->f, r->fid->qid.path, n);
 	fsputfid(fs, r->fid);
-	if(write9p(fs->fd, buf, n) != n)
+	if(write(fs->fd, buf, n) != n)
 		fatal("unmounted");
 	free(r);
 }
@@ -1134,7 +1163,7 @@ fskick(Fs *fs, Fid *f)
 		r = remreq(&f->r);
 		if(r == nil)
 			break;
-		p = r->buf;
+		p = (char*)r->buf;
 		rp = f->rp;
 		wp = f->wp;
 		ep = &f->buf[Bufsize];
@@ -1144,8 +1173,8 @@ fskick(Fs *fs, Fid *f)
 				rp = f->buf;
 		}
 		f->rp = rp;
-		r->f.data = r->buf;
-		r->f.count = p - r->buf;
+		r->f.data = (char*)r->buf;
+		r->f.count = p - (char*)r->buf;
 		fsreply(fs, r, nil);
 	}
 	unlock(f);
@@ -1161,7 +1190,7 @@ usage(void)
 void
 threadmain(int argc, char **argv)
 {
-	fmtinstall('F', fcallconv);
+	fmtinstall('F', fcallfmt);
 
 	ARGBEGIN{
 	case 'd':

@@ -1,6 +1,7 @@
 /*
  * sorted by 4,/^$/|sort -bd +1
  */
+int	fqid(int fd, Qid *qid);
 int	BNList(Biobuf *b, NList *nl, char *sep);
 int	BSList(Biobuf *b, SList *sl, char *sep);
 int	BimapMimeParams(Biobuf *b, MimeHdr *mh);
@@ -11,7 +12,8 @@ int	Brfc822date(Biobuf *b, Tm *tm);
 int	appendSave(char *mbox, int flags, char *head, Biobuf *b, long n);
 void	bye(char *fmt, ...);
 int	cdCreate(char *dir, char *file, int mode, ulong perm);
-int	cdDirstat(char *dir, char *file, Dir *d);
+int	cdExists(char *dir, char *file);
+Dir	*cdDirstat(char *dir, char *file);
 int	cdDirwstat(char *dir, char *file, Dir *d);
 int	cdOpen(char *dir, char *file, int mode);
 int	cdRemove(char *dir, char *file);
@@ -30,6 +32,7 @@ int	createBox(char *mbox, int dir);
 Tm	*date2tm(Tm *tm, char *date);
 int	decmutf7(char *out, int nout, char *in);
 int	deleteMsgs(Box *box);
+void	debuglog(char *fmt, ...);
 void	*emalloc(ulong);
 int	emptyImp(char *mbox);
 void	enableForwarding(void);
@@ -90,7 +93,7 @@ int	okMbox(char *mbox);
 Box	*openBox(char *name, char *fsname, int writable);
 int	openLocked(char *dir, char *file, int mode);
 void	parseErr(char *msg);
-int	passCheck(char *user, char *pass);
+AuthInfo	*passLogin(char*, char*);
 char	*readFile(int fd);
 void	resetCurDir(void);
 Fetch	*revFetch(Fetch *f);
@@ -101,7 +104,7 @@ int	searchMsg(Msg *m, Search *s);
 long	selectFields(char *dst, long n, char *hdr, SList *fields, int matches);
 void	sendFlags(Box *box, int uids);
 void	setFlags(Box *box, Msg *m, int f);
-void	setupuser(void);
+void	setupuser(AuthInfo*);
 int	storeMsg(Box *box, Msg *m, int uids, void *fetch);
 char	*strmutf7(char*);
 void	strrev(char *s, char *e);

@@ -17,7 +17,7 @@ and
 .B -a
 options configure
 .I vt
-to emulate a VT-220 and Ansi terimal respectively.
+to emulate a VT-220 and Ansi terminal respectively.
 The
 .B -s
 options forces a saner color scheme, i.e, black text on white

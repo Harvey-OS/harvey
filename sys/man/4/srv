@@ -1,10 +1,10 @@
 .TH SRV 4 
 .SH NAME
-srv, 9fs \- start network file service
+srv, srvold9p, 9fs \- start network file service
 .SH SYNOPSIS
 .B srv
 [
-.B -abcCmqr
+.B -abcCmq
 ]
 .RI [ net !] system\c
 .RI [! service ]
@@ -17,6 +17,33 @@ srv, 9fs \- start network file service
 .B 9fs
 .RI [ net !] system
 .RI [ mountpoint ]
+.PP
+.B srvold9p
+[
+.B -abcCd
+] [
+.B -u
+.I user
+] [
+.B -s
+| [
+.B -m
+.I mountpoint
+] ] [
+.B -x
+.I command
+|
+.B -n
+.I network-addr
+|
+.B -f
+.I file
+] [
+.B -F
+] [
+.B -p
+.I servicename
+]
 .SH DESCRIPTION
 .I Srv
 dials the given machine and initializes the connection to serve the
@@ -105,6 +132,65 @@ to make the dump file system available on
 is an
 .IR rc (1)
 script; examine it to see what local conventions apply.
+.PP
+.I Srvold9p
+is a compatibilty hack to allow Fourth Edition Plan 9 systems
+to connect to older 9P servers.
+It functions as a variant of
+.I srv
+that performs a version translation on the 9P messages on the underlying connection.
+Some of its options are the same as those of
+.IR srv ;
+the special ones are:
+.TP
+.B -d
+Enable debuggging
+.TP
+.BI -u\  user
+When connecting to the remote server, log in as
+.IR user .
+Since
+.I srvold9p
+does no authentication, and since new kernels cannot authenticate to
+old services, the likeliest value of
+.I user
+is
+.BR none .
+.TP
+.BI -x\  command
+Run
+.I command
+and use its standard input and output as the 9P service connection.
+If the
+.I command
+string contains blanks, it should be quoted.
+.TP
+.BI -n\  network-addr
+Dial
+.I network-addr
+to establish the connection.
+.TP
+.BI -f\  file
+Use
+.I file
+(typically an existing
+.IR srv (3)
+file) as the connection.
+.TP
+.B -F
+Insert a special (internal) filter process to the connection to maintain
+message boundaries; usually only needed on TCP connections.
+.TP
+.BI -p\  servicename
+Post the service under
+.IR srv (3)
+as
+.BI /srv/ servicename\f1.
+.PP
+.I Srvold9p
+is run automatically when a
+.IR cpu (1)
+call is received on the service port for the old protocol.
 .SH EXAMPLES
 To see kremvax's and deepthought's files in
 .B /n/kremvax
@@ -113,7 +199,21 @@ and
 .IP
 .EX
 9fs kremvax
-9fs hhgttg/deepthought
+9fs hhgttg /n/deepthought
+.EE
+.PP
+To mount as user
+.B none
+a connection to an older server kgbsun:
+.IP
+.EX
+srvold9p -u none -m /n/kgbsun -p kgbsun -n il!kgbsun
+.EE
+.PP
+Other windows may then mount the connection directly:
+.IP
+.EX
+mount /srv/kgbsun /n/kgbsun
 .EE
 .SH NOTE
 The TCP port used for 9P is 564.

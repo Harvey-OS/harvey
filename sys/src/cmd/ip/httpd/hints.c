@@ -64,10 +64,16 @@ urllookup(uint url)
 int
 Bage(Biobuf *b)
 {
-	Dir dir;
+	Dir *dir;
+	long mtime;
 
-	dirfstat(Bfildes(b),&dir);
-	return time(0)-dir.mtime;
+	dir = dirfstat(Bfildes(b));
+	if(dir != nil)
+		mtime = dir->mtime;
+	else
+		mtime = 0;
+	free(dir);
+	return time(nil) - mtime;
 }
 
 void
@@ -238,7 +244,7 @@ hintprint(HConnect *hc, Hio *hout, char *uri, int thresh, int havej)
 {
 	int i, j, pr, prefix, fd, siz, havei, newhint = 0, n;
 	char *query, *sf, etag[32], *wurl;
-	Dir dir;
+	Dir *dir;
 	Hint *h, *haveh;
 
 	query = hstrdup(hc, uri);
@@ -269,13 +275,15 @@ hintprint(HConnect *hc, Hio *hout, char *uri, int thresh, int havej)
 		fd = open(wurl, OREAD);
 		if(fd<0)
 			continue;
-		if(dirfstat(fd, &dir) < 0){
+		dir = dirfstat(fd);
+		if(dir == nil){
 			close(fd);
 			continue;
 		}
 		close(fd);
-		snprint(etag, sizeof(etag), "\"%luxv%lux\"", dir.qid.path, dir.qid.vers);
-		siz = (int)( log((double)dir.length) * RECIPLOG2 + 0.9999);
+		snprint(etag, sizeof(etag), "\"%lluxv%lux\"", dir->qid.path, dir->qid.vers);
+		siz = (int)( log((double)dir->length) * RECIPLOG2 + 0.9999);
+		free(dir);
 		if(strncmp(uri,sf,prefix)==0 && strchr(sf+prefix,'/')==0 && sf[prefix]!=0)
 			sf = sf+prefix;
 		hprint(hout, "Fresh: %d,%s,%d,%s\r\n", pr, etag, siz, sf);

@@ -26,7 +26,7 @@ struct Extent
 typedef struct Mntcache Mntcache;
 struct Mntcache
 {
-	Qid;
+	Qid	qid;
 	int	dev;
 	int	type;
 	QLock;
@@ -148,7 +148,7 @@ cprint(Chan *c, Mntcache *m, char *s)
 		o = e->start+e->len;
 	}
 	pprint("%s: 0x%lux.0x%lux %d %d %s (%d %c)\n",
-	s, m->path, m->vers, m->type, m->dev, c->name, nb, ct ? 'C' : 'N');
+	s, m->qid.path, m->qid.vers, m->type, m->dev, c->name, nb, ct ? 'C' : 'N');
 
 	for(e = m->list; e; e = e->next) {
 		pprint("\t%4d %5d %4d %lux\n",
@@ -216,21 +216,23 @@ copen(Chan *c)
 	Extent *e, *next;
 	Mntcache *m, *f, **l;
 
-	if(c->qid.path&CHDIR)
+	/* directories aren't cacheable and append-only files confuse us */
+	if(c->qid.type&(QTDIR|QTAPPEND))
 		return;
 
 	h = c->qid.path%NHASH;
 	lock(&cache);
 	for(m = cache.hash[h]; m; m = m->hash) {
-		if(m->path == c->qid.path)
+		if(m->qid.path == c->qid.path)
+		if(m->qid.type == c->qid.type)
 		if(m->dev == c->dev && m->type == c->type) {
 			c->mcp = m;
 			ctail(m);
 			unlock(&cache);
 
 			/* File was updated, invalidate cache */
-			if(m->vers != c->qid.vers) {
-				m->vers = c->qid.vers;
+			if(m->qid.vers != c->qid.vers) {
+				m->qid.vers = c->qid.vers;
 				qlock(m);
 				cnodata(m);
 				qunlock(m);
@@ -241,7 +243,7 @@ copen(Chan *c)
 
 	/* LRU the cache headers */
 	m = cache.head;
-	l = &cache.hash[m->path%NHASH];
+	l = &cache.hash[m->qid.path%NHASH];
 	for(f = *l; f; f = f->hash) {
 		if(f == m) {
 			*l = m->hash;
@@ -250,7 +252,7 @@ copen(Chan *c)
 		l = &f->hash;
 	}
 
-	m->Qid = c->qid;
+	m->qid = c->qid;
 	m->dev = c->dev;
 	m->type = c->type;
 
@@ -276,13 +278,15 @@ copen(Chan *c)
 static int
 cdev(Mntcache *m, Chan *c)
 {
-	if(m->path != c->qid.path)
+	if(m->qid.path != c->qid.path)
+		return 0;
+	if(m->qid.type != c->qid.type)
 		return 0;
 	if(m->dev != c->dev)
 		return 0;
 	if(m->type != c->type)
 		return 0;
-	if(m->vers != c->qid.vers)
+	if(m->qid.vers != c->qid.vers)
 		return 0;
 	return 1;
 }
@@ -573,7 +577,7 @@ cwrite(Chan* c, uchar *buf, int len, vlong off)
 	}
 
 	offset = off;
-	m->vers++;
+	m->qid.vers++;
 	c->qid.vers++;
 
 	p = 0;

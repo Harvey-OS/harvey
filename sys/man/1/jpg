@@ -1,6 +1,6 @@
 .TH JPG 1
 .SH NAME
-jpg, gif, ppm, togif, toppm, topng \- view and convert pictures
+jpg, gif, png, ppm, togif, toppm, topng \- view and convert pictures
 .SH SYNOPSIS
 .B jpg
 [
@@ -16,6 +16,12 @@ jpg, gif, ppm, togif, toppm, topng \- view and convert pictures
 .I file ...
 ]
 .PP
+.B png
+[
+.B -39cdektv
+] [
+.I file ...
+]
 .B ppm
 [
 .B -39cdektv
@@ -68,6 +74,7 @@ jpg, gif, ppm, togif, toppm, topng \- view and convert pictures
 These programs read, display, and write image files in public formats.
 .IR Jpg ,
 .IR gif ,
+.IR png ,
 and
 .I ppm
 read files in the corresponding formats and, by default, display
@@ -127,7 +134,7 @@ but produce an uncompressed image.
 This saves processing time, particularly when the output is
 being piped to another program such as
 .IR page (1),
-since it avoid compression and decompression.
+since it avoids compression and decompression.
 .TP
 .B -t
 Convert the image, if it is in color, to a true color RGB image.

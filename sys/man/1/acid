@@ -1,6 +1,6 @@
 .TH ACID 1
 .SH NAME
-acid \- debugger
+acid, truss, trump \- debugger
 .SH SYNOPSIS
 .B acid
 [
@@ -12,6 +12,21 @@ acid \- debugger
 .B -m
 .I machine
 ] [
+.I pid
+]
+[
+.I textfile
+]
+.PP
+.B acid
+.B -l
+.B truss
+.I textfile
+.PP
+.B acid
+.B -l
+.B trump
+[
 .I pid
 ]
 [
@@ -278,6 +293,44 @@ Make the given process current.
 Escape to the shell,
 .IR rc (1),
 to execute the command string.
+.SS Libraries
+There are a number of
+.I acid
+`libraries' that provide higher-level debugging facilities.  Two notable
+examples are
+.I truss
+and
+.IR trump ,
+which use
+.I acid
+to trace system calls
+.RI ( truss )
+and memory allocation
+.RI ( trump ).
+Both require starting
+.I acid
+on the program, either by attaching to a running process or by
+executing
+.B new()
+on a binary (perhaps after setting
+.BR progargs ),
+stopping the process, and then running
+.B truss()
+or
+.B trump()
+to execute the program under the scaffolding.
+The output will be a trace of the system calls
+.RI ( truss )
+or memory allocation and free calls
+.RI ( trump )
+executed by the program.
+When finished tracing, stop the process and execute
+.B untruss()
+or
+.B untrump()
+followed by
+.B cont()
+to resume execution.
 .SH EXAMPLES
 Start to debug
 .BR /bin/ls ;
@@ -334,6 +387,46 @@ string format, then prints the string beginning at the address (in
 .I acid
 notation)
 .BR *array .
+.PP
+Trace the system calls executed by
+.IR ls (1):
+.IP
+.EX
+% acid -l truss /bin/ls
+/bin/ls:386 plan 9 executable
+
+/sys/lib/acid/port
+/sys/lib/acid/kernel
+/sys/lib/acid/truss
+/sys/lib/acid/386
+acid: progargs = "-l lib/profile"
+acid: new()
+acid: truss()
+open("#c/pid", 0)
+	return value: 3
+pread(3, 0x7fffeeac, 20, -1)
+	return value: 12
+	data: "        166 "
+\&...
+stat("lib/profile", 0x0000f8cc, 113)
+	return value: 65
+open("/env/timezone", 0)
+	return value: 3
+pread(3, 0x7fffd7c4, 1680, -1)
+	return value: 1518
+	data: "EST -18000 EDT -14400
+   9943200   25664400   41392800   57718800   73447200   89168400
+ 104896800  ..."
+close(3)
+	return value: 0
+pwrite(1, "--rw-rw-r-- M 9 rob rob 2519 Mar 22 10:29 lib/profile
+", 54, -1)
+--rw-rw-r-- M 9 rob rob 2519 Mar 22 10:29 lib/profile
+	return value: 54
+\&...
+166: breakpoint	_exits+0x5	INTB	$0x40
+acid: cont()
+.EE
 .SH FILES
 .B /proc/*/text
 .br
@@ -346,6 +439,12 @@ notation)
 .B /sys/lib/acid/$objtype
 .br
 .B /sys/lib/acid/port
+.br
+.B /sys/lib/acid/kernel
+.br
+.B /sys/lib/acid/trump
+.br
+.B /sys/lib/acid/truss
 .br
 .B $home/lib/acid
 .SH SOURCE

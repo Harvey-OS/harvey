@@ -763,7 +763,7 @@ static int check_for_user_home()
 {
 	char* homedir = getenv(HOME);
 	char* rechome;
-	Dir dir;
+	Dir *dir;
 
 	if( homedir == nil ) {
 		the_last_error = "Home environment variable HOME not set.";
@@ -780,14 +780,17 @@ static int check_for_user_home()
 
     /*Create directory.*/
 
-    if (dirstat(rechome, &dir) == 0) {
-		if (dir.mode & CHDIR) {
+    dir = dirstat(rechome);
+    if (dir != nil) {
+		if (dir->mode & DMDIR) {
+			free(dir);
 			free(rechome);
 			return 0;
 		}
+		free(dir);
 	} else {
 		int fd;
-		if ((fd = create(rechome, OREAD, CHDIR|0755)) >= 0) {
+		if ((fd = create(rechome, OREAD, DMDIR|0755)) >= 0) {
 			close(fd);
     		free(rechome);
     		return(0);

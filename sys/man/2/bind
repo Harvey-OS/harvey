@@ -10,7 +10,7 @@ bind, mount, unmount \- change name space
 int bind(char *name, char *old, int flag)
 .PP
 .B
-int mount(int fd, char *old, int flag, char *aname)
+int mount(int fd, int afd, char *old, int flag, char *aname)
 .PP
 .B
 int unmount(char *name, char *old)
@@ -60,7 +60,14 @@ The
 argument to
 .I mount
 is a file descriptor of an open network connection
-or pipe to a file server.
+or pipe to a file server, while
+.I afd
+is a authentication file descriptor as created by
+.IR fauth (2)
+and subsequently authenticated.
+If authentication is not required,
+.I afd
+should be -1.
 The
 .I old
 file must be a directory.
@@ -227,10 +234,3 @@ will not return until it has successfully attached
 to the file server, so the process doing a
 .I mount
 cannot be the one serving.
-.PP
-The file system cache enabled by
-.B MCACHE
-mishandles (in fact, doesn't know about) append-only files.
-The fix requires a change to 9P.
-.B /lib/namespace
-mounts mailboxes, the most important append-only files, uncached.

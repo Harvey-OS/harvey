@@ -78,7 +78,7 @@ The default
 .I data
 partition may be deleted.
 A partition cannot be deleted if a process has it open.
-If a change of removeable media is detected,
+If a change of removable media is detected,
 the new media cannot be opened until all open partitions
 on the old media are closed.
 .PP

@@ -35,6 +35,13 @@ typedef struct Drive Drive;
 typedef struct Track Track;
 typedef struct Otrack Otrack;
 typedef struct Dev Dev;
+typedef struct Msf Msf;	/* minute, second, frame */
+
+struct Msf {
+	int m;
+	int s;
+	int f;
+};
 
 struct Track
 {
@@ -44,16 +51,19 @@ struct Track
 	ulong	beg;		/* beginning block number */
 	ulong	end;		/* ending block number */
 	int	type;
+	Msf	mbeg;
+	Msf	mend;
+
 
 	/* initialized by fs */
-	char	name[NAMELEN];
+	char	name[32];
 	int	mode;
 	int	mtime;
 };
 
 struct DTrack
 {
-	uchar	name[NAMELEN];
+	uchar	name[32];
 	uchar	beg[4];
 	uchar	end[4];
 	uchar	size[8];
@@ -81,6 +91,7 @@ struct Dev
 	int (*gettoc)(Drive*);
 	int (*fixate)(Drive *d);
 	char* (*ctl)(Drive *d, int argc, char **argv);
+	char* (*setspeed)(Drive *d, int r, int w);
 };
 
 struct Drive
@@ -99,7 +110,10 @@ struct Drive
 	Track	track[Ntrack];
 	ulong	cap;
 	uchar	blkbuf[BScdda];
-
+	int	maxreadspeed;
+	int	maxwritespeed;
+	int	readspeed;
+	int	writespeed;
 	Dev;
 
 	void *aux;	/* kept by driver */

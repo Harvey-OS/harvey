@@ -1,4 +1,0 @@
-TEXT _SYSR1(SB), 1, $-4
-MOVW $0, R0
-SWI 0
-RET

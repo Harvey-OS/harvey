@@ -91,7 +91,7 @@ giferror(Header *h, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(h->err, h->err+sizeof h->err, fmt, arg);
+	vseprint(h->err, h->err+sizeof h->err, fmt, arg);
 	va_end(arg);
 
 	werrstr(h->err);
@@ -106,7 +106,7 @@ readgif(int fd, int colorspace)
 	Rawimage **a;
 	Biobuf b;
 	Header *h;
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
 	buf[0] = '\0';
 	USED(colorspace);
@@ -119,7 +119,7 @@ readgif(int fd, int colorspace)
 	}
 	memset(h, 0, sizeof(Header));
 	h->fd = &b;
-	errstr(buf);	/* throw it away */
+	errstr(buf, sizeof buf);	/* throw it away */
 	if(setjmp(h->errlab))
 		a = nil;
 	else

@@ -1,6 +1,6 @@
 .TH MK9660 8
 .SH NAME
-mk9660 \- create an ISO-9660 CD image
+dump9660, mk9660 \- create an ISO-9660 CD image
 .SH SYNOPSIS
 .B disk/mk9660
 [
@@ -8,6 +8,10 @@ mk9660 \- create an ISO-9660 CD image
 ]
 [
 .B -9cjr
+]
+[
+.B -b
+.I bootfile
 ]
 [
 .B -p
@@ -76,7 +80,7 @@ or character restrictions.
 The
 .B -c
 flag causes
-.I 9660srv
+.I mk9660
 to use only file names in ``8.3'' form
 that use digits, letters, and underscore.
 File names that do not conform are changed
@@ -155,11 +159,26 @@ The
 .B -:
 flag causes 
 .B mk9660
-to replace colons in scanned filenames with spaces;
+to replace colons in scanned file names with spaces;
 this is the inverse of the map applied by
 .IR dossrv (4)
 and is useful for writing Joliet CDs containing data
 from FAT file systems.
+.PP
+The
+.B -b
+option creates a bootable CD.
+Bootable CDs contain pointers to floppy images which are
+loaded and booted by the BIOS.
+.I Bootfile
+should be the name of the floppy image to use;
+it is a path relative to the root of the created CD.
+That is, the boot floppy image must be listed in the
+.I proto
+file already:
+the
+.B -b
+flag just creates a pointer to it.
 .PP
 The
 .B -D

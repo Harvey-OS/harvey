@@ -24,6 +24,7 @@ enum {
 };
 
 static Dirtab vgadir[] = {
+	".",	{ Qdir, 0, QTDIR },		0,	0550,
 	"vgactl",	{ Qvgactl, 0 },		0,	0660,
 	"vgabios",	{ Qvgabios, 0 },		0x10000,	0440,
 };
@@ -47,16 +48,16 @@ vgaattach(char* spec)
 	return devattach('v', spec);
 }
 
-int
-vgawalk(Chan* c, char* name)
+Walkqid*
+vgawalk(Chan* c, Chan *nc, char** name, int nname)
 {
-	return devwalk(c, name, vgadir, nelem(vgadir), devgen);
+	return devwalk(c, nc, name, nname, vgadir, nelem(vgadir), devgen);
 }
 
-static void
-vgastat(Chan* c, char* dp)
+static int
+vgastat(Chan* c, uchar* dp, int n)
 {
-	devstat(c, dp, vgadir, nelem(vgadir), devgen);
+	return devstat(c, dp, n, vgadir, nelem(vgadir), devgen);
 }
 
 static Chan*
@@ -93,7 +94,7 @@ vgaread(Chan* c, void* a, long n, vlong off)
 	ulong offset = off;
 	char chbuf[30];
 
-	switch(c->qid.path & ~CHDIR){
+	switch((ulong)c->qid.path){
 
 	case Qdir:
 		return devdirread(c, a, n, vgadir, nelem(vgadir), devgen);
@@ -172,7 +173,7 @@ vgactl(char* a)
 	extern VGAcur *vgacur[];
 	Rectangle r;
 
-	n = getfields(a, field, nelem(field), 1, " ");
+	n = tokenize(a, field, nelem(field));
 	if(n < 1)
 		error(Ebadarg);
 
@@ -359,7 +360,7 @@ vgawrite(Chan* c, void* a, long n, vlong off)
 	char *p;
 	ulong offset = off;
 
-	switch(c->qid.path & ~CHDIR){
+	switch((ulong)c->qid.path){
 
 	case Qdir:
 		error(Eperm);
@@ -392,9 +393,9 @@ Dev vgadevtab = {
 	"vga",
 
 	vgareset,
-	devinit,
+	devinit,	
+	devshutdown,
 	vgaattach,
-	devclone,
 	vgawalk,
 	vgastat,
 	vgaopen,

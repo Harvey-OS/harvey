@@ -1,5 +1,5 @@
 #!/bin/rc
-# convert CCITT G3 Fax format to PostScript
+# convert JPG to PostScript
 if (! ~ $DEBUG '') flag x +
 PATCH='%%Patch from lp'
 switch ($LPCLASS) {
@@ -78,6 +78,5 @@ if (~ $MAG [.0-9]*) MAG=-m^$MAG
 if (! ~ $LAND '') LAND=-L
 if not LAND=()
 
-/$cputype/bin/jpg -9 | /$cputype/bin/aux/p9bitpost $MAG $LAND $PATCH | $LPLIB/process/hpost
+/$cputype/bin/jpg -t9 | /$cputype/bin/aux/p9bitpost $MAG $LAND $PATCH -p 32 26.17 | $LPLIB/process/hpost
 exit
-

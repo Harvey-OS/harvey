@@ -1,6 +1,6 @@
 .TH DIAL 2
 .SH NAME
-dial, hangup, announce, listen, accept, reject, netmkaddr, setnetmtpt \- make and break network connections
+dial, hangup, announce, listen, accept, reject, netmkaddr, setnetmtpt, getnetconninfo, freenetconninfo \- make and break network connections
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -29,6 +29,12 @@ char* netmkaddr(char *addr, char *defnet, char *defservice)
 .PP
 .B
 void  setnetmtpt(char *to, int tolen, char *from)
+.PP
+.B
+NetConnInfo*  getnetconninfo(char *conndir, int fd)
+.PP
+.B
+void freenetconninfo(NetConnINfo*)
 .SH DESCRIPTION
 For these routines,
 .I addr
@@ -175,6 +181,39 @@ It takes an address along with a default network and service to use
 if they are not specified in the address.
 It returns a pointer to static data holding the actual address to use.
 .PP
+.I Getnetconninfo
+returns a structure containing information about a
+network connection.  The structure is:
+.EX
+  typedef struct NetConnInfo NetConnInfo;
+  struct NetConnInfo
+  {
+	char	*dir;		/* connection directory */
+	char	*root;		/* network root */
+	char	*spec;		/* binding spec */
+	char	*lsys;		/* local system */
+	char	*lserv;		/* local service */
+	char	*rsys;		/* remote system */
+	char	*rserv;		/* remote service */
+  };
+.EE
+.PP
+The information is obtained from the connection directory,
+.IR conndir .
+If
+.I conndir
+is nil, the directory is obtained by performing
+.IR fd2path (2)
+on
+.IR fd .
+.I Getnetconninfo
+returns either a completely specified structure, or
+nil if either the structure can't be allocated or the
+network directory can't be determined.
+The structure
+is freed using
+.IR freenetconninfo .
+.PP
 .I Setnetmtpt
 copies the name of the network mount point into
 the buffer
@@ -276,6 +315,7 @@ bekremvax(void)
 }
 .EE
 .SH SOURCE
+.BR /sys/src/libc/9sys ,
 .B /sys/src/libc/port
 .SH "SEE ALSO"
 .IR auth (2),

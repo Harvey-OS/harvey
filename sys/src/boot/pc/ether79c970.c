@@ -1,5 +1,5 @@
 /*
- * AM79C970
+ * AMD79C970
  * PCnet-PCI Single-Chip Ethernet Controller for PCI Local Bus
  * To do:
  *	finish this rewrite
@@ -106,7 +106,7 @@ enum {					/* md2 */
 };
 
 typedef struct Ctlr Ctlr;
-typedef struct Ctlr {
+struct Ctlr {
 	Lock;
 	int	port;
 	Pcidev*	pcidev;
@@ -138,28 +138,49 @@ typedef struct Ctlr {
 	ulong	merr;			/* bobf is such a whiner */
 	ulong	miss;
 	ulong	babl;
-} Ctlr;
+
+	int		(*ior)(Ctlr*, int);
+	void		(*iow)(Ctlr*, int, int);
+};
 
 static Ctlr* ctlrhead;
 static Ctlr* ctlrtail;
 
-#define csr32r(c, r)	(inl((c)->port+(r)))
-#define csr32w(c, r, l)	(outl((c)->port+(r), (ulong)(l)))
+/*
+ * The Rdp, Rap, Sreset, Bdp ports are 32-bit port offset in the enumeration above.
+ * To get to 16-bit offsets, scale down with 0x10 staying the same.
+ */
+static int
+io16r(Ctlr* c, int r)
+{
+	if(r >= Rdp)
+		r = (r-Rdp)/2+Rdp;
+	return ins(c->port+r);
+}
 
 static void
-attach(Ether* ether)
+io16w(Ctlr* c, int r, int v)
 {
-	Ctlr *ctlr;
+	if(r >= Rdp)
+		r = (r-Rdp)/2+Rdp;
+	outs(c->port+r, v);
+}
 
-	ctlr = ether->ctlr;
+static int
+io32r(Ctlr* c, int r)
+{
+	return inl(c->port+r);
+}
 
-	ilock(ctlr);
-	if(ctlr->init){
-		iunlock(ctlr);
-		return;
-	}
-	csr32w(ctlr, Rdp, Iena|Strt);
-	iunlock(ctlr);
+static void
+io32w(Ctlr* c, int r, int v)
+{
+	outl(c->port+r, v);
+}
+
+static void
+attach(Ether*)
+{
 }
 
 static void
@@ -168,7 +189,7 @@ detach(Ether* ether)
 	Ctlr *ctlr;
 
 	ctlr = ether->ctlr;
-	csr32w(ctlr, Rdp, Iena|Stop);
+	ctlr->iow(ctlr, Rdp, Iena|Stop);
 }
 
 static void
@@ -227,15 +248,16 @@ transmit(Ether* ether)
 		 * increment the software ring descriptor pointer
 		 * and tell the chip to poll.
 		 * There's no need to pad to ETHERMINTU
-		 * here as ApadXmit is set in CSR4.
+		 * here as ApadXmt is set in CSR4.
 		 */
 		dre = &ctlr->tdr[ctlr->tdrh];
 		dre->data = bp;
 		dre->addr = PADDR(bp->rp);
 		dre->md2 = 0;
-		dre->md1 = Own|Stp|Enp|(-BLEN(bp) & 0xFFFF);
+		dre->md1 = Own|Stp|Enp|Oflo|(-BLEN(bp) & 0xFFFF);
 		ctlr->ntq++;
-		csr32w(ctlr, Rdp, Iena|Tdmd);
+		ctlr->iow(ctlr, Rap, 0);
+		ctlr->iow(ctlr, Rdp, Iena|Tdmd);
 		ctlr->tdrh = NEXT(ctlr->tdrh, Ntdre);
 
 		tb->owner = Host;
@@ -260,8 +282,8 @@ interrupt(Ureg*, void* arg)
 	 * happen.
 	 */
 intrloop:
-	csr0 = csr32r(ctlr, Rdp) & 0xFFFF;
-	csr32w(ctlr, Rdp, Babl|Cerr|Miss|Merr|Rint|Tint|Iena);
+	csr0 = ctlr->ior(ctlr, Rdp) & 0xFFFF;
+	ctlr->iow(ctlr, Rdp, Babl|Cerr|Miss|Merr|Rint|Tint|Iena);
 	if(csr0 & Merr)
 		ctlr->merr++;
 	if(csr0 & Miss)
@@ -371,15 +393,12 @@ amd79c970reset(Ether* ether)
 	int x;
 	uchar ea[Eaddrlen];
 	Ctlr *ctlr;
-	static int scandone;
 
-	if(scandone == 0){
+	if(ctlrhead == nil)
 		amd79c970pci();
-		scandone = 1;
-	}
 
 	/*
-	 * Any adapter matches if no ether->port is supplied,
+	 * Any adapter matches if no port is supplied,
 	 * otherwise the ports must match.
 	 */
 	for(ctlr = ctlrhead; ctlr != nil; ctlr = ctlr->next){
@@ -393,53 +412,77 @@ amd79c970reset(Ether* ether)
 	if(ctlr == nil)
 		return -1;
 
+	/*
+	 * Allocate a controller structure and start to initialise it.
+	 */
 	ether->ctlr = ctlr;
+	ether->port = ctlr->port;
 	ether->irq = ctlr->pcidev->intl;
 	ether->tbdf = ctlr->pcidev->tbdf;
 	pcisetbme(ctlr->pcidev);
 	ilock(ctlr);
 	ctlr->init = 1;
 
+	io32r(ctlr, Sreset);
+	io16r(ctlr, Sreset);
+
+	if(io16w(ctlr, Rap, 0), io16r(ctlr, Rdp) == 4){
+		ctlr->ior = io16r;
+		ctlr->iow = io16w;
+	}else if(io32w(ctlr, Rap, 0), io32r(ctlr, Rdp) == 4){
+		ctlr->ior = io32r;
+		ctlr->iow = io32w;
+	}else{
+		print("#l%d: card doesn't talk right\n", ether->ctlrno);
+		iunlock(ctlr);
+		return -1;
+	}
+
+	ctlr->iow(ctlr, Rap, 88);
+	x = ctlr->ior(ctlr, Rdp);
+	ctlr->iow(ctlr, Rap, 89);
+	x |= ctlr->ior(ctlr, Rdp)<<16;
+
+	switch(x&0xFFFFFFF){
+	case 0x2420003:	/* PCnet/PCI 79C970 */
+	case 0x2621003:	/* PCnet/PCI II 79C970A */
+		break;
+	default:
+		print("unknown PCnet card version %.7ux\n", x&0xFFFFFFF);
+		iunlock(ctlr);
+		return -1;
+	}
+
 	/*
-	 * How to tell what mode the chip is in at this point - if it's in WORD
-	 * mode then the only 32-bit access allowed is a write to the RDP, which
-	 * forces the chip to DWORD mode; if it's in DWORD mode then only DWORD
-	 * accesses are allowed?
-	 * Assuming a DWORD write is done to the RDP, what will be overwritten as
-	 * the RAP can't reliably be accessed?
-	 *
-	 * Force DWORD mode by writing to RDP, doing a reset then writing to RDP
-	 * again. The value of RAP after a reset is 0, so the second DWORD write
-	 * will be to CSR0.
 	 * Set the software style in BCR20 to be PCnet-PCI to ensure 32-bit access.
 	 * Set the auto pad transmit in CSR4.
 	 */
-	csr32w(ctlr, Rdp, 0x00);
-	csr32r(ctlr, Sreset);
-	csr32w(ctlr, Rdp, Stop);
+	ctlr->iow(ctlr, Rap, 20);
+	ctlr->iow(ctlr, Bdp, 0x0002);
 
-	csr32w(ctlr, Rap, 20);
-	csr32w(ctlr, Bdp, 0x0002);
+	ctlr->iow(ctlr, Rap, 4);
+	x = ctlr->ior(ctlr, Rdp) & 0xFFFF;
+	ctlr->iow(ctlr, Rdp, ApadXmt|x);
 
-	csr32w(ctlr, Rap, 4);
-	x = csr32r(ctlr, Rdp) & 0xFFFF;
-	csr32w(ctlr, Rdp, ApadXmt|x);
-
-	csr32w(ctlr, Rap, 0);
+	ctlr->iow(ctlr, Rap, 0);
 
 	/*
-	 * Check if the adapter's station address is to be over-ridden.
+	 * Check if the adapter's station address is to be overridden.
 	 * If not, read it from the I/O-space and set in ether->ea prior to
 	 * loading the station address in the initialisation block.
 	 */
 	memset(ea, 0, Eaddrlen);
 	if(!memcmp(ea, ether->ea, Eaddrlen)){
-		x = csr32r(ctlr, Aprom);
+		x = ctlr->ior(ctlr, Aprom);
 		ether->ea[0] = x;
 		ether->ea[1] = x>>8;
-		ether->ea[2] = x>>16;
-		ether->ea[3] = x>>24;
-		x = csr32r(ctlr, Aprom+4);
+		if(ctlr->ior == io16r)
+			x = ctlr->ior(ctlr, Aprom+2);
+		else
+			x >>= 16;
+		ether->ea[2] = x;
+		ether->ea[3] = x>>8;
+		x = ctlr->ior(ctlr, Aprom+4);
 		ether->ea[4] = x;
 		ether->ea[5] = x>>8;
 	}
@@ -462,18 +505,25 @@ amd79c970reset(Ether* ether)
 	 * enables will be set later when attaching to the network.
 	 */
 	x = PADDR(&ctlr->iblock);
-	csr32w(ctlr, Rap, 1);
-	csr32w(ctlr, Rdp, x & 0xFFFF);
-	csr32w(ctlr, Rap, 2);
-	csr32w(ctlr, Rdp, (x>>16) & 0xFFFF);
-	csr32w(ctlr, Rap, 3);
-	csr32w(ctlr, Rdp, Idon);
-	csr32w(ctlr, Rap, 0);
-	csr32w(ctlr, Rdp, Init);
+	ctlr->iow(ctlr, Rap, 1);
+	ctlr->iow(ctlr, Rdp, x & 0xFFFF);
+	ctlr->iow(ctlr, Rap, 2);
+	ctlr->iow(ctlr, Rdp, (x>>16) & 0xFFFF);
+	ctlr->iow(ctlr, Rap, 3);
+	ctlr->iow(ctlr, Rdp, Idon);
+	ctlr->iow(ctlr, Rap, 0);
+	ctlr->iow(ctlr, Rdp, Init);
 
-	while(!(csr32r(ctlr, Rdp) & Idon))
+	while(!(ctlr->ior(ctlr, Rdp) & Idon))
 		;
-	csr32w(ctlr, Rdp, Idon|Stop);
+
+	/*
+	 * We used to set CSR0 to Idon|Stop here, and then
+	 * in attach change it to Iena|Strt.  Apparently the simulated
+	 * 79C970 in VMware never enables after a write of Idon|Stop,
+	 * so we enable the device here now.
+	 */
+	ctlr->iow(ctlr, Rdp, Iena|Strt);
 	ctlr->init = 0;
 	iunlock(ctlr);
 

@@ -11,12 +11,10 @@ void	*ialloc(ulong);
 int	nextelem(void);
 long	number(int, int);
 Device	scsidev(char*);
-void	serve(void);
 int	skipbl(int);
 void	startproc(void (*)(void), char *);
 void	syncproc(void);
 void	syncall(void);
-uvlong	statlen(char*);
 
 int	fprint(int, char*, ...);
 void	wreninit(Device);

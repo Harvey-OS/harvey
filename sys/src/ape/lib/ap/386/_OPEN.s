@@ -1,4 +1,0 @@
-TEXT _OPEN(SB), 1, $0
-MOVL $14, AX
-INT $64
-RET

@@ -196,7 +196,7 @@ defn src(addr)
 	}
 
 	cline = pcline(addr)-1;
-	print(file, ":", cline, "\n");
+	print(file, ":", cline+1, "\n");
 	line = cline-5;
 	loop 0,10 do {
 		if line >= 0 then {
@@ -207,7 +207,7 @@ defn src(addr)
 			text = src[line];
 			if text == {} then
 				return {};
-			print(line, "\t", text, "\n");
+			print(line+1, "\t", text, "\n");
 		}
 		line = line+1;
 	}	
@@ -330,6 +330,8 @@ defn procs()			// print status of processes
 		setproc(pid);
 }
 
+_asmlines = 30;
+
 defn asm(addr)
 {
 	local bound;
@@ -337,7 +339,7 @@ defn asm(addr)
 	bound = fnbound(addr);
 
 	addr = fmt(addr, 'i');
-	loop 1,30 do {
+	loop 1,_asmlines do {
 		print(fmt(addr, 'a'), " ", fmt(addr, 'X'));
 		print("\t", @addr++, "\n");
 		if bound != {} && addr > bound[1] then {

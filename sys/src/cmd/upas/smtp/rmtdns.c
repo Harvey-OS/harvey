@@ -31,15 +31,7 @@ rmtdns(char *net, char *path)
 		return 0;
 	}
 
-	if(*net == '/')
-		cp = strchr(net+1, '/');
-	else
-		cp = strchr(net, '/');
-	if(cp)
-		*cp = 0;
 	snprint(buf, sizeof(buf), "%s/dns", net);
-	if(cp)
-		*cp = '/';
 
 	fd = open(buf, ORDWR);			/* look up all others */
 	if(fd < 0){				/* dns screw up - can't check */
@@ -53,7 +45,7 @@ rmtdns(char *net, char *path)
 	n = write(fd, buf, n);
 	close(fd);
 	if(n < 0){
-		errstr(buf);
+		rerrstr(buf, sizeof(buf));
 		if (strcmp(buf, "dns: name does not exist") == 0)
 			return -1;
 	}
@@ -62,4 +54,5 @@ rmtdns(char *net, char *path)
 
 /*
 void main(int, char *argv[]){ print("return = %d\n", rmtdns("/net.alt/tcp/109", argv[1]));}
+
 */

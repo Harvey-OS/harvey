@@ -106,12 +106,12 @@ docreate(Ram *r)
 char *
 doread(Ram *r, long off, long cnt)
 {
-	static char buf[MAXFDATA+BLSIZE];
+	static char buf[Maxbuf+BLSIZE];
 	int bno, i;
 
 	bno = off/BLSIZE;
 	off -= bno*BLSIZE;
-	if (cnt>MAXFDATA)
+	if (cnt>Maxbuf)
 		error("count too large");
 	if (off)
 		cnt += off;
@@ -165,7 +165,7 @@ iget(int ino)
 		((ushort*)f.addr)[i] = (dp->addr[i][1]<<8) + dp->addr[i][0];
 	f.mode = flags & V6MODE;
 	if ((flags&V6FMT)==V6IFDIR)
-		f.mode |= CHDIR;
+		f.mode |= DMDIR;
 	f.uid = dp->uid;
 	f.gid = dp->gid;	
 	f.mdate = (dp->mtime[2]<<0) + (dp->mtime[3]<<8)

@@ -1,21 +1,21 @@
-#    Copyright (C) 1999, 2000 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1999 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This file is part of Aladdin Ghostscript.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+# or distributor accepts any responsibility for the consequences of using it,
+# or for whether it serves any particular purpose or works at all, unless he
+# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+# License (the "License") for full details.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# Every copy of Aladdin Ghostscript must include a copy of the License,
+# normally in a plain ASCII text file named PUBLIC.  The License grants you
+# the right to copy, modify and redistribute Aladdin Ghostscript, but only
+# under certain conditions described in the License.  Among other things, the
+# License requires that the copyright notice and this notice be preserved on
+# all copies.
 
-# $Id: unix-aux.mak,v 1.3 2000/09/19 19:00:52 lpd Exp $
+# $Id: unix-aux.mak,v 1.1 2000/03/09 08:40:44 lpd Exp $
 # Partial makefile common to all Unix configurations.
 # This makefile contains the build rules for the auxiliary programs such as
 # echogs, and the 'platform' modules.
@@ -32,7 +32,7 @@ UNIX_AUX_MAK=$(GLSRC)unix-aux.mak
 
 # Unix platforms other than System V, and also System V Release 4
 # (SVR4) platforms.
-unix__=$(GLOBJ)gp_getnv.$(OBJ) $(GLOBJ)gp_unix.$(OBJ) $(GLOBJ)gp_unifs.$(OBJ) $(GLOBJ)gp_unifn.$(OBJ)
+unix__=$(GLOBJ)gp_getnv.$(OBJ) $(GLOBJ)gp_nofb.$(OBJ) $(GLOBJ)gp_unix.$(OBJ) $(GLOBJ)gp_unifs.$(OBJ) $(GLOBJ)gp_unifn.$(OBJ)
 $(GLGEN)unix_.dev: $(unix__) $(GLD)nosync.dev
 	$(SETMOD) $(GLGEN)unix_ $(unix__) -include $(GLD)nosync
 
@@ -43,7 +43,7 @@ $(GLOBJ)gp_unix.$(OBJ): $(GLSRC)gp_unix.c $(AK)\
 
 # System V platforms other than SVR4, which lack some system calls,
 # but have pipes.
-sysv__=$(GLOBJ)gp_getnv.$(OBJ) $(GLOBJ)gp_unix.$(OBJ) $(GLOBJ)gp_unifs.$(OBJ) $(GLOBJ)gp_unifn.$(OBJ) $(GLOBJ)gp_sysv.$(OBJ)
+sysv__=$(GLOBJ)gp_getnv.$(OBJ) $(GLOBJ)gp_nofb.$(OBJ) $(GLOBJ)gp_unix.$(OBJ) $(GLOBJ)gp_unifs.$(OBJ) $(GLOBJ)gp_unifn.$(OBJ) $(GLOBJ)gp_sysv.$(OBJ)
 $(GLGEN)sysv_.dev: $(sysv__) $(GLD)nosync.dev
 	$(SETMOD) $(GLGEN)sysv_ $(sysv__) -include $(GLD)nosync
 

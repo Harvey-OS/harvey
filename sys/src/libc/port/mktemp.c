@@ -7,7 +7,7 @@ mktemp(char *as)
 	char *s;
 	unsigned pid;
 	int i;
-	char err[ERRLEN];
+	char err[ERRMAX];
 
 	pid = getpid();
 	s = as;
@@ -25,7 +25,7 @@ mktemp(char *as)
 			return "/";
 		*s = i++;
 	}
-	err[0] = 0;
-	errstr(err);	/* clear the error */
+	err[0] = '\0';
+	errstr(err, sizeof err);	/* clear the error */
 	return as;
 }

@@ -3,190 +3,188 @@
 #include <auth.h>
 #include <fcall.h>
 #include <thread.h>
-#include "9p.h"
-#include "impl.h"
+#include <9p.h>
 
-enum {
-	Tclwalk_walk = Tmax,
-	Tclwalk_clone
-};
-
+static char Ebadattach[] = "unknown specifier in attach";
+static char Ebadoffset[] = "bad offset";
+static char Ebadcount[] = "bad count";
+static char Ebotch[] = "9P protocol botch";
+static char Ecreatenondir[] = "create in non-directory";
+static char Edupfid[] = "duplicate fid";
+static char Eduptag[] = "duplicate tag";
+static char Eisdir[] = "is a directory";
+static char Enocreate[] = "create prohibited";
+static char Enomem[] = "out of memory";
+static char Enoremove[] = "remove prohibited";
+static char Enostat[] = "stat prohibited";
+static char Enotfound[] = "file not found";
 static char Enowrite[] = "write prohibited";
 static char Enowstat[] = "wstat prohibited";
-static char Enoremove[] = "remove prohibited";
-static char Enocreate[] = "create prohibited";
-static char Ebotch[] = "9P protocol botch";
-static char Ebadattach[] = "unknown specifier in attach";
+static char Eperm[] = "permission denied";
+static char Eunknownfid[] = "unknown fid";
+static char Ebaddir[] = "bad directory in wstat";
+static char Ewalknodir[] = "walk in non-directory";
 
-int lib9p_chatty;
-void (*endsrv)(void*);
 static void
 setfcallerror(Fcall *f, char *err)
 {
-	strncpy(f->ename, err, sizeof f->ename);
-	f->ename[sizeof f->ename - 1] = '\0';
+	f->ename = err;
 	f->type = Rerror;
 }
 
 static void
-sendreply(Req *r, int fd)
+changemsize(Srv *srv, int msize)
 {
-	int n;
-	char *buf;
-
-	r->type++;
-	r->ofcall.type = r->type;
-	if(r->error)
-		setfcallerror(&r->ofcall, r->error);
-
-	if(r->ofcall.type == Rread)
-		buf = emalloc(MAXMSG+MAXFDATA);
-	else
-		buf = emalloc(MAXMSG);
-if(lib9p_chatty)
-	fprint(2, "-> %F\n", &r->ofcall);
-	switch(r->type){
-	default:
-		sysfatal("bad type %d in reply", r->ofcall.type);
-		break;
-
-	case Ropen:
-	case Rnop:
-	case Rflush:
-	case Rattach:
-	case Rsession:
-	case Rclone:
-	case Rwalk:
-	case Rclwalk:
-	case Rcreate:
-	case Rread:
-	case Rwrite:
-	case Rclunk:
-	case Rremove:
-	case Rstat:
-	case Rwstat:
-	case Rerror:
-		n = convS2M(&r->ofcall, buf);
-		if(write(fd, buf, n) != n)
-			sysfatal("write %d fails: %r", fd);
-		free(buf);
-	}
+	if(srv->rbuf && srv->wbuf && srv->msize == msize)
+		return;
+	qlock(&srv->rlock);
+	qlock(&srv->wlock);
+	srv->msize = msize;
+	free(srv->rbuf);
+	free(srv->wbuf);
+	srv->rbuf = emalloc9p(msize);
+	srv->wbuf = emalloc9p(msize);
+	if(srv->rbuf==nil || srv->wbuf==nil)
+		sysfatal("out of memory");	/* BUG */
+	qunlock(&srv->rlock);
+	qunlock(&srv->wlock);
 }
 
-static char Eduptag[] = "duplicate tag";
-static char Edupfid[] = "duplicate fid";
-static char Eunknownfid[] = "unknown fid";
-static char Eperm[] = "permission denied";
-static char Enotfound[] = "file not found";
-
-Req*
-getreq(Reqpool *rpool, Fidpool *fpool, int fd)
+static Req*
+getreq(Srv *s)
 {
 	long n;
-	char *buf;
+	uchar *buf;
 	Fcall f;
 	Req *r;
 
-	n = MAXMSG+MAXFDATA;
-	buf = mallocz(n, 1);
-	if(buf == nil)
+	qlock(&s->rlock);
+	if((n = read9pmsg(s->infd, s->rbuf, s->msize)) <= 0){
+		qunlock(&s->rlock);
 		return nil;
+	}
 
-	if(getS(fd, buf, &f, &n) != nil){
+	buf = emalloc9p(n);
+	memmove(buf, s->rbuf, n);
+	qunlock(&s->rlock);
+
+	if(convM2S(buf, n, &f) != n){
 		free(buf);
 		return nil;
 	}
-	if((r=allocreq(rpool, f.tag)) == nil){	/* duplicate tag: cons up a Req */
-		r = mallocz(sizeof *r, 1);
-		if(r == nil){
-			free(buf);
-			return nil;
-		}
+
+	if((r=allocreq(s->rpool, f.tag)) == nil){	/* duplicate tag: cons up a fake Req */
+		r = emalloc9p(sizeof *r);
 		incref(&r->ref);
 		r->tag = f.tag;
-		r->fcall = f;
+		r->ifcall = f;
 		r->error = Eduptag;
 		r->buf = buf;
 		r->responded = 0;
+		r->type = 0;
+		r->srv = s;
+		r->pool = nil;
+if(chatty9p)
+	fprint(2, "<-%d- %F: dup tag\n", s->infd, &f);
 		return r;
 	}
 
+	r->srv = s;
 	r->responded = 0;
 	r->buf = buf;
-	r->fcall = f;
-	r->ofcall = f;
-	r->type = r->fcall.type;
-	switch(r->type){
-	case Tnop:
-	case Tsession:
-		break;
+	r->ifcall = f;
+	memset(&r->ofcall, 0, sizeof r->ofcall);
+	r->type = r->ifcall.type;
 
-	case Tflush:
-		r->oldreq = lookupreq(rpool, r->fcall.oldtag);
-		if(r->oldreq == r)
-			r->error = "you can't flush yourself";
-		break;
-
-	case Tattach:
-		if((r->fid = allocfid(fpool, r->fcall.fid)) == nil)
-			r->error = Edupfid;
-		break;
-
-	case Tclone:
-	case Tclwalk:
-		if((r->fid = lookupfid(fpool, r->fcall.fid)) == nil)
-			r->error = Eunknownfid;
-		else if(r->fid->omode != -1)
-			r->error = "cannot clone open fid";
-		else if((r->newfid = allocfid(fpool, r->fcall.newfid)) == nil)
-			r->error = Edupfid;
-		break;
-
-	case Twalk:
-	case Topen:
-	case Tcreate:
-	case Tread:
-	case Twrite:
-	case Tclunk:
-	case Tremove:
-	case Tstat:
-	case Twstat:
-		if((r->fid = lookupfid(fpool, r->fcall.fid)) == nil)
-			r->error = Eunknownfid;
-		break;
-	}
-if(lib9p_chatty)
+if(chatty9p)
 	if(r->error)
-		fprint(2, "<- %F: %s\n", &r->fcall, r->error);
+		fprint(2, "<-%d- %F: %s\n", s->infd, &r->ifcall, r->error);
 	else	
-		fprint(2, "<- %F\n", &r->fcall);
+		fprint(2, "<-%d- %F\n", s->infd, &r->ifcall);
 
 	return r;
 }
 
+static void
+filewalk(Req *r)
+{
+	int i;
+	File *f;
 
-static char Ebadcount[] = "bad count";
-static char Ebadoffset[] = "bad offset";
+	f = r->fid->file;
+	assert(f != nil);
+
+	incref(f);
+	for(i=0; i<r->ifcall.nwname; i++)
+		if(f = walkfile(f, r->ifcall.wname[i]))
+			r->ofcall.wqid[i] = f->qid;
+		else
+			break;
+
+	r->ofcall.nwqid = i;
+	if(f){
+		r->newfid->file = f;
+		r->newfid->qid = r->newfid->file->qid;
+	}
+	respond(r, nil);
+}
+
+static void
+conswalk(Req *r, char *(*clone)(Fid*, Fid*), char *(*walk1)(Fid*, char*, Qid*))
+{
+	int i;
+	char *e;
+
+	if(r->fid == r->newfid && r->ifcall.nwname > 1){
+		respond(r, "lib9p: unused documented feature not implemented");
+		return;
+	}
+
+	if(r->fid != r->newfid){
+		r->newfid->qid = r->fid->qid;
+		if(clone && (e = clone(r->fid, r->newfid))){
+			respond(r, e);
+			return;
+		}
+	}
+
+	e = nil;
+	for(i=0; i<r->ifcall.nwname; i++){
+		if(e = walk1(r->newfid, r->ifcall.wname[i], &r->ofcall.wqid[i]))
+			break;
+		r->newfid->qid = r->ofcall.wqid[i];
+	}
+
+	r->ofcall.nwqid = i;
+	if(e && i==0)
+		respond(r, e);
+	else
+		respond(r, nil);
+}
 
 void
-srv(Srv *srv, int fd)
+srv(Srv *srv)
 {
 	int o, p;
 	Req *r;
-	File *f, *of;
+	char e[ERRMAX];
 
-	fmtinstall('D', dirconv);
-	fmtinstall('F', fcallconv);
+	fmtinstall('D', dirfmt);
+	fmtinstall('F', fcallfmt);
 
 	if(srv->fpool == nil)
-		srv->fpool = allocfidpool();
+		srv->fpool = allocfidpool(srv->destroyfid);
 	if(srv->rpool == nil)
-		srv->rpool = allocreqpool();
+		srv->rpool = allocreqpool(srv->destroyreq);
+	if(srv->msize == 0)
+		srv->msize = 8192+IOHDRSZ;
 
+	changemsize(srv, srv->msize);
+
+	srv->fpool->srv = srv;
 	srv->rpool->srv = srv;
-	srv->fd = fd;
 
-	while(r = getreq(srv->rpool, srv->fpool, fd)){
+	while(r = getreq(srv)){
 		if(r->error){
 			respond(r, r->error);
 			continue;	
@@ -194,218 +192,298 @@ srv(Srv *srv, int fd)
 
 		switch(r->type){
 		default:
-			abort();
+			respond(r, "unknown message");
+			break;
 
-		case Tnop:
+		case Tversion:
+			if(strncmp(r->ifcall.version, "9P", 2) != 0){
+				r->ofcall.version = "unknown";
+				respond(r, nil);
+				break;
+			}
+
+			r->ofcall.version = "9P2000";
+			r->ofcall.msize = r->ifcall.msize;
 			respond(r, nil);
 			break;
 
-		case Tsession:
-			memset(r->ofcall.authid, 0, sizeof r->ofcall.authid);
-			memset(r->ofcall.authdom, 0, sizeof r->ofcall.authdom);
-			memset(r->ofcall.chal, 0, sizeof r->ofcall.chal);
-			if(srv->session)
-				srv->session(r, r->ofcall.authid,
-					r->ofcall.authdom, r->ofcall.chal);
+		case Tauth:
+			if((r->afid = allocfid(srv->fpool, r->ifcall.afid)) == nil){
+				respond(r, Edupfid);
+				break;
+			}
+			if(srv->auth)
+				srv->auth(r);
+			else{
+				snprint(e, sizeof e, "%s: authentication not required", argv0);
+				respond(r, e);
+			}
+			break;
+
+		case Tattach:
+			if((r->fid = allocfid(srv->fpool, r->ifcall.fid)) == nil){
+				respond(r, Edupfid);
+				break;
+			}
+			r->afid = nil;
+			if(r->ifcall.afid != NOFID && (r->afid = allocfid(srv->fpool, r->ifcall.fid)) == nil){
+				respond(r, Eunknownfid);
+				break;
+			}
+			r->fid->uid = estrdup9p(r->ifcall.uname);
+			if(srv->tree){
+				r->fid->file = srv->tree->root;
+				/* BUG? incref(r->fid->file) ??? */
+				r->ofcall.qid = r->fid->file->qid;
+				r->fid->qid = r->ofcall.qid;
+			}
+			if(srv->attach)
+				srv->attach(r);
 			else
 				respond(r, nil);
 			break;
 
 		case Tflush:
-			if(r->oldreq && srv->flush)
-				srv->flush(r, r->oldreq);
+			r->oldreq = lookupreq(srv->rpool, r->ifcall.oldtag);
+			if(r->oldreq == nil || r->oldreq == r)
+				respond(r, nil);
+			else if(srv->flush)
+				srv->flush(r);
 			else
-				respond(r, nil);
+				sysfatal("outstanding message but flush not provided");
 			break;
 
-		case Tattach:
-			strncpy(r->fid->uid, r->ofcall.uname, NAMELEN);
-			r->fid->uid[NAMELEN-1] = '\0';
-			if(srv->attach)
-				srv->attach(r, r->fid, r->ofcall.aname, &r->ofcall.qid);
-			else{		/* assume one tree, no auth */
-				if(strcmp(r->ofcall.aname, "") != 0)
-					r->error = Ebadattach;
-				else{
-					r->fid->file = srv->tree->root;
-					r->ofcall.qid = r->fid->file->qid;
-				}
-				respond(r, nil);
-			}
-			break;
-
-		case Tclwalk:
-			r->type = Tclwalk_clone;
-			/* fall through */
-		case Tclone:
-			if(r->fid->file)
-				incref(&r->fid->file->ref);
-			r->newfid->file = r->fid->file;
-
-			strcpy(r->newfid->uid, r->fid->uid);
-			r->newfid->qid = r->fid->qid;
-			r->newfid->aux = r->fid->aux;
-
-			if(srv->clone)
-				srv->clone(r, r->fid, r->newfid);
-			else
-				respond(r, nil);
-			break;
-			
 		case Twalk:
-			/* if you change this, change the copy in respond Tclwalk_clone above */
-
-			if(r->fid->file){
-				/*
-				 * We don't use the walk function if using file
-				 * trees.  It's too much to expect clients to get 
-				 * the reference counts right on error or when
-				 * playing other funny games with the tree.
-				 */
-				if(f = fwalk(r->fid->file, r->fcall.name)) {
-					of = r->fid->file;
-					r->fid->file = f;
-					fclose(of);
-					r->ofcall.qid = f->qid;
-					respond(r, nil);
-				}else
-					respond(r, Enotfound);
+			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+				respond(r, Eunknownfid);
 				break;
 			}
-			r->ofcall.qid = r->fid->qid;
-			srv->walk(r, r->fid, r->fcall.name, &r->ofcall.qid);
+			if(r->fid->omode != -1){
+				respond(r, "cannot clone open fid");
+				break;
+			}
+			if(r->ifcall.nwname && !(r->fid->qid.type&QTDIR)){
+				respond(r, Ewalknodir);
+				break;
+			}
+			if(r->ifcall.fid != r->ifcall.newfid){
+				if((r->newfid = allocfid(srv->fpool, r->ifcall.newfid)) == nil){
+					respond(r, Edupfid);
+					break;
+				}
+				r->newfid->uid = estrdup9p(r->fid->uid);
+			}else{
+				incref(&r->fid->ref);
+				r->newfid = r->fid;
+			}
+
+			if(r->fid->file){
+				filewalk(r);
+			}else if(srv->walk1)
+				conswalk(r, srv->clone, srv->walk1);
+			else if(srv->walk)
+				srv->walk(r);
+			else
+				sysfatal("no walk function, no file trees");
 			break;
 
 		case Topen:
+			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+				respond(r, Eunknownfid);
+				break;
+			}
 			if(r->fid->omode != -1){
 				respond(r, Ebotch);
 				break;
 			}
+			if((r->fid->qid.type&QTDIR) && (r->ifcall.mode&~ORCLOSE) != OREAD){
+				respond(r, Eisdir);
+				break;
+			}
 			r->ofcall.qid = r->fid->qid;
+			switch(r->ifcall.mode&3){
+			default:
+				assert(0);
+			case OREAD:
+				p = AREAD;	
+				break;
+			case OWRITE:
+				p = AWRITE;
+				break;
+			case ORDWR:
+				p = AREAD|AWRITE;
+				break;
+			case OEXEC:
+				p = AEXEC;	
+				break;
+			}
+			if(r->ifcall.mode&OTRUNC)
+				p |= AWRITE;
+			if((r->fid->qid.type&QTDIR) && p!=AREAD){
+				respond(r, Eperm);
+				break;
+			}
 			if(r->fid->file){
-				switch(r->fcall.mode&3){
-				case OREAD:	p = AREAD; break;
-				case OWRITE:	p = AWRITE; break;
-				case ORDWR:	p = AREAD|AWRITE; break;
-				case OEXEC:	p = AEXEC; break;
-				default:	p = ~0; assert(0);
-				}
-				if(r->fcall.mode & OTRUNC)
-					p |= AWRITE;
 				if(!hasperm(r->fid->file, r->fid->uid, p)){
 					respond(r, Eperm);
 					break;
 				}
-				if((r->fcall.mode & ORCLOSE)
+			/* BUG RACE */
+				if((r->ifcall.mode&ORCLOSE)
 				&& !hasperm(r->fid->file->parent, r->fid->uid, AWRITE)){
 					respond(r, Eperm);
 					break;
 				}
 				r->ofcall.qid = r->fid->file->qid;
+				if((r->ofcall.qid.type&QTDIR)
+				&& (r->fid->rdir = opendirfile(r->fid->file)) == nil){
+					respond(r, "opendirfile failed");
+					break;
+				}
 			}
 			if(srv->open)
-				srv->open(r, r->fid, r->fcall.mode, &r->ofcall.qid);
-			else
-				respond(r, nil);
-			break;
-
-		case Tcreate:
-			if(r->fid->omode != -1)
-				r->error = Ebotch;
-			else if(r->fid->file && !hasperm(r->fid->file, r->fid->uid, AWRITE))
-				r->error = Eperm;
-			else if(srv->create == nil)
-				r->error = Enocreate;
-
-			if(r->error)
-				respond(r, r->error);
-			else
-				srv->create(r, r->fid, r->ofcall.name, r->ofcall.mode,
-					r->ofcall.perm, &r->ofcall.qid);
-			break;
-
-		case Tread:
-			r->rbuf = emalloc(MAXFDATA);
-			r->ofcall.data = r->rbuf;
-			o = r->fid->omode & OMASK;
-			r->ofcall.count = r->fcall.count;
-			if(r->ofcall.count > MAXFDATA)
-				r->ofcall.count = MAXFDATA;
-			if(o != OREAD && o != ORDWR && o != OEXEC)
-				r->error = Ebotch;
-			else if(r->ofcall.count < 0)
-				r->error = Ebadcount;
-			else if(r->ofcall.offset < 0 
-				|| ((r->fid->qid.path&CHDIR) && r->fcall.offset%DIRLEN))
-				r->error = Ebadoffset;
-			else if((r->fid->qid.path&CHDIR) && r->fid->file){
-				r->error = fdirread(r->fid->file, r->rbuf, 
-							&r->ofcall.count, r->fcall.offset);
-			}else{
-				srv->read(r, r->fid, r->rbuf, &r->ofcall.count, r->fcall.offset);
-				break;
-			}
-			respond(r, r->error);
-			break;
-
-		case Twrite:
-			o = r->fid->omode & OMASK;
-			if(o != OWRITE && o != ORDWR)
-				r->error = Ebotch;
-			else if(srv->write == nil)
-				r->error = Enowrite;
-			else{
-				r->ofcall.count = r->fcall.count;
-				srv->write(r, r->fid, r->fcall.data,
-					&r->ofcall.count, r->fcall.offset);
-				break;
-			}
-			respond(r, r->error);
-			break;
-
-		case Tclunk:
-			if(srv->clunkaux)
-				srv->clunkaux(r->fid);
-			respond(r, nil);
-			break;
-
-		case Tremove:
-			if(r->fid->file
-			&& !hasperm(r->fid->file->parent, r->fid->uid, AWRITE)){
-				respond(r, Eperm);
-				break;
-			}
-			if(srv->remove == nil){
-				if(r->fid->file)
-					respond(r, nil);
-				else
-					respond(r, Enoremove);
-				break;
-			}
-			srv->remove(r, r->fid);
-			break;
-
-		case Tstat:
-			if(r->fid->file)
-				r->d = r->fid->file->Dir;
-			else if(srv->stat == nil){
-				respond(r, "no stat");
-				break;
-			}
-
-			if(srv->stat)
-				srv->stat(r, r->fid, &r->d);
+				srv->open(r);
 			else
 				respond(r, nil);
 			break;
 			
-		case Twstat:
-			if(srv->wstat == nil)
-				respond(r, nil);
-			else{
-				convM2D(r->fcall.stat, &r->d);
-				srv->wstat(r, r->fid, &r->d);
+		case Tcreate:
+			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil)
+				respond(r, Eunknownfid);
+			else if(r->fid->omode != -1)
+				respond(r, Ebotch);
+			else if(!(r->fid->qid.type&QTDIR))
+				respond(r, Ecreatenondir);
+			else if(r->fid->file && !hasperm(r->fid->file, r->fid->uid, AWRITE))
+				respond(r, Eperm);
+			else if(srv->create)
+				srv->create(r);
+			else
+				respond(r, Enocreate);
+			break;
+
+		case Tread:
+			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+				respond(r, Eunknownfid);
+				break;
 			}
+			if(r->ifcall.count < 0){
+				respond(r, Ebotch);
+				break;
+			}
+			if(r->ifcall.offset < 0
+			|| ((r->fid->qid.type&QTDIR) && r->ifcall.offset != 0 && r->ifcall.offset != r->fid->diroffset)){
+				respond(r, Ebadoffset);
+				break;
+			}
+
+			if(r->ifcall.count > srv->msize - IOHDRSZ)
+				r->ifcall.count = srv->msize - IOHDRSZ;
+			if((r->rbuf = emalloc9p(r->ifcall.count)) == nil){
+				respond(r, Enomem);
+				break;
+			}
+			r->ofcall.data = r->rbuf;
+			o = r->fid->omode & 3;
+			if(o != OREAD && o != ORDWR && o != OEXEC){
+				respond(r, Ebotch);
+				break;
+			}
+			if((r->fid->qid.type&QTDIR) && r->fid->file){
+				r->ofcall.count = readdirfile(r->fid->rdir, r->rbuf, r->ifcall.count);
+				respond(r, nil);
+				break;
+			}
+			if(srv->read)
+				srv->read(r);
+			else
+				respond(r, "no srv->read");
+			break;
+
+		case Twrite:
+			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+				respond(r, Eunknownfid);
+				break;
+			}
+			if(r->ifcall.count < 0){
+				respond(r, Ebotch);
+				break;
+			}
+			if(r->ifcall.offset < 0){
+				respond(r, Ebotch);
+				break;
+			}
+			if(r->ifcall.count > srv->msize - IOHDRSZ)
+				r->ifcall.count = srv->msize - IOHDRSZ;
+			o = r->fid->omode & 3;
+			if(o != OWRITE && o != ORDWR){
+				snprint(e, sizeof e, "write on fid with open mode 0x%ux", r->fid->omode);
+				respond(r, e);
+				break;
+			}
+			if(srv->write)
+				srv->write(r);
+			else
+				respond(r, "no srv->write");
+			break;
+
+		case Tclunk:
+			if((r->fid = removefid(srv->fpool, r->ifcall.fid)) == nil)
+				respond(r, Eunknownfid);
+			else
+				respond(r, nil);
+			break;
+
+		case Tremove:
+			if((r->fid = removefid(srv->fpool, r->ifcall.fid)) == nil){
+				respond(r, Eunknownfid);
+				break;
+			}
+			/* BUG RACE */
+			if(r->fid->file && !hasperm(r->fid->file->parent, r->fid->uid, AWRITE)){
+				respond(r, Eperm);
+				break;
+			}
+			if(srv->remove)
+				srv->remove(r);
+			else
+				respond(r, r->fid->file ? nil : Enoremove);
+			break;
+
+		case Tstat:
+			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+				respond(r, Eunknownfid);
+				break;
+			}
+			if(r->fid->file){
+				r->d = r->fid->file->Dir;
+				if(r->d.name)
+					r->d.name = estrdup9p(r->d.name);
+				if(r->d.uid)
+					r->d.uid = estrdup9p(r->d.uid);
+				if(r->d.gid)
+					r->d.gid = estrdup9p(r->d.gid);
+				if(r->d.muid)
+					r->d.muid = estrdup9p(r->d.muid);
+			}
+			if(srv->stat)	
+				srv->stat(r);	
+			else if(r->fid->file)
+				respond(r, nil);
+			else
+				respond(r, Enostat);
+			break;
+
+		case Twstat:
+			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil)
+				respond(r, Eunknownfid);
+			else if(srv->wstat){
+				if(convM2D(r->ifcall.stat, r->ifcall.nstat, &r->d, (char*)r->ifcall.stat) != r->ifcall.nstat)
+					respond(r, Ebaddir);
+				else
+					srv->wstat(r);
+			}else
+				respond(r, Enowstat);
 			break;
 		}
 	}
@@ -414,250 +492,203 @@ srv(Srv *srv, int fd)
 void
 respond(Req *r, char *error)
 {
-	File *f, *of;
+	int m, n;
+	Req *or;
+	uchar *statbuf, tmp[BIT16SZ];
+	char errbuf[ERRMAX];
 	Srv *srv;
+
+	srv = r->srv;
+	assert(srv != nil);
 
 	assert(r->responded == 0);
 	r->responded = 1;
-	srv = r->pool->srv;
 
-	switch(r->type){
+	switch(r->ifcall.type){
 	default:
-		abort();
+		assert(0);
 
-	case Tnop:
+	case Tversion:
+		assert(error == nil);
+		changemsize(srv, r->ofcall.msize);
 		break;
 
-	case Tflush:
-		freereq(r->oldreq);
-		r->oldreq = nil;
+	case Tauth:
+		if(error){
+			if(r->afid)
+				closefid(removefid(srv->fpool, r->afid->fid));
+			break;
+		}
 		break;
 
 	case Tattach:
-		if(error)
-			freefid(r->fid);
-		else {
-			r->fid->qid = r->ofcall.qid;
-			closefid(r->fid);
-		}
-		r->fid = nil;
-		break;
-
-	case Tsession:
-		break;
-
-	case Tclone:
-		closefid(r->fid);
-		r->fid = nil;
-		if(error)
-			freefid(r->newfid);
-		else
-			closefid(r->newfid);
-		r->newfid = nil;
-		break;
-
-	case Tclwalk:	/* can't happen */
-		abort();
-
-	/*
-	 * In order to use the clone and walk functions rather
-	 * than require a clwalk, the response here is an error
-	 * if there was one, but otherwise we call the walk
-	 * function, who will eventually call us again (next case).
-	 */
-	case Tclwalk_clone:
-		closefid(r->fid);
-		r->fid = nil;
 		if(error){
-			freefid(r->newfid);
-			r->newfid = nil;
+			if(r->fid)
+				closefid(removefid(srv->fpool, r->fid->fid));
 			break;
 		}
-
-		r->fid = r->newfid;
-		r->newfid = nil;
-		r->type = Tclwalk_walk;
-
-		/* copy of case Twalk in srv below */
-		if(r->fid->file){
-			/*
-			 * We don't use the walk function if using file
-			 * trees.  It's too much to expect clients to get 
-			 * the reference counts right on error or when
-			 * playing other funny games with the tree.
-			 */
-			if(f = fwalk(r->fid->file, r->fcall.name)) {
-				of = r->fid->file;
-				r->fid->file = f;
-				fclose(of);
-				r->fid->qid = f->qid;
-				r->ofcall.qid = r->fid->qid;
-				respond(r, nil);
-			}else
-				respond(r, Enotfound);
-			break;
-		}
-		r->ofcall.qid = r->fid->qid;
-		srv->walk(r, r->fid, r->fcall.name, &r->ofcall.qid);
 		break;
 
-	case Tclwalk_walk:
-		r->type = Tclwalk;
-		if(error)
-			freefid(r->fid);
-		else{
-			r->fid->qid = r->ofcall.qid;
-			closefid(r->fid);
+	case Tflush:
+		assert(error == nil);
+		if(r->oldreq){
+			if(or = removereq(r->pool, r->oldreq->tag)){
+				assert(or == r->oldreq);
+				if(or->ifcall.type == Twalk && or->ifcall.fid != or->ifcall.newfid)
+					closefid(removefid(srv->fpool, or->newfid->fid));
+				closereq(or);
+			}
+			closereq(r->oldreq);
 		}
-		r->fid = nil;
+		r->oldreq = nil;
 		break;
-
+		
 	case Twalk:
-		if(error == nil)
-			r->fid->qid = r->ofcall.qid;
-		closefid(r->fid);
-		r->fid = nil;
+		if(error || r->ofcall.nwqid < r->ifcall.nwname){
+			if(r->ifcall.fid != r->ifcall.newfid && r->newfid)
+				closefid(removefid(srv->fpool, r->newfid->fid));
+			if (r->ofcall.nwqid==0){
+				if(error==nil && r->ifcall.nwname!=0)
+					error = Enotfound;
+			}else
+				error = nil;	// No error on partial walks
+			break;
+		}else{
+			if(r->ofcall.nwqid == 0){
+				/* Just a clone */
+				r->newfid->qid = r->fid->qid;
+			}else{
+				/* if file trees are in use, filewalk took care of the rest */
+				r->newfid->qid = r->ofcall.wqid[r->ofcall.nwqid-1];
+			}
+		}
 		break;
 
 	case Topen:
-		if(error == nil){
-			r->fid->omode = r->fcall.mode;
-			r->fid->qid = r->ofcall.qid;
+		if(error){
+			break;
 		}
-		closefid(r->fid);
-		r->fid = nil;
+		if(chatty9p){
+			snprint(errbuf, sizeof errbuf, "fid mode is 0x%ux\n", r->ifcall.mode);
+			write(2, errbuf, strlen(errbuf));
+		}
+		r->fid->omode = r->ifcall.mode;
+		r->fid->qid = r->ofcall.qid;
+		if(r->ofcall.qid.type&QTDIR)
+			r->fid->diroffset = 0;
 		break;
 
 	case Tcreate:
-		if(error == nil){
-			r->fid->omode = r->fcall.mode;
-			r->fid->qid = r->ofcall.qid;
+		if(error){
+			break;
 		}
-		closefid(r->fid);
-		r->fid = nil;
+		r->fid->omode = r->ifcall.mode;
+		r->fid->qid = r->ofcall.qid;
 		break;
 
 	case Tread:
-		closefid(r->fid);
-		r->fid = nil;
+		if(error==nil && (r->fid->qid.type&QTDIR))
+			r->fid->diroffset += r->ofcall.count;
 		break;
 
 	case Twrite:
+		if(error)
+			break;
 		if(r->fid->file)
 			r->fid->file->qid.vers++;
-		closefid(r->fid);
-		r->fid = nil;
 		break;
 
 	case Tclunk:
-		freefid(r->fid);
-		r->fid = nil;
 		break;
 
 	case Tremove:
-		if(error == nil) {
-			if(r->fid->file) {
-				fremove(r->fid->file);
-				r->fid->file = nil;
+		if(error)
+			break;
+		if(r->fid->file){
+			if(removefile(r->fid->file) < 0){
+				snprint(errbuf, ERRMAX, "remove %s: %r", 
+					r->fid->file->name);
+				error = errbuf;
 			}
+			r->fid->file = nil;
 		}
-		if(srv->clunkaux)
-			srv->clunkaux(r->fid);
-		freefid(r->fid);
-		r->fid = nil;
 		break;
 
 	case Tstat:
-		if(error == nil)
-			convD2M(&r->d, r->ofcall.stat);
-		closefid(r->fid);
-		r->fid = nil;
+		if(error)
+			break;
+		if(convD2M(&r->d, tmp, BIT16SZ) != BIT16SZ){
+			error = "convD2M(_,_,BIT16SZ) did not return BIT16SZ";
+			break;
+		}
+		n = GBIT16(tmp)+BIT16SZ;
+		statbuf = emalloc9p(n);
+		if(statbuf == nil){
+			error = "out of memory";
+			break;
+		}
+		r->ofcall.nstat = convD2M(&r->d, statbuf, n);
+		r->ofcall.stat = statbuf;
+		if(r->ofcall.nstat < 0){
+			error = "convD2M fails";
+			break;
+		}
 		break;
 
 	case Twstat:
-		closefid(r->fid);
-		r->fid = nil;
 		break;
 	}
 
-	assert(r->type != Tclwalk_clone);
+	r->ofcall.tag = r->ifcall.tag;
+	r->ofcall.type = r->ifcall.type+1;
+	if(error)
+		setfcallerror(&r->ofcall, error);
 
-	if(r->type == Tclwalk_walk)
-		return;
+if(chatty9p)
+	fprint(2, "-%d-> %F\n", srv->outfd, &r->ofcall);
 
-	r->error = error;
-	sendreply(r, r->pool->srv->fd);
-	freereq(r);
-}
-
-
-/*
- *  read a message from fd and convert it.
- *  ignore 0-length messages.
- */
-char *
-getS(int fd, char *buf, Fcall *f, long *lp)
-{
-	long m, n;
-	int i;
-	char *errstr;
-
-	errstr = "EOF";
-	n = 0;
-	for(i = 0; i < 3; i++){
-		n = read(fd, buf, *lp);
-		if(n == 0){
-			continue;
-		}
-		if(n < 0)
-			return "read error";
-		m = convM2S(buf, f, n);
-		if(m == 0){
-			errstr = "bad type";
-			continue;
-		}
-		*lp = m;
-		return 0;
+	qlock(&srv->wlock);
+	n = convS2M(&r->ofcall, srv->wbuf, srv->msize);
+	if(n <= 0){
+		fprint(2, "n = %d %F\n", n, &r->ofcall);
+		abort();
 	}
-	*lp = n;
-	return errstr;
+	assert(n > 2);
+	m = write(srv->outfd, srv->wbuf, n);
+	if(m != n)
+		sysfatal("lib9p srv: write %d returned %d on fd %d: %r", n, m, srv->outfd);
+	qunlock(&srv->wlock);
+
+	if(r->pool){	/* not a fake */
+		closereq(removereq(r->pool, r->ifcall.tag));
+		closereq(r);
+	}else
+		free(r);
 }
 
-void
-_postfd(char *name, int pfd)
+int
+postfd(char *name, int pfd)
 {
-	char buf[2*NAMELEN];
 	int fd;
+	char buf[80];
 
 	snprint(buf, sizeof buf, "/srv/%s", name);
-
-	fd = create(buf, OWRITE|ORCLOSE, 0600);
-	if(fd == -1)
-		sysfatal("post %s: %r", name);
-	fprint(fd, "%d", pfd);
-}
-
-void
-postmountsrv(Srv *s, char *name, char *mtpt, int flag)
-{
-	int fd[2];
-	if(pipe(fd) < 0)
-		sysfatal("pipe");
-	if(name)
-		_postfd(name, fd[0]);
-	switch(rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG|RFMEM)){
-	case -1:
-		sysfatal("fork");
-	case 0:
-		close(fd[0]);
-		srv(s, fd[1]);
-		if(endsrv)
-			endsrv(nil);
-		_exits(0);
-	default:
-		if(mtpt)
-			if(mount(fd[0], mtpt, flag, "") == -1)
-				fprint(2, "mount %s: %r\n", mtpt);
+	if(chatty9p)
+		fprint(2, "postfd %s\n", buf);
+	fd = create(buf, OWRITE|ORCLOSE|OCEXEC, 0600);
+	if(fd < 0){
+		if(chatty9p)
+			fprint(2, "create fails: %r\n");
+		return -1;
 	}
+	if(fprint(fd, "%d", pfd) < 0){
+		if(chatty9p)
+			fprint(2, "write fails: %r\n");
+		close(fd);
+		return -1;
+	}
+	if(chatty9p)
+		fprint(2, "postfd successful\n");
+	return 0;
 }
 

@@ -25,7 +25,7 @@ usage(void)
 }
 
 static void
-printaddr(char *addr)
+printaddr(char *addr, ulong pc)
 {
 	int i;
 	char *p;
@@ -42,19 +42,19 @@ printaddr(char *addr)
 			if(!isxdigit(addr[i]))
 				break;
 		if(i == 8){
-			print("src(0x%s);\n", addr);
+			print("src(0x%.8lux); // 0x%s\n", pc, addr);
 			return;
 		}
 	}
 
 	if(p=strchr(addr, '+')){
 		*p++ = 0;
-		print("src(%s+0x%s);\n", addr, p);
+		print("src(0x%.8lux); // %s+0x%s\n", pc, addr, p);
 	}else
-		print("src(%s);\n", addr);
+		print("src(0x%.8lux); // %s\n", pc, addr);
 }
 
-static void (*fmt)(char*) = printaddr;
+static void (*fmt)(char*, ulong) = printaddr;
 
 void
 main(int argc, char *argv[])
@@ -149,7 +149,7 @@ rtrace(ulong pc, ulong sp, ulong link)
 			break;
 
 		symoff(buf, sizeof buf, pc, CANY);
-		fmt(buf);
+		fmt(buf, pc);
 
 		oldpc = pc;
 		if(s.type == 'L' || s.type == 'l' || pc <= s.value+mach->pcquant){
@@ -197,7 +197,7 @@ ctrace(ulong pc, ulong sp, ulong link)
 			break;
 		}
 		symoff(buf, sizeof buf, pc, CANY);
-		fmt(buf);
+		fmt(buf, pc);
 
 		sp += moved;
 		opc = pc;
@@ -223,24 +223,35 @@ i386trace(ulong pc, ulong sp, ulong link)
 	i = 0;
 	osp = 0;
 	while(findsym(pc, CTEXT, &s)) {
-		if (osp == sp)
-			break;
-		osp = sp;
 
 		symoff(buf, sizeof buf, pc, CANY);
-		fmt(buf);
+		fmt(buf, pc);
 
 		if(pc != s.value) {	/* not at first instruction */
 			if(findlocal(&s, FRAMENAME, &f) == 0)
 				break;
 			sp += f.value-mach->szaddr;
+		}else if(strcmp(s.name, "forkret") == 0){
+			print("//passing interrupt frame; last pc found at sp=%lux\n", osp);
+			sp +=  15 * mach->szaddr;		/* pop interrupt frame */
 		}
 
 		pc = getval(sp);
-		if(pc == 0)
+		if(pc == 0 && strcmp(s.name, "forkret") == 0){
+			sp += 3 * mach->szaddr;			/* pop iret eip, cs, eflags */
+			print("//guessing call through invalid pointer, try again at sp=%lux\n", sp);
+			s.name = "";
+			pc = getval(sp);
+		}
+		if(pc == 0) {
+			print("//didn't find pc at sp=%lux, last pc found at sp=%lux\n", sp, osp);
 			break;
+		}
+		osp = sp;
 
 		sp += mach->szaddr;
+		if(strcmp(s.name, "forkret") == 0)
+			sp += 2 * mach->szaddr;			/* pop iret cs, eflags */
 
 		if(++i > 40)
 			break;
@@ -311,7 +322,7 @@ fatal(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "ktrace: %s\n", buf);
 	exits(buf);

@@ -3,8 +3,6 @@
  */
 #define SUPER_ADDR	2		/* address of superblock */
 #define ROOT_ADDR	3		/* address of superblock */
-#define	ERRREC		64		/* size of a error record */
-#define	DIRREC		116		/* size of a directory ascii record */
 #define	NAMELEN		28		/* size of names */
 #define	NDBLOCK		6		/* number of direct blocks in Dentry */
 #define	MAXDAT		8192		/* max allowable data message */
@@ -22,11 +20,6 @@
 #define	C2b		6000
 
 /*
- *  more wonderful constants for authentication
- */
-#include <auth.h>
-
-/*
  * derived constants
  */
 #define	BUFSIZE		(RBUFSIZE-sizeof(Tag))
@@ -42,6 +35,7 @@
 #define	BKPERBLK	10
 
 typedef struct	Alarm	Alarm;
+typedef struct	Auth	Auth;
 typedef	struct	Conf	Conf;
 typedef	struct	Label	Label;
 typedef	struct	Lock	Lock;
@@ -49,7 +43,6 @@ typedef	struct	Mach	Mach;
 typedef	struct	QLock	QLock;
 typedef	struct	Ureg	Ureg;
 typedef	struct	User	User;
-typedef	struct	Fcall	Fcall;
 typedef	struct	Fbuf	Fbuf;
 typedef	struct	Super1	Super1;
 typedef	struct	Superb	Superb;
@@ -60,7 +53,7 @@ typedef	struct	Tag	Tag;
 typedef struct  Talarm	Talarm;
 typedef	struct	Uid	Uid;
 typedef struct	Device	Device;
-typedef struct	Qid	Qid;
+typedef struct	Qid9p1	Qid9p1;
 typedef	struct	Iobuf	Iobuf;
 typedef	struct	Wpath	Wpath;
 typedef	struct	File	File;
@@ -81,13 +74,6 @@ typedef	struct	Rendez	Rendez;
 typedef	struct	Filter	Filter;
 typedef		ulong	Float;
 typedef	struct	Tlock	Tlock;
-typedef	struct	Enpkt	Enpkt;
-typedef	struct	Arppkt	Arppkt;
-typedef	struct	Ippkt	Ippkt;
-typedef	struct	Ilpkt	Ilpkt;
-typedef	struct	Udppkt	Udppkt;
-typedef	struct	Icmppkt	Icmppkt;
-typedef	struct	Ifc	Ifc;
 typedef	struct	Cache	Cache;
 typedef	struct	Centry	Centry;
 typedef	struct	Bucket	Bucket;
@@ -221,8 +207,24 @@ struct	Rabuf
 	};
 };
 
+typedef
+struct Qid
+{
+	uvlong	path;
+	ulong	vers;
+	uchar	type;
+} Qid;
+
+/* bits in Qid.type */
+#define QTDIR		0x80		/* type bit for directories */
+#define QTAPPEND	0x40		/* type bit for append only files */
+#define QTEXCL		0x20		/* type bit for exclusive use files */
+#define QTMOUNT		0x10		/* type bit for mounted channel */
+#define QTAUTH		0x08		/* type bit for authentication file */
+#define QTFILE		0x00		/* plain file */
+
 /* DONT TOUCH, this is the disk structure */
-struct	Qid
+struct	Qid9p1
 {
 	long	path;
 	long	version;
@@ -234,76 +236,14 @@ struct	Hiob
 	Lock;
 };
 
-enum
-{
-	Easize		= 6,		/* Ether address size */
-	Pasize		= 4,		/* IP protocol address size */
-};
-
-typedef
-struct
-{
-	Queue*	reply;		/* ethernet output */
-	uchar	iphis[Pasize];	/* his ip address (index) */
-	uchar	ipgate[Pasize];	/* his ip/gateway address */
-	Chan*	link;		/* list of il channels */
-} Enp;
-
-enum
-{
-	Nqt=	8,
-};
-
-typedef
-struct	Ilp
-{
-	Enp;			/* must be first -- botch */
-
-	int	alloc;		/* 1 means allocated */
-	int	srcp;		/* source port (index) */
-	int	dstp;		/* dest port (index) */
-	int	state;		/* connection state */
-
-	Msgbuf*	unacked;
-	Msgbuf*	unackedtail;
-
-	Msgbuf*	outoforder;
-
-	ulong	next;		/* id of next to send */
-	ulong	recvd;		/* last packet received */
-	ulong	start;		/* local start id */
-	ulong	rstart;		/* remote start id */
-	ulong	acksent;	/* Last packet acked */
-
-	ulong	lastxmit;	/* time of last xmit */
-	ulong	lastrecv;	/* time of last recv */
-	ulong	timeout;	/* time out counter */
-	ulong	acktime;	/* acknowledge timer */
-	ulong	querytime;	/* Query timer */
-
-	ulong	delay;		/* Average of the fixed rtt delay */
-	ulong	rate;		/* Average byte rate */
-	ulong	mdev;		/* Mean deviation of predicted to real rtt */
-	ulong	maxrtt;		/* largest rtt seen */
-	ulong	rttack;		/* The ack we are waiting for */
-	int	rttlen;		/* Length of rttack packet */
-	ulong	rttstart;	/* Time we issued rttack packet */
-	ulong	unackedbytes;
-	int	rexmit;		/* number of rexmits of *unacked */
-
-	ulong	qt[Nqt+1];	/* state table for query messages */
-	int	qtx;		/* ... index into qt */
-
-	int	window;		/* maximum receive window */
-
-	Rendez	syn;		/* connect hang out */
-} Ilp;
-
 struct	Chan
 {
 	char	type;			/* major driver type i.e. Dev* */
+	int	(*protocol)(Msgbuf*);	/* version */
+	int	msize;			/* version */
 	char	whochan[50];
 	char	whoname[NAMELEN];
+	void	(*whoprint)(Chan*);
 	ulong	flags;
 	int	chan;			/* overall channel number, mostly for printing */
 	int	nmsgs;			/* outstanding messages, set under flock -- for flush */
@@ -315,20 +255,11 @@ struct	Chan
 	Chan*	next;			/* link list of chans */
 	Queue*	send;
 	Queue*	reply;
-	uchar	chal[CHALLEN];		/* locally generated challenge */
-	uchar	rchal[CHALLEN];		/* remotely generated challenge */
-	Lock	idlock;
-	ulong	idoffset;		/* offset of id vector */
-	ulong	idvec;			/* vector of acceptable id's */
 
-	Ifc*	ifc;
-	union
-	{
-		/*
-		 * il ether circuit structure
-		 */
-		Ilp	ilp;
-	};
+	uchar	authinfo[64];
+
+	void*	ifc;
+	void*	pdata;
 };
 
 struct	Filsys
@@ -416,12 +347,17 @@ struct	File
 	long	addr;
 	long	slot;
 	long	lastra;		/* read ahead address */
-	ushort	fid;
+	ulong	fid;
 	short	uid;
+	Auth	*auth;
 	char	open;
 		#define	FREAD	1
 		#define	FWRITE	2
 		#define	FREMOV	4
+
+	long	doffset;	/* directory reading */
+	ulong	dvers;
+	long	dslot;
 };
 
 struct	Wpath
@@ -436,7 +372,6 @@ struct	Iobuf
 {
 	QLock;
 	Device*	dev;
-	Iobuf*	next;		/* for hash */
 	Iobuf*	fore;		/* for lru */
 	Iobuf*	back;		/* for lru */
 	char*	iobuf;		/* only active while locked */
@@ -468,8 +403,8 @@ struct	Dentry
 		#define	DREAD	0x4
 		#define	DWRITE	0x2
 		#define	DEXEC	0x1
-	short	wuid;
-	Qid	qid;
+	short	muid;
+	Qid9p1	qid;
 	long	size;
 	long	dblock[NDBLOCK];
 	long	iblock;
@@ -506,56 +441,6 @@ struct	Superb
 {
 	Fbuf	fbuf;
 	Super1;
-};
-
-struct	Fcall
-{
-	char	type;
-	ushort	fid;
-	short	err;
-	short	tag;
-	union
-	{
-		struct
-		{
-			short	uid;		/* T-Userstr */
-			short	oldtag;		/* T-nFlush */
-			Qid	qid;		/* R-Attach, R-Clwalk, R-Walk,
-						 * R-Open, R-Create */
-			char	rauth[AUTHENTLEN];	/* R-attach */
-		};
-		struct
-		{
-			char	uname[NAMELEN];	/* T-nAttach */
-			char	aname[NAMELEN];	/* T-nAttach */
-			char	ticket[TICKETLEN];	/* T-attach */
-			char	auth[AUTHENTLEN];	/* T-attach */
-		};
-		struct
-		{
-			char	ename[ERRREC];	/* R-nError */
-			char	chal[CHALLEN];	/* T-session, R-session */
-			char	authid[NAMELEN];	/* R-session */
-			char	authdom[DOMLEN];	/* R-session */
-		};
-		struct
-		{
-			char	name[NAMELEN];	/* T-Walk, T-Clwalk, T-Create, T-Remove */
-			long	perm;		/* T-Create */
-			ushort	newfid;		/* T-Clone, T-Clwalk */
-			char	mode;		/* T-Create, T-Open */
-		};
-		struct
-		{
-			long	offset;		/* T-Read, T-Write */
-			long	count;		/* T-Read, T-Write, R-Read */
-			char*	data;		/* T-Write, R-Read */
-		};
-		struct
-		{
-			char	stat[DIRREC];	/* T-Wstat, R-Stat */
-		};
-	};
 };
 
 struct	Label
@@ -599,6 +484,7 @@ struct	Conf
 	ulong	recovro;
 	ulong	firstsb;
 	ulong	recovsb;
+	ulong	nauth;		/* number of Auth structs */
 	uchar	nodump;		/* no periodic dumps */
 	uchar	ripoff;
 	uchar	dumpreread;	/* read and compare in dump copy */
@@ -620,12 +506,13 @@ struct	Msgbuf
 		#define	LARGE	(1<<0)
 		#define	FREE	(1<<1)
 		#define BFREE	(1<<2)
+		#define BTRACE	(1<<7)
 	Chan*	chan;
 	Msgbuf*	next;
 	ulong	param;
 	int	category;
-	char*	data;
-	char*	xdata;
+	uchar*	data;
+	uchar*	xdata;
 };
 
 /*
@@ -848,55 +735,6 @@ enum
 	Cckbuf,
 };
 
-#define	MAXFDATA	8192
-/*
- * P9 protocol message types
- */
-/* DONT TOUCH, this the 9P protocol */
-enum
-{
-	Tnop =		50,
-	Rnop,
-	Tosession =	52,
-	Rosession,
-	Terror =	54,	/* illegal */
-	Rerror,
-	Tflush =	56,
-	Rflush,
-	Toattach =	58,
-	Roattach,
-	Tclone =	60,
-	Rclone,
-	Twalk =		62,
-	Rwalk,
-	Topen =		64,
-	Ropen,
-	Tcreate =	66,
-	Rcreate,
-	Tread =		68,
-	Rread,
-	Twrite =	70,
-	Rwrite,
-	Tclunk =	72,
-	Rclunk,
-	Tremove =	74,
-	Rremove,
-	Tstat =		76,
-	Rstat,
-	Twstat =	78,
-	Rwstat,
-	Tclwalk =	80,
-	Rclwalk,
-	Tauth =		82,	/* illegal */
-	Rauth,			/* illegal */
-	Tsession =	84,
-	Rsession,
-	Tattach =	86,
-	Rattach,
-
-	MAXSYSCALL
-};
-
 /*
  * error codes generated from the file server
  */
@@ -919,8 +757,17 @@ enum
 	Edot,
 	Eempty,
 	Ebadu,
-	Enotu,
-	Enotg,
+	Enoattach,
+	Ewstatb,
+	Ewstatd,
+	Ewstatg,
+	Ewstatl,
+	Ewstatm,
+	Ewstato,
+	Ewstatp,
+	Ewstatq,
+	Ewstatu,
+	Ewstatv,
 	Ename,
 	Ewalk,
 	Eronly,
@@ -929,7 +776,14 @@ enum
 	Elocked,
 	Ebroken,
 	Eauth,
-	Enoattach,
+	Eauth2,
+	Efidinuse,
+	Etoolong,
+	Econvert,
+	Eversion,
+	Eauthdisabled,
+	Eauthnone,
+	Eedge,
 	MAXERR
 };
 
@@ -947,7 +801,6 @@ enum
 	Devjuke,		/* jukebox */
 	Devcw,			/* cache with worm */
 	Devro,			/* readonly worm */
-	Devcycl,		/* cyclone fiber uart */
 	Devmcat,		/* multiple cat devices */
 	Devmlev,		/* multiple interleave devices */
 	Devil,			/* internet link */
@@ -990,206 +843,6 @@ enum
 	Bres	= (1<<4),	/* reserved, never renammed */
 };
 
-/*
- * open modes passed into P9 open/create
- */
-/* DONT TOUCH, this the P9 protocol */
-enum
-{
-	MREAD	= 0,
-	MWRITE,
-	MBOTH,
-	MEXEC,
-	MTRUNC	= (1<<4),	/* truncate on open */
-	MCEXEC	= (1<<5),	/* close on exec (host) */
-	MRCLOSE	= (1<<6),	/* remove on close */
-};
-
-
-/*
- * Ethernet header
- */
-enum
-{
-	ETHERMINTU	= 60,		/* minimum transmit size */
-	ETHERMAXTU	= 1514,		/* maximum transmit size */
-
-	Arptype		= 0x0806,
-	Iptype		= 0x0800,
-
-	Icmpproto	= 1,
-	Igmpproto	= 2,
-	Tcpproto	= 6,
-	Udpproto	= 17,
-	Ilproto		= 40,
-
-	Nqueue		= 20,
-	Nfrag		= 6,		/* max number of non-contig ip fragments */
-	Nrock		= 20,		/* number of partial ip assembly stations */
-	Nb		= 211,		/* number of arp hash buckets */
-	Ne		= 10,		/* number of entries in each arp hash bucket */
-
-	Ensize		= 14,		/* ether header size */
-	Ipsize		= 20,		/* ip header size -- doesnt include Ensize */
-	Arpsize		= 28,		/* arp header size -- doesnt include Ensize */
-	Ilsize		= 18,		/* il header size -- doesnt include Ipsize/Ensize */
-	Udpsize		= 8,		/* il header size -- doesnt include Ipsize/Ensize */
-	Udpphsize	= 12,		/* udp pseudo ip header size */
-
-	IP_VER		= 0x40,			/* Using IP version 4 */
-	IP_HLEN		= Ipsize/4,		/* Header length in longs */
-	IP_DF		= 0x4000,		/* Don't fragment */
-	IP_MF		= 0x2000,		/* More fragments */
-
-	Arprequest	= 1,
-	Arpreply,
-
-	Ilfsport	= 17008,
-	Ilauthport	= 17020,
-	Ilfsout		= 5000,
-	SNTP		= 123,
-	SNTP_LOCAL	= 6001,
-};
-
-struct	Enpkt
-{
-	uchar	d[Easize];		/* destination address */
-	uchar	s[Easize];		/* source address */
-	uchar	type[2];		/* packet type */
-
-	uchar	data[ETHERMAXTU-(6+6+2)];
-	uchar	crc[4];
-};
-
-struct	Arppkt
-{
-	uchar	d[Easize];			/* ether header */
-	uchar	s[Easize];
-	uchar	type[2];
-
-	uchar	hrd[2];				/* hardware type, must be ether==1 */
-	uchar	pro[2];				/* protocol, must be ip */
-	uchar	hln;				/* hardware address len, must be Easize */
-	uchar	pln;				/* protocol address len, must be Pasize */
-	uchar	op[2];
-	uchar	sha[Easize];
-	uchar	spa[Pasize];
-	uchar	tha[Easize];
-	uchar	tpa[Pasize];
-};
-
-struct	Ippkt
-{
-	uchar	d[Easize];		/* ether header */
-	uchar	s[Easize];
-	uchar	type[2];
-
-	uchar	vihl;			/* Version and header length */
-	uchar	tos;			/* Type of service */
-	uchar	length[2];		/* packet length */
-	uchar	id[2];			/* Identification */
-	uchar	frag[2];		/* Fragment information */
-	uchar	ttl;			/* Time to live */
-	uchar	proto;			/* Protocol */
-	uchar	cksum[2];		/* Header checksum */
-	uchar	src[Pasize];		/* Ip source */
-	uchar	dst[Pasize];		/* Ip destination */
-};
-
-struct	Ilpkt
-{
-	uchar	d[Easize];		/* ether header */
-	uchar	s[Easize];
-	uchar	type[2];
-
-	uchar	vihl;			/* ip header */
-	uchar	tos;
-	uchar	length[2];
-	uchar	id[2];
-	uchar	frag[2];
-	uchar	ttl;
-	uchar	proto;
-	uchar	cksum[2];
-	uchar	src[Pasize];
-	uchar	dst[Pasize];
-
-	uchar	ilsum[2];		/* Checksum including header */
-	uchar	illen[2];		/* Packet length */
-	uchar	iltype;			/* Packet type */
-	uchar	ilspec;			/* Special */
-	uchar	ilsrc[2];		/* Src port */
-	uchar	ildst[2];		/* Dst port */
-	uchar	ilid[4];		/* Sequence id */
-	uchar	ilack[4];		/* Acked sequence */
-};
-
-struct	Udppkt
-{
-	uchar	d[Easize];		/* ether header */
-	uchar	s[Easize];
-	uchar	type[2];
-
-	uchar	vihl;			/* ip header */
-	uchar	tos;
-	uchar	length[2];
-	uchar	id[2];
-	uchar	frag[2];
-	uchar	ttl;
-	uchar	proto;
-	uchar	cksum[2];
-	uchar	src[Pasize];
-	uchar	dst[Pasize];
-
-	uchar	udpsrc[2];		/* Src port */
-	uchar	udpdst[2];		/* Dst port */
-	uchar	udplen[2];		/* Packet length */
-	uchar	udpsum[2];		/* Checksum including header */
-};
-
-struct	Icmppkt
-{
-	uchar	d[Easize];		/* ether header */
-	uchar	s[Easize];
-	uchar	type[2];
-
-	uchar	vihl;			/* ip header */
-	uchar	tos;
-	uchar	length[2];
-	uchar	id[2];
-	uchar	frag[2];
-	uchar	ttl;
-	uchar	proto;
-	uchar	cksum[2];
-	uchar	src[Pasize];
-	uchar	dst[Pasize];
-
-	uchar	icmptype;		/* Src port */
-	uchar	icmpcode;		/* Dst port */
-	uchar	icmpsum[2];		/* Checksum including header */
-
-	uchar	icmpbody[10];		/* Depends on type */
-};
-
-struct	Ifc
-{
-	Lock;
-	Queue*	reply;
-	Filter	work[3];
-	Filter	rate[3];
-	ulong	rcverr;
-	ulong	txerr;
-	ulong	sumerr;
-	ulong	rxpkt;
-	ulong	txpkt;
-	uchar	ea[Easize];		/* my ether address */
-	uchar	ipa[Pasize];		/* my ip address, pulled from netdb */
-	uchar	netgate[Pasize];	/* my ip gateway, pulled from netdb */
-	ulong	ipaddr;
-	ulong	mask;
-	ulong	cmask;
-	Ifc	*next;			/* List of configured interfaces */
-};
-
 extern	register	Mach*	m;
 extern	register	User*	u;
 extern  Talarm		talarm;
@@ -1198,9 +851,11 @@ Conf	conf;
 Cons	cons;
 #define	MACHP(n)	((Mach*)(MACHADDR+n*BY2PG))
 
-#pragma	varargck	type	"D"	Device*
+#pragma	varargck	type	"Z"	Device*
 #pragma	varargck	type	"T"	ulong
 #pragma	varargck	type	"I"	uchar*
 #pragma	varargck	type	"E"	uchar*
-#pragma	varargck	type	"F"	Filter*
+#pragma	varargck	type	"W"	Filter*
 #pragma	varargck	type	"G"	int
+
+extern int (*fsprotocol[])(Msgbuf*);

@@ -53,7 +53,21 @@ static Netlogflag flags[] =
 	{ nil,		0, },
 };
 
-static char Ebadnetctl[] = "unknown netlog ctl message";
+char Ebadnetctl[] = "too few arguments for netlog control message";
+
+enum
+{
+	CMset,
+	CMclear,
+	CMonly,
+};
+
+static
+Cmdtab routecmd[] = {
+	CMset,		"set",		0,
+	CMclear,	"clear",	0,
+	CMonly,		"only",		0,
+};
 
 void
 netloginit(Fs *f)
@@ -150,48 +164,52 @@ netlogread(Fs *f, void *a, ulong, long n)
 	return n;
 }
 
-char*
-netlogctl(Fs *f, char* s, int len)
+void
+netlogctl(Fs *f, char* s, int n)
 {
-	int i, n, set;
+	int i, set;
 	Netlogflag *fp;
-	char *fields[10], *p, buf[256];
+	Cmdbuf *cb;
+	Cmdtab *ct;
 
-	if(len == 0)
-		return Ebadnetctl;
+	cb = parsecmd(s, n);
+	if(waserror()){
+		free(cb);
+		nexterror();
+	}
 
-	if(len >= sizeof(buf))
-		len = sizeof(buf)-1;
-	strncpy(buf, s, len);
-	buf[len] = 0;
-	if(len > 0 && buf[len-1] == '\n')
-		buf[len-1] = 0;
+	if(cb->nf < 2)
+		error(Ebadnetctl);
 
-	n = getfields(buf, fields, 10, 1, " ");
-	if(n < 2)
-		return Ebadnetctl;
+	ct = lookupcmd(cb, routecmd, nelem(routecmd));
 
-	if(strcmp("set", fields[0]) == 0)
+	SET(set);
+
+	switch(ct->index){
+	case CMset:
 		set = 1;
-	else if(strcmp("clear", fields[0]) == 0)
+		break;
+
+	case CMclear:
 		set = 0;
-	else if(strcmp("only", fields[0]) == 0){
-		parseip(f->alog->iponly, fields[1]);
+		break;
+
+	case CMonly:
+		parseip(f->alog->iponly, cb->f[1]);
 		if(ipcmp(f->alog->iponly, IPnoaddr) == 0)
 			f->alog->iponlyset = 0;
 		else
 			f->alog->iponlyset = 1;
-		return nil;
-	} else
-		return Ebadnetctl;
+		free(cb);
+		return;
 
-	p = strchr(fields[n-1], '\n');
-	if(p)
-		*p = 0;
+	default:
+		cmderror(cb, "unknown ip control message");
+	}
 
-	for(i = 1; i < n; i++){
+	for(i = 1; i < cb->nf; i++){
 		for(fp = flags; fp->name; fp++)
-			if(strcmp(fp->name, fields[i]) == 0)
+			if(strcmp(fp->name, cb->f[i]) == 0)
 				break;
 		if(fp->name == nil)
 			continue;
@@ -201,7 +219,8 @@ netlogctl(Fs *f, char* s, int len)
 			f->alog->logmask &= ~fp->mask;
 	}
 
-	return nil;
+	free(cb);
+	poperror();
 }
 
 void
@@ -214,12 +233,12 @@ netlog(Fs *f, int mask, char *fmt, ...)
 	if(!(f->alog->logmask & mask))
 		return;
 
-	va_start(arg, fmt);
-	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
-	va_end(arg);
-
 	if(f->alog->opens == 0)
 		return;
+
+	va_start(arg, fmt);
+	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
 
 	lock(f->alog);
 	i = f->alog->len + n - Nlog;

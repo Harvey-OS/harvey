@@ -16,11 +16,11 @@ enum
 	TCP_HDRSIZE	= 20,
 	TCP_TCBPHDRSZ	= 40,
 	TCP_PKT		= TCP_IPLEN+TCP_PHDRSIZE,
-	TimerOFF	= 0,
-	TimerON		= 1,
-	TimerDONE	= 2,
+	TcptimerOFF	= 0,
+	TcptimerON		= 1,
+	TcptimerDONE	= 2,
 	MAX_TIME 	= (1<<20),	/* Forever */
-	TCP_ACK		= 50,		/* Timed ack sequence in ms */
+	TCP_ACK		= 200,		/* Timed ack sequence in ms */
 
 	URG		= 0x20,		/* Data marked urgent */
 	ACK		= 0x10,		/* Acknowledge is valid */
@@ -73,12 +73,12 @@ char *tcpstates[] =
 	"Closing", 	"Last_ack", 	"Time_wait"
 };
 
-typedef struct Timer Timer;
-struct Timer
+typedef struct Tcptimer Tcptimer;
+struct Tcptimer
 {
-	Timer	*next;
-	Timer	*prev;
-	Timer	*readynext;
+	Tcptimer	*next;
+	Tcptimer	*prev;
+	Tcptimer	*readynext;
 	int	state;
 	int	start;
 	int	count;
@@ -177,10 +177,10 @@ struct Tcpctl
 	int	backedoff;		/* ms we've backed off for rexmits */
 	uchar	flags;			/* State flags */
 	Reseq	*reseq;			/* Resequencing queue */
-	Timer	timer;			/* Activity timer */
-	Timer	acktimer;		/* Acknowledge timer */
-	Timer	rtt_timer;		/* Round trip timer */
-	Timer	katimer;		/* keep alive timer */
+	Tcptimer	timer;			/* Activity timer */
+	Tcptimer	acktimer;		/* Acknowledge timer */
+	Tcptimer	rtt_timer;		/* Round trip timer */
+	Tcptimer	katimer;		/* keep alive timer */
 	ulong	rttseq;			/* Round trip sequence */
 	int	srtt;			/* Shortened round trip */
 	int	mdev;			/* Mean deviation of round trip */
@@ -241,7 +241,7 @@ static char *statnames[] =
 typedef struct Tcppriv Tcppriv;
 struct Tcppriv
 {
-	Timer 	*timers;		/* List of active timers */
+	Tcptimer 	*timers;		/* List of active timers */
 	QLock 	tl;			/* Protect timer list */
 	Rendez	tcpr;			/* used by tcpackproc */
 
@@ -259,7 +259,7 @@ int	addreseq(Tcpctl*, Tcp*, Block*, ushort);
 void	getreseq(Tcpctl*, Tcp*, Block**, ushort*);
 void	localclose(Conv*, char*);
 void	procsyn(Conv*, Tcp*);
-void	tcpiput(Proto*, uchar*, Block*);
+void	tcpiput(Proto*, Ipifc*, Block*);
 void	tcpoutput(Conv*);
 int	tcptrim(Tcpctl*, Tcp*, Block**, ushort*);
 void	tcpstart(Conv*, int, ushort);
@@ -270,6 +270,7 @@ void	tcpacktimer(void*);
 void	tcpkeepalive(void*);
 void	tcpsetkacounter(Tcpctl*);
 void    tcprxmit(Conv*);
+void	tcpsettimer(Tcpctl*);
 
 void
 tcpsetstate(Conv *s, uchar newstate)
@@ -492,10 +493,10 @@ tcpcreate(Conv *c)
 }
 
 static void
-timerstate(Tcppriv *priv, Timer *t, int newstate)
+timerstate(Tcppriv *priv, Tcptimer *t, int newstate)
 {
-	if(newstate != TimerON){
-		if(t->state == TimerON){
+	if(newstate != TcptimerON){
+		if(t->state == TcptimerON){
 			// unchain
 			if(priv->timers == t){
 				priv->timers = t->next;
@@ -509,7 +510,7 @@ timerstate(Tcppriv *priv, Timer *t, int newstate)
 			t->next = t->prev = nil;
 		}
 	} else {
-		if(t->state != TimerON){
+		if(t->state != TcptimerON){
 			// chain
 			if(t->prev != nil || t->next != nil)
 				panic("timerstate2");
@@ -526,7 +527,7 @@ timerstate(Tcppriv *priv, Timer *t, int newstate)
 void
 tcpackproc(void *a)
 {
-	Timer *t, *tp, *timeo;
+	Tcptimer *t, *tp, *timeo;
 	Proto *tcp;
 	Tcppriv *priv;
 	int loop;
@@ -544,10 +545,10 @@ tcpackproc(void *a)
 			if(loop++ > 10000)
 				panic("tcpackproc1");
 			tp = t->next;
- 			if(t->state == TimerON) {
+ 			if(t->state == TcptimerON) {
 				t->count--;
 				if(t->count == 0) {
-					timerstate(priv, t, TimerDONE);
+					timerstate(priv, t, TcptimerDONE);
 					t->readynext = timeo;
 					timeo = t;
 				}
@@ -559,32 +560,34 @@ tcpackproc(void *a)
 		for(t = timeo; t != nil; t = t->readynext) {
 			if(loop++ > 10000)
 				panic("tcpackproc2");
-			if(t->state == TimerDONE && t->func != nil)
+			if(t->state == TcptimerDONE && t->func != nil && !waserror()){
 				(*t->func)(t->arg);
+				poperror();
+			}
 		}
 	}
 }
 
 void
-tcpgo(Tcppriv *priv, Timer *t)
+tcpgo(Tcppriv *priv, Tcptimer *t)
 {
 	if(t == nil || t->start == 0)
 		return;
 
 	qlock(&priv->tl);
 	t->count = t->start;
-	timerstate(priv, t, TimerON);
+	timerstate(priv, t, TcptimerON);
 	qunlock(&priv->tl);
 }
 
 void
-tcphalt(Tcppriv *priv, Timer *t)
+tcphalt(Tcppriv *priv, Tcptimer *t)
 {
 	if(t == nil)
 		return;
 
 	qlock(&priv->tl);
-	timerstate(priv, t, TimerOFF);
+	timerstate(priv, t, TcptimerOFF);
 	qunlock(&priv->tl);
 }
 
@@ -646,7 +649,7 @@ tcpmtu(Conv *s)
 		mtu = ifc->maxmtu - ifc->m->hsize - (TCP_PKT + TCP_HDRSIZE);
 	if(mtu < 4)
 		mtu = DEF_MSS;
-	return mtu;
+	return restrict_mtu(s->raddr, mtu);
 }
 
 void
@@ -698,7 +701,7 @@ tcpstart(Conv *s, int mode, ushort window)
 {
 	Tcpctl *tcb;
 	Tcppriv *tpriv;
-	char kpname[NAMELEN];
+	char kpname[KNAMELEN];
 
 	tpriv = s->p->priv;
 
@@ -999,13 +1002,13 @@ tcpincoming(Conv *s, Tcp *segp, uchar *src, uchar *dst)
 	tcb = (Tcpctl*)new->ptcl;
 	tcb->flags &= ~CLONE;
 	tcb->timer.arg = new;
-	tcb->timer.state = TimerOFF;
+	tcb->timer.state = TcptimerOFF;
 	tcb->acktimer.arg = new;
-	tcb->acktimer.state = TimerOFF;
+	tcb->acktimer.state = TcptimerOFF;
 	tcb->katimer.arg = new;
-	tcb->katimer.state = TimerOFF;
+	tcb->katimer.state = TcptimerOFF;
 	tcb->rtt_timer.arg = new;
-	tcb->rtt_timer.state = TimerOFF;
+	tcb->rtt_timer.state = TcptimerOFF;
 
 	h = &tcb->protohdr;
 	memset(h, 0, sizeof(*h));
@@ -1099,8 +1102,10 @@ update(Conv *s, Tcp *seg)
 	}
 
 	/* added by Dong for fast retransmission */
-	if( seg->ack == tcb->snd.una &&
-	    seg->len == 0 && seg->wnd == tcb->snd.wnd ) {
+	if(seg->ack == tcb->snd.una
+	&& tcb->snd.una != tcb->snd.nxt
+	&& seg->len == 0
+	&& seg->wnd == tcb->snd.wnd) {
 
 		/* this is a pure ack w/o window update */
 		netlog(s->p->f, Logtcpmsg, "dupack %lud ack %lud sndwnd %d advwin %d\n",
@@ -1181,7 +1186,7 @@ update(Conv *s, Tcp *seg)
 	}
 
 	/* Adjust the timers according to the round trip time */
-	if(tcb->rtt_timer.state == TimerON && seq_ge(seg->ack, tcb->rttseq)) {
+	if(tcb->rtt_timer.state == TcptimerON && seq_ge(seg->ack, tcb->rttseq)) {
 		tcphalt(tpriv, &tcb->rtt_timer);
 		if((tcb->flags&RETRAN) == 0) {
 			tcb->backoff = 0;
@@ -1204,6 +1209,7 @@ update(Conv *s, Tcp *seg)
 				if(tcb->mdev <= 0)
 					tcb->mdev = 1;
 			}
+			tcpsettimer(tcb);
 		}
 	}
 
@@ -1228,7 +1234,7 @@ done:
 }
 
 void
-tcpiput(Proto *tcp, uchar*, Block *bp)
+tcpiput(Proto *tcp, Ipifc*, Block *bp)
 {
 	Tcp seg;
 	Tcphdr *h;
@@ -1253,7 +1259,7 @@ tcpiput(Proto *tcp, uchar*, Block *bp)
 
 	h->Unused = 0;
 	hnputs(h->tcplen, length-TCP_PKT);
-	if((h->tcpcksum[0] || h->tcpcksum[0]) && 
+	if((h->tcpcksum[0] || h->tcpcksum[1]) && 
 	    ptclcsum(bp, TCP_IPLEN, length-TCP_IPLEN)) {
 		tpriv->stats[CsumErrs]++;
 		tpriv->stats[InErrs]++;
@@ -1485,7 +1491,7 @@ reset:
 			}
 		case Time_wait:
 			tcb->flags |= FORCE;
-			if(tcb->timer.state != TimerON)
+			if(tcb->timer.state != TcptimerON)
 				tcpgo(tpriv, &tcb->timer);
 		}
 
@@ -1542,7 +1548,7 @@ reset:
 				 *  turn on the acktimer if there's something
 				 *  to ack
 				 */
-				if(tcb->acktimer.state != TimerON)
+				if(tcb->acktimer.state != TcptimerON)
 					tcpgo(tpriv, &tcb->acktimer);
 
 				break;
@@ -1635,7 +1641,6 @@ raise:
 void
 tcpoutput(Conv *s)
 {
-	int x;
 	Tcp seg;
 	int msgs;
 	Tcpctl *tcb;
@@ -1763,6 +1768,8 @@ tcpoutput(Conv *s)
 			if(ssize < n)
 				n = ssize;
 			tcb->resent += n;
+			netlog(f, Logtcp, "rexmit: %I.%d -> %I.%d ptr %lux nxt %lux\n",
+				s->raddr, s->rport, s->laddr, s->lport, tcb->snd.ptr, tcb->snd.nxt);
 			tpriv->stats[RetransSegs]++;
 		}
 
@@ -1785,27 +1792,14 @@ tcpoutput(Conv *s)
 		 * expect acknowledges
 		 */
 		if(ssize != 0){
-			/* round trip depenency */
-			x = backoff(tcb->backoff) *
-			    (tcb->mdev + (tcb->srtt>>LOGAGAIN) + MSPTICK) / MSPTICK;
-
-			/* take into account delayed ack */
-			if(sent <= 2*tcb->mss)
-				x += TCP_ACK/MSPTICK;
-
-			/* sanity check */
-			if(x > (10000/MSPTICK))
-				x = 10000/MSPTICK;
-			tcb->timer.start = x;
-
-			if(tcb->timer.state != TimerON)
+			if(tcb->timer.state != TcptimerON)
 				tcpgo(tpriv, &tcb->timer);
 
 			/*  If round trip timer isn't running, start it.
 			 *  measure the longest packet only in case the
 			 *  transmission time dominates RTT
 			 */
-			if(tcb->rtt_timer.state != TimerON)
+			if(tcb->rtt_timer.state != TcptimerON)
 			if(ssize == tcb->mss) {
 				tcpgo(tpriv, &tcb->rtt_timer);
 				tcb->rttseq = tcb->snd.ptr;
@@ -1989,6 +1983,7 @@ tcptimeout(void *arg)
 			localclose(s, Etimedout);
 			break;
 		}
+		tcpsettimer(tcb);
 		netlog(s->p->f, Logtcp, "timeout rexmit 0x%lux\n", tcb->snd.una);
 		tcprxmit(s);
 		tpriv->stats[RetransTimeouts]++;
@@ -2188,24 +2183,45 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 
 	/* Look for a connection */
 	qlock(tcp);
-	for(p = tcp->conv; *p; p++) {
-		s = *p;
-		tcb = (Tcpctl*)s->ptcl;
-		if(s->rport == pdest)
-		if(s->lport == psource)
-		if(tcb->state != Closed)
-		if(ipcmp(s->raddr, dest) == 0)
-		if(ipcmp(s->laddr, source) == 0){
-			qlock(s);
-			qunlock(tcp);
-			switch(tcb->state){
-			case Syn_sent:
-				localclose(s, msg);
-				break;
+	if(strcmp(msg, "unfragmentable") == 0){
+		for(p = tcp->conv; *p; p++) {
+			s = *p;
+			tcb = (Tcpctl*)s->ptcl;
+			if(tcb->state != Closed)
+			if(ipcmp(s->raddr, dest) == 0)
+			if(ipcmp(s->laddr, source) == 0){
+				qlock(s);
+				qunlock(tcp);
+				switch(tcb->state){
+				case Syn_sent:
+					localclose(s, msg);
+					break;
+				}
+				qunlock(s);
+				freeblist(bp);
+				return;
 			}
-			qunlock(s);
-			freeblist(bp);
-			return;
+		}
+	} else {
+		for(p = tcp->conv; *p; p++) {
+			s = *p;
+			tcb = (Tcpctl*)s->ptcl;
+			if(s->rport == pdest)
+			if(s->lport == psource)
+			if(tcb->state != Closed)
+			if(ipcmp(s->raddr, dest) == 0)
+			if(ipcmp(s->laddr, source) == 0){
+				qlock(s);
+				qunlock(tcp);
+				switch(tcb->state){
+				case Syn_sent:
+					localclose(s, msg);
+					break;
+				}
+				qunlock(s);
+				freeblist(bp);
+				return;
+			}
 		}
 	}
 	qunlock(tcp);
@@ -2286,6 +2302,25 @@ tcpgc(Proto *tcp)
 }
 
 void
+tcpsettimer(Tcpctl *tcb)
+{
+	int x;
+
+	/* round trip depenency */
+	x = backoff(tcb->backoff) *
+	    (tcb->mdev + (tcb->srtt>>LOGAGAIN) + MSPTICK) / MSPTICK;
+
+	/* take into account delayed ack */
+	if((tcb->snd.ptr - tcb->snd.una) <= 2*tcb->mss)
+		x += TCP_ACK/MSPTICK;
+
+	/* sanity check */
+	if(x > (10000/MSPTICK))
+		x = 10000/MSPTICK;
+	tcb->timer.start = x;
+}
+
+void
 tcpinit(Fs *fs)
 {
 	Proto *tcp;
@@ -2307,9 +2342,9 @@ tcpinit(Fs *fs)
 	tcp->inuse = tcpinuse;
 	tcp->gc = tcpgc;
 	tcp->ipproto = IP_TCPPROTO;
-	tcp->nc = Nchans;
+	tcp->nc = scalednconv();
 	tcp->ptclsize = sizeof(Tcpctl);
-	tpriv->stats[MaxConn] = Nchans;
+	tpriv->stats[MaxConn] = tcp->nc;
 
 	Fsproto(fs, tcp);
 }

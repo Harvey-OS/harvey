@@ -6,10 +6,7 @@
 #include <keyboard.h>
 #include <control.h>
 
-enum
-{
-	Nline = 20,
-};
+int	Nline;
 
 enum{
 	Back,
@@ -30,15 +27,19 @@ Image	*cols[Ncol];
 
 int nline;
 
-char *lines[Nline+1];	/* plus one so last line gets terminated by getfields */
-Control *entry[Nline];
+char *lines[24];	/* plus one so last line gets terminated by getfields */
+Control *entry[24];
 Control *kbd;
 Control *scrib;
 Controlset *keyboard;
 Controlset *text;
 int kbdy;
 
+int resizeready;
+
 int ctldeletequits = 1;
+
+Channel *eventchan;
 
 void
 resizecontrolset(Controlset *cs)
@@ -48,13 +49,16 @@ resizecontrolset(Controlset *cs)
 
 	if(cs != keyboard)
 		return;
+	if (!resizeready)
+		return;
 	if(getwindow(display, Refnone) < 0)
 		ctlerror("resize failed: %r");
-	draw(screen, screen->r, display->white, nil, ZP);
+	draw(screen, screen->r, cols[Back], nil, ZP);
 	r = insetrect(screen->r, 4);
 	for(i=0; i<Nline; i++){
 		r.max.y = r.min.y + font->height;
-		printctl(entry[i]->ctl, "rect %R\nshow", r);
+		ctlprint(entry[i], "rect %R", r);
+		ctlprint(entry[i], "show");
 		r.min.y = r.max.y;
 	}
 	kbdy = r.min.y;
@@ -68,10 +72,12 @@ resizecontrolset(Controlset *cs)
 	r1 = r;
 	if(scrib)
 		r.max.x = (3*r.max.x + r.min.x)/4;
-	printctl(kbd->ctl, "rect %R\nshow", r);
+	ctlprint(kbd, "rect %R", r);
+	ctlprint(kbd, "show");
 	if(scrib){
 		r1.min.x = (3*r1.max.x + r1.min.x)/4;
-		printctl(scrib->ctl, "rect %R\nshow", r1);
+		ctlprint(scrib, "rect %R", r1);
+		ctlprint(scrib, "show");
 	}
 }
 
@@ -80,23 +86,25 @@ readall(char *s)
 {
 	char *buf;
 	int fd;
-	Dir d;
+	Dir *d;
 
 	fd = open(s, OREAD);
 	if(fd < 0){
-		threadprint(2, "prompter: can't open %s: %r\n", s);
+		fprint(2, "prompter: can't open %s: %r\n", s);
 		exits("open");
 	}
-	if(dirfstat(fd, &d) < 0){
-		threadprint(2, "prompter: can't stat %s: %r\n", s);
+	d = dirfstat(fd);
+	if(d == nil){
+		fprint(2, "prompter: can't stat %s: %r\n", s);
 		exits("stat");
 	}
-	buf = ctlmalloc(d.length+1);	/* +1 for NUL on end */
-	if(read(fd, buf, d.length) != d.length){
-		threadprint(2, "prompter: can't read %s: %r\n", s);
+	buf = ctlmalloc(d->length+1);	/* +1 for NUL on end */
+	if(read(fd, buf, d->length) != d->length){
+		fprint(2, "prompter: can't read %s: %r\n", s);
 		exits("stat");
 	}
 	nline = getfields(buf, lines, nelem(lines), 0, "\n");
+	free(d);
 	close(fd);
 }
 
@@ -111,6 +119,10 @@ mousemux(void *v)
 	for(;;){
 		if(recv(c, &m) < 0)
 			break;
+		if(m.buttons & 0x20) {
+			sendp(eventchan, "mouse: exit");
+			break;
+		}
 		if(m.xy.y >= kbdy)
 			send(keyboard->mousec, &m);
 		else
@@ -141,7 +153,7 @@ writeall(char *s)
 
 	fd = create(s, OWRITE, 0666);
 	if(fd < 0){
-		threadprint(2, "prompter: can't create %s: %r\n", s);
+		fprint(2, "prompter: can't create %s: %r\n", s);
 		exits("open");
 	}
 
@@ -150,14 +162,14 @@ writeall(char *s)
 			break;
 
 	for(i=0; i<=n; i++)
-		threadprint(fd, "%s\n", lines[i]);
+		fprint(fd, "%s\n", lines[i]);
 	close(fd);
 }
 
 void
 usage(void)
 {
-	threadprint(2, "usage: prompter file\n");
+	fprint(2, "usage: prompter file\n");
 	threadexitsall("usage");
 }
 
@@ -168,7 +180,6 @@ threadmain(int argc, char *argv[])
 	Font *f;
 	int i, n;
 	char buf[32], *args[3];
-	Channel *c;
 	Keyboardctl *kbdctl;
 	Mousectl *mousectl;
 	Rune r;
@@ -208,13 +219,13 @@ threadmain(int argc, char *argv[])
 	threadcreate(mousemux, mousectl->c, 4096);
 	threadcreate(resizemux, mousectl->resizec, 4096);
 
-	c = chancreate(sizeof(char*), 0);
+	eventchan = chancreate(sizeof(char*), 0);
 
-	cols[Back] = allocimage(display, Rect(0,0,1,1), display->chan, 1, Keyback);
+	cols[Back] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, Keyback);
 	namectlimage(cols[Back], "keyback");
-	cols[Light] = allocimage(display, Rect(0,0,1,1), display->chan, 1, Keylight);
+	cols[Light] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, Keylight);
 	namectlimage(cols[Light], "keylight");
-	cols[Shade] = allocimage(display, Rect(0,0,1,1), display->chan, 1, Keyshade);
+	cols[Shade] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, Keyshade);
 	namectlimage(cols[Shade], "keyshade");
 	cols[Mask] = allocimage(display, Rect(0,0,1,1), RGBA32, 1, Keymask);
 	namectlimage(cols[Shade], "keymask");
@@ -224,40 +235,47 @@ threadmain(int argc, char *argv[])
 	namectlfont(f, "roman");
 	font = f;
 
+	Nline = (screen->r.max.y - 2*2 - 5*13 - 8)/font->height;
+	if (Nline > nelem(entry)) Nline = nelem(entry);
+
 	for(i=0; i<Nline; i++){
 		snprint(buf, sizeof buf, "line.%.2d", i);
 		entry[i] = createentry(text, buf);
-		printctl(entry[i]->ctl, "font roman");
+		ctlprint(entry[i], "font roman");
+		ctlprint(entry[i], "image keyback");
 		if(i < nline)
-			printctl(entry[i]->ctl, "value %q", lines[i]);
-		controlwire(entry[i], "event", c);
+			ctlprint(entry[i], "value %q", lines[i]);
+		controlwire(entry[i], "event", eventchan);
 		activate(entry[i]);
 	}
 
 	kbd = createkeyboard(keyboard, "keyboard");
-	printctl(kbd->ctl, "font bold roman");
-	printctl(kbd->ctl, "image keyback");
-	printctl(kbd->ctl, "light keylight");
-	printctl(kbd->ctl, "mask keymask");
-	printctl(kbd->ctl, "border 1");
-	controlwire(kbd, "event", c);
+	ctlprint(kbd, "font bold roman");
+	ctlprint(kbd, "image keyback");
+	ctlprint(kbd, "light keylight");
+	ctlprint(kbd, "mask keymask");
+	ctlprint(kbd, "border 1");
+	controlwire(kbd, "event", eventchan);
 
 	scrib = nil;
 	if(!noscrib){
 		scrib = createscribble(keyboard, "scribble");
-		printctl(scrib->ctl, "font bold");
-		printctl(scrib->ctl, "image keyback");
-		printctl(scrib->ctl, "border 1");
-		controlwire(scrib, "event", c);
+		ctlprint(scrib, "font bold");
+		ctlprint(scrib, "image keyback");
+		ctlprint(scrib, "border 1");
+		controlwire(scrib, "event", eventchan);
 		activate(scrib);
 	}
 
 	activate(kbd);
+	resizeready = 1;
 	resizecontrolset(keyboard);
 
 	for(;;){
-		s = recvp(c);
+		s = recvp(eventchan);
 		n = tokenize(s, args, nelem(args));
+		if(n == 2 && strcmp(args[0], "mouse:")==0 && strcmp(args[1], "exit")==0)
+			break;
 		if(n == 3)
 		if(strcmp(args[0], "keyboard:")==0 || strcmp(args[0], "scribble:")==0)
 		if(strcmp(args[1], "value") == 0){
@@ -272,11 +290,14 @@ threadmain(int argc, char *argv[])
 	}
 
 	for(i=0; i<Nline; i++){
-		printctl(entry[i]->ctl, "data");
+		ctlprint(entry[i], "data");
 		lines[i] = ctlstrdup(recvp(entry[i]->data));
 	}
 
 	writeall(argv[0]);
+
+	draw(screen, screen->r, display->white, nil, ZP);
+	flushimage(display, 1);
 
 	threadexitsall(nil);
 }

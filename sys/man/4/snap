@@ -77,7 +77,7 @@ is still around for debugging on his return.
 You can save the errant processes with
 .IP
 .EX
-snap -o page.snap `{psu | awk '$1 ~ /page|gs/ {print $2}'}
+snap -o page.snap `{psu | awk '$NF ~ /page|gs/ {print $2}'}
 .EE
 .PP
 When the author returns, he can add the process images to his name space

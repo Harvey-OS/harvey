@@ -1278,12 +1278,18 @@ acid: interpret("main+10;")
 .\"
 .\"
 .\"
-.Ip string itoa integer "Convert integer to string
+.Ip string itoa integer[,string] "Convert integer to string
 .CW itoa
 takes an integer argument and converts it into an ASCII string
 in the
 .CW D
-format. This function is commonly used to build
+format.
+an alternate format string
+may be provided in the
+.CW %
+style of
+.I print (2).
+This function is commonly used to build
 .CW rc
 command lines.
 .Ex

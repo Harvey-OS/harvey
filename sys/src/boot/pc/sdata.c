@@ -321,8 +321,9 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 		 * can be used as a test for !Bsy.
 		 */
 		as = inb(ctlport+As);
-		if(as & reset)
-			;
+		if(as & reset){
+			/* nothing to do */;
+		}
 		else if(dev){
 			outb(cmdport+Dh, dev);
 			dev = 0;

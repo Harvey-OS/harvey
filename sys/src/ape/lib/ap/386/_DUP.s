@@ -1,4 +1,0 @@
-TEXT _DUP(SB), 1, $0
-MOVL $5, AX
-INT $64
-RET

@@ -350,8 +350,9 @@ fatal(char *fmt, void *a0, void *a1)
 char*
 syserr(void)
 {
-	static char err[ERRLEN];
-	errstr(err);
+	static char err[ERRMAX];
+
+	errstr(err, sizeof err);
 	return err;
 }
 

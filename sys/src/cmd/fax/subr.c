@@ -14,7 +14,7 @@ verbose(char *fmt, ...)
 
 	if(vflag){
 		va_start(arg, fmt);
-		doprint(buf, buf+sizeof(buf), fmt, arg);
+		vseprint(buf, buf+sizeof(buf), fmt, arg);
 		va_end(arg);
 		syslog(0, "fax", buf);
 	}
@@ -29,7 +29,7 @@ error(char *fmt, ...)
 
 	n = sprint(buf, "%s: ", argv0);
 	va_start(arg, fmt);
-	doprint(buf+n, buf+sizeof(buf)-n, fmt, arg);
+	vseprint(buf+n, buf+sizeof(buf)-n, fmt, arg);
 	va_end(arg);
 	fprint(2, buf);
 	if(vflag)

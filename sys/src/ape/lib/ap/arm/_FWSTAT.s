@@ -1,4 +1,0 @@
-TEXT _FWSTAT(SB), 1, $-4
-MOVW $27, R0
-SWI 0
-RET

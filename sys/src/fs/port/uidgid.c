@@ -340,7 +340,7 @@ do_newuser(int argc, char *argv[])
 	}
 
 
-	if(walkto("/adm/users") || con_open(FID2, MWRITE|MTRUNC)) {
+	if(walkto("/adm/users") || con_open(FID2, OWRITE|OTRUNC)) {
 		print("can't open /adm/users for write\n");
 		return;
 	}

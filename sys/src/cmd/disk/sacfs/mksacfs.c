@@ -91,25 +91,27 @@ usage(void)
 void
 sacfs(char *root)
 {
-	Dir dir;
+	Dir *dir;
 	long offset;
 	SacHeader hdr;
 	SacDir sd;
 
-	if(dirstat(root, &dir) < 0)
+	dir = dirstat(root);
+	if(dir == nil)
 		sysfatal("could not stat root: %s: %r", root);
 	offset = out.size;
 	out.size += sizeof(SacHeader) + sizeof(SacDir);
 	memset(&hdr, 0, sizeof(hdr));
 	putl(hdr.magic, Magic);
 	putl(hdr.blocksize, blocksize);
-	if(dir.mode & CHDIR)
-		sacdir(root, &dir, &sd);
+	if(dir->mode & DMDIR)
+		sacdir(root, dir, &sd);
 	else
-		sacfile(root, &dir, &sd);
+		sacfile(root, dir, &sd);
 	putl(hdr.length, out.size);
 	outwrite(&hdr, sizeof(hdr), offset);
 	outwrite(&sd, sizeof(sd), offset+sizeof(SacHeader));
+	free(dir);
 }
 
 void
@@ -118,10 +120,10 @@ setsd(SacDir *sd, Dir *dir, long length, long blocks)
 	static qid = 1;
 
 	memset(sd, 0, sizeof(SacDir));
-	memmove(sd->name, dir->name, NAMELEN);
-	memmove(sd->uid, dir->uid, NAMELEN);
-	memmove(sd->gid, dir->gid, NAMELEN);
-	putl(sd->qid, qid++|(dir->mode&CHDIR));
+	strncpy(sd->name, dir->name, NAMELEN);
+	strncpy(sd->uid, dir->uid, NAMELEN);
+	strncpy(sd->gid, dir->gid, NAMELEN);
+	putl(sd->qid, qid++|(dir->mode&DMDIR));
 	putl(sd->mode, dir->mode);
 	putl(sd->atime, dir->atime);
 	putl(sd->mtime, dir->mtime);
@@ -181,43 +183,20 @@ sacfile(char *name, Dir *dir, SacDir *sd)
 void
 sacdir(char *name, Dir *dir, SacDir *sd)
 {
-	Dir buf[100], *dirs, *p, b;
-	char file[512];
+	Dir *dirs, *p;
 	int i, n, nn, per;
 	SacDir *sds;
 	int ndir, fd, nblock;
 	long offset, block;
 	uchar *blocks, *cbuf;
+	char file[512];
 
 	fd = open(name, OREAD);
 	if(fd < 0)
-		sysfatal("could not open file: %s: %r", name);
-	dirs = 0;
-	ndir = 0;
-	while((n=dirread(fd, buf, sizeof buf)) > 0) {
-		dirs = realloc(dirs, ndir*sizeof(Dir) + n);
-		if(dirs == nil)
-			sysfatal("malloc failed");
-		n /= sizeof(Dir);	
-		p = buf;
-		for(i=0; i<n; i++, p++) {
-			if(strcmp(p->name, ".") == 0 ||
-			   strcmp(p->name, "..") == 0)
-				continue;
-			sprint(file, "%s/%s", name, p->name);
-			if(dirstat(file, &b) < 0) {
-				sysfatal("stat failed: %s: %r", file);
-				continue;
-			}
-			if(b.qid.path != p->qid.path ||
-			   b.dev != p->dev ||
-			   b.type != p->type)
-				continue;	/* file is hidden */
-			if(seen(p))
-				fprint(2, "warning: multiple copies of %s\n", name);
-			dirs[ndir++] = *p;
-		}
-	}
+		sysfatal("could not open directory: %s: %r", name);
+	ndir = dirreadall(fd, &dirs);
+	if(ndir < 0)
+		sysfatal("could not read directory: %s: %r", name);
 	close(fd);
 	per = blocksize/sizeof(SacDir);
 	nblock = (ndir+per-1)/per;
@@ -225,7 +204,7 @@ sacdir(char *name, Dir *dir, SacDir *sd)
 	p = dirs;
 	for(i=0; i<ndir; i++,p++) {
 		sprint(file, "%s/%s", name, p->name);
-		if(p->mode & CHDIR)
+		if(p->mode & DMDIR)
 			sacdir(file, p, sds+i);
 		else
 			sacfile(file, p, sds+i);

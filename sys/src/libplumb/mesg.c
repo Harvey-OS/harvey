@@ -28,7 +28,7 @@ plumbopen(char *name, int omode)
 	f = open(s, ORDWR);
 	if(f < 0)
 		return -1;
-	if(mount(f, "/mnt/plumb", MREPL, "") < 0)
+	if(mount(f, -1, "/mnt/plumb", MREPL, "") < 0)
 		return -1;
 	snprint(buf, sizeof buf, "/mnt/plumb/%s", name);
 	return open(buf, omode);

@@ -105,6 +105,8 @@ Magic(m)
 		return "kempt";
 	if m == ARENATAIL_MAGIC then
 		return "arenatail";
+	if m == DEAD_MAGIC then
+		return "dead";
 	return "unknown magic";
 }
 

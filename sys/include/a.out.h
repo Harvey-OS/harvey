@@ -25,6 +25,8 @@ struct	Exec
 #define	N_MAGIC		_MAGIC(22)	/* mips 4000 LE */
 #define	L_MAGIC		_MAGIC(23)	/* dec alpha */
 
+#define	DYN_MAGIC	0x80000000	/* or'd in for dynamically loaded modules */
+
 typedef	struct	Sym	Sym;
 struct	Sym
 {

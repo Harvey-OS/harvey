@@ -102,9 +102,9 @@ applyrules(char *target, char *cnt)
 		} else
 			for(w = r->tail; w; w = w->next){
 				if(r->attr&REGEXP)
-					regsub(w->s, buf, rmatch, NREGEXP);
+					regsub(w->s, buf, sizeof(buf), rmatch, NREGEXP);
 				else
-					subst(stem, w->s, buf);
+					subst(stem, w->s, buf, sizeof(buf));
 				a->next = newarc(applyrules(buf, cnt), r, stem, rmatch);
 				a = a->next;
 			}

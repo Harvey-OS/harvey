@@ -77,7 +77,6 @@ static void
 tdfxenable(VGAscr* scr)
 {
 	Pcidev *p;
-	Physseg seg;
 	ulong aperture;
 	int align, i, *mmio, size;
 
@@ -103,27 +102,15 @@ tdfxenable(VGAscr* scr)
 	if(scr->io == 0)
 		return;
 
-	memset(&seg, 0, sizeof(seg));
-	seg.attr = SG_PHYSICAL;
-	seg.name = smalloc(NAMELEN);
-	snprint(seg.name, NAMELEN, "3dfxmmio");
-	seg.pa = scr->io;
-	seg.size = p->mem[0].size;
-	addphysseg(&seg);
+	addvgaseg("3dfxmmio", (ulong)scr->io, p->mem[0].size);
 
 	size = p->mem[1].size;
 	align = 0;
 	aperture = tdfxlinear(scr, &size, &align);
-	if(aperture) {
+	if(aperture){
 		scr->aperture = aperture;
 		scr->apsize = size;
-		memset(&seg, 0, sizeof(seg));
-		seg.attr = SG_PHYSICAL;
-		seg.name = smalloc(NAMELEN);
-		snprint(seg.name, NAMELEN, "3dfxscreen");
-		seg.pa = aperture;
-		seg.size = size;
-		addphysseg(&seg);
+		addvgaseg("3dfxscreen", aperture, size);
 	}
 
 	/*

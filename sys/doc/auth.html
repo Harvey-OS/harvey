@@ -1,0 +1,2051 @@
+<html>
+<title>
+-
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Security in Plan 9
+</H1>
+<DL><DD><I>Russ Cox, MIT LCS<br>
+<br>
+Eric Grosse, Bell Labs<br>
+<br>
+Rob Pike, Bell Labs<br>
+<br>
+Dave Presotto, Avaya Labs and Bell Labs<br>
+<br>
+Sean Quinlan, Bell Labs<br>
+<br>
+<TT>{rsc,ehg,rob,presotto,seanq}@plan9.bell-labs.com</TT>
+</I></DL>
+<DL><DD><H4>ABSTRACT</H4>
+Abstract
+<DL>
+<DT><DT>&#32;<DD>
+NOTE:<I> To appear, in a slightly different form, in
+Proc. of the 2002 Usenix Security Symposium,
+San Francisco.
+</I><DT>&#32;<DD></dl>
+<br>
+The security architecture of the Plan 9(tm)
+operating system has recently been redesigned
+to address some technical shortcomings.
+This redesign provided an opportunity also to make the system more
+convenient to use securely.
+Plan 9 has thus improved in two ways not usually seen together:
+it has become more secure
+<I>and</I>
+easier to use.
+<br>&#32;<br>
+The central component of the new architecture is a per-user
+self-contained agent called
+<TT>factotum</TT>.
+<TT>Factotum</TT>
+securely holds a
+copy of the user's keys and negotiates authentication protocols, on
+behalf of the user, with secure services around the network.
+Concentrating security code in a single program offers several
+advantages including: ease of update or repair to broken security
+software and protocols; the ability to run secure services at a lower
+privilege level; uniform management of keys for all services; and an
+opportunity to provide single sign on, even to unchanged legacy
+applications.
+<TT>Factotum</TT>
+has an unusual architecture: it is implemented
+as a Plan 9 file server.
+</DL>
+<H4>1 Introduction
+</H4>
+<br>&#32;<br>
+Secure computing systems face two challenges:
+first, they must employ sophisticated technology that is difficult to design
+and prove correct; and second,
+they must be easy for regular people to use.
+The question of ease of use is sometimes neglected, but it is essential:
+weak but easy-to-use security can be more effective than strong but
+difficult-to-use security if it is more likely to be used.
+People lock their front doors when they leave the house, knowing
+full well that a burglar is capable of picking the lock (or avoiding
+the door altogether); yet few would accept the cost and
+awkwardness of a bank vault door on the
+house even though that might reduce the probability of a robbery.
+A related point is that users need a clear model of how the security
+operates (if not how it actually provides security) in order to use it
+well; for example, the clarity of a lock icon on a web browser
+is offset by the confusing and typically insecure
+steps for installing X.509 certificates.
+<br>&#32;<br>
+The security architecture of the Plan 9
+operating system [Pike95]
+has recently been redesigned to make it both more secure
+and easier to use.
+By
+<I>security</I>
+we mean three things:
+first, the business of authenticating users and services;
+second, the safe handling, deployment, and use of keys
+and other secret information; and
+third, the use of encryption and integrity checks
+to safeguard communications
+from prying eyes.
+<br>&#32;<br>
+The old security architecture of Plan 9
+had several engineering problems in common with other operating systems.
+First, it had an inadequate notion of security domain.
+Once a user provided a password to connect to a local file store,
+the system required that the same password be used to access all the other file
+stores.
+That is, the system treated all network services as
+belonging to the same security domain. 
+<br>&#32;<br>
+Second, the algorithms and protocols used in authentication,
+by nature tricky and difficult to get right, were compiled into the
+various applications, kernel modules, and file servers.
+Changes and fixes to a security protocol
+required that all components using that protocol needed to be recompiled,
+or at least relinked, and restarted.
+<br>&#32;<br>
+Third, the file transport protocol, 9P [Pike93],
+that forms the core of
+the Plan 9 system, had its authentication protocol embedded in its design.
+This meant that fixing or changing the authentication used by 9P
+required deep changes to the system.
+If someone were to find a way to break the protocol, the system would
+be wide open and very hard to fix.
+<br>&#32;<br>
+These and a number of lesser problems, combined with a desire
+for more widespread use of encryption in the system, spurred us to
+rethink the entire security architecture of Plan 9.
+<br>&#32;<br>
+The centerpiece of the new architecture is an agent,
+called
+<TT>factotum</TT>,
+that handles the user's keys and negotiates all security
+interactions with system services and applications.
+Like a trusted houseboy with a copy of the owner's keys,
+<TT>factotum</TT>
+does all the negotiation for security and authentication.
+Programs no longer need to be compiled with cryptographic
+code; instead they communicate with
+<TT>factotum</TT>
+agents
+that represent distinct entities in the cryptographic exchange,
+such as a user and server of a secure service.
+If a security protocol needs to be added, deleted, or modified,
+only
+<TT>factotum</TT>
+needs to be updated for all system services
+to be kept secure.
+<br>&#32;<br>
+Building on
+<TT>factotum</TT>,
+we modified
+secure services in the system to move
+user authentication code into
+<TT>factotum</TT>;
+made authentication a separable component of the file server protocol;
+deployed new security protocols;
+designed a secure file store,
+called
+<TT>secstore</TT>,
+to protect our keys but make them easy to get when they are needed;
+designed a new kernel module to support transparent use of 
+Transport Layer Security (TLS)
+[RFC2246];
+and began using encryption for all communications within the system.
+The overall architecture is illustrated in Figure 1a.
+<DL><DT><DD><TT><PRE>
+<br><img src="-.22122.gif"><br>
+</PRE></TT></DL>
+<br>&#32;<br>
+Figure 1a.  Components of the security architecture.
+Each box is a (typically) separate machine; each ellipse a process.
+The ellipses labeled <I>F</I><I>X</I>
+are
+<TT>factotum</TT>
+processes; those labeled
+<I>P</I><I>X</I>
+are the pieces and proxies of a distributed program.
+The authentication server is one of several repositories for users' security information
+that
+<TT>factotum</TT>
+processes consult as required.
+<TT>Secstore</TT>
+is a shared resource for storing private information such as keys;
+<TT>factotum</TT>
+consults it for the user during bootstrap.
+<br>&#32;<br>
+<br>&#32;<br>
+Secure protocols and algorithms are well understood
+and are usually not the weakest link in a system's security.
+In practice, most security problems arise from buggy servers,
+confusing software, or administrative oversights.
+It is these practical problems that we are addressing.
+Although this paper describes the algorithms and protocols we are using,
+they are included mainly for concreteness.
+Instead, our focus is to present a simple security architecture built
+upon a small trusted code base that is easy to verify (whether by manual or
+automatic means), easy to understand, and easy to use.
+<br>&#32;<br>
+Although it is a subjective assessment,
+we believe we have achieved our goal of ease of use.
+That we have achieved
+our goal of improved security is supported by our plan to
+move our currently private computing environment onto the Internet
+outside the corporate firewall.
+The rest of this paper explains the architecture and how it is used,
+to explain why a system that is easy to use securely is also safe
+enough to run in the open network.
+<H4>2 An Agent for Security
+</H4>
+<br>&#32;<br>
+One of the primary reasons for the redesign of the Plan 9
+security infrastructure was to remove the authentication
+method both from the applications and from the kernel.
+Cryptographic code
+is large and intricate, so it should
+be packaged as a separate component that can be repaired or
+modified without altering or even relinking applications
+and services that depend on it.
+If a security protocol is broken, it should be trivial to repair,
+disable, or replace it on the fly.
+Similarly, it should be possible for multiple programs to use
+a common security protocol without embedding it in each program.
+<br>&#32;<br>
+Some systems use dynamically linked libraries (DLLs) to address these configuration issues.
+The problem with this approach is that it leaves
+security code in the same address space as the program using it.
+The interactions between the program and the DLL
+can therefore accidentally or deliberately violate the interface,
+weakening security.
+Also, a program using a library to implement secure services
+must run at a privilege level necessary to provide the service;
+separating the security to a different program makes it possible
+to run the services at a weaker privilege level, isolating the
+privileged code to a single, more trustworthy component.
+<br>&#32;<br>
+Following the lead of the SSH agent
+[Ylon96],
+we give each user
+an agent process responsible
+for holding and using the user's keys.
+The agent program is called
+<TT>factotum</TT>
+because of its similarity to the proverbial servant with the
+power to act on behalf of his master because he holds the
+keys to all the master's possessions.  It is essential that
+<TT>factotum</TT>
+keep the keys secret and use them only in the owner's interest.
+Later we'll discuss some changes to the kernel to reduce the possibility of
+<TT>factotum</TT>
+leaking information inadvertently.
+<br>&#32;<br>
+<TT>Factotum</TT>
+is implemented, like most Plan 9 services, as a file server.
+It is conventionally mounted upon the directory
+<TT>/mnt/factotum</TT>
+and the files it serves there are analogous to virtual devices that provide access to,
+and control of, the services of the
+<TT>factotum</TT>.
+The next few sections describe the design of
+<TT>factotum</TT>
+and how it operates with the other pieces of Plan 9 to provide
+security services.
+Logging in
+<br>&#32;<br>
+To make the discussions that follow more concrete,
+we begin with a couple of examples showing how the
+Plan 9 security architecture appears to the user.
+These examples both involve a user
+<TT>gre</TT>
+logging in after booting a local machine.
+The user may or may not have a secure store in which
+all his keys are kept.
+If he does,
+<TT>factotum</TT>
+will prompt him for the password to the secure store
+and obtain keys from it, prompting only when a key
+isn't found in the store.
+If not,
+<TT>factotum</TT>
+must prompt for each key.
+<br>&#32;<br>
+In the typescripts,
+<TT>0</TT>
+epresents a literal newline
+character typed to force a default response.
+User input is in italics, and
+long lines are folded and indented to fit.
+<br>&#32;<br>
+This first example shows a user logging in without
+help from the secure store.
+First,
+<TT>factotum</TT>
+prompts for a user name that the local kernel
+will use:
+<DL><DT><DD><TT><PRE>
+user[none]: gre
+</PRE></TT></DL>
+(Default responses appear in square brackets.)
+The kernel then starts accessing local resources
+and requests, through
+<TT>factotum</TT>,
+a user/password pair to do so:
+<DL><DT><DD><TT><PRE>
+!Adding key: dom=cs.bell-labs.com
+    proto=p9sk1
+user[gre]: \n
+password: ****
+</PRE></TT></DL>
+Now the user is logged in to the local system, and
+the mail client starts up:
+<DL><DT><DD><TT><PRE>
+!Adding key: proto=apop
+    server=plan9.bell-labs.com
+user[gre]: \n
+password: ****
+</PRE></TT></DL>
+<TT>Factotum</TT>
+is doing all the prompting and the applications
+being started are not even touching the keys.
+Note that it's always clear what key is being requested.
+<br>&#32;<br>
+Now consider the same login sequence, but in the case where
+<TT>gre</TT>
+has a secure store account:
+<DL><DT><DD><TT><PRE>
+user[none]: gre
+secstore password: ******
+STA PIN+SecurID: ******
+</PRE></TT></DL>
+That's the last
+<TT>gre</TT>
+will hear from
+<TT>factotum</TT>
+unless an attempt is made to contact
+a system for which no key is kept in the secure store.
+The factotum
+<br>&#32;<br>
+Each computer running Plan 9 has one user id that owns all the
+resources on that system &#173; the scheduler, local disks,
+network interfaces, etc.
+That user, the
+<I>host owner</I>,
+is the closest analogue in Plan 9 to a Unix
+<TT>root</TT>
+account (although it is far weaker;
+rather than having special powers, as its name implies the host owner
+is just a regular user that happens to own the
+resources of the local machine).
+On a single-user system, which we call a terminal,
+the host owner is the id of the terminal's user.
+Shared servers such as CPU servers normally have a pseudo-user
+that initially owns all resources.
+By default,
+<TT>factotum</TT>
+executes as, and therefore has the privileges of,
+the host owner.
+<br>&#32;<br>
+New processes run as
+the same user as the process which created them.
+When a process must take on the identity of a new user,
+such as to provide a login shell
+on a shared CPU server,
+it does so by proving to the host owner's
+<TT>factotum</TT>
+that it is
+authorized to do so.
+This is done by running an
+authentication protocol with
+<TT>factotum</TT>
+to
+prove that the process has access to secret information
+which only the new user should possess.
+For example, consider the setup in Figure 1a.
+If a user on the terminal
+wants to log on to the CPU server using the
+Plan 9
+<TT>cpu</TT>
+service [Pike93],
+then
+<I>P</I><I>T</I>
+might be the
+<TT>cpu</TT>
+client program and
+<I>P</I><I>C</I>
+the
+<TT>cpu</TT>
+server.
+Neither <I>P</I><I>C</I> nor <I>P</I><I>T</I>
+knows the details of the authentication.
+They
+do need to be able to shuttle messages back and
+forth between the two
+<TT>factotums</TT>,
+but this is
+a generic function easily performed without
+knowing, or being able to extract, secrets in
+the messages.
+<I>P</I><I>T</I>
+will make a network connection to <I>P</I><I>C</I>.
+<I>P</I><I>T</I>
+and
+<I>P</I><I>C</I>
+will then relay messages between
+the
+<TT>factotum</TT>
+owned by the user, <I>F</I><I>T</I>,
+and the one owned by the CPU server, <I>F</I><I>C</I>,
+until mutual authentication has been established.
+Later
+sections describe the RPC between
+<TT>factotum</TT>
+and
+applications and the library functions to support proxy operations.
+<br>&#32;<br>
+The kernel always uses a single local instance of
+<TT>factotum</TT>,
+running as the
+host owner, for
+its authentication purposes, but
+a regular user may start multiple
+<TT>factotum</TT>
+agents.
+In fact, the
+<TT>factotum</TT>
+representing the user need not be
+running on the same machine as its client.
+For instance, it is easy for a user on a CPU server,
+through standard Plan 9 operations,
+to replace the
+<TT>/mnt/factotum</TT>
+in the user's private file name space on the server
+with a connection to the
+<TT>factotum</TT>
+running on the terminal.
+(The usual file system permissions prevent interlopers
+from doing so maliciously.)
+This permits secure operations on the CPU server to be
+transparently validated by the user's own
+<TT>factotum</TT>,
+so
+secrets need never leave the user's terminal.
+SSH agent
+[Ylon96]
+does much the
+same with special SSH protocol messages, but
+an advantage to making our agent a file system
+is that we need no new mechanism to access our remote
+agent; remote file access is sufficient.
+<br>&#32;<br>
+Within
+<TT>factotum</TT>,
+each protocol is implemented as a state
+machine with a generic interface, so protocols are in
+essence pluggable modules, easy to add, modify, or drop.
+Writing a message to and reading a message from
+<TT>factotum</TT>
+each require a separate RPC and result in
+a single state transition.
+Therefore
+<TT>factotum</TT>
+always runs to completion on every RPC and never blocks
+waiting for input during any authentication.
+Moreover, the number of simultaneous
+authentications is limited only by the amount of memory we're
+willing to dedicate to representing the state machines.
+<br>&#32;<br>
+Authentication protocols are implemented only
+within
+<TT>factotum</TT>,
+but adding and removing
+protocols does require relinking the binary, so
+<TT>factotum</TT>
+processes (but no others)
+need to be restarted in order to take advantage of
+new or repaired protocols.
+<br>&#32;<br>
+At the time of writing, 
+<TT>factotum</TT>
+contains authentication
+modules for the Plan 9 shared key protocol (p9sk1), for
+SSH's RSA authentication, passwords in the clear, APOP, CRAM, PPP's CHAP,
+Microsoft PPP's MSCHAP, and VNC's challenge/response.  We're
+in the process of adding support for TLS handshakes.
+Local capabilities
+<br>&#32;<br>
+A capability system, managed by the kernel, is used to empower
+<TT>factotum</TT>
+to grant permission to another process to change its user id.
+A
+kernel device driver
+implements two files,
+<TT>/dev/caphash</TT>
+and
+<TT>/dev/capuse</TT>.
+The write-only file
+<TT>/dev/caphash</TT>
+can be opened only by the host owner, and only once.
+<TT>Factotum</TT>
+opens this file immediately after booting.
+<br>&#32;<br>
+To use the files,
+<TT>factotum</TT>
+creates a string of the form
+<I>userid1&lt;TT&gt;@&lt;/TT&gt;userid2&lt;TT&gt;@&lt;/TT&gt;random-string</I>,
+uses SHA1 HMAC to hash
+<I>userid1&lt;TT&gt;@&lt;/TT&gt;userid2</I>
+with key
+<I>random-string</I>,
+and writes that hash to
+<TT>/dev/caphash</TT>.
+<TT>Factotum</TT>
+then passes the original string to another
+process on the same machine, running
+as user
+<I>userid1</I>,
+which
+writes the string to
+<TT>/dev/capuse</TT>.
+The kernel hashes the string and looks for
+a matching hash in its list.
+If it finds one,
+the writing process's user id changes from
+<I>userid1</I>
+to
+<I>userid2</I>.
+Once used, or if a timeout expires,
+the capability is discarded by the kernel.
+<br>&#32;<br>
+The capabilities are hashed to keep them secret if
+someone is spying on kernel memory.
+Also, they are local to the machine on which they are created.
+Hence a
+<TT>factotum</TT>
+running on one system cannot pass capabilities
+to processes on another and expect them to work.
+Keys
+<br>&#32;<br>
+We define the word
+<I>key</I>
+to mean not only a secret, but also a description of the
+context in which that secret is to be used: the protocol,
+server, user, etc. to which it applies.
+That is,
+a key is a combination of secret and descriptive information
+used to authenticate the identities of parties
+transmitting or receiving information.
+The set of keys used
+in any authentication depends both on the protocol and on
+parameters passed by the program requesting the authentication.
+<br>&#32;<br>
+Taking a tip from SDSI
+[RiLa],
+which represents security information as textual S-expressions,
+keys in Plan 9 are represented as plain UTF-8 text.
+Text is easily
+understood and manipulated by users.
+By contrast,
+a binary or other cryptic format
+can actually reduce overall security.
+Binary formats are difficult for users to examine and can only be
+cracked by special tools, themselves poorly understood by most users.
+For example, very few people know or understand what's inside
+their X.509 certificates.
+Most don't even know where in the system to
+find them.
+Therefore, they have no idea what they are trusting, and why, and
+are powerless to change their trust relationships.
+Textual, centrally stored and managed keys are easier to use and safer.
+<br>&#32;<br>
+Plan 9 has historically represented databases as attribute/value pairs,
+since they are a good foundation for selection and projection operations.
+<TT>Factotum</TT>
+therefore represents
+the keys in the format
+<I>attribute&lt;TT&gt;=&lt;/TT&gt;value</I>,
+where
+<I>attribute</I>
+is an identifier, possibly with a single-character prefix, and
+<I>value</I>
+is an arbitrary quoted string.
+The pairs themselves are separated by white space.
+For example, a Plan 9 key and an APOP key
+might be represented like this:
+<DL><DT><DD><TT><PRE>
+dom=bell-labs.com proto=p9sk1 user=gre
+	!password='don''t tell'
+proto=apop server=x.y.com user=gre
+	!password='bite me'
+</PRE></TT></DL>
+If a value is empty or contains white space or single quotes, it must be quoted;
+quotes are represented by doubled single quotes.
+Attributes that begin with an exclamation mark
+(<TT>!</TT>)
+are considered
+<I>secret</I>.
+<TT>Factotum</TT>
+will never let a secret value escape its address space
+and will suppress keyboard echo when asking the user to type one.
+<br>&#32;<br>
+A program requesting authentication selects a key
+by providing a
+<I>query</I>,
+a list of elements to be matched by the key.
+Each element in the list is either an
+<I>attribute&lt;TT&gt;=&lt;/TT&gt;value</I>
+pair, which is satisfied by keys with
+exactly that pair;
+or an attribute followed by a question mark,
+</TT><I>attribute&lt;TT&gt;?</I><TT>,
+which is satisfied by keys with some pair specifying
+the attribute.
+A key matches a query if every element in the list
+is satisfied.
+For instance, to select the APOP key in the previous example,
+an APOP client process might specify the query
+<DL><DT><DD><TT><PRE>
+server=x.y.com proto=apop
+</PRE></TT></DL>
+Internally,
+</TT><TT>factotum</TT><TT>'s
+APOP module would add the requirements of
+having
+</TT><TT>user</TT><TT>
+and
+</TT><TT>!password</TT><TT>
+attributes, forming the query
+<DL><DT><DD><TT><PRE>
+server=x.y.com proto=apop user? !password?
+</PRE></TT></DL>
+when searching for an appropriate key.
+</TT><br>&#32;<br>
+<TT>Factotum</TT>
+modules expect keys to have some well-known attributes.
+For instance, the
+<TT>proto</TT>
+attribute specifies the protocol module
+responsible for using a particular key,
+and protocol modules may expect other well-known attributes
+(many expect keys to have
+<TT>!password</TT>
+attributes, for example).
+Additional attributes can be used as comments or for
+further discrimination without intervention by 
+<TT>factotum</TT>;
+for example, the APOP and IMAP mail clients conventionally
+include a
+<TT>server</TT>
+attribute to select an appropriate key for authentication.
+<br>&#32;<br>
+Unlike in SDSI,
+keys in Plan 9 have no nested structure.  This design
+keeps the representation simple and straightforward.
+If necessary, we could add a nested attribute
+or, in the manner of relational databases, an attribute that
+selects another tuple, but so far the simple design has been sufficient.
+<br>&#32;<br>
+A simple common structure for all keys makes them easy for users
+to administer,
+but the set of attributes and their interpretation is still
+protocol-specific and can be subtle.
+Users may still
+need to consult a manual to understand all details.
+Many attributes
+(<TT>proto</TT>,
+<TT>user</TT>,
+<TT>password</TT>,
+<TT>server</TT>)
+are self-explanatory and our short experience
+has not uncovered any particular difficulty in handling keys.
+Things
+will likely get messier, however,
+when we grapple with public
+keys and their myriad components.
+Protecting keys
+<br>&#32;<br>
+Secrets must be prevented from escaping
+<TT>factotum</TT>.
+There are a number of ways they could leak:
+another process might be able to debug the agent process, the
+agent might swap out to disk, or the process might willingly
+disclose the key.
+The last is the easiest to avoid:
+secret information in a key is marked
+as such, and
+whenever
+<TT>factotum</TT>
+prints keys or queries for new
+ones, it is careful to avoid displaying secret information.
+(The only exception to this is the
+``plaintext password'' protocol, which consists
+of sending the values of the
+<TT>user</TT>
+and
+<TT>!password</TT>
+attributes.
+Only keys tagged with
+<TT>proto=pass</TT>
+can have their passwords disclosed by this mechanism.)
+<br>&#32;<br>
+Preventing the first two forms of leakage
+requires help from the kernel.
+In Plan 9, every process is
+represented by a directory in the
+<TT>/proc</TT>
+file system.
+Using the files in this directory,
+other processes could (with appropriate access permission) examine
+<TT>factotum</TT>'s
+memory and registers.
+<TT>Factotum</TT>
+is protected from processes of other users
+by the default access bits of its
+<TT>/proc</TT>
+directory.
+However, we'd also like to protect the
+agent from other processes owned by the same user,
+both to avoid honest mistakes and to prevent
+an unattended terminal being
+exploited to discover secret passwords.
+To do this, we added a control message to
+<TT>/proc</TT>
+called
+<TT>private</TT>.
+Once the
+<TT>factotum</TT>
+process has written
+<TT>private</TT>
+to its
+<TT>/proc/<I>pid</I>/ctl</TT>
+file, no process can access
+<TT>factotum</TT>'s
+memory
+through
+<TT>/proc</TT>.
+(Plan 9 has no other mechanism, such as
+<TT>/dev/kmem</TT>,
+for accessing a process's memory.)
+<br>&#32;<br>
+Similarly, the agent's address space should not be
+swapped out, to prevent discovering unencrypted
+keys on the swapping media.
+The
+<TT>noswap</TT>
+control message in
+<TT>/proc</TT>
+prevents this scenario.
+Neither
+<TT>private</TT>
+nor
+<TT>noswap</TT>
+is specific to
+<TT>factotum</TT>;
+any process can use
+them.
+Both are useful, for instance, to protect any user-level program
+providing critical file services for the kernel.
+<br>&#32;<br>
+Despite our precautions, attackers might still
+find a way to gain access to a process running as the host
+owner on a machine.
+Although they could not directly
+access the keys, attackers could use the local
+<TT>factotum</TT>
+to perform authentications for them.
+In the case
+of some keys, for example those locking bank
+accounts, we want a way to disable or at least
+detect such access.
+That is the role of the
+<TT>confirm</TT>
+attribute in a key.
+Whenever a key with a
+<TT>confirm</TT>
+attribute is accessed, the local user must
+confirm use of the key via a local GUI.
+The next section describes the actual mechanism.
+<br>&#32;<br>
+We have not addressed leaks possible as a result of
+someone rebooting or resetting a machine running
+<TT>factotum</TT>.
+For example, someone could reset a machine
+and reboot it with a debugger instead of a kernel,
+allowing them to examine the contents of memory
+and find keys.  We have not found a satisfactory
+solution to this problem.
+Factotum transactions
+<br>&#32;<br>
+External programs manage
+<TT>factotum</TT>'s
+internal key state
+through its file interface,
+writing textual
+<TT>key</TT>
+and
+<TT>delkey</TT>
+commands to the
+<TT>/mnt/factotum/ctl</TT>
+file.
+Both commands take a list of attributes as an argument.
+<TT>Key</TT>
+creates a key with the given attributes, replacing any
+extant key with an identical set of public attributes.
+<TT>Delkey</TT>
+deletes all keys that match the given set of attributes.
+Reading the 
+<TT>ctl</TT>
+file returns a list of keys, one per line, displaying only public attributes.
+The following example illustrates these interactions.
+<DL><DT><DD><TT><PRE>
+% cd /mnt/factotum
+% ls -l
+-lrw------- gre gre 0 Jan 30 22:17 confirm
+--rw------- gre gre 0 Jan 30 22:17 ctl
+-lr-------- gre gre 0 Jan 30 22:17 log
+-lrw------- gre gre 0 Jan 30 22:17 needkey
+--r--r--r-- gre gre 0 Jan 30 22:17 proto
+--rw-rw-rw- gre gre 0 Jan 30 22:17 rpc
+% cat &gt;ctl
+key dom=bell-labs.com proto=p9sk1 user=gre
+    !password='don''t tell'
+key proto=apop server=x.y.com user=gre
+    !password='bite me'
+^D
+% cat ctl
+key dom=bell-labs.com proto=p9sk1 user=gre
+key proto=apop server=x.y.com user=gre
+% echo 'delkey proto=apop' &gt;ctl
+% cat ctl
+key dom=bell-labs.com proto=p9sk1 user=gre
+% 
+</PRE></TT></DL>
+(A file with the
+<TT>l</TT>
+bit set can be opened by only one process at a time.)
+<br>&#32;<br>
+The heart of the interface is the
+<TT>rpc</TT>
+file.
+Programs authenticate with
+<TT>factotum</TT>
+by writing a request to the
+<TT>rpc</TT>
+file
+and reading back the reply; this sequence is called an RPC
+<I>transaction</I>.
+Requests and replies have the same format:
+a textual verb possibly followed by arguments,
+which may be textual or binary.
+The most common reply verb is
+<TT>ok</TT>,
+indicating success.
+An RPC session begins with a
+<TT>start</TT>
+transaction; the argument is a key query as described
+earlier.
+Once started, an RPC conversation usually consists of 
+a sequence of
+<TT>read</TT>
+and
+<TT>write</TT>
+transactions.
+If the conversation is successful, an
+<TT>authinfo</TT>
+transaction will return information about
+the identities learned during the transaction.
+The
+<TT>attr</TT>
+transaction returns a list of attributes for the current
+conversation; the list includes any attributes given in
+the 
+<TT>start</TT>
+query as well as any public attributes from keys being used.
+<br>&#32;<br>
+As an example of the RPC file in action, consider a mail client
+connecting to a mail server and authenticating using
+the POP3 protocol's APOP challenge-response command.
+There are four programs involved: the mail client <I>P</I><I>C</I>, the client
+<TT>factotum</TT>
+<I>F</I><I>C</I>, the mail server <I>P</I><I>S</I>, and the server
+<TT>factotum</TT>
+<I>F</I><I>S</I>.
+All authentication computations are handled by the
+<TT>factotum</TT>
+processes.
+The mail programs' role is just to relay messages.
+<br>&#32;<br>
+At startup, the mail server at
+<TT>x.y.com</TT>
+begins an APOP conversation
+with its
+<TT>factotum</TT>
+to obtain the banner greeting, which
+includes a challenge:
+<DL><DT><DD><TT><PRE>
+<I>P</I><I>S</I>-&gt;<I>F</I><I>S</I>: start proto=apop role=server
+<I>F</I><I>S</I>-&gt;<I>P</I><I>S</I>: ok
+<I>P</I><I>S</I>-&gt;<I>F</I><I>S</I>: read
+<I>F</I><I>S</I>-&gt;<I>P</I><I>S</I>: ok +OK POP3 <I>challenge</I>
+</PRE></TT></DL>
+Having obtained the challenge, the server greets the client:
+<DL><DT><DD><TT><PRE>
+<I>P</I><I>S</I>-&gt;<I>P</I><I>C</I>: +OK POP3 <I>challenge</I>
+</PRE></TT></DL>
+The client then uses an APOP conversation with its
+<TT>factotum</TT>
+to obtain a response:
+<DL><DT><DD><TT><PRE>
+<I>P</I><I>C</I>-&gt;<I>F</I><I>C</I>: start proto=apop role=client
+            server=x.y.com
+<I>F</I><I>C</I>-&gt;<I>P</I><I>C</I>: ok
+<I>P</I><I>C</I>-&gt;<I>F</I><I>C</I>: write +OK POP3 <I>challenge</I>
+<I>F</I><I>C</I>-&gt;<I>P</I><I>C</I>: ok
+<I>P</I><I>C</I>-&gt;<I>F</I><I>C</I>: read
+<I>F</I><I>C</I>-&gt;<I>P</I><I>C</I>: ok APOP gre <I>response</I>
+</PRE></TT></DL>
+<TT>Factotum</TT>
+requires that
+<TT>start</TT>
+requests include a 
+<TT>proto</TT>
+attribute, and the APOP module requires an additional
+<TT>role</TT>
+attribute, but the other attributes are optional and only
+restrict the key space.
+Before responding to the
+<TT>start</TT>
+transaction, the client
+<TT>factotum</TT>
+looks for a key to
+use for the rest of the conversation.
+Because of the arguments in the
+<TT>start</TT>
+request, the key must have public attributes
+<TT>proto=apop</TT>
+and
+<TT>server=x.y.com</TT>;
+as mentioned earlier,
+the APOP module additionally requires that the key have
+<TT>user</TT>
+and
+<TT>!password</TT>
+attributes.
+Now that the client has obtained a response
+from its
+<TT>factotum</TT>,
+it echoes that response to the server:
+<DL><DT><DD><TT><PRE>
+<I>P</I><I>C</I>-&gt;<I>P</I><I>S</I>: APOP gre <I>response</I>
+</PRE></TT></DL>
+Similarly, the server passes this message to
+its
+<TT>factotum</TT>
+and obtains another to send back.
+<DL><DT><DD><TT><PRE>
+<I>P</I><I>S</I>-&gt;<I>F</I><I>S</I>: write APOP gre <I>response</I>
+<I>F</I><I>S</I>-&gt;<I>P</I><I>S</I>: ok
+<I>P</I><I>S</I>-&gt;<I>F</I><I>S</I>: read
+<I>F</I><I>S</I>-&gt;<I>P</I><I>S</I>: ok +OK welcome
+
+<I>P</I><I>S</I>-&gt;<I>P</I><I>C</I>: +OK welcome
+</PRE></TT></DL>
+Now the authentication protocol is done, and
+the server can retrieve information
+about what the protocol established.
+<DL><DT><DD><TT><PRE>
+<I>P</I><I>S</I>-&gt;<I>F</I><I>S</I>: authinfo
+<I>F</I><I>S</I>-&gt;<I>P</I><I>S</I>: ok client=gre
+            capability=<I>capability</I>
+</PRE></TT></DL>
+The
+<TT>authinfo</TT>
+data is a list of
+<I>attr&lt;TT&gt;=&lt;/TT&gt;value</I>
+pairs, here a client user name and a capability.
+(Protocols that establish shared secrets or provide
+mutual authentication indicate this by adding
+appropriate
+<I>attr&lt;TT&gt;=&lt;/TT&gt;value</I>
+pairs.)
+The capability can be used by the server to change its
+identity to that of the client, as described earlier.
+Once it has changed its identity, the server can access and serve
+the client's mailbox.
+<br>&#32;<br>
+Two more files provide hooks for a graphical
+<TT>factotum</TT>
+control interface.
+The first, 
+<TT>confirm</TT>,
+allows the user detailed control over the use of certain keys.
+If a key has a
+<TT>confirm=</TT>
+attribute, then the user must approve each use of the key.
+A separate program with a graphical interface reads from the
+<TT>confirm</TT>
+file to see when a confirmation is necessary.
+The read blocks until a key usage needs to be approved, whereupon
+it will return a line of the form
+<DL><DT><DD><TT><PRE>
+confirm tag=1 <I>attributes</I>
+</PRE></TT></DL>
+requesting permission to use the key with those public attributes.
+The graphical interface then prompts the user for approval
+and writes back
+<DL><DT><DD><TT><PRE>
+tag=1 answer=yes
+</PRE></TT></DL>
+(or
+<TT>answer=no</TT>).
+<br>&#32;<br>
+The second file,
+<TT>needkey</TT>,
+diverts key requests.
+In the APOP example, if a suitable key had not been found
+during the
+<TT>start</TT>
+transaction,
+<TT>factotum</TT>
+would have indicated failure by
+returning a response indicating
+what key was needed:
+<DL><DT><DD><TT><PRE>
+<I>F</I><I>C</I>-&gt;<I>P</I><I>C</I>: needkey proto=apop
+    server=x.y.com user? !password?
+</PRE></TT></DL>
+A typical client would then prompt the user for the desired
+key information, create a new key via the
+<TT>ctl</TT>
+file, and then reissue the 
+<TT>start</TT>
+request.
+If the
+<TT>needkey</TT>
+file is open,
+then instead of failing, the transaction
+will block, and the next read from the
+<TT>/mnt/factotum/needkey</TT>
+file will return a line of the form
+<DL><DT><DD><TT><PRE>
+needkey tag=1 <I>attributes</I><I>
+</PRE></TT></DL>
+The graphical interface then prompts the user for the needed
+key information, creates the key via the
+</I><TT>ctl</TT><I>
+file, and writes back
+</I><TT>tag=1</TT><I>
+to resume the transaction.
+</I><br>&#32;<br>
+The remaining files are informational and used for debugging.
+The
+<TT>proto</TT>
+file contains a list of supported protocols (to see what protocols the
+system supports,
+<TT>cat</TT>
+<TT>/mnt/factotum/proto</TT>),
+and the
+<TT>log</TT>
+file contains a log of operations and debugging output
+enabled by a
+<TT>debug</TT>
+control message.
+<br>&#32;<br>
+The next few sections explain how
+<TT>factotum</TT>
+is used by system services.
+<H4>3 Authentication in 9P
+</H4>
+<br>&#32;<br>
+Plan 9 uses a remote file access protocol, 9P [Pike93],
+to connect to resources such as the
+file server and remote processes.
+The original design for 9P included special messages at the start of a conversation
+to authenticate the user.
+Multiple users can share a single connection, such as when a CPU server
+runs processes for many users connected to a single file server,
+but each must authenticate separately.
+The authentication protocol, similar to that of Kerberos [Stei88],
+used a sequence of messages passed between client, file server, and authentication
+server to verify the identities of the user, calling machine, and serving machine.
+One major drawback to the design was that the authentication method was defined by 9P
+itself and could not be changed.  
+Moreover, there was no mechanism to relegate
+authentication to an external (trusted) agent,
+so a process implementing 9P needed, besides support for file service,
+a substantial body of cryptographic code to implement a handful of early messages
+in the protocol.
+<br>&#32;<br>
+A recent redesign of 9P
+addressed a number of file service issues outside the scope of this paper.
+On issues of authentication, there were two goals:
+first, to remove details about authentication from the
+protocol itself; second, to allow an external program to execute the authentication
+part of the protocol.
+In particular, we wanted a way to quickly incorporate
+ideas found in other systems such as SFS
+[Mazi99].
+<br>&#32;<br>
+Since 9P is a file service protocol, the solution involved creating a new type of file
+to be served: an
+<I>authentication</I>
+<I>file</I>.
+When a new user connects to a 9P service, the connection has the
+permissions of
+`<TT>none</TT>',
+a state that
+allows no general file access but permits the user to open an authentication file
+by sending a special message, generated by the new
+<TT>fauth</TT>
+system call:
+<DL><DT><DD><TT><PRE>
+afd = fauth(int fd, char *servicename);
+</PRE></TT></DL>
+Here
+<TT>fd</TT>
+is the user's file descriptor for the established network connection to the 9P server
+and
+<TT>servicename</TT>
+is the name of the desired service offered on that server, for example the file subsystem
+to be accessed.
+The returned file descriptor,
+<TT>afd</TT>,
+is a unique handle representing the authentication file
+created for this connection to authenticate to
+this service; it is analogous to a capability.
+The authentication file represented by
+<TT>afd</TT>
+is not otherwise addressable on the server, such as through
+the file name hierarchy.
+Otherwise, it behaves like a regular file;
+most important, it accepts standard read and write operations.
+<br>&#32;<br>
+To prove its identity, the user process (via
+<TT>factotum</TT>)
+executes the authentication protocol,
+described in the next section of this paper,
+over the
+<TT>afd</TT>
+file descriptor with ordinary reads and writes.
+When client and server have successfully negotiated, the authentication file
+changes state so it can be used as evidence of authority in
+<TT>mount</TT>.
+<br>&#32;<br>
+Once identity is established, the process presents the (now verified)
+<TT>afd</TT>
+as proof of identity to the
+<TT>mount</TT>
+system call:
+<DL><DT><DD><TT><PRE>
+mount(int fd, int afd, char *mountpoint,
+      int flag, char *servicename)
+</PRE></TT></DL>
+If the
+<TT>mount</TT>
+succeeds, the user now
+has appropriate permissions for the file hierarchy made
+visible at the mount point.
+<br>&#32;<br>
+This sequence of events has several advantages.
+First, the actual authentication protocol is implemented using regular reads and writes,
+not special 9P messages, so
+they can be processed, forwarded, proxied, and so on by
+any 9P agent without special arrangement.
+Second, the business of negotiating the authentication by reading and writing the
+authentication file can be delegated to an outside agent, in particular
+<TT>factotum</TT>;
+the programs that implement the client and server ends of a 9P conversation need
+no authentication or cryptographic code.
+Third,
+since the authentication protocol is not defined by 9P itself, it is easy to change and
+can even be negotiated dynamically.
+Finally, since
+<TT>afd</TT>
+acts like a capability, it can be treated like one:
+handed to another process to give it special permissions;
+kept around for later use when authentication is again required;
+or closed to make sure no other process can use it.
+<br>&#32;<br>
+All these advantages stem from moving the authentication negotiation into
+reads and writes on a separate file.
+As is often the case in Plan 9,
+making a resource (here authentication) accessible with a file-like interface
+reduces
+<I>a</I>
+<I>priori</I>
+the need for special interfaces.
+<br>&#32;<br>
+Plan 9 shared key protocol
+<br>&#32;<br>
+In addition to the various standard protocols supported by
+<TT>factotum</TT>,
+we use a shared key protocol for native
+Plan 9 authentication.
+This protocol provides backward compatibility with
+older versions of the system.  One reason for the new
+architecture is to let us replace such protocols
+in the near future with more cryptographically secure ones.
+<br>&#32;<br>
+<I>P9sk1</I>
+is a shared key protocol that uses tickets much like those
+in the original Kerberos.
+The difference is that we've
+replaced the expiration time in Kerberos tickets with
+a random nonce parameter and a counter.
+We summarize it here:
+<DL><DT><DD><TT><PRE>
+<I>C</I>-&gt;<I>S</I>:  <I>nonce</I><I>C</I>
+<I>S</I>-&gt;<I>C</I>:  <I>nonce</I><I>S</I>,<I>uid</I><I>S</I>,<I>domain</I><I>S</I>
+
+<I>C</I>-&gt;<I>A</I>:  <I>nonce</I><I>S</I>,<I>uid</I><I>S</I>,<I>domain</I><I>S</I>,<I>uid</I><I>C</I>,
+         <I>factotum</I><I>C</I>
+<I>A</I>-&gt;<I>C</I>:  <I>K</I><I>C</I>{<I>nonce</I><I>S</I>,<I>uid</I><I>C</I>,<I>uid</I><I>S</I>,<I>K</I><I>n</I>},
+         <I>K</I><I>S</I>{<I>nonce</I><I>S</I>,<I>uid</I><I>C</I>,<I>uid</I><I>S</I>,<I>K</I><I>n</I>}
+
+<I>C</I>-&gt;<I>S</I>:  <I>K</I><I>S</I>{<I>nonce</I><I>S</I>,<I>uid</I><I>C</I>,<I>uid</I><I>S</I>,<I>K</I><I>n</I>},
+         <I>K</I><I>n</I>{<I>nonce</I><I>S</I>,<I>counter</I>}
+<I>S</I>-&gt;<I>C</I>:  <I>K</I><I>n</I>{<I>nonce</I><I>C</I>,<I>counter</I>}
+</PRE></TT></DL>
+(Here <I>K</I>{<I>x</I>}0 indicates <I>x</I> encrypted with
+DES key <I>K</I>.)
+The first two messages exchange nonces and server identification.
+After this initial exchange, the client contacts the authentication
+server to obtain a pair of encrypted tickets, one encrypted with
+the client key and one with the server key.
+The client relays the server ticket to the server.
+The server believes that the ticket is new
+because it contains
+<I>nonce</I><I>S</I>
+and that the ticket is from the authentication
+server because it is encrypted in the server key <I>K</I><I>S</I>.
+The ticket is basically a statement from the authentication
+server that now <I>uid</I><I>C</I> and <I>uid</I><I>S</I> share a
+secret <I>K</I><I>n</I>.
+The authenticator <I>K</I><I>n</I>{<I>nonce</I><I>S</I>,<I>counter</I>}
+convinces the server that the client knows <I>K</I><I>n</I> and thus
+must be <I>uid</I><I>C</I>.
+Similarly, the authenticator <I>K</I><I>n</I>{<I>nonce</I><I>C</I>,<I>counter</I>}
+convinces the client that the server knows <I>K</I><I>n</I> and thus
+must be <I>uid</I><I>S</I>.
+Tickets can be reused, without contacting the authentication
+server again, by incrementing the counter before each
+authenticator is generated.
+<br>&#32;<br>
+In the future we hope to introduce a public key version of
+p9sk1,
+which would allow authentication even
+when the authentication server is not available.
+The authentication server
+<br>&#32;<br>
+Each Plan 9 security domain has an authentication server (AS)
+that all users trust to keep the complete set of shared keys.
+It also offers services for users and administrators to manage the
+keys, create and disable accounts, and so on.
+It typically runs on
+a standalone machine with few other services.
+The AS comprises two services,
+<TT>keyfs</TT>
+and
+<TT>authsrv</TT>.
+<br>&#32;<br>
+<TT>Keyfs</TT>
+is a user-level file system that manages an
+encrypted data base of user accounts.
+Each account is represented by a directory containing the
+files
+<TT>key</TT>,
+containing the Plan 9 key for p9sk1;
+<TT>secret</TT>
+for the challenge/response protocols (APOP, VNC, CHAP, MSCHAP,
+CRAM);
+<TT>log</TT>
+for authentication outcomes;
+<TT>expire</TT>
+for an expiration time; and
+<TT>status</TT>.
+If the expiration time passes,
+if the number of successive failed authentications
+exceeds 50, or if
+<TT>disabled</TT>
+is written to the status file,
+any attempt to access the
+<TT>key</TT>
+or
+<TT>secret</TT>
+files will fail.
+<br>&#32;<br>
+<TT>Authsrv</TT>
+is a network service that brokers shared key authentications
+for the protocols p9sk1, APOP, VNC, CHAP, MSCHAP,
+and CRAM.  Remote users can also call
+<TT>authsrv</TT>
+to change their passwords.
+<br>&#32;<br>
+The
+p9sk1
+protocol was described in the previous
+section.
+The challenge/response protocols differ
+in detail but all follow the general structure:
+<DL><DT><DD><TT><PRE>
+<I>C</I>-&gt;<I>S</I>:  <I>uid</I><I>C</I>
+<I>S</I>-&gt;<I>A</I>:  <I>nonce</I><I>S</I>,<I>uid</I><I>S</I>,<I>domain</I><I>S</I>,<I>uid</I><I>C</I>,
+         <I>factotum</I><I>S</I>
+<I>A</I>-&gt;<I>S</I>:  <I>challenge</I>
+<I>S</I>-&gt;<I>C</I>:  <I>challenge</I>
+<I>C</I>-&gt;<I>S</I>:  <I>response</I>
+<I>S</I>-&gt;<I>A</I>:  <I>response</I>
+<I>A</I>-&gt;<I>S</I>:  <I>K</I><I>C</I>{<I>nonce</I><I>S</I>,<I>uid</I><I>C</I>,<I>uid</I><I>S</I>,<I>K</I><I>n</I>},
+         <I>K</I><I>n</I>{<I>nonce</I><I>C</I>}
+</PRE></TT></DL>
+The password protocol is:
+<DL><DT><DD><TT><PRE>
+<I>C</I>-&gt;<I>A</I>:  <I>uid</I><I>C</I>
+<I>A</I>-&gt;<I>C</I>:  <I>K</I><I>c</I>{<I>K</I><I>n</I>}
+<I>C</I>-&gt;<I>A</I>:  <I>K</I><I>n</I>{<I>password</I><I>old</I>,<I>password</I><I>new</I>}
+<I>A</I>-&gt;<I>C</I>:  <I>OK</I>
+</PRE></TT></DL>
+To avoid replay attacks, the pre-encryption
+clear text for each of the protocols (as well as for p9sk1) includes
+a tag indicating the encryption's role in the
+protocol.  We elided them in these outlines.
+Protocol negotiation
+<br>&#32;<br>
+Rather than require particular protocols for particular services,
+we implemented a negotiation metaprotocol,
+<I>p9any</I>,
+which chooses the actual authentication protocol to use.
+P9any
+is used now by all native services on Plan 9.
+<br>&#32;<br>
+The metaprotocol is simple.  The callee sends a
+null-terminated string of the form:
+<DL><DT><DD><TT><PRE>
+v<I></I><I>n</I> <I>proto</I>10@<I>domain</I>10 <I>proto</I>20@<I>domain</I>20 ...
+</PRE></TT></DL>
+where
+<I>n</I>
+is a decimal version number, <I>proto</I><I>k</I>
+is the name of a protocol for which the
+<TT>factotum</TT>
+has a key, and <I>domain</I><I>k</I>
+is the name of the domain in which the key is
+valid.
+The caller then responds
+<DL><DT><DD><TT><PRE>
+<I>proto</I>@<I>domain</I>
+</PRE></TT></DL>
+indicating its choice.
+Finally the callee responds
+<DL><DT><DD><TT><PRE>
+OK
+</PRE></TT></DL>
+Any other string indicates failure.
+At this point the chosen protocol commences.
+The final fixed-length reply is used to make it easy to
+delimit the I/O stream should the chosen protocol
+require the caller rather than the callee to send the first message.
+<br>&#32;<br>
+With this negotiation metaprotocol, the underlying
+authentication protocols used for Plan 9 services
+can be changed under any application just
+by changing the keys known by the
+<TT>factotum</TT>
+agents at each end.
+<br>&#32;<br>
+P9any is vulnerable to man in the middle attacks
+to the extent that the attacker may constrain the
+possible choices by changing the stream.  However,
+we believe this is acceptable since the attacker
+cannot force either side to choose algorithms
+that it is unwilling to use.
+<H4>4 Library Interface to Factotum
+</H4>
+<br>&#32;<br>
+Although programs can access
+<TT>factotum</TT>'s
+services through its file system interface,
+it is more common to use a C library that
+packages the interaction.
+There are a number of routines in the library,
+not all of which are relevant here, but a few
+examples should give their flavor.
+<br>&#32;<br>
+First, consider the problem of mounting a remote file server using 9P.
+An earlier discussion showed how the
+<TT>fauth</TT>
+and
+<TT>mount</TT>
+system calls use an authentication file,
+<TT>afd</TT>,
+as a capability,
+but not how
+<TT>factotum</TT>
+manages
+<TT>afd</TT>.
+The library contains a routine,
+<TT>amount</TT>
+(authenticated mount), that is used by most programs in preference to
+the raw
+<TT>fauth</TT>
+and
+<TT>mount</TT>
+calls.
+<TT>Amount</TT>
+engages
+<TT>factotum</TT>
+to validate
+<TT>afd</TT>;
+here is the complete code:
+<DL><DT><DD><TT><PRE>
+int
+amount(int fd, char *mntpt,
+	int flags, char *aname)
+{
+	int afd, ret;
+	AuthInfo *ai;
+
+	afd = fauth(fd, aname);
+	if(afd &gt;= 0){
+		ai = auth_proxy(afd, amount_getkey,
+			"proto=p9any role=client");
+		if(ai != NULL)
+			auth_freeAI(ai);
+	}
+	ret = mount(fd, afd, mntpt,
+		flags, aname);
+	if(afd &gt;= 0)
+		close(afd);
+	return ret;
+}
+</PRE></TT></DL>
+The conversation with
+<TT>factotum</TT>
+occurs in the call to
+<TT>auth_proxy</TT>,
+which specifies, as a key query,
+which authentication protocol to use
+(here the metaprotocol
+<TT>p9any</TT>)
+and the role being played
+(<TT>client</TT>).
+<TT>Auth_proxy</TT>
+will read and write the
+<TT>factotum</TT>
+files, and the authentication file descriptor
+<TT>afd</TT>,
+to validate the user's right to access the service.
+If the call is successful, any auxiliary data, held in an
+<TT>AuthInfo</TT>
+structure, is freed.
+In any case, the
+<TT>mount</TT>
+is then called with the (perhaps validated)
+<TT>afd.</TT>
+A 9P server can cause the
+<TT>fauth</TT>
+system call to fail, as an indication that authentication is
+not required to access the service.
+<br>&#32;<br>
+The second argument to
+<TT>auth_proxy</TT>
+is a function, here
+<TT>amount_getkey</TT>,
+to be called if secret information such as a password or
+response to a challenge is required as part of the authentication.
+This function, of course, will provide this data to
+<TT>factotum</TT>
+as a
+<TT>key</TT>
+message on the
+<TT>/mnt/factotum/ctl</TT>
+file.
+<br>&#32;<br>
+Although the final argument to
+<TT>auth_proxy</TT>
+in this example is a simple string, in general
+it can be a formatted-print specifier in the manner of
+<TT>printf</TT>,
+to enable the construction of more elaborate key queries.
+<br>&#32;<br>
+As another example, consider the Plan 9
+<TT>cpu</TT>
+service, which exports local devices to a shell process on
+a remote machine, typically
+to connect the local screen and keyboard to a more powerful computer.
+At heart,
+<TT>cpu</TT>
+is a superset of a service called
+<TT>exportfs</TT>
+[Pike93],
+which allows one machine to see an arbitrary portion of the file name space
+of another machine, such as to
+export the network device to another machine
+for gatewaying.
+However,
+<TT>cpu</TT>
+is not just
+<TT>exportfs</TT>
+because it also delivers signals such as interrupt
+and negotiates the initial environment
+for the remote shell.
+<br>&#32;<br>
+To authenticate an instance of
+<TT>cpu</TT>
+requires
+<TT>factotum</TT>
+processes on both ends: the local, client
+end running as the user on a terminal
+and the remote, server
+end running as the host owner of the server machine.
+Here is schematic code for the two ends:
+<DL><DT><DD><TT><PRE>
+/* client */
+int
+p9auth(int fd)
+{
+	AuthInfo *ai;
+
+	ai = auth_proxy(fd, auth_getkey,
+		"proto=p9any role=client");
+	if(ai == NULL)
+		return -1;
+
+	/* start cpu protocol here */
+}
+
+/* server */
+int
+srvp9auth(int fd, char *user)
+{
+	AuthInfo *ai;
+
+	ai = auth_proxy(fd, NULL,
+		"proto=p9any role=server");
+	if(ai == NULL)
+		return -1;
+	/* set user id for server process */
+	if(auth_chuid(ai, NULL) &lt; 0)
+		return -1;
+
+	/* start cpu protocol here */
+}
+</PRE></TT></DL>
+<TT>Auth_chuid</TT>
+encapsulates the negotiation to change a user id using the
+<TT>caphash</TT>
+and
+<TT>capuse</TT>
+files of the (server) kernel.
+Note that although the client process may ask the user for new keys, using
+<TT>auth_getkey</TT>,
+the server machine, presumably a shared machine with a pseudo-user for
+the host owner, sets the key-getting function to
+<TT>NULL</TT>.
+<H4>5 Secure Store
+</H4>
+<br>&#32;<br>
+<TT>Factotum</TT>
+stores keys in volatile RAM that must be initialized at boot time.
+To store the keys,
+therefore,
+<TT>factotum</TT>
+must be
+supplemented by a persistent store, perhaps
+a floppy disk containing a key file of commands to be copied into
+<TT>/mnt/factotum/ctl</TT>
+during bootstrap.
+But removable media are a nuisance to carry and
+are vulnerable to theft.
+Keys could be stored encrypted on a shared file system, but
+only if those keys are not necessary for authenticating to
+the file system in the first place.
+Even if the keys are encrypted under a user
+password, a thief might well succeed with a dictionary attack.
+Other risks of local storage are loss of the contents
+through mechanical mishap or dead batteries.
+Thus for convenience and
+safety we provide a
+<TT>secstore</TT>
+(secure store) server in the network to hold each user's permanent list of keys, a
+<I>key</I>
+<I>file</I>.
+<br>&#32;<br>
+<TT>Secstore</TT>
+is a file server for encrypted data,
+used only during bootstrapping.
+It must provide strong
+authentication and resistance to passive and active protocol attacks
+while assuming nothing more from the client than a password.
+Once
+<TT>factotum</TT>
+has loaded the key file, further encrypted or authenticated
+file storage can be accomplished by standard mechanisms.
+<br>&#32;<br>
+The cryptographic technology that enables
+<TT>secstore</TT>
+is a form of encrypted
+key exchange
+called PAK
+[Boyk00],
+analogous to
+EKE
+[Bell93],
+SRP
+[Wu98],
+or
+SPEKE
+[Jabl].
+PAK was chosen
+because it comes with a proof of equivalence in strength to
+Diffie-Hellman; subtle flaws in some earlier encrypted key exchange
+protocols and implementations have encouraged us to take special care.
+In outline, the PAK protocol is:
+<DL><DT><DD><TT><PRE>
+<I>C</I>-&gt;<I>S</I>: <I>C</I>,<I>g</I>^<I>x</I><I>H</I>
+<I>S</I>-&gt;<I>C</I>: <I>S</I>,<I>g</I>^<I>y</I>,<I>hash</I>(<I>g</I>^<I>xy</I>,<I>C</I>,<I>S</I>)
+<I>C</I>-&gt;<I>S</I>: <I>hash</I>(<I>g</I>^<I>xy</I>,<I>S</I>,<I>C</I>)
+</PRE></TT></DL>
+where <I>H</I> is a preshared secret between client <I>C</I> and server <I>S</I>.
+There are several variants of PAK, all presented in papers
+mainly concerned with proofs of cryptographic properties.
+To aid implementers, we have distilled a description of the specific
+version we use into an Appendix to this paper.
+<br>&#32;<br>
+As a further layer of defense against password theft,
+we provide (within the encrypted channel <I>C</I>-&gt;<I>S</I>)
+information that is validated at a RADIUS server,
+such as the digits from a hardware token
+[RFC2138].
+This provides two-factor authentication, which potentially
+requires tricking two independent administrators in any attack by
+social engineering.
+<br>&#32;<br>
+The key file stored on the server is encrypted with AES (Rijndael) using CBC
+with a 10-byte initialization vector and trailing authentication padding.
+All this is invisible to the user of
+<TT>secstore</TT>.
+For that matter, it is invisible to the
+<TT>secstore</TT>
+server as well;
+if the AES Modes of Operation are standardized and a new encryption format
+designed, it can be implemented by a client without change to the server.
+The
+<TT>secstore</TT>
+is deliberately not backed up;  the user is expected to
+use more than one
+<TT>secstore</TT>
+or save the key file on removable media
+and lock it away.
+The user's password is hashed to create the <I>H</I> used
+in the PAK protocol;  a different hash of the password is used as
+the file encryption key.
+Finally, there is a command (inside the authenticated,
+encrypted channel between client and
+<TT>secstore</TT>)
+to change passwords by sending
+a new <I>H</I>; 
+for consistency, the client process must at the same time fetch and re-encrypt all files.
+<br>&#32;<br>
+When
+<TT>factotum</TT>
+starts, it dials the local
+<TT>secstore</TT>
+and checks whether the user has an account.
+If so,
+it prompts for the user's
+<TT>secstore</TT>
+password and fetches the key file.
+The PAK protocol
+ensures mutual authentication and prevents dictionary attacks on the password
+by passive wiretappers or active intermediaries.
+Passwords saved in
+the key file can be long random strings suitable for
+simpler challenge/response authentication protocols.
+Thus the user need only remember
+a single, weaker password to enable strong, ``single sign on'' authentication to
+unchanged legacy applications scattered across multiple authentication domains.
+<H4>6 Transport Layer Security
+</H4>
+<br>&#32;<br>
+Since the Plan 9 operating system is designed for use in network elements
+that must withstand direct attack, unguarded by firewall or VPN, we seek
+to ensure that all applications use channels with appropriate mutual
+authentication and encryption.
+A principal tool for this is TLS 1.0
+[RFC2246].
+(TLS 1.0 is nearly the same as SSL 3.0,
+and our software is designed to interoperate
+with implementations of either standard.)
+<br>&#32;<br>
+The TLS record layer protocol ensures message integrity and privacy
+through the use of message digesting and encryption with shared secrets.
+We implement this service as a kernel device, though it could
+be performed at slightly higher cost by invoking a separate program.
+The library interface to the TLS kernel device is:
+<DL><DT><DD><TT><PRE>
+int pushtls(int fd, char *hashalg,
+    char *cryptalg, int isclient,
+    char *secret, char *dir);
+</PRE></TT></DL>
+Given a file descriptor, the names of message digest and
+encryption algorithms, and the shared secret,
+<TT>pushtls</TT>
+returns a new file descriptor for the encrypted connection.
+(The final argument
+<TT>dir</TT>
+receives the name of the directory in the TLS device that
+is associated with the new connection.)
+The function is named by analogy with the ``push'' operation
+supported by the stream I/O system of Research Unix and the
+first two editions of Plan 9.
+Because adding encryption is as simple as replacing one
+file descriptor with another, adding encryption to a particular
+network service is usually trivial.
+<br>&#32;<br>
+The Plan 9 shared key authentication protocols establish a shared 56-bit secret
+as a side effect.
+Native Plan 9 network services such as
+<TT>cpu</TT>
+and
+<TT>exportfs</TT>
+use these protocols for authentication and then invoke 
+<TT>pushtls</TT>
+with the shared secret.
+<br>&#32;<br>
+Above the record layer, TLS specifies a handshake protocol using public keys
+to establish the session secret.
+This protocol is widely used with HTTP and IMAP4
+to provide server authentication, though with client certificates it could provide
+mutual authentication.  The library function
+<DL><DT><DD><TT><PRE>
+int tlsClient(int fd, TLSconn *conn)
+</PRE></TT></DL>
+handles the initial handshake and returns the result of
+<TT>pushtls</TT>.
+On return, it fills the
+<TT>conn</TT>
+structure with the session ID used
+and the X.509 certificate presented by the
+server, but makes no effort to verify the certificate.
+Although the original design intent of X.509 certificates expected
+that they would be used with a Public Key Infrastructure,
+reliable deployment has been so long delayed and problematic
+that we have adopted the simpler policy of just using the
+X.509 certificate as a representation of the public key,
+depending on a locally-administered directory of SHA1 thumbprints
+to allow applications to decide which public keys to trust
+for which purposes.
+<H4>7 Related Work and Discussion
+</H4>
+<br>&#32;<br>
+Kerberos, one of the earliest distributed authentication
+systems, keeps a set of authentication tickets in a temporary file called
+a ticket cache.  The ticket cache is protected by Unix file permissions.
+An environment variable containing the file name of the ticket cache
+allows for different ticket caches in different simultaneous login sessions.
+A user logs in by typing his or her Kerberos password.
+The login program uses the Kerberos password to obtain a temporary
+ticket-granting ticket from the authentication server, initializes the
+ticket cache with the ticket-granting ticket, and then forgets the password.
+Other applications can use the ticket-granting ticket to sign tickets
+for themselves on behalf of the user during the login session.
+The ticket cache is removed when the user logs out [Stei88]
+The ticket cache relieves the user from typing a password
+every time authentication is needed.
+<br>&#32;<br>
+The secure shell SSH develops this idea further, replacing the
+temporary file with a named Unix domain socket connected to
+a user-level program, called an agent.
+Once the SSH agent is started and initialized with one or
+more RSA private keys, SSH clients can employ it
+to perform RSA authentications on their behalf.
+In the absence of an agent, SSH typically uses RSA keys
+read from encrypted disk files or uses passphrase-based
+authentication, both of which would require prompting the user
+for a passphrase whenever authentication is needed
+[Ylon96].
+The self-certifying file system SFS uses a similar agent
+[Kami00],
+not only for moderating the use of client authentication keys 
+but also for verifying server public keys
+[Mazi99].
+<br>&#32;<br>
+<TT>Factotum</TT>
+is a logical continuation of this evolution,
+replacing the program-specific SSH or SFS agents with
+a general agent capable of serving a wide variety of programs.
+Having one agent for all programs removes the need
+to have one agent for each program.
+It also allows the programs themselves to be protocol-agnostic,
+so that, for example, one could build an SSH workalike
+capable of using any protocol supported by
+<TT>factotum</TT>,
+without that program knowing anything about the protocols.
+Traditionally each program needs to implement each
+authentication protocol for itself, an <I>O</I>(<I>n</I>^2)0 coding
+problem that reduces to an <I>O</I>(<I>n</I>)0 coding problem with
+<TT>factotum</TT>.
+<br>&#32;<br>
+Previous work on agents has concentrated on their use by clients
+authenticating to servers.
+Looking in the other direction, Sun Microsystem's 
+system of pluggable authentication modules (PAM) is one
+of the earliest attempts to 
+provide a general authentication mechanism for Unix-like 
+operating systems
+[Sama96].
+Without a central authority like PAM, system policy is tied
+up in the various implementations of network services.
+For example, on a typical Unix, if a system administrator
+decides not to allow plaintext passwords for authentication,
+the configuration files for a half dozen different servers &#173;
+<TT>rlogind</TT>,
+<TT>telnetd</TT>,
+<TT>ftpd</TT>,
+<TT>sshd</TT>,
+and so on &#173;
+need to be edited.
+PAM solves this problem by hiding the details of a given
+authentication mechanism behind a common library interface.
+Directed by a system-wide configuration file,
+an application selects a particular authentication mechanism
+by dynamically loading the appropriate shared library.
+PAM is widely used on Sun's Solaris and some Linux distributions.
+<br>&#32;<br>
+<TT>Factotum</TT>
+achieves the same goals
+using the agent approach.
+<TT>Factotum</TT>
+is the only process that needs to create
+capabilities, so all the network servers can run as 
+untrusted users (e.g.,
+Plan 9's
+<TT>none</TT>
+or Unix's
+<TT>nobody</TT>),
+which greatly reduces the harm done if a server is buggy
+and is compromised.
+In fact, if
+<TT>factotum</TT>
+were implemented on Unix along with
+an analogue to the Plan 9 capability device, venerable
+programs like
+<TT>su</TT>
+and
+<TT>login</TT>
+would no longer need to be installed ``setuid root.''
+<br>&#32;<br>
+Several other systems, such as Password Safe [Schn],
+store multiple passwords in an encrypted file,
+so that the user only needs to remember one password.
+Our
+<TT>secstore</TT>
+solution differs from these by placing the storage in
+a hardened location in the network, so that the encrypted file is
+less liable to be stolen for offline dictionary attack and so that
+it is available even when a user has several computers.
+In contrast, Microsoft's Passport system
+[Micr]
+keeps credentials in
+the network, but centralized at one extremely-high-value target.
+The important feature of Passport, setting up trust relationships
+with e-merchants, is outside our scope.
+The
+<TT>secstore</TT>
+architecture is almost identical to
+Perlman and Kaufman's
+[Perl99]
+but with newer EKE technology.
+Like them, we chose to defend mainly against outside attacks
+on
+<TT>secstore</TT>;
+if additional defense of the files on the server
+itself is desired, one can use distributed techniques
+[Ford00].
+<br>&#32;<br>
+We made a conscious choice of placing encryption, message integrity,
+and key management at the application layer
+(TLS, just above layer 4) rather than at layer 3, as in IPsec.
+This leads to a simpler structure for the network stack, easier
+integration with applications and, most important, easier network
+administration since we can recognize which applications are misbehaving
+based on TCP port numbers.  TLS does suffer (relative to IPsec) from
+the possibility of forged TCP Reset, but we feel that this is adequately
+dealt with by randomized TCP sequence numbers.
+<br>&#32;<br>
+Writing safe code is difficult.
+Stack attacks,
+mistakes in logic, and bugs in compilers and operating systems
+can each make it possible for an attacker
+to subvert the intended execution sequence of a
+service.
+If the server process has the privileges
+of a powerful user, such as
+<TT>root</TT>
+on Unix, then so does the attacker.
+<TT>Factotum</TT>
+allows us
+to constrain the privileged execution to a single
+process whose core is a few thousand lines of code.
+Verifying such a process, both through manual and automatic means,
+is much easier and less error prone
+than requiring it of all servers.
+<H4>Acknowledgments
+</H4>
+<br>&#32;<br>
+William Josephson contributed to the implementation of password changing in
+<TT>secstore</TT>.
+We thank Phil MacKenzie and Mart&iacute;n Abadi for helpful comments on early parts
+of the design.
+Chuck Blake,
+Peter Bosch,
+Frans Kaashoek,
+Sape Mullender,
+and
+Lakshman Y. N.,
+predominantly Dutchmen, gave helpful comments on the paper.
+<H4>References
+</H4>
+<br>&#32;<br>
+[Bell93]
+S.M. Bellovin and M. Merritt,
+``Augmented Encrypted Key Exchange,''
+Proceedings of the 1st ACM Conference on Computer and Communications Security (1993) pp. 244 - 250.
+<br>&#32;<br>
+[Boyk00]
+Victor Boyko, Philip MacKenzie, and Sarvar Patel,
+``Provably Secure Password-Authenticated Key Exchange using Diffie-Hellman,''
+Eurocrypt 2000, 156-171.
+<br>&#32;<br>
+[RFC2246]
+T . Dierks and C. Allen,
+``The TLS Protocol, Version 1.0,''
+RFC 2246.
+<br>&#32;<br>
+[Ford00]
+Warwick Ford and Burton S. Kaliski, Jr.,
+``Server-Assisted Generation of a Strong Secret from a Password,''
+IEEE Fifth International Workshop on Enterprise Security,
+National Institute of Standards and Technology (NIST),
+Gaithersburg MD, June 14 - 16, 2000.
+<br>&#32;<br>
+[Jabl]
+David P. Jablon,
+``Strong Password-Only Authenticated Key Exchange,''
+<TT>http://www.integritysciences.com/speke97.html</TT>.
+<br>&#32;<br>
+[Kami00]
+Michael Kaminsky.
+``Flexible Key Management with SFS Agents,''
+Master's Thesis, MIT, May 2000.
+<br>&#32;<br>
+[Mack]
+Philip MacKenzie,
+private communication.
+<br>&#32;<br>
+[Mazi99]
+David Mazi&egrave;res, Michael Kaminsky, M. Frans Kaashoek and Emmett Witchel,
+``Separating key management from file system security,''
+Symposium on Operating Systems Principles, 1999, pp. 124-139.
+<br>&#32;<br>
+[Micr]
+Microsoft Passport,
+<TT>http://www.passport.com/Consumer/PrivacyPolicy.asp</TT>.
+<br>&#32;<br>
+[Perl99]
+Radia Perlman and Charlie Kaufman,
+``Secure Password-Based Protocol for Downloading a Private Key,''
+Proc. 1999 Network and Distributed System Security Symposium,
+Internet Society, January 1999.
+<br>&#32;<br>
+[Pike95]
+Rob Pike, Dave Presotto, Sean Dorward, Bob Flandrena, Ken Thompson, Howard Trickey, and Phil Winterbottom,
+``Plan 9 from Bell Labs,''
+Computing Systems, <B>8</B>, 3, Summer 1995, pp. 221-254.
+<br>&#32;<br>
+[Pike93]
+Rob Pike, Dave Presotto, Ken Thompson, Howard Trickey, Phil Winterbottom,
+``The Use of Name Spaces in Plan 9,''
+Operating Systems Review, <B>27</B>, 2, April 1993, pp. 72-76
+(reprinted from Proceedings of the 5th ACM SIGOPS European Workshop,
+Mont Saint-Michel, 1992, Paper n&#186; 34).
+<br>&#32;<br>
+[RFC2138]
+C. Rigney, A. Rubens, W. Simpson, S. Willens,
+``Remote Authentication Dial In User Service (RADIUS),''
+RFC2138, April 1997.
+<br>&#32;<br>
+[RiLa]
+Ronald L. Rivest and Butler Lampson,
+``SDSI&#173;A Simple Distributed Security Infrastructure,''
+<TT>http://theory.lcs.mit.edu/~rivest/sdsi10.ps</TT>.
+<br>&#32;<br>
+[Schn]
+Bruce Schneier, Password Safe,
+<TT>http://www.counterpane.com/passsafe.html</TT>.
+<br>&#32;<br>
+[Sama96]
+Vipin Samar,
+``Unified Login with Pluggable Authentication Modules (PAM),''
+Proceedings of the Third ACM Conference on Computer Communications and Security,
+March 1996, New Delhi, India.
+<br>&#32;<br>
+[Stei88]
+Jennifer G. Steiner, Clifford Neumann, and Jeffrey I. Schiller,
+``<I>Kerberos</I>: An Authentication Service for Open Network Systems,''
+Proceedings of USENIX Winter Conference, Dallas, Texas, February 1988, p. 191-202.
+<br>&#32;<br>
+[Wu98]
+T. Wu,
+``The Secure Remote Password Protocol,''
+Proceedings of
+the 1998 Internet Society Network and Distributed System Security
+Symposium, San Diego, CA, Mar 1998, pp. 97-111.
+<br>&#32;<br>
+[Ylon96]
+Ylonen, T.,
+``SSH&#173;Secure Login Connections Over the Internet,''
+6th USENIX Security Symposium, pp. 37-42. San Jose, CA, Jul. 1996.
+<H4>Appendix: Summary of the PAK protocol
+</H4>
+<br>&#32;<br>
+Let <I>q&gt;</I>2^160 and <I>p&gt;</I>2^1024 be primes
+such that <I>p=rq+</I>1 with <I>r</I> not a multiple of <I>q</I>.
+^<I>*</I>h'-w'<I>*</I>'u+w'<I>*</I>'u'
+Take <I>h</I><I>&#191;</I><I>Z</I><I>p</I>h'-0w'<I>p</I>'u' such that <I>g</I>==<I>h</I>^<I>r</I> is not 1.
+These parameters may be chosen by the NIST algorithm for DSA,
+and are public, fixed values.
+The client <I>C</I> knows a secret PI
+and computes <I>H</I>==(<I>H</I>1(<I>C</I>, PI)<I></I>)^<I>r</I> and <I>H</I>^<I>-</I>1,
+^<I>*</I>h'-0w'<I>*</I>'u+0w'<I>*</I>'u'
+where <I>H</I>10 is a hash function yielding a random element of <I>Z</I><I>p</I>h'-0w'<I>p</I>'u',
+and <I>H</I>^<I>-</I>1 may be computed by gcd.
+(All arithmetic is modulo <I>p</I>.)
+The client gives <I>H</I>^<I>-</I>1 to the server <I>S</I> ahead of time by a private channel.
+To start a new connection, the client generates a random value <I>x</I>,
+computes <I>m</I>==<I>g</I>^<I>x</I><I>H</I>,
+then calls the server and sends <I>C</I> and <I>m</I>.
+The server checks <I>m</I>!=0 mod <I>p</I>,
+generates random <I>y</I>,
+computes MU==<I>g</I>^<I>y</I>,
+&#191;==(<I>m</I><I>H</I>^<I>-</I>1)^<I>y</I>,
+and sends <I>S</I>, MU0, <I>k</I>==<I>sha1</I>("server",<I>C</I>,<I>S</I>,<I>m</I>,MU,&#191;,<I>H</I>^<I>-</I>1).
+Next the client computes &#191;<I>=</I>MU^<I>x</I>,
+verifies <I>k</I>,
+and sends <I>k&#180;</I>==<I>sha1</I>("client",<I>C</I>,<I>S</I>,<I>m</I>,MU,&#191;,<I>H</I>^<I>-</I>1).
+The server then verifies <I>k&#180;</I> and both sides begin
+using session key <I>K</I>==<I>sha1</I>("session",<I>C</I>,<I>S</I>,<I>m</I>,MU,&#191;,<I>H</I>^<I>-</I>1).
+In the published version of PAK, the server name <I>S</I>
+is included in the initial
+hash <I>H</I>, but doing so is inconvenient in our application,
+as the server may be known by various equivalent names.
+<br>&#32;<br>
+MacKenzie has shown
+[Mack]
+that the
+equivalence proof [Boyk00]
+can be adapted to cover our version.
+&#191;<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
+</body></html>

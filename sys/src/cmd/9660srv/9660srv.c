@@ -13,7 +13,7 @@ static void	iwalkup(Xfile*);
 static void	iwalk(Xfile*, char*);
 static void	iopen(Xfile*, int);
 static void	icreate(Xfile*, char*, long, int);
-static long	ireaddir(Xfile*, char*, long, long);
+static long	ireaddir(Xfile*, uchar*, long, long);
 static long	iread(Xfile*, char*, long, long);
 static long	iwrite(Xfile*, char*, long, long);
 static void	iclunk(Xfile*);
@@ -25,6 +25,7 @@ static char*	nstr(uchar*, int);
 static char*	rdate(uchar*, int);
 static int	getcontin(Xdata*, uchar*, uchar**);
 static int	getdrec(Xfile*, void*);
+static void	ungetdrec(Xfile*);
 static int	opendotdot(Xfile*, Xfile*);
 static int	showdrec(int, int, void*);
 static long	gtime(uchar*);
@@ -151,7 +152,8 @@ chat("%d %d\n", haveplan9, nojoliet);
 	fp->offset = 0;
 	fp->doffset = 0;
 	memmove(&fp->d, dp, dp->reclen);
-	root->qid.path = CHDIR|l32(dp->addr);
+	root->qid.path = l32(dp->addr);
+	root->qid.type = QTDIR;
 	putbuf(dirp);
 	poperror();
 	if(getdrec(root, rd) >= 0){
@@ -213,15 +215,16 @@ iwalkup(Xfile *f)
 	ppf.ptr = &ppiso;
 	if(opendotdot(f, &pf) < 0)
 		error("can't open pf");
-	paddr = l32(((Isofile *)pf.ptr)->d.addr);
-	if(l32(((Isofile *)f->ptr)->d.addr) == paddr)
+	paddr = l32(pf.ptr->d.addr);
+	if(l32(f->ptr->d.addr) == paddr)
 		return;
 	if(opendotdot(&pf, &ppf) < 0)
 		error("can't open ppf");
 	while(getdrec(&ppf, d) >= 0){
 		if(l32(d->addr) == paddr){
 			newdrec(f, d);
-			f->qid.path = paddr|CHDIR;
+			f->qid.path = paddr;
+			f->qid.type = QTDIR;
 			return;
 		}
 	}
@@ -257,7 +260,7 @@ iwalk(Xfile *f, char *name)
 {
 	Isofile *ip = f->ptr;
 	uchar dbuf[256];
-	char nbuf[NAMELEN];
+	char nbuf[4*Maxname];
 	Drec *d = (Drec*)dbuf;
 	Dir dir;
 	char *p;
@@ -266,25 +269,34 @@ iwalk(Xfile *f, char *name)
 	vers = -1;
 	if(p = strchr(name, ';')) {	/* assign = */
 		len = p-name;
-		if(len >= NAMELEN)
-			len = NAMELEN-1;
+		if(len >= Maxname)
+			len = Maxname-1;
 		memmove(nbuf, name, len);
 		vers = strtoul(p+1, 0, 10);
 		name = nbuf;
 	}
+/*
 	len = strlen(name);
-	if(len >= NAMELEN)
-		len = NAMELEN-1;
-	name[len] = 0;
+	if(len >= Maxname){
+		len = Maxname-1;
+		if(name != nbuf){
+			memmove(nbuf, name, len);
+			name = nbuf;
+		}
+		name[len] = 0;
+	}
+*/
 
-	chat("%d \"%s\"...", len, name);
+	chat("%d \"%s\"...", strlen(name), name);
 	ip->offset = 0;
+	setnames(&dir, nbuf);
 	while(getdrec(f, d) >= 0) {
 		dvers = rzdir(f->xf, &dir, ip->fmt, d);
 		if(casestrcmp(f->xf->isplan9||f->xf->isrock, name, dir.name) != 0)
 			continue;
 		newdrec(f, d);
 		f->qid.path = dir.qid.path;
+		f->qid.type = dir.qid.type;
 		USED(dvers);
 		return;
 	}
@@ -298,8 +310,8 @@ iopen(Xfile *f, int mode)
 	mode &= ~OCEXEC;
 	if(mode != OREAD && mode != OEXEC)
 		error(Eperm);
-	((Isofile*)f->ptr)->offset = 0;
-	((Isofile*)f->ptr)->doffset = 0;
+	f->ptr->offset = 0;
+	f->ptr->doffset = 0;
 }
 
 static void
@@ -310,18 +322,23 @@ icreate(Xfile *f, char *name, long perm, int mode)
 }
 
 static long
-ireaddir(Xfile *f, char *buf, long offset, long count)
+ireaddir(Xfile *f, uchar *buf, long offset, long count)
 {
 	Isofile *ip = f->ptr;
 	Dir d;
+	char names[4*Maxname];
 	uchar dbuf[256];
 	Drec *drec = (Drec *)dbuf;
-	int rcnt = 0;
+	int n, rcnt;
 
-	if(offset < ip->doffset){
+	if(offset==0){
 		ip->offset = 0;
 		ip->doffset = 0;
-	}
+	}else if(offset != ip->doffset)
+		error("seek in directory not allowed");
+
+	rcnt = 0;
+	setnames(&d, names);
 	while(rcnt < count && getdrec(f, drec) >= 0){
 		if(drec->namelen == 1){
 			if(drec->name[0] == 0)
@@ -329,13 +346,13 @@ ireaddir(Xfile *f, char *buf, long offset, long count)
 			if(drec->name[0] == 1)
 				continue;
 		}
-		if(ip->doffset < offset){
-			ip->doffset += DIRLEN;
-			continue;
-		}
 		rzdir(f->xf, &d, ip->fmt, drec);
 		d.qid.vers = f->qid.vers;
-		rcnt += convD2M(&d, &buf[rcnt]);
+		if((n = convD2M(&d, buf+rcnt, count-rcnt)) <= BIT16SZ){
+			ungetdrec(f);
+			break;
+		}
+		rcnt += n;
 	}
 	ip->doffset += rcnt;
 	return rcnt;
@@ -403,8 +420,10 @@ istat(Xfile *f, Dir *d)
 
 	rzdir(f->xf, d, ip->fmt, &ip->d);
 	d->qid.vers = f->qid.vers;
-	if(d->qid.path==f->xf->rootqid.path)
-		d->qid.path = CHDIR;
+	if(d->qid.path==f->xf->rootqid.path){
+		d->qid.path = 0;
+		d->qid.type = QTDIR;
+	}
 }
 
 static void
@@ -458,6 +477,17 @@ newdrec(Xfile *f, Drec *dp)
 	f->len = len;
 }
 
+static void
+ungetdrec(Xfile *f)
+{
+	Isofile *ip = f->ptr;
+
+	if(ip->offset >= ip->odelta){
+		ip->offset -= ip->odelta;
+		ip->odelta = 0;
+	}
+}
+
 static int
 getdrec(Xfile *f, void *buf)
 {
@@ -487,7 +517,8 @@ getdrec(Xfile *f, void *buf)
 	if(p) {
 		memmove(buf, &p->iobuf[boff], len);
 		putbuf(p);
-		ip->offset += len + (len&1);
+		ip->odelta = len + (len&1);
+		ip->offset += ip->odelta;
 	}
 	if(p)
 		return 0;
@@ -543,17 +574,19 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 	int n, flags, i, j, lj, nl, vers, sysl, mode, l, have;
 	uchar *s;
 	char *p;
-	char buf[NAMELEN+UTFmax+1];
+	char buf[Maxname+UTFmax+1];
 	uchar *q;
 	Rune r;
+	enum { ONAMELEN = 28 };	/* old Plan 9 directory name length */
 
 	have = 0;
 	flags = 0;
 	vers = -1;
 	d->qid.path = l32(dp->addr);
+	d->qid.type = 0;
 	d->qid.vers = 0;
 	n = dp->namelen;
-	memset(d->name, 0, NAMELEN);
+	memset(d->name, 0, Maxname);
 	if(n == 1) {
 		switch(dp->name[0]){
 		case 1:
@@ -569,17 +602,17 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 	} else {
 		if(fmt == 'J'){	/* Joliet, 16-bit Unicode */
 			q = (uchar*)dp->name;
-			for(i=j=lj=0; i<n && j<NAMELEN; i+=2){
+			for(i=j=lj=0; i<n && j<Maxname; i+=2){
 				lj = j;
 				r = (q[i]<<8)|q[i+1];
 				j += runetochar(buf+j, &r);
 			}
-			if(j >= NAMELEN)
+			if(j >= Maxname)
 				j = lj;
 			memmove(d->name, buf, j);
 		}else{
-			if(n >= NAMELEN)
-				n = NAMELEN-1;
+			if(n >= Maxname)
+				n = Maxname-1;
 			for(i=0; i<n; i++)
 				d->name[i] = tolower(dp->name[i]);
 		}
@@ -597,30 +630,30 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 		 * from plan9 directory extension
 		 */
 		nl = *s;
-		if(nl >= NAMELEN)
-			nl = NAMELEN-1;
+		if(nl >= ONAMELEN)
+			nl = ONAMELEN-1;
 		if(nl) {
-			memset(d->name, 0, NAMELEN);
+			memset(d->name, 0, ONAMELEN);
 			memmove(d->name, s+1, nl);
 		}
 		s += 1 + *s;
 		nl = *s;
-		if(nl >= NAMELEN)
-			nl = NAMELEN-1;
-		memset(d->uid, 0, NAMELEN);
+		if(nl >= ONAMELEN)
+			nl = ONAMELEN-1;
+		memset(d->uid, 0, ONAMELEN);
 		memmove(d->uid, s+1, nl);
 		s += 1 + *s;
 		nl = *s;
-		if(nl >= NAMELEN)
-			nl = NAMELEN-1;
-		memset(d->gid, 0, NAMELEN);
+		if(nl >= ONAMELEN)
+			nl = ONAMELEN-1;
+		memset(d->gid, 0, ONAMELEN);
 		memmove(d->gid, s+1, nl);
 		s += 1 + *s;
 		if(((ulong)s) & 1)
 			s++;
 		d->mode = l32(s);
-		if(d->mode & CHDIR)
-			d->qid.path |= CHDIR;
+		if(d->mode & DMDIR)
+			d->qid.type |= QTDIR;
 	} else {
 		d->mode = 0444;
 		switch(fmt) {
@@ -645,14 +678,29 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 			break;
 		}
 		if(flags & 0x02){
-			d->qid.path |= CHDIR;
-			d->mode |= CHDIR|0111;
+			d->qid.type |= QTDIR;
+			d->mode |= DMDIR|0111;
 		}
 		strcpy(d->uid, "cdrom");
-		p = strchr(d->name, ';');
-		if(p != 0) {
-			vers = strtoul(p+1, 0, 10);
-			memset(p, 0, NAMELEN-(p-d->name));
+		if(fmt!='9' && !(d->mode&DMDIR)){
+			/*
+			 * ISO 9660 actually requires that you always have a . and a ;,
+			 * even if there is no version and no extension.  Very few writers
+			 * do this.  If the version is present, we use it for qid.vers.
+			 * If there is no extension but there is a dot, we strip it off.
+			 * (VMS heads couldn't comprehend the dot as a file name character
+			 * rather than as just a separator between name and extension.)
+			 *
+			 * We don't do this for directory names because directories are
+			 * not allowed to have extensions and versions.
+			 */
+			if((p=strchr(d->name, ';')) != nil){
+				vers = strtoul(p+1, 0, 0);
+				d->qid.vers = vers;
+				*p = '\0';
+			}
+			if((p=strchr(d->name, '.')) != nil && *(p+1)=='\0')
+				*p = '\0';
 		}
 		if(fs->issusp){
 			nl = 0;
@@ -665,16 +713,16 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 					mode = l32(s+4);
 					d->mode = mode & 0777;
 					if((mode & 0170000) == 040000){
-						d->mode |= CHDIR;
-						d->qid.path |= CHDIR;
+						d->mode |= DMDIR;
+						d->qid.type |= QTDIR;
 					}
 					have |= Hmode;
 				} else if(s[0] == 'N' && s[1] == 'M' && s[3] == 1){
 					/* alternative name */
 					if((s[4] & ~1) == 0){
 						i = nl+l-5;
-						if(i >= NAMELEN)
-							i = NAMELEN-1;
+						if(i >= Maxname)
+							i = Maxname-1;
 						if((i -= nl) > 0){
 							memmove(d->name+nl, s+5, i);
 							nl += i;
@@ -691,7 +739,7 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 		}
 	}
 	d->length = 0;
-	if((d->mode & CHDIR) == 0)
+	if((d->mode & DMDIR) == 0)
 		d->length = l32(dp->size);
 	d->type = 0;
 	d->dev = 0;

@@ -34,12 +34,15 @@ enum{
 	EFocus,
 	EFont,
 	EFormat,
+	EHide,
 	EImage,
 	ELight,
 	EMask,
 	EPressedtextcolor,
 	ERect,
+	EReveal,
 	EShow,
+	ESize,
 	EText,
 	ETextcolor,
 	EValue,
@@ -48,92 +51,54 @@ enum{
 static char *cmds[] = {
 	[EAlign] =			"align",
 	[EBorder] =		"border",
-	[EBordercolor] = "bordercolor",
+	[EBordercolor] = 	"bordercolor",
 	[EFocus] = 		"focus",
 	[EFont] =			"font",
 	[EFormat] = 		"format",
+	[EHide] =			"hide",
 	[EImage] =		"image",
 	[ELight] =			"light",
 	[EMask] =			"mask",
 	[EPressedtextcolor] ="pressedtextcolor",
 	[ERect] =			"rect",
+	[EReveal] =		"reveal",
 	[EShow] =			"show",
+	[ESize] =			"size",
 	[EText] =			"text",
 	[ETextcolor] =		"textcolor",
 	[EValue] =			"value",
 	nil
 };
 
-static void	textbuttonctl(Control*, char*);
 static void	textbuttonshow(Textbutton*);
-static void	textbuttonfree(Textbutton*);
 
 static void
-textbuttonthread(void *v)
+textbuttonmouse(Control *c, Mouse *m)
 {
-	char buf[32];
 	Textbutton *t;
 
-	t = v;
-
-	snprint(buf, sizeof buf, "textbutton-%s-0x%p", t->name, t);
-	threadsetname(buf);
-
-	t->line = ctlmalloc(sizeof(char*));
-	t->nline = 0;
-	t->image = _getctlimage("white");
-	t->mask = _getctlimage("opaque");
-	t->light = _getctlimage("yellow");
-	t->bordercolor = _getctlimage("black");
-	t->textcolor = _getctlimage("black");
-	t->pressedtextcolor = _getctlimage("black");
-	t->font = _getctlfont("font");
-	t->format = ctlstrdup("%q: value %d");
-	t->lastshow = -1;
-
-	for(;;){
-		switch(alt(t->alts)){
-		default:
-			ctlerror("%q: unknown message", t->name);
-		case AKey:
-			/* ignore keystrokes */
-			break;
-		case AMouse:
-			if((t->m.buttons&1) != t->lastbut){
-				if(t->m.buttons & 1){
-					t->pressed ^= 1;
-					textbuttonshow(t);
-					printctl(t->event, t->format, t->name, t->pressed);
-				}
-			}
-			t->lastbut = t->m.buttons & 1;
-			break;
-		case ACtl:
-			_ctlcontrol(t, t->str, textbuttonctl);
-			free(t->str);
-			break;
-		case AWire:
-			_ctlrewire(t);
-			break;
-		case AExit:
-			textbuttonfree(t);
-			sendul(t->exit, 0);
-			return;
+	t = (Textbutton *)c;
+	if((m->buttons&7) != t->lastbut){
+		if(m->buttons & 7){
+			if (t->pressed)
+				t->pressed = 0;
+			else
+				t->pressed = 1;
+			textbuttonshow(t);
+		}else{	/* generate event on button up */
+			chanprint(t->event, t->format, t->name, t->pressed);
 		}
 	}
-}
-
-Control*
-createtextbutton(Controlset *cs, char *name)
-{
-	return _createctl(cs, "textbutton", sizeof(Textbutton), name, textbuttonthread, 0);
+	t->lastbut = m->buttons & 7;
 }
 
 static void
-textbuttonfree(Textbutton *t)
+textbuttonfree(Control *c)
 {
 	int i;
+	Textbutton *t;
 
+	t = (Textbutton*)c;
 	_putctlfont(t->font);
 	_putctlimage(t->image);
 	_putctlimage(t->light);
@@ -155,7 +120,7 @@ textbuttonshow(Textbutton *t)
 	Point p, q;
 	Image *im;
 
-	if(t->lastshow == t->pressed)
+	if(t->hidden || t->lastshow == t->pressed)
 		return;
 	f = t->font->font;
 	draw(t->screen, t->rect, t->image->image, nil, t->image->image->r.min);
@@ -191,103 +156,150 @@ textbuttonshow(Textbutton *t)
 }
 
 static void
-textbuttonctl(Control *c, char *str)
+textbuttonctl(Control *c, CParse *cp)
 {
 	int cmd, i;
-	CParse cp;
 	Rectangle r;
 	Textbutton *t;
 
 	t = (Textbutton*)c;
-	cmd = _ctlparse(&cp, str, cmds);
+	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", t->name, cp.str);
+		ctlerror("%q: unrecognized message '%s'", t->name, cp->str);
 		break;
 	case EAlign:
-		_ctlargcount(t, &cp, 2);
-		t->align = _ctlalignment(cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		t->align = _ctlalignment(cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case EBorder:
-		_ctlargcount(t, &cp, 2);
-		t->border = cp.iargs[1];
+		_ctlargcount(t, cp, 2);
+		t->border = cp->iargs[1];
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case EBordercolor:
-		_ctlargcount(t, &cp, 2);
-		_setctlimage(t, &t->bordercolor, cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		_setctlimage(t, &t->bordercolor, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case EFocus:
 		break;
 	case EFont:
-		_ctlargcount(t, &cp, 2);
-		_setctlfont(t, &t->font, cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		_setctlfont(t, &t->font, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case EFormat:
-		_ctlargcount(t, &cp, 2);
-		t->format = ctlstrdup(cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		t->format = ctlstrdup(cp->args[1]);
+		break;
+	case EHide:
+		_ctlargcount(t, cp, 1);
+		t->hidden = 1;
 		break;
 	case EImage:
-		_ctlargcount(t, &cp, 2);
-		_setctlimage(t, &t->image, cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		_setctlimage(t, &t->image, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case ELight:
-		_ctlargcount(t, &cp, 2);
-		_setctlimage(t, &t->light, cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		_setctlimage(t, &t->light, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case EMask:
-		_ctlargcount(t, &cp, 2);
-		_setctlimage(t, &t->mask, cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		_setctlimage(t, &t->mask, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case EPressedtextcolor:
-		_ctlargcount(t, &cp, 2);
-		_setctlimage(t, &t->pressedtextcolor, cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		_setctlimage(t, &t->pressedtextcolor, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case ERect:
-		_ctlargcount(t, &cp, 5);
-		r.min.x = cp.iargs[1];
-		r.min.y = cp.iargs[2];
-		r.max.x = cp.iargs[3];
-		r.max.y = cp.iargs[4];
+		_ctlargcount(t, cp, 5);
+		r.min.x = cp->iargs[1];
+		r.min.y = cp->iargs[2];
+		r.max.x = cp->iargs[3];
+		r.max.y = cp->iargs[4];
 		if(Dx(r)<=0 || Dy(r)<=0)
-			ctlerror("%q: bad rectangle: %s", t->name, cp.str);
+			ctlerror("%q: bad rectangle: %s", t->name, cp->str);
 		t->rect = r;
 		t->lastshow = -1;	/* force redraw */
 		break;
-	case EShow:
-		_ctlargcount(t, &cp, 1);
+	case EReveal:
+		_ctlargcount(t, cp, 1);
+		t->hidden = 0;
 		t->lastshow = -1;	/* force redraw */
 		textbuttonshow(t);
+		break;
+	case EShow:
+		_ctlargcount(t, cp, 1);
+		t->lastshow = -1;	/* force redraw */
+		textbuttonshow(t);
+		break;
+	case ESize:
+		if (cp->nargs == 3)
+			r.max = Pt(0x7fffffff, 0x7fffffff);
+		else{
+			_ctlargcount(t, cp, 5);
+			r.max.x = cp->iargs[3];
+			r.max.y = cp->iargs[4];
+		}
+		r.min.x = cp->iargs[1];
+		r.min.y = cp->iargs[2];
+		if(r.min.x<=0 || r.min.y<=0 || r.max.x<=0 || r.max.y<=0 || r.max.x < r.min.x || r.max.y < r.min.y)
+			ctlerror("%q: bad sizes: %s", t->name, cp->str);
+		t->size.min = r.min;
+		t->size.max = r.max;
 		break;
 	case EText:
 		/* free existing text */
 		for(i=0; i<t->nline; i++)
 			free(t->line[i]);
-		t->nline = cp.nargs-1;
+		t->nline = cp->nargs-1;
 		t->line = ctlrealloc(t->line, t->nline*sizeof(char*));
 		for(i=0; i<t->nline; i++)
-			t->line[i] = ctlstrdup(cp.args[i+1]);
+			t->line[i] = ctlstrdup(cp->args[i+1]);
 		t->lastshow = -1;	/* force redraw */
 		textbuttonshow(t);
 		break;
 	case ETextcolor:
-		_ctlargcount(t, &cp, 2);
-		_setctlimage(t, &t->textcolor, cp.args[1]);
+		_ctlargcount(t, cp, 2);
+		_setctlimage(t, &t->textcolor, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
 	case EValue:
-		_ctlargcount(t, &cp, 2);
-		if((cp.iargs[1]!=0) != t->pressed){
+		_ctlargcount(t, cp, 2);
+		if((cp->iargs[1]!=0) != t->pressed){
 			t->pressed ^= 1;
 			textbuttonshow(t);
 		}
 		break;
 	}
+}
+
+Control*
+createtextbutton(Controlset *cs, char *name)
+{
+	Textbutton *t;
+
+	t = (Textbutton *)_createctl(cs, "textbutton", sizeof(Textbutton), name);
+	t->line = ctlmalloc(sizeof(char*));
+	t->nline = 0;
+	t->image = _getctlimage("white");
+	t->light = _getctlimage("yellow");
+	t->mask = _getctlimage("opaque");
+	t->bordercolor = _getctlimage("black");
+	t->textcolor = _getctlimage("black");
+	t->pressedtextcolor = _getctlimage("black");
+	t->font = _getctlfont("font");
+	t->format = ctlstrdup("%q: value %d");
+	t->lastshow = -1;
+	t->mouse = textbuttonmouse;
+	t->ctl = textbuttonctl;
+	t->exit = textbuttonfree;
+	return (Control *)t;
 }

@@ -1,7 +1,5 @@
 #include "gc.h"
 
-#define	COL1	32
-
 Reg*
 rega(void)
 {
@@ -259,7 +257,7 @@ regopt(Prog *p)
 				bit.b[z] = r->use1.b[z] |
 					r->use2.b[z] | r->set.b[z];
 			if(bany(&bit)) {
-				print("%|", COL1);
+				print("\t");
 				if(bany(&r->use1))
 					print(" u1=%B", r->use1);
 				if(bany(&r->use2))
@@ -555,7 +553,7 @@ addmove(Reg *r, int bn, int rn, int f)
 		p1->as = AMOVW;
 	}
 	if(debug['R'])
-		print("%P%|.a%P\n", p, COL1, p1);
+		print("%P\t.a%P\n", p, p1);
 }
 
 Bits
@@ -939,8 +937,8 @@ paint1(Reg *r, int bn)
 		changer -= CLOAD * r->loop;
 		changea -= CLOAD * r->loop;
 		if(debug['R'] && debug['v'])
-			print("%ld%P%|ld %B $%d.%d\n", r->loop,
-				r->prog, COL1, blsh(bn), changer, changea);
+			print("%ld%P\tld %B $%d.%d\n", r->loop,
+				r->prog, blsh(bn), changer, changea);
 	}
 	for(;;) {
 		r->act.b[z] |= bb;
@@ -966,8 +964,8 @@ paint1(Reg *r, int bn)
 					changea += r->loop;
 			}
 			if(debug['R'] && debug['v'])
-				print("%ld%P%|u1 %B $%d.%d\n", r->loop,
-					p, COL1, blsh(bn), changer, changea);
+				print("%ld%P\tu1 %B $%d.%d\n", r->loop,
+					p, blsh(bn), changer, changea);
 		}
 		if((r->use2.b[z]|r->set.b[z]) & bb) {
 			changer += CREF * r->loop;
@@ -992,15 +990,15 @@ paint1(Reg *r, int bn)
 					changea += r->loop;
 			}
 			if(debug['R'] && debug['v'])
-				print("%ld%P%|u2 %B $%d.%d\n", r->loop,
-					p, COL1, blsh(bn), changer, changea);
+				print("%ld%P\tu2 %B $%d.%d\n", r->loop,
+					p, blsh(bn), changer, changea);
 		}
 		if(STORE(r) & r->regdiff.b[z] & bb) {
 			changer -= CLOAD * r->loop;
 			changea -= CLOAD * r->loop;
 			if(debug['R'] && debug['v'])
-				print("%ld%P%|st %B $%d.%d\n", r->loop,
-					p, COL1, blsh(bn), changer, changea);
+				print("%ld%P\tst %B $%d.%d\n", r->loop,
+					p, blsh(bn), changer, changea);
 		}
 
 		if(r->refbehind.b[z] & bb)
@@ -1110,14 +1108,14 @@ paint3(Reg *r, int bn, ulong rb, int rn)
 				print("%P", p);
 			addreg(&p->from, rn);
 			if(debug['R'])
-				print("%|.c%P\n", COL1, p);
+				print("\t.c%P\n", p);
 		}
 		if((r->use2.b[z]|r->set.b[z]) & bb) {
 			if(debug['R'])
 				print("%P", p);
 			addreg(&p->to, rn);
 			if(debug['R'])
-				print("%|.c%P\n", COL1, p);
+				print("\t.c%P\n", p);
 		}
 		if(STORE(r) & r->regdiff.b[z] & bb)
 			addmove(r, bn, rn, 1);

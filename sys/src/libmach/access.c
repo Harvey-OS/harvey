@@ -137,6 +137,7 @@ static int
 mget(Map *map, ulong addr, char *buf, int size)
 {
 	long off;
+	uvlong voff;
 	int i, j, k;
 	struct segment *s;
 
@@ -147,7 +148,8 @@ mget(Map *map, ulong addr, char *buf, int size)
 		werrstr("unreadable map");
 		return -1;
 	}
-	seek(s->fd, off, 0);
+	voff = (ulong)off;
+	seek(s->fd, voff, 0);
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
 		k = read(s->fd, buf, size-j);
 		if (k < 0) {
@@ -166,6 +168,7 @@ static int
 mput(Map *map, ulong addr, char *buf, int size)
 {
 	long off;
+	vlong voff;
 	int i, j, k;
 	struct segment *s;
 
@@ -177,7 +180,8 @@ mput(Map *map, ulong addr, char *buf, int size)
 		return -1;
 	}
 
-	seek(s->fd, off, 0);
+	voff = (ulong)off;
+	seek(s->fd, voff, 0);
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
 		k = write(s->fd, buf, size-j);
 		if (k < 0) {

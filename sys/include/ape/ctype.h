@@ -23,28 +23,30 @@ extern int toupper(int);
 #ifdef __cplusplus
 }
 #endif
-
-#define	__U	01
-#define	__L	02
-#define	__N	04
-#define	__S	010
-#define	__P	020
-#define	__C	040
-#define	__B	0100
-#define	__X	0200
+enum
+{
+  _ISupper = 01,	/* UPPERCASE.  */
+  _ISlower = 02,	/* lowercase.  */
+  _ISdigit = 04,	/* Numeric.  */
+  _ISspace = 010,	/* Whitespace.  */
+  _ISpunct = 020,	/* Punctuation.  */
+  _IScntrl = 040,	/* Control character.  */
+  _ISblank = 0100,	/* Blank (usually SPC and TAB).  */
+  _ISxdigit = 0200,	/* Hexadecimal numeric.  */
+};
 
 extern unsigned char _ctype[];
-#define	isalnum(c)	((_ctype+1)[c]&(__U|__L|__N))
-#define	isalpha(c)	((_ctype+1)[c]&(__U|__L))
-#define	iscntrl(c)	((_ctype+1)[c]&__C)
-#define	isdigit(c)	((_ctype+1)[c]&__N)
-#define	isgraph(c)	((_ctype+1)[c]&(__P|__U|__L|__N))
-#define	islower(c)	((_ctype+1)[c]&__L)
-#define	isprint(c)	((_ctype+1)[c]&(__P|__U|__L|__N|__B))
-#define	ispunct(c)	((_ctype+1)[c]&__P)
-#define	isspace(c)	((_ctype+1)[c]&__S)
-#define	isupper(c)	((_ctype+1)[c]&__U)
-#define	isxdigit(c)	((_ctype+1)[c]&__X)
+#define	isalnum(c)	(_ctype[(unsigned char)(c)]&(_ISupper|_ISlower|_ISdigit))
+#define	isalpha(c)	(_ctype[(unsigned char)(c)]&(_ISupper|_ISlower))
+#define	iscntrl(c)	(_ctype[(unsigned char)(c)]&_IScntrl)
+#define	isdigit(c)	(_ctype[(unsigned char)(c)]&_ISdigit)
+#define	isgraph(c)	(_ctype[(unsigned char)(c)]&(_ISpunct|_ISupper|_ISlower|_ISdigit))
+#define	islower(c)	(_ctype[(unsigned char)(c)]&_ISlower)
+#define	isprint(c)	(_ctype[(unsigned char)(c)]&(_ISpunct|_ISupper|_ISlower|_ISdigit|_ISblank))
+#define	ispunct(c)	(_ctype[(unsigned char)(c)]&_ISpunct)
+#define	isspace(c)	(_ctype[(unsigned char)(c)]&_ISspace)
+#define	isupper(c)	(_ctype[(unsigned char)(c)]&_ISupper)
+#define	isxdigit(c)	(_ctype[(unsigned char)(c)]&_ISxdigit)
 
 #ifdef _BSD_EXTENSION
 #define	isascii(c) (((unsigned int)(c))<0x80)

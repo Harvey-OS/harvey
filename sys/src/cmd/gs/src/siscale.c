@@ -1,22 +1,22 @@
-/* Copyright (C) 1995, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1995, 1996, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: siscale.c,v 1.4 2000/09/19 19:00:50 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: siscale.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Image scaling filters */
 #include "math_.h"
 #include "memory_.h"
@@ -47,20 +47,10 @@ typedef long AccumTmp;
 typedef int AccumTmp;
 #  endif
 
-/*
- *    The optimal scaling for fixed point arithmetic is a function of the
- *    size of AccumTmp type, the size if the input pixel, the size of the
- *    intermediate pixel (PixelTmp) and the size of the output pixel.  This
- *    is set by these definitions and the fraction_bits variables in the
- *    functions.
- */
 #define num_weight_bits\
   ((sizeof(AccumTmp) - maxSizeofPixel) * 8 - (LOG2_MAX_ISCALE_SUPPORT + 1))
-#define numScaleBits  ((maxSizeofPixel - sizeof(PixelTmp)) * 8 )
-#define fixedScaleFactor  ((int) (1 << numScaleBits))
 #define scale_PixelWeight(factor) ((int)((factor) * (1 << num_weight_bits)))
-#define unscale_AccumTmp(atemp, fraction_bits) arith_rshift(atemp, fraction_bits)
-#define NEED_FRACTION_BITS
+#define unscale_AccumTmp(atemp) arith_rshift(atemp, num_weight_bits)
 
 #else /* USE_FPU > 0 */
 
@@ -69,11 +59,8 @@ typedef int AccumTmp;
 typedef float PixelWeight;
 typedef double AccumTmp;
 
-#define num_weight_bits 0		/* Not used for floating point */
-#define fixedScaleFactor 1		/* Straight scaling for floating point */
 #define scale_PixelWeight(factor) (factor)
-#define unscale_AccumTmp(atemp, fraction_bits) ((int)(atemp))
-/*#undef NEED_FRACTION_BITS*/
+#define unscale_AccumTmp(atemp) ((int)(atemp))
 
 #endif /* USE_FPU */
 
@@ -302,10 +289,6 @@ zoom_x(PixelTmp * tmp, const void /*PixelIn */ *src, int sizeofPixelIn,
        const CONTRIB * items)
 {
     int c, i;
-#ifdef NEED_FRACTION_BITS
-    const int fraction_bits =
-	(sizeofPixelIn - sizeof(PixelTmp)) * 8 + num_weight_bits;
-#endif
 
     for (c = 0; c < Colors; ++c) {
 	PixelTmp *tp = tmp + c;
@@ -335,7 +318,7 @@ zoom_x(PixelTmp * tmp, const void /*PixelIn */ *src, int sizeofPixelIn,
 			      weight += *pp * cp->weight;\
 			  }\
 			}\
-			{ PixelIn2 pixel = unscale_AccumTmp(weight, fraction_bits);\
+			{ PixelIn2 pixel = unscale_AccumTmp(weight);\
 			  if_debug1('W', " %ld", (long)pixel);\
 			  *tp =\
 			    (PixelTmp)CLAMP(pixel, minPixelTmp, maxPixelTmp);\
@@ -353,15 +336,7 @@ zoom_x(PixelTmp * tmp, const void /*PixelIn */ *src, int sizeofPixelIn,
 	}
 	if_debug0('W', "\n");
     }
-}
-
-
-/*
- * Apply filter to zoom vertically from tmp to dst.
- * This is simpler because we can treat all columns identically
- * without regard to the number of samples per pixel.
- */
-private void
+} /* Apply filter to zoom vertically from tmp to dst. *//* This is simpler because we can treat all columns identically *//* without regard to the number of samples per pixel. */ private void
 zoom_y(void /*PixelOut */ *dst, int sizeofPixelOut, uint MaxValueOut,
        const PixelTmp * tmp, int WidthOut, int tmp_width,
        int Colors, const CLIST * contrib, const CONTRIB * items)
@@ -372,10 +347,6 @@ zoom_y(void /*PixelOut */ *dst, int sizeofPixelOut, uint MaxValueOut,
     const CONTRIB *cbp = items + contrib->index;
     int kc;
     PixelTmp2 max_weight = MaxValueOut;
-#ifdef NEED_FRACTION_BITS
-    const int fraction_bits =
-	(sizeof(PixelTmp) - sizeofPixelOut) * 8 + num_weight_bits;
-#endif
 
     if_debug0('W', "[W]zoom_y: ");
 
@@ -388,7 +359,7 @@ zoom_y(void /*PixelOut */ *dst, int sizeofPixelOut, uint MaxValueOut,
 		  for ( ; j > 0; pp += kn, ++cp, --j )\
 		    weight += *pp * cp->weight;\
 		}\
-		{ PixelTmp2 pixel = unscale_AccumTmp(weight, fraction_bits);\
+		{ PixelTmp2 pixel = unscale_AccumTmp(weight);\
 		  if_debug1('W', " %d", pixel);\
 		  ((PixelOut *)dst)[kc] =\
 		    (PixelOut)CLAMP(pixel, 0, max_weight);\
@@ -419,7 +390,7 @@ calculate_dst_contrib(stream_IScale_state * ss, int y)
     int last_index =
     calculate_contrib(&ss->dst_next_list, ss->dst_items, ss->yscale,
 		      y, 1, ss->params.HeightIn, MAX_ISCALE_SUPPORT, row_size,
-		      (double)ss->params.MaxValueOut / (fixedScaleFactor * unitPixelTmp) );
+		      (double)ss->params.MaxValueOut / unitPixelTmp);
     int first_index_mod = ss->dst_next_list.first_pixel / row_size;
 
     ss->dst_last_index = last_index;
@@ -504,7 +475,7 @@ s_IScale_init(stream_state * st)
     /* Pre-calculate filter contributions for a row. */
     calculate_contrib(ss->contrib, ss->items, ss->xscale,
 		      0, ss->params.WidthOut, ss->params.WidthIn, ss->params.WidthIn,
-		      ss->params.Colors, (double)unitPixelTmp * fixedScaleFactor / ss->params.MaxValueIn);
+		      ss->params.Colors, (double)unitPixelTmp / ss->params.MaxValueIn);
 
     /* Prepare the weights for the first output row. */
     calculate_dst_contrib(ss, 0);

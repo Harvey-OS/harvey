@@ -15,12 +15,14 @@ typedef struct Pair	Pair;
 enum
 {
 	StrAlloc	= 32,		/* characters allocated at a time */
-	NDirs		= 64,		/* dirs to read in a block */
 	BufSize		= 8*1024,	/* size of transfer block */
 	NDigest		= 40,		/* length of digest string */
 	NUid		= 10,		/* length of .imp uid string */
 	NFlags		= 8,		/* length of .imp flag string */
 	LockSecs	= 5 * 60,	/* seconds to wait for acquiring a locked file */
+	MboxNameLen	= 256,		/* max. length of upas/fs mbox name */
+	MsgNameLen	= 32,		/* max. length of a file in a upas/fs mbox */
+	UserNameLen	= 64,		/* max. length of user's name */
 
 	MUtf7Max	= 6,		/* max length for a modified utf7 character: &bbbb- */
 
@@ -366,10 +368,11 @@ struct Pair
 extern	Bin	*parseBin;
 extern	Biobuf	bout;
 extern	Biobuf	bin;
-extern	char	username[NAMELEN];
-extern	char	mboxDir[3 * NAMELEN];
+extern	char	username[UserNameLen];
+extern	char	mboxDir[MboxNameLen];
 extern	char	*fetchPartNames[FPMax];
 extern	char	*site;
 extern	char	*remote;
+extern	int	debug;
 
 #include "fns.h"

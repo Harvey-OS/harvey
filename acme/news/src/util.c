@@ -77,16 +77,17 @@ egrow(char *s, char *sep, char *t)
 void
 error(char *fmt, ...)
 {
-	int n;
 	va_list arg;
 	char buf[256];
+	Fmt f;
 
-	threadprint(2, "%s: ", argv0);
+	fmtfdinit(&f, 2, buf, sizeof buf);
+	fmtprint(&f, "%s: ", argv0);
 	va_start(arg, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, arg) - buf;
+	fmtprint(&f, fmt, arg);
 	va_end(arg);
-	write(2, buf, n);
-	write(2, "\n", 1);
+	fmtprint(&f, "\n");
+	fmtfdflush(&f);
 	threadexitsall(fmt);
 }
 
@@ -98,8 +99,8 @@ ctlprint(int fd, char *fmt, ...)
 	char buf[256];
 
 	va_start(arg, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, arg) - buf;
+	n = vfprint(fd, fmt, arg);
 	va_end(arg);
-	if(write(fd, buf, n) != n)
+	if(n < 0)
 		error("control file write(%s) error: %r", buf);
 }

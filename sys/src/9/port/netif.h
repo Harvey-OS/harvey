@@ -22,9 +22,9 @@ enum
 /*
  *  Macros to manage Qid's used for multiplexed devices
  */
-#define NETTYPE(x)	((x)&0x1f)
-#define NETID(x)	(((x)&~CHDIR)>>5)
-#define NETQID(i,t)	(((i)<<5)|(t))
+#define NETTYPE(x)	(((ulong)x)&0x1f)
+#define NETID(x)	((((ulong)x))>>5)
+#define NETQID(i,t)	((((ulong)i)<<5)|(t))
 
 /*
  *  one per multiplexed connection
@@ -35,7 +35,7 @@ struct Netfile
 
 	int	inuse;
 	ulong	mode;
-	char	owner[NAMELEN];
+	char	owner[KNAMELEN];
 
 	int	type;			/* multiplexor type */
 	int	prom;			/* promiscuous mode */
@@ -66,7 +66,7 @@ struct Netif
 	QLock;
 
 	/* multiplexing */
-	char	name[NAMELEN];		/* for top level directory */
+	char	name[KNAMELEN];		/* for top level directory */
 	int	nfile;			/* max number of Netfiles */
 	Netfile	**f;
 
@@ -99,14 +99,14 @@ struct Netif
 };
 
 void	netifinit(Netif*, char*, int, ulong);
-int	netifwalk(Netif*, Chan*, char*);
+Walkqid*	netifwalk(Netif*, Chan*, Chan*, char **, int);
 Chan*	netifopen(Netif*, Chan*, int);
 void	netifclose(Netif*, Chan*);
 long	netifread(Netif*, Chan*, void*, long, ulong);
 Block*	netifbread(Netif*, Chan*, long, ulong);
 long	netifwrite(Netif*, Chan*, void*, long);
-void	netifwstat(Netif*, Chan*, char*);
-void	netifstat(Netif*, Chan*, char*);
+int	netifwstat(Netif*, Chan*, uchar*, int);
+int	netifstat(Netif*, Chan*, uchar*, int);
 int	activemulti(Netif*, uchar*, int);
 
 /*

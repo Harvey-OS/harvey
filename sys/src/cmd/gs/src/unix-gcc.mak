@@ -1,21 +1,21 @@
 #    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This file is part of Aladdin Ghostscript.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+# or distributor accepts any responsibility for the consequences of using it,
+# or for whether it serves any particular purpose or works at all, unless he
+# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+# License (the "License") for full details.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# Every copy of Aladdin Ghostscript must include a copy of the License,
+# normally in a plain ASCII text file named PUBLIC.  The License grants you
+# the right to copy, modify and redistribute Aladdin Ghostscript, but only
+# under certain conditions described in the License.  Among other things, the
+# License requires that the copyright notice and this notice be preserved on
+# all copies.
 
-# $Id: unix-gcc.mak,v 1.8 2000/09/25 15:06:28 lpd Exp $
+# $Id: unix-gcc.mak,v 1.4 2000/03/18 04:13:40 lpd Exp $
 # makefile for Unix/gcc/X11 configuration.
 
 # ------------------------------- Options ------------------------------- #
@@ -135,9 +135,7 @@ JVERSION=6
 # DON'T DO THIS. If you do, the resulting executable will not be able to
 # read some PostScript files containing JPEG data, because Adobe chose to
 # define PostScript's JPEG capabilities in a way that is slightly
-# incompatible with the JPEG standard.  Note also that if you set SHARE_JPEG
-# to 1, you must still have the library header files available to compile
-# Ghostscript.  See doc/Make.htm for more information.
+# incompatible with the JPEG standard.  See Make.htm for more details.
 
 # DON'T SET THIS TO 1!  See the comment just above.
 SHARE_JPEG=0
@@ -149,7 +147,7 @@ JPEG_NAME=jpeg
 # See libpng.mak for more information.
 
 PSRCDIR=libpng
-PVERSION=10008
+PVERSION=10005
 
 # Choose whether to use a shared version of the PNG library, and if so,
 # what its name is.
@@ -346,11 +344,6 @@ DEVICE_DEVS=$(DD)x11.dev $(DD)x11alpha.dev $(DD)x11cmyk.dev $(DD)x11gray2.dev $(
 #DEVICE_DEVS13=
 #DEVICE_DEVS14=
 #DEVICE_DEVS15=
-#DEVICE_DEVS16=
-#DEVICE_DEVS17=
-#DEVICE_DEVS18=
-#DEVICE_DEVS19=
-#DEVICE_DEVS20=
 
 DEVICE_DEVS1=$(DD)bmpmono.dev $(DD)bmpgray.dev $(DD)bmpsep1.dev $(DD)bmpsep8.dev $(DD)bmp16.dev $(DD)bmp256.dev $(DD)bmp16m.dev $(DD)bmp32b.dev
 DEVICE_DEVS2=$(DD)bmpamono.dev $(DD)bmpasep1.dev $(DD)bmpasep8.dev $(DD)bmpa16.dev $(DD)bmpa256.dev $(DD)bmpa16m.dev $(DD)bmpa32b.dev

@@ -15,7 +15,7 @@
 % requires that the copyright notice and this notice be preserved on all
 % copies.
 
-% $Id: pdfopt.ps,v 1.3 2000/09/19 18:29:11 lpd Exp $
+% $Id: pdfopt.ps,v 1.4 2000/12/01 04:15:52 lpd Exp $
 % PDF linearizer ("optimizer").
 
 .currentglobal true .setglobal
@@ -213,7 +213,7 @@ userdict /clostreams 20 dict put	% stream -> [data endproc]
   } {
     dup xcheck {
 		% Executable array, must be an indirect object.
-      dup 0 get unresolved? { oforce touch } { pop } ifelse
+      dup 0 get resolved? { pop pop } { oforce touch } ifelse
     } {
       { touch } forall
     } ifelse

@@ -8,6 +8,7 @@ typedef struct Ndb	Ndb;
 typedef struct Ndbtuple	Ndbtuple;
 typedef struct Ndbhf	Ndbhf;
 typedef struct Ndbs	Ndbs;
+typedef struct Ndbcache	Ndbcache;
 
 enum
 {
@@ -23,15 +24,18 @@ struct Ndb
 	Ndb		*next;
 
 	Biobufhdr	b;		/* buffered input file */
-	uchar		buf[256];	/* and it's buffer */
+	uchar		buf[256];	/* and its buffer */
 
 	ulong		mtime;		/* mtime of db file */
 	Qid		qid;		/* qid of db file */
-	char		file[2*NAMELEN];/* path name of db file */
+	char		file[128];/* path name of db file */
 	ulong		length;		/* length of db file */
 
 	int		nohash;		/* don't look for hash files */
 	Ndbhf		*hf;		/* open hash files */
+
+	int		ncache;		/* size of tuple cache */
+	Ndbcache	*cache;		/* cached entries */
 };
 
 /*
@@ -114,41 +118,7 @@ struct Ndbs
 #define NDBPUTUL(v,a) { (a)[0] = v; (a)[1] = (v)>>8; (a)[2] = (v)>>16; (a)[3] = (v)>>24; }
 #define NDBGETUL(a) ((a)[0] | ((a)[1]<<8) | ((a)[2]<<16) | ((a)[3]<<24))
 
-enum 
-{
-	DNScache=	128,
-};
-
-/*
- *  Domain name service cache
- */
-typedef struct Dns	Dns;
-struct Dns
-{
-	Ndbtuple	*cache[DNScache];
-};
-
 #define NDB_IPlen 16
-
-/*
- *  ip information about a system
- */
-typedef struct Ipinfo	Ipinfo;
-struct Ipinfo
-{
-	int	indb;			/* true if found in database */
-	char	domain[Ndbvlen];	/* system domain name */
-	char	bootf[Ndbvlen];		/* boot file */
-	uchar	ipaddr[NDB_IPlen];	/* ip address of system */
-	uchar	ipmask[NDB_IPlen];	/* ip network mask */
-	uchar	ipnet[NDB_IPlen];	/* ip network address (ipaddr & ipmask) */
-	uchar	etheraddr[6];		/* ethernet address */
-	uchar	gwip[NDB_IPlen];	/* gateway ip address */
-	uchar	fsip[NDB_IPlen];	/* file system ip address */
-	uchar	auip[NDB_IPlen];	/* authentication server ip address */
-	char	dhcpgroup[Ndbvlen];
-	char	vendor[Ndbvlen];	/* vendor info */
-};
 
 ulong		ndbhash(char*, int);
 Ndbtuple*	ndbparse(Ndb*);
@@ -164,7 +134,6 @@ Ndbtuple*	ndbsnext(Ndbs*, char*, char*);
 Ndbtuple*	ndbgetval(Ndb*, Ndbs*, char*, char*, char*, char*);
 Ndbtuple*	csgetval(char*, char*, char*, char*, char*);
 char*		ipattr(char*);
-int		ipinfo(Ndb*, char*, char*, char*, Ipinfo*);
 Ndbtuple*	ndbipinfo(Ndb*, char*, char*, char**, int);
 Ndbtuple*	csipinfo(char*, char*, char*, char**, int);
 Ndbtuple*	dnsquery(char*, char*, char*);

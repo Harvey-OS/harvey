@@ -37,6 +37,13 @@ fn schedule{
 while (schedule; ! ~ $#FILE 0) {
 	SCHEDLINE=`{cat $LPDEST/$FILE(1)^id}
 	LSLINE=`{ls -l $LPDEST/$FILE(1)}
+	if (! test -s $LPDEST/.seqno) {
+		echo 0 > $LPDEST/.seqno
+	}
+	if not {
+		LPSEQNO = `{cat $LPDEST/.seqno | awk '{seqno = $1 + 1; if (seqno > 999) seqno = 0; print seqno}'}
+		echo $LPSEQNO > $LPDEST/.seqno
+	}
 	STARTIME=`{date}
 	if (! test -s $LPDEST/$FILE(1)) {
 		echo $SCHEDLINE(2)$SCHEDLINE(4)'	'$SCHEDLINE(3)	$SCHEDLINE(5)' ! '$LSLINE(6) $STARTIME(4) >> $LPLOG

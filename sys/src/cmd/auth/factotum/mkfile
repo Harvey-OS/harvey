@@ -1,0 +1,35 @@
+</$objtype/mkfile
+
+TARG=factotum\
+	secretpem\
+
+PROTO=\
+	apop.$O\
+	chap.$O\
+	p9any.$O\
+	p9cr.$O\
+	p9sk1.$O\
+	pass.$O\
+	sshrsa.$O\
+
+FOFILES=\
+	$PROTO\
+	confirm.$O\
+	fs.$O\
+	log.$O\
+	rpc.$O\
+	util.$O\
+	secstore.$O\
+
+HFILES=\
+	dat.h\
+
+LIB=/$objtype/lib/libauth.a /$objtype/lib/libauthsrv.a
+BIN=/$objtype/bin/auth
+</sys/src/cmd/mkmany
+
+$O.factotum: $FOFILES
+	$LD -o $target $prereq
+
+$O.fgui: fgui.$O
+	$LD -o $target $prereq

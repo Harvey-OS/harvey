@@ -218,3 +218,17 @@ vgablank(VGAscr*, int blank)
 	vgaxo(Crtx, 0x17, crtc17);
 	outs(Crtx, 0x0300);				/* end synchronous reset */
 }
+
+void
+addvgaseg(char *name, ulong pa, ulong size)
+{
+	Physseg seg;
+
+	memset(&seg, 0, sizeof seg);
+	seg.attr = SG_PHYSICAL;
+	seg.name = name;
+	seg.pa = pa;
+	seg.size = size;
+	addphysseg(&seg);
+}
+

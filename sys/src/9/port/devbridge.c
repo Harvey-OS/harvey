@@ -30,7 +30,7 @@ enum
 	MaxQ,
 
 	Maxbridge=	4,
-	Maxport=	64,		// power of 2
+	Maxport=	128,		// power of 2
 	CacheHash=	257,		// prime
 	CacheLook=	5,		// how many cache entries to examine
 	CacheSize=	(CacheHash+CacheLook-1),
@@ -74,8 +74,8 @@ static Logflag logflags[] =
 
 static Dirtab	*dirtab[MaxQ];
 
-#define TYPE(x) 	((x).path & 0xff)
-#define PORT(x) 	(((x).path >> 8)&(Maxport-1))
+#define TYPE(x) 	(((ulong)(x).path) & 0xff)
+#define PORT(x) 	((((ulong)(x).path) >> 8)&(Maxport-1))
 #define QID(x, y) 	(((x)<<8) | (y))
 
 struct Centry
@@ -118,7 +118,7 @@ struct Port
 	
 	// the following uniquely identifies the port
 	int	type;
-	char	name[NAMELEN];
+	char	name[KNAMELEN];
 	
 	// owner hash - avoids bind/unbind races
 	ulong	ownhash;
@@ -183,7 +183,7 @@ static int m2p[] = {
 	[ORDWR]		6
 };
 
-static int	bridgegen(Chan *c, Dirtab*, int, int s, Dir *dp);
+static int	bridgegen(Chan *c, char*, Dirtab*, int, int s, Dir *dp);
 static void	portbind(Bridge *b, int argc, char *argv[]);
 static void	portunbind(Bridge *b, int argc, char *argv[]);
 static void	etherread(void *a);
@@ -222,22 +222,22 @@ bridgeattach(char* spec)
 		error("bad specification");
 
 	c = devattach('B', spec);
-	c->qid = (Qid){QID(0, Qtopdir)|CHDIR, 0};
+	mkqid(&c->qid, QID(0, Qtopdir), 0, QTDIR);
 	c->dev = dev;
 
 	return c;
 }
 
-static int
-bridgewalk(Chan *c, char *name)
+static Walkqid*
+bridgewalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c, name, 0, 0, bridgegen);
+	return devwalk(c, nc, name, nname, (Dirtab*)0, 0, bridgegen);
 }
 
-static void
-bridgestat(Chan* c, char* db)
+static int
+bridgestat(Chan* c, uchar* db, int n)
 {
-	devstat(c, db, nil, 0, bridgegen);
+	return devstat(c, db, n, (Dirtab *)0, 0L, bridgegen);
 }
 
 static Chan*
@@ -416,11 +416,10 @@ bridgewrite(Chan *c, void *a, long n, vlong off)
 }
 
 static int
-bridgegen(Chan *c, Dirtab*, int, int s, Dir *dp)
+bridgegen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 {
 	Bridge *b = bridgetab + c->dev;
 	int type = TYPE(c->qid);
-	char buf[32];
 	Dirtab *dt;
 	Qid qid;
 
@@ -428,15 +427,17 @@ bridgegen(Chan *c, Dirtab*, int, int s, Dir *dp)
 		switch(TYPE(c->qid)){
 		case Qtopdir:
 		case Qbridgedir:
-			snprint(buf, sizeof(buf), "#B%ld", c->dev);
-			devdir(c, (Qid){CHDIR|Qtopdir, 0}, buf, 0, eve, 0555, dp);
+			snprint(up->genbuf, sizeof(up->genbuf), "#B%ld", c->dev);
+			mkqid(&qid, Qtopdir, 0, QTDIR);
+			devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
 			break;
 		case Qportdir:
-			sprint(buf, "bridge%ld", c->dev);
-			devdir(c, (Qid){CHDIR|Qbridgedir, 0}, buf, 0, eve, 0555, dp);
+			snprint(up->genbuf, sizeof(up->genbuf), "bridge%ld", c->dev);
+			mkqid(&qid, Qbridgedir, 0, QTDIR);
+			devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
 			break;
 		default:
-			panic("bridgewalk %lux", c->qid.path);
+			panic("bridgewalk %llux", c->qid.path);
 		}
 		return 1;
 	}
@@ -444,20 +445,21 @@ bridgegen(Chan *c, Dirtab*, int, int s, Dir *dp)
 	switch(type) {
 	default:
 		// non directory entries end up here
-		if(c->qid.path & CHDIR)
+		if(c->qid.type & QTDIR)
 			panic("bridgegen: unexpected directory");	
 		if(s != 0)
 			return -1;
 		dt = dirtab[TYPE(c->qid)];
 		if(dt == nil)
-			panic("bridgegen: unknown type: %d", TYPE(c->qid));
+			panic("bridgegen: unknown type: %lud", TYPE(c->qid));
 		devdir(c, c->qid, dt->name, dt->length, eve, dt->perm, dp);
 		return 1;
 	case Qtopdir:
 		if(s != 0)
 			return -1;
-		sprint(buf, "bridge%ld", c->dev);
-		devdir(c, (Qid){QID(0,Qbridgedir)|CHDIR,0}, buf, 0, eve, 0555, dp);
+		snprint(up->genbuf, sizeof(up->genbuf), "bridge%ld", c->dev);
+		mkqid(&qid, QID(0, Qbridgedir), 0, QTDIR);
+		devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
 		return 1;
 	case Qbridgedir:
 		if(s<nelem(bridgedirtab)) {
@@ -468,15 +470,15 @@ bridgegen(Chan *c, Dirtab*, int, int s, Dir *dp)
 		s -= nelem(bridgedirtab);
 		if(s >= b->nport)
 			return -1;
-		qid = (Qid){QID(s,Qportdir)|CHDIR, 0};
-		snprint(buf, sizeof(buf), "%d", s);
-		devdir(c, qid, buf, 0, eve, 0555, dp);
+		mkqid(&qid, QID(s, Qportdir), 0, QTDIR);
+		snprint(up->genbuf, sizeof(up->genbuf), "%d", s);
+		devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
 		return 1;
 	case Qportdir:
 		if(s>=nelem(portdirtab))
 			return -1;
 		dt = portdirtab+s;
-		qid = (Qid){QID(PORT(c->qid),TYPE(dt->qid)),0};
+		mkqid(&qid, QID(PORT(c->qid),TYPE(dt->qid)), 0, QTFILE);
 		devdir(c, qid, dt->name, dt->length, eve, dt->perm, dp);
 		return 1;
 	}
@@ -511,31 +513,31 @@ static void
 portbind(Bridge *b, int argc, char *argv[])
 {
 	Port *port;
-	char path[8*NAMELEN];
+	char path[8*KNAMELEN];
 	char buf[100];
 	char *dev, *dev2=nil, *p;
 	Chan *ctl;
 	int type=0, i, n;
 	char *usage = "usage: bind ether|tunnel name ownhash dev [dev2]";
-	char name[NAMELEN];
+	char name[KNAMELEN];
 	ulong ownhash;
 
-	memset(name, 0, NAMELEN);
+	memset(name, 0, KNAMELEN);
 	if(argc < 4)
 		error(usage);
 	if(strcmp(argv[0], "ether") == 0) {
 		if(argc != 4)
 			error(usage);
 		type = Tether;
-		strncpy(name, argv[1], NAMELEN);
-		name[NAMELEN-1] = 0;
+		strncpy(name, argv[1], KNAMELEN);
+		name[KNAMELEN-1] = 0;
 //		parseaddr(addr, argv[1], Eaddrlen);
 	} else if(strcmp(argv[0], "tunnel") == 0) {
 		if(argc != 5)
 			error(usage);
 		type = Ttun;
-		strncpy(name, argv[1], NAMELEN);
-		name[NAMELEN-1] = 0;
+		strncpy(name, argv[1], KNAMELEN);
+		name[KNAMELEN-1] = 0;
 //		parseip(addr, argv[1]);
 		dev2 = argv[4];
 	} else
@@ -546,7 +548,7 @@ portbind(Bridge *b, int argc, char *argv[])
 		port = b->port[i];
 		if(port != nil)
 		if(port->type == type)
-		if(memcmp(port->name, name, NAMELEN) == 0)
+		if(memcmp(port->name, name, KNAMELEN) == 0)
 			error("port in use");
 	}
 	for(i=0; i<Maxport; i++)
@@ -564,7 +566,7 @@ portbind(Bridge *b, int argc, char *argv[])
 		nexterror();
 	}
 	port->type = type;
-	memmove(port->name, name, NAMELEN);
+	memmove(port->name, name, KNAMELEN);
 	switch(port->type) {
 	default: panic("portbind: unknown port type: %d", type);
 	case Tether:
@@ -627,21 +629,21 @@ portunbind(Bridge *b, int argc, char *argv[])
 	Port *port=nil;
 	int type=0, i;
 	char *usage = "usage: unbind ether|tunnel addr [ownhash]";
-	char name[NAMELEN];
+	char name[KNAMELEN];
 	ulong ownhash;
 
-	memset(name, 0, NAMELEN);
+	memset(name, 0, KNAMELEN);
 	if(argc < 2 || argc > 3)
 		error(usage);
 	if(strcmp(argv[0], "ether") == 0) {
 		type = Tether;
-		strncpy(name, argv[1], NAMELEN);
-		name[NAMELEN-1] = 0;
+		strncpy(name, argv[1], KNAMELEN);
+		name[KNAMELEN-1] = 0;
 //		parseaddr(addr, argv[1], Eaddrlen);
 	} else if(strcmp(argv[0], "tunnel") == 0) {
 		type = Ttun;
-		strncpy(name, argv[1], NAMELEN);
-		name[NAMELEN-1] = 0;
+		strncpy(name, argv[1], KNAMELEN);
+		name[KNAMELEN-1] = 0;
 //		parseip(addr, argv[1]);
 	} else
 		error(usage);
@@ -653,7 +655,7 @@ portunbind(Bridge *b, int argc, char *argv[])
 		port = b->port[i];
 		if(port != nil)
 		if(port->type == type)
-		if(memcmp(port->name, name, NAMELEN) == 0)
+		if(memcmp(port->name, name, KNAMELEN) == 0)
 			break;
 	}
 	if(i == b->nport)
@@ -1188,8 +1190,8 @@ Dev bridgedevtab = {
 
 	devreset,
 	bridgeinit,
+	devshutdown,
 	bridgeattach,
-	devclone,
 	bridgewalk,
 	bridgestat,
 	bridgeopen,

@@ -44,6 +44,12 @@ True if the open file whose file descriptor number is
 is the same file as
 .BR /dev/cons .
 .TP
+.BI -A " file"
+True if the file exists and is append-only.
+.TP
+.BI -L " file"
+True if the file exists and is exclusive-use.
+.TP
 .IB s1 " = " s2
 True
 if the strings

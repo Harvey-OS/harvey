@@ -19,8 +19,20 @@ case *
 
 GSTMPFILE=/tmp/pdf^$pid
 GSOPT=('-sDEVICE='$GSDEVICE '-sOutputFile='^$GSTMPFILE -dSAFER -dNOPAUSE -dQUIET -dBATCH -dNOPAUSE)
-if(~ $dev pswrite && ~ $LPCLASS *hp4simx*)
+
+#
+# RSC: pswrite produces weird overbars on various
+# letters, most notably Times-Roman A and h, unless
+# we use LanguageLevel=1.  This doesn't seem to be 
+# constrained to hp4simx printers, so just use LanguageLevel 1
+# all the time.
+#
+
+#if(~ $dev pswrite && ~ $LPCLASS *hp4simx*)
+#	GSOPT=($GSOPT '-dLanguageLevel=1')
+if(~ $GSDEVICE pswrite)
 	GSOPT=($GSOPT '-dLanguageLevel=1')
+
 if(~ $OLIST '')
 	gs $GSOPT $1
 if not {
@@ -28,6 +40,11 @@ if not {
 	GSPGLIST=()
 	for(i in $PGLIST){
 		switch($i){
+		case -*
+			GSPGLIST=($GSPGLIST `{seq 1 `{echo $i|tr -d '-'}})
+		case *-
+			# BUG assume 100 >= number of pages
+			GSPGLIST=($GSPGLIST `{seq `{echo $i|tr -d '-'} 100})
 		case *-*
 			GSPGLIST=($GSPGLIST `{seq `{echo $i|tr '-' ' '}})
 		case *

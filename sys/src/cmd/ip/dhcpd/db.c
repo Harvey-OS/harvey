@@ -89,14 +89,14 @@ incip(uchar *ip)
 static int
 lockopen(char *file)
 {
-	char err[ERRLEN];
+	char err[ERRMAX];
 	int fd, tries;
 
 	for(tries = 0; tries < 5; tries++){
 		fd = open(file, ORDWR);
 		if(fd >= 0)
 			return fd;
-		errstr(err);
+		errstr(err, sizeof err);
 		if(strstr(err, "lock")){
 			/* wait for other process to let go of lock */
 			sleep(250);
@@ -106,7 +106,7 @@ lockopen(char *file)
 		}
 		if(strstr(err, "exist")){
 			/* no file, create an exclusive access file */
-			fd = create(file, ORDWR, CHEXCL|0664);
+			fd = create(file, ORDWR, DMEXCL|0664);
 			if(fd >= 0)
 				return fd;
 		}
@@ -150,15 +150,18 @@ parsebinding(Binding *b, char *buf)
 static int
 writebinding(int fd, Binding *b)
 {
-	Dir d;
+	Dir *d;
 
 	seek(fd, 0, 0);
 	if(fprint(fd, "%ld\n%s\n", b->lease, b->boundto) < 0)
 		return -1;
-	if(dirfstat(fd, &d) < 0)
+	d = dirfstat(fd);
+	if(d == nil)
 		return -1;
-	b->q.path = d.qid.path;
-	b->q.vers = d.qid.vers;
+	b->q.type = d->qid.type;
+	b->q.path = d->qid.path;
+	b->q.vers = d->qid.vers;
+	free(d);
 	return 0;
 }
 
@@ -170,7 +173,7 @@ syncbinding(Binding *b, int returnfd)
 {
 	char buf[512];
 	int i, fd;
-	Dir d;
+	Dir *d;
 
 	snprint(buf, sizeof(buf), "%s/%I", binddir, b->ip);
 	fd = lockopen(buf);
@@ -181,16 +184,20 @@ syncbinding(Binding *b, int returnfd)
 	}
 
 	/* reread if changed */
-	if(dirfstat(fd, &d) < 0 || d.qid.path != b->q.path || d.qid.vers != b->q.vers){
+	d = dirfstat(fd);
+	if(d != nil)	/* BUG? */
+	if(d->qid.type != b->q.type || d->qid.path != b->q.path || d->qid.vers != b->q.vers){
 		i = read(fd, buf, sizeof(buf)-1);
 		if(i < 0)
 			i = 0;
 		buf[i] = 0;
 		parsebinding(b, buf);
-		b->lasttouched = d.mtime;
-		b->q.path = d.qid.path;
-		b->q.vers = d.qid.vers;
+		b->lasttouched = d->mtime;
+		b->q.path = d->qid.path;
+		b->q.vers = d->qid.vers;
 	}
+
+	free(d);
 
 	if(returnfd)
 		return fd;
@@ -322,7 +329,7 @@ idtobinding(char *id, Info *iip, int ping)
 		if(b->tried != now)
 		if(b->lease < now && b->expoffer < now && samenet(b->ip, iip)){
 			b->tried = now;
-			if(ping == 0 || icmpecho(oldest->ip) == 0)
+			if(ping == 0 || icmpecho(b->ip) == 0)
 				return b;
 
 			lognolease(b);

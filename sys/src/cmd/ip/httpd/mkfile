@@ -6,13 +6,15 @@ HFILES=\
 
 TARG=\
 	httpd\
-	echo\
 	imagemap\
 	man2html\
 	save\
 	netlib_find\
+	netlib_history\
 	P\
 	to\
+	wikipost\
+	echo\
 
 LIB=libhttps.a.$O
 
@@ -26,13 +28,19 @@ LIBSOFILES=\
 	log.$O\
 	redirect.$O\
 	sendfd.$O\
+	authorize.$O\
 
 BIN=/$objtype/bin/ip/httpd
 
 </sys/src/cmd/mkmany
 
-trial: v.netlib_find
-	echo "\n" | v.netlib_find GET HTTP/1.0 xxx 'db=1&pat=Hearing' > /tmp/search
+trial: $O.netlib_history
+	# should first   mount -b /srv/histnetlib /usr/web/historic
+	echo '
+	' | $O.netlib_history GET HTTP/1.0 xxx 'file=fp%2Fdtoa.c.gz'
+
+trial2: $O.netlib_find
+	echo "\n" | $O.netlib_find GET HTTP/1.0 xxx 'db=1&pat=Hearing' > /tmp/search
 	sed 17q /tmp/search
 
 $LIBS(%.$O):N: %.$O
@@ -47,12 +55,6 @@ re:N: v.re
 none:VQ:
 	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
 	echo usage: mk safeinstall, safeinstallall, cmd.safeinstallall, or cmd.safeinstallall
-
-$O.9down: 9down.$O whois.$O classify.$O $LIB
-	$LD -o $target $prereq
-
-$O.test9down: 9down.$O whois.$O classify.$O $LIB
-	$LD -o $target $prereq
 
 $O.testclassify: testclassify.$O whois.$O classify.$O $LIB
 	$LD -o $target $prereq

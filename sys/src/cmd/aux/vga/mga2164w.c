@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "vga.h"
 #include "pci.h"
+#include "vga.h"
 
 /*
  * Matrox Millenium and Matrox Millenium II.
@@ -302,13 +302,8 @@ snarf(Vga* vga, Ctlr* ctlr)
 static void
 options(Vga* vga, Ctlr* ctlr)
 {
-	Mode *mode;
-
-	mode = vga->mode;
-	if(mode->x % 128){
-		mode->x = (mode->x/128)*128;
-		sprint(mode->size, "%dx%dx%d", mode->x, mode->y, mode->z);
-	}
+	if(vga->virtx & 127)
+		vga->virtx = (vga->virtx+127)&~127;
 	ctlr->flag |= Foptions;
 }
 
@@ -351,7 +346,7 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->crt[0x05] = ((((mode->ht>>3)-1) & 0x20) << 2)
 		| ((mode->ehs>>3) & 0x1F);
 
-	offset = (mode->x*mode->z) >> ((pixbuswidth==32)? 6 : 7);
+	offset = (vga->virtx*mode->z) >> ((pixbuswidth==32)? 6 : 7);
 	vga->crt[0x13] = offset;
 	vga->crt[0x14] = 0;
 	vga->crt[0x17] = 0xE3;

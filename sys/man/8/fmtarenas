@@ -1,0 +1,64 @@
+.TH FMTARENAS 8
+.SH NAME
+fmtarenas \- format a file into a number of Venti arenas
+.SH SYNOPSIS
+.B venti/fmtarenas
+[
+.B -Z
+]
+[
+.B -a
+.I arenasize
+]
+[
+.B -b
+.I blocksize
+]
+.I name
+.I file
+.SH DESCRIPTION
+.I Fmtarenas
+formats the given
+.IR file ,
+typically a disk partition, into a number of
+.IR venti (8)
+arenas.
+The arenas are given names of the form
+.IR name%d ,
+where
+.I %d
+is replaced with a sequential number starting at 0.
+.PP
+Option to 
+.I fmtarenas
+are:
+.TP
+.BI -a " arenasize
+The arenas are of
+.I arenasize
+bytes.  The default is 512 megabytes, which was selected to provide a balance
+between the number of arenas and the ability to copy an arena to external
+media such as recordable CDs and tapes.
+.TP
+.BI -b " blocksize
+The size, in bytes, for read and write operations to the file.
+The size is recorded in the file, and is used by applications that access the arenas.
+The default is 8k.
+.TP
+.B -Z
+Do not zero the data sections of the arenas.
+Using this option reduces the formatting time
+but should only be used when it is known that the file was already zeroed.
+.PP
+The units for the various sizes can be specified by appending
+.LR k ,
+.LR m ,
+or
+.LR g
+to indicate kilobytes, megabytes, or gigabytes respectively.
+.SH SOURCE
+.B /sys/src/cmd/venti
+.SH "SEE ALSO"
+.IR venti (8),
+.IR fmtisect (8),
+.IR fmtindex (8)

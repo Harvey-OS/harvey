@@ -1,0 +1,101 @@
+APE=/sys/src/ape
+<$APE/config
+LIB=/$objtype/lib/ape/libap.a
+OFILES=\
+	_buf.$O\
+	_dirconv.$O\
+	_envsetup.$O\
+	_errno.$O\
+	_exit.$O\
+	_fdinfo.$O\
+	_getpw.$O\
+	_nap.$O\
+	9read.$O\
+	9wait.$O\
+	9write.$O\
+	access.$O\
+	alarm.$O\
+	brk.$O\
+	cfgetospeed.$O\
+	chdir.$O\
+	chmod.$O\
+	chown.$O\
+	close.$O\
+	convM2D.$O\
+	convD2M.$O\
+	creat.$O\
+	ctermid.$O\
+	ctime.$O\
+	cuserid.$O\
+	dirread.$O\
+	dirstat.$O\
+	dirtostat.$O\
+	dup.$O\
+	execl.$O\
+	execle.$O\
+	execlp.$O\
+	execv.$O\
+	execve.$O\
+	execvp.$O\
+	fcntl.$O\
+	fork.$O\
+	frexp.$O\
+	fstat.$O\
+	fsync.$O\
+	ftruncate.$O\
+	getcwd.$O\
+	getgid.$O\
+	getgrgid.$O\
+	getgrnam.$O\
+	getgroups.$O\
+	getlogin.$O\
+	getpgrp.$O\
+	getpid.$O\
+	getppid.$O\
+	getpwnam.$O\
+	getpwuid.$O\
+	getuid.$O\
+	isatty.$O\
+	kill.$O\
+	link.$O\
+	lseek.$O\
+	malloc.$O\
+	mkdir.$O\
+	nan.$O\
+	open.$O\
+	opendir.$O\
+	pause.$O\
+	pipe.$O\
+	profile.$O\
+	raise.$O\
+	read.$O\
+	rename.$O\
+	rmdir.$O\
+	setgid.$O\
+	setpgid.$O\
+	setsid.$O\
+	setuid.$O\
+	signal.$O\
+	sigpending.$O\
+	sigprocmask.$O\
+	sigsuspend.$O\
+	sleep.$O\
+	sqrt.$O\
+	stat.$O\
+	system.$O\
+	tcgetattr.$O\
+	time.$O\
+	times.$O\
+	tmpfile.$O\
+	ttyname.$O\
+	umask.$O\
+	uname.$O\
+	unlink.$O\
+	utime.$O\
+	wait.$O\
+	write.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -D_POSIX_SOURCE -D_PLAN9_SOURCE -D_BSD_EXTENSION
+

@@ -78,6 +78,6 @@ if (~ $MAG [.0-9]*) MAG=-m^$MAG
 if (! ~ $LAND '') LAND=-L
 if not LAND=()
 
-/$cputype/bin/gif -9 | /$cputype/bin/aux/p9bitpost $MAG $LAND $PATCH | $LPLIB/process/hpost
+/$cputype/bin/gif -t | /$cputype/bin/aux/p9bitpost $MAG $LAND $PATCH | $LPLIB/process/hpost
 exit
 

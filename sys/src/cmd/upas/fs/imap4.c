@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <plumb.h>
 #include <libsec.h>
+#include <auth.h>
 #include "dat.h"
 
 #pragma varargck argpos imap4cmd 2
@@ -31,8 +32,11 @@ struct Imap {
 	int nuid;
 	int muid;
 
-	// open network connection; b is for reading, fd for writing
-	Biobuf b;
+	Thumbprint *thumb;
+
+	// open network connection
+	Biobuf bin;
+	Biobuf bout;
 	int fd;
 };
 
@@ -58,8 +62,8 @@ imap4cmd(Imap *imap, char *fmt, ...)
 	va_list va;
 
 	va_start(va, fmt);
-	p = buf+sprint(buf, "9x%lud ", ++imap->tag);
-	doprint(p, buf+sizeof(buf), fmt, va);
+	p = buf+sprint(buf, "9X%lud ", imap->tag);
+	vseprint(p, buf+sizeof(buf), fmt, va);
 	va_end(va);
 
 	p = buf+strlen(buf);
@@ -69,7 +73,8 @@ imap4cmd(Imap *imap, char *fmt, ...)
 	if(imap->debug)
 		fprint(2, "-> %s\n", buf);
 	strcpy(p, "\r\n");
-	write(imap->fd, buf, strlen(buf));
+	Bwrite(&imap->bout, buf, strlen(buf));
+	Bflush(&imap->bout);
 }
 
 enum {
@@ -113,6 +118,15 @@ verbcode(char *verb)
 	return UNKNOWN;
 }
 
+static void
+strupr(char *s)
+{
+	for(; *s; s++)
+		if('a' <= *s && *s <= 'z')
+			*s += 'A'-'a';
+}
+
+
 //
 // get imap4 response line.  there might be various 
 // data or other informational lines mixed in.
@@ -120,16 +134,17 @@ verbcode(char *verb)
 static char*
 imap4resp(Imap *imap)
 {
-	char *line, *p, *ep, *q, *r, *verb;
+	char *line, *p, *ep, *op, *q, *r, *en, *verb;
 	int n;
 
-	while(p = Brdline(&imap->b, '\n')){
-		ep = p+Blinelen(&imap->b);
+	while(p = Brdline(&imap->bin, '\n')){
+		ep = p+Blinelen(&imap->bin);
 		while(ep > p && (ep[-1]=='\n' || ep[-1]=='\r'))
 			*--ep = '\0';
 		
 		if(imap->debug)
 			fprint(2, "<- %s\n", p);
+		strupr(p);
 
 		switch(p[0]){
 		case '+':
@@ -189,7 +204,8 @@ imap4resp(Imap *imap)
  				// )
 				// * 1 FETCH (UID 1 RFC822.HEADER "data")
 				if(strstr(p, "RFC822.HEADER") || strstr(p, "RFC822.TEXT")){
-					if((q = strchr(p, '{' /*}*/)) && (n=atoi(q+1))){
+					if((q = strchr(p, '{')) 
+					&& (n=strtol(q+1, &en, 0), *en=='}')){
 						if(imap->data == nil){
 							imap->base = emalloc(n+1);	
 							imap->data = imap->base;
@@ -197,12 +213,12 @@ imap4resp(Imap *imap)
 						}
 						if(n >= imap->size)
 							return Eio;
-						if(Bread(&imap->b, imap->data, n) != n)
+						if(Bread(&imap->bin, imap->data, n) != n)
 							return Eio;
 						imap->data[n] = '\0';
 						imap->data += n;
 						imap->size -= n;
-						Brdline(&imap->b, '\n');
+						Brdline(&imap->bin, '\n');
 					}else if((q = strchr(p, '"')) && (r = strchr(q+1, '"'))){
 						*r = '\0';
 						q++;
@@ -237,12 +253,14 @@ imap4resp(Imap *imap)
 			break;
 
 		case '9':		// response to our message
-			if(p[1]=='x' && strtoul(p+2, &p, 10)==imap->tag){
+			op = p;
+			if(p[1]=='X' && strtoul(p+2, &p, 10)==imap->tag){
 				while(*p==' ')
 					p++;
+				imap->tag++;
 				return p;
 			}
-			fprint(2, "expected %lud; got %s\n", imap->tag, p);
+			fprint(2, "expected %lud; got %s\n", imap->tag, op);
 			break;
 
 		default:
@@ -264,26 +282,24 @@ isokay(char *resp)
 static char*
 imap4login(Imap *imap)
 {
-	char buf[500], *s;
-	int fd, n;
+	char *s;
+	UserPasswd *up;
 
 	imap->tag = 0;
 	s = imap4resp(imap);
 	if(!isokay(s) || strstr(s, "IMAP4")==0)
 		return "error in initial handshake";
 
-	snprint(buf, sizeof buf, "/mnt/auth/imap/%s/%s", imap->host, imap->user);
-	if((fd = open(buf, ORDWR)) < 0)
-		return nil;
+	if(imap->user != nil)
+		up = auth_getuserpasswd(auth_getkey, "proto=pass service=imap server=%q user=%q", imap->host, imap->user);
+	else
+		up = auth_getuserpasswd(auth_getkey, "proto=pass service=imap server=%q", imap->host);
+	if(up == nil)
+		return "cannot find password";
 
-	if((n = read(fd, buf, sizeof(buf)-1)) <= 0){
-		close(fd);
-		return nil;
-	}
-	close(fd);
-	buf[n] = '\0';
-
-	imap4cmd(imap, "LOGIN %s %s", imap->user, buf);
+	imap->tag = 1;
+	imap4cmd(imap, "LOGIN %s %s", up->user, up->passwd);
+	free(up);
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 
@@ -295,17 +311,82 @@ imap4login(Imap *imap)
 }
 
 //
+// push tls onto a connection
+//
+int
+mypushtls(int fd)
+{
+	int p[2];
+	char buf[10];
+
+	if(pipe(p) < 0)
+		return -1;
+
+	switch(fork()){
+	case -1:
+		close(p[0]);
+		close(p[1]);
+		return -1;
+	case 0:
+		close(p[1]);
+		dup(p[0], 0);
+		dup(p[0], 1);
+		sprint(buf, "/fd/%d", fd);
+		execl("/bin/tlsrelay", "tlsrelay", "-f", buf, nil);
+		_exits(nil);
+	default:
+		break;
+	}
+	close(fd);
+	close(p[0]);
+	return p[1];
+}
+
+//
 // dial and handshake with the imap server
 //
 static char*
 imap4dial(Imap *imap)
 {
-	char *err;
+	char *err, *port;
+	uchar digest[SHA1dlen];
+	int sfd;
+	TLSconn conn;
 
-	if((imap->fd = dial(netmkaddr(imap->host, "net", "imap4"), 0, 0, 0)) < 0)
+	if(imap->fd >= 0){
+		imap4cmd(imap, "noop");
+		if(isokay(imap4resp(imap)))
+			return nil;
+		close(imap->fd);
+		imap->fd = -1;
+	}
+
+	if(imap->mustssl)
+		port = "imaps";
+	else
+		port = "imap4";
+
+	if((imap->fd = dial(netmkaddr(imap->host, "net", port), 0, 0, 0)) < 0)
 		return geterrstr();
 
-	Binit(&imap->b, imap->fd, OREAD);
+	if(imap->mustssl){
+		memset(&conn, 0, sizeof conn);
+		sfd = tlsClient(imap->fd, &conn);
+		if(sfd < 0)
+			sysfatal("tlsClient: %r");
+		if(conn.cert==nil || conn.certlen <= 0)
+			sysfatal("server did not provide TLS certificate");
+		sha1(conn.cert, conn.certlen, digest, nil);
+		if(!imap->thumb || !okThumbprint(digest, imap->thumb)){
+			fmtinstall('H', encodefmt);
+			sysfatal("server certificate %.*H not recognized", SHA1dlen, digest);
+		}
+		free(conn.cert);
+		close(imap->fd);
+		imap->fd = sfd;
+	}
+	Binit(&imap->bin, imap->fd, OREAD);
+	Binit(&imap->bout, imap->fd, OWRITE);
 
 	if(err = imap4login(imap)) {
 		close(imap->fd);
@@ -388,22 +469,22 @@ static char*
 imap4fetch(Mailbox *mb, Message *m)
 {
 	int i, sz;
-	char *err, *p, *s, sdigest[2*SHA1dlen+1];
+	char *p, *s, sdigest[2*SHA1dlen+1];
 	Imap *imap;
 
 	imap = mb->aux;
 
-	if(err = imap4dial(imap))
-		return err;
-
-	imap4cmd(imap, "STATUS %s (MESSAGES UIDVALIDITY)", imap->mbox);
-	if(!isokay(s = imap4resp(imap)))
-		return s;
-	if((ulong)(m->imapuid>>32) != imap->validity)
-		return "uids changed underfoot";
+//	if(s = imap4dial(imap))
+//		return s;
+//
+//	imap4cmd(imap, "STATUS %s (MESSAGES UIDVALIDITY)", imap->mbox);
+//	if(!isokay(s = imap4resp(imap)))
+//		return s;
+//	if((ulong)(m->imapuid>>32) != imap->validity)
+//		return "uids changed underfoot";
 
 	imap->size = 0;
-	imap4cmd(imap, "UID FETCH %lud RFC822.SIZE", (ulong)m->imapuid);
+	/* SIZE */
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 	if(imap->size == 0)
@@ -415,7 +496,8 @@ imap4fetch(Mailbox *mb, Message *m)
 	imap->base = p;
 	imap->data = p;
 	imap->size = sz;
-	imap4cmd(imap, "UID FETCH %lud RFC822.HEADER", (ulong)m->imapuid);
+
+	/* HEADER */
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 	if(imap->size == sz){
@@ -424,7 +506,7 @@ imap4fetch(Mailbox *mb, Message *m)
 		return "didn't get header";
 	}
 
-	imap4cmd(imap, "UID FETCH %lud RFC822.TEXT", (ulong)m->imapuid);
+	/* TEXT */
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 
@@ -458,7 +540,7 @@ static char*
 imap4read(Imap *imap, Mailbox *mb, int doplumb)
 {
 	char *s;
-	int i, ignore, nnew;
+	int i, ignore, nnew, t;
 	Message *m, *next, **l;
 
 	imap4cmd(imap, "STATUS %s (MESSAGES UIDVALIDITY)", imap->mbox);
@@ -514,6 +596,24 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 	}
 
 	// download new messages
+	t = imap->tag;
+	switch(rfork(RFPROC|RFMEM)){
+	case -1:
+		sysfatal("rfork: %r");
+	default:
+		break;
+	case 0:
+		for(m = mb->root->part; m != nil; m = m->next){
+			if(m->start != nil)
+				continue;
+			Bprint(&imap->bout, "9X%d UID FETCH %lud RFC822.SIZE\r\n", t++, (ulong)m->imapuid);
+			Bprint(&imap->bout, "9X%d UID FETCH %lud RFC822.HEADER\r\n", t++, (ulong)m->imapuid);
+			Bprint(&imap->bout, "9X%d UID FETCH %lud RFC822.TEXT\r\n", t++, (ulong)m->imapuid);
+		}
+		Bflush(&imap->bout);
+		_exits(nil);
+	}
+
 	nnew = 0;
 	for(m=mb->root->part; m!=nil; m=next){
 		next = m->next;
@@ -531,10 +631,12 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 		if(doplumb)
 			mailplumb(mb, m, 0);
 	}
+	waitpid();
+
 	if(nnew){
 		mb->vers++;
-		henter(CHDIR|PATH(0, Qtop), mb->name,
-			(Qid){CHDIR|PATH(mb->id, Qmbox), mb->vers}, nil, mb);
+		henter(PATH(0, Qtop), mb->name,
+			(Qid){PATH(mb->id, Qmbox), mb->vers, QTDIR}, nil, mb);
 	}
 	return nil;
 }
@@ -587,9 +689,12 @@ imap4sync(Mailbox *mb, int doplumb)
 
 	if((err = imap4read(imap, mb, doplumb)) == nil){
 		imap4purge(imap, mb);
-		mb->d.atime = mb->d.mtime = time(0);
+		mb->d->atime = mb->d->mtime = time(0);
 	}
-	imap4hangup(imap);
+	/*
+	 * don't hang up; leave connection open for next time.
+	 */
+	// imap4hangup(imap);
 	mb->waketime = time(0) + imap->refreshtime;
 	return err;
 }
@@ -616,6 +721,11 @@ imap4ctl(Mailbox *mb, int argc, char **argv)
 		return nil;
 	}
 
+	if(argc==1 && strcmp(argv[0], "thumbprint")==0){
+		if(imap->thumb)
+			freeThumbprints(imap->thumb);
+		imap->thumb = initThumbprints("/sys/lib/tls/mail", "/sys/lib/tls/mail.exclude");
+	}
 	if(strcmp(argv[0], "refresh")==0){
 		if(argc==1){
 			imap->refreshtime = 60;
@@ -655,40 +765,46 @@ char*
 imap4mbox(Mailbox *mb, char *path)
 {
 	char *f[10];
-	int nf;
+	int mustssl, nf;
 	Imap *imap;
 
-	if(strncmp(path, "/imap/", 6) != 0 /*&& strncmp(path, "/imaps/", 6) != 0*/)
+	quotefmtinstall();
+	if(strncmp(path, "/imap/", 6) != 0 && strncmp(path, "/imaps/", 7) != 0)
 		return Enotme;
+	mustssl = (strncmp(path, "/imaps/", 7) == 0);
 
 	path = strdup(path);
 	if(path == nil)
 		return "out of memory";
 
 	nf = getfields(path, f, 5, 0, "/");
-	if(nf < 4){
+	if(nf < 3){
 		free(path);
-		return "bad pop3 path syntax";
+		return "bad imap path syntax /imap[s]/system[/user[/mailbox]]";
 	}
 
 	imap = emalloc(sizeof(*imap));
+	imap->fd = -1;
+	imap->debug = 0;
 	imap->freep = path;
+	imap->mustssl = mustssl;
 	imap->host = f[2];
-	imap->user = f[3];
-	if(nf == 5)
-		imap->mbox = f[4];
+	if(nf < 4)
+		imap->user = nil;
 	else
+		imap->user = f[3];
+	if(nf < 5)
 		imap->mbox = "Inbox";
-
-	if(strncmp(path, "/imaps/", 6) == 0)
-		imap->mustssl = 1;
+	else
+		imap->mbox = f[4];
+	imap->thumb = initThumbprints("/sys/lib/tls/mail", "/sys/lib/tls/mail.exclude");
 
 	mb->aux = imap;
 	mb->sync = imap4sync;
 	mb->close = imap4close;
 	mb->ctl = imap4ctl;
+	mb->d = emalloc(sizeof(*mb->d));
 	//mb->fetch = imap4fetch;
 
-fprint(2, "success\n");
 	return nil;
 }

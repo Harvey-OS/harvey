@@ -64,4 +64,5 @@ PATCH=$PATCH'
 %%EndPatch from lp
 '
 
-echo $PATCH; cat
+{ echo $PATCH; cat } | $LPLIB/process/hpost
+

@@ -1,0 +1,60 @@
+dev
+	root
+	cons
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	cap
+	kprof
+
+	ether		netif
+	ip		arp chandial ip ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+
+	sd
+	floppy		dma
+
+	uart
+
+link
+	apm		apmjump
+	ether82557	pci
+	ethermedium
+	netdevmedium
+
+misc
+	edf
+	factotum.root
+	ipconfig.root
+	kfs.root
+
+	sdata		pci sdscsi
+
+	uarti8250
+	uartpci
+
+	vgamach64xx	+cur
+
+ip
+	il
+	tcp
+	udp
+	ipifc
+	icmp
+
+port
+	int cpuserver = 1;
+
+boot cpu boot #S/sdC0/
+	il
+	local

@@ -90,10 +90,18 @@ enum{
 };
 .PP
 .SH DESCRIPTION
-These routines provide an interface to multiple sources of input.
-To use them,
-.I einit
-must be called.
+These routines provide an interface to multiple sources of input for unthreaded
+programs.
+Threaded programs (see
+.IR thread (2))
+should instead use the threaded mouse and keyboard interface described
+in
+.IR mouse (2)
+and
+.IR keyboard (2).
+.PP
+.I Einit
+must be called first.
 If the argument to
 .I einit
 has the

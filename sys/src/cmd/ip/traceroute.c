@@ -197,7 +197,7 @@ udpprobe(int cfd, int dfd, char *dest, int interval)
 			rv = 0;
 			break;
 		}
-		errstr(err);
+		errstr(err, sizeof err);
 		if(strstr(err, "alarm") == 0){
 			werrstr(err);
 			break;
@@ -244,7 +244,7 @@ icmpprobe(int cfd, int dfd, char *dest, int interval)
 		n = read(dfd, buf, sizeof(buf));
 		alarm(0);
 		if(n < 0){
-			errstr(err);
+			errstr(err, sizeof err);
 			if(strstr(err, "alarm") == 0){
 				werrstr(err);
 				break;
@@ -421,7 +421,7 @@ main(int argc, char **argv)
 				done = 1;
 				continue;
 			}
-			errstr(err);
+			errstr(err, sizeof err);
 			if(debug)
 				print("%s\n", err);
 			if(strstr(err, "refused")){

@@ -77,6 +77,10 @@ a non-Plan 9 system.
 Use the next (numeric) argument as the group id for files in
 the output archive.
 .TP
+.B R
+When extracting, ignore leading slash on file names,
+i.e., extract all files relative to the current directory.
+.TP
 .B T
 Modifies the behavior of
 .B x

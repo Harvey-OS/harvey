@@ -30,6 +30,9 @@ fsconfig \- configuring a file server
 .B ipauth
 .I ipaddr
 .PP
+.B ipsntp
+.I ipaddr
+.PP
 .B end
 .SH DESCRIPTION
 When a file server's configuration has not been set,
@@ -73,9 +76,18 @@ inclusive.  For example,
 is the concatenation of SCSI targets 1 through 4.
 .TP
 .BI l n1 . n2 . n3
+.TP
+.BI r n1 . n2 . n3
 The same as
 .BR w ,
-but leaving a single block at the beginning for a label.
+but leaving a single block at the beginning for a label
+.BI ( l ),
+or not.
+These are are only really relevant when used as
+.I device3
+in the
+.B j
+device (see below).
 .TP
 .BI ( device... )
 A pseudo-device formed from the concatenation of the
@@ -189,8 +201,9 @@ the local gateway's
 .RI ( ipgw ),
 the local authentication server's
 .RI ( ipauth ),
-and the local subnet mask
-.RI ( ipmask ).
+the local subnet mask
+.RI ( ipmask ),
+and the address of a system running an SNTP server.
 .I Ipauth
 should be
 .B 0.0.0.0

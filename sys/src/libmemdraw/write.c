@@ -33,6 +33,7 @@ writememimage(int fd, Memimage *i)
 	uchar dumpbuf[NDUMP];			/* dump accumulator */
 	int ndump;				/* length of dump accumulator */
 	int miny, dy;				/* y values while unloading input */
+	int ncblock;				/* size of compressed blocks */
 	Rectangle r;
 	uchar *p, *q, *s, *es, *t;
 	char hdr[11+5*12+1];
@@ -42,7 +43,8 @@ writememimage(int fd, Memimage *i)
 	bpl = bytesperline(r, i->depth);
 	n = Dy(r)*bpl;
 	data = malloc(n);
-	outbuf = malloc(NCBLOCK);
+	ncblock = _compblocksize(r, i->depth);
+	outbuf = malloc(ncblock);
 	hash = malloc(NHASH*sizeof(Hlist));
 	chain = malloc(NMEM*sizeof(Hlist));
 	if(data == 0 || outbuf == 0 || hash == 0 || chain == 0){
@@ -67,7 +69,7 @@ writememimage(int fd, Memimage *i)
 	if(write(fd, hdr, 11+5*12) != 11+5*12)
 		goto ErrOut;
 	edata = data+n;
-	eout = outbuf+NCBLOCK;
+	eout = outbuf+ncblock;
 	line = data;
 	r.max.y = r.min.y;
 	while(line != edata){

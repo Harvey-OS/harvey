@@ -52,6 +52,7 @@ script,
 PostScript,
 .B troff
 output file for various devices,
+mail box,
 GIF,
 FAX,
 object code,

@@ -3,6 +3,10 @@ switch($1){
 case ''
 	echo usage: 9fs service '[mountpoint]' >[1=2]
 	exit usage
+case kfs
+	if(! test -f /srv/kfs)
+		disk/kfs
+	mount -c /srv/kfs /n/kfs
 case netlib
 	9fs netlib2 && bind /n/netlib2/netlib /netlib
 case dump

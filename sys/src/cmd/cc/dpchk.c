@@ -30,7 +30,7 @@ struct	Tname
 };
 
 static	Type*	indchar;
-static	uchar	flagbits[256];
+static	uchar	flagbits[512];
 static	char	fmtbuf[100];
 static	int	lastadj;
 static	int	lastverb;
@@ -66,14 +66,18 @@ Bits
 getflag(char *s)
 {
 	Bits flag;
-	int c, f;
+	int f;
 	char *fmt;
+	Rune c;
 
 	fmt = fmtbuf;
 	flag = zbits;
 	nstar = 0;
-	while(c = *s++) {
-		*fmt++ = c;
+	for(;;) {
+		s += chartorune(&c, s);
+		if(c == 0 || c >= nelem(flagbits))
+			break;
+		fmt += runetochar(fmt, &c);
 		f = flagbits[c];
 		switch(f) {
 		case Fnone:
@@ -171,6 +175,7 @@ pragvararg(void)
 	Sym *s;
 	int n, c;
 	char *t;
+	Rune r;
 
 	if(!debug['F'])
 		goto out;
@@ -179,6 +184,8 @@ pragvararg(void)
 		goto ckpos;
 	if(s && strcmp(s->name, "type") == 0)
 		goto cktype;
+	if(s && strcmp(s->name, "flag") == 0)
+		goto ckflag;
 	yyerror("syntax in #pragma varargck");
 	goto out;
 
@@ -193,6 +200,23 @@ ckpos:
 	newname(s->name, n);
 	goto out;
 
+ckflag:
+//#pragma	varargck	flag	'c'
+	c = getnsc();
+	if(c != '\'')
+		goto bad;
+	c = getr();
+	if(c == '\\')
+		c = getr();
+	else if(c == '\'')
+		goto bad;
+	if(c == '\n')
+		goto bad;
+	if(getc() != '\'')
+		goto bad;
+	argflag(c, Fignor);
+	goto out;
+
 cktype:
 //#pragma	varargck	type	O	int
 	c = getnsc();
@@ -200,12 +224,12 @@ cktype:
 		goto bad;
 	t = fmtbuf;
 	for(;;) {
-		c = getc();
-		if(c == ' ' || c == '\n')
+		r = getr();
+		if(r == ' ' || r == '\n')
 			goto bad;
-		if(c == '"')
+		if(r == '"')
 			break;
-		*t++ = c;
+		t += runetochar(t, &r);
 	}
 	*t = 0;
 	t = strdup(fmtbuf);
@@ -379,10 +403,9 @@ pragfpround(void)
 	fproundflg = 0;
 	s = getsym();
 	if(s) {
-		hjdickflg = atoi(s->name+1);
+		fproundflg = atoi(s->name+1);
 		if(strcmp(s->name, "on") == 0 ||
-		   strcmp(s->name, "yes") == 0 ||
-		   strcmp(s->name, "dick") == 0)
+		   strcmp(s->name, "yes") == 0)
 			fproundflg = 1;
 	}
 	while(getnsc() != '\n')

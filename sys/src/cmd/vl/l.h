@@ -115,6 +115,7 @@ enum
 	SLEAF,
 	SFILE,
 	SCONST,
+	SSTRING,
 
 	C_NONE		= 0,
 	C_REG,
@@ -255,11 +256,11 @@ extern	Optab	optab[];
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"S"	char*
 
-int	Aconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Nconv(va_list*, Fconv*);
-int	Pconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
+int	Aconv(Fmt*);
+int	Dconv(Fmt*);
+int	Nconv(Fmt*);
+int	Pconv(Fmt*);
+int	Sconv(Fmt*);
 int	aclass(Adr*);
 void	addhist(long, int);
 void	addnop(Prog*);
@@ -277,7 +278,7 @@ void	cflush(void);
 int	cmp(int, int);
 int	compound(Prog*);
 double	cputime(void);
-void	datblk(long, long);
+void	datblk(long, long, int);
 void	diag(char*, ...);
 void	dodata(void);
 void	doprof1(void);

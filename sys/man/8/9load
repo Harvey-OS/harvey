@@ -102,7 +102,7 @@ called
 fits in 64K and can be used under DOS to load and start a program (default
 .IR 9load )
 from the FAT16 partition.
-It's command line argument is of the same format as the
+Its command line argument is of the same format as the
 .I bootfile
 specifiers described below.
 This profusion of loaders is unfortunate, but at least

@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <plumb.h>
 #include <libsec.h>
+#include <auth.h>
 #include "dat.h"
 
 #pragma varargck type "M" uchar*
@@ -17,19 +18,25 @@ struct Pop {
 	int ppop;
 	int refreshtime;
 	int debug;
+	int pipeline;
+	int hastls;
+	int needtls;
 
-	// open network connection; b is for reading, fd for writing
-	Biobuf b;
+	// open network connection
+	Biobuf bin;
+	Biobuf bout;
 	int fd;
+
+	Thumbprint *thumb;
 };
 
 char*
 geterrstr(void)
 {
-	static char err[ERRLEN];
+	static char err[64];
 
 	err[0] = '\0';
-	errstr(err);
+	errstr(err, sizeof(err));
 	return err;
 }
 
@@ -51,7 +58,7 @@ pop3cmd(Pop *pop, char *fmt, ...)
 	va_list va;
 
 	va_start(va, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, va);
+	vseprint(buf, buf+sizeof(buf), fmt, va);
 	va_end(va);
 
 	p = buf+strlen(buf);
@@ -61,9 +68,9 @@ pop3cmd(Pop *pop, char *fmt, ...)
 	if(pop->debug)
 		fprint(2, "<- %s\n", buf);
 	strcpy(p, "\r\n");
-	write(pop->fd, buf, strlen(buf));
+	Bwrite(&pop->bout, buf, strlen(buf));
+	Bflush(&pop->bout);
 }
-
 
 static char*
 pop3resp(Pop *pop)
@@ -71,10 +78,10 @@ pop3resp(Pop *pop)
 	char *s;
 	char *p;
 
-	if((s = Brdline(&pop->b, '\n')) == nil)
+	if((s = Brdline(&pop->bin, '\n')) == nil)
 		return nil;
 
-	p = s+Blinelen(&pop->b)-1;
+	p = s+Blinelen(&pop->bin)-1;
 	while(p >= s && (*p == '\r' || *p == '\n'))
 		*p-- = '\0';
 
@@ -84,39 +91,90 @@ pop3resp(Pop *pop)
 }
 
 //
+// get capability list, possibly start tls
+//
+static char*
+pop3capa(Pop *pop)
+{
+	int fd;
+	char *s;
+	uchar digest[SHA1dlen];
+	int hastls;
+	TLSconn conn;
+
+	pop3cmd(pop, "CAPA");
+	if(!isokay(pop3resp(pop)))
+		return nil;
+
+	hastls = 0;
+	while(s = pop3resp(pop)){
+		if(strcmp(s, ".") == 0)
+			break;
+		if(strcmp(s, "STLS") == 0)
+			hastls = 1;
+		if(strcmp(s, "PIPELINING") == 0)
+			pop->pipeline = 1;
+	}
+
+	if(hastls){
+		pop3cmd(pop, "STLS");
+		if(!isokay(s = pop3resp(pop)))
+			return s;
+		memset(&conn, 0, sizeof conn);
+		fd = tlsClient(pop->fd, &conn);
+		if(fd < 0)
+			sysfatal("tlsClient: %r");
+		if(conn.cert==nil || conn.certlen <= 0)
+			sysfatal("server did not provide TLS certificate");
+		sha1(conn.cert, conn.certlen, digest, nil);
+		if(!pop->thumb || !okThumbprint(digest, pop->thumb)){
+			fmtinstall('H', encodefmt);
+			sysfatal("server certificate %.*H not recognized", SHA1dlen, digest);
+		}
+		free(conn.cert);
+		close(pop->fd);
+		pop->fd = fd;
+		Binit(&pop->bin, fd, OREAD);
+		Binit(&pop->bout, fd, OWRITE);
+		pop->hastls = 1;
+	}
+	return nil;
+}
+
+//
 // log in using APOP if possible, password if allowed by user
 //
 static char*
 pop3login(Pop *pop)
 {
-	int n, fd;
+	int n;
 	char *s, *p, *q;
+	char ubuf[128], user[128];
 	char buf[500];
+	UserPasswd *up;
 
 	s = pop3resp(pop);
 	if(!isokay(s))
 		return "error in initial handshake";
 
+	if(pop->user)
+		snprint(ubuf, sizeof ubuf, " user=%q", pop->user);
+	else
+		ubuf[0] = '\0';
+
 	// look for apop banner
-	if((p = strchr(s, '<')) && (q = strchr(p+1, '>'))) {
+	if(pop->ppop==0 && (p = strchr(s, '<')) && (q = strchr(p+1, '>'))) {
 		*++q = '\0';
+		if((n=auth_respond(p, q-p, user, sizeof user, buf, sizeof buf, auth_getkey, "proto=apop role=client server=%q%s",
+			pop->host, ubuf)) < 0)
+			return "factotum failed";
+		if(user[0]=='\0')
+			return "factotum did not return a user name";
 
-		snprint(buf, sizeof buf, "/mnt/auth/apop/%s/%s", pop->host, pop->user);
-		if((fd = open(buf, ORDWR)) < 0)
-			return "authentication agent failed";
-		if(write(fd, p, q-p) != q-p) {
-			close(fd);	
-			return "write to agent failed";
-		}
-		seek(fd, 0, 0);
-		if((n = read(fd, buf, sizeof(buf)-1)) <= 0) {
-			close(fd);
-			return "read from agent failed";
-		}
-		close(fd);
-		buf[n] = '\0';
+		if(s = pop3capa(pop))
+			return s;
 
-		pop3cmd(pop, "APOP %s %.*s", pop->user, n, buf);
+		pop3cmd(pop, "APOP %s %.*s", user, n, buf);
 		if(!isokay(s = pop3resp(pop)))
 			return s;
 
@@ -125,20 +183,24 @@ pop3login(Pop *pop)
 		if(pop->ppop == 0)
 			return "no APOP hdr from server";
 
-		pop3cmd(pop, "USER %s", pop->user);
-		if(!isokay(s = pop3resp(pop)))
+		if(s = pop3capa(pop))
 			return s;
 
-		sprint(buf, "/mnt/auth/pop3/%s/%s", pop->host, pop->user);
-		if((fd = open(buf, ORDWR)) < 0)
-			return "authentication agent failed";
-		if((n = read(fd, buf, sizeof buf)) <= 0) {
-			close(fd);
-			return "read from agent failed";
-		}
-		close(fd);
+		if(pop->needtls && !pop->hastls)
+			return "could not negotiate TLS";
 
-		pop3cmd(pop, "PASS %.*s", n, buf);
+		up = auth_getuserpasswd(auth_getkey, "proto=pass service=pop dom=%q%s",
+			pop->host, ubuf);
+		if(up == nil)
+			return "no usable keys found";
+
+		pop3cmd(pop, "USER %s", up->user);
+		if(!isokay(s = pop3resp(pop))){
+			free(up);
+			return s;
+		}
+		pop3cmd(pop, "PASS %s", up->passwd);
+		free(up);
 		if(!isokay(s = pop3resp(pop)))
 			return s;
 
@@ -157,7 +219,8 @@ pop3dial(Pop *pop)
 	if((pop->fd = dial(netmkaddr(pop->host, "net", "pop3"), 0, 0, 0)) < 0)
 		return geterrstr();
 
-	Binit(&pop->b, pop->fd, OREAD);
+	Binit(&pop->bin, pop->fd, OREAD);
+	Binit(&pop->bout, pop->fd, OWRITE);
 
 	if(err = pop3login(pop)) {
 		close(pop->fd);
@@ -188,7 +251,8 @@ pop3download(Pop *pop, Message *m)
 	char sdigest[SHA1dlen*2+1];
 	int i, l, sz;
 
-	pop3cmd(pop, "LIST %d", m->mesgno);
+	if(!pop->pipeline)
+		pop3cmd(pop, "LIST %d", m->mesgno);
 	if(!isokay(s = pop3resp(pop)))
 		return s;
 
@@ -205,7 +269,8 @@ pop3download(Pop *pop, Message *m)
 	m->start = wp = emalloc(sz+1);
 	ep = wp+sz;
 
-	pop3cmd(pop, "RETR %d", m->mesgno);
+	if(!pop->pipeline)
+		pop3cmd(pop, "RETR %d", m->mesgno);
 	if(!isokay(s = pop3resp(pop))) {
 		m->start = nil;
 		free(wp);
@@ -275,53 +340,60 @@ pop3read(Pop *pop, Mailbox *mb, int doplumb)
 	int mesgno, ignore, nnew;
 	Message *m, *next, **l;
 
-	pop3cmd(pop, "UIDL");
+	// Some POP servers disallow UIDL if the maildrop is empty.
+	pop3cmd(pop, "STAT");
 	if(!isokay(s = pop3resp(pop)))
 		return s;
 
 	// fetch message listing; note messages to grab
 	l = &mb->root->part;
-	while(p = pop3resp(pop)) {
-		if(strcmp(p, ".") == 0)
-			break;
+	if(strncmp(s, "+OK 0 ", 6) != 0) {
+		pop3cmd(pop, "UIDL");
+		if(!isokay(s = pop3resp(pop)))
+			return s;
 
-		if(tokenize(p, f, 2) != 2)
-			continue;
-
-		mesgno = atoi(f[0]);
-		uidl = f[1];
-		if(strlen(uidl) > 75)	// RFC 1939 says 70 characters max
-			continue;
-
-		ignore = 0;
-		while(*l != nil) {
-			if(strcmp((*l)->uidl, uidl) == 0) {
-				// matches mail we already have, note mesgno for deletion
-				(*l)->mesgno = mesgno;
-				ignore = 1;
-				l = &(*l)->next;
+		while(p = pop3resp(pop)) {
+			if(strcmp(p, ".") == 0)
 				break;
-			} else {
-				// old mail no longer in box mark deleted
-				if(doplumb)
-					mailplumb(mb, *l, 1);
-				(*l)->inmbox = 0;
-				(*l)->deleted = 1;
-				l = &(*l)->next;
+
+			if(tokenize(p, f, 2) != 2)
+				continue;
+
+			mesgno = atoi(f[0]);
+			uidl = f[1];
+			if(strlen(uidl) > 75)	// RFC 1939 says 70 characters max
+				continue;
+
+			ignore = 0;
+			while(*l != nil) {
+				if(strcmp((*l)->uidl, uidl) == 0) {
+					// matches mail we already have, note mesgno for deletion
+					(*l)->mesgno = mesgno;
+					ignore = 1;
+					l = &(*l)->next;
+					break;
+				} else {
+					// old mail no longer in box mark deleted
+					if(doplumb)
+						mailplumb(mb, *l, 1);
+					(*l)->inmbox = 0;
+					(*l)->deleted = 1;
+					l = &(*l)->next;
+				}
 			}
+			if(ignore)
+				continue;
+
+			m = newmessage(mb->root);
+			m->mallocd = 1;
+			m->inmbox = 1;
+			m->mesgno = mesgno;
+			strcpy(m->uidl, uidl);
+
+			// chain in; will fill in message later
+			*l = m;
+			l = &m->next;
 		}
-		if(ignore)
-			continue;
-
-		m = newmessage(mb->root);
-		m->mallocd = 1;
-		m->inmbox = 1;
-		m->mesgno = mesgno;
-		strcpy(m->uidl, uidl);
-
-		// chain in; will fill in message later
-		*l = m;
-		l = &m->next;
 	}
 
 	// whatever is left has been removed from the mbox, mark as deleted
@@ -335,6 +407,26 @@ pop3read(Pop *pop, Mailbox *mb, int doplumb)
 
 	// download new messages
 	nnew = 0;
+	if(pop->pipeline){
+		switch(rfork(RFPROC|RFMEM)){
+		case -1:
+			fprint(2, "rfork: %r\n");
+			pop->pipeline = 0;
+
+		default:
+			break;
+
+		case 0:
+			for(m = mb->root->part; m != nil; m = m->next){
+				if(m->start != nil)
+					continue;
+				Bprint(&pop->bout, "LIST %d\r\nRETR %d\r\n", m->mesgno, m->mesgno);
+			}
+			Bflush(&pop->bout);
+			_exits(nil);
+		}
+	}
+
 	for(m = mb->root->part; m != nil; m = next) {
 		next = m->next;
 
@@ -354,11 +446,13 @@ pop3read(Pop *pop, Mailbox *mb, int doplumb)
 		if(doplumb)
 			mailplumb(mb, m, 0);
 	}
+	if(pop->pipeline)
+		waitpid();
 
 	if(nnew) {
 		mb->vers++;
-		henter(CHDIR|PATH(0, Qtop), mb->name,
-			(Qid){CHDIR|PATH(mb->id, Qmbox), mb->vers}, nil, mb);
+		henter(PATH(0, Qtop), mb->name,
+			(Qid){PATH(mb->id, Qmbox), mb->vers, QTDIR}, nil, mb);
 	}
 
 	return nil;	
@@ -402,7 +496,7 @@ pop3sync(Mailbox *mb, int doplumb)
 
 	if((err = pop3read(pop, mb, doplumb)) == nil){
 		pop3purge(pop, mb);
-		mb->d.atime = mb->d.mtime = time(0);
+		mb->d->atime = mb->d->mtime = time(0);
 	}
 	pop3hangup(pop);
 	mb->waketime = time(0) + pop->refreshtime;
@@ -431,6 +525,11 @@ pop3ctl(Mailbox *mb, int argc, char **argv)
 		return nil;
 	}
 
+	if(argc==1 && strcmp(argv[0], "thumbprint")==0){
+		if(pop->thumb)
+			freeThumbprints(pop->thumb);
+		pop->thumb = initThumbprints("/sys/lib/tls/mail", "/sys/lib/tls/mail.exclude");
+	}
 	if(strcmp(argv[0], "refresh")==0){
 		if(argc==1){
 			pop->refreshtime = 60;
@@ -466,10 +565,16 @@ char*
 pop3mbox(Mailbox *mb, char *path)
 {
 	char *f[10];
-	int nf;
+	int nf, apop, ppop, apoptls, poptls;
 	Pop *pop;
 
-	if(strncmp(path, "/pop/", 5) != 0 && strncmp(path, "/apop/", 6) != 0)
+	quotefmtinstall();
+	poptls = strncmp(path, "/poptls/", 8) == 0;
+	ppop = poptls || strncmp(path, "/pop/", 5) == 0;
+	apoptls = strncmp(path, "/apoptls/", 9) == 0;
+	apop = apoptls || strncmp(path, "/apop/", 6) == 0;
+	
+	if(!ppop && !apop)
 		return Enotme;
 
 	path = strdup(path);
@@ -477,23 +582,28 @@ pop3mbox(Mailbox *mb, char *path)
 		return "out of memory";
 
 	nf = getfields(path, f, nelem(f), 0, "/");
-
-	if(nf != 4) {
+	if(nf != 3 && nf != 4) {
 		free(path);
-		return "bad pop3 path syntax";
+		return "bad pop3 path syntax /[a]pop[tls]/system[/user]";
 	}
 
 	pop = emalloc(sizeof(*pop));
 	pop->freep = path;
 	pop->host = f[2];
-	pop->user = f[3];
-	if(strncmp(path, "/pop/", 5) == 0)
-		pop->ppop = 1;
+	if(nf < 4)
+		pop->user = nil;
+	else
+		pop->user = f[3];
+	pop->ppop = ppop;
+	pop->needtls = poptls || apoptls;
+	pop->refreshtime = 60;
+	pop->thumb = initThumbprints("/sys/lib/tls/mail", "/sys/lib/tls/mail.exclude");
 
 	mb->aux = pop;
 	mb->sync = pop3sync;
 	mb->close = pop3close;
 	mb->ctl = pop3ctl;
+	mb->d = emalloc(sizeof(*mb->d));
 
 	return nil;
 }

@@ -1,0 +1,126 @@
+PAX - Portable Archive Interchange
+
+Copyright (C) 1989 Mark H. Colburn
+All Rights Reserved.
+
+
+Introduction
+
+    This is version 1.2 of Pax, an archiving utility.  
+    
+    Pax is an archiving utility that reads and writes tar and cpio formats, 
+    both the traditional ones and the extended formats specified in IEEE 
+    1003.1.  It handles multi-volume archives and automatically determines 
+    the format of an archive while reading it.  Three user interfaces are 
+    supported: tar, cpio, and pax.  The pax interface was designed by IEEE 
+    1003.2 as a compromise in the chronic controversy over which of tar or 
+    cpio is best.
+
+    The USENIX Association provided some support for the initial 
+    implementation of this product.  As a result, the Pax utility is being 
+    distributed free of charge and may be redistributed by others in either 
+    source or binary form.  (See the liscensing section for restrictions)
+
+    The source for Pax has been posted to comp.sources.unix on USENET and 
+    will also be available by anonymous FTP on the Internet from uunet.uu.net,
+    moon.src.honeywell.com and from ucb-arpa.berkeley.edu.  The source
+    to Pax is also available via anonymous UUCP from jhereg.mn.org, the 
+    author's home machine and possibly other sites.
+
+    The source for Pax will continue to change as long as the definition of 
+    the utility is modified by the 1003.2 working group.  (For example, 
+    there are a number of changes in Draft 8 which will be incorporated as 
+    soon as Draft 8 is available).  Additional modifications will be made 
+    based on user input, such as request for support of additional archive 
+    formats, etc.  Patches and new releases will be made as new functionality 
+    is added or problems are diagnosed and fixed.
+
+
+Installation
+
+    In order to install Pax, you must first edit the Makefile and the 
+    config.h file according to the directions in each of the files.  
+    These two files provide the configuration information for most 
+    commonly available machines.  Please be sure to read through all 
+    the directions in each of these files before attempting to compile
+    Pax.
+
+
+Portability
+
+    Pax is intended to run on as many systems as possible.  If you have
+    problems getting Pax to compile or run on your system, please let me 
+    know so that the source or the installation procedure can be modified.
+
+    Pax has been tested and appears to run correctly on the following 
+    machines:
+
+        Machine                 Operating System/Release
+	---------------------------------------------------
+	Altos 586		System III (2.3)
+	AT&T UNIX PC		System V.2 (Release 3.51)
+        Convergent S/320	CTIX/68k 6.1, UNIX SysV 3.1
+	Cray 2			UNICOS
+	Encore CC		02.00.r088
+	HP 9000			HP/UX 6.0.1
+        IBM PC/AT		Microport SV/AT V2.4
+	Mac II 			A/UX 1.0
+	NCR Tower		System V.2
+	Pyramid			AT&T and Berkeley universe
+	Sequent Symetry		Dynix 3.0
+	SGI Iris 4D/60G		UNIX 3.0
+	SGI Iris 4D/70G		UNIX 3.0
+	SCO Xenix 386 		2.3.2
+	SCO Unix 386 		3.2
+	Sun 2			SunOS 3.4
+	Sun 2			SunOS 3.5
+	Sun 3			SunOS 3.4
+	Sun 3			SunOS 3.5
+	Sun 3			SunOS 4.0
+	Sun 4			SunOS 4.0
+	VAX 8750		BSD 4.3 (Mt. Xinu)
+	VAX 8650		BSD 4.3 (Mt. Xinu)
+	VAX 780			BSD 4.3 (Berkeley)
+	---------------------------------------------------
+
+    In future releases, the source will be moving toward ANSI C and POSIX 
+    compatibility.  This should allow for portability over any system 
+    supporting both ANSI and POSIX.  In addition, POSIX/ANSI portability 
+    library routines will be developed which will allow the code to run on 
+    the standard machines available now.
+
+
+Credit Where Credit is Due
+
+    Parts of the code which makes up Pax were gleaned from a number of 
+    different sources: the directory access routines in paxdir.h are 
+    modified copies of Doug Gwyn's dirent library; the regular expression 
+    matching routines in regexp.c are from Henry Spencer, some of the tar 
+    archive routines were initially written by John Gilmore for his PDTAR; 
+    and finally afio, written by Mark Brukhartz at Lachman Associates, was 
+    the basis for the buffering schemes used in pax.
+
+
+Licensing
+
+    Copyright (c) 1989 Mark H. Colburn.  
+    All rights reserved.
+
+    Redistribution and use in source and binary forms are permitted
+    provided that the above copyright notice is duplicated in all such 
+    forms and that any documentation, advertising materials, and other 
+    materials related to such distribution and use acknowledge that the 
+    software was developed by Mark H. Colburn and sponsored by The 
+    USENIX Association. 
+
+    THE SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+    IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+Please report any bug or problems to:
+
+Mark Colburn
+Minnetech Consulting, Inc.
+117 Mackubin St., Suite 1
+St. Paul MN   55102
+mark@jhereg.MN.ORG

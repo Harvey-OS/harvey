@@ -108,13 +108,13 @@ drawgetrect(Rectangle rc, int up)
 		if(Dx(tmp[0]->r)<Dx(rc) || Dy(tmp[2]->r)<Dy(rc))
 			freetmp();
 	if(tmp[0] == 0){
-		r = Rect(0, 0, max(Dx(display->image->r), Dx(rc)), W);
-		tmp[0] = allocimage(display, r, display->chan, 0, -1);
-		tmp[1] = allocimage(display, r, display->chan, 0, -1);
-		r = Rect(0, 0, W, max(Dy(display->image->r), Dy(rc)));
-		tmp[2] = allocimage(display, r, display->chan, 0, -1);
-		tmp[3] = allocimage(display, r, display->chan, 0, -1);
-		red = allocimage(display, Rect(0,0,1,1), display->chan, 1, DRed);
+		r = Rect(0, 0, max(Dx(display->screenimage->r), Dx(rc)), W);
+		tmp[0] = allocimage(display, r, screen->chan, 0, -1);
+		tmp[1] = allocimage(display, r, screen->chan, 0, -1);
+		r = Rect(0, 0, W, max(Dy(display->screenimage->r), Dy(rc)));
+		tmp[2] = allocimage(display, r, screen->chan, 0, -1);
+		tmp[3] = allocimage(display, r, screen->chan, 0, -1);
+		red = allocimage(display, Rect(0,0,1,1), screen->chan, 1, DRed);
 		if(tmp[0]==0 || tmp[1]==0 || tmp[2]==0 || tmp[3]==0 || red==0){
 			freetmp();
 			drawerror(display, "getrect: allocimage failed");

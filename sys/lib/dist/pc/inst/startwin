@@ -1,0 +1,46 @@
+#!/bin/rc
+
+fn time { date | sed 's/.........$//'}
+
+rm -f /srv/log
+
+if(~ $#* 2) {
+	wid=$1
+	ht=$2
+} 
+if not {
+	scr=(`{cat /dev/draw/new >[2]/dev/null || status=''})
+	wid=$scr(7)
+	ht=$scr(8)
+}
+
+if(test $ht -gt 800)
+	ht=800
+
+if(test $wid -gt 800)
+	wid=800
+
+statwid=`{hoc -e $wid^'*.2'}
+if(test $statwid -lt 180)
+	statwid=180
+if(test $statwid -gt 300)
+	statwid=300
+
+logwid=`{hoc -e $wid^-$statwid}
+if(test $logwid -gt 1000)
+	logwid=1000
+
+loght=`{hoc -e $ht^'*.25'}
+if(test $loght -lt 130)
+	loght=130
+
+textht=`{hoc -e $ht^-$loght}
+
+window 0,$textht,$statwid,$ht stats -lmisce
+window $statwid,$textht,^`{hoc -e $logwid+$statwid}^,$ht tailfsrv
+window 0,0,^`{hoc -e $logwid+$statwid}^,$textht inst/mainloop
+
+while(! test -f /srv/log)
+	sleep 1
+
+log `{time} Installation process started

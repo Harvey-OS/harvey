@@ -1,0 +1,911 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Adding Application Support for a New Architecture in Plan 9
+</H1>
+<DL><DD><I>Bob Flandrena<br>
+bobf@plan9.bell-labs.com<br>
+</I></DL>
+<H4>Introduction
+</H4>
+<br>&#32;<br>
+Plan 9 has five classes of architecture-dependent software:
+headers, kernels, compilers and loaders, the
+<TT>libc</TT>
+system library, and a few application programs.  In general,
+architecture-dependent programs
+consist of a portable part shared by all architectures and a
+processor-specific portion for each supported architecture.
+The portable code is often compiled and stored in a library
+associated with
+each architecture.  A program is built by
+compiling the architecture-specific code and loading it with the
+library.  Support for a new architecture is provided
+by building a compiler for the architecture, using it to
+compile the portable code into libraries,
+writing the architecture-specific code, and
+then loading that code with
+the libraries.
+<br>&#32;<br>
+This document describes the organization of the architecture-dependent
+code and headers on Plan 9.
+The first section briefly discusses the layout of
+the headers and the source code for the kernels, compilers, loaders, and the
+system library, 
+<TT>libc</TT>.
+The second section provides a detailed
+discussion of the structure of
+<TT>libmach</TT>,
+a library containing almost
+all architecture-dependent code
+used by application programs.
+The final section describes the steps required to add
+application program support for a new architecture.
+<H4>Directory Structure
+</H4>
+<P>
+Architecture-dependent information for the new processor
+is stored in the directory tree rooted at
+</I><TT>/<I>m</TT><I>
+where
+</I><I>m</I><I>
+is the name of the new architecture (e.g.,
+</I><TT>mips</TT><I>).
+The new directory should be initialized with several important
+subdirectories, notably
+</I><TT>bin</TT><I>,
+</I><TT>include</TT><I>,
+and
+</I><TT>lib</TT><I>.
+The directory tree of an existing architecture
+serves as a good model for the new tree.
+The architecture-dependent
+</I><TT>mkfile</TT><I>
+must be stored in the newly created root directory
+for the architecture.  It is easiest to copy the
+mkfile for an existing architecture and modify
+it for the new architecture.  When the mkfile
+is correct, change the
+</I><TT>OS</TT><I>
+and
+</I><TT>CPUS</TT><I>
+variables in the
+</I><TT>/sys/src/mkfile.proto</TT><I>
+to reflect the addition of the new architecture.
+</P>
+</I><H4>Headers
+</H4>
+<br>&#32;<br>
+Architecture-dependent headers are stored in directory
+<TT>/<I>m</I>/include</TT>
+where
+<I>m</I>
+is the name of the architecture (e.g.,
+<TT>mips</TT>).
+Two header files are required:
+<TT>u.h</TT>
+and
+<TT>ureg.h</TT>.
+The first defines fundamental data types,
+bit settings for the floating point
+status and control registers, and
+<TT>va_list</TT>
+processing which depends on the stack
+model for the architecture.  This file
+is best built by copying and modifying the
+<TT>u.h</TT>
+file from an architecture
+with a similar stack model.
+The
+<TT>ureg.h</TT>
+file
+contains a structure describing the layout
+of the saved register set for
+the architecture; it is defined by the kernel.
+<br>&#32;<br>
+Header file
+<TT>/sys/include/a.out.h</TT>
+contains the definitions of the magic
+numbers used to identify executables for
+each architecture.  When support for a new
+architecture is added, the magic number
+for the architecture must be added to this file.
+<br>&#32;<br>
+The header format of a bootable executable is defined by
+each manufacturer.  Header file
+<TT>/sys/include/bootexec.h</TT>
+contains structures describing the headers currently
+supported.  If the new architecture uses a common header
+such as COFF,
+the header format is probably already defined,
+but if the bootable header format is non-standard,
+a structure defining the format must be added to this file.
+<br>&#32;<br>
+<H4>Kernel
+</H4>
+<br>&#32;<br>
+Although the kernel depends critically on the properties of the underlying
+hardware, most of the
+higher-level kernel functions, including process
+management, paging, pseudo-devices, and some
+networking code, are independent of processor
+architecture.  The portable kernel code
+is divided into two parts: that implementing kernel
+functions and that devoted to the boot process.
+Code in the first class is stored in directory
+<TT>/sys/src/9/port</TT>
+and the portable boot code is stored in
+<TT>/sys/src/9/boot</TT>.
+Architecture-dependent kernel code is stored in the
+subdirectories of
+<TT>/sys/src/9</TT>
+named for each architecture.
+<br>&#32;<br>
+The relationship between the kernel code and the boot code
+is convoluted and subtle.  The portable boot code
+is compiled into a library for each architecture.  An architecture-specific
+main program is loaded with the appropriate library and the resulting
+executable is compiled into the kernel where it is executed as
+a user process during the final stages of kernel initialization.  The boot process
+performs authentication, attaches the name space root to the appropriate
+file system and starts the
+<TT>init</TT>
+process.
+<br>&#32;<br>
+The organization of the portable kernel source code differs from that
+of most other architecture-specific code.
+Instead of storing the portable code in a library
+and loading it with the architecture-specific
+code, the portable code is compiled directly into
+the directory containing the architecture-specific code
+and linked with the object files built from the source in that directory.
+<br>&#32;<br>
+<H4>Compilers and Loaders
+</H4>
+<br>&#32;<br>
+The compiler source code conforms to the usual
+organization: portable code is compiled into a library
+for each architecture
+and the architecture-dependent code is loaded with
+that library.
+The common compiler code is stored in
+<TT>/sys/src/cmd/cc</TT>.
+The
+<TT>mkfile</TT>
+in this directory compiles the portable source and
+archives the objects in a library for each architecture.
+The architecture-specific compiler source
+is stored in a subdirectory of
+<TT>/sys/src/cmd</TT>
+with the same name as the compiler (e.g.,
+<TT>/sys/src/cmd/vc</TT>).
+<br>&#32;<br>
+There is no portable code shared by the loaders.
+Each directory of loader source
+code is self-contained, except for
+a header file and an instruction name table
+included from the
+directory of the associated
+compiler.
+<br>&#32;<br>
+<H4>Libraries
+</H4>
+<br>&#32;<br>
+Most C library modules are
+portable; the source code is stored in
+directories
+<TT>/sys/src/libc/port</TT>
+and
+<TT>/sys/src/libc/9sys</TT>.
+Architecture-dependent library code
+is stored in the subdirectory of
+<TT>/sys/src/libc</TT>
+named the same as the target processor.
+Non-portable functions not only
+implement architecture-dependent operations
+but also supply assembly language implementations
+of functions where speed is critical.
+Directory
+<TT>/sys/src/libc/9syscall</TT>
+is unusual because it
+contains architecture-dependent information
+for all architectures.
+It holds only a header file defining
+the names and numbers of system calls
+and a
+<TT>mkfile</TT>.
+The
+<TT>mkfile</TT>
+executes an
+<TT>rc</TT>
+script that parses the header file, constructs
+assembler language functions implementing the system
+call for each architecture, assembles the code,
+and archives the object files in
+<TT>libc</TT>.
+The assembler language syntax and the system interface
+differ for each architecture.
+The
+<TT>rc</TT>
+script in this
+<TT>mkfile</TT>
+must be modified to support a new architecture.
+<br>&#32;<br>
+<H4>Applications
+</H4>
+<br>&#32;<br>
+Application programs process two forms of architecture-dependent
+information: executable images and intermediate object files.
+Almost all processing is on executable files.
+System library
+<TT>libmach</TT>
+provides functions that convert
+architecture-specific data
+to a portable format so application programs
+can process this data independent of its
+underlying representation.
+Further, when a new architecture is implemented
+almost all code changes
+are confined to the library;
+most affected application programs need only be reloaded.
+The source code for the library is stored in
+<TT>/sys/src/libmach</TT>.
+<br>&#32;<br>
+An application program running on one type of
+processor must be able to interpret
+architecture-dependent information for all
+supported processors.
+For example, a debugger must be able to debug
+the executables of
+all architectures, not just the
+architecture on which it is executing, since
+<TT>/proc</TT>
+may be imported from a different machine.
+<br>&#32;<br>
+A small part of the application library
+provides functions to
+extract symbol references from object files.
+The remainder provides the following processing
+of executable files or memory images:
+<DL><DD>
+<br>&#32;<br>
+<DL COMPACT>
+<DT>*<DD>
+Header interpretation.
+<DT>*<DD>
+Symbol table interpretation.
+<DT>*<DD>
+Execution context interpretation, such as stack traces
+and stack frame location.
+<DT>*<DD>
+Instruction interpretation including disassembly and
+instruction size and follow-set calculations.
+<DT>*<DD>
+Exception and floating point number interpretation.
+<DT>*<DD>
+Architecture-independent read and write access through a
+relocation map.
+</DL>
+</dl>
+<br>&#32;<br>
+Header file
+<TT>/sys/include/mach.h</TT>
+defines the interfaces to the
+application library.  Manual pages
+<A href="/magic/man2html/2/mach"><I>mach</I>(2),
+</A><A href="/magic/man2html/2/symbol"><I>symbol</I>(2),
+</A>and
+<A href="/magic/man2html/2/object"><I>object</I>(2)
+</A>describe the details of the
+library functions.
+<br>&#32;<br>
+Two data structures, called
+<TT>Mach</TT>
+and
+<TT>Machdata</TT>,
+contain architecture-dependent  parameters and
+a jump table of functions.
+Global variables
+<TT>mach</TT>
+and
+<TT>machdata</TT>
+point to the
+<TT>Mach</TT>
+and
+<TT>Machdata</TT>
+data structures associated with the target architecture.
+An application determines the target architecture of
+a file or executable image, sets the global pointers
+to the data structures associated with that architecture,
+and subsequently performs all references indirectly through the
+pointers.
+As a result, direct references to the tables for each
+architecture are avoided and the application code intrinsically
+supports all architectures (though only one at a time).
+<br>&#32;<br>
+Object file processing is handled similarly: architecture-dependent
+functions identify and
+decode the intermediate files for the processor.
+The application indirectly
+invokes a classification function to identify
+the architecture of the object code and to select the
+appropriate decoding function.  Subsequent calls
+then use that function to decode each record.  Again,
+the layer of indirection allows the application code
+to support all architectures without modification.
+<br>&#32;<br>
+Splitting the architecture-dependent information
+between the
+<TT>Mach</TT>
+and
+<TT>Machdata</TT>
+data structures
+allows applications to choose
+an appropriate level of service.  Even though an application
+does not directly reference the architecture-specific data structures,
+it must load the
+architecture-dependent tables and code 
+for all architectures it supports.  The size of this data
+can be substantial and many applications do not require
+the full range of architecture-dependent functionality.
+For example, the
+<TT>size</TT>
+command does not require the disassemblers for every architecture;
+it only needs to decode the header.
+The
+<TT>Mach</TT>
+data structure contains a few architecture-specific parameters
+and a description of the processor register set.
+The size of the structure
+varies with the size of the register
+set but is generally small.
+The
+<TT>Machdata</TT>
+data structure contains
+a jump table of architecture-dependent functions;
+the amount of code and data referenced by this table
+is usually large.
+<H4>Libmach Source Code Organization
+</H4>
+<br>&#32;<br>
+The
+<TT>libmach</TT>
+library provides four classes of functionality:
+<br>&#32;<br>
+<DL COMPACT>
+<DT>Header and Symbol Table Decoding - <DD>
+Files
+<TT>executable.c</TT>
+and
+<TT>sym.c</TT>
+contain code to interpret the header and
+symbol tables of
+an executable file or executing image.
+Function
+<TT>crackhdr</TT>
+decodes the header,
+reformats the
+information into an
+<TT>Fhdr</TT>
+data structure, and points
+global variable
+<TT>mach</TT>
+to the
+<TT>Mach</TT>
+data structure of the target architecture.
+The symbol table processing
+uses the data in the
+<TT>Fhdr</TT>
+structure to decode the symbol table.
+A variety of symbol table access functions then support
+queries on the reformatted table.
+<DT>Debugger Support - <DD>
+Files named
+<TT><I>m</I>.c</TT>,
+where
+<I>m</I>
+is the code letter assigned to the architecture,
+contain the initialized
+<TT>Mach</TT>
+data structure and the definition of the register
+set for each architecture.
+Architecture-specific debugger support functions and
+an initialized
+<TT>Machdata</TT>
+structure are stored in
+files named
+<TT><I>m</I>db.c</TT>.
+Files
+<TT>machdata.c</TT>
+and
+<TT>setmach.c</TT>
+contain debugger support functions shared
+by multiple architectures.
+<DT>Architecture-Independent Access - <DD>
+Files
+<TT>map.c</TT>,
+<TT>access.c</TT>,
+and
+<TT>swap.c</TT>
+provide accesses through a relocation map
+to data in an executable file or executing image.
+Byte-swapping is performed as needed.  Global variables
+<TT>mach</TT>
+and
+<TT>machdata</TT>
+must point to the
+<TT>Mach</TT>
+and
+<TT>Machdata</TT>
+data structures of the target architecture.
+<DT>Object File Interpretation - <DD>
+These files contain functions to identify the
+target architecture of an
+intermediate object file
+and extract references to symbols.  File
+<TT>obj.c</TT>
+contains code common to all architectures;
+file
+<TT><I>m</I>obj.c</TT>
+contains the architecture-specific source code
+for the machine with code character
+<I>m</I>.
+</dl>
+<br>&#32;<br>
+The
+<TT>Machdata</TT>
+data structure is primarily a jump
+table of architecture-dependent debugger support
+functions. Functions select the
+<TT>Machdata</TT>
+structure for a target architecture based
+on the value of the
+<TT>type</TT>
+code in the
+<TT>Fhdr</TT>
+structure or the name of the architecture.
+The jump table provides functions to swap bytes, interpret
+machine instructions,
+perform stack
+traces, find stack frames, format floating point
+numbers, and decode machine exceptions.  Some functions, such as
+machine exception decoding, are idiosyncratic and must be
+supplied for each architecture.  Others depend
+on the compiler run-time model and several
+architectures may share code common to a model.  For
+example, many architectures share the code to
+process the fixed-frame stack model implemented by
+several of the compilers.
+Finally, some
+functions, such as byte-swapping, provide a general capability and
+the jump table need only select an implementation appropriate
+to the architecture.
+<br>&#32;<br>
+<H4>Adding Application Support for a New Architecture
+</H4>
+<br>&#32;<br>
+This section describes the
+steps required to add application-level
+support for a new architecture.
+We assume
+the kernel, compilers, loaders and system libraries
+for the new architecture are already in place.  This
+implies that a code-character has been assigned and
+that the architecture-specific headers have been
+updated.
+With the exception of two programs,
+application-level changes are confined to header
+files and the source code in
+<TT>/sys/src/libmach</TT>.
+<br>&#32;<br>
+<DL COMPACT>
+<DT>1.<DD>
+Begin by updating the application library
+header file in
+<TT>/sys/include/mach.h</TT>.
+Add the following symbolic codes to the
+<TT>enum</TT>
+statement near the beginning of the file:
+<DL><DD>
+<DT>*<DD>
+The processor type code, e.g., 
+<TT>MSPARC</TT>.
+<DT>*<DD>
+The type of the executable.  There are usually
+two codes needed: one for a bootable
+executable (i.e., a kernel) and one for an
+application executable.
+<DT>*<DD>
+The disassembler type code.  Add one entry for
+each supported disassembler for the architecture.
+<DT>*<DD>
+A symbolic code for the object file.
+</DL>
+</dl>
+<br>&#32;<br>
+<DL COMPACT>
+<DT>2.<DD>
+In a file name
+<TT>/sys/src/libmach/<I>m</I>.c</TT>
+(where
+<I>m</I>
+is the identifier character assigned to the architecture),
+initialize
+<TT>Reglist</TT>
+and
+<TT>Mach</TT>
+data structures with values defining
+the register set and various system parameters.
+The source file for a similar architecture
+can serve as template.
+Most of the fields of the
+<TT>Mach</TT>
+data structure are obvious
+but a few require further explanation.
+<DL><DD>
+<DT><TT>kbase</TT> - <DD>
+This field
+contains the address of the kernel 
+<TT>ublock</TT>.
+The debuggers
+assume the first entry of the kernel
+<TT>ublock</TT>
+points to the
+<TT>Proc</TT>
+structure for a kernel thread.
+<DT><TT>ktmask</TT> - <DD>
+This field
+is a bit mask used to calculate the kernel text address from
+the kernel 
+<TT>ublock</TT>
+address.
+The first page of the
+kernel text segment is calculated by
+ANDing
+the negation of this mask with
+<TT>kbase</TT>.
+<DT><TT>kspoff</TT> - <DD>
+This field
+contains the byte offset in the
+<TT>Proc</TT>
+data structure to the saved kernel
+stack pointer for a suspended kernel thread.  This
+is the offset to the 
+<TT>sched.sp</TT>
+field of a
+<TT>Proc</TT>
+table entry.
+<DT><TT>kpcoff</TT> - <DD>
+This field contains the byte offset into the
+<TT>Proc</TT>
+data structure
+of
+the program counter of a suspended kernel thread.
+This is the offset to
+field
+<TT>sched.pc</TT>
+in that structure.
+<DT><TT>kspdelta</TT> and <TT>kpcdelta</TT> - <DD>
+These fields
+contain corrections to be added to
+the stack pointer and program counter, respectively,
+to properly locate the stack and next
+instruction of a kernel thread.  These
+values bias the saved registers retrieved
+from the
+<TT>Label</TT>
+structure named
+<TT>sched</TT>
+in the
+<TT>Proc</TT>
+data structure.
+Most architectures require no bias
+and these fields contain zeros.
+<DT><TT>scalloff</TT> - <DD>
+This field
+contains the byte offset of the
+<TT>scallnr</TT>
+field in the
+<TT>ublock</TT>
+data structure associated with a process.
+The
+<TT>scallnr</TT>
+field contains the number of the
+last system call executed by the process.
+The location of the field varies depending on
+the size of the floating point register set
+which precedes it in the
+<TT>ublock</TT>.
+</DL>
+</dl>
+<br>&#32;<br>
+<DL COMPACT>
+<DT>3.<DD>
+Add an entry to the initialization of the
+<TT>ExecTable</TT>
+data structure at the beginning of file
+<TT>/sys/src/libmach/executable.c</TT>.
+Most architectures
+require two entries: one for
+a normal executable and
+one for a bootable
+image.  Each table entry contains:
+<DL><DD>
+<DT>*<DD>
+Magic Number - 
+The big-endian magic number assigned to the architecture in
+<TT>/sys/include/a.out.h</TT>.
+<DT>*<DD>
+Name - 
+A string describing the executable.
+<DT>*<DD>
+Executable type code - 
+The executable code assigned in
+<TT>/sys/include/mach.h</TT>.
+<DT>*<DD>
+<TT>Mach</TT> pointer - 
+The address of the initialized
+<TT>Mach</TT>
+data structure constructed in Step 2.
+You must also add the name of this table to the
+list of
+<TT>Mach</TT>
+table definitions immediately preceding the
+<TT>ExecTable</TT>
+initialization.
+<DT>*<DD>
+Header size - 
+The number of bytes in the executable file header.
+The size of a normal executable header is always
+<TT>sizeof(Exec)</TT>.
+The size of a bootable header is
+determined by the size of the structure
+for the architecture defined in
+<TT>/sys/include/bootexec.h</TT>.
+<DT>*<DD>
+Byte-swapping function - 
+The address of
+<TT>beswal</TT>
+or
+<TT>leswal</TT>
+for big-endian and little-endian
+architectures, respectively.
+<DT>*<DD>
+Decoder function - 
+The address of a function to decode the header.
+Function
+<TT>adotout</TT>
+decodes the common header shared by all normal
+(i.e., non-bootable) executable files.
+The header format of bootable
+executable files is defined by the manufacturer and
+a custom function is almost always
+required to decode it.
+Header file
+<TT>/sys/include/bootexec.h</TT>
+contains data structures defining the bootable
+headers for all architectures.  If the new architecture
+uses an existing format, the appropriate
+decoding function should already be in
+<TT>executable.c</TT>.
+If the header format is unique, then
+a new function must be added to this file.
+Usually the decoding function for an existing
+architecture can be adopted with minor modifications.
+</DL>
+</dl>
+<br>&#32;<br>
+<DL COMPACT>
+<DT>4.<DD>
+Write an object file parser and
+store it in file
+<TT>/sys/src/libmach/<I>m</I>obj.c</TT>
+where
+<I>m</I>
+is the identifier character assigned to the architecture.
+Two functions are required: a predicate to identify an
+object file for the architecture and a function to extract
+symbol references from the object code.
+The object code format is obscure but
+it is often possible to adopt the
+code of an existing architecture
+with minor modifications.
+When these
+functions are in hand, insert their addresses
+in the jump table at the beginning of file
+<TT>/sys/src/libmach/obj.c</TT>.
+</dl>
+<br>&#32;<br>
+<DL COMPACT>
+<DT>5.<DD>
+Implement the required debugger support functions and
+initialize the parameters and jump table of the
+<TT>Machdata</TT>
+data structure for the architecture.
+This code is conventionally stored in
+a file named
+<TT>/sys/src/libmach/<I>m</I>db.c</TT>
+where
+<I>m</I>
+is the identifier character assigned to the architecture.
+The fields of the
+<TT>Machdata</TT>
+structure are:
+<DL><DD>
+<DT><TT>bpinst</TT> and <TT>bpsize</TT> - <DD>
+These fields
+contain the breakpoint instruction and the size
+of the instruction, respectively.
+<DT><TT>swab</TT> - <DD>
+This field
+contains the address of a function to
+byte-swap a 16-bit value.  Choose
+<TT>leswab</TT>
+or
+<TT>beswab</TT>
+for little-endian or big-endian architectures, respectively.
+<DT><TT>swal</TT> - <DD>
+This field
+contains the address of a function to
+byte-swap a 32-bit value.  Choose
+<TT>leswal</TT>
+or
+<TT>beswal</TT>
+for little-endian or big-endian architectures, respectively.
+<DT><TT>ctrace</TT> - <DD>
+This field
+contains the address of a function to perform a
+C-language stack trace.  Two general trace functions,
+<TT>risctrace</TT>
+and
+<TT>cisctrace</TT>,
+traverse fixed-frame and relative-frame stacks,
+respectively.  If the compiler for the
+new architecture conforms to one of
+these models, select the appropriate function.  If the
+stack model is unique,
+supply a custom stack trace function.
+<DT><TT>findframe</TT> - <DD>
+This field
+contains the address of a function to locate the stack
+frame associated with a text address.
+Generic functions
+<TT>riscframe</TT>
+and
+<TT>ciscframe</TT>
+process fixed-frame and relative-frame stack
+models.
+<DT><TT>ufixup</TT> - <DD>
+This field
+contains the address of a function to adjust
+the base address of the register save area.
+Currently, only the
+68020 requires this bias
+to offset over the active
+exception frame.
+<DT><TT>excep</TT> - <DD>
+This field
+contains the address of a function to produce a
+text
+string describing the
+current exception.
+Each architecture stores exception
+information uniquely, so this code must always be supplied.
+<DT><TT>bpfix</TT> - <DD>
+This field
+contains the address of a function to adjust an
+address prior to laying down a breakpoint.
+<DT><TT>sftos</TT> - <DD>
+This field
+contains the address of a function to convert a single
+precision floating point value
+to a string.  Choose
+<TT>leieeesftos</TT>
+for little-endian
+or
+<TT>beieeesftos</TT>
+for big-endian architectures.
+<DT><TT>dftos</TT> - <DD>
+This field
+contains the address of a function to convert a double
+precision floating point value
+to a string.  Choose
+<TT>leieeedftos</TT>
+for little-endian
+or
+<TT>beieeedftos</TT>
+for big-endian architectures.
+<DT><TT>foll</TT>, <TT>das</TT>, <TT>hexinst</TT>, and <TT>instsize</TT> - <DD>
+These fields point to functions that interpret machine
+instructions.
+They rely on disassembly of the instruction
+and are unique to each architecture.
+<TT>Foll</TT>
+calculates the follow set of an instruction.
+<TT>Das</TT>
+disassembles a machine instruction to assembly language.
+<TT>Hexinst</TT>
+formats a machine instruction as a text
+string of
+hexadecimal digits.
+<TT>Instsize</TT>
+calculates the size in bytes, of an instruction.
+Once the disassembler is written, the other functions
+can usually be implemented as trivial extensions of it.
+</dl>
+<br>&#32;<br>
+It is possible to provide support for a new architecture
+incrementally by filling the jump table entries
+of the
+<TT>Machdata</TT>
+structure as code is written.  In general, if
+a jump table entry contains a zero, application
+programs requiring that function will issue an
+error message instead of attempting to
+call the function.  For example,
+the
+<TT>foll</TT>,
+<TT>das</TT>,
+<TT>hexinst</TT>,
+and
+<TT>instsize</TT>
+jump table slots can be zeroed until a
+disassembler is written.
+Other capabilities, such as
+stack trace or variable inspection,
+can be supplied and will be available to
+the debuggers but attempts to use the
+disassembler will result in an error message.
+</DL>
+<DL COMPACT>
+<DT>6.<DD>
+Update the table named
+<TT>machines</TT>
+near the beginning of
+<TT>/sys/src/libmach/setmach.c</TT>.
+This table binds the
+file type code and machine name to the
+<TT>Mach</TT>
+and
+<TT>Machdata</TT>
+structures of an architecture.
+The names of the initialized
+<TT>Mach</TT>
+and
+<TT>Machdata</TT>
+structures built in steps 2 and 5
+must be added to the list of
+structure definitions immediately
+preceding the table initialization.
+If both Plan 9 and
+native disassembly are supported, add
+an entry for each disassembler to the table.  The
+entry for the default disassembler (usually
+Plan 9) must be first.
+<DT>7.<DD>
+Add an entry describing the architecture to
+the table named
+<TT>trans</TT>
+near the end of
+<TT>/sys/src/cmd/prof.c</TT>.
+</DL>
+<DT>8.<DD>
+Add an entry describing the architecture to
+the table named
+<TT>objtype</TT>
+near the start of
+<TT>/sys/src/cmd/pcc.c</TT>.
+</DL>
+<DT>9.<DD>
+Recompile and install
+all application programs that include header file
+<TT>mach.h</TT>
+and load with
+<TT>libmach.a</TT>.
+</dl>
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

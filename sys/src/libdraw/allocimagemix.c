@@ -11,12 +11,12 @@ allocimagemix(Display *d, ulong color1, ulong color3)
 	if(qmask == nil)
 		qmask = allocimage(d, Rect(0,0,1,1), GREY8, 1, 0x3F3F3FFF);
 		
-	if(d->depth <= 8){	/* create a 2×2 texture */
-		t = allocimage(d, Rect(0,0,1,1), display->chan, 0, color1);
+	if(d->screenimage->depth <= 8){	/* create a 2×2 texture */
+		t = allocimage(d, Rect(0,0,1,1), d->screenimage->chan, 0, color1);
 		if(t == nil)
 			return nil;
 
-		b = allocimage(d, Rect(0,0,2,2), display->chan, 1, color3);
+		b = allocimage(d, Rect(0,0,2,2), d->screenimage->chan, 1, color3);
 		if(b == nil){
 			freeimage(t);
 			return nil;
@@ -26,11 +26,11 @@ allocimagemix(Display *d, ulong color1, ulong color3)
 		freeimage(t);
 		return b;
 	}else{	/* use a solid color, blended using alpha */
-		t = allocimage(d, Rect(0,0,1,1), display->chan, 1, color1);
+		t = allocimage(d, Rect(0,0,1,1), d->screenimage->chan, 1, color1);
 		if(t == nil)
 			return nil;
 
-		b = allocimage(d, Rect(0,0,1,1), display->chan, 1, color3);
+		b = allocimage(d, Rect(0,0,1,1), d->screenimage->chan, 1, color3);
 		if(b == nil){
 			freeimage(t);
 			return nil;

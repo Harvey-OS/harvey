@@ -9,20 +9,14 @@ int readonly;
 static int
 deverror(char *name, Xfs *xf, long addr, long n, long nret)
 {
-	char errbuf[ERRLEN];
-
 	errno = Eio;
 	if(nret < 0){
-		errstr(errbuf);
-		chat("%s errstr=\"%s\"...", name, errbuf);
+		chat("%s errstr=\"%r\"...", name);
 		close(xf->dev);
 		xf->dev = -1;
-		/*if(strcmp(errbuf, "disk changed") == 0)*/
-			return -1;
+		return -1;
 	}
-	fprint(2, "dev %d sector %ld, %s: %ld, should be %ld\n",
-		xf->dev, addr, name, nret, n);
-//	panic(name);
+	fprint(2, "dev %d sector %ld, %s: %ld, should be %ld\n", xf->dev, addr, name, nret, n);
 	return -1;
 }
 
@@ -30,13 +24,10 @@ int
 devread(Xfs *xf, long addr, void *buf, long n)
 {
 	long nread;
-/*
- *	chat("devread %d,%d...", dev, addr);
- */
+
 	if(xf->dev < 0)
 		return -1;
-	seek(xf->dev, xf->offset+(vlong)addr*Sectorsize, 0);
-	nread = read(xf->dev, buf, n);
+	nread = pread(xf->dev, buf, n, xf->offset+(vlong)addr*Sectorsize);
 	if (nread == n)
 		return 0;
 	return deverror("read", xf, addr, n, nread);
@@ -46,16 +37,13 @@ int
 devwrite(Xfs *xf, long addr, void *buf, long n)
 {
 	long nwrite;
-/*
- *	chat("devwrite %d,%d...", p->dev, p->addr);
- */
-	if(readonly)
+
+	if(xf->omode==OREAD)
 		return -1;
 
 	if(xf->dev < 0)
 		return -1;
-	seek(xf->dev, xf->offset+(vlong)addr*Sectorsize, 0);
-	nwrite = write(xf->dev, buf, n);
+	nwrite = pwrite(xf->dev, buf, n, xf->offset+(vlong)addr*Sectorsize);
 	if (nwrite == n)
 		return 0;
 	return deverror("write", xf, addr, n, nwrite);
@@ -68,8 +56,7 @@ devcheck(Xfs *xf)
 
 	if(xf->dev < 0)
 		return -1;
-	seek(xf->dev, 0, 0);
-	if(read(xf->dev, buf, Sectorsize) != Sectorsize){
+	if(pread(xf->dev, buf, Sectorsize, 0) != Sectorsize){
 		close(xf->dev);
 		xf->dev = -1;
 		return -1;

@@ -4,6 +4,8 @@ alt,
 chancreate,
 chanfree,
 chaninit,
+chanprint,
+mainstacksize,
 proccreate,
 procdata,
 procexec,
@@ -21,17 +23,19 @@ nbrecvul,
 nbsend,
 nbsendp,
 nbsendul,
-threadchdir,
 threadcreate,
 threaddata,
 threadexits,
 threadexitsall,
 threadgetgrp,
 threadgetname,
+threadint,
+threadintgrp,
 threadkill,
 threadkillgrp,
 threadmain,
-threadnonotes,
+threadnotify,
+threadid,
 threadpid,
 threadprint,
 threadsetgrp,
@@ -51,628 +55,524 @@ yield \- thread and proc management
 #define	CHANRCV		2
 #define	CHANNOP		3
 #define	CHANNOBLK	4
-.ifn .sp
-.ift .sp 0.5
-typedef struct Alt {
+.sp
+.ta \w'    'u +\w'Channel 'u
+typedef struct Alt Alt;
+struct Alt {
 	Channel	*c;
 	void	*v;
 	int	op;
 	Channel	**tag;
-	ulong	q;
-} Alt;
-.ifn .sp
+	int	entryno;
+};
+.fi
+.de XX
 .ift .sp 0.5
-void  threadmain(int argc, char *argv[])
-.ift .sp 0.2
-int   proccreate(void (*f)(void *arg), void *arg,
-			uint stacksize)
-.ift .sp 0.2
-int   procrfork(void (*f)(void *arg), void *arg,
-			uint stacksize, int rforkflag)
-.ift .sp 0.2
-int   threadcreate(void (*f)(void *arg), void *arg,
-			uint stacksize)
-.ift .sp 0.2
-void  yield(void)
-.ift .sp 0.2
-void  threadexits(char *status)
-.ift .sp 0.2
-void  threadexitsall(char *status)
-.ift .sp 0.2
-Channel	*chancreate(int elemsize, int bufsize)
-.ift .sp 0.2
-int chaninit(Channel *c, int elemsize, int elemcnt)
-.ift .sp 0.2
-int   alt(Alt alts[])
-.ift .sp 0.2
-int   recv(Channel *c, void *v)
-.ift .sp 0.2
-ulong recvul(Channel *c)
-.ift .sp 0.2
-void  *recvp(Channel *c)
-.ift .sp 0.2
-int   nbrecv(Channel *c, void *v)
-.ift .sp 0.2
-ulong nbrecvul(Channel *c)
-.ift .sp 0.2
-void  *nbrecvp(Channel *c)
-.ift .sp 0.2
-int   send(Channel *c, void *v)
-.ift .sp 0.2
-int   sendul(Channel *c, ulong v)
-.ift .sp 0.2
-int   sendp(Channel *c, void *v)
-.ift .sp 0.2
-int   nbsend(Channel *c, void *v)
-.ift .sp 0.2
-int   nbsendul(Channel *c, ulong v)
-.ift .sp 0.2
-int   nbsendp(Channel *c, void *v)
-.ift .sp 0.2
-void  chanfree(Channel *c)
-.ift .sp 0.2
-void  threadsetname(char *name)
-.ift .sp 0.2
-char  *threadgetname(void)
-.ift .sp 0.2
-ulong *procdata(void)
-.ift .sp 0.2
-ulong *threaddata(void)
-.ift .sp 0.2
-int   threadgetgrp(void)
-.ift .sp 0.2
-int   threadsetgrp(int group)
-.ift .sp 0.2
-void threadkill(int id)
-.ift .sp 0.2
-void  threadkillgrp(int group)
-.ift .sp 0.2
-int threadpid(int id)
-.ift .sp 0.2
-void  procexecl(Channel *pidc, char *file, ...)
-.ift .sp 0.2
-void  procexec(Channel *pidc, char *file, char *args[])
-.ift .sp 0.2
-Channel	*threadwaitchan(void)
-.ift .sp 0.2
-int   threadprint(int fd, char *format, ...)
+.ifn .sp
+..
+.PP
+.nf
+.ft L
+.ta \w'\fLChannel* 'u +4n +4n +4n +4n
+void	threadmain(int argc, char *argv[])
+int	mainstacksize
+int	proccreate(void (*fn)(void*), void *arg, uint stacksize)
+int	procrfork(void (*fn)(void*), void *arg, uint stacksize,
+		int rforkflag)
+int	threadcreate(void (*fn)(void*), void *arg, uint stacksize)
+void	threadexits(char *status)
+void	threadexitsall(char *status)
+void	yield(void)
+.XX
+int	threadid(void)
+int	threadgrp(void)
+int	threadsetgrp(int group)
+int	threadpid(int id)
+.XX
+int	threadint(int id)
+int	threadintgrp(int group)
+int	threadkill(int id)
+int	threadkillgrp(int group)
+.XX
+void	threadsetname(char *name)
+char*	threadgetname(void)
+.XX
+void**	threaddata(void)
+void**	procdata(void)
+.XX
+int	chaninit(Channel *c, int elsize, int nel)
+Channel*	chancreate(int elsize, int nel)
+void	chanfree(Channel *c)
+.XX
+int	alt(Alt *alts)
+int	recv(Channel *c, void *v)
+void*	recvp(Channel *c)
+ulong	recvul(Channel *c)
+int	nbrecv(Channel *c, void *v)
+void*	nbrecvp(Channel *c)
+ulong	nbrecvul(Channel *c)
+int	send(Channel *c, void *v)
+int	sendp(Channel *c, void *v)
+int	sendul(Channel *c, ulong v)
+int	nbsend(Channel *c, void *v)
+int	nbsendp(Channel *c, void *v)
+int	nbsendul(Channel *c, ulong v)
+int	chanprint(Channel *c, char *fmt, ...)
+.XX
+void	procexecl(Channel *cpid, char *file, ...)
+void	procexec(Channel *cpid, char *file, char *args[])
+Channel*	threadwaitchan(void)
+.XX
+int	threadnotify(int (*f)(void*, char*), int in)
 .EE
 .SH DESCRIPTION
 .PP
-The thread library provides parallel-programming support similar to that
+The thread library provides parallel programming support similar to that
 of the languages
 Alef and Newsqueak.
 Threads
 and
 procs
-can be created that occupy a shared address space in which they can
-communicate through shared variables and
-.IR channels .
+occupy a shared address space,
+communicating and synchronizing through
+.I channels
+and shared variables.
+.PP
+A
+.I proc
+is a Plan 9 process that contains one or more cooperatively scheduled
+.IR threads .
+Programs using threads must replace
+.I main
+by
+.IR threadmain .
+The thread library provides a
+.I main
+function that sets up a proc with a single thread executing
+.I threadmain
+on a stack of size
+.I mainstacksize
+(default eight kilobytes).
+To set
+.IR mainstacksize ,
+declare a global variable
+initialized to the desired value
+.RI ( e.g. ,
+.B int
+.B mainstacksize
+.B =
+.BR 1024 ).
+.PP
+.I Threadcreate
+creates a new thread in the calling proc, returning a unique integer
+identifying the thread; the thread
+executes
+.I fn(arg)
+on a stack of size
+.IR stacksize .
+Thread stacks are allocated in shared memory, making it valid to pass 
+pointers to stack variables between threads and procs.
+.I Procrfork
+creates a new proc, and inside that proc creates
+a single thread as
+.I threadcreate
+would,
+returning the id of the created thread.
+.I Procrfork
+creates the new proc by calling
+.B rfork
+(see
+.IR fork (2))
+with flags
+.BR RFPROC|RFMEM|RFNOWAIT| \fIrforkflag\fR.
+(The thread library depends on all its procs
+running in the same rendezvous group.
+Do not include
+.B RFREND
+in
+.IR rforkflag .)
+.I Proccreate
+is identical to 
+.I procrfork
+with
+.I rforkflag
+set to zero.
+Be aware that the calling thread may continue
+execution before
+the newly created proc and thread
+are scheduled.
+Because of this,
+.I arg
+should not point to data on the stack of a function that could
+return before the new process is scheduled.
+.PP
+.I Threadexits
+terminates the calling thread.
+If the thread is the last in its proc,
+.I threadexits
+also terminates the proc, using
+.I status
+as the exit status.
+.I Threadexitsall
+terminates all procs in the program,
+using
+.I status
+as the exit status.
+.PP
+The threads in a proc are coroutines, scheduled nonpreemptively
+in a round-robin fashion.
+A thread must explicitly relinquish control of the processor
+before another thread in the same proc is run.
+Calls that do this are
+.IR yield ,
+.IR proccreate ,
+.IR procexec ,
+.IR procexecl ,
+.IR threadexits ,
+.IR alt ,
+.IR send ,
+and
+.I recv
+(and the calls related to
+.I send
+and
+.IR recv \(emsee
+their descriptions further on).
+Procs are scheduled by the operating system.
+Therefore, threads in different procs can preempt one another
+in arbitrary ways and should synchronize their
+actions using
+.B qlocks
+(see
+.IR lock (2))
+or channel communication.
+System calls such as
+.IR read (2)
+block the entire proc;
+all threads in a proc block until the system call finishes.
+.PP
+As mentioned above, each thread has a unique integer thread id.
+Thread ids are not reused; they are unique across the life of the program.
+.I Threadid
+returns the id for the current thread.
+Each thread also has a thread group id.
+The initial thread has a group id of zero.
+Each new thread inherits the group id of
+the thread that created it.
+.I Threadgrp
+returns the group id for the current thread;
+.I threadsetgrp
+sets it.
+.I Threadpid
+returns the pid of the Plan 9 process containing
+the thread identified by
+.IR id ,
+or \-1
+if no such thread is found.
+.PP
+.I Threadint
+interrupts a thread that is blocked in a channel operation
+or system call.
+.I Threadintgrp
+interrupts all threads with the given group id.
+.I Threadkill
+marks a thread to die when it next relinquishes the processor
+(via one of the calls listed above).
+If the thread is blocked in a channel operation or system call,
+it is also interrupted.
+.I Threadkillgrp
+kills all threads with the given group id.
+Note that
+.I threadkill
+and
+.I threadkillgrp
+will not terminate a thread that never relinquishes
+the processor.
+.PP
+Primarily for debugging
+(see
+.IR XXXacidthread ),
+threads can have string names associated with them.
+.I Threadgetname
+returns the current thread's name;
+.I threadsetname
+sets it.
+The pointer returned by
+.I threadgetname
+is only valid until the next call to
+.IR threadsetname .
+.PP
+.I Threaddata
+returns a pointer to a per-thread pointer
+that may be modified by threaded programs for
+per-thread storage.
+Similarly, 
+.I procdata
+returns a pointer to a per-proc pointer.
+.PP
+.I Procexecl
+and
+.I procexec
+are threaded analogues of
+.I exec
+and
+.I execl
+(see
+.IR exec (2));
+on success,
+they replace the calling thread (which must be the only thread in its proc)
+and invoke the external program.
+On error, they return \-1.
+If
+.I cpid
+is not null, the pid of the invoked program
+will be sent along
+.I cpid
+once the program has been started, or \-1 will be sent if an
+error occurs.
+.I Procexec
+and
+.I procexecl
+will not access their arguments after sending a result
+along
+.IR cpid .
+Thus, programs that malloc the
+.I argv
+passed to
+.I procexec
+can safely free it once they have
+received the
+.I cpid
+response.
+.I Threadwaitchan
+returns a channel of pointers to
+.B Waitmsg
+structures (see
+.IR wait (2)).
+When an exec'ed process exits, a pointer to a
+.B Waitmsg
+is sent to this channel.
+These
+.B Waitmsg
+structures have been allocated with
+.IR malloc (2)
+and should be freed after use.
+.PP
 A
 .B Channel
-is a buffered or unbuffered FIFO for fixed-size messages.  Procs and
-threads can
+is a buffered or unbuffered queue for fixed-size messages.
+Procs and threads
 .I send
-messages into the fifo and
+messages into the channel and
 .I recv
-messages from the fifo.  If the fifo is unbuffered, a
+messages from the channel.  If the channel is unbuffered, a
 .I send
 operation blocks until the corresponding
 .I recv
 operation occurs and
 .IR "vice versa" .
-.PP
-A
-.I proc
-is a Plan 9 process that contains one or more
-.IR threads .
-The threads in a proc are coroutines.  Runnable threads are scheduled
-nonpreemptively in a round-robin fashion.  A thread must explicitly
-relinquish control of the processor before another thread in the same
-proc is run.  Calls that do this are
-.IR yield ,
-.IR send ,
-.I recv
-(and the calls related to
-.I send
-and
-.I recv
-\- see their descriptions further on),
-.IR alt ,
-and
-.IR threadexits .
-.PP
-Procs
-are scheduled by the operating system.  Threads in different procs,
-therefore, can preempt one another in arbitrary ways, unless they
-explicitly synchronize their actions using
-.B qlocks
-(see
-.IR lock (2))
-or channel communication.
-.PP
-Blocking system calls such as
-.IR read (2)
-do not cause another thread in the same proc to be scheduled.
-All threads in a proc block until the system call finishes.
-.PP
-Thread stacks are in shared memory, making it valid to pass 
-pointers to stack variables between threads and procs.
-.PP
-Threads in different procs are scheduled independently and preemptively.
-Data structures shared between threads in different procs need to be
-protected by a
-.IR lock (2).
-.PP
-Programs using threads must replace
-.B main
-by
-.IR threadmain .
-The thread library will set up a proc with a single thread and call
-.IR threadmain .
-.PP
-A new proc is created by a call to
-.IR proccreate .
-The arguments are a function
-.I f
-with a single
-.B void*
-argument to be called in the new proc, the argument
-.I arg
-to that function, and the size of the stack for the new proc.
-.I Proccreate
-.\" returns the thread id of the (single) thread in the newly created proc.
-returns the pid of the newly created proc.
-Processes are created by calling
-.I rfork
-(see 
-.IR fork (2))
-with flags
-.B RFPROC
-and
-.BR RFMEM .
-.I Procrfork
-is like
-.I proccreate
-but uses
-.I rforkflags
-or'ed with
-.B RFPROC
-and
-.BR RFMEM .
-.PP
-.I Arg
-can be used to pass arbitrary data to
-.IR f .
-Be aware, however, that
-.I f
-runs in a new process and that it can take some time before
-.I f
-is scheduled.
-.I Arg
-should not point to data on the stack of a function that could
-return before the new process is scheduled.
-.PP
-.I Threadcreate
-creates a new thread in the proc of the calling thread.  The arguments
-are the same as those of
-.IR proccreate .
-.I Threadcreate
-returns a
-.IR "thread id" .
-.PP
-.I Yield
-gives up the processor to another thread in the calling proc.
-.PP
-.I Threadexits
-causes the calling thread to be destroyed.  If the thread is the only
-remaining thread in its proc, the proc exits too (using the exit status
-supplied to
-.IR threadexits ).
-.PP
-.I Threadexitsall
-kills all threads in the application (and thus all procs) and
-exits with the status supplied.
-.PP
-.I Chancreate
-creates a buffered or unbuffered
-.BR Channel .
-The arguments are the
-size of the elements in the channel (must by greater than zero) and the
-number of elements in the fifo.  If the number is zero, the channel
-is blocking (synchronous).  If it is greater than zero, the channel
-is buffered and blocks only if the fifo is empty
-.RI ( recv )
-or full
-.RI ( send ).
-.I Chancreate
-returns a pointer to the channel created.
-.PP
 .I Chaninit
-initializes an already allocated channel;
-.BR elemsize ,
-and
-.B elemcnt
-are as in
-.BR chancreate .
-.PP
-.I Recv
-receives an element from the channel named by its first argument and
-stores it in the location pointed to by its second argument.  It returns
-.B 1
-for success, and
-.B -1
-when it was interrupted.
-If the second argument is null,
-the received value is ignored.
-.PP
-.I Recvul
-and
-.I recvp
-receive an unsigned long or a pointer, respectively, from a channel whose
-element size must be
-.B sizeof(ulong)
-or
-.BR "sizeof(void *)" .
-.PP
-.IR Nbrecv ,
-.IR nbrecvul ,
-and
-.I nbrecvp
-are non-blocking versions of
-.IR recv ,
-.IR recvul ,
-and
-.IR recvp .
-Note that
-.I nbrecvul
-and
-.I nbrecvp
-can also
-return
-.B 0
-when the channel is empty.
-Since
-.B 0
-is both a valid data value and an error return,
-use
-.I nbrecv
-instead
-if you wish to distinguish an empty channel from one
-that contains a zero element.
-.PP
-.I Send
-sends the value pointed to by the second parameter to the channel pointed
-to by the first parameter.  If the value pointer is 0,
-zeroes are sent.
-.I Send
-.IR yield s,
-so, if the receiving thread is blocked and in the same proc, it will
-run first.
-.PP
-.IR Sendul ,
-.IR sendp ,
-.IR nbsend ,
-.IR nbsendul ,
-and
-.I nbsendp
-are the specialized and nonblocking versions, analogous to the
-.I recv
-family of calls.
-.PP
-.I Alt
-can be used to recv from or send to one of a number of channels.
-.I Alt
-takes as its parameter an array of
-.B Alt
-structures.  Each of these structures describes a potential send or recv
-operation:
-.B c
-and
-.B v
-are the channel and value pointer (which may be
-.BR nil )
-and
-.B op
-specifies the operation:
-.B CHANSND
-for a send operation,
-.B CHANRECV
-for a recv operation;
-.B CHANNOP
-for no operation\(emthe entry should be skipped.  This can be useful
-when
-.I alt
-calls are used with a varying set of operations.
-The array of
-.B Alt
-structures is terminated by a null entry whose opcode is
-.B CHANEND
-or
-.BR CHANNOBLK .
-.B CHANNOBLK
-is a default entry that `fires' when none of the other operations can fire.
-It makes an
-.I alt
-statement non-blocking.
-.PP
-.I Alt
-looks for channel operations in the array of
-.I Alt
-structures that can proceed.  If there is one, the associated
-.I send
-or
-.I recv
-operation occurs.  If there is more than one, one
-of them is chosen at random and the associated communication event
-occurs.  If there are none, and the list is terminated by a
-.B CHANEND
-entry,
-.I alt
-blocks until one of the operations can proceed.  
-If there are none and the list is terminated by a
-.B CHANNOBLK
-entry, that entry will fire.
-.I Alt
-returns the index of the operation that succeeded.  The fields
-.B tag
-and
-.B q
-in the
-.B Alt
-structure are used by the implementation of alt.  They are not used
-between
-.I alt
-calls.
-.PP
+initializes a 
+.B Channel
+for messages of size
+.I elsize 
+and with a buffer holding
+.I nel
+messages.
+If
+.I nel
+is zero, the channel is unbuffered.
+.IR Chancreate
+allocates a new channel and initializes it.
 .I Chanfree
 frees a channel that is no longer used.
 .I Chanfree
 can be called by either sender or receiver after the last item has been
 sent or received.  Freeing the channel will be delayed if there is a thread
-blocked on it until that thread unblocks (but chanfree returns instantly).
+blocked on it until that thread unblocks (but
+.I chanfree
+returns immediately).
 .PP
-.I Threadgetname
+.I Send
+sends the element pointed at by
+.I v
+to the channel
+.IR c .
+If
+.I v
+is null, zeros are sent.
+.I Recv
+receives an element from
+.I c
+and stores it in
+.IR v .
+If
+.I v
+is null,
+the received value is discarded.
+.I Send
 and
-.I threadsetname
-can be used to read or set the name of a thread.  This can be useful
-for debugging.
-.PP
-.I Threadkill
-kills the thread identified by its
-.I "thread ID
-(as returned by threadcreate) and cleans up its stack.
-.PP
-.I Procdata
-returns a pointer to a per-process location (big enough to hold a pointer)
-into which applications can store per-proc data.
-.PP
-Threads have a group number that is inherited on proc and thread creation,
-much like a process group.
-.I Threadsetgrp
-can be used to set this group to an arbitrary integer.
-.I Threadgetgrp
-returns the group of the current thread.
-.I Threadkillgrp
-can be used to kill all threads in a group.
-.PP
-.I Threadpid
-returns the
-.I pid
-of the proc of the thread whose
-.I id
-is given.  If
-.I id
-equals zero, the pid of the proc of the current thread is returned and if
-.I id
-does not correspond to an existing thread, \-1 is returned.
-.PP
-.I Procexecl
+.I recv
+return 1 on success, \-1 if interrupted.
+.I Nbsend
 and
-.I procexec
-may only be called from a thread which is the sole thread in
-a proc.  The thread is removed from the program and the process
-executes independently.
-The first argument, if not nil, is a channel on which the pid
-of the exec-ed process will be returned.
+.I nbrecv
+behave similarly, but return 0 rather than blocking.
 .PP
-If the pid channel is set,
-.I procexec
+.IR Sendp ,
+.IR nbsendp ,
+.IR sendul ,
 and
-.I procexecl
-will return (i.e., fail) if and only if they also send \-1 on the pid channel.
-.PP
-The rest of the arguments are the same as those of
-.I execl
+.I nbsendul
+send a pointer or an unsigned long; the channel must
+have been initialized with the appropriate
+.IR elsize .
+.IR Recvp ,
+.IR nbrecvp ,
+.IR recvul ,
 and
-.I exec
-(see
-.IR exec (2)).
-To simplify resource management, these routines first use
-.IR access (2)
-to check if the file exists and is executable before attempting to
-.IR exec (2)
-it.
+.I nbrecvul
+receive a pointer or an unsigned long;
+they return zero when a zero is received,
+when interrupted, or
+(for
+.I nbrecvp
+and
+.IR nbrecvul )
+when the operation would have blocked.
+To distinguish between these three cases,
+use
+.I recv
+or
+.IR nbrecv .
 .PP
-.I Threadwaitchan
-returns a channel of
-.B Waitmsg
-structures (see
-.IR wait (2)).
-When a proc exits, a message is sent to this channel.  Receiving on this
-channel will produce the exit status of the procs exited.  The wait channel
-also produces messages for procexec-ed processes.
+.I Alt
+can be used to recv from or send to one of a number of channels,
+as directed by an array of
+.B Alt
+structures,
+each of which describes a potential send or receive operation.
+In an
+.B Alt
+structure,
+.B c
+is the channel;
+.B v
+the value pointer (which may be null); and
+.B op
+the operation:
+.B CHANSND
+for a send operation,
+.B CHANRECV
+for a recv operation;
+.B CHANNOP
+for no operation
+(useful
+when
+.I alt
+is called with a varying set of operations).
+The array of
+.B Alt
+structures is terminated by an entry with
+.I op
+.B CHANEND
+or
+.BR CHANNOBLK .
+If at least one
+.B Alt
+structure can proceed, one of them is
+chosen at random to be executed.
+.I Alt
+returns the index of the chosen structure.
+If no operations can proceed and the list is terminated with
+.BR CHANNOBLK ,
+.I alt
+returns the index of the terminating
+.B CHANNOBLK
+structure.
+Otherwise,
+.I alt
+blocks until one of the operations can proceed,
+eventually returning the index of the structure executes.
+.I Alt
+returns \-1 when interrupted.
+The
+.B tag
+and
+.B entryno
+fields in the
+.B Alt
+structure are used internally by
+.I alt
+and need not be initialized.
+They are not used between
+.I alt
+calls.
 .PP
-.I Threadprint
-behaves exactly like
-.B print
-(see
-.IR print (2))
-but does not suffer from interference with other threads and procs, and
-does not allocate a buffer on the stack.
+.I Chanprint
+formats its arguments in the manner of
+.IR print (2)
+and sends the result to the channel
+.IR c.
+The string delivered by
+.I chanprint
+is allocated with
+.IR malloc (2)
+and should be freed upon receipt.
 .PP
-An extra note of warning.  Many routines in
-.B libc
-are not `thread safe'.  One library routine of particular
-concern is
-.B atnotify
+Thread library functions do not return on failure;
+if errors occur, the entire program is aborted.
+.PP
+Threaded programs should use
+.I threadnotify
+in place of
+.I atnotify
 (see
 .IR notify (2)).
-The thread library
-uses
-.B atnotify
-to implement
-.IR threadexitall ,
-.IR threadkillgrp ,
-and
-.IR threadkill .
-Do not call
-.IR notify (2)
-and expect
-.IR threadexitall ,
-.IR threadkillgrp ,
-and
-.I threadkill
-to continue to work.
-.I Atnotify
-maintains its list of handlers in shared memory.  This implies that,
-if one thread (on proc) installs a handler with
-.IR atnotify ,
-all other procs automatically do so too.
+.PP
+It is safe to use
+.B sysfatal
+(see
+.IR perror (2))
+in threaded programs.
+.I Sysfatal
+will print the error string and call
+.IR threadexitsall .
 .PP
 It is safe to use 
 .IR rfork
 (see
 .IR fork (2))
-to manage the namespace, file descriptors, or environment of a
+to manage the namespace, file descriptors, note group, and environment of a
 single process.
 That is, it is safe to call
 .I rfork
 with the flags
-.BR RFENVG ,
-.BR RFCENVG ,
 .BR RFNAMEG ,
-.BR RFCNAMEG ,
 .BR RFFDG ,
+.BR RFCFDG ,
+.BR RFNOTEG ,
+.BR RFENVG ,
 and
-.BR RFCDFG .
-To create new processes, use
+.BR RFCENVG.
+(To create new processes, use
 .I proccreate
 and 
-.IR procrfork .
-Because the thread library depends on all procs
-being in the same note and rendezvous groups,
-these groups should not be changed with
+.IR procrfork .)
+As mentioned above,
+the thread library depends on all procs being in the
+same rendezvous group; do not change the rendezvous
+group with
 .IR rfork .
-To deafen a threaded program to notes
-for the parent process's group, call
-.I threadnonotes
-instead of using
-.BR rfork(RFNOTEG) .
-.PP
-.I Procdata
-and
-.I threaddata
-return pointers to a single 
-ulong that may be used to store per-proc or per-thread data.
-.SH EXAMPLE
-.PP
-A complete example follows.
-.B Threadmain
-spawns two subprocesses, one to read the mouse, and one to receive timer
-events.  The events are sent via a channel to the main proc which prints
-a word when an event comes in.  When mouse button three is pressed, the
-application terminates.
-.PP
-.EX
-.ta 4n +4n +4n +4n +4n +4n +4n +8n +8n +8n
-#include <u.h>
-#include <libc.h>
-#include <thread.h>
-
-#define STACKSIZE (2*1024)
-
-void
-error(char *fmt, ...)
-{
-	int n;
-	va_list arg;
-
-	va_start(arg, fmt);
-	fprint(2, fmt, arg);
-	threadexitsall("error");
-}
-
-void
-mouseproc(void *mc) {
-	char m[48];
-	int mfd;
-	Channel* mousechan = mc;
-
-	if ((mfd = open("/dev/mouse", OREAD)) < 0)
-		error("open /dev/mouse: %r\en");
-	for (;;) {
-		if (read(mfd, &m, sizeof(m)) != sizeof(m) ||
-		  atoi(m+25) & 4) { /* EOF || button 3 down */
-			error("quit\en");
-		}
-		send(mousechan, &m);
-	}
-}
-
-void
-clockproc(void *cc) {
-	int t = 0;
-	Channel* clockchan = cc;
-
-	while (++t) {
-		sleep(1000);
-		send(clockchan, &t);
-	}
-}
-
-
-void
-threadmain(int argc, char *argv[]) {
-	char m[48];
-	int t;
-	Alt a[] = {
-	/*	 c		v		op   */
-		{nil,	&m,		CHANRCV},
-		{nil,	&t,		CHANRCV},
-		{nil,	nil,	CHANEND},
-	};
-
-	/* create mouse event channel and mouse process */
-	a[0].c = chancreate(sizeof(m), 0);
-	proccreate(mouseproc, (void *)(a[0].c), STACKSIZE);
-
-	/* create clock event channel and clock process */
-	a[1].c = chancreate(sizeof(t), 0);	/* clock event channel */
-	proccreate(clockproc, (void *)(a[1].c), STACKSIZE);
-
-	for (;;) {
-		switch(alt(a)) {
-		case 0:	/*mouse event */
-			fprint(2, "click ");
-			break;
-		case 1:	/* clock event */
-			fprint(2, "tic ");
-			break;
-		default:
-			error("impossible");
-		}
-	}
-}
-
-.EE
 .SH FILES
 .B /sys/lib/acid/thread
 contains useful
 .IR acid (1)
 functions for debugging threaded programs.
+.PP
+.B /sys/src/libthread/example.c
+contains a full example program.
 .SH SOURCE
 .B /sys/src/libthread
 .SH SEE ALSO
 .IR intro (2)
-

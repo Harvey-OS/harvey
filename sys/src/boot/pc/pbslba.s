@@ -101,6 +101,13 @@ _start0x3E:
 
 	SBPB(rDL, Xdrive)		/* save the boot drive */
 
+	/* booting from a CD starts us at 7C0:0.  Move to 0:7C00 */
+	PUSHR(rAX)
+	LWI(_nxt(SB), rAX)
+	PUSHR(rAX)
+	BYTE $0xCB	/* FAR RET */
+
+TEXT _nxt(SB), $0
 	STI
 
 	LWI(confidence(SB), rSI)	/* for that warm, fuzzy feeling */
@@ -312,20 +319,20 @@ _BIOSputsret:
 	POPA
 	RET
 
+/* "Bad format or I/O error\r\nPress almost any key to reboot..." */
 TEXT error(SB), $0
 	BYTE $'B'; BYTE $'a'; BYTE $'d'; BYTE $' ';
 	BYTE $'f'; BYTE $'o'; BYTE $'r'; BYTE $'m';
 	BYTE $'a'; BYTE $'t'; BYTE $' '; BYTE $'o';
 	BYTE $'r'; BYTE $' ';
+/* "I/O error\r\nPress almost any key to reboot..." */
 TEXT ioerror(SB), $0
 	BYTE $'I'; BYTE $'/'; BYTE $'O'; BYTE $' ';
 	BYTE $'e'; BYTE $'r'; BYTE $'r'; BYTE $'o';
 	BYTE $'r'; BYTE $'\r';BYTE $'\n';
 	BYTE $'P'; BYTE $'r'; BYTE $'e'; BYTE $'s';
-	BYTE $'s'; BYTE $' '; BYTE $'a'; BYTE $'l';
-	BYTE $'m'; BYTE $'o'; BYTE $'s'; BYTE $'t';
-	BYTE $' '; BYTE $'a'; BYTE $'n'; BYTE $'y';
-	BYTE $' '; BYTE $'k'; BYTE $'e'; BYTE $'y';
+	BYTE $'s'; BYTE $' '; BYTE $'a'; BYTE $' ';
+	BYTE $'k'; BYTE $'e'; BYTE $'y';
 	BYTE $' '; BYTE $'t'; BYTE $'o'; BYTE $' ';
 	BYTE $'r'; BYTE $'e'; BYTE $'b'; BYTE $'o';
 	BYTE $'o'; BYTE $'t';
@@ -333,12 +340,14 @@ TEXT ioerror(SB), $0
 	BYTE $'\z';
 
 #ifdef USEBCOM
+/* "B       COM" */
 TEXT bootfile(SB), $0
 	BYTE $'B'; BYTE $' '; BYTE $' '; BYTE $' ';
 	BYTE $' '; BYTE $' '; BYTE $' '; BYTE $' ';
 	BYTE $'C'; BYTE $'O'; BYTE $'M';
 	BYTE $'\z';
 #else
+/* "9LOAD      " */
 TEXT bootfile(SB), $0
 	BYTE $'9'; BYTE $'L'; BYTE $'O'; BYTE $'A';
 	BYTE $'D'; BYTE $' '; BYTE $' '; BYTE $' ';
@@ -346,6 +355,7 @@ TEXT bootfile(SB), $0
 	BYTE $'\z';
 #endif /* USEBCOM */
 
+/* "PBS..." */
 TEXT confidence(SB), $0
 	BYTE $'P'; BYTE $'B'; BYTE $'S'; BYTE $'.';
 	BYTE $'.'; BYTE $'.';

@@ -42,6 +42,12 @@ registering your mail address in
 .BR /sys/lib/subscribers .
 A daemon mails recent news
 to all addresses on the list.
+.PP
+Empty news items, and news items named
+.B core
+or
+.B dead.letter
+are ignored.
 .SH FILES
 .TF /sys/lib/subscribers
 .TP

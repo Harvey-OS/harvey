@@ -1,0 +1,4 @@
+#!/bin/rc
+for(i){
+	ps | sed -n '/ '^$i^'$/s%^[^ ]* *([^ ]*).*%chmod 666 /proc/\1/ctl;echo kill > /proc/\1/ctl%p'
+}

@@ -111,8 +111,8 @@ extern SDev* scsiid(SDev*, SDifc*);
 
 #define IrqATA0 14
 #define IrqATA1 15
-#define qlock(i)
-#define qunlock(i)
+#define qlock(i)	while(0)
+#define qunlock(i)	while(0)
 #undef va_start
 #undef va_end
 #define va_list void**
@@ -124,7 +124,7 @@ extern SDev* scsiid(SDev*, SDifc*);
 
 void sleep(void*, int(*)(void*), void*);
 void tsleep(void*, int(*)(void*), void*, int);
-#define wakeup(x)
+#define wakeup(x) while(0)
 extern long sdbio(SDunit *unit, SDpart *pp, void *a, long len, vlong off);
 void	partition(SDunit*);
 void	addpartconf(SDunit*);

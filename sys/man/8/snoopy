@@ -1,141 +1,170 @@
 .TH SNOOPY 8
 .SH NAME
-sniffer, snoopy \- spy on Ethernet packets
+snoopy \- spy on network packets
 .SH SYNOPSIS
 .B snoopy
 [
-.B -abcdeEgilnoprsStux9
+.B -?stdC
+] [
+.B -f
+.I filter-expression
 ] [
 .B -N
-.I count
+.I n
 ] [
-.B -F
-.I filter
+.B -h first-header
 ] [
-device
-]
-.br
-.B sniffer
-[
-.B -p
-] [
-.B -F
-.I filter
-] [
-device
+packet-file
 ]
 .SH DESCRIPTION
 .PP
 .I Snoopy
-displays the header and data bytes of packets received from
-the local Ethernet.
-The following options each select packets from a
-particular protocol.
-If more than one flag is given, packets from all those
-protocols are displayed.
-.TP
-.B a
-ARP
-.TP
-.B b
-BOOTP
-.TP
-.B c
-ICMP
-.TP
-.B e
-all Ethernet packets
-.TP
-.B E
-ESP
-.TP
-.B g
-GRE
-.TP
-.B i
-IP
-.TP
-.B l
-IL
-.TP
-.B o
-OSPF
-.TP
-.B r
-RUDP, a Plan 9 reliable datagram protocol
-.TP
-.B t
-TCP
-.TP
-.B u
-UDP
-.PP
-The following options control output format.
-.TP
-.B n
-do not translate addresses into names
-.TP
-.B x
-display the body of the message in hex instead of UTF
-.TP
-.B 9
-display the body as a 9p message
-.TP
-.B N
-limit the number of bytes of the body to display to
-.I count
-(default 20)
-.PP
-Finally, some options control data flow and packet filtering.
-.TP
-.B s
-read only the first 64 bytes of each packet, i.e., 
-open ether type \-2 instead of \-1.
-.TP
-.B S
-read packets from standard input, often a pipe from 
-.I sniffer
-or a file containing a dump from a previous invocation of
-.IR sniffer .
-.TP
-.B d
-write the packets to
-.B /tmp/snoopydump
-in the same format as
-.IR sniffer .
-.TP
-.B F
-filter out all packets whose source or destination does not match
-.IR filter ,
-which may be an IP address, an ethernet address, or
-a TCP or UDP port.
-.TP
-.B p
-don't turn on promiscuous mode
-.PP
-.IR Sniffer 
-reads packets off the local Ethernet and writes them, preceded
-by a 2 byte big endian length and a 4 byte big endian millisecond time, to
-standard output.  The output can be saved to a file or 
-piped into 
+reads packets from a packet source (default
+.BR /net/ether0 ),
+matches them to a filter (by default anything matches), and writes
+matching packets to standard output either in human readable form (default)
+or in a binary trace format that can be reinput to
 .IR snoopy .
-The
-.B \-p
+.PP
+The human readable format consists of multiple lines per packet.
+The first line contains the milliseconds since the
+trace was started.  Subsequent ones are indented with a tab
+and each contains the dump of a single protocol header.  The last line
+contains the dump of any contained data.  For example, a
+.SM BOOTP
+packet would look like:
+.sp
+.EX
+324389 ms
+	ether(s=0000929b1b54 d=ffffffffffff pr=0800 ln=342)
+	ip(s=135.104.9.62 d=255.255.255.255 id=5099 frag=0000...
+	udp(s=68 d=67 ck=d151 ln= 308)
+	bootp(t=Req ht=1 hl=16 hp=0 xid=217e5f27 sec=0 fl=800...
+	dhcp(t=Request clientid=0152415320704e7266238ebf01030...
+.EE
+.PP
+The binary format consists of:
+.IP
+2 bytes of packet length, msb first
+.IP
+8 bytes of nanosecond time, msb first
+.IP
+the packet
+.PP
+Filters are expressions specifying protocols to be traced
+and specific values for fields in the protocol headers.
+The grammar is:
+.sp
+.EX
+expr	: protocol
+	| field '=' value
+	| protocol '(' expr ')'
+	| '(' expr ')'
+	| expr '||' expr
+	| expr '&&' expr
+.EE
+.PP
+The values for <protocol> and <field> can
+be obtained using the
+.B -?
+option.  It will list each known protocol,
+which subprotocols it can multiplex to,
+and which fields can be used for filtering.
+For example, the listing for ethernet is currently:
+.sp
+.EX
+ether's filter attr:
+	s	- source address
+	d	- destination address
+	a	- source|destination address
+	t	- type
+ether's subprotos:
+	ip
+	arp
+	rarp
+	ip6
+.EE
+.PP
+The format of <value> depends on context.  In general,
+ethernet addresses are entered as a string of hex
+digits; IP numbers in the canonical `.' format for v4 and `:' format
+for v6; and ports in decimal.
+.PP
+.IR Snoopy 's
+options are:
+.TP
+.B -t
+input is a binary trace file.  The default assumes
+a packet device, one packet per read.
+.TP
+.B -d
+output will be a binary trace file.  The default is
+human readable.
+.TP
+.B -s
+force one output line per packet.  The
+default is multiline.
+.TP
+.B -C
+compute correct checksums and if doesn't match
+the contained one, add a field
+.B !ck=\fIxxxx\fP
+where
+.I xxxx
+is the correct checksum.
+.TP
+.B -N
+dump
+.I n
+data bytes per packet.  The default is 32.
+.TP
+.B -f
+use
+.I filter-exression
+to filter the packet stream.  The default is
+to match all packets.
+.TP
+.B -h
+assume the first header per packet to be
+.IR first-header .
+The default is
+.IR ether .
+.SH EXAMPLES
+the following would display only
+.SM BOOTP
 and
-.B \-F
-options are the same as for
-.IR snoopy .
+.SM ARP
+packets:
+.sp
+.EX
+% snoopy -f 'arp | bootp'
+after optimize: ether( arp | ip( udp( bootp ) ) )
+.EE
+.PP
+The first line of output shows the completed filter
+expression.
+.I Snoopy
+will fill in other protocols as necessary to complete
+the filter and then optimize to remove redundant
+comparisons.
+.PP
+To save all packets between 135.104.9.2 to 135.104.9.6 and
+later display those to/from TCP port 80:
+.sp
+.EX
+% ramfs
+% snoopy -df 'ip(s=135.104.9.2&d=135.104.9.6)|\\
+	ip(s=135.104.9.6&d=135.104.9.2)' > /tmp/quux
+<interrupt from the keyboard>
+% snoopy -tf 'tcp(sd=80)' /tmp/quux
+.EE
 .SH FILES
 .TP
 .B /net/ether
 Ethernet device
 .SH SOURCE
-.B /sys/src/cmd/ip/snoopy.c
-.br
-.B /sys/src/cmd/ip/sniffer.c
+.B /sys/src/cmd/ip/snoopy
 .SH BUGS
-.PP
-The CPU servers do not take well to running in promiscuous mode.
-If run on them, 
-.I snoopy
-may kill their Ethernets.
+At the moment it only dumps ethernet packets because there's
+no device to get IP packets without the media header.  This will
+be corrected soon.

@@ -16,7 +16,7 @@
 
 #define	MINX	8
 
-int landscape = 0;	/* orientation of the screen, default is 0: portait */
+int landscape = 1;	/* orientation of the screen, default is 0: portait */
 
 enum {
 	Wid		= 240,
@@ -116,17 +116,17 @@ static Memdata xgdata;
 
 static Memimage xgscreen =
 {
-	{ 0, 0, Wid, Ht },	/* r */
-	{ 0, 0, Wid, Ht },	/* clipr */
-	16,					/* depth */
-	3,					/* nchan */
-	RGB16,				/* chan */
+	{ 0, 0, Wid, Ht },		/* r */
+	{ 0, 0, Wid, Ht },		/* clipr */
+	16,				/* depth */
+	3,				/* nchan */
+	RGB16,			/* chan */
 	nil,				/* cmap */
 	&xgdata,			/* data */
-	0,					/* zero */
-	Wid/2,				/* width */
-	0,					/* layer */
-	0,					/* flags */
+	0,				/* zero */
+	Wid/2,			/* width */
+	0,				/* layer */
+	0,				/* flags */
 };
 
 struct{
@@ -152,20 +152,20 @@ int			drawdebug;
 static	ulong	rep(ulong, int);
 static	void	screenwin(void);
 static	void	screenputc(char *buf);
+static	void	bitsyscreenputs(char *s, int n);
 static	void	scroll(void);
-
-static void
-lcdstop(void) {
-	lcd->lccr0 &= ~(0<<LEN);	/* disable the LCD */
-	while((lcd->lcsr & LDD) == 0)
-		delay(10);
-	lcdpower(0);
-}
 
 static void
 lcdinit(void)
 {
 	/* the following line works because main memory is direct mapped */
+	gpioregs->direction |= 
+		GPIO_LDD8_o|GPIO_LDD9_o|GPIO_LDD10_o|GPIO_LDD11_o
+		|GPIO_LDD12_o|GPIO_LDD13_o|GPIO_LDD14_o|GPIO_LDD15_o;
+	gpioregs->altfunc |= 
+		GPIO_LDD8_o|GPIO_LDD9_o|GPIO_LDD10_o|GPIO_LDD11_o
+		|GPIO_LDD12_o|GPIO_LDD13_o|GPIO_LDD14_o|GPIO_LDD15_o;
+	framebuf->palette[0] = Pal0;
 	lcd->dbar1 = framebuf->palette;
 	lcd->lccr3 = pcd<<PCD | 0<<ACB | 0<<API | 1<<VSP | 1<<HSP | 0<<PCP | 0<<OEP;
 	lcd->lccr2 = (Wid-1)<<LPP | vsw<<VSW | efw<<EFW | bfw<<BFW;
@@ -180,10 +180,12 @@ flipscreen(int ls) {
 	if (ls) {
 		gscreen->r = Rect(0, 0, Ht, Wid);
 		gscreen->clipr = gscreen->r;
+		gscreen->width = Ht/2;
 		xgdata.bdata = (uchar *)framebuf->pixel;
 	} else {
 		gscreen->r = Rect(0, 0, Wid, Ht);
 		gscreen->clipr = gscreen->r;
+		gscreen->width = Wid/2;
 		xgdata.bdata = (uchar *)vscreen;
 	}
 	landscape = ls;
@@ -207,6 +209,12 @@ lcdtweak(Cmdbuf *cmd)
 }
 
 void
+screenpower(int on)
+{
+	blankscreen(on == 0);
+}
+
+void
 screeninit(void)
 {
 	int i;
@@ -218,20 +226,25 @@ screeninit(void)
 
 	vscreen = xalloc(sizeof(ushort)*Wid*Ht);
 
-	framebuf->palette[0] = Pal0;
-
 	lcdpower(1);
 	lcdinit();
 
 	gscreen = &xgscreen;
+
 	xgdata.ref = 1;
 	i = 0;
 	if (landscape) {
+		gscreen->r = Rect(0, 0, Ht, Wid);
+		gscreen->clipr = gscreen->r;
+		gscreen->width = Ht/2;
 		xgdata.bdata = (uchar *)framebuf->pixel;
 		while (i < Wid*Ht*1/3)	framebuf->pixel[i++] = 0xf800;	/* red */
-		while (i < Wid*Ht*2/3)	framebuf->pixel[i++] = 0xffff;	/* white */
+		while (i < Wid*Ht*2/3)	framebuf->pixel[i++] = 0xffff;		/* white */
 		while (i < Wid*Ht*3/3)	framebuf->pixel[i++] = 0x001f;	/* blue */
 	} else {
+		gscreen->r = Rect(0, 0, Wid, Ht);
+		gscreen->clipr = gscreen->r;
+		gscreen->width = Wid/2;
 		xgdata.bdata = (uchar *)vscreen;
 		while (i < Wid*Ht*1/3)	vscreen[i++] = 0xf800;	/* red */
 		while (i < Wid*Ht*2/3)	vscreen[i++] = 0xffff;	/* white */
@@ -248,6 +261,8 @@ screeninit(void)
 	blanktime = 3;	/* minutes */
 
 	screenwin();
+//	screenputs = bitsyscreenputs;
+	screenputs = nil;
 }
 
 void
@@ -304,7 +319,18 @@ setcolor(ulong p, ulong r, ulong g, ulong b)
 void
 blankscreen(int blank)
 {
+	int cnt;
+
 	if (blank) {
+		lcd->lccr0 &= ~(1<<LEN);	/* disable the LCD */
+		cnt = 0;
+		while((lcd->lcsr & (1<<LDD)) == 0) {
+			delay(10);
+			if (++cnt == 100) {
+				iprint("LCD doesn't stop\n");
+				break;
+			}
+		}
 		lcdpower(0);
 	} else {
 		lcdpower(1);
@@ -312,8 +338,8 @@ blankscreen(int blank)
 	}
 }
 
-void
-screenputs(char *s, int n)
+static void
+bitsyscreenputs(char *s, int n)
 {
 	int i;
 	Rune r;

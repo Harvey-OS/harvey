@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+HFILES=paqfs.h
+
+TARG=mkpaqfs\
+	paqfs\
+
+OFILES=
+
+PROGS=${TARG:%=$O.%}
+
+BIN=/$objtype/bin
+
+all:V:
+
+< /sys/src/cmd/mkmany
+

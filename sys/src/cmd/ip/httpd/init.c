@@ -29,9 +29,9 @@ init(int argc, char **argv)
 	connect.private = &priv;
 	priv.remotesys = nil;
 	priv.remoteserv = nil;
-	fmtinstall('D', hdateconv);
-	fmtinstall('H', httpconv);
-	fmtinstall('U', hurlconv);
+	fmtinstall('D', hdatefmt);
+	fmtinstall('H', httpfmt);
+	fmtinstall('U', hurlfmt);
 	netdir = "/net";
 	ARGBEGIN{
 	case 'b':

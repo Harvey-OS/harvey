@@ -1,6 +1,6 @@
 .TH GETFIELDS 2
 .SH NAME
-getfields, tokenize \- break a string into fields
+getfields, gettokens, tokenize \- break a string into fields
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -12,6 +12,9 @@ int	getfields(char *str, char **args, int maxargs, int multiflag,
 .br
 .B
 	    char *delims)
+.PP
+.B
+int	gettokens(char *str, char **args, int maxargs, char *delims)
 .PP
 .B
 int	tokenize(char *str, char **args, int maxargs)
@@ -55,22 +58,27 @@ argument is not zero,
 a field is a non-empty string of non-delimiters.
 .PP
 Getfields
-return the number of tokens processed.
+returns the number of tokens processed.
 .PP
-.I Tokenize
+.I Gettokens
 is the same as
 .I getfields
 with
 .I multiflag
-non-zero and
-.I delims
-\f5"\et\er\en "\fP,
+non-zero,
 except that fields may be quoted using single quotes, in the manner
 of
 .IR rc (1).
 See
 .IR quote (2)
 for related quote-handling software.
+.PP
+.I Tokenize
+is
+.I gettokens
+with 
+.I delims
+set to \f5"\et\er\en "\fP.
 .SH SOURCE
 .B /sys/src/libc/port/tokenize.c
 .SH SEE ALSO

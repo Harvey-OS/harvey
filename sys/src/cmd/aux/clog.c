@@ -11,7 +11,7 @@ openlog(char *name)
 
 	fd = open(name, OWRITE);
 	if(fd < 0)
-		fd = create(name, OWRITE, CHAPPEND|0666);
+		fd = create(name, OWRITE, DMAPPEND|0666);
 	if(fd < 0){
 		fprint(2, "%s: can't open %s: %r\n", argv0, name);
 		return -1;

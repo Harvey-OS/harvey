@@ -1,6 +1,6 @@
 .TH DISK 2
 .SH NAME
-opendisk, biosfake \- generic disk device interface
+opendisk, Disk \- generic disk device interface
 .SH SYNOPSIS
 .nf
 .ft L

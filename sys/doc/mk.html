@@ -1,0 +1,1594 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Maintaining Files on Plan 9 with Mk
+</H1>
+<DL><DD><I>Andrew G. Hume<br>
+andrew@research.att.com<br>
+Bob Flandrena<br>
+bobf@plan9.bell-labs.com<br>
+</I></DL>
+<DL><DD><H4>ABSTRACT</H4>
+<P>
+<TT>Mk</TT>
+is a tool
+for describing and maintaining dependencies between
+files.
+It is similar to the
+UNIX program
+<TT>make</TT>,
+but provides several extensions.
+<TT>Mk's</TT>
+flexible rule specifications, implied
+dependency derivation, and parallel
+execution of maintenance actions are
+well-suited to the Plan 9 environment.
+Almost all Plan 9 maintenance procedures
+are automated using
+<TT>mk</TT>.
+</DL>
+</P>
+<H4>1 Introduction
+</H4>
+<P>
+This document describes how
+<TT>mk</TT>,
+a program functionally similar to
+<TT>make</TT>
+[Feld79],
+is used to maintain dependencies between
+files in Plan 9.
+<TT>Mk</TT>
+provides several extensions to the
+capabilities of its predecessor that work
+well in Plan 9's distributed, multi-architecture
+environment.  It
+exploits the power of multiprocessors by executing
+maintenance actions in parallel and interacts with
+the Plan 9 command interpreter
+<TT>rc</TT>
+to provide a powerful set of maintenance tools.
+It accepts pattern-based dependency specifications
+that are not limited to describing
+rules for program construction.
+The result is a tool that is flexible enough to
+perform many maintenance tasks including
+database maintenance,
+hardware design, and document production.
+</P>
+<P>
+This document begins by discussing 
+the syntax of the control file,
+the pattern matching capabilities, and
+the special rules for maintaining archives.
+A brief description of
+<TT>mk's</TT>
+algorithm for deriving dependencies
+is followed by a discussion
+of the conventions used to resolve ambiguous
+specifications.  The final sections
+describe parallel execution
+and special features.
+</P>
+<P>
+An earlier paper [Hume87]
+provides a detailed discussion of
+<TT>mk's</TT>
+design and an appendix summarizes
+the differences between
+<TT>mk</TT>
+and
+<TT>make</TT>.
+</P>
+<H4>2 The <TT>Mkfile</TT>
+</H4>
+<P>
+<TT>Mk</TT>
+reads a file describing relationships among files
+and executes commands to bring the files up to date.
+The specification file, called a
+<TT>mkfile</TT>,
+contains three types of statements:
+assignments, includes, and rules.
+Assignment and include statements are similar
+to those in C.
+Rules specify dependencies between a
+<I>target</I>
+and its
+<I>prerequisites</I>.
+When the target and prerequisites are files, their
+modification times determine if they
+are out of date.  Rules often contain a
+<I>recipe</I>,
+an
+<A href="/magic/man2html/1/rc"><I>rc</I>(1)
+</A>script that produces the target from
+the prerequisites.
+</P>
+<P>
+This simple
+<TT>mkfile</TT>
+produces an executable
+from a C source file:
+<DL><DT><DD><TT><PRE>
+CC=pcc
+f1:	f1.c
+	$CC -o f1 f1.c
+</PRE></TT></DL>
+The first line assigns the name of the portable ANSI/POSIX compiler
+to the
+<TT>mk</TT>
+variable
+<TT>CC</TT>;
+subsequent references of the form
+<TT>$CC</TT>
+select this compiler.
+The only rule specifies a dependence between the target file
+<TT>f1</TT>
+and the prerequisite file
+<TT>f1.c</TT>.
+If the target does not exist or if the
+prerequisite has been modified more recently than
+the target,
+<TT>mk</TT>
+passes the recipe to
+<TT>rc</TT>
+for execution.  Here,
+<TT>f1.c</TT>
+is compiled and loaded to produce
+<TT>f1</TT>.
+</P>
+<P>
+The native Plan 9 environment
+requires executables for
+all architectures, not only the current one.
+The Plan 9 version of the same
+<TT>mkfile</TT>
+looks like:
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+f1:	f1.$O
+	$LD $LDFLAGS -o f1 f1.$O
+f1.$O:	f1.c
+	$CC $CFLAGS f1.c
+</PRE></TT></DL>
+The first line is an include statement
+that replaces itself with the contents of the file
+<TT>/$objtype/mkfile</TT>.
+The variable
+<TT>$objtype</TT>
+is inherited from the environment and
+contains the name of the target architecture.
+The prototype
+<TT>mkfile</TT>
+for that architecture defines architecture-specific variables:
+<TT>CC</TT>
+and
+<TT>LD</TT>
+are the names of the compiler and loader,
+<TT>O</TT>
+is the code character of the architecture.
+The rules compile the source file into an object
+file and invoke the loader to produce
+<TT>f1</TT>.
+Invoking
+<TT>mk</TT>
+from the command line as follows
+<DL><DT><DD><TT><PRE>
+% objtype=mips mk
+vc -w f1.c
+vl $LDFLAGS -o f1 f1.k
+%
+</PRE></TT></DL>
+produces the
+<TT>mips</TT>
+executable of program
+<TT>f1</TT>
+regardless of the current architecture type.
+</P>
+<P>
+We can extend the
+<TT>mkfile</TT>
+to build two programs:
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+ALL=f1 f2
+
+all:V:	$ALL
+
+f1:	f1.$O
+	$LD $LDFLAGS -o f1 f1.$O
+f1.$O:	f1.c
+	$CC $CFLAGS f1.c
+f2:	f2.$O
+	$LD $LDFLAGS -o f2 f2.$O
+f2.$O:	f2.c
+	$CC $CFLAGS f2.c
+</PRE></TT></DL>
+The target
+<TT>all</TT>,
+modified by the
+<I>attribute</I>
+<TT>V</TT>,
+builds both programs.
+The attribute identifies 
+<TT>all</TT>
+as a dummy target that is
+not related to a file of the same name;
+its precise effect is explained later.
+This example describes cascading dependencies:
+the first target depends on another which depends on a third and
+so on.
+Here, individual rules build each
+program; later we'll see how to do this with a
+general rule.
+</P>
+<H4>3 Variables and the environment
+</H4>
+<P>
+<TT>Mk</TT>
+does not distinguish between its
+internal variables and
+<TT>rc</TT>
+variables in the environment.
+When
+<TT>mk</TT>
+starts, it imports each environment variable into a
+<TT>mk</TT>
+variable of the same name.  Before executing a recipe,
+<TT>mk</TT>
+exports all variables, including those
+inherited from the environment,
+to the environment in which
+<TT>rc</TT>
+executes the recipe.
+</P>
+<P>
+There are several ways for a
+variable to take a value.
+It can be set with an assignment statement,
+inherited from the environment, or specified
+on the command line.
+<TT>Mk</TT>
+also maintains several special internal variables
+that are described in
+<A href="/magic/man2html/1/mk"><I>mk</I>(1).
+</A>Assignments have the following decreasing order of precedence:
+</P>
+<br>&#32;<br>
+<DL><DT><DD>
+1)  Command line assignment
+<br>
+2)  Assignment statement
+<br>
+3)  Imported from the environment
+<br>
+4)  Implicitly set by <TT>mk</TT>
+</DL>
+<br>&#32;<br>
+For example, a command line assignment overrides
+a value imported from the environment.
+<P>
+All variable values are strings.  They can be
+used for pattern matching and
+comparison but not for arithmetic.
+A
+<I>list</I>
+is a string containing several values separated by
+white space.  Each member is
+handled individually during pattern matching,
+target selection, and prerequisite evaluation.
+</P>
+<P>
+A
+<I>namelist</I>
+is a list produced by
+transforming the members of an existing list.
+The transform applies a pattern to each member,
+replacing each matched string with a new string,
+much as in the substitute command in
+<A href="/magic/man2html/1/sam"><I>sam</I>(1)
+</A>or
+<A href="/magic/man2html/1/ed"><I>ed</I>(1).
+</A>The syntax is
+<DL><DT><DD><TT><PRE>
+${<I>var</I>:A%B=C%D}
+</PRE></TT></DL>
+where
+<I>var</I>
+is a variable.
+The pattern
+<TT>A%B</TT>
+matches a member beginning with the string
+<I>A</I>
+and ending with the string
+<I>B</I>
+with any string in between;
+it behaves like the regular expression
+<TT>A.*B</TT>.
+When a member of the
+<I>var</I>
+list
+matches this pattern,
+the string
+<I>C</I>
+replaces
+<I>A</I>,
+<I>D</I>
+replaces
+<I>B</I>,
+and the matched string replaces itself.
+Any of
+<I>A</I>,
+<I>B</I>,
+<I>C</I>,
+or
+<I>D</I>
+may be the empty string.  In effect, a namelist is
+generated by applying the
+<A href="/magic/man2html/1/ed"><I>ed</I>(1)
+</A>substitute command
+<DL><DT><DD><TT><PRE>
+	s/<I>A</I>(.*)<I>B</I>/<I>C</I>\1<I>D</I>/
+</PRE></TT></DL>
+to each member of a variable list.
+</P>
+<P>
+Namelists are useful for generating
+a list based on a predictable transformation.
+For example,
+<DL><DT><DD><TT><PRE>
+	SRC=a.c b.c c.c
+	OBJ=${SRC:%.c=%.v}
+</PRE></TT></DL>
+assigns the list <TT>(a.v b.v c.v)</TT> to
+<TT>OBJ</TT>.
+A namelist may be used anywhere a variable is allowed
+except in a recipe.
+</P>
+<P>
+Command output is assigned to a variable
+using the normal
+<TT>rc</TT>
+syntax:
+<DL><DT><DD><TT><PRE>
+	var=`{rc command}
+</PRE></TT></DL>
+The command executes in an environment populated
+with previously assigned variables, including those
+inherited from
+<TT>mk's</TT>
+execution environment.
+The command may
+be arbitrarily complex; for example,
+<DL><DT><DD><TT><PRE>
+	TARG=`{ls -d *.[cy] | sed 's/..$//'}
+</PRE></TT></DL>
+assigns a list of the C and yacc source files in the current
+directory, stripped of their suffix, to the variable
+<TT>TARG</TT>.
+</P>
+<H4>4 The include statement
+</H4>
+<P>
+The include statement
+replaces itself with the contents of a file.
+It is functionally similar to the C
+<TT>#include</TT>
+statement but uses a different syntax:
+<DL><DT><DD><TT><PRE>
+	&#60;<I>filename</I>
+</PRE></TT></DL>
+The contents of the file are evaluated
+as they are read.
+An include statement may be used anywhere except
+in a recipe.
+</P>
+<P>
+Unlike
+<TT>make</TT>,
+<TT>mk</TT>
+has no built-in rules.  Instead,
+the include statement allows generic rules
+to be imported from a prototype
+<TT>mkfile</TT>;
+most Plan 9
+<TT>mkfiles</TT>
+use this approach [Flan95].
+</P>
+<H4>5 Rules
+</H4>
+<P>
+A rule has four elements: targets,
+prerequisites, attributes, and a recipe.
+It has the form:
+<DL><DT><DD><TT><PRE>
+<I>targets</I>:<I>attributes</I>:<I>prerequisites</I>
+	<I>recipe</I>
+</PRE></TT></DL>
+The first line, containing the
+targets, attributes, and prerequisites is
+the
+<I>rule header</I>;
+it
+must begin at the left margin.
+The recipe contains zero or more lines,
+each of which begins with white space.
+One or more targets must be specified but the
+attributes, prerequisites, and recipe are optional.
+A rule specifies
+a dependency between the target(s) and its prerequisite(s),
+the recipe brings the target(s)
+up to date with the prerequisite(s) and
+attributes modify
+<TT>mk's</TT>
+evaluation of the dependency.
+</P>
+<P>
+Normally the target is a file that depends
+on one or more prerequisite files.
+<TT>Mk</TT>
+compares the modification times of each target
+and each prerequisite; a target is considered out of date
+when it does not exist or when a prerequisite has been modified
+more recently.
+When a target is out of date,
+<TT>mk</TT>
+executes the
+recipe to bring it up to date.
+When the recipe completes,
+the modification time of the target is checked and
+used in later dependency evaluations.
+If the recipe does not update the target,
+evaluation continues with the out of date target.
+</P>
+<P>
+A prerequisite of one rule
+may be the target of another.  When
+this happens, the rules cascade
+to define a multi-step procedure.
+For example,
+an executable target depends on prerequisite
+object files, each of which is a target
+in a rule with a C source file as the prerequisite.
+<TT>Mk</TT>
+follows a chain of dependencies until it encounters
+a prerequisite that is not a target of another rule
+or it finds a target that
+is up to date.  It then
+executes the recipes in reverse order to produce
+the desired target.
+</P>
+<P>
+The rule header is evaluated when the rule is read.
+Variables are replaced by their values, namelists are
+generated, and
+commands are replaced by their
+output at this time.
+</P>
+<P>
+Most attributes modify
+<TT>mk's</TT>
+evaluation of a rule.
+An attribute is usually a single letter but some
+are more complicated.
+This paper only discusses commonly used attributes;
+see
+<A href="/magic/man2html/1/mk"><I>mk</I>(1)
+</A>for a complete list.
+</P>
+<P>
+The
+<TT>V</TT>
+attribute identifies a
+<I>virtual</I>
+target;
+that is, a target that is not a file.
+For example,
+<DL><DT><DD><TT><PRE>
+clean:V:
+	rm *.$O $O.out
+</PRE></TT></DL>
+removes executables and compiler intermediate files.
+The target is virtual because it does not refer to a file named
+<TT>clean</TT>.
+Without the attribute, the recipe would not be
+executed if a file named
+<TT>clean</TT>
+existed.
+The
+<TT>Q</TT>
+attribute
+silences the printing of a recipe before
+execution.
+It is useful when the output of a recipe is
+similar to the recipe:
+<DL><DT><DD><TT><PRE>
+default:QV:
+	echo 'No default target; use mk all or mk install'
+</PRE></TT></DL>
+</P>
+<P>
+The recipe is an
+<TT>rc</TT>
+script.  It is optional but when it is
+missing, the rule is handled specially, as described later.
+Unlike
+<TT>make</TT>,
+<TT>mk</TT>
+executes recipes without interpretation.
+After
+stripping the first white space character from each line
+it passes the entire recipe to
+<TT>rc</TT>
+on standard input.
+Since
+<TT>mk</TT>
+does not interpret a recipe,
+escape conventions are exactly those of
+<TT>rc</TT>.
+Scripts for
+<TT>awk</TT>
+and
+<TT>sed</TT>
+commands can be embedded exactly as they would
+be entered from the command line.
+<TT>Mk</TT>
+invokes
+<TT>rc</TT>
+with the
+<TT>-e</TT>
+flag, which causes
+<TT>rc</TT>
+to stop if any command
+in the recipe exits with a non-zero status; the
+<TT>E</TT>
+attribute overrides this behavior and allows
+<TT>rc</TT>
+to continue executing in the face of errors.
+Before a recipe is executed, variables are exported
+to the environment where they are available to
+<TT>rc</TT>.
+Commands in the recipe may not read from
+standard input because
+<TT>mk</TT>
+uses it internally.
+</P>
+<P>
+References to a variable can yield different
+values depending on the location of the
+reference in the
+<TT>mkfile</TT>.
+<TT>Mk</TT>
+resolves variable references
+in assignment statements and rule headers
+when the statement is read.  Variable references
+in recipes are evaluated by
+<TT>rc</TT>
+when the recipe is executed; this
+happens after the entire
+<TT>mkfile</TT>
+has been read.  The value of a variable in a recipe
+is the last value assigned in the file.  For example,
+<DL><DT><DD><TT><PRE>
+STRING=all
+
+all:VQ:
+	echo $STRING
+STRING=none
+</PRE></TT></DL>
+produces the message
+<TT>none</TT>.
+A variable assignment in a recipe
+does not affect the value of the variable in the
+<TT>mkfile</TT>
+for two reasons.
+First,
+<TT>mk</TT>
+does not import values from
+the environment when a recipe completes;
+one recipe cannot pass a value through
+the environment to another recipe.
+Second, no recipe is executed until 
+<TT>mk</TT>
+has completed its evaluation, so even if a variable
+were changed,
+it would not affect the dependency evaluation.
+</P>
+<H4>6 Metarules
+</H4>
+<P>
+A
+<I>metarule</I>
+is a rule based on a pattern.
+The pattern selects a class of target(s) and 
+identifies related prerequisites.
+<TT>Mk</TT>
+metarules may select targets and prerequisites
+based on any criterion that can be described by a pattern, not just
+the suffix transformations associated with program
+construction.
+</P>
+<P>
+Metarule patterns are either
+<I>intrinsic</I>
+or regular expressions conforming to the
+syntax of
+<A href="/magic/man2html/6/regexp"><I>regexp</I>(6).
+</A>The intrinsic patterns are shorthand
+for common regular expressions.
+The intrinsic pattern
+<TT>%</TT>
+matches one or more of anything; it is equivalent to
+the regular expression
+<TT>`.+'</TT>.
+The other intrinsic pattern,
+<TT>&</TT>,
+matches one or more of any characters except <TT>`/'</TT>
+and <TT>`.'</TT>.
+It matches a portion of a path and is
+equivalent to the regular expression
+<TT>`[^./]+'</TT>.
+An intrinsic pattern in a prerequisite references
+the string matched by the same intrinsic pattern in the target.
+For example, the rule
+<DL><DT><DD><TT><PRE>
+	%.v:	%.c
+</PRE></TT></DL>
+says that a file ending in
+<TT>.v</TT>
+depends on a file of the same name with a
+<TT>.c</TT>
+suffix:
+<TT>foo.v</TT>
+depends on
+<TT>foo.c</TT>,
+<TT>bar.v</TT>
+depends on
+<TT>bar.c</TT>,
+and so on.
+The string matched by an intrinsic pattern in the target
+is supplied to the recipe in the variable
+<TT>$stem</TT>.
+Thus the rule
+<DL><DT><DD><TT><PRE>
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+</PRE></TT></DL>
+creates an object file for the target architecture from
+a similarly named C source file.  If several object
+files are out of date, the rule is applied repeatedly and
+<TT>$stem</TT>
+refers to each file in turn.
+Since there is only one
+<TT>stem</TT>
+variable, there can only be one
+<TT>%</TT>
+or
+<TT>&</TT>
+pattern in a target;
+the pattern
+<TT>%-%.c</TT>
+is illegal.
+</P>
+<P>
+Metarules simplify the
+<TT>mkfile</TT>
+for building programs
+<TT>f1</TT>
+and
+<TT>f2</TT>:
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+ALL=f1 f2
+
+all:V:	$ALL
+
+%:	%.$O
+	$LD -o $target $prereq
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+clean:V:
+	rm -f $ALL *.[$OS]
+</PRE></TT></DL>
+(The variable
+<TT>$OS</TT>
+is a list of code characters for all architectures.)
+Here, metarules specify
+compile and load steps for all C source files.
+The loader rule relies on two internal variables
+set by
+<TT>mk</TT>
+during evaluation of the rule:
+<TT>$target</TT>
+is the name of the target(s) and
+<TT>$prereq</TT>
+the name of all prerequisite(s).
+Metarules allow this
+<TT>mkfile</TT>
+to be easily extended; a new program
+is supported by adding its name to the third line.
+</P>
+<P>
+A regular expression metarule must have an
+<TT>R</TT>
+attribute.
+Prerequisites may reference matching substrings in
+the target using the form
+<TT><I>n</I></TT>
+where
+<I>n</I>
+is a digit from 1 to 9 specifying the
+<I>n</I>th
+parenthesized sub-expression.  In a recipe,
+<TT>$stem<I>n</I></TT>
+is the equivalent reference.
+For example, a compile rule could be
+specified using regular expressions:
+<DL><DT><DD><TT><PRE>
+(.+)\.$O:R:	\1.c
+	$CC $CFLAGS $stem1.c
+</PRE></TT></DL>
+Here,
+<TT>1</TT>
+and
+<TT>$stem1</TT>
+refer to the name of the target object file without the
+suffix.  The variable
+<TT>$stem</TT>
+associated with an intrinsic pattern is undefined
+in a regular expression metarule.
+</P>
+<H4>7 Archives
+</H4>
+<P>
+<TT>Mk</TT>
+provides a special mechanism for maintaining an archive.
+An archive member is referenced using the form
+<TT><I>lib</I>(<I>file</I>)</TT>
+where
+<I>lib</I>
+is the name of the archive and 
+<I>file</I>
+is the name of the member.  Two rules define the
+dependency between an object file and its membership
+in an archive:
+<DL><DT><DD><TT><PRE>
+$LIB(foo.8):N:	foo.8
+$LIB:	$LIB(foo.8)
+	ar rv $LIB foo.8
+</PRE></TT></DL>
+The first rule establishes a dependency between the
+archive member and the object file.
+Normally,
+<TT>mk</TT>
+detects an error when a target does not exist and the rule
+contains no recipe; the
+<TT>N</TT>
+attribute overrides this behavior because the subsequent rule
+updates the member.
+The second
+rule establishes the dependency between the member and
+the archive; its recipe inserts the member
+into the archive.
+This two-step specification allows the modification time
+of the archive
+to represent the state of its members.  Other rules
+can then specify the archive as a prerequisite instead of
+listing each member.
+</P>
+<P>
+A metarule generalizes library maintenance:
+<DL><DT><DD><TT><PRE>
+LIB=lib.a
+OBJS=etoa.$O atoe.$O ebcdic.$O
+
+$LIB(%):N:	%
+$LIB:	${OBJS:%=$LIB(%)}
+	ar rv $LIB $OBJS
+</PRE></TT></DL>
+The namelist prerequisite of the
+<TT>$LIB</TT>
+target generates archive member names for each object file name;
+for example, 
+<TT>etoa.$O</TT>
+becomes
+<TT>lib.a(etoa.$O)</TT>.
+This formulation always updates all members.
+This is acceptable for a small archive, but may 
+be slow for a big one.
+The rule
+<DL><DT><DD><TT><PRE>
+$LIB:	${OBJS:%=$LIB(%)}
+	ar rv $LIB `{membername $newprereq}
+</PRE></TT></DL>
+only updates out of date object files.
+The internal variable
+<TT>$newprereq</TT>
+contains the names of the out of
+date prerequisites.  The
+<TT>rc</TT>
+script
+<TT>membername</TT>
+transforms an archive member specification into a file name:
+it translates
+<TT>lib.a(etoa.$O)</TT>
+into
+<TT>etoa.$O</TT>.
+</P>
+<P>
+The
+<TT>mkfile</TT>
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+LIB=lib.a
+OBJS=etoa.$O atoe.$O ebcdic.$O
+
+prog:	main.$O $LIB
+	$LD -o $target $prereq
+
+$LIB(%):N:	%
+$LIB:	${OBJS:%=$LIB(%)}
+	ar rv $LIB $OBJS
+</PRE></TT></DL>
+builds a program by loading it with a library.
+</P>
+<H4>8 Evaluation algorithm
+</H4>
+<P>
+For each target of interest,
+<TT>mk</TT>
+uses the rules in a
+<TT>mkfile</TT>
+to build a data
+structure called a dependency graph.  The nodes of
+the graph represent targets and prerequisites;
+a directed arc
+from one node to another indicates that
+the file associated with the first node depends
+on the file associated with the second.
+When the
+<TT>mkfile</TT>
+has been completely read, the graph is analyzed.
+In the first step, implied dependencies are resolved by
+computing the
+<I>transitive closure</I>
+of the graph.
+This calculation extends the graph to include all
+targets that are potentially
+derivable from the rules in the
+<TT>mkfile</TT>.
+Next the graph is checked for cycles;
+<TT>make</TT>
+accepts cyclic dependencies, but
+<TT>mk</TT>
+does not allow them.
+Subsequent steps
+prune subgraphs that are irrelevant for producing the
+desired target and verify that there is only one way
+to build it.
+The recipes associated with the
+nodes on the longest path between the
+target and an out of date prerequisite
+are then executed in reverse order.
+</P>
+<P>
+The transitive closure calculation is sensitive to
+metarules; the patterns often select many potential targets
+and cause the graph to grow rapidly.
+Fortunately,
+dependencies associated with the desired target
+usually form a small part of the graph, so, after
+pruning, analysis is tractable.
+For example, the rules
+<DL><DT><DD><TT><PRE>
+%:	x.%
+	recipe1
+x.%:	%.k
+	recipe2
+%.k:	%.f
+	recipe3
+</PRE></TT></DL>
+produce a graph with four nodes for each file in the
+current directory.
+If the desired target is
+<TT>foo</TT>,
+<TT>mk</TT>
+detects the dependency between it
+and the original file
+<TT>foo.f</TT>
+through intermediate dependencies on
+<TT>foo.k</TT>
+and
+<TT>x.foo</TT>.
+Nodes associated with other files are deleted during pruning because
+they are irrelevant to the production of
+<TT>foo</TT>.
+</P>
+<P>
+<TT>Mk</TT>
+avoids infinite cycles by evaluating
+each metarule once.
+Thus, the rule
+<DL><DT><DD><TT><PRE>
+%:	%.z
+	cp $prereq $prereq.z
+</PRE></TT></DL>
+copies the prerequisite file once.
+</P>
+<H4>9 Conventions for evaluating rules
+</H4>
+<P>
+There must be only one
+way to build each target.  However, during evaluation
+metarule patterns often select potential targets that
+conflict with the
+targets of other rules.
+<TT>Mk</TT>
+uses several conventions to resolve ambiguities
+and to select the proper dependencies.
+</P>
+<P>
+When a target selects more than one rule,
+<TT>mk</TT>
+chooses a regular rule
+over a metarule.
+For example, the
+<TT>mkfile</TT>
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+FILES=f1.$O f2.$O f3.$O
+
+prog:	$FILES
+	$LD -o $target $prereq
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+f2.$O:	f2.c
+	$CC f2.c
+</PRE></TT></DL>
+contains two rules that could build
+<TT>f2.$O</TT>.
+<TT>Mk</TT>
+selects the last rule because its target,
+<TT>f2.$O</TT>,
+is explicitly specified, while the 
+<TT>%.$O</TT>
+rule is a metarule.  In effect,
+the explicit rule for
+<TT>f2.$O</TT>
+overrides the general rule for building object files from
+C source files.
+</P>
+<P>
+When a rule has a target and prerequisites but no recipe,
+those prerequisites are added to all other rules with
+recipes that have the same target.
+All prerequisites, regardless of where they were specified, are
+exported to the recipe in variable
+<TT>$prereq</TT>.
+For example, in
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+FILES=f1.$O f2.$O f3.$O
+
+prog:	$FILES
+	$LD -o $target $prereq
+
+%.$O:	hdr.h
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+</PRE></TT></DL>
+the second rule adds
+<TT>hdr.h</TT>
+as a prerequisite of the compile metarule;
+an object file produced from a C source file
+depends on
+<TT>hdr.h</TT>
+as well as the source file.  Notice that the recipe of 
+the compile rule uses
+<TT>$stem.c</TT>
+instead of
+<TT>$prereq</TT>
+because the latter specification would attempt to compile
+<TT>hdr.h</TT>.
+</P>
+<P>
+When a target is virtual and there is no other rule with
+the same target,
+<TT>mk</TT>
+evaluates each prerequisite.
+For example, adding the rule
+<DL><DT><DD><TT><PRE>
+all:V:	prog
+</PRE></TT></DL>
+to the preceding example builds the executable
+when either
+<TT>prog</TT>
+or
+<TT>all</TT>
+is the specified target.  In effect, the
+<TT>all</TT>
+target is an alias for
+<TT>prog</TT>.
+</P>
+<P>
+When two rules have identical rule headers and both have
+recipes, the later rule replaces the former one.
+For example,
+if a file named
+<TT>mkrules</TT>
+contains
+<DL><DT><DD><TT><PRE>
+$O.out:	$OFILES
+	$LD $LFLAGS $OFILES
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+</PRE></TT></DL>
+the
+<TT>mkfile</TT>
+<DL><DT><DD><TT><PRE>
+OFILES=f1.$O f2.$O f3.$O
+
+&#60;mkrules
+
+$O.out:	$OFILES
+	$LD $LFLAGS -l $OFILES -lbio -lc
+</PRE></TT></DL>
+overrides the general loader rule with a special
+rule using a non-standard library search sequence.
+A rule is neutralized by overriding it with a rule
+with a null recipe:
+<DL><DT><DD><TT><PRE>
+&#60;mkrules
+
+$O.out:Q:	$OFILES
+	;
+</PRE></TT></DL>
+The
+<TT>Q</TT>
+attribute suppresses the printing of the semicolon.
+</P>
+<P>
+When a rule has no prerequisites, the recipe is executed
+only when the target does not exist.  For example,
+<DL><DT><DD><TT><PRE>
+marker:
+	touch $target
+</PRE></TT></DL>
+defines a rule to manage a marker file.
+If the file exists, it is considered up to date
+regardless of its modification time.
+When a virtual target has no prerequisites the
+recipe is always executed.
+The
+<TT>clean</TT>
+rule is of this type:
+<DL><DT><DD><TT><PRE>
+clean:V:
+	rm -f [$OS].out *.[$OS]
+</PRE></TT></DL>
+When a rule without prerequisites has multiple targets, the
+extra targets are aliases for the rule.
+For example, in
+<DL><DT><DD><TT><PRE>
+clean tidy nuke:V:
+	rm -f [$OS].out *.[$OS]
+</PRE></TT></DL>
+the
+rule can be invoked by any of three names.
+The first rule in a
+<TT>mkfile</TT>
+is handled specially:
+when
+<TT>mk</TT>
+is invoked without a command line target
+all targets of the first non-metarule are built.
+If that rule has multiple targets, the recipe
+is executed once for each target; normally, the recipe
+of a rule with multiple targets is only executed once.
+</P>
+<P>
+A rule applies to a target only when its prerequisites
+exist or can be derived.  More than one rule may have the
+same target as long as only one rule with a recipe
+remains applicable after the dependency evaluation completes.
+For example, consider a program built from C
+and assembler source files.  Two rules produce
+object files:
+<DL><DT><DD><TT><PRE>
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+</PRE></TT></DL>
+As long as there are not two source files with names like
+<TT><I>foo</I>.c</TT>
+and
+<TT><I>foo</I>.s</TT>,
+<TT>mk</TT>
+can unambiguously select the proper rule.
+If both files exist,
+the rules are ambiguous
+and
+<TT>mk</TT>
+exits with an error message.
+</P>
+<P>
+In Plan 9, many programs consist of portable code stored
+in one directory and architecture-specific source stored in
+another.
+For example, the
+<TT>mkfile</TT>
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+
+FILES=f1.$O f2.$O f3.$O f3.$O
+
+prog:	$FILES
+	$LD -o $target $prereq
+
+%.$O:	%.$c
+	$CC $CFLAGS $stem.c
+
+%.$O:	../port/%.c
+	$CC $CFLAGS ../port/$stem.c
+</PRE></TT></DL>
+builds the program named
+<TT>prog</TT>
+using portable code in directory
+<TT>../port</TT>
+and architecture-specific code in the current directory.
+As long as the
+names of the C source files in 
+<TT>../port</TT>
+do not conflict with the names of files in the current directory,
+<TT>mk</TT>
+selects the appropriate rule to build the object file.
+If like-named files exist in both directories, the
+specification is ambiguous and an explicit target
+must be specified to resolve the ambiguity.
+For example,
+adding the rule
+<DL><DT><DD><TT><PRE>
+f2.$O:	f2.c
+	$CC $CFLAGS $f2.c
+</PRE></TT></DL>
+to the previous
+<TT>mkfile</TT>
+uses the architecture-specific version of
+<TT>f2.c</TT>
+instead of the portable one.
+Here, the explicit rule unambiguously
+documents which of the
+like-named source files is used to build the program.
+</P>
+<P>
+<TT>Mk'</TT>s
+heuristics can produce unintended results
+when rules are not carefully specified.
+For example, the rules that build
+object files from C or assembler source files
+<DL><DT><DD><TT><PRE>
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+</PRE></TT></DL>
+illustrate a subtle pratfall.
+Adding a header file dependency to the compile rule
+<DL><DT><DD><TT><PRE>
+%.$O:	%.c hdr.h
+	$CC $CFLAGS $stem.c
+</PRE></TT></DL>
+produces the error message
+<DL><DT><DD><TT><PRE>
+<TT>don't know how to make '<I>file</I>.c'</TT>
+</PRE></TT></DL>
+when <I>file</I>.s is an assembler
+source file.
+This occurs because 
+<TT><I>file</I>.s</TT>
+satisfies the assemble rule and
+<TT>hdr.h</TT>
+satisfies the compile rule, so
+either rule can potentially produce the target.
+When a prerequisite exists or can be
+derived,
+all other prerequisites in that
+rule header must exist or be derivable; here,
+the existence of
+<TT>hdr.h</TT>
+forces the evaluation of a C source file.
+Specifying the dependencies in different
+rules avoids this interpretation:
+<DL><DT><DD><TT><PRE>
+%.$O:	hdr.h
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+</PRE></TT></DL>
+Although
+<TT>hdr.h</TT>
+is an additional prerequisite of the compile rule,
+the two rules are evaluated independently and
+the existence of the C source file is not linked
+to the existence of the header file.
+However, this specification describes a different
+dependency.  Originally, only object
+files derived from C files depended on
+<TT>hdr.h</TT>;
+now all object files, including those built
+from assembler source, depend on the header file.
+</P>
+<P>
+Metarule patterns should be as restrictive as possible to
+prevent conflicts with other rules.
+Consider the
+<TT>mkfile</TT>
+<DL><DT><DD><TT><PRE>
+&#60;/$objtype/mkfile
+BIN=/$objtype/bin
+PROG=foo
+
+install:V:	$BIN/$PROG
+
+%:	%.c
+	$CC $stem.c
+	$LD -o $target $stem.$O
+
+$BIN/%:	%
+	mv $stem $target
+</PRE></TT></DL>
+The first target builds an executable
+in the local directory; the second
+installs it in the directory
+of executables for the architecture.
+Invoking
+<TT>mk</TT>
+with the
+<TT>install</TT>
+target produces:
+<DL><DT><DD><TT><PRE>
+mk: ambiguous recipes for /mips/bin/foo:
+/mips/bin/foo &#60;-(mkfile:8)- /mips/bin/foo.c &#60;-(mkfile:12)- foo.c
+/mips/bin/foo &#60;-(mkfile:12)- foo &#60;-(mkfile:8)- foo.c
+</PRE></TT></DL>
+The prerequisite of the
+<TT>install</TT>
+rule,
+<TT>$BIN/$PROG</TT>,
+matches both metarules because the
+<TT>%</TT>
+pattern matches everything.
+The
+<TT>&</TT>
+pattern restricts the compile rule to files in the
+current directory and avoids the conflict:
+<DL><DT><DD><TT><PRE>
+&amp;:	&amp;.c
+	$CC $stem.c
+	$LD -o $target $stem.$O
+</PRE></TT></DL>
+</P>
+<H4>10 Missing intermediates
+</H4>
+<P>
+<TT>Mk</TT>
+does not build a missing intermediate file if a target
+is up to date with the prerequisites of the intermediate.
+For example,
+when an executable is up to date with its source file,
+<TT>mk</TT>
+does not compile the source to create a missing object file.
+The evaluation only applies
+when a target is considered up to date by pretending that the
+intermediate exists.  Thus, it does not apply
+when the intermediate is a command line target
+or when it has no prerequisites.
+</P>
+<P>
+This capability is useful for
+maintaining archives.  We can modify the archive
+update recipe to remove object files after
+they are archived:
+<DL><DT><DD><TT><PRE>
+$LIB(%):N:	%
+$LIB:	${OBJS:%=$LIB(%)}
+	names=`{membername $newprereq}
+	ar rv $LIB $names
+	rm -f $names
+</PRE></TT></DL>
+A subsequent
+<TT>mk</TT>
+does not remake the object files as long as the members
+of the archive remain up to date with the source files.
+The
+<TT>-i</TT>
+command line option overrides this behavior
+and causes all intermediates to be built.
+</P>
+<H4>11 Alternative out-of-date determination
+</H4>
+<P>
+Sometimes the modification time is not useful
+for deciding when a target and prerequisite are out of date.
+The
+<TT>P</TT>
+attribute replaces the default mechanism with the result of
+a command.  The command immediately follows the attribute
+and is repeatedly executed with each
+target and each prerequisite as its arguments;
+if its exit status is non-zero, they are considered out of date
+and the recipe is executed.  Consider the
+<TT>mkfile</TT>
+<DL><DT><DD><TT><PRE>
+foo.ref:Pcmp -s:	foo
+	cp $prereq $target
+</PRE></TT></DL>
+The command
+<DL><DT><DD><TT><PRE>
+cmp -s foo.ref foo
+</PRE></TT></DL>
+is executed and if 
+<TT>foo.ref</TT>
+differs from
+<TT>foo</TT>,
+the latter file is copied to the former.
+</P>
+<H4>12 Parallel processing
+</H4>
+<P>
+When possible,
+<TT>mk</TT>
+executes recipes in parallel.
+The variable
+<TT>$NPROC</TT>
+specifies the maximum number of simultaneously executing
+recipes.
+Normally it is imported from the environment,
+where the system has set it to the number of available processors.
+It can be decreased by assigning a new
+value and can be set to 1 to force single-threaded recipe execution.
+This is necessary when several targets access
+a common resource such as
+a status file or data base.
+When there is no dependency between targets,
+<TT>mk</TT>
+assumes the
+recipes can be
+executed concurrently.
+Normally, this allows
+multiple prerequisites to be built simultaneously;
+for example, the object file prerequisites of
+a load rule can be produced by compiling the source files in parallel.
+<TT>Mk</TT>
+does not define the order of execution of independent recipes.
+When the prerequisites of a rule are not independent,
+the dependencies between them should be specified in a rule or the
+<TT>mkfile</TT>
+should be single-threaded.
+For example, the archive update rules
+<DL><DT><DD><TT><PRE>
+$LIB(%):N:	%
+$LIB:	${OBJS:%=$LIB(%)}
+	ar rv $LIB `{membername $newprereq}
+</PRE></TT></DL>
+compile source files in parallel but update
+all members of the archive at once.
+It is a mistake to merge the two rules
+<DL><DT><DD><TT><PRE>
+$LIB(%):	%
+	ar rv $LIB $stem
+</PRE></TT></DL>
+because an
+<TT>ar</TT>
+command is executed for every
+member of the library.  Not only is this
+inefficient, but the archive is updated
+in parallel, making interference likely.
+</P>
+<P>
+The
+<TT>$nproc</TT>
+environment variable contains a number associated
+with the processor executing a recipe.
+It can be used to create unique
+names when the
+recipe may be executing simultaneously on several processors.
+Other maintenance tools provide mechanisms to control recipe
+scheduling explicitly [Cmel86], but
+<TT>mk's</TT>
+general rules are sufficient for all but the most unusual cases.
+</P>
+<H4>13 Deleting target files on errors
+</H4>
+<P>
+The
+<TT>D</TT>
+attribute
+causes
+<TT>mk</TT>
+to remove the target file when a
+recipe terminates prematurely.
+The error message describing the
+termination condition warns
+of the deletion.
+A partially built file is doubly dangerous:
+it is not only wrong, but is also
+considered to be up to date so
+a subsequent
+<TT>mk</TT>
+will not rebuild it.  For example,
+<DL><DT><DD><TT><PRE>
+pic.out:D:	mk.ms
+		pic $prereq | tbl | troff -ms &#62; $target
+</PRE></TT></DL>
+produces the message
+<DL><DT><DD><TT><PRE>
+<TT>mk: pic mk.ms | ...  : exit status=rc 685: deleting 'pic.out'</TT>
+</PRE></TT></DL>
+if any program in the recipe exits with an error status.
+</P>
+<H4>14 Unspecified dependencies
+</H4>
+<P>
+The
+<TT>-w</TT>
+command line flag forces the
+files following the flag to be treated
+as if they were just modified.
+We can use this flag with a command that selects files
+to force a build based on the selection criterion.
+For example, if the declaration of
+a global variable named
+<I>var</I>
+is changed in a header file,
+all source files that reference
+it can be rebuilt with the command
+<DL><DT><DD><TT><PRE>
+$ mk -w`{grep -l <I>var</I> *.[cyl]}
+</PRE></TT></DL>
+</P>
+<H4>15 Conclusion
+</H4>
+<P>
+There are many programs related to
+<TT>make</TT>,
+each choosing a different balance between
+specialization and generality.
+<TT>Mk</TT>
+emphasizes generality but allows
+customization through its pattern specifications and
+include facilities.
+</P>
+<P>
+Plan 9 presents a difficult maintenance environment
+with its heterogeneous
+architectures and languages.
+<TT>Mk's</TT>
+flexible specification language and simple
+interaction with
+<TT>rc</TT>
+work well in this environment.
+As a result,
+Plan 9 relies on
+<TT>mk</TT>
+to automate almost all maintenance.
+Tasks as diverse as updating the
+network data base, producing the manual,
+or building a release are expressed as
+<TT>mk</TT>
+procedures.
+</P>
+<H4>16 References
+</H4>
+<br>&#32;<br>
+[Cmel86] R. F. Cmelik,
+``Concurrent Make: A Distributed Program in Concurrent C'',
+AT&amp;T Bell Laboratories Technical Report, 1986.
+<br>&#32;<br>
+[Feld79] S. I. Feldman,
+``Make &#173; a program for maintaining computer programs'',
+Software Practice &amp; Experience ,
+1979
+Vol 9 #4,
+pp. 255-266.
+<br>&#32;<br>
+[Flan95] Bob Flandrena,
+``Plan 9 Mkfiles'',
+this volume.
+<br>&#32;<br>
+[Hume87] A. G. Hume,
+``Mk: A Successor to Make'',
+USENIX Summer Conf. Proc.,
+Phoenix, Az.
+<H4>17 Appendix: Differences between
+<TT>make</TT>
+and
+<TT>mk</TT>
+</H4>
+<P>
+The differences between
+<TT>mk</TT>
+and
+<TT>make</TT>
+are:
+</P>
+<DL COMPACT>
+<DT>*<DD>
+<TT>Make</TT>
+builds targets when it needs them, allowing systematic use of side effects.
+<TT>Mk</TT>
+constructs the entire dependency graph before building any target.
+<DT>*<DD>
+<TT>Make</TT>
+supports suffix rules and
+<TT>%</TT>
+metarules.
+<TT>Mk</TT>
+supports
+<TT>%</TT>
+and regular expression metarules.
+(Older versions of
+<TT>make</TT>
+support only suffix rules.)
+<DT>*<DD>
+<TT>Mk</TT>
+performs transitive closure on metarules,
+<TT>make</TT>
+does not.
+<DT>*<DD>
+<TT>Make</TT>
+supports cyclic dependencies,
+<TT>mk</TT>
+does not.
+<DT>*<DD>
+<TT>Make</TT>
+evaluates recipes one line at a time, replacing variables by their values and
+executing some commands internally.
+<TT>Mk</TT>
+passes the entire recipe to the shell without
+interpretation or internal execution.
+<DT>*<DD>
+<TT>Make</TT>
+supports parallel execution of single-line recipes when building
+the prerequisites for specified targets.
+<TT>Mk</TT>
+supports parallel execution of all recipes.
+(Older versions of
+<TT>make</TT>
+did not support parallel execution.)
+<DT>*<DD>
+<TT>Make</TT>
+uses special targets (beginning with a period)
+to indicate special processing.
+<TT>Mk</TT>
+uses attributes to modify rule evaluation.
+<DT>*<DD>
+<TT>Mk</TT>
+supports virtual
+targets that are independent of the file system.
+<DT>*<DD>
+<TT>Mk</TT>
+allows non-standard out-of-date determination,
+<TT>make</TT>
+does not.
+</dl>
+<P>
+It is usually easy to convert a
+<TT>makefile</TT>
+to or from an equivalent
+<TT>mkfile</TT>.
+</P>
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

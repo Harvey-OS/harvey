@@ -28,7 +28,7 @@
 
 
 // frequency of the tod clock
-#define TODFREQ	1000000000LL
+#define TODFREQ	1000000000ULL
 
 struct {
 	ulong	cnt;
@@ -38,9 +38,9 @@ struct {
 	vlong	last;		// last reading of fast clock
 	vlong	off;		// offset from epoch to last
 	vlong	lasttime;	// last return value from todget
-	vlong	delta;		// add 'delta' each slow clock tick from sstart to send
-	ulong	sstart;		// ...
-	ulong	send;		// ...
+	vlong	delta;	// add 'delta' each slow clock tick from sstart to send
+	ulong	sstart;	// ...
+	ulong	send;	// ...
 } tod;
 
 void
@@ -61,7 +61,10 @@ todsetfreq(vlong f)
 {
 	ilock(&tod);
 	tod.hz = f;
+
+	/* calculate multiplier for time conversion */
 	tod.multiplier = (TODFREQ<<31)/f;
+
 	iunlock(&tod);
 }
 
@@ -179,4 +182,14 @@ seconds(void)
 	x = x/TODFREQ;
 	i = x;
 	return i;
+}
+
+//  convert milliseconds to fast ticks
+//
+uvlong
+ms2fastticks(ulong ms)
+{
+	if(tod.hz == 0)
+		fastticks((uvlong*)&tod.hz);
+	return (tod.hz*ms)/1000ULL;
 }

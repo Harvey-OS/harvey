@@ -43,7 +43,7 @@ dopoly(int cmd, Image *dst, Point *pp, int np, int end0, int end1, int radius, I
 	a = bufimage(dst->display, 1+4+2+4+4+4+4+2*4+(u-t));
 	if(a == 0){
 		free(t);
-		_drawprint(2, "image poly: %r\n");
+		fprint(2, "image poly: %r\n");
 		return;
 	}
 	a[0] = cmd;

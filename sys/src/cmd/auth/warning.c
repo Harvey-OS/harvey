@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <auth.h>
-#include "authsrv.h"
+#include "authcmdlib.h"
 
 /* working directory */
 Dir	*dirbuf;
@@ -70,35 +70,10 @@ dodir(Fs *f)
 		complain("can't open %s: %r\n", f->keys);
 		return;
 	}
-	nfiles = readdirect(fd);
+	nfiles = dirreadall(fd, &dirbuf);
 	close(fd);
 	for(i = 0; i < nfiles; i++)
 		douser(f, dirbuf[i].name);
-}
-
-/*
- * Read a whole directory before doing anything.
- */
-long
-readdirect(int fd)
-{
-	enum
-	{
-		N = 32
-	};
-	long m, n;
-
-	m = 1;	/* prime the loop */
-	for(n=0; m>0; n+=m/sizeof(Dir)){
-		if(n == ndirbuf){
-			dirbuf = realloc(dirbuf, (ndirbuf+N)*sizeof(Dir));
-			if(dirbuf == 0)
-				error("memory allocation");
-			ndirbuf += N;
-		}
-		m = dirread(fd, dirbuf+n, (ndirbuf-n)*sizeof(Dir));
-	}
-	return n;
 }
 
 /*
@@ -108,7 +83,7 @@ void
 douser(Fs *f, char *user)
 {
 	int n, nwarn;
-	char buf[2*NAMELEN+2];
+	char buf[128];
 	long rcvrs, et, now;
 	char *l;
 
@@ -218,7 +193,7 @@ mail(Fs *f, char *rcvr, char *user, long et)
 	int pid, i, fd;
 	int pfd[2];
 	char *ct, *p;
-	Waitmsg w;
+	Waitmsg *w;
 	char buf[128];
 
 	if(pipe(pfd) < 0){
@@ -258,17 +233,21 @@ mail(Fs *f, char *rcvr, char *user, long et)
 
 		/* wait for warning to be mailed */
 		for(;;){
-			i = wait(&w);
-			if(i < 0)
+			w = wait();
+			if(w == nil)
 				break;
-			if(i == pid){
+			if(w->pid == pid){
 				if(debug)
-					fprint(2, "%d terminated: %s\n", pid, w.msg);
-				if(w.msg[0] == 0)
+					fprint(2, "%d terminated: %s\n", pid, w->msg);
+				if(w->msg[0] == 0){
+					free(w);
 					break;
-				else
+				}else{
+					free(w);
 					return 0;
-			}
+				}
+			}else
+				free(w);
 		}
 		return 1;
 	}
@@ -302,7 +281,7 @@ complain(char *fmt, ...)
 	s = buf;
 	s += sprint(s, "%s: ", argv0);
 	va_start(arg, fmt);
-	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
+	s = vseprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
 	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);

@@ -43,6 +43,10 @@ main(int argc, char *argv[])
 		if(c >= 0 && c < sizeof(debug))
 			debug[c]++;
 		break;
+	case 'u':
+		debug['r'] = 1;
+		undefs = ARGF();
+		break;
 	case 'o':
 		outfile = ARGF();
 		break;
@@ -79,6 +83,12 @@ main(int argc, char *argv[])
 	if(*argv == 0) {
 		diag("usage: 5l [-options] objects\n");
 		errorexit();
+	}
+	if(!debug['9'] && debug['r']) {
+		if(INITTEXT == -1)
+			INITTEXT = 0x80000000;
+		if(INITRND == -1)
+			INITRND = 4;
 	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
@@ -193,6 +203,10 @@ main(int argc, char *argv[])
 	} else
 		lookup(INITENTRY, 0)->type = SXREF;
 
+	if(debug['r']) {
+		if(undefs)
+			readundefs();
+	}
 	while(*argv)
 		objfile(*argv++);
 	if(!debug['l'])
@@ -200,6 +214,7 @@ main(int argc, char *argv[])
 	firstp = firstp->link;
 	if(firstp == P)
 		goto out;
+	reloc = debug['r'];
 	patch();
 	if(debug['p'])
 		if(debug['1'])
@@ -480,7 +495,7 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 void
 addlib(char *obj)
 {
-	char name[MAXHIST*NAMELEN], comp[4*NAMELEN], *p;
+	char name[1024], comp[256], *p;
 	int i;
 
 	if(histfrogp <= 0)
@@ -502,7 +517,7 @@ addlib(char *obj)
 	}
 
 	for(; i<histfrogp; i++) {
-		snprint(comp, 2*NAMELEN, histfrog[i]->name+1);
+		snprint(comp, sizeof comp, histfrog[i]->name+1);
 		for(;;) {
 			p = strstr(comp, "$O");
 			if(p == 0)
@@ -514,14 +529,14 @@ addlib(char *obj)
 			p = strstr(comp, "$M");
 			if(p == 0)
 				break;
-			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
-			memmove(p, thestring, strlen(thestring));
-			if(strlen(comp) > NAMELEN) {
+			if(strlen(comp)+strlen(thestring)-2+1 >= sizeof comp) {
 				diag("library component too long");
 				return;
 			}
+			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
+			memmove(p, thestring, strlen(thestring));
 		}
-		if(strlen(comp) > NAMELEN || strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
+		if(strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
 			diag("library component too long");
 			return;
 		}
@@ -1336,4 +1351,72 @@ ieeedtod(Ieee *ieeep)
 	exp = (ieeep->h>>20) & ((1L<<11)-1L);
 	exp -= (1L<<10) - 2L;
 	return ldexp(fr, exp);
+}
+
+void
+readundefs(void)
+{
+	int i, n, z;
+	Sym *s, **t;
+	char *l;
+	char buf[256];
+	char *fields[64];
+	Biobuf *b;
+
+	b = Bopen(undefs, OREAD);
+	if(b == nil) {
+		diag("could not open %s: %r", undefs);
+		errorexit();
+	}
+	z = 64;
+	undefv = malloc(z * sizeof(Sym *));
+	while((l = Brdline(b, '\n')) != nil) {
+		n = Blinelen(b);
+		if(n >= sizeof(buf)-1) {
+			diag("%s: line too long", undefs);
+			errorexit();
+		}
+		memmove(buf, l, n);
+		buf[n] = '\0';
+		n = getfields(buf, fields, nelem(fields), 1, " \t\r\n");
+		if(n == nelem(fields)) {
+			diag("%s: bad format", undefs);
+			errorexit();
+		}
+		for(i = 0; i < n; i++) {
+			s = lookup(fields[i], 0);
+			s->type = STEXT;
+			s->value = -1;
+			if(undefn == z) {
+				z = 3 * z / 2;
+				t = malloc(z * sizeof(Sym *));
+				if(t == nil) {
+					diag("%s: no memory: %r", undefs);
+					errorexit();
+				}
+				memmove(t, undefv, undefn * sizeof(Sym *));
+				free(undefv);
+				undefv = t;
+			}
+			undefv[undefn++] = s;
+		}
+	}
+	Bterm(b);
+}
+
+void
+undefpc(long pc)
+{
+	Bprint(&bso, "%lx\n", pc & 0x7FFFFFFF);
+}
+
+void
+undefsym(Sym *s)
+{
+	static int uix;
+
+	Bprint(&bso, "s%s\n", s->name);
+	s->value = 0x80000000 | (++uix << UIXSHIFT);
+	if(uix >= UIXLIM)
+		diag("%s: too many undefs", s->name);
 }

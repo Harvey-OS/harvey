@@ -31,6 +31,12 @@ Progmap progmap[] = {
 	0, 0, 0,
 };
 
+void
+main(int argc, char *argv[])
+{
+	server(argc, argv, myport, progmap);
+}
+
 static void
 pcinit(int argc, char **argv)
 {
@@ -76,7 +82,7 @@ pcinfo(int n, Rpccall *cmd, Rpccall *reply)
 	String vers, cm;
 	int i;
 
-	chat("host=%I, port=%d: pcinfo...",
+	chat("host=%I, port=%ld: pcinfo...",
 		cmd->host, cmd->port);
 	if(n <= 16)
 		return garbage(reply, "count too small");
@@ -104,7 +110,7 @@ pc1auth(int n, Rpccall *cmd, Rpccall *reply)
 	Unixidmap *m;
 	int uid;
 
-	chat("host=%I, port=%d: pcauth...",
+	chat("host=%I, port=%ld: pcauth...",
 		cmd->host, cmd->port);
 	if(n <= 8)
 		return garbage(reply, "count too small");
@@ -136,7 +142,7 @@ pcauth(int n, Rpccall *cmd, Rpccall *reply)
 	Unixidmap *m;
 	int uid;
 
-	chat("host=%I, port=%d: pcauth...",
+	chat("host=%I, port=%ld: pcauth...",
 		cmd->host, cmd->port);
 	if(n <= 16)
 		return garbage(reply, "count too small");

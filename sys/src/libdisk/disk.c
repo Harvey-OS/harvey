@@ -194,17 +194,18 @@ findgeometry(Disk *disk)
 static Disk*
 openfile(Disk *disk)
 {
-	Dir dir;
+	Dir *d;
 
-	if(dirfstat(disk->fd, &dir) < 0) {
+	if((d = dirfstat(disk->fd)) == nil){
 		free(disk);
 		return nil;
 	}
 
 	disk->secsize = 512;
-	disk->size = dir.length;
+	disk->size = d->length;
 	disk->secs = disk->size / disk->secsize;
 	disk->offset = 0;
+	free(d);
 
 	findgeometry(disk);
 	return mkwidth(disk);
@@ -309,8 +310,15 @@ opendisk(char *disk, int rdonly, int noctl)
 		*q = '\0';
 		d->prefix = p;
 		d->type = Tsd;
-		strncpy(d->part, disk+(q-p), NAMELEN);
-		d->part[NAMELEN-1] = '\0';
+		d->part = strdup(disk+(q-p));
+		if(d->part == nil){
+			close(d->ctlfd);
+			close(d->wfd);
+			close(d->fd);
+			free(p);
+			free(d);
+			return nil;
+		}
 		return opensd(d);
 	}
 

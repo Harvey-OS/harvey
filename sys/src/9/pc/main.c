@@ -7,70 +7,35 @@
 #include	"ureg.h"
 #include	"init.h"
 #include	"pool.h"
+#include	"reboot.h"
 
 Mach *m;
-
-static  uchar *sp;	/* stack pointer for /boot */
 
 /*
  * Where configuration info is left for the loaded programme.
  * This will turn into a structure as more is done by the boot loader
  * (e.g. why parse the .ini file twice?).
- * There are XXX bytes available at CONFADDR.
+ * There are 3584 bytes available at CONFADDR.
  */
 #define BOOTLINE	((char*)CONFADDR)
 #define BOOTLINELEN	64
 #define BOOTARGS	((char*)(CONFADDR+BOOTLINELEN))
 #define	BOOTARGSLEN	(4096-0x200-BOOTLINELEN)
-#define	MAXCONF		32
+#define	MAXCONF		64
 
-char bootdisk[NAMELEN];
+char bootdisk[KNAMELEN];
+Conf	conf;
 char *confname[MAXCONF];
 char *confval[MAXCONF];
 int nconf;
+uchar	*sp;	/* user stack of init proc */
 
-extern void ns16552install(void);	/* botch: config */
-
-static int isoldbcom;
-
-static int
-getcfields(char* lp, char** fields, int n, char* sep)
-{
-	int i;
-
-	for(i = 0; lp && *lp && i < n; i++){
-		while(*lp && strchr(sep, *lp) != 0)
-			*lp++ = 0;
-		if(*lp == 0)
-			break;
-		fields[i] = lp;
-		while(*lp && strchr(sep, *lp) == 0){
-			if(*lp == '\\' && *(lp+1) == '\n')
-				*lp++ = ' ';
-			lp++;
-		}
-	}
-
-	return i;
-}
 
 static void
 options(void)
 {
-	uchar *bda;
 	long i, n;
 	char *cp, *line[MAXCONF], *p, *q;
-
-	if(strncmp(BOOTARGS, "ZORT 0\r\n", 8)){
-		isoldbcom = 1;
-
-		memmove(BOOTARGS, KADDR(1024), BOOTARGSLEN);
-		memmove(BOOTLINE, KADDR(0x100), BOOTLINELEN);
-
-		bda = KADDR(0x400);
-		bda[0x13] = 639;
-		bda[0x14] = 639>>8;
-	}
 
 	/*
 	 *  parse configuration args from dos file plan9.ini
@@ -91,16 +56,14 @@ options(void)
 	}
 	*p = 0;
 
-	n = getcfields(cp, line, MAXCONF, "\n");
+	n = getfields(cp, line, MAXCONF, 1, "\n");
 	for(i = 0; i < n; i++){
 		if(*line[i] == '#')
 			continue;
 		cp = strchr(line[i], '=');
-		if(cp == 0)
+		if(cp == nil)
 			continue;
-		*cp++ = 0;
-		if(cp - line[i] >= NAMELEN+1)
-			*(line[i]+NAMELEN-1) = 0;
+		*cp++ = '\0';
 		confname[nconf] = line[i];
 		confval[nconf] = cp;
 		nconf++;
@@ -110,47 +73,31 @@ options(void)
 void
 main(void)
 {
-	outb(0x3F2, 0x00);			/* botch: turn off the floppy motor */
-
-	/*
-	 * There is a little leeway here in the ordering but care must be
-	 * taken with dependencies:
-	 *	function		dependencies
-	 *	========		============
-	 *	machinit		depends on: m->machno, m->pdb
-	 *	cpuidentify		depends on: m
-	 *	confinit		calls: meminit
-	 *	meminit			depends on: cpuidentify (needs to know processor
-	 *				  type for caching, etc.)
-	 *	archinit		depends on: meminit (MP config table may be at the
-	 *				  top of system physical memory);
-	 *				conf.nmach (not critical, mpinit will check);
-	 *	arch->intrinit		depends on: trapinit
-	 */
-	conf.nmach = 1;
-	MACHP(0) = (Mach*)CPU0MACH;
-	m->pdb = (ulong*)CPU0PDB;
-	machinit();
-	ioinit();
-	active.machs = 1;
-	active.exiting = 0;
+	mach0init();
 	options();
-	screeninit();
+	ioinit();
+	i8250console();
+	quotefmtinstall();
+
+	print("\nPlan 9\n");
+
+	kbdinit();
+	i8253init();
 	cpuidentify();
+	screeninit();
+	meminit();
 	confinit();
 	archinit();
 	xinit();
 	trapinit();
 	printinit();
 	cpuidprint();
-	if(isoldbcom)
-		print("    ****OLD B.COM - UPGRADE****\n");
 	mmuinit();
 	if(arch->intrinit)
 		arch->intrinit();
-	ns16552install();			/* botch: config */
+	timersinit();
 	mathinit();
-	kbdinit();
+	kbdenable();
 	if(arch->clockenable)
 		arch->clockenable();
 	procinit0();
@@ -165,32 +112,48 @@ conf.monitor = 1;
 }
 
 void
+mach0init(void)
+{
+	conf.nmach = 1;
+	MACHP(0) = (Mach*)CPU0MACH;
+	m->pdb = (ulong*)CPU0PDB;
+	m->gdt = (Segdesc*)CPU0GDT;
+
+	machinit();
+
+	active.machs = 1;
+	active.exiting = 0;
+}
+
+void
 machinit(void)
 {
 	int machno;
 	ulong *pdb;
+	Segdesc *gdt;
 
 	machno = m->machno;
 	pdb = m->pdb;
+	gdt = m->gdt;
 	memset(m, 0, sizeof(Mach));
 	m->machno = machno;
 	m->pdb = pdb;
-}
+	m->gdt = gdt;
 
-void
-ksetterm(char *f)
-{
-	char buf[2*NAMELEN];
-
-	sprint(buf, f, conffile);
-	ksetenv("terminal", buf);
+	/*
+	 * For polled uart output at boot, need
+	 * a default delay constant. 100000 should
+	 * be enough for a while. Cpuidentify will
+	 * calculate the real value later.
+	 */
+	m->loopconst = 100000;
 }
 
 void
 init0(void)
 {
 	int i;
-	char tstr[32];
+	char buf[2*KNAMELEN];
 
 	up->nerrlab = 0;
 
@@ -203,22 +166,23 @@ init0(void)
 	up->slash = namec("#/", Atodir, 0, 0);
 	cnameclose(up->slash->name);
 	up->slash->name = newcname("/");
-	up->dot = cclone(up->slash, 0);
+	up->dot = cclone(up->slash);
 
 	chandevinit();
 
 	if(!waserror()){
-		strcpy(tstr, arch->id);
-		strcat(tstr, " %s");
-		ksetterm(tstr);
-		ksetenv("cputype", "386");
+		snprint(buf, sizeof(buf), "%s %s", arch->id, conffile);
+		ksetenv("terminal", buf, 0);
+		ksetenv("cputype", "386", 0);
 		if(cpuserver)
-			ksetenv("service", "cpu");
+			ksetenv("service", "cpu", 0);
 		else
-			ksetenv("service", "terminal");
-		for(i = 0; i < nconf; i++)
-			if(confname[i] && confname[i][0] != '*')
-				ksetenv(confname[i], confval[i]);
+			ksetenv("service", "terminal", 0);
+		for(i = 0; i < nconf; i++){
+			if(confname[i][0] != '*')
+				ksetenv(confname[i], confval[i], 0);
+			ksetenv(confname[i], confval[i], 1);
+		}
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
@@ -241,8 +205,10 @@ userinit(void)
 	p->rgrp = newrgrp();
 	p->procmode = 0640;
 
-	strcpy(p->text, "*init*");
-	strcpy(p->user, eve);
+	kstrdup(&eve, "");
+	kstrdup(&p->text, "*init*");
+	kstrdup(&p->user, eve);
+
 	p->fpstate = FPinit;
 	fpoff();
 
@@ -307,6 +273,8 @@ bootargs(ulong base)
 
 	ac = 0;
 	av[ac++] = pusharg("/386/9dos");
+
+	/* when boot is changed to only use rc, this code can go away */
 	cp[BOOTLINELEN-1] = 0;
 	buf[0] = 0;
 	if(strncmp(cp, "fd", 2) == 0){
@@ -317,13 +285,6 @@ bootargs(ulong base)
 		av[ac++] = pusharg(buf);
 	} else if(strncmp(cp, "ether", 5) == 0)
 		av[ac++] = pusharg("-n");
-	if(buf[0]){
-		cp = strchr(buf, '!');
-		if(cp){
-			strcpy(bootdisk, cp+1);
-			addconf("bootdisk", bootdisk);
-		}
-	}
 
 	/* 4 byte word align stack */
 	sp = (uchar*)((ulong)sp & ~3);
@@ -337,18 +298,6 @@ bootargs(ulong base)
 	sp += (USTKTOP - BY2PG) - base - sizeof(ulong);
 }
 
-Conf	conf;
-
-void
-addconf(char *name, char *val)
-{
-	if(nconf >= MAXCONF)
-		return;
-	confname[nconf] = name;
-	confval[nconf] = val;
-	nconf++;
-}
-
 char*
 getconf(char *name)
 {
@@ -360,23 +309,46 @@ getconf(char *name)
 	return 0;
 }
 
+static void
+writeconf(void)
+{
+	char *p, *q;
+	int n;
+
+	p = getconfenv();
+
+	if(waserror()) {
+		free(p);
+		nexterror();
+	}
+
+	/* convert to name=value\n format */
+	for(q=p; *q; q++) {
+		q += strlen(q);
+		*q = '=';
+		q += strlen(q);
+		*q = '\n';
+	}
+	n = q - p + 1;
+	if(n >= BOOTARGSLEN)
+		error("kernel configuration too large");
+	memset(BOOTLINE, 0, BOOTLINELEN);
+	memmove(BOOTARGS, p, n);
+	poperror();
+	free(p);
+}
+
 void
 confinit(void)
 {
 	char *p;
 	int userpcnt;
-	ulong kpages, maxmem;
+	ulong kpages;
 
-	if(p = getconf("*maxmem"))
-		maxmem = strtoul(p, 0, 0);
-	else
-		maxmem = 0;
 	if(p = getconf("*kernelpercent"))
 		userpcnt = 100 - strtol(p, 0, 0);
 	else
 		userpcnt = 0;
-
-	meminit(maxmem);
 
 	conf.npage = conf.npage0 + conf.npage1;
 
@@ -402,8 +374,8 @@ confinit(void)
 		 * The patch of nimage is a band-aid, scanning the whole
 		 * page list in imagereclaim just takes too long.
 		 */
-		if(kpages > (32*MB + conf.npage*sizeof(Page))/BY2PG){
-			kpages = (32*MB + conf.npage*sizeof(Page))/BY2PG;
+		if(kpages > (64*MB + conf.npage*sizeof(Page))/BY2PG){
+			kpages = (64*MB + conf.npage*sizeof(Page))/BY2PG;
 			conf.nimage = 2000;
 			kpages += (conf.nproc*KSTACK)/BY2PG;
 		}
@@ -465,7 +437,7 @@ mathnote(void)
 {
 	int i;
 	ulong status;
-	char *msg, note[ERRLEN];
+	char *msg, note[ERRMAX];
 
 	status = up->fpsave.status;
 
@@ -504,7 +476,7 @@ matherror(Ureg *ur, void*)
 	mathnote();
 
 	if(ur->pc & KZERO)
-		panic("fp: status %lux fppc=0x%lux pc=0x%lux",
+		panic("fp: status %ux fppc=0x%lux pc=0x%lux",
 			up->fpsave.status, up->fpsave.pc, ur->pc);
 }
 
@@ -535,7 +507,7 @@ mathemu(Ureg*, void*)
 		up->fpstate = FPactive;
 		break;
 	case FPactive:
-		panic("math emu", 0);
+		panic("math emu");
 		break;
 	}
 }
@@ -593,7 +565,6 @@ procsave(Proc *p)
 	}
 
 	/*
-	 * Switch to the prototype page tables for this processor.
 	 * While this processor is in the scheduler, the process could run
 	 * on another processor and exit, returning the page tables to
 	 * the free list where they could be reallocated and overwritten.
@@ -603,8 +574,8 @@ procsave(Proc *p)
 	mmuflushtlb(PADDR(m->pdb));
 }
 
-void
-exit(int ispanic)
+static void
+shutdown(int ispanic)
 {
 	int ms, once;
 
@@ -635,83 +606,90 @@ exit(int ispanic)
 	}
 	else
 		delay(1000);
+}
 
+void
+reboot(void *entry, void *code, ulong size)
+{
+	void (*f)(ulong, ulong, ulong);
+	ulong *pdb;
+
+	writeconf();
+
+	shutdown(0);
+
+	/*
+	 * should be the only processor running now
+	 */
+
+	print("shutting down...\n");
+	delay(200);
+
+	splhi();
+
+	/* turn off buffered serial console */
+	serialoq = nil;
+
+	/* shutdown devices */
+	chandevshutdown();
+
+	/*
+	 * Modify the machine page table to directly map the low 4MB of memory
+	 * This allows the reboot code to turn off the page mapping
+	 */
+	pdb = m->pdb;
+	pdb[PDX(0)] = pdb[PDX(KZERO)];
+	mmuflushtlb(PADDR(pdb));
+
+	/* setup reboot trampoline function */
+	f = (void*)REBOOTADDR;
+	memmove(f, rebootcode, sizeof(rebootcode));
+
+	print("rebooting...\n");
+
+	/* off we go - never to return */
+	(*f)(PADDR(entry), PADDR(code), size);
+}
+
+
+void
+exit(int ispanic)
+{
+	shutdown(ispanic);
 	arch->reset();
 }
 
 int
 isaconfig(char *class, int ctlrno, ISAConf *isa)
 {
-	char cc[NAMELEN], *p, *q, *r;
-	int n;
+	char cc[32], *p;
+	int i;
 
-	sprint(cc, "%s%d", class, ctlrno);
-	for(n = 0; n < nconf; n++){
-		if(cistrncmp(confname[n], cc, NAMELEN))
-			continue;
-		isa->nopt = 0;
-		p = confval[n];
-		while(*p){
-			while(*p == ' ' || *p == '\t')
-				p++;
-			if(*p == '\0')
-				break;
-			if(cistrncmp(p, "type=", 5) == 0){
-				p += 5;
-				for(q = isa->type; q < &isa->type[NAMELEN-1]; q++){
-					if(*p == '\0' || *p == ' ' || *p == '\t')
-						break;
-					*q = *p++;
-				}
-				*q = '\0';
-			}
-			else if(cistrncmp(p, "port=", 5) == 0)
-				isa->port = strtoul(p+5, &p, 0);
-			else if(cistrncmp(p, "irq=", 4) == 0)
-				isa->irq = strtoul(p+4, &p, 0);
-			else if(cistrncmp(p, "dma=", 4) == 0)
-				isa->dma = strtoul(p+4, &p, 0);
-			else if(cistrncmp(p, "mem=", 4) == 0)
-				isa->mem = strtoul(p+4, &p, 0);
-			else if(cistrncmp(p, "size=", 5) == 0)
-				isa->size = strtoul(p+5, &p, 0);
-			else if(cistrncmp(p, "freq=", 5) == 0)
-				isa->freq = strtoul(p+5, &p, 0);
-			else if(isa->nopt < NISAOPT){
-				r = isa->opt[isa->nopt];
-				while(*p && *p != ' ' && *p != '\t'){
-					*r++ = *p++;
-					if(r-isa->opt[isa->nopt] >= ISAOPTLEN-1)
-						break;
-				}
-				*r = '\0';
-				isa->nopt++;
-			}
-			while(*p && *p != ' ' && *p != '\t')
-				p++;
-		}
-		return 1;
+	snprint(cc, sizeof cc, "%s%d", class, ctlrno);
+	p = getconf(cc);
+	if(p == nil)
+		return 0;
+
+	isa->nopt = tokenize(p, isa->opt, NISAOPT);
+	for(i = 0; i < isa->nopt; i++){
+		p = isa->opt[i];
+		if(cistrncmp(p, "type=", 5) == 0)
+			isa->type = p + 5;
+		else if(cistrncmp(p, "port=", 5) == 0)
+			isa->port = strtoul(p+5, &p, 0);
+		else if(cistrncmp(p, "irq=", 4) == 0)
+			isa->irq = strtoul(p+4, &p, 0);
+		else if(cistrncmp(p, "dma=", 4) == 0)
+			isa->dma = strtoul(p+4, &p, 0);
+		else if(cistrncmp(p, "mem=", 4) == 0)
+			isa->mem = strtoul(p+4, &p, 0);
+		else if(cistrncmp(p, "size=", 5) == 0)
+			isa->size = strtoul(p+5, &p, 0);
+		else if(cistrncmp(p, "freq=", 5) == 0)
+			isa->freq = strtoul(p+5, &p, 0);
 	}
-	return 0;
+	return 1;
 }
-
-/*
-int
-iprint(char *fmt, ...)
-{
-	char buf[PRINTSIZE];
-	int n;
-	va_list arg;
-
-	va_start(arg, fmt);
-	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
-	va_end(arg);
-
-	screenputs(buf, n);
-
-	return n;
-}
-*/
 
 int
 cistrcmp(char *a, char *b)

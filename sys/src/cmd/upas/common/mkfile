@@ -2,6 +2,7 @@
 
 LIB=libcommon.a$O
 OFILES=aux.$O\
+	become.$O\
 	mail.$O\
 	process.$O\
 	libsys.$O\

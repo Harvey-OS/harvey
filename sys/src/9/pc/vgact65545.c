@@ -66,8 +66,9 @@ ct65545initcursor(VGAscr* scr, int xo, int yo, int index)
 		and = 0;
 		xor = 0;
 		for(i = 0; i < 16; i++){
-			if(set & (1<<i))
-				;
+			if(set & (1<<i)){
+				/* nothing to do */
+			}
 			else if(clr & (1<<i))
 				xor |= 1<<i;
 			else

@@ -1,9 +1,9 @@
 #pragma src "/sys/src/libcontrol"
 #pragma lib "libcontrol.a"
 
-#pragma	varargck	argpos	printctl	2
 #pragma	varargck	type	"q"	char*
 #pragma	varargck	type	"Q"	Rune*
+#pragma	varargck	argpos	ctlprint	2
 
 typedef struct Control Control;
 typedef struct Controlset Controlset;
@@ -11,23 +11,29 @@ typedef struct CParse CParse;
 typedef struct CCache CCache;
 typedef struct CCache CImage;
 typedef struct CCache CFont;
-typedef struct CWire CWire;
 
-enum	/* alts */
+enum	/* types */
 {
-	AKey,
-	AMouse,
-	ACtl,
-	AWire,
-	AExit,
-	NALT
-};
-
-struct CWire
-{
-	Channel	*chan;	/* chan(char*) */
-	Channel	*sig;		/* chan(int) for synch */
-	char		*name;
+	Ctlunknown,
+	Ctlbox,
+	Ctlbutton,
+	Ctlentry,
+	Ctlkeyboard,
+	Ctllabel,
+	Ctlmenu,
+	Ctlradio,
+	Ctlscribble,
+	Ctlslider,
+	Ctltabs,
+	Ctltext,
+	Ctltextbutton,
+	Ctlgroup,		// divider between controls and metacontrols
+	Ctlboxbox,
+	Ctlcolumn,
+	Ctlrow,
+	Ctlstack,
+	Ctltab,
+	Ntypes,
 };
 
 struct Controlset
@@ -36,12 +42,13 @@ struct Controlset
 	Image		*screen;
 	Control		*actives;
 	Control		*focus;
+	Channel		*ctl;
+	Channel		*data;		/* currently only for sync */
 	Channel		*kbdc;
-	Channel		*kbdexitc;
 	Channel		*mousec;
-	Channel		*mouseexitc;
 	Channel		*resizec;
 	Channel		*resizeexitc;
+	Channel		*csexitc;
 	Keyboardctl	*keyboardctl;	/* will be nil if user supplied keyboard */
 	Mousectl		*mousectl;	/* will be nil if user supplied mouse */
 	int			clicktotype;	/* flag */
@@ -51,27 +58,25 @@ struct Control
 {
 	/* known to client */
 	char			*name;
-	Rectangle	rect;
+	Rectangle		rect;
+	Rectangle		size;				/* minimum/maximum Dx, Dy (not a rect) */
 	Channel		*event;			/* chan(char*) to client */
-	Channel		*ctl;				/* chan(char*) from client */
 	Channel		*data;			/* chan(char*) to client */
 	/* internal to control set */
+	int			type;
+	int			hidden;			/* hide hides, show unhides (and redraws) */
 	Controlset	*controlset;
-	Channel		*kbd;			/* chan(Rune)[20], as in keyboard.h */
-	Channel		*mouse;			/* chan(Mouse) as in mouse.h */
-	Channel		*wire;			/* chan(CWire) */
-	Channel		*exit;			/* chan(int) */
 	Image		*screen;			/* where Control appears */
 	char			*format;			/* used to generate events */
 	char			wevent;			/* event channel rewired */
-	char			wctl;				/* ctl channel rewired */
 	char			wdata;			/* data channel rewired */
-	Alt			*alts;
-	/* things alted on */
-	Mouse		m;
-	char			*str;
-	Rune			*kbdr;
-	CWire		cwire;
+	/* method table */
+	void			(*ctl)(Control*, CParse*);
+	void			(*mouse)(Control*, Mouse*);
+	void			(*key)(Control*, Rune*);
+	void			(*exit)(Control*);
+	void			(*setsize)(Control*);
+	void			(*activate)(Control*, int);
 	Control		*nextactive;
 	Control		*next;
 };
@@ -89,10 +94,13 @@ struct CCache
 
 struct CParse
 {
-	char	str[128];
+	char	str[256];
 	char	*sender;
-	char	*args[10];
-	int	iargs[10];
+	char *receiver;
+	int	cmd;
+	char	*pargs[32];
+	int	iargs[32];
+	char	**args;
 	int nargs;
 };
 
@@ -110,18 +118,29 @@ enum	/* alignments */
 	Nalignments
 };
 
+enum
+{
+	_Ctlmaxsize = 10000,
+};
+
+extern char *ctltypenames[];
+
 /* Functions used internally */
-int		_ctlparse(CParse*, char*, char**);
+void		_ctladdgroup(Control*, Control*);
 void		_ctlargcount(Control*, CParse*, int);
-void		_ctlcontrol(Control*, char*, void (*)(Control*, char*));
-Control*	_createctl(Controlset*, char*, uint, char*, void (*)(void*), int stksize);
+Control*	_createctl(Controlset*, char*, uint, char*);
 Rune*	_ctlrunestr(char*);
 char*	_ctlstrrune(Rune*);
 void		_ctlputsnarf(Rune*);
 Rune*	_ctlgetsnarf(void);
 int		_ctlalignment(char*);
 Point		_ctlalignpoint(Rectangle, int, int, int);
-void		_ctlrewire(Control*);
+void		_ctlfocus(Control*, int);
+void		_activategroup(Control*);
+void		_deactivategroup(Control*);
+int		_ctllookup(char *s, char *tab[], int ntab);
+void		_ctlprint(Control *c, char *fmt, ...);
+int		ctlparse(CParse*, char*, int);
 
 /* images */
 CImage*	_getctlimage(char*);
@@ -145,13 +164,14 @@ int		freectlimage(char*);
 /* fonts */
 int		namectlfont(Font*, char*);
 int		freectlfont(char*);
+/* commands */
+int		ctlprint(Control*, char*, ...);
 
 /* general */
 void			initcontrols(void);
 Controlset*	newcontrolset(Image*, Channel*, Channel*, Channel*);
 void			closecontrolset(Controlset*);
 void			closecontrol(Control*);
-int			printctl(Channel*, char*, ...);
 void			ctlerror(char*, ...);
 Control*		controlcalled(char*);
 
@@ -166,12 +186,18 @@ void		activate(Control*);
 void		deactivate(Control*);
 Control*	createbox(Controlset*, char*);
 Control*	createbutton(Controlset*, char*);
+Control*	createcolumn(Controlset*, char*);
+Control*	createboxbox(Controlset*, char*);
 Control*	createentry(Controlset*, char*);
 Control*	createkeyboard(Controlset*, char*);
 Control*	createlabel(Controlset*, char*);
+Control*	createmenu(Controlset*, char*);
 Control*	createradiobutton(Controlset*, char*);
+Control*	createrow(Controlset*, char*);
 Control*	createscribble(Controlset*, char*);
 Control*	createslider(Controlset*, char*);
+Control*	createstack(Controlset*, char*);
+Control*	createtab(Controlset*, char*);
 Control*	createtext(Controlset*, char*);
 Control*	createtextbutton(Controlset*, char*);
 

@@ -1,0 +1,20 @@
+</$objtype/mkfile
+
+INCLUDES=-I/sys/src/9/port
+CFLAGS=$CFLAGS $INCLUDES
+
+TARG=rtstats
+
+BIN=/$objtype/bin
+
+OFILES = \
+	rtstats.$O\
+	time.$O
+
+$O.edfproc:	edfproc.$O time.$O
+	$LD -o $O.edfproc edfproc.$O time.$O
+
+</sys/src/cmd/mkone
+
+dep:
+	mkdep $INCLUDES $CFILES

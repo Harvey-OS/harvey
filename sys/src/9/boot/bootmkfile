@@ -2,20 +2,16 @@ BOOTDIR=../boot
 BOOTLIB=$BOOTDIR/libboot.a$O
 
 BOOTFILES=\
+	bootauth.$O\
 	aux.$O\
 	boot.$O\
-	dosboot.$O\
 	bootcache.$O\
-	getpasswd.$O\
-	doauthenticate.$O\
 	bootip.$O\
-	key.$O\
-	glendakey.$O\
-	fcall.$O\
 	local.$O\
+	rc.$O\
 	settime.$O\
-	userpasswd.$O\
 	sac.$O\
+	paq.$O\
 
 $BOOTLIB(%.$O):N:	%.$O
 
@@ -23,7 +19,6 @@ $BOOTLIB:	${BOOTFILES:%=$BOOTLIB(%)}
 	names=`{membername $newprereq}
 	ar vu $BOOTLIB $names
 	rm $names
-
 
 $BOOTFILES:	$BOOTDIR/boot.h
 

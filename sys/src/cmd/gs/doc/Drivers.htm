@@ -1,7 +1,7 @@
 <html>
 <head>
 <title>The interface between Ghostscript and device drivers</title>
-<!-- $Id: Drivers.htm,v 1.8.2.2 2000/11/28 01:31:22 raph Exp $ -->
+<!-- $Id: Drivers.htm,v 1.1 2000/03/09 08:40:39 lpd Exp $ -->
 <!-- Originally: drivers.txt -->
 </head>
 
@@ -45,7 +45,7 @@ The interface between Ghostscript and device drivers
 <li><a href="#Driver_procedures">Driver procedures</a>
 <ul>
 <li><a href="#Life_cycle">Life cycle</a>
-<li><a href="#Open_close">Open, close, sync, copy</a>
+<li><a href="#Open_close">Open, close, sync</a>
 <li><a href="#Color_mapping">Color and alpha mapping</a>
 <li><a href="#Pixel_level_drawing">Pixel-level drawing</a>
 <ul>
@@ -321,13 +321,13 @@ structure, or to add procedures, you must change the following places:
 <li>The halftoning device in <b><tt>gdevht.c</tt></b>.
 </ul>
 <li>The clip list accumulation "device" in <b><tt>gxacpath.c</tt></b>.
-<li>The clipping "devices" <b><tt>gxclip.c</tt></b>,
+<li>The clipping "devices" <b><tt>xclip.c</tt></b>,
 	<b><tt>gxclip2.c</tt></b>, and <b><tt>gxclipm.c</tt></b>.
 <li>The pattern accumulation "device" in <b><tt>gxpcmap.c</tt></b>.
 <li>The hit detection "device" in <b><tt>gdevhit.c</tt></b>.
 <li>The generic printer device macros in <b><tt>gdevprn.h</tt></b>.
 <li>The generic printer device code in <b><tt>gdevprn.c</tt></b>.
-<li>The RasterOp source device in <b><tt>gdevrops.c</tt></b>.
+<li>The RasterOp source device in <b><tt>gdevmrop.c</tt></b>.
 </ul></blockquote>
 
 <p>
@@ -757,7 +757,6 @@ operations will occur.  Only the following procedures may be called:
 
 <blockquote><b><tt>
 open_device<br>
-finish_copydevice<br>
 get_initial_matrix<br>
 get_params<br>
 put_params<br>
@@ -773,42 +772,23 @@ close a device instance.  Device instances are only closed when they are
 about to be freed, which occurs in three situations:
 
 <ul>
-<li>When a <b><tt>restore</tt></b> occurs, if the instance was created since
-the corresponding <b><tt>save</tt></b> and is in a VM being restored.  I.e.,
-if the instance was created in local VM since a <b><tt>save</tt></b>, it
-will always be closed and freed by the corresponding
-<b><tt>restore</tt></b>; if it was created in global VM, it will only be
-closed by the outermost <b><tt>restore</tt></b>, regardless of the save
-level at the time the instance was created.
-
-<li>By the garbage collector, if the instance is no longer accessible.
-
-<li>When Ghostscript exits (terminates).
+<li>when a 'restore' occurs, if the instance was created since the
+corresponding 'save';
+<li>by the garbage collector, if the instance is no longer accessible; or
+<li>when Ghostscript exits (terminates).
 </ul>
 
-<h2><a name="Open_close"></a>Open, close, sync, copy</h2>
+<h2><a name="Open_close"></a>Open, close, sync</h2>
 
 <dl>
 <dt><b><tt>int (*open_device)(P1(gx_device *))</tt></b> <b><em>[OPTIONAL]</em></b>
+
 <dd>Open the device: do any initialization associated with making the device
 instance valid.  This must be done before any output to the device.  The
 default implementation does nothing.  <b>NOTE</b>: Clients should never call
 a device's <b><tt>open_device</tt></b> procedure directly: they should
 always call <b><tt>gs_opendevice</tt></b> instead.
-</dl>
 
-<dl>
-<dt><b><tt>int (*finish_copydevice)(P2(gx_device *dev, const gx_device
-*from_dev))</tt></b> <b><em>[OPTIONAL]</em></b> <dd>Perform any cleanup
-required after <b><tt>copydevice</tt></b> has created a new device instance
-by copying <b><tt>from_dev</tt></b>.  If the copy operation should not be
-allowed, this procedure should return an error; the copy will be freed.  The
-default implementation allows copying the device prototype, but does not
-allow copying device instances, because instances may contain internal
-pointers that should not be shared between copies, and there is no way to
-determine this from outside the device.  <b>NOTE</b>: Clients should never
-call a device's <b><tt>finish_copydevice</tt></b> procedure: this procedure
-is only intended for use by <b><tt>gs_copydevice[2]</tt></b>.
 </dl>
 
 <dl>
@@ -1657,10 +1637,6 @@ consult the source code, specifically:
 	<td><b><tt>gx_clip_path</tt></b>
 </table></blockquote>
 
-<p>
-For a minimal example of how to implement the high-level drawing operations,
-see <b><tt>gdevtrac.c</tt></b>.
-
 <h3><a name="Paths"></a>Paths</h3>
 
 <dl>
@@ -2489,15 +2465,15 @@ clipping region.  For all but a few specialized devices, this is
 
 <font size=2>
 
-<p>Copyright &copy; 1996, 2000 Aladdin Enterprises.  All rights reserved.
+<p>Copyright &copy; 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
 
-<p>This file is part of AFPL Ghostscript.  See the
+<p>This file is part of Aladdin Ghostscript.  See the
 <a href="Public.htm">Aladdin Free Public License</a> (the "License") for
 full details of the terms of using, copying, modifying, and redistributing
-AFPL Ghostscript.
+Aladdin Ghostscript.
 
 <p>
-Ghostscript version 6.32, 27 November 2000
+Ghostscript version 6.0, 3 February 2000
 
 </font>
 

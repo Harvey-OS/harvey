@@ -15,6 +15,8 @@ typedef struct Sys	Sys;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
 
+#define MAXSYSARG	6	/* for mount(fd, mpt, flag, arg, srv) */
+
 /*
  *  parameters for sysproc.c
  */
@@ -41,7 +43,7 @@ struct Label
 };
 
 /*
- * FPsave.fpstatus
+ * Proc.fpstate
  */
 enum
 {
@@ -132,29 +134,32 @@ struct Mach
 	Proc	*proc;			/* current process on this processor */
 
 	/* ordering from here on irrelevant */
-	int	tlbfault;		/* only used by devproc; no access to tlb */
-	int	tlbpurge;		/* ... */
+
 	ulong	ticks;			/* of the clock since boot time */
 	Label	sched;			/* scheduler wakeup */
 	Lock	alarmlock;		/* access to alarm list */
 	void	*alarm;			/* alarms bound to this clock */
-	Page	*ufreeme;		/* address of upage of exited process */
-	int	nrdy;
-	ulong	fairness;		/* for runproc */
-	int	lastintr;
+	int	inclockintr;
 
-	ulong	cpuhz;			/* hwrpb->cfreq */
+	ulong	fairness;		/* for runproc */
+
+	vlong	cpuhz;			/* hwrpb->cfreq */
 	ulong	pcclast;
 	uvlong	fastclock;
 	vlong	intrts;			/* time stamp of last interrupt */
 
+	int	tlbfault;		/* only used by devproc; no access to tlb */
+	int	tlbpurge;		/* ... */
 	int	pfault;
 	int	cs;
 	int	syscall;
 	int	load;
 	int	intr;
-	int	spuriousintr;
 	int	flushmmu;		/* make current proc flush it's mmu state */
+	int		ilockdepth;
+
+	ulong	spuriousintr;
+	int	lastintr;
 
 	PCB;
 
@@ -185,6 +190,8 @@ struct PCArch
 	void	*(*pcicfg)(int, int);		/* map and point to PCI cfg space */
 	void	*(*pcimem)(int, int);		/* map and point to PCI memory space */
 	int	(*intrenable)(Vctl*);
+	int	(*intrvecno)(int);
+	int	(*intrdisable)(int);
 
 	int		(*_inb)(int);
 	ushort	(*_ins)(int);
@@ -203,11 +210,10 @@ struct PCArch
 /*
  *  a parsed plan9.ini line
  */
-#define ISAOPTLEN	16
 #define NISAOPT		8
 
 struct ISAConf {
-	char	type[NAMELEN];
+	char		*type;
 	ulong	port;
 	ulong	irq;
 	ulong	dma;
@@ -216,7 +222,7 @@ struct ISAConf {
 	ulong	freq;
 
 	int	nopt;
-	char	opt[NISAOPT][ISAOPTLEN];
+	char	*opt[NISAOPT];
 };
 
 extern PCArch	*arch;
@@ -226,3 +232,19 @@ extern Mach		mach0;
 
 extern register Mach	*m;
 extern register Proc	*up;
+
+/*
+ *  hardware info about a device
+ */
+typedef struct {
+	ulong	port;	
+	int		size;
+} port_t;
+
+struct DevConf
+{
+	ulong	interrupt;	/* interrupt number */
+	char		*type;	/* card type, malloced */
+	int		nports;	/* Number of ports */
+	port_t	*ports;	/* The ports themselves */
+};

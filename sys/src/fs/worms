@@ -132,4 +132,19 @@ ipauth  135.104.9.7
 ip     135.104.9.42
 ipgw   135.104.9.1
 ipmask 255.255.255.0
+ipsntp 135.104.9.52
+end
+
+// choline
+// DSIZE = 79563-1
+config w1.0.0
+service    choline
+filsys main c[w<1-3>]j(w1.<6-0>.0)(l<0-124>l<128-252>)
+filsys dump o
+filsys other [w<4-6>]
+ipauth  135.104.9.7
+ip	135.104.72.2
+ipgw	135.104.72.1
+ipmask	255.255.255.0
+ipsntp 135.104.9.52
 end

@@ -1,0 +1,11 @@
+</$objtype/mkfile
+
+TARG=pop3
+
+OFILES=pop3.$O
+
+BIN=/$objtype/bin/upas
+LIB=../common/libcommon.a$O
+</sys/src/cmd/mkone
+
+CFLAGS=$CFLAGS -I../common

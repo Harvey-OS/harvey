@@ -11,6 +11,7 @@ OFILES=	alloc.$O\
 	bytesperline.$O\
 	chan.$O\
 	cloadimage.$O\
+	computil.$O\
 	creadimage.$O\
 	debug.$O\
 	defont.$O\
@@ -58,4 +59,3 @@ OFILES=	alloc.$O\
 HFILES=/sys/include/draw.h /sys/include/event.h /sys/include/mouse.h /sys/include/keyboard.h
 
 </sys/src/cmd/mksyslib
-

@@ -68,11 +68,14 @@ skipwhite(char *p)
 int
 gethi(void)
 {
-	Dir d;
+	Dir *d;
+	int hi;
 
-	if(dirstat(dir, &d) < 0)
+	if((d = dirstat(dir)) == nil)
 		return -1;
-	return d.qid.vers;
+	hi = d->qid.vers;
+	free(d);
+	return hi;
 }
 
 char*
@@ -116,7 +119,7 @@ fixdate(char *s)
 			if(cistrncmp(mon[j], f[i], 3)==0)
 				m = mon[j];
 		j = atoi(f[i]);
-		if(1 <= j && j <= 31)
+		if(1 <= j && j <= 31 && d != 0)
 			d = j;
 		if(strchr(f[i], ':'))
 			t = f[i];
@@ -215,7 +218,7 @@ dirwindow(Window *w)
 	if(w->data < 0)
 		w->data = winopenfile(w, "data");
 
-	threadprint(w->ctl, "dirty\n");
+	fprint(w->ctl, "dirty\n");
 	
 	winopenbody(w, OWRITE);
 	lo = adddir(w->body, hi, 0, nshow);
@@ -267,12 +270,14 @@ void
 acmetimer(Article *m, Window *w)
 {
 	Biobuf *b;
-	Dir d;
+	Dir *d;
 
 	assert(m==nil && w==root);
 
-	if(dirstat(dir, &d) < 0 || hi == d.qid.vers)
+	if((d = dirstat(dir))==nil | hi==d->qid.vers){
+		free(d);
 		return;
+	}
 
 	if(w->data < 0)
 		w->data = winopenfile(w, "data");
@@ -281,10 +286,11 @@ acmetimer(Article *m, Window *w)
 
 	b = emalloc(sizeof(*b));
 	Binit(b, w->data, OWRITE);
-	adddir(b, d.qid.vers, hi+1, d.qid.vers);
-	hi = d.qid.vers;
+	adddir(b, d->qid.vers, hi+1, d->qid.vers);
+	hi = d->qid.vers;
 	Bterm(b);
 	free(b);
+	free(d);
 	winselect(w, "0,.", 0);
 }
 
@@ -293,7 +299,7 @@ acmeload(Article*, Window*, char *s)
 {
 	int nopen;
 
-//threadprint(2, "load %s\n", s);
+//fprint(2, "load %s\n", s);
 
 	nopen = 0;
 	while(*s){
@@ -314,7 +320,7 @@ acmecmd(Article *m, Window *w, char *s)
 	int n;
 	Biobuf *b;
 
-//threadprint(2, "cmd %s\n", s);
+//fprint(2, "cmd %s\n", s);
 
 	s = skip(s, "");
 
@@ -342,7 +348,7 @@ acmecmd(Article *m, Window *w, char *s)
 			w->data = winopenfile(w, "data");
 		winsetaddr(w, "$", 1);
 	
-		threadprint(w->ctl, "dirty\n");
+		fprint(w->ctl, "dirty\n");
 
 		b = emalloc(sizeof(*b));
 		Binit(b, w->data, OWRITE);
@@ -370,7 +376,7 @@ acmecmd(Article *m, Window *w, char *s)
 		return 1;
 	}
 //	if(m!=nil && iscmd(s, "Replymail")){
-//		threadprint(2, "no replymail yet\n");
+//		fprint(2, "no replymail yet\n");
 //		return 1;
 //	}
 	if(iscmd(s, "Post")){
@@ -392,7 +398,7 @@ acmeevent(Article *m, Window *w, Event *e)
 	switch(e->c1){	/* origin of action */
 	default:
 	Unknown:
-		threadprint(2, "unknown message %c%c\n", e->c1, e->c2);
+		fprint(2, "unknown message %c%c\n", e->c1, e->c2);
 		break;
 
 	case 'T':	/* bogus timer event! */
@@ -512,7 +518,7 @@ mesgthread(void *v)
 	while(!m->dead && (e = recvp(m->w->cevent)))
 		acmeevent(m, m->w, e);
 
-//threadprint(2, "msg %p exits\n", m);
+//fprint(2, "msg %p exits\n", m);
 	unlink(m);
 	free(m->w);
 	free(m);
@@ -758,7 +764,7 @@ mesgpost(Article *m)
 
 	p = estrstrdup(dir, "post");
 	if((b = Bopen(p, OWRITE)) == nil){
-		threadprint(2, "cannot open %s: %r\n", p);
+		fprint(2, "cannot open %s: %r\n", p);
 		free(p);
 		return;
 	}
@@ -809,7 +815,7 @@ mesgpost(Article *m)
 	if(write(Bfildes(b), "", 0) == 0)
 		winclean(m->w);
 	else
-		threadprint(2, "post: %r\n");
+		fprint(2, "post: %r\n");
 	Bterm(b);
 }
 
@@ -929,7 +935,7 @@ void
 threadmain(int argc, char **argv)
 {
 	char *p, *q;
-	Dir d;
+	Dir *d;
 	Window *w;
 
 	ARGBEGIN{
@@ -959,24 +965,26 @@ threadmain(int argc, char **argv)
 	p = estrstrstrdup(dir, "/", p);
 	cleanname(p);
 
-	if(dirstat(p, &d) < 0){	/* maybe it is a new group */
-		if(dirstat(dir, &d) < 0){
-			threadprint(2, "dirstat(%s) fails: %r\n", dir);
+	if((d = dirstat(p)) == nil){	/* maybe it is a new group */
+		if((d = dirstat(dir)) == nil){
+			fprint(2, "dirstat(%s) fails: %r\n", dir);
 			threadexitsall(nil);
 		}
-		if((d.mode&CHDIR)==0){
-			threadprint(2, "%s not a directory\n", dir);
+		if((d->mode&DMDIR)==0){
+			fprint(2, "%s not a directory\n", dir);
 			threadexitsall(nil);
 		}
-		if(dirstat(p, &d) < 0){
-			threadprint(2, "stat %s: %r\n", p);
+		free(d);
+		if((d = dirstat(p)) == nil){
+			fprint(2, "stat %s: %r\n", p);
 			threadexitsall(nil);
 		}
 	}
-	if((d.mode&CHDIR)==0){
-		threadprint(2, "%s not a directory\n", dir);
+	if((d->mode&DMDIR)==0){
+		fprint(2, "%s not a directory\n", dir);
 		threadexitsall(nil);
 	}
+	free(d);
 	dir = estrstrdup(p, "/");
 
 	q = estrstrdup(dir, "post");

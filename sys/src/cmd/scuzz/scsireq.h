@@ -158,10 +158,6 @@ extern long SReinitialise(ScsiReq*);		/* CHANGER commands */
 extern long SRestatus(ScsiReq*, uchar, uchar*, int);
 extern long SRmmove(ScsiReq*, int, int, int, int);
 
-extern long SRdvdread(ScsiReq*, uchar*, int, ulong, int);	/* DVD commands */
-extern long SRdvdreportkey(ScsiReq*, uchar*, int, ulong, int);
-extern long SRdvdsendkey(ScsiReq*, uchar*, int, int);
-
 extern long SRrequest(ScsiReq*);
 extern int  SRclose(ScsiReq*);
 extern int  SRopenraw(ScsiReq*, char*);

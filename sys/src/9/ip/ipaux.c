@@ -122,9 +122,9 @@ static uchar prefixvals[256] =
 };
 
 int
-eipconv(va_list *arg, Fconv *f)
+eipfmt(Fmt *f)
 {
-	char buf[8*5];
+	char buf[5*8];
 	static char *efmt = "%.2lux%.2lux%.2lux%.2lux%.2lux%.2lux";
 	static char *ifmt = "%d.%d.%d.%d";
 	uchar *p, ip[16];
@@ -132,56 +132,61 @@ eipconv(va_list *arg, Fconv *f)
 	ushort s;
 	int i, j, n, eln, eli;
 
-	switch(f->chr) {
+	switch(f->r) {
 	case 'E':		/* Ethernet address */
-		p = va_arg(*arg, uchar*);
-		sprint(buf, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
-		break;
-	case 'I':		/* Ip address */
-		p = va_arg(*arg, uchar*);
-common:
-		if(memcmp(p, v4prefix, 12) == 0)
-			sprint(buf, ifmt, p[12], p[13], p[14], p[15]);
-		else {
-			/* find longest elision */
-			eln = eli = -1;
-			for(i = 0; i < 16; i += 2){
-				for(j = i; j < 16; j += 2)
-					if(p[j] != 0 || p[j+1] != 0)
-						break;
-				if(j > i && j - i > eln){
-					eli = i;
-					eln = j - i;
-				}
-			}
+		p = va_arg(f->args, uchar*);
+		snprint(buf, sizeof buf, efmt, p[0], p[1], p[2], p[3], p[4], p[5]);
+		return fmtstrcpy(f, buf);
 
-			/* print with possible elision */
-			n = 0;
-			for(i = 0; i < 16; i += 2){
-				if(i == eli){
-					n += sprint(buf+n, "::");
-					i += eln;
-					if(i >= 16)
-						break;
-				} else if(i != 0)
-					n += sprint(buf+n, ":");
-				s = (p[i]<<8) + p[i+1];
-				n += sprint(buf+n, "%ux", s);
+	case 'I':		/* Ip address */
+		p = va_arg(f->args, uchar*);
+common:
+		if(memcmp(p, v4prefix, 12) == 0){
+			snprint(buf, sizeof buf, ifmt, p[12], p[13], p[14], p[15]);
+			return fmtstrcpy(f, buf);
+		}
+
+		/* find longest elision */
+		eln = eli = -1;
+		for(i = 0; i < 16; i += 2){
+			for(j = i; j < 16; j += 2)
+				if(p[j] != 0 || p[j+1] != 0)
+					break;
+			if(j > i && j - i > eln){
+				eli = i;
+				eln = j - i;
 			}
 		}
-		break;
+
+		/* print with possible elision */
+		n = 0;
+		for(i = 0; i < 16; i += 2){
+			if(i == eli){
+				n += sprint(buf+n, "::");
+				i += eln;
+				if(i >= 16)
+					break;
+			} else if(i != 0)
+				n += sprint(buf+n, ":");
+			s = (p[i]<<8) + p[i+1];
+			n += sprint(buf+n, "%ux", s);
+		}
+		return fmtstrcpy(f, buf);
+
 	case 'i':		/* v6 address as 4 longs */
-		lp = va_arg(*arg, ulong*);
+		lp = va_arg(f->args, ulong*);
 		for(i = 0; i < 4; i++)
 			hnputl(ip+4*i, *lp++);
 		p = ip;
 		goto common;
+
 	case 'V':		/* v4 ip address */
-		p = va_arg(*arg, uchar*);
-		sprint(buf, ifmt, p[0], p[1], p[2], p[3]);
-		break;
+		p = va_arg(f->args, uchar*);
+		snprint(buf, sizeof buf, ifmt, p[0], p[1], p[2], p[3]);
+		return fmtstrcpy(f, buf);
+
 	case 'M':		/* ip mask */
-		p = va_arg(*arg, uchar*);
+		p = va_arg(f->args, uchar*);
 
 		/* look for a prefix mask */
 		for(i = 0; i < 16; i++)
@@ -198,13 +203,10 @@ common:
 			n = 8*16;
 
 		/* got one, use /xx format */
-		sprint(buf, "/%d", n);
-		break;
-	default:
-		strcpy(buf, "(eipconv)");
+		snprint(buf, sizeof buf, "/%d", n);
+		return fmtstrcpy(f, buf);
 	}
-	strconv(buf, f);
-	return sizeof(uchar*);
+	return fmtstrcpy(f, "(eipfmt)");
 }
 
 #define CLASS(p) ((*(uchar*)(p))>>6)

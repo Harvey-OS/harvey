@@ -115,26 +115,29 @@ char*
 getdate(void)
 {
 	static char *now = 0;
-	static Dir sbuf, nbuf;
+	static Dir *sbuf;
+	ulong mtime;
 
 	if(Nfiles > 1 || Files->f_name == nulls) {
 		if(now == 0) {
-			nbuf.mtime = time(0);
-			now = ctime(nbuf.mtime);
+			mtime = time(0);
+			now = ctime(mtime);
 		}
 		return now;
 	}
-	dirstat(Files->f_name, &sbuf);
-	return ctime(sbuf.mtime);
+	mtime = 0;
+	sbuf = dirstat(Files->f_name);
+	if(sbuf){
+		mtime = sbuf->mtime;
+		free(sbuf);
+	}
+	return ctime(mtime);
 }
 
 char*
 ffiler(char *s)
 {
-	static char buf[100];
-
-	sprint(buf, "can't open %s\n", s);
-	return buf;
+	return smprint("can't open %s\n", s);
 }
 
 void
@@ -589,6 +592,8 @@ atoix(char **p)
 Biobuf*
 mustopen(char *s, Fils *f)
 {
+	char *tmp;
+
 	if(*s == '\0') {
 		f->f_name = STDINNAME();
 		f->f_f = malloc(sizeof(Biobuf));
@@ -597,8 +602,9 @@ mustopen(char *s, Fils *f)
 		Binit(f->f_f, 0, OREAD);
 	} else
 	if((f->f_f = Bopen(f->f_name = s, OREAD)) == 0) {
-		s = ffiler(f->f_name);
-		s = strcpy((char*)getspace(strlen(s) + 1), s);
+		tmp = ffiler(f->f_name);
+		s = strcpy((char*)getspace(strlen(tmp) + 1), tmp);
+		free(tmp);
 	}
 	if(f->f_f != 0) {
 		if((f->f_nextc = Bgetrune(f->f_f)) >= 0 || Multi == 'm')

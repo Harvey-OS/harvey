@@ -1,0 +1,30 @@
+#!/bin/rc
+
+# desc: activate ppp connection
+# prereq: configppp
+
+switch($1) {
+case checkready checkdone
+	if (isipdevup '^pkt[0-9]')
+		startppp=done
+	export startppp
+
+case go
+	if(isipdevup '^pkt[0-9]')
+		exit
+
+	ctl=$pppdev^ctl
+	echo b115200 >$ctl
+
+	switch($pppmethod) {
+	case manual
+		echo 
+		echo 'Please dial the modem, and type ctl-d when PPP has started.'
+		echo 'You may need to type ctl-m to send modem commands.'
+		echo
+		ip/ppp -f -u -b b^$pppbaud -p /dev/^$pppdev
+
+	case auto
+		ip/ppp -f -b b^$pppbaud -p /dev/^$pppdev -s $"pppuser:$"ppppasswd -t 'atdt'^$"pppphone
+	}
+}

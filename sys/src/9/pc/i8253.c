@@ -21,6 +21,12 @@ enum
 	Load0l=	0x10,		/* load counter 0's lsb */
 	Load0m=	0x20,		/* load counter 0's msb */
 	Load0=	0x30,		/* load counter 0 with 2 bytes */
+
+	Latch1=	0x40,		/* latch counter 1's value */
+	Load1l=	0x50,		/* load counter 1's lsb */
+	Load1m=	0x60,		/* load counter 1's msb */
+	Load1=	0x70,		/* load counter 1 with 2 bytes */
+
 	Latch2=	0x80,		/* latch counter 2's value */
 	Load2l=	0x90,		/* load counter 2's lsb */
 	Load2m=	0xa0,		/* load counter 2's msb */
@@ -40,66 +46,77 @@ enum
 	Trigger=0x0,		/* interrupt on terminal count */
 	Sstrobe=0x8,		/* software triggered strobe */
 
-	/* counter 2 controls */
-	C2gate=	0x1,
-	C2speak=0x2,
-	C2out=	0x10,
+	/* T2ctl bits */
+	T2gate=	(1<<0),		/* enable T2 counting */
+	T2spkr=	(1<<1),		/* connect T2 out to speaker */
+	T2out=	(1<<5),		/* output of T2 */
 
 	Freq=	1193182,	/* Real clock frequency */
-
-	Minusec=20,		/* minimum cycles for a clock interrupt */
-
-	FreqMul=16,		/* extra accuracy in fastticks/Freq calculation; ok up to ~8ghz */
+	Tickshift=8,		/* extra accuracy */
+	MaxPeriod=Freq/HZ,
+	MinPeriod=Freq/(100*HZ),
 };
 
 static struct
 {
 	Lock;
-	int	havecyc;
+	ulong	period;		/* current clock period */
 	int	enabled;
-	int	mode;
-	vlong	when;		/* next fastticks a clock interrupt should occur */
-	vlong	cycwhen;	/* next fastticks a cycintr happens; 0 == infinity */
-	long	fastperiod;	/* fastticks/hz */
-	long	fast2freq;	/* fastticks*FreqMul/Freq */
+	uvlong	hz;
+
+	ushort	last;		/* last value of clock 1 */
+	uvlong	ticks;		/* cumulative ticks of counter 1 */
 }i8253;
 
+
 void
-i8253init(int aalcycles, int havecycleclock)
+i8253init(void)
+{
+	int loops, x;
+
+	ioalloc(T0cntr, 4, 0, "i8253");
+	ioalloc(T2ctl, 1, 0, "i8253.cntr2ctl");
+
+	/*
+	 *  enable a 1/HZ interrupt for providing scheduling interrupts
+	 */
+	outb(Tmode, Load0|Square);
+	outb(T0cntr, (Freq/HZ));	/* low byte */
+	outb(T0cntr, (Freq/HZ)>>8);	/* high byte */
+	i8253.period = Freq/HZ;
+
+	/*
+	 *  enable a longer period counter to use as a clock
+	 */
+	outb(Tmode, Load2|Square);
+	outb(T2cntr, 0);		/* low byte */
+	outb(T2cntr, 0);		/* high byte */
+	i8253.period = Freq/HZ;
+	x = inb(T2ctl);
+	x |= T2gate;
+	outb(T2ctl, x);
+	
+	/*
+	 * Introduce a little delay to make sure the count is
+	 * latched and the timer is counting down; with a fast
+	 * enough processor this may not be the case.
+	 * The i8254 (which this probably is) has a read-back
+	 * command which can be used to make sure the counting
+	 * register has been written into the counting element.
+	 */
+	x = (Freq/HZ);
+	for(loops = 0; loops < 100000 && x >= (Freq/HZ); loops++){
+		outb(Tmode, Latch0);
+		x = inb(T0cntr);
+		x |= inb(T0cntr)<<8;
+	}
+}
+
+void
+guesscpuhz(int aalcycles)
 {
 	int cpufreq, loops, incr, x, y;
-	vlong a, b;
-	static int initialised;
-
-	if(initialised == 0){
-		initialised = 1;
-		i8253.havecyc = havecycleclock;
-		ioalloc(T0cntr, 4, 0, "i8253");
-		ioalloc(T2ctl, 1, 0, "i8253.cntr2ctl");
-
-		/*
-		 *  set clock for 1/HZ seconds
-		 */
-		outb(Tmode, Load0|Square);
-		i8253.mode = Square;
-		outb(T0cntr, (Freq/HZ));	/* low byte */
-		outb(T0cntr, (Freq/HZ)>>8);	/* high byte */
-
-		/*
-		 * Introduce a little delay to make sure the count is
-		 * latched and the timer is counting down; with a fast
-		 * enough processor this may not be the case.
-		 * The i8254 (which this probably is) has a read-back
-		 * command which can be used to make sure the counting
-		 * register has been written into the counting element.
-		 */
-		x = (Freq/HZ);
-		for(loops = 0; loops < 100000 && x >= (Freq/HZ); loops++){
-			outb(Tmode, Latch0);
-			x = inb(T0cntr);
-			x |= inb(T0cntr)<<8;
-		}
-	}
+	uvlong a, b;
 
 	/* find biggest loop that doesn't wrap */
 	incr = 16000000/(aalcycles*HZ*2);
@@ -119,14 +136,14 @@ i8253init(int aalcycles, int havecycleclock)
 		 *
 		 */
 		outb(Tmode, Latch0);
-		if(havecycleclock)
-			rdmsr(0x10, &a);
+		if(m->havetsc)
+			rdtsc(&a);
 		x = inb(T0cntr);
 		x |= inb(T0cntr)<<8;
 		aamloop(loops);
 		outb(Tmode, Latch0);
-		if(havecycleclock)
-			rdmsr(0x10, &b);
+		if(m->havetsc)
+			rdtsc(&b);
 		y = inb(T0cntr);
 		y |= inb(T0cntr)<<8;
 		x -= y;
@@ -145,7 +162,7 @@ i8253init(int aalcycles, int havecycleclock)
 	cpufreq = loops*((aalcycles*2*Freq)/x);
 	m->loopconst = (cpufreq/1000)/aalcycles;	/* AAM+LOOP's for 1 ms */
 
-	if(havecycleclock){
+	if(m->havetsc){
 
 		/* counter goes up by 2*Freq */
 		b = (b-a)<<1;
@@ -164,105 +181,119 @@ i8253init(int aalcycles, int havecycleclock)
 		m->cpumhz = (cpufreq + cpufreq/200)/1000000;
 		m->cpuhz = cpufreq;
 	}
+
+	i8253.hz = Freq<<Tickshift;
 }
 
-/*
- * schedule the next interrupt
- * cycwhen is the next time for the cycle counter routines
- */
-static void
-clockintrsched0(vlong next)
-{
-	vlong now;
-	long set;
-
-	i8253.cycwhen = next;
-	if(i8253.mode == Square && next == 0)
-		return;
-
-	now = fastticks(nil);
-	if(next || now < i8253.when - i8253.fastperiod || now > i8253.when - ((3*i8253.fastperiod)>>2)){
-		if(next > i8253.when)
-			next = i8253.when;
-		set = (long)(next - now) * FreqMul / i8253.fast2freq;
-		set -= 3;	/* three cycles for the count to take effect: outb, outb, wait */
-		if(i8253.mode != Trigger){
-			outb(Tmode, Load0|Trigger);
-			i8253.mode = Trigger;
-			set--;
-		}
-		if(set < Minusec)
-			set = Minusec;
-		outb(T0cntr, set);	/* low byte */
-		outb(T0cntr, set>>8);	/* high byte */
-	}else if(i8253.mode != Square){
-		i8253.mode = Square;
-		outb(Tmode, Load0|Square);
-		outb(T0cntr, (Freq/HZ));	/* low byte */
-		outb(T0cntr, (Freq/HZ)>>8);	/* high byte */
-	}
-}
-
-int
-havecycintr(void)
-{
-	return i8253.havecyc && i8253.enabled;
-}
+ulong i8253periodset;
 
 void
-clockintrsched(void)
+i8253timerset(uvlong next)
 {
-	vlong next;
+	ulong period;
+	ulong want;
+	ulong now;
 
-	ilock(&i8253);
-	if(i8253.enabled && i8253.havecyc){
-		next = cycintrnext();
-		if(next != i8253.cycwhen)
-			clockintrsched0(next);
+	want = next>>Tickshift;
+	now = i8253.ticks;	/* assuming whomever called us just did fastticks() */
+
+	period = MaxPeriod;
+	if(next != 0){
+		period = want - now;
+		if(period < MinPeriod)
+			period = MinPeriod;
+		else if(period > (4*MaxPeriod)/5)	/* strong attraction to MaxPeriod */
+			period = MaxPeriod;
 	}
-	iunlock(&i8253);
+
+	/* histeresis */
+	if(i8253.period != period){
+		ilock(&i8253);
+		/* load new value */
+		outb(Tmode, Load0|Square);
+		outb(T0cntr, period);		/* low byte */
+		outb(T0cntr, period>>8);	/* high byte */
+
+		/* remember period */
+		i8253.period = period;
+		i8253periodset++;
+		iunlock(&i8253);
+	}
 }
 
 static void
-clockintr0(Ureg* ureg, void *v)
+i8253clock(Ureg* ureg, void*)
 {
-	vlong now, when;
-
-	if(!i8253.havecyc){
-		clockintr(ureg, v);
-		return;
-	}
-
-	now = fastticks(nil);
-	when = i8253.when;
-	if(now >= i8253.when){
-		clockintr(ureg, v);
-		do
-			i8253.when += i8253.fastperiod;
-		while(i8253.when < now);
-	}
-	if(i8253.cycwhen || i8253.mode != Square)
-		clockintrsched0(checkcycintr(ureg, v));
+	timerintr(ureg, 0);
 }
 
 void
 i8253enable(void)
 {
-	i8253.when = fastticks(nil);
-	i8253.fastperiod = (m->cpuhz + HZ/2) / HZ;
-	i8253.fast2freq = (vlong)m->cpuhz * FreqMul / Freq;
 	i8253.enabled = 1;
-	intrenable(IrqCLOCK, clockintr0, 0, BUSUNKNOWN, "clock");
+	i8253.period = Freq/HZ;
+	intrenable(IrqCLOCK, i8253clock, 0, BUSUNKNOWN, "clock");
 }
 
 /*
- *  return time elapsed since clock start in
- *  100 times hz
+ *  return the total ticks of counter 1.  We shift by
+ *  8 to give timesync more wriggle room for interpretation
+ *  of the frequency
  */
 uvlong
 i8253read(uvlong *hz)
 {
+	ushort y, x;
+	uvlong ticks;
+
 	if(hz)
-		*hz = HZ*100;
-	return m->ticks*100;
+		*hz = i8253.hz;
+
+	ilock(&i8253);
+	outb(Tmode, Latch2);
+	y = inb(T2cntr);
+	y |= inb(T2cntr)<<8;
+
+	if(y < i8253.last)
+		x = i8253.last - y;
+	else
+		x = i8253.last + (0x10000 - y);
+	i8253.last = y;
+	i8253.ticks += x>>1;
+	ticks = i8253.ticks;
+	iunlock(&i8253);
+
+	return ticks<<Tickshift;
+}
+
+void
+delay(int millisecs)
+{
+	millisecs *= m->loopconst;
+	if(millisecs <= 0)
+		millisecs = 1;
+	aamloop(millisecs);
+}
+
+void
+microdelay(int microsecs)
+{
+	microsecs *= m->loopconst;
+	microsecs /= 1000;
+	if(microsecs <= 0)
+		microsecs = 1;
+	aamloop(microsecs);
+}
+
+ulong
+TK2MS(ulong ticks)
+{
+	uvlong t, hz;
+
+	t = ticks;
+	hz = HZ;
+	t *= 1000L;
+	t = t/hz;
+	ticks = t;
+	return ticks;
 }

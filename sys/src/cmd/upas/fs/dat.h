@@ -4,7 +4,7 @@ struct Message
 	int	id;
 	int	refs;
 	int	subname;
-	char	name[NAMELEN];
+	char	name[Elemlen];
 
 	// pointers into message
 	char	*start;		// start of message
@@ -91,9 +91,9 @@ struct Mailbox
 	int	id;
 	int	dolock;		// lock when syncing?
 	int	std;
-	char	name[NAMELEN];
-	char	path[256];
-	Dir	d;
+	char	name[Elemlen];
+	char	path[Pathlen];
+	Dir	*d;
 	Message	*root;
 	int	vers;		// goes up each time mailbox is read
 
@@ -149,8 +149,8 @@ int		hashmboxrefs(Mailbox*);
 extern int	debug;
 extern int	fflag;
 extern int	logging;
-extern char	user[NAMELEN];
-extern char	stdmbox[4*NAMELEN];
+extern char	user[Elemlen];
+extern char	stdmbox[Pathlen];
 extern QLock	mbllock;
 extern Mailbox	*mbl;
 extern char	*mntpt;
@@ -160,6 +160,7 @@ extern char*	Enotme;
 
 enum
 {
+	/* mail subobjects */
 	Qbody,
 	Qbcc,
 	Qcc,
@@ -183,8 +184,10 @@ enum
 	Qtype,
 	Qunixheader,
 	Qinfo,
-	Qmax,
 	Qunixdate,
+	Qmax,
+
+	/* other files */
 	Qtop,
 	Qmbox,
 	Qdir,

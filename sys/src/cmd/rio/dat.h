@@ -51,8 +51,8 @@ enum
 };
 
 #define	QID(w,q)	((w<<8)|(q))
-#define	WIN(q)	((((q).path&~CHDIR)>>8) & 0xFFFFFF)
-#define	FILE(q)	((q).path & 0xFF)
+#define	WIN(q)	((((ulong)(q).path)>>8) & 0xFFFFFF)
+#define	FILE(q)	(((ulong)(q).path) & 0xFF)
 
 enum	/* control messages */
 {
@@ -161,7 +161,7 @@ struct Window
 	uchar		wctlopen;
 	uchar		deleted;
 	uchar		mouseopen;
-	char			label[NAMELEN];
+	char			*label;
 	int			pid;
 	char			*dir;
 };
@@ -207,7 +207,7 @@ void		wsendctlmesg(Window*, int, Rectangle, Image*);
 void		wsetcursor(Window*, int);
 void		wsetname(Window*);
 void		wsetorigin(Window*, uint, int);
-void		wsetpid(Window*, int);
+void		wsetpid(Window*, int, int);
 void		wsetselect(Window*, uint, uint);
 void		wshow(Window*, uint);
 void		wsnarf(Window*);
@@ -216,9 +216,10 @@ void		wsetcols(Window*);
 
 struct Dirtab
 {
-	char	*name;
-	uint	qid;
-	uint	perm;
+	char		*name;
+	uchar	type;
+	uint		qid;
+	uint		perm;
 };
 
 struct Fid
@@ -243,7 +244,7 @@ struct Xfid
 		Fcall;
 		Channel	*c;	/* chan(void(*)(Xfid*)) */
 		Fid		*f;
-		char	*buf;
+		uchar	*buf;
 		Filsys	*fs;
 		QLock	active;
 		int		flushing;	/* another Xfid is trying to flush us */
@@ -270,7 +271,7 @@ struct Filsys
 		int		cfd;
 		int		sfd;
 		int		pid;
-		char		user[NAMELEN];
+		char		*user;
 		Channel	*cxfidalloc;	/* chan(Xfid*) */
 		Fid		*fids[Nhash];
 };
@@ -279,7 +280,6 @@ Filsys*	filsysinit(Channel*);
 int		filsysmount(Filsys*, int);
 Xfid*		filsysrespond(Filsys*, Xfid*, Fcall*, char*);
 void		filsyscancel(Xfid*);
-void		filsysclose(Filsys*);
 
 void		wctlproc(void*);
 void		wctlthread(void*);
@@ -333,3 +333,4 @@ char		srvwctl[];
 int		errorshouldabort;
 int		menuing;		/* menu action is pending; waiting for window to be indicated */
 int		snarfversion;	/* updated each time it is written */
+int		messagesize;		/* negotiated in 9P version setup */

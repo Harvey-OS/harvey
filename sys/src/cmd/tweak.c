@@ -298,7 +298,7 @@ mesg(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	mesgstr(textr.min, 0, buf);
 }
@@ -310,7 +310,7 @@ tmesg(Thing *t, int line, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	mesgstr(t->tr.min, line, buf);
 }
@@ -545,15 +545,18 @@ tget(char *file)
 	Image *b;
 	Subfont *s;
 	Thing *t;
-	Dir d;
+	Dir *d;
 	jmp_buf oerr;
 	uchar buf[256];
 	char *data;
 
-	errstr((char*)buf);	/* flush pending error message */
+	buf[0] = '\0';
+	errstr((char*)buf, sizeof buf);	/* flush pending error message */
 	memmove(oerr, err, sizeof err);
+	d = nil;
 	if(setjmp(err)){
    Err:
+		free(d);
 		memmove(err, oerr, sizeof err);
 		return 0;
 	}
@@ -562,7 +565,8 @@ tget(char *file)
 		mesg("can't open %s: %r", file);
 		goto Err;
 	}
-	if(dirfstat(fd, &d) < 0){
+	d = dirfstat(fd);
+	if(d == nil){
 		mesg("can't stat bitmap file %s: %r", file);
 		close(fd);
 		goto Err;
@@ -582,14 +586,14 @@ tget(char *file)
 		 */
 		face = CURSOR;
 		s = 0;
-		data = malloc(d.length+1);
+		data = malloc(d->length+1);
 		if(data == 0){
 			mesg("can't malloc buffer: %r");
 			close(fd);
 			goto Err;
 		}
-		data[d.length] = 0;
-		if(read(fd, data, d.length) != d.length){
+		data[d->length] = 0;
+		if(read(fd, data, d->length) != d->length){
 			mesg("can't read cursor file %s: %r", file);
 			close(fd);
 			goto Err;
@@ -624,19 +628,19 @@ tget(char *file)
 		 */
 		face = FACE;
 		s = 0;
-		data = malloc(d.length+1);
+		data = malloc(d->length+1);
 		if(data == 0){
 			mesg("can't malloc buffer: %r");
 			close(fd);
 			goto Err;
 		}
-		data[d.length] = 0;
-		if(read(fd, data, d.length) != d.length){
+		data[d->length] = 0;
+		if(read(fd, data, d->length) != d->length){
 			mesg("can't read bitmap file %s: %r", file);
 			close(fd);
 			goto Err;
 		}
-		for(y=0,i=0; i<d.length; i++)
+		for(y=0,i=0; i<d->length; i++)
 			if(data[i] == '\n')
 				y++;
 		if(y == 0){
@@ -714,7 +718,7 @@ tget(char *file)
 			close(fd);
 			goto Err;
 		}
-		if(seek(fd, 0, 1) < d.length)
+		if(seek(fd, 0, 1) < d->length)
 			s = readsubfonti(display, file, fd, b, 0);
 	}
 	close(fd);
@@ -1582,7 +1586,7 @@ twrite(Thing *t)
 		mesg("can't write %s: %r", t->name);
 		return;
 	}
-	if(t->face){
+	if(t->face && t->b->depth <= 4){
 		r = t->b->r;
 		ld = log2[t->b->depth];
 		/* This heuristic reflects peculiarly different formats */

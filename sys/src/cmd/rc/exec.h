@@ -9,8 +9,9 @@ extern void Xrdfn(void), Xunredir(void), Xstar(void), Xreturn(void), Xsubshell(v
 extern void Xtrue(void), Xword(void), Xwrite(void), Xpipefd(void), Xcase(void);
 extern void Xlocal(void), Xunlocal(void), Xassign(void), Xsimple(void), Xpopm(void);
 extern void Xrdcmds(void), Xwastrue(void), Xif(void), Xifnot(void), Xpipewait(void);
-extern void Xdelhere(void), Xpopredir(void), Xsub(void), Xeflag(void), Xsettrue();
+extern void Xdelhere(void), Xpopredir(void), Xsub(void), Xeflag(void), Xsettrue(void);
 extern void Xerror(char*);
+extern void Xerror1(char*);
 /*
  * word lists are in correct order,
  * i.e. word0->word1->word2->word3->0
@@ -29,7 +30,7 @@ struct redir{
 	short from, to;			/* what to do it to */
 	struct redir *next;		/* what else to do (reverse order) */
 };
-#define	NSTATUS	64			/* length of status (from plan 9) */
+#define	NSTATUS	ERRMAX			/* length of status (from plan 9) */
 /*
  * redir types
  */

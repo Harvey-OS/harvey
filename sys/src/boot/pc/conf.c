@@ -170,7 +170,7 @@ parsemenu(char* str, char* scratch, int len)
 			}
 			if(q != nil)
 				mtimeout = strtol(q, 0, 0);
-			sprint(mdefaultbuf, "%d", mi-mitem+1);
+			sprint(mdefaultbuf, "%ld", mi-mitem+1);
 			mdefault = mdefaultbuf;
 		}
 		else if(cistrncmp(p, "menuconsole=", 12) == 0){

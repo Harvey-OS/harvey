@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
+#include "pci.h"
 #include "vga.h"
 
 /*
@@ -9,10 +10,47 @@
  */
 typedef struct {
 	uchar	old[3];
+	int	pcr;		/* Pixel Command Register */
 
 	int	x;
 	int	y;
 } Cyber938x;
+
+/*
+ * Access to the DAC Pixel Command Register.
+ * The access is similar to that used on the old
+ * SGS-Thompson STG1702 Enhanced True Color Palette-DAC
+ * and Sierra SC1502[56] HiCOLOR-24 Palette.
+ */
+static void
+pcrrw(void)
+{
+	int i;
+
+	inportb(PaddrW);
+	for(i = 0; i < 4; i++)
+		inportb(Pixmask);
+}
+
+static int
+pcrr(void)
+{
+	int pcr;
+
+	pcrrw();
+	pcr = inportb(Pixmask);
+	inportb(PaddrW);
+
+	return pcr;
+}
+
+static void
+pcrw(int pcr)
+{
+	pcrrw();
+	outportb(Pixmask, pcr);
+	inportb(PaddrW);
+}
 
 static void
 snarf(Vga* vga, Ctlr* ctlr)
@@ -35,37 +73,42 @@ snarf(Vga* vga, Ctlr* ctlr)
 	cyber->old[2] = vgaxi(Seqx, 0x0E);
 	vga->sequencer[0x0B] = vgaxi(Seqx, 0x0B);
 
-	for(i = 0x08; i < 0x10; i++){
+	cyber->pcr = pcrr();
+
+	for(i = 0x08; i < 0x20; i++){
 		if(i == 0x0B)
 			continue;
 		vga->sequencer[i] = vgaxi(Seqx, i);
 	}
 	for(i = 0x19; i < 0x60; i++)
 		vga->crt[i] = vgaxi(Crtx, i);
+	vga->crt[0xCF] = vgaxi(Crtx, 0xCF);
 	for(i = 0x09; i < 0x60; i++)
 		vga->graphics[i] = vgaxi(Grx, i);
 
+	vga->vma = 4*1024*1024;
 	switch(vga->crt[0x1F] & 0x07){
+	case 0:
+	case 4:
+		vga->vma = 8*1024*1024;
+		vga->vmz = 8*1024*1024;
+		break;
 	case 1:
 	case 5:
 		vga->vmz = 4*1024*1024;
 		break;
-
 	case 2:
 	case 6:
 		vga->vmz = 768*1024;
 		break;
-
 	case 7:
 		vga->vmz = 2*1024*1024;
 		break;
-
 	case 3:
 	default:
 		vga->vmz = 1024*1024;
 		break;
 	}
-	vga->vma = 4*1024*1024;
 
 	switch((vga->graphics[0x52]>>4) & 0x03){
 	case 0:
@@ -102,9 +145,12 @@ options(Vga* vga, Ctlr* ctlr)
 static void
 init(Vga* vga, Ctlr* ctlr)
 {
+	Cyber938x *cyber;
+
+	cyber = vga->private;
+
 	vga->crt[0x1E] = 0x80;
 	vga->crt[0x2A] |= 0x40;
-	vga->crt[0x38] = 0x00;
 
 	if(vga->linear && (ctlr->flag & Hlinear))
 		ctlr->flag |= Ulinear;
@@ -117,8 +163,23 @@ init(Vga* vga, Ctlr* ctlr)
 	else if(vga->mode->y > 480)
 		vga->graphics[0x31] |= 0x10;
 
-	if(vga->mode->z > 8)
+	switch(vga->mode->z){
+	case 8:
+		cyber->pcr = 0;		/* DAC Pixel Command Register */
+		vga->crt[0x38] = 0x00;	/* Pixel Bus Register */
+		break;
+	case 16:
+		cyber->pcr = 0x30;
+		vga->crt[0x38] = 0x05;
+		vga->crt[0x29] |= 0x10;	/* RSC: necessary for Versa SX */
+		break;
+	case 24:
+		cyber->pcr = 0xD0;
+		vga->crt[0x38] = 0x29;
+		break;
+	default:
 		error("depth %d not supported\n", vga->mode->z);
+	}
 
 
 	switch(vga->sequencer[0x09]){
@@ -126,7 +187,13 @@ init(Vga* vga, Ctlr* ctlr)
 	default:
 		error("unknown Cyber revision 0x%uX\n", vga->sequencer[0x09]);
 		break;
-
+	case 0x21:				/* ProVidia 9685 */
+		/*
+		 * Incomplete - no clock code so only 640x480x8 works.
+		 */
+		vga->attribute[0x11] = 0;
+		vga->graphics[0x0F] |= 0x07;
+		break;
 	case 0x42:				/* Cyber9382 */
 		/*
 		 * Try a little magic for DSTN displays.
@@ -144,8 +211,9 @@ init(Vga* vga, Ctlr* ctlr)
 	case 0x35:				/* Cyber9385 */
 		vga->graphics[0x0F] |= 0x07;
 		break;
-
 	case 0x4A:				/* Cyber9388 */
+	case 0x5D:				/* CyberBlade */
+	case 0x7A:				/* CyberBlade */
 		vga->crt[0x2F] = 0x3F;
 		vga->graphics[0x0F] |= 0x17;
 		if(vga->mode->x == 1024)
@@ -161,9 +229,15 @@ init(Vga* vga, Ctlr* ctlr)
 static void
 load(Vga* vga, Ctlr* ctlr)
 {
+	Cyber938x *cyber;
+
+	cyber = vga->private;
+
 	outportw(0x3C4, 0x000B);
 	outportb(0x3C4, 0x0B);
 	inportb(0x3C5);
+
+	pcrw(cyber->pcr);
 
 	outportw(0x3C4, (0xC2 << 8) | 0x0E);
 	vgaxo(Grx, 0x52, vga->graphics[0x52]);
@@ -175,6 +249,7 @@ load(Vga* vga, Ctlr* ctlr)
 	if(ctlr->flag & Ulinear)
 		vga->crt[0x21] |= 0x20;
 	vgaxo(Crtx, 0x21, vga->crt[0x21]);
+	vgaxo(Crtx, 0x29, vga->crt[0x29]);
 	vgaxo(Crtx, 0x2A, vga->crt[0x2A]);
 	vgaxo(Crtx, 0x2F, vga->crt[0x2F]);
 	vgaxo(Crtx, 0x38, vga->crt[0x38]);
@@ -187,24 +262,28 @@ load(Vga* vga, Ctlr* ctlr)
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
-	int i;
 	char *name;
 	Cyber938x *cyber;
+	int i, k, m, n, vclka, vclkb;
 
 	name = ctlr->name;
 	cyber = vga->private;
 	printitem(name, "Seq08");
-	for(i = 0x08; i < 0x10; i++)
+	for(i = 0x08; i < 0x20; i++)
 		printreg(vga->sequencer[i]);
 	printitem(name, "Old Seq0C");
 	for(i = 0; i < 3; i++)
 		printreg(cyber->old[i]);
+	printitem(name, "pcr");
+	printreg(cyber->pcr);
 	printitem(name, "Crt19");
 	for(i = 0x19; i < 0x20; i++)
 		printreg(vga->crt[i]);
 	printitem(name, "Crt20");
 	for(i = 0x20; i < 0x60; i++)
 		printreg(vga->crt[i]);
+	printitem(name, "CrtCF");
+	printreg(vga->crt[0xCF]);
 	printitem(name, "Gr09");
 	for(i = 0x09; i < 0x10; i++)
 		printreg(vga->graphics[i]);
@@ -212,12 +291,24 @@ dump(Vga* vga, Ctlr* ctlr)
 	for(i = 0x10; i < 0x60; i++)
 		printreg(vga->graphics[i]);
 
-	printitem(name, "mclk");
-	printreg(inportb(0x43C6));
-	printreg(inportb(0x43C7));
+	if(vga->sequencer[0x09] >= 0x4A){
+		vclka = vga->sequencer[0x18];
+		vclkb = vga->sequencer[0x19];
+	}
+	else{
+		vclka = inportb(0x43C8);
+		vclkb = inportb(0x43C9);
+		printitem(name, "mclk");
+		printreg(inportb(0x43C6));
+		printreg(inportb(0x43C7));
+	}
 	printitem(name, "vclk");
-	printreg(inportb(0x43C8));
-	printreg(inportb(0x43C9));
+	printreg(vclka);
+	printreg(vclkb);
+	k = vclkb>>6;
+	m = vclkb & 0x3F;
+	n = vclka;
+ 	Bprint(&stdout, "%18d\n", (((n+8)*RefFreq)*(1<<k))/(m+2));
 
 	printitem(name, "lcd size");
 	Bprint(&stdout, "%9ud %8ud\n", cyber->x, cyber->y);

@@ -180,7 +180,7 @@ twrite(Iotrack *t)
 {
 	int i, ref;
 
-	chat("[twrite %d...", t->addr);
+	chat("[twrite %ld...", t->addr);
 	if(t->flags & BSTALE){
 		for(ref=0,i=0; i<Sect2trk; i++)
 			if(t->tp->p[i])
@@ -210,7 +210,7 @@ tread(Iotrack *t)
 	for(i=0; i<Sect2trk; i++)
 		if(t->tp->p[i])
 			++ref;
-	chat("[tread %d+%d...", t->addr, t->xf->offset);
+	chat("[tread %ld+%ld...", t->addr, t->xf->offset);
 	if(ref == 0){
 		if(devread(t->xf, t->addr, t->tp->buf, Trksize) < 0){
 			chat("error]");

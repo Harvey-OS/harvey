@@ -10,15 +10,15 @@ time_t
 time(time_t *tp)
 {
 	char b[20];
-	static int f = -1;
+	int f;
 	time_t t;
 
 	memset(b, 0, sizeof(b));
-	if(f < 0)
-		f = open("/dev/time", O_RDONLY);
+	f = open("/dev/time", O_RDONLY);
 	if(f >= 0) {
 		lseek(f, 0, 0);
 		read(f, b, sizeof(b));
+		close(f);
 	}
 	t = atol(b);
 	if(tp)

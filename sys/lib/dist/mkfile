@@ -1,0 +1,37 @@
+d=/n/emelieother/plan9
+
+cd:V: /n/emelieother/rsc/plan9.iso
+
+/n/emelieother/rsc/plan9.iso:DV:
+	@{cd pc; mk cddisk; cd ..}
+	rm -f $target
+	bind pc/cddisk cdstub/bootdisk.img
+	bind -a cdstub $d
+	disk/mk9660 -9cj -v 'Plan 9 from Bell Labs 4th Edition' -s $d \
+		-b bootdisk.img $target
+
+scan:V:
+	replica/scan /sys/lib/dist/emelieother.replica
+
+compresslog:V:
+	awk -f logcompress.awk $d/dist/replica/plan9.log | awk -f logtime.awk -v 't='^`{date -n} >/tmp/plan9.log
+	rm $d/dist/replica/plan9.log
+	cp /tmp/plan9.log $d/dist/replica/plan9.log
+
+#restart:V:
+#	rm -f $d/dist/replica/plan9.db
+#	rm -f $d/dist/replica/plan9.log
+#	chmod 664 $d/dist/replica/plan9.db >$d/dist/replica/plan9.db
+#	chmod 664 $d/dist/replica/plan9.log >$d/dist/replica/plan9.log
+#	chmod +a $d/dist/replica/plan9.log
+#	mk scan
+
+dump:V:
+	disk/dump9660 -9cj -v 'Plan 9 4e Dumps' -s $d \
+		-p /sys/lib/sysconfig/proto/allproto /n/emelieother/rsc/distdump.iso
+
+cd.install:V:
+	if(~ $sysname achille){ echo 'run this on a real machine, like olive.'; exit bad }
+	bzip2 -9 < /n/emelieother/rsc/plan9.iso >web.protect/_plan9.iso.bz2
+	mv web.protect/_plan9.iso.bz2 web.protect/plan9.iso.bz2
+

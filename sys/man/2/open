@@ -83,13 +83,15 @@ If the file already exists,
 it is truncated to 0 length,
 and the permissions, owner, and group remain unchanged.
 The created file is a directory if the
-.B CHDIR
+.B DMDIR
 bit is set in
-.IR perm .
-It is an exclusive-use file if the
-.B CHEXCL
+.IR perm ,
+an exclusive-use file if the
+.B DMEXCL
+bit is set, and an append-only file if the
+.B DMAPPEND
 bit is set.
-Such files may be open for I/O by only one client at a time,
+Exclusive-use files may be open for I/O by only one client at a time,
 but the file descriptor may become invalid if no I/O is done
 for an extended period; see
 .IR open (5).
@@ -110,6 +112,22 @@ a union directory (see
 then the constituent directory where the file is created
 depends on the structure of the union: see
 .IR bind (2).
+.PP
+Since
+.I create
+may succeed even if the file exists, a special mechanism is necessary
+for those applications that require an atomic create operation.
+If the
+.B OEXCL
+.RB ( 0x1000 )
+bit is set in the
+.I mode
+for a
+.IR create,
+the call succeeds only if the file does not already exist;
+see
+.IR open (5)
+for details.
 .PP
 .I Close
 closes the file associated with a file descriptor.

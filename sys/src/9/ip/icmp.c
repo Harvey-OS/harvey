@@ -28,6 +28,7 @@ typedef struct Icmp {
 
 enum {			/* Packet Types */
 	EchoReply	= 0,
+	UnreachableV6	= 1,
 	Unreachable	= 3,
 	SrcQuench	= 4,
 	Redirect	= 5,
@@ -44,8 +45,14 @@ enum {			/* Packet Types */
 	Maxtype		= 18,
 };
 
+enum
+{
+	MinAdvise	= 24,	/* minimum needed for us to advise another protocol */ 
+};
+
 char *icmpnames[Maxtype+1] =
 {
+[UnreachableV6]		"UnreachableV6",
 [EchoReply]		"EchoReply",
 [Unreachable]		"Unreachable",
 [SrcQuench]		"SrcQuench",
@@ -130,7 +137,7 @@ icmpannounce(Conv *c, char **argv, int argc)
 	char *e;
 
 	e = Fsstdannounce(c, argv, argc);
-	if(e != nil);
+	if(e != nil)
 		return e;
 	Fsconnected(c, nil);
 
@@ -178,7 +185,7 @@ icmpkick(Conv *c)
 }
 
 extern void
-icmpttlexceeded(Fs *f, uchar *ia, Block *bp)
+icmpttlexceeded(Fs *f, Ipifc *ifc, Block *bp)
 {
 	Block	*nbp;
 	Icmp	*p, *np;
@@ -190,7 +197,7 @@ icmpttlexceeded(Fs *f, uchar *ia, Block *bp)
 	nbp->wp += ICMP_IPSIZE + ICMP_HDRSIZE + ICMP_IPSIZE + 8;
 	np = (Icmp *)nbp->rp;
 	memmove(np->dst, p->src, sizeof(np->dst));
-	v6tov4(np->src, ia);
+	v6tov4(np->src, ifc->lifc->local);
 	memmove(np->data, bp->rp, ICMP_IPSIZE + 8);
 	np->type = TimeExceed;
 	np->code = 0;
@@ -288,12 +295,12 @@ static char *unreachcode[] =
 [1]	"host unreachable",
 [2]	"protocol unreachable",
 [3]	"port unreachable",
-[4]	"fragmentation needed and DF set",
+[4]	"unfragmentable",
 [5]	"source route failed",
 };
 
 static void
-icmpiput(Proto *icmp, uchar*, Block *bp)
+icmpiput(Proto *icmp, Ipifc*, Block *bp)
 {
 	int	n, iplen;
 	Icmp	*p;
@@ -302,6 +309,9 @@ icmpiput(Proto *icmp, uchar*, Block *bp)
 	char	*msg;
 	char	m2[128];
 	Icmppriv *ipriv;
+	int	code;
+	ushort	x;
+	uchar	dst[IPaddrlen];
 
 	ipriv = icmp->priv;
 	
@@ -339,17 +349,35 @@ icmpiput(Proto *icmp, uchar*, Block *bp)
 		ipoput(icmp->f, r, 0, MAXTTL, DFLTTOS);
 		break;
 	case Unreachable:
-		if(p->code > 5 || p->code < 0)
+		code = p->code;
+		x = 0;
+		switch(code){
+		default:
 			msg = unreachcode[1];
-		else
+			break;
+		case 5:
+			x = nhgets(p->seq);
 			msg = unreachcode[p->code];
+			break;
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			msg = unreachcode[p->code];
+			break;
+		}
 
 		bp->rp += ICMP_IPSIZE+ICMP_HDRSIZE;
-		if(blocklen(bp) < 8){
+		if(blocklen(bp) < MinAdvise){
 			ipriv->stats[LenErrs]++;
 			goto raise;
 		}
 		p = (Icmp *)bp->rp;
+		if(code == 5){
+			v4tov6(dst, p->dst);
+			update_mtucache(dst, x);
+		}
 		pr = Fsrcvpcolx(icmp->f, p->proto);
 		if(pr != nil && pr->advise != nil) {
 			(*pr->advise)(pr, bp, msg);
@@ -364,7 +392,7 @@ icmpiput(Proto *icmp, uchar*, Block *bp)
 			sprint(m2, "ttl exceeded at %V", p->src);
 
 			bp->rp += ICMP_IPSIZE+ICMP_HDRSIZE;
-			if(blocklen(bp) < 8){
+			if(blocklen(bp) < MinAdvise){
 				ipriv->stats[LenErrs]++;
 				goto raise;
 			}
@@ -374,6 +402,7 @@ icmpiput(Proto *icmp, uchar*, Block *bp)
 				(*pr->advise)(pr, bp, m2);
 				return;
 			}
+			bp->rp -= ICMP_IPSIZE+ICMP_HDRSIZE;
 		}
 
 		goticmpkt(icmp, bp);

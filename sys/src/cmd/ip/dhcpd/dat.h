@@ -25,6 +25,7 @@ struct Info
 	int	indb;			/* true if found in database */
 	char	domain[Ndbvlen];	/* system domain name */
 	char	bootf[Ndbvlen];		/* boot file */
+	char	bootf2[Ndbvlen];	/* alternative boot file */
 	uchar	ipaddr[NDB_IPlen];	/* ip address of system */
 	uchar	ipmask[NDB_IPlen];	/* ip network mask */
 	uchar	ipnet[NDB_IPlen];	/* ip network address (ipaddr & ipmask) */
@@ -32,6 +33,7 @@ struct Info
 	uchar	gwip[NDB_IPlen];	/* gateway ip address */
 	uchar	fsip[NDB_IPlen];	/* file system ip address */
 	uchar	auip[NDB_IPlen];	/* authentication server ip address */
+	char	rootpath[Ndbvlen];	/* rootfs for diskless nfs clients */
 	char	dhcpgroup[Ndbvlen];
 	char	vendor[Ndbvlen];	/* vendor info */
 };
@@ -47,19 +49,19 @@ extern char*	tohex(char*, uchar*, int);
 extern char*	toid(uchar*, int);
 extern void	initbinding(uchar*, int);
 extern Binding*	iptobinding(uchar*, int);
-extern Binding*	idtobinding(char*, Ipinfo*, int);
-extern Binding*	idtooffer(char*, Ipinfo*);
+extern Binding*	idtobinding(char*, Info*, int);
+extern Binding*	idtooffer(char*, Info*);
 extern int	commitbinding(Binding*);
 extern int	releasebinding(Binding*, char*);
-extern int	samenet(uchar *ip, Ipinfo *iip);
+extern int	samenet(uchar *ip, Info *iip);
 extern void	mkoffer(Binding*, char*, long);
 
 /* from ndb.c */
-extern int	lookup(Bootp*, Ipinfo*, Ipinfo*);
-extern int	lookupip(uchar*, Ipinfo*);
+extern int	lookup(Bootp*, Info*, Info*);
+extern int	lookupip(uchar*, Info*);
 extern void	lookupname(uchar*, char*);
-extern Ipifc*	findifc(uchar*);
-extern Ipifc*	forme(uchar*);
+extern Iplifc*	findlifc(uchar*);
+extern int	forme(uchar*);
 extern int	lookupserver(char*, uchar**, uchar*);
 
 /* from icmp.c */

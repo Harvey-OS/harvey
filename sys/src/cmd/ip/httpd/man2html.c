@@ -17,7 +17,7 @@ error(char *title, char *fmt, ...)
 	char buf[1024], *out;
 
 	va_start(arg, fmt);
-	out = doprint(buf, buf+sizeof(buf), fmt, arg);
+	out = vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	*out = 0;
 
@@ -47,7 +47,7 @@ lookup(char *object, int section, Hit **list)
 	int fd;
 	char *p, *f;
 	Biobuf b;
-	char file[4*NAMELEN];
+	char file[256];
 	Hit *h;
 
 	while(*list != nil)
@@ -302,10 +302,10 @@ doconvert(char *uri, int vermaj)
 	char *p;
 	char file[256];
 	char title[256];
-	char err[ERRLEN];
+	char err[ERRMAX];
 	int pfd[2];
-	Dir d;
-	Waitmsg w;
+	Dir *d;
+	Waitmsg *w;
 	int x;
 
 	if(strstr(uri, ".."))
@@ -315,9 +315,12 @@ doconvert(char *uri, int vermaj)
 	if(p == nil){
 		/* redirect section requests */
 		snprint(file, sizeof(file), "/sys/man/%s", uri);
-		if(dirstat(file, &d) < 0)
+		d = dirstat(file);
+		if(d == nil)
 			error(uri, "man page not found");
-		if(d.qid.path & CHDIR){
+		x = d->qid.type;
+		free(d);
+		if(x & QTDIR){
 			if(*uri == 0 || strcmp(uri, "/") == 0)
 				redirectto("/sys/man/index.html");
 			else {
@@ -331,7 +334,9 @@ doconvert(char *uri, int vermaj)
 		/* rewrite the name intro */
 		*p = 0;
 		snprint(file, sizeof(file), "/sys/man/%s/0intro", uri);
-		if(dirstat(file, &d) < 0)
+		d = dirstat(file);
+		free(d);
+		if(d == nil)
 			error(uri, "man page not found");
 	}
 
@@ -356,7 +361,7 @@ doconvert(char *uri, int vermaj)
 		close(pfd[0]);
 		close(pfd[1]);
 		execl("/bin/troff2html", "troff2html", "-t", title, 0);
-		errstr(err);
+		errstr(err, sizeof err);
 		exits(err);
 	}
 	switch(fork()){
@@ -370,7 +375,7 @@ doconvert(char *uri, int vermaj)
 		close(pfd[0]);
 		close(pfd[1]);
 		execl("/bin/troff", "troff", "-manhtml", file, 0);
-		errstr(err);
+		errstr(err, sizeof err);
 		exits(err);
 	}
 	close(pfd[0]);
@@ -378,19 +383,20 @@ doconvert(char *uri, int vermaj)
 
 	/* wait for completion */
 	for(;;){
-		x = wait(&w);
-		if(x < 0)
+		w = wait();
+		if(w == nil)
 			break;
-		if(w.msg[0] != 0)
-			print("whoops %s\n", w.msg);
+		if(w->msg[0] != 0)
+			print("whoops %s\n", w->msg);
+		free(w);
 	}
 }
 
 void
 main(int argc, char **argv)
 {
-	fmtinstall('H', httpconv);
-	fmtinstall('U', hurlconv);
+	fmtinstall('H', httpfmt);
+	fmtinstall('U', hurlfmt);
 
 	if(argc == 2){
 		hinit(&houtb, 1, Hwrite);

@@ -117,7 +117,7 @@ badatomcmp(const void *va, const void *vb)
 void
 wrconform(Cdimg *cd, int n, ulong *pblock, ulong *plength)
 {
-	char buf[2*NAMELEN+10];
+	char buf[1024];
 	int i;
 	Conform *c;
 

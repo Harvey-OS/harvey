@@ -20,6 +20,37 @@ the default sampling rate is 44.1 kHz.
 Some implementations only support audio output
 and return a zero length when read.
 .PP
+The length of the
+.B audio
+file as returned by
+.IR stat (2)
+represents the number of bytes buffered for input or output.
+This provides some control over record or playback latency.
+.PP
+The file
+.B audiostat
+provides additional timing and latency control.  When read, it returns
+lines of the form
+.br
+.B "bufsize \f2s\fP buffered \f2b\fP offset \f2o\fP time \f2t\fP
+.br
+reporting number of bytes
+.I s
+used for DMA operations (i.e., the minimum useful size for reads and writes),
+the number of bytes
+.I b
+currently buffered, and the time
+.I t
+at which offset
+.I o
+was reached.  Using
+.I t
+and
+.IR o ,
+it is possible to calculate at what time a byte with a different offset will
+be recorded or played back.  See also
+.IR usb (4).
+.PP
 .B Volume
 is the control file associated with the audio port.
 Each input and output source has an associated stereo volume control,

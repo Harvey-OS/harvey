@@ -1,12 +1,22 @@
 .TH FMT 1
 .SH NAME
-fmt \- ultra-simple text formatter
+fmt, htmlfmt \- simple text formatters
 .SH SYNOPSIS
 .B fmt
 [
 .I option ...
 ]
 [
+.I file ...
+]
+.PP
+.B htmlfmt
+[
+.B -a
+] [
+.B -u
+.I url
+] [
 .I file ...
 ]
 .SH DESCRIPTION
@@ -39,5 +49,31 @@ Empty lines are inserted between input files.
 .PP
 .I Fmt
 is idempotent: it leaves already formatted text unchanged.
+.PP
+.I Htmlfmt
+performs a similar service, but accepts as input text formatted with
+HTML tags.
+It accepts
+.IR fmt 's
+.B -l
+and
+.B -w
+flags and also:
+.TP
+.BI -a
+Normally
+.I htmlfmt
+suppresses the contents of form fields and anchors (URLs and image files); this flag
+causes it to print them, in square brackets.
+.TP
+.BI -u " url
+Use
+.I url
+as the base URL for the document when displaying anchors; sets
+.BI -a .
 .SH SOURCE
 .B /sys/src/cmd/fmt.c
+.SH BUGS
+.I Htmlfmt
+makes no attempt to render the two-dimensional geometry of tables;
+it just treats the table entries as plain, to-be-formatted text.

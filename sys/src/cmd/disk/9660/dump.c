@@ -84,7 +84,7 @@ addfile(Cdimg *cd, Dump *d, char *name, Direc *dir)
 	uchar md5[MD5dlen];
 	Dumpdir **lblock;
 
-	assert((dir->mode & CHDIR) == 0);
+	assert((dir->mode & DMDIR) == 0);
 
 	if(dir->length == 0)
 		return;
@@ -140,7 +140,7 @@ readkids(Cdimg *cd, Direc *dir, char *(*cvt)(uchar*, int))
 	Cdir *c;
 	Direc dx;
 
-	assert(dir->mode & CHDIR);
+	assert(dir->mode & DMDIR);
 
 	dot = atom(".");
 	dotdot = atom("..");
@@ -213,7 +213,7 @@ adddir(Cdimg *cd, Dump *d, Direc *dir)
 
 	readkids(cd, dir, isostring);
 	for(i=0; i<dir->nchild; i++) {
-		if(dir->child[i].mode & CHDIR)
+		if(dir->child[i].mode & DMDIR)
 			adddir(cd, d, &dir->child[i]);
 		else
 			addfile(cd, d, atom(dir->name), &dir->child[i]);

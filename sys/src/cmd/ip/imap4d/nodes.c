@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <auth.h>
 #include "imap4d.h"
 
 /*

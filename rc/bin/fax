@@ -11,16 +11,16 @@ case -v
 switch($#*){
 case 0 1
 	echo usage: $0 telephone-number recipient [files]
-	exit 0
+	exit usage
 case 2
 	stdin=yes
 }
 
-telno=$1
+telno=`{echo $1|sed 's/[ \-]//g'}
 shift
 
 switch($telno){
-case [0-9]*
+case [0-9]* +[0-9]*
 	;
 case *
 	echo usage: $0 telephone-number recipient [files]
@@ -68,16 +68,21 @@ case *
 }
 
 # convert to g3
-switch(`{file $infiles(1)}){
-case *g3* *fax*
-	g3files=$infiles
-case postscript
-	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%03d' -dNOPAUSE -dQUIET $infiles quit.ps
-	g3files=($tmp.*)
-case *
-	lp -dstdout $infiles > $tmpps
-	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%03d' -dNOPAUSE -dQUIET $tmpps quit.ps
-	g3files=($tmp.*)
+g3files=()
+a=1
+for(i in $infiles){
+	switch(`{file $i}){
+	case *:*g3* *:*fax*
+		g3files=($g3files $i)
+	case *:*postscript
+		gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.'$#a'.%03d' -dNOPAUSE -dQUIET $i quit.ps
+		g3files=($g3files $tmp.$#a.*)
+	case *
+		lp -dstdout $i > $tmpps
+		gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.'$#a'.%03d' -dNOPAUSE -dQUIET $tmpps quit.ps
+		g3files=($g3files $tmp.$#a.*)
+	}
+	a=($a $a)
 }
 
 pages=`{echo $g3files|wc -w}
@@ -115,7 +120,7 @@ for(i in $header.* $g3files){
 switch($view){
 case no
 	upas/qer $files /mail/faxoutqueue fax $user $telno < /dev/null
-	rx dinar /sys/lib/fax/faxgoose
+	rx boundary /sys/lib/fax/faxgoose
 case yes
 	page $header.* $g3files
 }

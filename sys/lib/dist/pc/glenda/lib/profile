@@ -1,0 +1,9 @@
+echo -n accelerated > '#m/mousectl'
+echo -n 'res 3' > '#m/mousectl'
+user=`{cat /dev/user}
+home=/usr/$user
+bind -a $home/bin/rc /bin
+bind -a $home/bin/$cputype /bin
+bind -c $home/tmp /tmp
+rio -si inst/go
+

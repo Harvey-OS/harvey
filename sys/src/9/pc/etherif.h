@@ -13,13 +13,13 @@ struct Ether {
 	int	minmtu;
 	int 	maxmtu;
 	uchar	ea[Eaddrlen];
-	int	encry;
 
 	void	(*attach)(Ether*);	/* filled in by reset routine */
 	void	(*transmit)(Ether*);
 	void	(*interrupt)(Ureg*, void*);
 	long	(*ifstat)(Ether*, void*, long, ulong);
 	long 	(*ctl)(Ether*, void*, long); /* custom ctl messages */
+	void	(*shutdown)(Ether*);	/* shutdown hardware before reboot */
 	void	*ctlr;
 
 	Queue*	oq;
@@ -30,6 +30,7 @@ struct Ether {
 extern Block* etheriq(Ether*, Block*, int);
 extern void addethercard(char*, int(*)(Ether*));
 extern ulong ethercrc(uchar*, int);
+extern int parseether(uchar*, char*);
 
 #define NEXT(x, l)	(((x)+1)%(l))
 #define PREV(x, l)	(((x) == 0) ? (l)-1: (x)-1)

@@ -1,22 +1,22 @@
-/* Copyright (C) 1991, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1991, 1995, 1996, 1997, 1998 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: gscspace.h,v 1.5 2000/09/19 19:00:27 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: gscspace.h,v 1.1 2000/03/09 08:40:42 lpd Exp $ */
 /* Client interface to color spaces */
 
 #ifndef gscspace_INCLUDED
@@ -164,12 +164,6 @@ typedef enum {
     gs_color_space_index_Pattern
 
 } gs_color_space_index;
-
-/* We define the names only for debugging printout. */
-#define GS_COLOR_SPACE_TYPE_NAMES\
-  "DeviceGray", "DeviceRGB", "DeviceCMYK", "DevicePixel", "DeviceN",\
-  "CIEBasedDEFG", "CIEBasedDEF", "CIEBasedABC", "CIEBasedA",\
-  "Separation", "Indexed", "Pattern"
 
 /* Define an abstract type for color space types (method structures). */
 typedef struct gs_color_space_type_s gs_color_space_type;
@@ -397,22 +391,6 @@ gs_color_space_index gs_color_space_get_index(P1(const gs_color_space *));
 
 /* Get the number of components in a color space. */
 int gs_color_space_num_components(P1(const gs_color_space *));
-
-/*
- * Test whether two color spaces are equal.  Note that this test is
- * conservative: if it returns true, the color spaces are definitely
- * equal, while if it returns false, they might still be equivalent.
- */
-bool gs_color_space_equal(P2(const gs_color_space *pcs1,
-			     const gs_color_space *pcs2));
-
-/* Restrict a color to its legal range. */
-#ifndef gs_client_color_DEFINED
-#  define gs_client_color_DEFINED
-typedef struct gs_client_color_s gs_client_color;
-#endif
-void gs_color_space_restrict_color(P2(gs_client_color *,
-				      const gs_color_space *));
 
 /*
  * Get the base space of an Indexed or uncolored Pattern color space, or the

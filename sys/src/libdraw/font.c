@@ -148,12 +148,20 @@ agefont(Font *f)
 static Subfont*
 cf2subfont(Cachefont *cf, Font *f)
 {
+	int depth;
 	char *name;
 	Subfont *sf;
 
 	name = cf->subfontname;
 	if(name == nil){
-		name = subfontname(cf->name, f->name, f->display->depth);
+		depth = 0;
+		if(f->display){
+			if(f->display->image)
+				depth = f->display->image->depth;
+			if(f->display->screenimage)
+				depth = f->display->screenimage->depth;
+		}
+		name = subfontname(cf->name, f->name, depth);
 		if(name == nil)
 			return nil;
 		cf->subfontname = name;
@@ -350,7 +358,7 @@ fontresize(Font *f, int wid, int ncache, int depth)
 
 	new = allocimage(d, Rect(0, 0, ncache*wid, f->height), CHAN1(CGrey, depth), 0, 0);
 	if(new == nil){
-		_drawprint(2, "font cache resize failed: %r\n");
+		fprint(2, "font cache resize failed: %r\n");
 		abort();
 		goto Return;
 	}
@@ -365,7 +373,7 @@ fontresize(Font *f, int wid, int ncache, int depth)
 	BPLONG(b+5, ncache);
 	b[9] = f->ascent;
 	if(flushimage(d, 0) < 0){
-		_drawprint(2, "resize: init failed: %r\n");
+		fprint(2, "resize: init failed: %r\n");
 		freeimage(new);
 		goto Return;
 	}

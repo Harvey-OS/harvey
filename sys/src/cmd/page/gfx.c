@@ -41,6 +41,7 @@ enum {
 	Iplan9bm,
 	Iccittg4,
 	Ippm,
+	Ipng,
 };
 
 Convert cvt[] = {
@@ -55,6 +56,7 @@ Convert cvt[] = {
 [Ippm]		{ "ppm",	"ppm -9 %s", "ppm -t9 %s" },
 /* ``temporary'' hack for hobby */
 [Iccittg4]	{ "ccitt-g4",	"cat %s|rx nslocum /usr/lib/ocr/bin/bcp -M|fb/pcp -tcompressed -l0" },
+[Ipng]		{ "png",	"png -9 %s", "png -t9 %s" },
 };
 
 static Image*	convert(Graphic*);
@@ -158,6 +160,8 @@ genaddpage(Document *doc, char *name, uchar *buf, int nbuf)
 		g->type = Itiff;
 	else if(memcmp(buf, "\377\330\377", 3) == 0)
 		g->type = Ijpeg;
+	else if(memcmp(buf, "\211PNG\r\n\032\n", 3) == 0)
+		g->type = Ipng;
 	else if(memcmp(buf, "compressed\n", 11) == 0)
 		g->type = Iinferno;
 	else if(memcmp(buf, "\0PC Research, Inc", 17) == 0)
@@ -232,7 +236,7 @@ convert(Graphic *g)
 	char *name, buf[1000];
 	Image *im;
 	int rcspawned = 0;
-	Waitmsg w;
+	Waitmsg *w;
 
 	c = cvt[g->type];
 	if(c.cmd == nil) {
@@ -275,10 +279,11 @@ convert(Graphic *g)
 	close(fd);
 
 	/* for some reason rx doesn't work well with wait */
-	/* for some reason 3to1 wexits on success with a non-null status of |3to1 */
+	/* for some reason 3to1 exits on success with a non-null status of |3to1 */
 	if(rcspawned && g->type != Iccittg4) {
-		if(wait(&w)>=0 && w.msg[0] != '\0' && !strstr(w.msg, "3to1"))
-			fprint(2, "slave wait error: %s\n", w.msg);
+		if((w=wait())!=nil && w->msg[0] && !strstr(w->msg, "3to1"))
+			fprint(2, "slave wait error: %s\n", w->msg);
+		free(w);
 	}
 	return im;
 }

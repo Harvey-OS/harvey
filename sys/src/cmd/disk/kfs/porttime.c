@@ -145,18 +145,16 @@ datestr(char *s, long t)
 }
 
 int
-Tconv(va_list *arg, Fconv *f1)
+Tfmt(Fmt *f1)
 {
 	char s[30];
 	char *cp;
 	long t;
 	Tm tm;
 
-	t = va_arg(*arg, long);
-	if(t == 0) {
-		strcpy(s, "The Epoch");
-		goto out;
-	}
+	t = va_arg(f1->args, long);
+	if(t == 0)
+		return fmtstrcpy(f1, "The Epoch");
 
 	klocaltime(t, &tm);
 	strcpy(s, "Day Mon 00 00:00:00 1900");
@@ -178,9 +176,7 @@ Tconv(va_list *arg, Fconv *f1)
 	}
 	ct_numb(s+22, tm.year+100);
 
-out:
-	strconv(s, f1);
-	return sizeof(t);
+	return fmtstrcpy(f1, s);
 }
 
 static

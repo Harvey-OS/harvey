@@ -168,8 +168,9 @@ et4000load(VGAscr *scr, Cursor *c)
 
 				p = 0x0000;
 				for(i = 0; i < 8; i++){
-					if(p1 & (1<<(7-i)))
-						;
+					if(p1 & (1<<(7-i))){
+						/* nothing to do */
+					}
 					else if(p0 & (1<<(7-i)))
 						p |= 0x01<<(2*i);
 					else

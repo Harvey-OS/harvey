@@ -339,11 +339,11 @@ initstk(int argc, char *argv[])
 void
 fatal(int syserr, char *fmt, ...)
 {
-	char buf[ERRLEN], *s;
+	char buf[ERRMAX], *s;
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	s = "vi: %s\n";
 	if(syserr)
@@ -359,7 +359,7 @@ itrace(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	Bprint(bioout, "%8lux %.8lux %s\n", reg.pc, reg.ir, buf);	
 }

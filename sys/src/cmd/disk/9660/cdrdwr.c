@@ -42,8 +42,11 @@ createcd(char *file, Cdinfo info)
 
 	Crepeat(cd, 0, 16*Blocksize);
 	Cputisopvd(cd, info);
-	//if(meta.bootimage)
-	//	Cputbootvol(b);
+	if(info.flags & CDbootable){
+		cd->bootimage = info.bootimage;
+		cd->flags |= CDbootable;
+		Cputbootvol(cd);
+	}
 
 	if(readisodesc(cd, &cd->iso) < 0)
 		assert(0);
@@ -63,10 +66,10 @@ createcd(char *file, Cdinfo info)
 		cd->nulldump = Cputdumpblock(cd);
 		cd->flags |= CDdump;
 	}
-	//if(meta.bootimage) {
-	//	Cputbootcat(cd);
-	//	Cputbootimage(cd);
-	//}
+	if(cd->flags & CDbootable){
+		Cputbootcat(cd);
+		Cupdatebootvol(cd);
+	}
 
 	if(info.flags & CDconform)
 		cd->flags |= CDconform;
@@ -83,7 +86,7 @@ opencd(char *file, Cdinfo info)
 {
 	int fd, xfd;
 	Cdimg *cd;
-	Dir d;
+	Dir *d;
 
 	if((fd = open(file, ORDWR)) < 0) {
 		if(access(file, AEXIST) == 0)
@@ -91,20 +94,22 @@ opencd(char *file, Cdinfo info)
 		return createcd(file, info);
 	}
 
-	if(dirfstat(fd, &d) < 0) {
+	if((d = dirfstat(fd)) == nil) {
 		close(fd);
 		return nil;
 	}
-	if(d.length == 0 || d.length % Blocksize) {
-		werrstr("bad length %lld", d.length);
+	if(d->length == 0 || d->length % Blocksize) {
+		werrstr("bad length %lld", d->length);
 		close(fd);
+		free(d);
 		return nil;
 	}
 
 	cd = emalloc(sizeof *cd);
 	cd->file = atom(file);
-	cd->nextblock = d.length / Blocksize;
+	cd->nextblock = d->length / Blocksize;
 	assert(cd->nextblock != 0);
+	free(d);
 
 	Binit(&cd->brd, fd, OREAD);
 
@@ -135,7 +140,8 @@ opencd(char *file, Cdinfo info)
 		cd->flags |= CDconform;
 	if(strstr(cd->iso.systemid, "rrip"))
 		cd->flags |= CDrockridge;
-
+	if(strstr(cd->iso.systemid, "boot"))
+		cd->flags |= CDbootable;
 	if(readjolietdesc(cd, &cd->joliet) == 0)
 		cd->flags |= CDjoliet;
 	if(hasdump(cd))
@@ -187,6 +193,7 @@ Creadblock(Cdimg *cd, void *buf, ulong block, ulong len)
 int
 parsedir(Cdimg *cd, Direc *d, uchar *buf, int len, char *(*cvtname)(uchar*, int))
 {
+	enum { NAMELEN = 28 };
 	char name[NAMELEN];
 	uchar *p;
 	Cdir *c;
@@ -211,7 +218,7 @@ parsedir(Cdimg *cd, Direc *d, uchar *buf, int len, char *(*cvtname)(uchar*, int)
 	d->length = little(c->dlen, 4);
 
 	if(c->flags & 2)
-		d->mode |= CHDIR;
+		d->mode |= DMDIR;
 
 /*BUG: do we really need to parse the plan 9 fields? */
 	/* plan 9 use fields */

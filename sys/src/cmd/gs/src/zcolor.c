@@ -1,22 +1,22 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1992, 1993, 1994, 1996, 1997, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: zcolor.c,v 1.4 2000/09/19 19:00:52 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zcolor.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* Color operators */
 #include "ghost.h"
 #include "oper.h"
@@ -44,13 +44,9 @@ private int
 zcurrentgray(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
-    float gray;
-    int code = gs_currentgray(igs, &gray);
 
-    if (code < 0)
-	return code;
     push(1);
-    make_real(op, gray);
+    make_real(op, gs_currentgray(igs));
     return 0;
 }
 
@@ -60,10 +56,8 @@ zcurrentrgbcolor(i_ctx_t *i_ctx_p)
 {
     os_ptr op = osp;
     float par[3];
-    int code = gs_currentrgbcolor(igs, par);
 
-    if (code < 0)
-	return code;
+    gs_currentrgbcolor(igs, par);
     push(3);
     make_floats(op - 2, par, 3);
     return 0;
@@ -169,7 +163,7 @@ zcolor_remap_one(i_ctx_t *i_ctx_p, const ref * pproc,
      * more of these functions.
      */
     if (r_size(pproc) == 0) {
-	gx_set_identity_transfer(pmap);
+	pmap->proc = gs_identity_transfer;
 	/*
 	 * Even though we don't actually push anything on the e-stack, all
 	 * clients do, so we return o_push_estack in this case.  This is

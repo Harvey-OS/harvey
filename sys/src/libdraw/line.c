@@ -9,7 +9,7 @@ line(Image *dst, Point p0, Point p1, int end0, int end1, int radius, Image *src,
 
 	a = bufimage(dst->display, 1+4+2*4+2*4+4+4+4+4+2*4);
 	if(a == 0){
-		_drawprint(2, "image line: %r\n");
+		fprint(2, "image line: %r\n");
 		return;
 	}
 	a[0] = 'L';

@@ -4,7 +4,6 @@
 void
 main(int argc, char *argv[])
 {
-	char buf[ERRLEN];
 	int r;
 
 	if(argc < 2  || argc > 3) {
@@ -13,16 +12,15 @@ main(int argc, char *argv[])
 		exits("usage");
 	}
 
-	/* unmount take arguments in the same order as mount */
+	/* unmount takes arguments in the same order as mount */
 	if(argc < 3)
 		r = unmount(0, argv[1]);
 	else
 		r = unmount(argv[1], argv[2]);
 
 	if(r < 0) {
-		errstr(buf);
-		fprint(2, "unmount: %s\n", buf);
-		exits(buf);
+		fprint(2, "unmount:%r\n");
+		exits("error");
 	}
 	exits(0);
 }

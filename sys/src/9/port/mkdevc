@@ -12,7 +12,7 @@ BEGIN{
 /^#/{
 		next;
 }
-collect && /^[^	\t]/{
+collect && /^[^ \t]/{
 		collect = 0;
 }
 collect && section ~ "dev"{
@@ -32,6 +32,8 @@ collect && section ~ "misc"{
 			arch[narch++] = $1;
 		if($1 ~ "^sd.*")
 			sdifc[nsdifc++] = $1;
+		if($1 ~ "^uart.*")
+			physuart[nphysuart++] = substr($1, 5, length($1)-4) "physuart";
 		else if($1 ~ "^vga.*"){
 			if(NF == 1)
 				vgadev[nvgadev++] = $1;
@@ -44,8 +46,10 @@ collect && section ~ "misc"{
 		}
 		else if($1 ~ ".*\.root"){
 			x = substr($1, 1, index($1, ".")-1);
-			if(x ~ "(9660srv|dossrv|kfs|vdfs|bzfs)")
+			if(x ~ "(9660srv|dossrv|kfs|nkfs|vdfs|bzfs)")
 				x = "kfs";
+			if(x ~ "nfactotum")
+				x = "factotum";
 			fs[nfs++] = x;
 		}
 }
@@ -110,6 +114,15 @@ END{
 			printf "SDifc* sdifc[] = {\n";
 		  	for(i = 0; i < nsdifc; i++)
 				printf "\t&%sifc,\n", sdifc[i];
+		  	printf "\tnil,\n};\n\n";
+		}
+
+		if(nphysuart){
+			for(i = 0; i < nphysuart; i++)
+				printf "extern PhysUart %s;\n", physuart[i];
+			printf "PhysUart* physuart[] = {\n";
+		  	for(i = 0; i < nphysuart; i++)
+				printf "\t&%s,\n", physuart[i];
 		  	printf "\tnil,\n};\n\n";
 		}
 

@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
+#include "pci.h"
 #include "vga.h"
 
 #define SCALE(f)	((f)/1)		/* could be /10 */

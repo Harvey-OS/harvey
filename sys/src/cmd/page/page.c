@@ -130,8 +130,8 @@ main(int argc, char **argv)
 		open("/dev/cons", OREAD);
 	}
 
-	fmtinstall('R', Rconv);
-	fmtinstall('P', Pconv);
+	fmtinstall('R', Rfmt);
+	fmtinstall('P', Pfmt);
 	if(newwindow)
 		newwin();
 

@@ -204,6 +204,27 @@ mmcstatus(Drive *drive)
 	return scsi(drive, cmd, sizeof(cmd), nil, 0, Sread);
 }
 
+void
+mmcgetspeed(Drive *drive)
+{
+	int n, maxread, curread, maxwrite, curwrite;
+	uchar buf[Pagesz];
+
+	n = mmcgetpage(drive, 0x2A, buf);
+	maxread = (buf[8]<<8)|buf[9];
+	curread = (buf[14]<<8)|buf[15];
+	maxwrite = (buf[18]<<8)|buf[19];
+	curwrite = (buf[20]<<8)|buf[21];
+
+	if(n < 22 || (maxread && maxread < 170) || (curread && curread < 170))
+		return;	/* bogus data */
+
+	drive->readspeed = curread;
+	drive->writespeed = curwrite;
+	drive->maxreadspeed = maxread;
+	drive->maxwritespeed = maxwrite;
+}
+
 Drive*
 mmcprobe(Scsi *scsi)
 {
@@ -248,6 +269,7 @@ mmcprobe(Scsi *scsi)
 
 	drive->cap = cap;
 
+	mmcgetspeed(drive);
 	return drive;
 }
 
@@ -326,12 +348,13 @@ mmctrackinfo(Drive *drive, int t, int i)
 }
 
 static int
-mmcreadtoc(Drive *drive, int track, void *data, int nbytes)
+mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 {
 	uchar cmd[10];
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = 0x43;
+	cmd[1] = type;
 	cmd[6] = track;
 	cmd[7] = nbytes>>8;
 	cmd[8] = nbytes;
@@ -359,11 +382,22 @@ mmcreaddiscinfo(Drive *drive, void *data, int nbytes)
 	return n;
 }
 
+static Msf
+rdmsf(uchar *p)
+{
+	Msf msf;
+
+	msf.m = p[0];
+	msf.s = p[1];
+	msf.f = p[2];
+	return msf;
+}
+
 static int
 mmcgettoc(Drive *drive)
 {
-	uchar resp[32];
-	int i, first, last;
+	uchar resp[1024];
+	int i, n, first, last;
 	ulong tot;
 	Track *t;
 
@@ -373,7 +407,7 @@ mmcgettoc(Drive *drive)
 	 * scsi routines will set nchange and changetime in the
 	 * scsi device.
 	 */
-	mmcreadtoc(drive, 0, resp, sizeof(resp));
+	mmcreadtoc(drive, 0, 0, resp, sizeof(resp));
 	if(drive->Scsi.changetime == 0) {	/* no media present */
 		drive->ntrack = 0;
 		return 0;
@@ -388,10 +422,15 @@ mmcgettoc(Drive *drive)
 	drive->changetime = drive->Scsi.changetime;
 	drive->writeok = 0;
 
+	for(i=0; i<nelem(drive->track); i++){
+		memset(&drive->track[i].mbeg, 0, sizeof(Msf));
+		memset(&drive->track[i].mend, 0, sizeof(Msf));
+	}
+
 	/*
 	 * find number of tracks
 	 */
-	if(mmcreadtoc(drive, 0, resp, sizeof(resp)) < 4) {
+	if((n=mmcreadtoc(drive, 0x02, 0, resp, sizeof(resp))) < 4) {
 		/*
 		 * on a blank disc in a cd-rw, use readdiscinfo
 		 * to find the track info.
@@ -408,6 +447,13 @@ mmcgettoc(Drive *drive)
 	} else {
 		first = resp[2];
 		last = resp[3];
+
+		if(n >= 4+8*(last-first+2)) {
+			for(i=0; i<=last-first+1; i++)	/* <=: track[last-first+1] = end */
+				drive->track[i].mbeg = rdmsf(resp+4+i*8+5);
+			for(i=0; i<last-first+1; i++)
+				drive->track[i].mend = drive->track[i+1].mbeg;
+		}
 	}
 
 	if(vflag)
@@ -435,7 +481,7 @@ mmcgettoc(Drive *drive)
 		 */
 		for(i = first; i <= last; i++) {
 			memset(resp, 0, sizeof(resp));
-			if(mmcreadtoc(drive, i, resp, sizeof(resp)) < 0)
+			if(mmcreadtoc(drive, 0x00, i, resp, sizeof(resp)) < 0)
 				break;
 			t = &drive->track[i-first];
 			t->mtime = drive->changetime;
@@ -453,7 +499,7 @@ mmcgettoc(Drive *drive)
 
 		tot = 0;
 		memset(resp, 0, sizeof(resp));
-		if(mmcreadtoc(drive, 0xAA, resp, sizeof(resp)) < 0)
+		if(mmcreadtoc(drive, 0x00, 0xAA, resp, sizeof(resp)) < 0)
 			print("bad\n");
 		if(resp[6])
 			tot = bige(resp+8);
@@ -863,6 +909,23 @@ mmcctl(Drive *drive, int argc, char **argv)
 	return "bad arg";
 }
 
+static char*
+mmcsetspeed(Drive *drive, int r, int w)
+{
+	char *rv;
+	uchar cmd[12];
+
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = 0xBB;
+	cmd[2] = r>>8;
+	cmd[3] = r;
+	cmd[4] = w>>8;
+	cmd[5] = w;
+	rv = e(scsi(drive, cmd, sizeof(cmd), nil, 0, Snone));
+	mmcgetspeed(drive);
+	return rv;
+}
+
 static Dev mmcdev = {
 	mmcopenrd,
 	mmccreate,
@@ -872,4 +935,5 @@ static Dev mmcdev = {
 	mmcgettoc,
 	mmcfixate,
 	mmcctl,
+	mmcsetspeed,
 };

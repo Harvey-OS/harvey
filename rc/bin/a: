@@ -3,3 +3,5 @@ if(! test -f /srv/dos)
 	dossrv >/dev/null </dev/null >[2]/dev/null
 unmount /n/a:>[2]/dev/null
 mount -c /srv/dos /n/a: /dev/fd0disk
+unmount /n/a >[2]/dev/null
+mount -c /srv/dos /n/a /dev/fd0disk

@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
+#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -259,7 +259,7 @@ loadfile(int fd, uint q0, int *nulls, int(*f)(void*, uint, Rune*, int), void *ar
 		if(n > 0)
 			l -= UTFmax;
 		cvttorunes(p, l, r, &nb, &nr, nulls);
-		runemove(p, p+nb, m-nb);
+		memmove(p, p+nb, m-nb);
 		m -= nb;
 		q1 += (*f)(arg, q1, r, nr);
 	}

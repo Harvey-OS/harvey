@@ -1,4 +1,0 @@
-TEXT _SEGFLUSH(SB), 1, $-4
-MOVW $33, R0
-SWI 0
-RET

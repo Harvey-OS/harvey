@@ -1,0 +1,38 @@
+.TH TLSSRV 8
+.SH NAME
+tlssrv \- TLS server
+.SH SYNOPSIS
+.PP
+.B tlssrv
+.RB [ -k
+.IR keydir ]
+.RB [ -l
+.IR logfile ]
+.RB [ -r
+.IR remotesys ]
+target
+.SH DESCRIPTION
+.I Tlssrv
+is a helper program, typically exec'd in a
+.B /bin/service/
+file to establish an SSL or TLS connection before launching
+the target server, for example IMAPS or HTTPS.
+.PP
+.I Keydir
+holds the server certificate and private key.
+.PP
+The specified
+.I logfile
+is by convention the same as for the target server.
+.I Remotesys
+is mainly used for logging.  When invoked from
+.B /bin/service/
+it is written
+.B -r'{cat
+.BR $3/remote} .
+.SH FILES
+.TF /sys/lib/ssl 
+.SH SOURCE
+.B /sys/src/cmd/tlssrv.c
+.SH "SEE ALSO"
+.IR listen (8)

@@ -1,52 +1,51 @@
+CONF=pc
+p=9
+
 objtype=386
 </$objtype/mkfile
 
-TARG=9pcfs
+TARG=$p$CONF'fs'
+
+DEV=\
+	cw.$O\
+	fworm.$O\
+	juke.$O\
+	mworm.$O\
+	wren.$O\
+
+IP=\
+	arp.$O\
+	icmp.$O\
+	il.$O\
+	ip.$O\
+	ipaux.$O\
+	iproute.$O\
+	sntp.$O\
+	udp.$O\
 
 PORT=\
-	arp.$O\
+	9p1.$O\
+	9p1lib.$O\
+	9p2.$O\
 	auth.$O\
 	chk.$O\
 	clock.$O\
 	con.$O\
 	config.$O\
 	console.$O\
-	cw.$O\
 	data.$O\
 	dentry.$O\
 	devcons.$O\
-	fcall.$O\
 	fcmd.$O\
-	fs.$O\
-	fworm.$O\
-	icmp.$O\
-	il.$O\
 	iobuf.$O\
-	ip.$O\
-	iproute.$O\
-	juke.$O\
 	main.$O\
-	mworm.$O\
 	print.$O\
 	proc.$O\
-	sntp.$O\
 	sub.$O\
 	time.$O\
 	uidgid.$O\
-	wren.$O\
 
-ETHER=\
-	etherif.$O\
-	ether2114x.$O\
-	etherelnk3.$O\
-	ether82557.$O\
-
-SCSI=\
-	scsi.$O\
-	scsibuslogic.$O\
-	scsincr53c8xx.$O\
-
-OBJ=\
+PC=\
 	l.$O\
 	8250.$O\
 	8253.$O\
@@ -62,12 +61,27 @@ OBJ=\
 	pc.$O\
 	pci.$O\
 	toy.$O\
-	wwvtime.$O\
 	trap.$O\
+
+ETHER=\
+	etherif.$O\
+	ether2114x.$O\
+	etherelnk3.$O\
+	ether82557.$O\
+
+SCSI=\
+	scsi.$O\
+	scsibuslogic.$O\
+	scsincr53c8xx.$O\
+
+OBJ=\
+	$PC\
 	$PORT\
+	$DEV\
+	$IP\
 	$ETHER\
 	$SCSI\
-
+	
 HFILES=\
 	../port/all.h\
 	../port/lib.h\
@@ -80,23 +94,41 @@ HFILES=\
 	/$objtype/include/u.h\
 	/$objtype/include/ureg.h\
 
+LIB=\
+	-lauthsrv\
+	/$objtype/lib/libc.a\
+	-lsec\
+
 CFLAGS=-FVw -I. -I../port
 
 all:V:	$TARG
 
+<../pc/mkfile
 <../port/mkfile
+<../dev/mkfile
+<../ip/mkfile
 
 $TARG:	$OBJ $TARG.$O
-	$LD -o $target -l -T0x80100020 $prereq -lauth -lc -lsec
+	$LD -o $target -l -T0x80100020 $prereq $LIB
 	size $target
-
-installall:V:	install
-install:V:	$TARG
-	cp $TARG /$objtype/$TARG
 
 $TARG.$O:	$TARG.c
 	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c
 
-$ETHER:	etherif.h
+install:V: $TARG
+	cp $TARG /$objtype/
+	import lookout / /n/lookout && cp $TARG /n/lookout/$objtype/
+	9fs dinar && cp $TARG /n/dinar/$objtype/
 
-9pcfs.$O dosfs.$O nvr.$O:	dosfs.h
+$TARG.$O:	../pc/dosfs.h
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $stem.s
+
+%.$O:	$HFILES
+
+clean:V:
+	rm -f *.[$OS] [$OS].out $TARG

@@ -1,6 +1,6 @@
 .TH CDFS 4
 .SH NAME
-cdfs \- CD reader and writer file system
+cdfs, cddb \- CD reader and writer file system
 .SH SYNOPSIS
 .B cdfs 
 [
@@ -11,6 +11,8 @@ cdfs \- CD reader and writer file system
 .B -m
 .I mtpt
 ]
+.br
+.B "grep aux/cddb /mnt/cd/ctl | rc
 .SH DESCRIPTION
 .I Cdfs
 serves a one and a half level directory
@@ -95,6 +97,40 @@ Eject the CD in the drive.
 .TP
 .B ingest
 Ingest a CD into the drive.
+.TP
+.B speed \fIkpbs\fR
+Set the reading and writing speed to use.
+Drives may round down the speed to one they support.
+To set reading and writing speeds separately,
+prefix the speeds with
+.B read
+or
+.BR write ,
+as in
+.B speed
+.B write
+.B 8192
+or
+.B speed
+.B read
+.B 16384
+.B write
+.BR 8192.
+Note that most drives reset the reading and writing speed
+each time a new CD is inserted.
+.PD
+.PP
+Reading the 
+.B ctl
+file yields information about the drive.
+If the drive contains an audio CD, the first line
+will be an
+.B aux/cddb
+command that can be run to query
+an internet CD database
+to get a table of contents.
+Subsequent lines contain the current and maximum
+reading and writing speeds.
 .PD
 .PP
 Only MMC-compliant CD readers and writers

@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
+#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -459,10 +459,10 @@ get(Text *et, Text *t, Text *argt, int flag1, int, Rune *arg, int narg)
 {
 	char *name;
 	Rune *r;
-	int i, n, dirty, samename;
+	int i, n, dirty, samename, isdir;
 	Window *w;
 	Text *u;
-	Dir d;
+	Dir *d;
 
 	if(flag1)
 		if(et==nil || et->w==nil)
@@ -476,8 +476,12 @@ get(Text *et, Text *t, Text *argt, int flag1, int, Rune *arg, int narg)
 		warning(nil, "no file name\n");
 		return;
 	}
-	if(t->file->ntext>1 && dirstat(name, &d)==0 && d.qid.path & CHDIR){
-		warning(nil, "%s is a directory; can't read with multiple windows on it\n", name);
+	if(t->file->ntext>1){
+		d = dirstat(name);
+		isdir = (d!=nil && (d->qid.type & QTDIR));
+		free(d);
+		if(isdir)
+			warning(nil, "%s is a directory; can't read with multiple windows on it\n", name);
 		return;
 	}
 	r = bytetorune(name, &n);
@@ -516,20 +520,22 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 	Rune *r;
 	char *s, *name;
 	int i, fd, q;
-	Dir d;
+	Dir *d, *d1;
 	Window *w;
+	int isapp;
 
 	w = f->curtext->w;
 	name = runetobyte(namer, nname);
-	if(runeeq(namer, nname, f->name, f->nname) && dirstat(name, &d)>=0){
-		if(f->dev!=d.dev || f->qidpath!=d.qid.path || f->mtime<d.mtime){
-			f->dev = d.dev;
-			f->qidpath = d.qid.path;
-			f->mtime = d.mtime;
+	d = dirstat(name);
+	if(d!=nil && runeeq(namer, nname, f->name, f->nname)){
+		if(f->dev!=d->dev || f->qidpath!=d->qid.path || f->mtime<d->mtime){
+			f->dev = d->dev;
+			f->qidpath = d->qid.path;
+			f->mtime = d->mtime;
 			if(f->unread)
 				warning(nil, "%s not written; file already exists\n", name);
 			else
-				warning(nil, "%s modified since last read\n", name);
+				warning(nil, "%s modified%s%s since last read\n", name, d->muid[0]?" by ":"", d->muid);
 			goto Rescue1;
 		}
 	}
@@ -540,7 +546,10 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 	}
 	r = fbufalloc();
 	s = fbufalloc();
-	if(dirfstat(fd, &d)>=0 && (d.mode&CHAPPEND) && d.length>0){
+	free(d);
+	d = dirfstat(fd);
+	isapp = (d!=nil && d->length>0 && (d->qid.type&QTAPPEND));
+	if(isapp){
 		warning(nil, "%s not written; file is append only\n", name);
 		goto Rescue2;
 	}
@@ -562,10 +571,14 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 			w->dirty = TRUE;
 			f->unread = TRUE;
 		}else{
-			dirfstat(fd, &d);	/* ignore error; use old values if we failed */
-			f->qidpath = d.qid.path;
-			f->dev = d.dev;
-			f->mtime = d.mtime;
+			d1 = dirfstat(fd);
+			if(d1 != nil){
+				free(d);
+				d = d1;
+			}
+			f->qidpath = d->qid.path;
+			f->dev = d->dev;
+			f->mtime = d->mtime;
 			f->mod = FALSE;
 			w->dirty = FALSE;
 			f->unread = FALSE;
@@ -577,6 +590,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 	}
 	fbuffree(s);
 	fbuffree(r);
+	free(d);
 	free(namer);
 	free(name);
 	close(fd);
@@ -590,6 +604,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 	/* fall through */
 
     Rescue1:
+	free(d);
 	free(namer);
 	free(name);
 }
@@ -701,10 +716,6 @@ paste(Text *et, Text *t, Text*, int selectall, int tobody, Rune*, int)
 	uint q, q0, q1, n;
 	Rune *r;
 
-	getsnarf();
-	if(snarfbuf.nc==0)
-		return;
-
 	/* if(tobody), use body of executing window  (Paste or Send command) */
 	if(tobody && et!=nil && et->w!=nil){
 		t = &et->w->body;
@@ -713,6 +724,9 @@ paste(Text *et, Text *t, Text*, int selectall, int tobody, Rune*, int)
 	if(t == nil)
 		return;
 
+	getsnarf();
+	if(t==nil || snarfbuf.nc==0)
+		return;
 	if(t->w!=nil && et->w!=t->w){
 		c = 'M';
 		if(et->w)
@@ -1053,7 +1067,7 @@ runproc(void *argvp)
 		Channel *cpid;
 		int iseditcmd;
 	/* end of args */
-	char *e, *t, *name, *dir, **av, *news;
+	char *e, *t, *name, *filename, *dir, **av, *news;
 	Rune r, **incl;
 	int ac, w, inarg, i, n, fd, nincl, winid;
 	int pipechar;
@@ -1103,6 +1117,7 @@ runproc(void *argvp)
 		nincl = 0;
 		incl = nil;
 		if(win){
+			filename = smprint("%.*S", win->body.file->nname, win->body.file->name);
 			nincl = win->nincl;
 			if(nincl > 0){
 				incl = emalloc(nincl*sizeof(Rune*));
@@ -1115,14 +1130,19 @@ runproc(void *argvp)
 			winid = win->id;
 			winclose(win);
 		}else{
+			filename = nil;
 			winid = 0;
 			if(activewin)
 				winid = activewin->id;
 		}
 		rfork(RFNAMEG|RFENVG|RFFDG|RFNOTEG);
+		if(filename){
+			putenv("%", filename);
+			free(filename);
+		}
 		c->md = fsysmount(rdir, ndir, incl, nincl);
 		if(c->md == nil){
-			threadprint(2, "child: can't mount /dev/cons: %r\n");
+			fprint(2, "child: can't mount /dev/cons: %r\n");
 			threadexits("mount");
 		}
 		close(0);
@@ -1241,8 +1261,8 @@ Hard:
 	procexecl(cpid, "/bin/rc", "rc", "-c", t, nil);
 
    Fail:
-	/* procexec hasn't happened, so need to send our own pid */
-	sendul(cpid, getpid());
+	/* procexec hasn't happened, so send a zero */
+	sendul(cpid, 0);
 	threadexits(nil);
 }
 
@@ -1261,10 +1281,12 @@ runwaittask(void *v)
 	do
 		c->pid = recvul(cpid);
 	while(c->pid == ~0);
+	free(c->av);
 	if(c->pid != 0)	/* successful exec */
 		sendp(ccommand, c);
 	else{
 		free(c->name);
+		free(c->text);
 		free(c);
 	}
 	chanfree(cpid);

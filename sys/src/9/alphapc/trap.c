@@ -44,8 +44,8 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	v->tbdf = tbdf;
 	v->f = f;
 	v->a = a;
-	strncpy(v->name, name, NAMELEN-1);
-	v->name[NAMELEN-1] = 0;
+	strncpy(v->name, name, KNAMELEN-1);
+	v->name[KNAMELEN-1] = 0;
 
 	ilock(&vctllock);
 	vno = arch->intrenable(v);
@@ -73,13 +73,44 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	iunlock(&vctllock);
 }
 
+void
+intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
+{
+	Vctl **pv, *v;
+	int vno;
+
+	/*
+	 * For now, none of this will work with the APIC code,
+	 * there is no mapping between irq and vector as the IRQ
+	 * is pretty meaningless.
+	 */
+	if(arch->intrvecno == nil)
+		return;
+	vno = arch->intrvecno(irq);
+	ilock(&vctllock);
+	pv = &vctl[vno];
+	while (*pv && 
+		  ((*pv)->irq != irq || (*pv)->tbdf != tbdf || (*pv)->f != f || (*pv)->a != a ||
+		   strcmp((*pv)->name, name)))
+		pv = &((*pv)->next);
+	assert(*pv);
+
+	v = *pv;
+	*pv = (*pv)->next;	/* Link out the entry */
+	
+	if (vctl[vno] == nil && arch->intrdisable != nil)
+		arch->intrdisable(irq);
+	iunlock(&vctllock);
+	xfree(v);
+}
+
 int
 irqallocread(char *buf, long n, vlong offset)
 {
 	int vno;
 	Vctl *v;
 	long oldn;
-	char str[11+1+NAMELEN+1], *p;
+	char str[11+1+KNAMELEN+1], *p;
 	int m;
 
 	if(n < 0 || offset < 0)
@@ -88,7 +119,7 @@ irqallocread(char *buf, long n, vlong offset)
 	oldn = n;
 	for(vno=0; vno<nelem(vctl); vno++){
 		for(v=vctl[vno]; v; v=v->next){
-			m = snprint(str, sizeof str, "%11d %11d %.*s\n", vno, v->irq, NAMELEN, v->name);
+			m = snprint(str, sizeof str, "%11d %11d %.*s\n", vno, v->irq, KNAMELEN, v->name);
 			if(m <= offset)	/* if do not want this, skip entry */
 				offset -= m;
 			else{
@@ -157,7 +188,7 @@ smcheck(ulong code)
 }
 
 void
-mcheck(void *x)
+mcheck(Ureg *ur, void *x)
 {
 	Mcheck *m;
 	uvlong *data;
@@ -165,14 +196,19 @@ mcheck(void *x)
 
 	m = x;
 	data = x;
-	iprint("panic: Machine Check @%lux: %s (%lux) len %d\n",
+	iprint("panic: Machine Check @%lux: %s (%lux) len %lud\n",
 			m, smcheck(m->code), m->code, m->len);
 	iprint("proc offset %lux sys offset %lux\n", m->procoff, m->sysoff);
 	for (i = 0, col = 0; i < m->len/8; i++) {
-		iprint("%.3lux: %.16llux%s", 8*i, data[i], (col == 2) ? "\n" : "    ");
+		iprint("%.3x: %.16llux%s", 8*i, data[i], (col == 2) ? "\n" : "    ");
 		if (col++ == 2)
 			col = 0;
 	}
+	if(col != 2)
+		print("\n");
+	print("\n");
+	dumpregs(ur);
+	prflush();
 	firmware();
 }
 
@@ -245,14 +281,14 @@ intr(Ureg *ur)
 	}
 	else{
 		dumpregs(ur);
-		panic("unknown intr: %d\n", vno); /* */
+		print("unknown intr: %d\n", vno); /* */
 	}
 }
 
 void
 trap(Ureg *ur)
 {
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 	int user, x;
 
 	m->intrts = fastticks(nil);
@@ -280,7 +316,7 @@ trap(Ureg *ur)
 			clock(ur);
 			break;
 		case 2:	/* machine check */
-			mcheck((void*)(KZERO|(ulong)ur->a2));
+			mcheck(ur, (void*)(KZERO|(ulong)ur->a2));
 			break;
 		case 3:	/* device */
 			intr(ur);
@@ -335,7 +371,7 @@ trapinit(void)
 void
 fataltrap(Ureg *ur, char *reason)
 {
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
 	if(ur->status&UMODE) {
 		spllo();
@@ -375,7 +411,50 @@ kernfault(Ureg *ur, int code)
 }
 
 void
-dumpstack(void)
+dumpregs(Ureg *ur)
+{
+	int i, col;
+	uvlong *l;
+
+	if(up)
+		print("registers for %s %ld\n", up->text, up->pid);
+	else
+		print("registers for kernel\n");
+
+	l = &ur->type;
+	col = 0;
+	for (i = 0; i < sizeof regname/sizeof(char*); i++, l++) {
+		print("%-7s%.16llux%s", regname[i], *l, col == 2 ? "\n" : "     ");
+		if (col++ == 2)
+			col = 0;
+	}
+	print("\n");
+}
+
+
+/*
+ * Fill in enough of Ureg to get a stack trace, and call a function.
+ * Used by debugging interface rdb.
+ */
+static void
+getpcsp(ulong *pc, ulong *sp)
+{
+	*pc = getcallerpc(&pc);
+	*sp = (ulong)&pc-8;
+}
+
+void
+callwithureg(void (*fn)(Ureg*))
+{
+	Ureg ureg;
+
+	getpcsp((ulong*)&ureg.pc, (ulong*)&ureg.sp);
+	ureg.r26 = getcallerpc(&fn);
+	fn(&ureg);
+}
+
+void
+_dumpstack(Ureg *ureg)
 {
 	ulong l, sl, el, v, i, instr, op;
 	extern ulong etext;
@@ -392,15 +471,12 @@ dumpstack(void)
 		el = sl + KSTACK;
 	}
 	if(l > el || l < sl){
-		iprint("dumpstack: l %lux sl %lux el %lux m %lux up %lux\n",
-			l, sl, el, m, up);
 		el = (ulong)m+BY2PG;
 		sl = el-KSTACK;
 	}
-	iprint("dumpstack: l %lux sl %lux el %lux m %lux\n", l, sl, el, m);
-	if(l > el || l < sl){
+	if(l > el || l < sl)
 		return;
-	}
+	print("ktrace /kernel/path %.8lux %.8lux %.8lux\n", (ulong)ureg->pc, (ulong)ureg->sp, (ulong)ureg->r26);
 
 	i = 0;
 	for(; l<el; l+=8){
@@ -412,48 +488,23 @@ dumpstack(void)
 			instr = *(ulong*)v;
 			op = (instr>>26);
 			if(op == 26 || op == 52){
-				iprint("%lux ", v);
+				print("%lux=%lux ", l, v);
 				i++;
 			}
 		}
-		if(i == 8){
+		if(i == 4){
 			i = 0;
-			iprint("\n");
+			print("\n");
 		}
 	}
+	if(i)
+		print("\n");
 }
 
 void
-callwithureg(void (*fn)(Ureg*))
+dumpstack(void)
 {
-	Ureg ureg;
-	ureg.pc = getcallerpc(&fn);
-	ureg.sp = (ulong)&fn;
-	fn(&ureg);
-}
-
-void
-dumpregs(Ureg *ur)
-{
-	int i, col;
-	uvlong *l;
-
-	spllo();
-	prflush(); 
-	if(up)
-		iprint("registers for %s %d\n", up->text, up->pid);
-	else
-		iprint("registers for kernel\n");
-
-	l = &ur->type;
-	col = 0;
-	for (i = 0; i < sizeof regname/sizeof(char*); i++, l++) {
-		iprint("%-7s%.16llux%s", regname[i], *l, col == 2 ? "\n" : "     ");
-		if (col++ == 2)
-			col = 0;
-	}
-	iprint("\n");
-//	prflush();
+	callwithureg(_dumpstack);
 }
 
 int
@@ -474,8 +525,8 @@ notify(Ureg *ur)
 	n = &up->note[0];
 	if(strncmp(n->msg, "sys:", 4) == 0) {
 		l = strlen(n->msg);
-		if(l > ERRLEN-15)	/* " pc=0x12345678\0" */
-			l = ERRLEN-15;
+		if(l > ERRMAX-15)	/* " pc=0x12345678\0" */
+			l = ERRMAX-15;
 
 		sprint(n->msg+l, " pc=0x%lux", (ulong)ur->pc);
 	}
@@ -501,7 +552,7 @@ notify(Ureg *ur)
 	sp -= sizeof(Ureg);
 
 	if(!okaddr((ulong)up->notify, BY2WD, 0)
-	|| !okaddr(sp-ERRLEN-6*BY2WD, sizeof(Ureg)+ERRLEN-6*BY2WD, 1)) {
+	|| !okaddr(sp-ERRMAX-6*BY2WD, sizeof(Ureg)+ERRMAX-6*BY2WD, 1)) {
 		pprint("suicide: bad address or sp in notify\n");
 print("suicide: bad address or sp in notify\n");
 		qunlock(&up->debug);
@@ -511,8 +562,8 @@ print("suicide: bad address or sp in notify\n");
 	memmove((Ureg*)sp, ur, sizeof(Ureg));
 	*(Ureg**)(sp-BY2WD) = up->ureg;	/* word under Ureg is old up->ureg */
 	up->ureg = (void*)sp;
-	sp -= 2*BY2WD+ERRLEN;
-	memmove((char*)sp, up->note[0].msg, ERRLEN);
+	sp -= 2*BY2WD+ERRMAX;
+	memmove((char*)sp, up->note[0].msg, ERRMAX);
 	sp -= 4*BY2WD;
 	*(ulong*)(sp+3*BY2WD) = sp+4*BY2WD;	/* arg 2 is string */
 	ur->r0 = (ulong)up->ureg;		/* arg 1 (R0) is ureg* */
@@ -603,7 +654,7 @@ print("suicide: trap in noted\n");
 			pexit("Suicide", 0);
 		}
 		qunlock(&up->debug);
-		sp = oureg-4*BY2WD-ERRLEN;
+		sp = oureg-4*BY2WD-ERRMAX;
 		splhi();
 		(*urp)->sp = sp;
 		((ulong*)sp)[1] = oureg;	/* arg 1 0(FP) is ureg* */
@@ -631,9 +682,12 @@ print("unknown noted arg 0x%lux\n", arg0);
 long
 syscall(Ureg *aur)
 {
+	int i;
+	char *e;
 	long ret;
 	ulong sp;
 	Ureg *ur;
+	ulong scallnr;
 
 	m->syscall++;
 	up = m->proc;
@@ -643,9 +697,10 @@ syscall(Ureg *aur)
 	up->dbgreg = aur;
 	ur->type = 5;		/* for debugging */
 
+	scallnr = ur->r0;
 	up->scallnr = ur->r0;
 
-	if(up->scallnr == RFORK && up->fpstate == FPactive){
+	if(scallnr == RFORK && up->fpstate == FPactive){
 		savefpregs(&up->fpsave);
 		up->fpstate = FPinactive;
 //print("SR=%lux+", up->fpsave.fpstatus);
@@ -655,41 +710,48 @@ syscall(Ureg *aur)
 	sp = ur->sp;
 	up->nerrlab = 0;
 	ret = -1;
-	if(waserror())
-		goto error;
+	if(!waserror()) {
+		if(scallnr >= nsyscall || systab[scallnr] == nil){
+			pprint("bad sys call %d pc %lux\n", up->scallnr, (ulong)ur->pc);
+			postnote(up, 1, "sys: bad sys call", NDebug);
+			error(Ebadarg);
+		}
 
-	if(up->scallnr >= nsyscall){
-		pprint("bad sys call %d pc %lux\n",
-			up->scallnr, (ulong)ur->pc);
-print("bad sys call %d pc %lux\n", up->scallnr, (ulong)ur->pc);
-		postnote(up, 1, "sys: bad sys call", NDebug);
-		error(Ebadarg);
+		if(sp & (BY2WD-1)){	/* XXX too weak? */
+			pprint("odd sp in sys call pc %lux sp %lux\n",
+				(ulong)ur->pc, (ulong)ur->sp);
+			postnote(up, 1, "sys: odd stack", NDebug);
+			error(Ebadarg);
+		}
+
+		if(sp<(USTKTOP-BY2PG) || sp>(USTKTOP-sizeof(Sargs)))
+			validaddr(sp, sizeof(Sargs), 0);
+
+		up->s = *((Sargs*)(sp+2*BY2WD));
+		up->psstate = sysctab[scallnr];
+		ret = systab[scallnr](up->s.args);
+		poperror();
+	}else{
+		/* failure: save the error buffer for errstr */
+		e = up->syserrstr;
+		up->syserrstr = up->errstr;
+		up->errstr = e;
+	}
+	if(up->nerrlab){
+		print("bad errstack [%uld]: %d extra\n", scallnr, up->nerrlab);
+		for(i = 0; i < NERR; i++)
+			print("sp=%lux pc=%lux\n",
+				up->errlab[i].sp, up->errlab[i].pc);
+		panic("error stack");
 	}
 
-	if(sp & (BY2WD-1)){	/* XXX too weak? */
-		pprint("odd sp in sys call pc %lux sp %lux\n",
-			(ulong)ur->pc, (ulong)ur->sp);
-		postnote(up, 1, "sys: odd stack", NDebug);
-		error(Ebadarg);
-	}
-
-	if(sp<(USTKTOP-BY2PG) || sp>(USTKTOP-sizeof(Sargs)))
-		validaddr(sp, sizeof(Sargs), 0);
-
-	up->s = *((Sargs*)(sp+2*BY2WD));
-	up->psstate = sysctab[up->scallnr];
-
-	ret = (*systab[up->scallnr])(up->s.args);
-	poperror();
-
-error:
 	up->nerrlab = 0;
 	up->psstate = 0;
 	up->insyscall = 0;
-	if(up->scallnr == NOTED)			/* ugly hack */
+	if(scallnr == NOTED)			/* ugly hack */
 		noted(ur, &aur, *(ulong*)(sp+2*BY2WD));	/* doesn't return */
 
-	if(up->scallnr!=RFORK && (up->procctl || up->nnote)){
+	if(scallnr!=RFORK && (up->procctl || up->nnote)){
 		ur->r0 = ret;				/* load up for noted() */
 		if(notify(ur))
 			return ur->r0;

@@ -283,7 +283,7 @@ bprint(Instr *i, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	i->curr = doprint(i->curr, i->end, fmt, arg);
+	i->curr = vseprint(i->curr, i->end, fmt, arg);
 	va_end(arg);
 }
 
@@ -408,20 +408,19 @@ printins(Map *map, ulong pc, char *buf, int n)
 
 /* convert to lower case from upper, according to dascase */
 static int
-Xconv(va_list *arg, Fconv *f)
+Xfmt(Fmt *f)
 {
 	char buf[128];
 	char *s, *t, *oa;
 
-	oa = va_arg(*arg, char*);
+	oa = va_arg(f->args, char*);
 	if(dascase){
 		for(s=oa,t=buf; *t = *s; s++,t++)
 			if('A'<=*t && *t<='Z')
 				*t += 'a'-'A';
-		strconv(buf, f);
-	}else
-		strconv(oa, f);
-	return 0;
+		return fmtstrcpy(f, buf);
+	}
+	return fmtstrcpy(f, oa);
 }
 
 static int
@@ -432,7 +431,7 @@ sparcinst(Map *map, ulong pc, char modifier, char *buf, int n)
 		/* a modifier of 'I' toggles the dissassembler type */
 	if (!fmtinstalled) {
 		fmtinstalled = 1;
-		fmtinstall('X', Xconv);
+		fmtinstall('X', Xfmt);
 	}
 	if ((asstype == ASUNSPARC && modifier == 'i')
 		|| (asstype == ASPARC && modifier == 'I'))

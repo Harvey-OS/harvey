@@ -20,81 +20,46 @@ struct Radio
 
 enum{
 	EAdd,
+	EButton,
 	EFocus,
 	EFormat,
+	EHide,
 	ERect,
+	EReveal,
 	EShow,
+	ESize,
 	EValue,
 };
 
 static char *cmds[] = {
 	[EAdd] =		"add",
+	[EButton] =	"button",
 	[EFocus] = 	"focus",
 	[EFormat] = 	"format",
+	[EHide] =		"hide",
 	[ERect] =		"rect",
+	[EReveal] =	"reveal",
 	[EShow] =		"show",
+	[ESize] =		"size",
 	[EValue] =		"value",
 	nil
 };
 
-static void	radioctl(Control*, char*);
 static void	radioshow(Radio*);
-static void	radiosubevent(Radio*, int, char*);
 static void	radiofree(Radio*);
 
 static void
-radiothread(void *v)
+radiomouse(Control *c, Mouse *m)
 {
-	char buf[32];
 	Radio *r;
-	int i, a;
+	int i;
 
-	r = v;
-
-	snprint(buf, sizeof buf, "radiobutton-%s-0x%p", r->name, r);
-	threadsetname(buf);
-
-	r->format = ctlstrdup("%q: value %d");
-	r->value = -1;	/* nobody set at first */
-
-	for(;;){
-		switch(a = alt(r->alts)){
-		default:
-			a -= NALT;
-			if(a < 0 || a >= r->nbuttons)
-				ctlerror("%q: unknown alt index %d", r->name, a+NALT);
-			/* event received on button #a */
-			radiosubevent(r, a, r->eventstr);
+	r = (Radio*)c;
+	for(i=0; i<r->nbuttons; i++)
+		if(ptinrect(m->xy, r->buttons[i]->rect) && r->buttons[i]->mouse){
+			(r->buttons[i]->mouse)(r->buttons[i], m);
 			break;
-		case AKey:
-			/* ignore keystrokes */
-			break;
-		case AMouse:
-			for(i=0; i<r->nbuttons; i++)
-				if(ptinrect(r->m.xy, r->buttons[i]->rect)){
-					send(r->buttons[i]->mouse, &r->m);
-					break;
-				}
-			break;
-		case ACtl:
-			_ctlcontrol(r, r->str, radioctl);
-			free(r->str);
-			break;
-		case AWire:
-			_ctlrewire(r);
-			break;
-		case AExit:
-			radiofree(r);
-			sendul(r->exit, 0);
-			return;
 		}
-	}
-}
-
-Control*
-createradiobutton(Controlset *cs, char *name)
-{
-	return _createctl(cs, "label", sizeof(Radio), name, radiothread, 0);
 }
 
 static void
@@ -107,90 +72,121 @@ radioshow(Radio *r)
 {
 	int i;
 
-	for(i=0; i<r->nbuttons; i++)
-		printctl(r->buttons[i]->ctl, "value %d\nshow", (r->value==i));
+	if (r->hidden)
+		return;
+	for(i=0; i<r->nbuttons; i++){
+		_ctlprint(r->buttons[i], "value %d", (r->value==i));
+		_ctlprint(r->buttons[i], "show");
+	}
 }
 
 static void
-radioctl(Control *c, char *str)
+radioctl(Control *c, CParse *cp)
 {
-	int cmd;
-	CParse cp;
+	int cmd, i;
 	Rectangle rect;
 	Radio *r;
+	char fmt[256];
 
 	r = (Radio*)c;
 
-	cmd = _ctlparse(&cp, str, cmds);
+	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
-		ctlerror("%q: unrecognized message '%s'", r->name, cp.str);
+		ctlerror("%q: unrecognized message '%s'", r->name, cp->str);
 		break;
 	case EAdd:
-		_ctlargcount(r, &cp, 2);
-		c = controlcalled(cp.args[1]);
+		_ctlargcount(r, cp, 2);
+		c = controlcalled(cp->args[1]);
 		if(c == nil)
-			ctlerror("%q: can't add %s: %r", r->name, cp.args[1]);
+			ctlerror("%q: can't add %s: %r", r->name, cp->args[1]);
+		snprint(fmt, sizeof fmt, "%%q: %q button %%d", r->name);
+		_ctlprint(c, "format %q", fmt);
+		controlwire(c, "event", c->controlset->ctl);
 		r->buttons = ctlrealloc(r->buttons, (r->nbuttons+1)*sizeof(Control*));
 		r->buttons[r->nbuttons] = c;
-		r->alts = ctlrealloc(r->alts, (NALT+r->nbuttons+1+1)*sizeof(Alt));
-		r->alts[NALT+r->nbuttons].c = c->event;
-		r->alts[NALT+r->nbuttons].v = &r->eventstr;
-		r->alts[NALT+r->nbuttons].op = CHANRCV;
 		r->nbuttons++;
-		r->alts[NALT+r->nbuttons].op = CHANEND;
 		r->value = -1;
 		radioshow(r);
 		break;
+	case EButton:
+		if (cp->sender == nil)
+			ctlerror("%q: senderless buttonevent: %q", r->name, cp->str);
+		c = controlcalled(cp->sender);
+		for(i=0; i<r->nbuttons; i++)
+			if (c == r->buttons[i])
+				break;
+		if (i == r->nbuttons)
+			ctlerror("%q: not my event: %q", r->name, cp->str);
+		if(cp->iargs[1] == 0){
+			/* button was turned off; turn it back on */
+			_ctlprint(c, "value 1");
+		}else{
+			r->value = i;
+			chanprint(r->event, r->format, r->name, i);
+			radioshow(r);
+		}
+		break;
 	case EFormat:
-		_ctlargcount(r, &cp, 2);
-		r->format = ctlstrdup(cp.args[1]);
+		_ctlargcount(r, cp, 2);
+		r->format = ctlstrdup(cp->args[1]);
+		break;
+	case EHide:
+		_ctlargcount(r, cp, 1);
+		r->hidden = 1;
 		break;
 	case EFocus:
 		/* ignore focus change */
 		break;
 	case ERect:
-		_ctlargcount(r, &cp, 5);
-		rect.min.x = cp.iargs[1];
-		rect.min.y = cp.iargs[2];
-		rect.max.x = cp.iargs[3];
-		rect.max.y = cp.iargs[4];
+		_ctlargcount(r, cp, 5);
+		rect.min.x = cp->iargs[1];
+		rect.min.y = cp->iargs[2];
+		rect.max.x = cp->iargs[3];
+		rect.max.y = cp->iargs[4];
 		r->rect = rect;
 		break;
-	case EShow:
-		_ctlargcount(r, &cp, 1);
+	case EReveal:
+		_ctlargcount(r, cp, 1);
+		r->hidden = 0;
 		radioshow(r);
 		break;
+	case EShow:
+		_ctlargcount(r, cp, 1);
+		radioshow(r);
+		break;
+	case ESize:
+		if (cp->nargs == 3)
+			rect.max = Pt(0x7fffffff, 0x7fffffff);
+		else{
+			_ctlargcount(r, cp, 5);
+			rect.max.x = cp->iargs[3];
+			rect.max.y = cp->iargs[4];
+		}
+		rect.min.x = cp->iargs[1];
+		rect.min.y = cp->iargs[2];
+		if(rect.min.x<=0 || rect.min.y<=0 || rect.max.x<=0 || rect.max.y<=0 || rect.max.x < rect.min.x || rect.max.y < rect.min.y)
+			ctlerror("%q: bad sizes: %s", r->name, cp->str);
+		r->size.min = rect.min;
+		r->size.max = rect.max;
+		break;
 	case EValue:
-		_ctlargcount(r, &cp, 2);
-		r->value = cp.iargs[1];
+		_ctlargcount(r, cp, 2);
+		r->value = cp->iargs[1];
 		radioshow(r);
 		break;
 	}
 }
 
-static void
-radiosubevent(Radio *r, int b, char *s)
+Control*
+createradiobutton(Controlset *cs, char *name)
 {
-	int cmd;
-	CParse cp;
+	Radio *r;
 
-	cmd = _ctlparse(&cp, s, cmds);
-	switch(cmd){
-	default:
-		/* ignore */
-		break;
-	case EValue:
-		_ctlargcount(r, &cp, 2);
-		if(cp.iargs[1] == 0){
-			/* button was turned off; turn it back on */
-			printctl(r->buttons[b]->ctl, "value 1");
-		}else{
-			r->value = b;
-			printctl(r->event, r->format, r->name, b);
-		}
-		radioshow(r);
-		break;
-	}
-	free(s);
+	r = (Radio*)_createctl(cs, "label", sizeof(Radio), name);
+	r->format = ctlstrdup("%q: value %d");
+	r->value = -1;	/* nobody set at first */
+	r->mouse = radiomouse;
+	r->ctl = radioctl;
+	return (Control*)r;
 }

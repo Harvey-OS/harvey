@@ -41,3 +41,5 @@ are first called.
 .SH DIAGNOSTICS
 Sets
 .IR errstr .
+.SH BUGS
+These routines maintain a static file descriptor.

@@ -197,7 +197,14 @@ vfprintf(FILE *f, const char *s, va_list args)
 
 	qunlock(&_stdiolk);
 
-	return ferror(f)? -1: nprint;
+	if(ferror(f)){
+		if((f->flags&STRING) && f->wp==f->rp && f->wp>f->buf){
+			*(f->wp-1) = '\0';
+			return nprint;
+		}
+		return -1;
+	}
+	return nprint;
 }
 
 static int

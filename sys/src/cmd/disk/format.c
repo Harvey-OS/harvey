@@ -21,6 +21,7 @@ Type floppytype[] =
 {
  { "3½HD",	512, 18,  2, 80, 0xf0, 1, },
  { "3½DD",	512,  9,  2, 80, 0xf9, 2, },
+ { "3½QD",	512, 36, 2, 80, 0xf9, 2, },	/* invented */
  { "5¼HD",	512, 15,  2, 80, 0xf9, 1, },
  { "5¼DD",	512,  9,  2, 40, 0xfd, 2, },
  { "hard",		512,  0,  0, 0, 0xf8, 4, },
@@ -138,7 +139,7 @@ enum
 
 void	dosfs(int, int, Disk*, char*, int, char*[], int);
 ulong	clustalloc(int);
-void	addrname(uchar*, Dir*, ulong);
+void	addrname(uchar*, Dir*, char*, ulong);
 void sanitycheck(Disk*);
 
 void
@@ -151,14 +152,12 @@ usage(void)
 void
 fatal(char *fmt, ...)
 {
-	int n;
 	char err[128];
 	va_list arg;
 
 	va_start(arg, fmt);
-	n = doprint(err, err+sizeof(err), fmt, arg) - err;
+	vsnprint(err, sizeof(err), fmt, arg);
 	va_end(arg);
-	err[n] = 0;
 	fprint(2, "format: %s\n", err);
 	if(fflag && file)
 		remove(file);
@@ -276,6 +275,7 @@ main(int argc, char **argv)
 	/* commit */
 	dosfs(dos, writepbs, disk, label, argc-1, argv+1, 1);
 
+	print("used %lld bytes\n", fatlast*clustersize*disk->secsize);
 	exits(0);
 }
 
@@ -324,7 +324,7 @@ sanitycheck(Disk *disk)
 int
 getdriveno(Disk *disk)
 {
-	char buf[3*NAMELEN], *p;
+	char buf[64], *p;
 
 	if(disk->type != Tsd)
 		return 0x80;	/* first hard disk */
@@ -354,7 +354,7 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc, char *argv[], int
 	char r[16];
 	Dosboot *b;
 	uchar *buf, *pbsbuf, *p;
-	Dir d;
+	Dir *d;
 	int npbs, n, sysfd;
 	ulong x;
 	vlong length;
@@ -394,15 +394,16 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc, char *argv[], int
 	/*
 	 * Make disk full size if a file.
 	 */
-	if(fflag){
-		if(dirfstat(disk->wfd, &d) < 0)
+	if(fflag && disk->type == Tfile){
+		if((d = dirfstat(disk->wfd)) == nil)
 			fatal("fstat disk: %r");
-		if(commit && d.length < disk->size) {
+		if(commit && d->length < disk->size) {
 			if(seek(disk->wfd, disk->size-1, 0) < 0)
 				fatal("seek to 9: %r");
 			if(write(disk->wfd, "9", 1) < 0)
 				fatal("writing 9: @%lld %r", seek(disk->wfd, 0LL, 1));
 		}
+		free(d);
 	}
 
 	/*
@@ -581,14 +582,14 @@ if(chatty) print("files @%lluX\n", seek(disk->wfd, 0LL, 1));
 		 */
 		if((sysfd = open(*argv, OREAD)) < 0)
 			fatal("open %s: %r", *argv);
-		if(dirfstat(sysfd, &d) < 0)
+		if((d = dirfstat(sysfd)) == nil)
 			fatal("stat %s: %r", *argv);
-		if(d.length > 0xFFFFFFFF)
-			fatal("file %s too big\n", *argv, d.length);
+		if(d->length > 0xFFFFFFFF)
+			fatal("file %s too big\n", *argv, d->length);
 		if(commit)
-			print("Adding file %s, length %lld\n", *argv, d.length);
+			print("Adding file %s, length %lld\n", *argv, d->length);
 
-		length = d.length;
+		length = d->length;
 		if(length){
 			/*
 			 * Allocate a buffer to read the entire file into.
@@ -602,10 +603,10 @@ if(chatty) print("files @%lluX\n", seek(disk->wfd, 0LL, 1));
 			if((buf = malloc(length)) == 0)
 				fatal("out of memory");
 	
-			if(read(sysfd, buf, d.length) < 0)
+			if(read(sysfd, buf, d->length) < 0)
 				fatal("read %s: %r", *argv);
-			memset(buf+d.length, 0, length-d.length);
-if(chatty) print("%s @%lluX\n", d.name, seek(disk->wfd, 0LL, 1));
+			memset(buf+d->length, 0, length-d->length);
+if(chatty) print("%s @%lluX\n", d->name, seek(disk->wfd, 0LL, 1));
 			if(commit && write(disk->wfd, buf, length) < 0)
 				fatal("write %s: %r", *argv);
 			free(buf);
@@ -631,7 +632,8 @@ if(chatty) print("%s @%lluX\n", d.name, seek(disk->wfd, 0LL, 1));
 		/*
 		 * Add the filename to the root.
 		 */
-		addrname(p, &d, x);
+		addrname(p, d, *argv, x);
+		free(d);
 	}
 
 	/*
@@ -681,8 +683,12 @@ clustalloc(int flag)
 		
 	if(flag == Eof)
 		return 0;
-	else
-		return ++fatlast;
+	else{
+		++fatlast;
+		if(fatlast >= clusters)
+			sysfatal("data does not fit on disk (%d %d)", fatlast, clusters);
+		return fatlast;
+	}
 }
 
 void
@@ -721,13 +727,20 @@ puttime(Dosdir *d)
 }
 
 void
-addrname(uchar *entry, Dir *dir, ulong start)
+addrname(uchar *entry, Dir *dir, char *name, ulong start)
 {
+	char *s;
 	Dosdir *d;
 
+	s = strrchr(name, '/');
+	if(s)
+		s++;
+	else
+		s = name;
+
 	d = (Dosdir*)entry;
-	putname(dir->name, d);
-	if(strcmp(dir->name, "9load") == 0)
+	putname(s, d);
+	if(strcmp(s, "9load") == 0)
 		d->attr = DSYSTEM;
 	else
 		d->attr = 0;

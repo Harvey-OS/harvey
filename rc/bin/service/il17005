@@ -1,4 +1,0 @@
-#!/bin/rc
-exec /bin/ocpu -R
-
-

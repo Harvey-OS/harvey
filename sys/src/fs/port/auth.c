@@ -1,6 +1,60 @@
 #include	"all.h"
 #include	"io.h"
 
+#include	<authsrv.h>
+
+Nvrsafe	nvr;
+
+char*
+nvrgetconfig(void)
+{
+	return nvr.config;
+}
+
+int
+nvrsetconfig(char* word)
+{
+	int c;
+
+	c = strlen(word);
+	if(c >= sizeof(nvr.config)) {
+		print("config string too long\n");
+		return 1;
+	}
+	memset(nvr.config, 0, sizeof(nvr.config));
+	memmove(nvr.config, word, c);
+	nvr.configsum = nvcsum(nvr.config, sizeof(nvr.config));
+	nvwrite(NVRAUTHADDR, &nvr, sizeof(nvr));
+
+	return 0;
+}
+
+int
+nvrcheck(void)
+{
+	uchar csum;
+
+	print("nvr read\n");
+	nvread(NVRAUTHADDR, &nvr, sizeof(nvr));
+
+	csum = nvcsum(nvr.authkey, sizeof(nvr.authkey));
+	if(csum != nvr.authsum) {
+		print("\n\n ** NVR key checksum is incorrect  **\n");
+		print(" ** set password to allow attaches **\n\n");
+		memset(nvr.authkey, 0, sizeof(nvr.authkey));
+		return 1;
+	}
+
+	csum = nvcsum(nvr.config, sizeof(nvr.config));
+	if(csum != nvr.configsum) {
+		print("\n\n ** NVR config checksum is incorrect  **\n");
+		memset(nvr.config, 0, sizeof(nvr.config));
+		return 1;
+	}
+
+	return 0;
+}
+
 void
 cmd_passwd(int, char *[])
 {
@@ -55,101 +109,6 @@ cmd_passwd(int, char *[])
 		nvr.authdomsum = nvcsum(nvr.authdom, NAMELEN);
 	}
 	nvwrite(NVRAUTHADDR, &nvr, sizeof(nvr));
-}
-
-/*
- *  create a challenge for a fid space
- */
-void
-mkchallenge(Chan *cp)
-{
-	int i;
-
-	srand((ulong)cp + m->ticks);
-	for(i = 0; i < CHALLEN; i++)
-		cp->chal[i] = nrand(256);
-
-	cp->idoffset = 0;
-	cp->idvec = 0;
-}
-
-/*
- *  match a challenge from an attach
- */
-int
-authorize(Chan *cp, Fcall *in, Fcall *ou)
-{
-	Ticket t;
-	Authenticator a;
-	int x;
-	ulong bit;
-
-	if(noauth || wstatallow)		/* set to allow entry during boot */
-		return 1;
-
-	if(strcmp(in->uname, "none") == 0)
-		return 1;
-
-	if(in->type == Toattach)
-		return 0;
-
-	/* decrypt and unpack ticket */
-	convM2T(in->ticket, &t, nvr.authkey);
-	if(t.num != AuthTs){
-print("bad AuthTs num\n");
-		return 0;
-	}
-
-	/* decrypt and unpack authenticator */
-	convM2A(in->auth, &a, t.key);
-	if(a.num != AuthAc){
-print("bad AuthAc num\n");
-		return 0;
-	}
-
-	/* challenges must match */
-	if(memcmp(a.chal, cp->chal, sizeof(a.chal)) != 0){
-print("bad challenge\n");
-		return 0;
-	}
-
-	/*
-	 *  the id must be in a valid range.  the range is specified by a
-	 *  lower bount (idoffset) and a bit vector (idvec) where a
-	 *  bit set to 1 means unusable
-	 */
-	lock(&cp->idlock);
-	x = a.id - cp->idoffset;
-	bit = 1<<x;
-	if(x < 0 || x > 31 || (bit&cp->idvec)){
-		unlock(&cp->idlock);
-print("id out of range: idoff %ld idvec %lux id %ld\n", cp->idoffset, cp->idvec, a.id);
-		return 0;
-	}
-	cp->idvec |= bit;
-
-	/* normalize the vector */
-	while(cp->idvec&0xffff0001){
-		cp->idvec >>= 1;
-		cp->idoffset++;
-	}
-	unlock(&cp->idlock);
-
-	/* ticket name and attach name must match */
-	if(memcmp(in->uname, t.cuid, sizeof(in->uname)) != 0){
-print("names don't match\n");
-		return 0;
-	}
-
-	/* copy translated name into input record */
-	memmove(in->uname, t.suid, sizeof(in->uname));
-
-	/* craft a reply */
-	a.num = AuthAs;
-	memmove(a.chal, cp->rchal, CHALLEN);
-	convA2M(&a, ou->rauth, t.key);
-
-	return 1;
 }
 
 void
@@ -214,4 +173,242 @@ conslock(void)
 		delay(1000);
 	}
 	return 0;
+}
+
+/*
+ *  authentication specific to 9P2000
+ */
+
+/* authentication states */
+enum
+{
+	HaveProtos=1,
+	NeedProto,
+	HaveOK,
+	NeedCchal,
+	HaveSinfo,
+	NeedTicket,
+	HaveSauthenticator,
+	SSuccess,
+};
+
+char *phasename[] =
+{
+[HaveProtos]	"HaveProtos",
+[NeedProto]	"NeedProto",
+[HaveOK]	"HaveOK",
+[NeedCchal]	"NeedCchal",
+[HaveSinfo]	"HaveSinfo",
+[NeedTicket]	"NeedTicket",
+[HaveSauthenticator]	"HaveSauthenticator",
+[SSuccess]	"SSuccess",
+};
+
+/* authentication structure */
+struct	Auth
+{
+	int	inuse;
+	char	uname[NAMELEN];	/* requestor's remote user name */
+	char	aname[NAMELEN];	/* requested aname */
+	short	uid;		/* uid decided on */
+	int	phase;
+	char	cchal[CHALLEN];
+	char	tbuf[TICKETLEN+AUTHENTLEN];	/* server ticket */
+	Ticket	t;
+	Ticketreq tr;
+};
+
+Auth*	auths;
+Lock	authlock;
+
+void
+authinit(void)
+{
+	auths = ialloc(conf.nauth * sizeof(*auths), 0);
+}
+
+static int
+failure(Auth *s, char *why)
+{
+	int i;
+
+if(*why)print("authentication failed: %s: %s\n", phasename[s->phase], why);
+	srand((ulong)s + m->ticks);
+	for(i = 0; i < CHALLEN; i++)
+		s->tr.chal[i] = nrand(256);
+	s->uid = -1;
+	strncpy(s->tr.authid, nvr.authid, NAMELEN);
+	strncpy(s->tr.authdom, nvr.authdom, DOMLEN);
+	memmove(s->cchal, s->tr.chal, sizeof(s->cchal));
+	s->phase = HaveProtos;
+	return -1;
+}
+
+Auth*
+authnew(char *uname, char *aname)
+{
+	static int si = 0;
+	int i;
+	Auth *s;
+
+	i = si + 1;
+	if(i < 0 || i >= conf.nauth)
+		i = 0;
+	si = i;
+	for(;;){
+		s = &auths[i++];
+		if(s->inuse)
+			continue;
+		lock(&authlock);
+		if(s->inuse == 0){
+			s->inuse = 1;
+			strncpy(s->uname, uname, NAMELEN-1);
+			strncpy(s->aname, aname, NAMELEN-1);
+			failure(s, "");
+			si = i;
+			unlock(&authlock);
+			break;
+		}
+		unlock(&authlock);
+	}
+	return s;
+}
+
+void
+authfree(Auth *s)
+{
+	if(s != nil)
+		s->inuse = 0;
+}
+
+int
+authread(File* file, uchar* data, int n)
+{
+	Auth *s;
+	int m;
+
+	s = file->auth;
+	if(s == nil)
+		return -1;
+
+	switch(s->phase){
+	default:
+		return failure(s, "unexpected phase");
+	case HaveProtos:
+		m = snprint((char*)data, n, "v.2 p9sk1@%s", nvr.authdom) + 1;
+		s->phase = NeedProto;
+		break;
+	case HaveOK:
+		m = 3;
+		if(n < m)
+			return failure(s, "read too short");
+		strcpy((char*)data, "OK");
+		s->phase = NeedCchal;
+		break;
+	case HaveSinfo:
+		m = TICKREQLEN;
+		if(n < m)
+			return failure(s, "read too short");
+		convTR2M(&s->tr, (char*)data);
+		s->phase = NeedTicket;
+		break;
+	case HaveSauthenticator:
+		m = AUTHENTLEN;
+		if(n < m)
+			return failure(s, "read too short");
+		memmove(data, s->tbuf+TICKETLEN, m);
+		s->phase = SSuccess;
+		break;
+	}
+	return m;
+}
+
+int
+authwrite(File* file, uchar *data, int n)
+{
+	Auth *s;
+	int m;
+	char *p, *d;
+	Authenticator a;
+
+	s = file->auth;
+	if(s == nil)
+		return -1;
+
+	switch(s->phase){
+	default:
+		return failure(s, "unknown phase");
+	case NeedProto:
+		p = (char*)data;
+		if(p[n-1] != 0)
+			return failure(s, "proto missing terminator");
+		d = strchr((char*)p, ' ');
+		if(d == nil)
+			return failure(s, "proto missing separator");
+		*d++ = 0;
+		if(strcmp(p, "p9sk1") != 0)
+			return failure(s, "unknown proto");
+		if(strcmp(d, nvr.authdom) != 0)
+			return failure(s, "unknown domain");
+		s->phase = HaveOK;
+		m = n;
+		break;
+	case NeedCchal:
+		m = CHALLEN;
+		if(n < m)
+			return failure(s, "client challenge too short");
+		memmove(s->cchal, data, sizeof(s->cchal));
+		s->phase = HaveSinfo;
+		break;
+	case NeedTicket:
+		m = TICKETLEN+AUTHENTLEN;
+		if(n < m)
+			return failure(s, "ticket+auth too short");
+
+		convM2T((char*)data, &s->t, nvr.authkey);
+		if(s->t.num != AuthTs
+		|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0)
+			return failure(s, "bad ticket");
+
+		convM2A((char*)data+TICKETLEN, &a, s->t.key);
+		if(a.num != AuthAc
+		|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0
+		|| a.id != 0)
+			return failure(s, "bad authenticator");
+
+		/* at this point, we're convinced */
+		s->uid = strtouid(s->t.suid);
+		if(s->uid < 0)
+			return failure(s, "unknown user");
+		if(cons.flags & authdebugflag)
+		print("user %s = %d authenticated\n", s->t.suid, s->uid);
+
+		/* create an authenticator to send back */
+		a.num = AuthAs;
+		memmove(a.chal, s->cchal, sizeof(a.chal));
+		a.id = 0;
+		convA2M(&a, s->tbuf+TICKETLEN, s->t.key);
+
+		s->phase = HaveSauthenticator;
+		break;
+	}
+	return m;
+}
+
+int
+authuid(Auth* s)
+{
+	return s->uid;
+}
+
+char*
+authaname(Auth* s)
+{
+	return s->aname;
+}
+
+char*
+authuname(Auth* s)
+{
+	return s->uname;
 }

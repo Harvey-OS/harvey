@@ -2,8 +2,6 @@
 #include <libc.h>
 #include <draw.h>
 
-#define	CHUNK	8000
-
 #define	HSHIFT	3	/* HSHIFT==5 runs slightly faster, but hash table is 64x bigger */
 #define	NHASH	(1<<(HSHIFT*NMATCH))
 #define	HMASK	(NHASH-1)
@@ -32,16 +30,19 @@ writeimage(int fd, Image *i, int dolock)
 	uchar dumpbuf[NDUMP];			/* dump accumulator */
 	int ndump;				/* length of dump accumulator */
 	int miny, dy;				/* y values while unloading input */
+	int chunk, ncblock;
 	Rectangle r;
 	uchar *p, *q, *s, *es, *t;
 	char hdr[11+5*12+1];
 	char cbuf[20];
 
+	chunk = i->display->bufsize - 32;	/* a little room for header */
 	r = i->r;
 	bpl = bytesperline(r, i->depth);
 	n = Dy(r)*bpl;
 	data = malloc(n);
-	outbuf = malloc(NCBLOCK);
+	ncblock = _compblocksize(r, i->depth);
+	outbuf = malloc(ncblock);
 	hash = malloc(NHASH*sizeof(Hlist));
 	chain = malloc(NMEM*sizeof(Hlist));
 	if(data == 0 || outbuf == 0 || hash == 0 || chain == 0){
@@ -54,8 +55,8 @@ writeimage(int fd, Image *i, int dolock)
 	}
 	for(miny = r.min.y; miny != r.max.y; miny += dy){
 		dy = r.max.y-miny;
-		if(dy*bpl > CHUNK)
-			dy = CHUNK/bpl;
+		if(dy*bpl > chunk)
+			dy = chunk/bpl;
 		if(dolock)
 			lockdisplay(i->display);
 		nb = unloadimage(i, Rect(r.min.x, miny, r.max.x, miny+dy),
@@ -70,7 +71,7 @@ writeimage(int fd, Image *i, int dolock)
 	if(write(fd, hdr, 11+5*12) != 11+5*12)
 		goto ErrOut;
 	edata = data+n;
-	eout = outbuf+NCBLOCK;
+	eout = outbuf+ncblock;
 	line = data;
 	r.max.y = r.min.y;
 	while(line != edata){

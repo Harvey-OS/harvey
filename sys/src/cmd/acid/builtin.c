@@ -476,6 +476,7 @@ rc(Node *r, Node *args)
 	Node res;
 	int pid;
 	char *p, *q, *argv[4];
+	Waitmsg *w;
 
 	USED(r);
 	if(args == 0)
@@ -497,9 +498,10 @@ rc(Node *r, Node *args)
 		exec("/bin/rc", argv);
 		exits(0);
 	default:
-		p = waitfor(pid);
+		w = waitfor(pid);
 		break;
 	}
+	p = w->msg;
 	q = strrchr(p, ':');
 	if (q)
 		p = q+1;
@@ -507,6 +509,7 @@ rc(Node *r, Node *args)
 	r->op = OCONST;
 	r->type = TSTRING;
 	r->string = strnode(p);
+	free(w);
 	r->fmt = 's';
 }
 
@@ -549,7 +552,7 @@ readfile(Node *r, Node *args)
 	Node res;
 	int n, fd;
 	char *buf;
-	Dir db;
+	Dir *db;
 
 	if(args == 0)
 		error("readfile(filename): arg count");
@@ -561,11 +564,12 @@ readfile(Node *r, Node *args)
 	if(fd < 0)
 		return;
 
-	dirfstat(fd, &db);
-	if(db.length == 0)
+	db = dirfstat(fd);
+	if(db == nil || db->length == 0)
 		n = 8192;
 	else
-		n = db.length;
+		n = db->length;
+	free(db);
 
 	buf = malloc(n);
 	n = read(fd, buf, n);
@@ -665,15 +669,30 @@ void
 cvtitoa(Node *r, Node *args)
 {
 	Node res;
-	char buf[128];
+	Node *av[Maxarg];
+	int ival;
+	char buf[128], *fmt;
 
 	if(args == 0)
-		error("itoa(integer): arg count");
-	expr(args, &res);
+err:
+		error("itoa(number [, printformat]): arg count");
+	na = 0;
+	flatten(av, args);
+	if(na == 0 || na > 2)
+		goto err;
+	expr(av[0], &res);
 	if(res.type != TINT)
 		error("itoa(integer): arg type");
+	ival = (int)res.ival;
+	fmt = "%d";
+	if(na == 2){
+		expr(av[1], &res);
+		if(res.type != TSTRING)
+			error("itoa(integer, string): arg type");
+		fmt = res.string->string;
+	}
 
-	sprint(buf, "%d", (int)res.ival);
+	sprint(buf, fmt, ival);
 	r->op = OCONST;
 	r->type = TSTRING;
 	r->string = strnode(buf);
@@ -914,7 +933,7 @@ patom(char type, Store *res)
 		Bprint(bout, "%s", buf);
 		break;
 	case 'b':
-		Bprint(bout, "%3d", (int)res->ival&0xff);
+		Bprint(bout, "%#.2x", (int)res->ival&0xff);
 		break;
 	case 'X':
 		Bprint(bout, "%.8lux", (ulong)res->ival);
@@ -989,8 +1008,8 @@ patom(char type, Store *res)
 		if(type != TINT)
 			Bprint(bout, "*%c<%s>*", res->fmt, typenames[type]);
 		else {
-			if ((*machdata->das)(symmap, res->ival, res->fmt, buf, sizeof(buf)) < 0)
-				Bprint(bout, "no instruction: %r");
+			if (symmap == nil || (*machdata->das)(symmap, res->ival, res->fmt, buf, sizeof(buf)) < 0)
+				Bprint(bout, "no instruction");
 			else
 				Bprint(bout, "%s", buf);
 		}

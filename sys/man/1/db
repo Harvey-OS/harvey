@@ -455,10 +455,6 @@ Advance dot
 by the length of the string,
 including the zero terminator.
 .TP
-.B Y
-Print a four-byte integer in date format (see
-.IR ctime (2)).
-.TP
 .B i
 Print as machine instructions.  Dot is
 incremented by the size of the instruction.

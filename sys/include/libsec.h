@@ -6,6 +6,62 @@ typedef struct mpint mpint;
 #endif
 
 /////////////////////////////////////////////////////////
+// AES definitions
+/////////////////////////////////////////////////////////
+
+enum
+{
+	AESbsize=	16,
+	AESmaxkey=	32,
+	AESmaxrounds=	14
+};
+
+typedef struct AESstate AESstate;
+struct AESstate
+{
+	ulong	setup;
+	int	rounds;
+	int	keybytes;
+	uchar	key[AESmaxkey];		/* unexpanded key */
+	u32int	ekey[4*(AESmaxrounds + 1)];	/* encryption key */
+	u32int	dkey[4*(AESmaxrounds + 1)];	/* decryption key */
+	uchar	ivec[AESbsize];	/* initialization vector */
+};
+
+void	setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec);
+void	aesCBCencrypt(uchar *p, int len, AESstate *s);
+void	aesCBCdecrypt(uchar *p, int len, AESstate *s);
+
+/////////////////////////////////////////////////////////
+// Blowfish Definitions
+/////////////////////////////////////////////////////////
+
+enum
+{
+	BFbsize	= 8,
+	BFrounds	= 16
+};
+
+// 16-round Blowfish
+typedef struct BFstate BFstate;
+struct BFstate
+{
+	ulong	setup;
+
+	uchar	key[56];
+	uchar	ivec[8];
+
+	u32int 	pbox[BFrounds+2];
+	u32int	sbox[1024];
+};
+
+void	setupBFstate(BFstate *s, uchar key[], int keybytes, uchar *ivec);
+void	bfCBCencrypt(uchar*, int, BFstate*);
+void	bfCBCdecrypt(uchar*, int, BFstate*);
+void	bfECBencrypt(uchar*, int, BFstate*);
+void	bfECBdecrypt(uchar*, int, BFstate*);
+
+/////////////////////////////////////////////////////////
 // DES definitions
 /////////////////////////////////////////////////////////
 
@@ -94,15 +150,8 @@ DigestState* md5(uchar*, ulong, uchar*, DigestState*);
 DigestState* sha1(uchar*, ulong, uchar*, DigestState*);
 DigestState* hmac_md5(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
 DigestState* hmac_sha1(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
-
-/////////////////////////////////////////////////////////
-// base 64 & 32 conversions
-/////////////////////////////////////////////////////////
-
-int	dec64(uchar *out, int lim, char *in, int n);
-int	enc64(char *out, int lim, uchar *in, int n);
-int	dec32(uchar *out, int lim, char *in, int n);
-int	enc32(char *out, int lim, uchar *in, int n);
+char* sha1pickle(SHA1state*);
+SHA1state* sha1unpickle(char*);
 
 /////////////////////////////////////////////////////////
 // random number generation
@@ -161,7 +210,7 @@ struct RSApriv
 	mpint	*q;
 	mpint	*kp;	// dk mod p-1
 	mpint	*kq;	// dk mod q-1
-	mpint	*c2;	// for converting modular rep to answer
+	mpint	*c2;	// (inv p) mod q
 };
 
 RSApriv*	rsagen(int nlen, int elen, int rounds);
@@ -172,7 +221,9 @@ void		rsapubfree(RSApub*);
 RSApriv*	rsaprivalloc(void);
 void		rsaprivfree(RSApriv*);
 RSApub*		rsaprivtopub(RSApriv*);
-RSApub*		X509toRSApub(uchar*,int,char*,int);
+RSApub*		X509toRSApub(uchar*, int, char*, int);
+RSApriv*	asn1toRSApriv(uchar*, int);
+uchar*		decodepem(char *s, char *type, int *len);
 
 /////////////////////////////////////////////////////////
 // eg
@@ -214,3 +265,31 @@ void		egprivfree(EGpriv*);
 EGsig*		egsigalloc(void);
 void		egsigfree(EGsig*);
 EGpub*		egprivtopub(EGpriv*);
+
+/////////////////////////////////////////////////////////
+// TLS
+/////////////////////////////////////////////////////////
+typedef struct Thumbprint{
+	struct Thumbprint *next;
+	uchar sha1[SHA1dlen];
+} Thumbprint;
+
+typedef struct TLSconn{
+	char dir[40];  // connection directory
+	uchar *cert;   // certificate (local on input, remote on output)
+	uchar *sessionID;
+	int certlen, sessionIDlen;
+	int (*trace)(char*fmt, ...);
+} TLSconn;
+
+// tlshand.c
+extern int tlsClient(int fd, TLSconn *c);
+extern int tlsServer(int fd, TLSconn *c);
+
+// thumb.c
+extern Thumbprint* initThumbprints(char *ok, char *crl);
+extern void freeThumbprints(Thumbprint *ok);
+extern int okThumbprint(uchar *sha1, Thumbprint *ok);
+
+// readcert.c
+extern uchar *readcert(char *filename, int *pcertlen);

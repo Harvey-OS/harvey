@@ -4,6 +4,9 @@ BIN=/386
 
 TARG=\
 	9load\
+	9loadlite\
+	9loaddebug\
+	9loadlitedebug\
 	ld.com\
 	mbr\
 	pbs\
@@ -28,20 +31,10 @@ LOAD=\
 	8250.$O\
 	apm.$O\
 	boot.$O\
-	bootp.$O\
+	devpccard.$O\
 	conf.$O\
 	devi82365.$O\
 	devsd.$O\
-	ether.$O\
-	ether2114x.$O\
-	ether2000.$O\
-	ether589.$O\
-	ether79c970.$O\
-	ether8003.$O\
-	ether82557.$O\
-	ether8390.$O\
-	etherec2t.$O\
-	etherelnk3.$O\
 	inflate.$O\
 	load.$O\
 	memory.$O\
@@ -51,7 +44,21 @@ LOAD=\
 	sdmylex.$O\
 	sd53c8xx.$O\
 	sdscsi.$O\
-	load.$O\
+
+ETHER=\
+	bootp.$O\
+	ether.$O\
+	ether2114x.$O\
+	ether2000.$O\
+	ether589.$O\
+	ether79c970.$O\
+	ether8003.$O\
+	ether8139.$O\
+	ether82557.$O\
+	ether83815.$O\
+	ether8390.$O\
+	etherec2t.$O\
+	etherelnk3.$O\
 
 BCOM=\
 	bcom.$O\
@@ -74,11 +81,21 @@ CFLAGS=-FVw -I.
 
 all:V:	$TARG
 
-9load:	l.$O $CORE $LOAD
+9load:	l.$O $CORE $LOAD $ETHER
 	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc
 	ls -l $target
 
-9loaddebug:	l.$O $CORE $LOAD
+9loaddebug:	l.$O $CORE $LOAD $ETHER
+	$LD -o $target -T0x80010000 -l $prereq -lflate -lc
+	ls -l $target
+	# acid $target
+	# map({"text", 0x80010000, 0x80090000, 0x00000020})
+
+9loadlite:	l.$O $CORE $LOAD noether.$O
+	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc
+	ls -l $target
+
+9loadlitedebug:	l.$O $CORE $LOAD noether.$O
 	$LD -o $target -T0x80010000 -l $prereq -lflate -lc
 	ls -l $target
 	# acid $target
@@ -117,14 +134,16 @@ mbr:	mbr.$O
 	$LD -o $target -H3 -T0x0600 -l $prereq
 	ls -l $target
 
-pbs:	pbs.$O
+pbs&:	pbs%.$O
 	$LD -o $target -H3 -T0x7C00 -l $prereq
 	ls -l $target
 
-pbslba:	pbslba.$O
-	$LD -o $target -H3 -T0x7C00 -l $prereq
+pbs&.debug:	pbs%.$O
+	$LD -o $target -T0x7C00 -l $prereq
 	ls -l $target
-
+	# acid $target
+	# map({"text", 0x7C00, 0x7E00, 0x00000020})
+	
 clean:
 	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG 9loaddebug lddebug
 

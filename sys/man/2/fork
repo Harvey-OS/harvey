@@ -69,7 +69,7 @@ Is mutually exclusive with
 .BR RFNAMEG .
 .TP
 .B RFNOMNT
-If set, subsequent mounts into the new namespace and dereferencing
+If set, subsequent mounts into the new name space and dereferencing
 of pathnames starting with
 .B #
 are disallowed.
@@ -121,15 +121,14 @@ makes the process the first in a group of processes that share a space for
 tags.
 .TP
 .B RFMEM
-If set, the kernel will mark segments of type
+If set, the child and the parent will share
 .B data
 and
 .B bss
-as shared. The child
-will then inherit all the shared segments the parent process owns. Other segment
-types will be unaffected.  Subsequent forks by the parent will then
-propagate the shared data and bss between children.  The stack segment
-is always split.  May be set only with
+segments.
+Otherwise, the child inherits a copy of those segments.
+Other segment types, in particular stack segments, will be unaffected.
+May be set only with
 .BR RFPROC .
 .PD
 .PP

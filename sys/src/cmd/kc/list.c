@@ -14,14 +14,14 @@ listinit(void)
 }
 
 int
-Bconv(va_list *arg, Fconv *fp)
+Bconv(Fmt *fp)
 {
 	char str[STRINGSZ], ss[STRINGSZ], *s;
 	Bits bits;
 	int i;
 
 	str[0] = 0;
-	bits = va_arg(*arg, Bits);
+	bits = va_arg(fp->args, Bits);
 	while(bany(&bits)) {
 		i = bnum(bits);
 		if(str[0])
@@ -36,18 +36,17 @@ Bconv(va_list *arg, Fconv *fp)
 		strcat(str, s);
 		bits.b[i/32] &= ~(1L << (i%32));
 	}
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Pconv(va_list *arg, Fconv *fp)
+Pconv(Fmt *fp)
 {
 	char str[STRINGSZ];
 	Prog *p;
 	int a;
 
-	p = va_arg(*arg, Prog*);
+	p = va_arg(fp->args, Prog*);
 	a = p->as;
 	if(a == ADATA)
 		sprint(str, "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
@@ -59,31 +58,29 @@ Pconv(va_list *arg, Fconv *fp)
 		sprint(str, "	%A	%D,R%d,%D", a, &p->from, p->reg, &p->to);
 	else
 		sprint(str, "	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Aconv(va_list *arg, Fconv *fp)
+Aconv(Fmt *fp)
 {
 	char *s;
 	int a;
 
-	a = va_arg(*arg, int);
+	a = va_arg(fp->args, int);
 	s = "???";
 	if(a >= AXXX && a <= AEND)
 		s = anames[a];
-	strconv(s, fp);
-	return 0;
+	return fmtstrcpy(fp, s);
 }
 
 int
-Dconv(va_list *arg, Fconv *fp)
+Dconv(Fmt *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 
-	a = va_arg(*arg, Adr*);
+	a = va_arg(fp->args, Adr*);
 	switch(a->type) {
 
 	default:
@@ -140,17 +137,16 @@ Dconv(va_list *arg, Fconv *fp)
 		sprint(str, "$\"%S\"", a->sval);
 		break;
 	}
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Sconv(va_list *arg, Fconv *fp)
+Sconv(Fmt *fp)
 {
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(*arg, char*);
+	a = va_arg(fp->args, char*);
 	p = str;
 	for(i=0; i<NSNAME; i++) {
 		c = a[i] & 0xff;
@@ -188,18 +184,17 @@ Sconv(va_list *arg, Fconv *fp)
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Nconv(va_list *arg, Fconv *fp)
+Nconv(Fmt *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 
-	a = va_arg(*arg, Adr*);
+	a = va_arg(fp->args, Adr*);
 	s = a->sym;
 	if(s == S) {
 		sprint(str, "%ld", a->offset);
@@ -227,6 +222,5 @@ Nconv(va_list *arg, Fconv *fp)
 		break;
 	}
 out:
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }

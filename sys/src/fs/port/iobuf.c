@@ -14,7 +14,7 @@ getbuf(Device *d, long addr, int flag)
 	long h;
 
 	if(DEBUG)
-		print("getbuf %D(%ld) f=%x\n", d, addr, flag);
+		print("getbuf %Z(%ld) f=%x\n", d, addr, flag);
 	h = addr + (long)d*1009L;
 	if(h < 0)
 		h = ~h;
@@ -198,10 +198,10 @@ putbuf(Iobuf *p)
 {
 
 	if(canqlock(p))
-		print("buffer not locked %D(%ld)\n", p->dev, p->addr);
+		print("buffer not locked %Z(%ld)\n", p->dev, p->addr);
 	if(p->flags & Bimm) {
 		if(!(p->flags & Bmod))
-			print("imm and no mod %D(%ld)\n", p->dev, p->addr);
+			print("imm and no mod %Z(%ld)\n", p->dev, p->addr);
 		if(!devwrite(p->dev, p->addr, p->iobuf))
 			p->flags &= ~(Bmod|Bimm);
 	}
@@ -213,6 +213,7 @@ int
 checktag(Iobuf *p, int tag, long qpath)
 {
 	Tag *t;
+	static long lastaddr;
 
 	t = (Tag*)(p->iobuf+BUFSIZE);
 	if(t->tag != tag) {
@@ -221,10 +222,12 @@ checktag(Iobuf *p, int tag, long qpath)
 				t->tag, t->path, qpath, tag);
 			return 2;
 		}
-		if(p->dev->type == Devcw)
+		if(p->dev != nil && p->dev->type == Devcw)
 			cwfree(p->dev, p->addr);
-		print("	tag = %G/%lud; expected %G/%ld -- flushed (%ld)\n",
-			t->tag, t->path, tag, qpath, p->addr);
+		if(p->addr != lastaddr)
+			print("	tag = %G/%lud; expected %G/%ld -- flushed (%ld)\n",
+				t->tag, t->path, tag, qpath, p->addr);
+		lastaddr = p->addr;
 		p->dev = devnone;
 		p->addr = -1;
 		p->flags = 0;
@@ -279,7 +282,7 @@ iobufql(QLock *q)
 				tag = t->tag;
 				if(tag < 0 || tag >= MAXTAG)
 					tag = Tnone;
-				print("	Iobuf %D(%ld) t=%s\n",
+				print("	Iobuf %Z(%ld) t=%s\n",
 					p->dev, p->addr, tagnames[tag]);
 				unlock(hp);
 				return 1;

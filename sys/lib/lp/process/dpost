@@ -78,5 +78,5 @@ if (! ~ $MAG '' -m*) MAG=-m^$MAG
 if (! ~ $NPAG '' -n*) NPAG=-n^$NPAG
 if (! ~ $XOFF '' -x*) XOFF=-x^$XOFF
 if (! ~ $YOFF '' -y*) YOFF=-y^$YOFF
-/$cputype/bin/aux/dpost -e2 -w0.5 $XOFF $YOFF $COPIES $MAG $NPAG $LAND $OLIST $PATCH | $LPLIB/process/hpost
+eval /$cputype/bin/aux/dpost -e2 -w0.5 $XOFF $YOFF $COPIES $MAG $NPAG $LAND $OLIST $PATCH | $LPLIB/process/hpost
 exit

@@ -11,10 +11,6 @@ main(int argc, char *argv[])
 	ARGBEGIN{
 	case 'n':
 		name = ARGF();
-		if(strlen(name) >= NAMELEN){
-			fprint(2, "kfscmd: server name too long\n");
-			exits("bad server");
-		}
 		break;
 	default:
 		fprint(2, "usage: kfscmd [-n server] commands\n");
@@ -22,7 +18,7 @@ main(int argc, char *argv[])
 	}ARGEND
 
 	if(name)
-		sprint(buf, "/srv/kfs.%s.cmd", name);
+		snprint(buf, sizeof buf, "/srv/kfs.%s.cmd", name);
 	else
 		strcpy(buf, "/srv/kfs.cmd");
 	fd = open(buf, ORDWR);

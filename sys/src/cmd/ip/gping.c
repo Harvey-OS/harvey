@@ -517,7 +517,7 @@ pingsend(Machine *m)
 	Icmp *ip;
 	int i;
 	Req *r;
-	char err[ERRLEN];
+	char err[ERRMAX];
 
 	ip = (Icmp*)buf;
 
@@ -543,7 +543,7 @@ pingsend(Machine *m)
 	r->time = nsec();
 	unlock(m);
 	if(write(m->pingfd, ip, MSGLEN) < MSGLEN){
-		errstr(err);
+		errstr(err, sizeof err);
 		if(strstr(err, "unreach")||strstr(err, "exceed"))
 			m->unreachable++;
 	}
@@ -1017,7 +1017,7 @@ main(int argc, char *argv[])
 	long v, vmax, mark;
 	char flags[10], *f, *p;
 
-	fmtinstall('V', eipconv);
+	fmtinstall('V', eipfmt);
 
 	f = flags;
 	pinginterval = 5000;		// 5 seconds

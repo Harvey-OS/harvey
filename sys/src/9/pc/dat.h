@@ -17,6 +17,8 @@ typedef struct Segdesc	Segdesc;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
 
+#define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
+
 /*
  *  parameters for sysproc.c
  */
@@ -27,7 +29,7 @@ struct Lock
 	ulong	key;
 	ulong	sr;
 	ulong	pc;
-	Proc	*p;
+	Proc	*	p;
 	ushort	isilock;
 };
 
@@ -82,6 +84,7 @@ struct Conf
 	ulong	copymode;	/* 0 is copy on write, 1 is copy on reference */
 	ulong	ialloc;		/* max interrupt time allocation in bytes */
 	ulong	pipeqsize;	/* size in bytes of pipe queues */
+	int	nuart;		/* number of uart devices */
 };
 
 /*
@@ -144,12 +147,12 @@ struct Segdesc
 
 struct Mach
 {
-	int	machno;			/* physical id of processor */
+	int	machno;			/* physical id of processor (KNOWN TO ASSEMBLY) */
 	ulong	splpc;			/* pc of last caller to splhi */
 
 	ulong*	pdb;			/* page directory base for this processor (va) */
 	Tss*	tss;			/* tss for this processor */
-	Segdesc	gdt[NGDT];			/* gdt for this processor */
+	Segdesc	*gdt;			/* gdt for this processor */
 
 	Proc*	proc;			/* current process on this processor */
 	Proc*	externup;		/* extern register Proc *up */
@@ -172,21 +175,26 @@ struct Mach
 	int	syscall;
 	int	load;
 	int	intr;
-	vlong	fastclock;		/* last sampled value */
 	vlong	intrts;			/* time stamp of last interrupt */
 	int	flushmmu;		/* make current proc flush it's mmu state */
+	int		ilockdepth;
 
 	ulong	spuriousintr;
 	int	lastintr;
 
 	int	loopconst;
 
+	Lock	apictimerlock;
 	int	cpumhz;
-	int	cpuhz;
+	uvlong	cpuhz;
 	int	cpuidax;
 	int	cpuiddx;
 	char	cpuidid[16];
 	char*	cpuidtype;
+	int	havetsc;
+	int	havepge;
+	uvlong	tscticks;
+	uvlong	tscoff;
 
 	vlong	mtrrcap;
 	vlong	mtrrdef;
@@ -194,19 +202,6 @@ struct Mach
 	vlong	mtrrvar[32];		/* 256 max. */
 
 	int	stack[1];
-};
-
-typedef struct Cycintr	Cycintr;
-
-/*
- * fasttick timer interrupts
- */
-struct Cycintr
-{
-	vlong	when;			/* fastticks when f should be called */
-	void	(*f)(Ureg*, Cycintr*);
-	void	*a;
-	Cycintr	*next;
 };
 
 /*
@@ -238,19 +233,21 @@ struct PCArch
 
 	void	(*intrinit)(void);
 	int	(*intrenable)(Vctl*);
+	int	(*intrvecno)(int);
+	int	(*intrdisable)(int);
 
 	void	(*clockenable)(void);
 	uvlong	(*fastclock)(uvlong*);
+	void	(*timerset)(uvlong);
 };
 
 /*
  *  a parsed plan9.ini line
  */
-#define ISAOPTLEN	28
 #define NISAOPT		8
 
 struct ISAConf {
-	char	type[NAMELEN];
+	char		*type;
 	ulong	port;
 	ulong	irq;
 	ulong	dma;
@@ -259,7 +256,7 @@ struct ISAConf {
 	ulong	freq;
 
 	int	nopt;
-	char	opt[NISAOPT][ISAOPTLEN];
+	char	*opt[NISAOPT];
 };
 
 extern PCArch	*arch;			/* PC architecture */
@@ -276,3 +273,19 @@ Mach* machp[MAXMACH];
 
 extern Mach	*m;
 #define up	(((Mach*)MACHADDR)->externup)
+
+/*
+ *  hardware info about a device
+ */
+typedef struct {
+	ulong	port;	
+	int		size;
+} port_t;
+
+struct DevConf
+{
+	ulong	interrupt;	/* interrupt number */
+	char		*type;	/* card type, malloced */
+	int		nports;	/* Number of ports */
+	port_t	*ports;	/* The ports themselves */
+};

@@ -113,10 +113,6 @@ hexadecimal if they begin with
 or
 .LR 0X ,
 otherwise decimal.
-.I Strtoul
-and
-.I strtoull
-do not recognize signs.
 .PP
 .I Charstod
 interprets floating point numbers in the manner of

@@ -1,15 +1,15 @@
 .TH TEL 1
 .SH NAME
-tel, pq, iwhois \- look in phone book
+tel, ppq, iwhois \- look in phone book
 .SH SYNOPSIS
 .B tel
 .I key ...
 .PP
-.B pq
+.B p
 .RB [ -f ]
 .I value
 .PP
-.B pq
+.B ppq
 .RB [ -f ]
 .IR attribute = value
 .PP
@@ -33,7 +33,7 @@ userids, home numbers, and office numbers of users.  It also contains
 a directory of area codes and miscellaneous people of general
 interest.
 .PP
-.I Pq
+.I Ppq
 looks up entries in the Lucent personnel database.
 Each search is against a single attribute.  The
 possible search attributes are:
@@ -81,13 +81,13 @@ and if that fails, with attribute
 .BR name .
 .PP
 With no flags,
-.I pq
+.I ppq
 returns for each match a single line containing
 the employee's name, title, organization, location, room, telephone number,
 and email address.
 With 
 .BR \-f ,
-.I pq
+.I ppq
 returns a fuller multiline entry for each match.
 .PP
 .I Iwhois
@@ -106,3 +106,5 @@ Public telephone number database.
 .B /rc/bin/tel
 .br
 .B /rc/bin/iwhois
+.br
+.B /sys/src/cmd/ppq.c

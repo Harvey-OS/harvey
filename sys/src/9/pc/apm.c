@@ -64,19 +64,6 @@ setgdt(int sel, ulong base, ulong limit, int flag)
 			((base>>16)&0xFF) | SEGP | SEGPL(0) | flag;
 }
 
-static void
-loadgdt(void)
-{
-	ulong x;
-	ushort ptr[3];
-
-	ptr[0] = sizeof(m->gdt);
-	x = (ulong)m->gdt;
-	ptr[1] = x & 0xFFFF;
-	ptr[2] = (x>>16) & 0xFFFF;
-	lgdt(ptr);
-}
-
 static	ulong ax, cx, dx, di, ebx, esi;
 static Ureg apmu;
 static long
@@ -154,7 +141,6 @@ apmlink(void)
 	setgdt(APMCSEG, ax<<4, ((esi&0xFFFF)-1)&0xFFFF, SEGEXEC|SEGR|SEGD);
 	setgdt(APMCSEG16, cx<<4, ((esi>>16)-1)&0xFFFF, SEGEXEC|SEGR);
 	setgdt(APMDSEG, dx<<4, (di-1)&0xFFFF, SEGDATA|SEGW|SEGD);
-	loadgdt();
 
 	addarchfile("apm", 0660, apmread, apmwrite);
 

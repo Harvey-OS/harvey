@@ -2,8 +2,8 @@
 #include <libc.h>
 #include <bio.h>
 
-#include "vga.h"
 #include "pci.h"
+#include "vga.h"
 
 /*
  * Chips and Technologies HiQVideo.
@@ -225,8 +225,9 @@ init(Vga* vga, Ctlr* ctlr)
 		 * set using bits <3:2> of vga->misc or Fr03,
 		 * otherwise the DCLK PLL needs to be programmed.
 		 */
-		if(vga->f[0] == VgaFreq0)
-			;
+		if(vga->f[0] == VgaFreq0){
+			/* nothing to do */;
+		}
 		else if(vga->f[0] == VgaFreq1){
 			vga->misc |= 0x04;
 			hqv->fr[0x03] |= 0x04;

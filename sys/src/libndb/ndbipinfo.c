@@ -237,8 +237,8 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	uchar ipa[IPaddrlen];
 
 	/* just in case */
-	fmtinstall('I', eipconv);
-	fmtinstall('M', eipconv);
+	fmtinstall('I', eipfmt);
+	fmtinstall('M', eipfmt);
 
 	/* get needed attributes */
 	needipmask = 0;
@@ -294,7 +294,11 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	 *  if anything is left unspecified, look for defaults
 	 *  specified from networks and subnets
 	 */
-	recursesubnet(db, ipa, defmask(ipa), list, gen);
+	for(a = list; a != nil; a = a->next)
+		if(a->first == nil)
+			break;
+	if(a != nil)
+		recursesubnet(db, ipa, defmask(ipa), list, gen);
 
 	/*
 	 *  chain together the results and free the list

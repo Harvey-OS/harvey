@@ -4,7 +4,7 @@
 #
 TARG=\
 	keyfs\
-	auth.srv\
+	authsrv\
 	guard.srv\
 	netkey\
 	passwd\
@@ -19,7 +19,11 @@ TARG=\
 	uniq\
 	iam\
 
-HFILES=/sys/include/auth.h authsrv.h
+DIRS=lib\
+	factotum\
+	secstore\
+
+HFILES=/sys/include/auth.h /sys/include/authsrv.h authcmdlib.h
 
 LIB=lib.$O.a /$objtype/lib/libc.a
 BIN=/$objtype/bin/auth
@@ -27,16 +31,55 @@ CLIB=`{ls lib/*.c}
 
 </sys/src/cmd/mkmany
 
-install:V:	$BIN/status
+all:V:	$DIRS
 
-$LIB: $CLIB
-	cd lib
-	mk install
+$DIRS:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk all
+	}
 
-$O.auth.srv: auth.srv.$O secureidcheck.$O
-	$LD -o $O.auth.srv $prereq
+all:V:	$DIRS
 
-$O.guard.srv: guard.srv.$O secureidcheck.$O
+$DIRS:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk all
+	}
+
+install:V:	installdirs $BIN/status $BIN/enable $BIN/disable
+
+
+nuke:V:	nukedirs
+
+installdirs:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk install
+	}
+
+clean:V:
+	for (i in $DIRS) @{
+		echo clean $i
+		cd $i
+		mk clean
+	}
+	rm -f [$OS].* *.[$OS]
+
+nukedirs:V:
+	for (i in $DIRS) @{
+		echo nuke $i
+		cd $i
+		mk nuke
+	}
+
+$O.authsrv: lib.$O.a authsrv.$O secureidcheck.$O
+	$LD -o $O.authsrv $prereq
+
+$O.guard.srv: lib.$O.a guard.srv.$O secureidcheck.$O
 	$LD -o $O.guard.srv $prereq
 
 $BIN/netkey:V:	$O.netkey
@@ -48,11 +91,21 @@ $BIN/passwd:V:	$O.passwd
 $BIN/status:V:
 	cp status $target
 
+$BIN/enable:V:
+	cp enable $target
+
+$BIN/disable:V:
+	cp disable $target
+
+lib.$O.a:V:
+	cd lib
+	mk
+
 clean:V:
 	cd lib
 	mk clean
 	cd ..
-	rm -f *.[$OS] *.[$OS].a y.tab.? y.debug y.output [$OS].$TARG $TARG
+	rm -f *.[$OS] *.[$OS].a y.tab.? y.debug y.output [$OS].* $TARG
 
 nuke:V:
 	cd lib

@@ -1,0 +1,28 @@
+</$objtype/mkfile
+
+TARG=usbaudio
+OFILES=\
+	config.$O\
+	dump.$O\
+	controls.$O\
+	fs.$O\
+	main.$O\
+
+HFILES=\
+	dat.h\
+	fns.h\
+	audioclass.h\
+	../lib/usb.h\
+	../lib/usbproto.h\
+
+LIB=../lib/usb.a$O
+
+BIN=/$objtype/bin/usb
+</sys/src/cmd/mkone
+
+CFLAGS=-I../lib $CFLAGS
+
+$LIB:
+	cd ../lib
+	mk install
+	mk clean

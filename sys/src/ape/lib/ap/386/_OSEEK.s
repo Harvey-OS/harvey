@@ -1,4 +1,0 @@
-TEXT _OSEEK(SB), 1, $0
-MOVL $16, AX
-INT $64
-RET

@@ -19,12 +19,6 @@ nfsserver, portmapper, pcnfsd, 9auth \- NFS service
 [
 .I rpc-options...
 ]
-.br
-.B 9auth
-[
-.I auth-options
-]
-.I user
 .SH DESCRIPTION
 These programs collectively provide NFS access to Plan 9 file servers.
 .IR Nfsserver ,
@@ -32,10 +26,7 @@ These programs collectively provide NFS access to Plan 9 file servers.
 and
 .I portmapper
 run on a Plan 9 CPU server, and should be started in that order.
-.I 9auth
-is run by a user on a client machine\(emusually a Unix system, never Plan 9\(emfor
-optional per-user
-authentication.  By default, all users on client machines have the
+All users on client machines have the
 access privileges of the Plan 9 user
 .LR none .
 .PP
@@ -120,38 +111,6 @@ is a toy program that authorizes PC-NFS clients.  All clients
 are mapped to uid=1, gid=1
 .RB ( daemon
 on most systems) regardless of name or password.
-.PP
-The options for
-.I 9auth
-are:
-.TP \n(zz
-.B -D
-Debug flag.
-.TP
-.BI -r " root"
-Authenticate to the file system at
-.I root
-(default
-.BR /n/emelie ).
-.TP
-.B -d
-Delete the authorization for
-.IR user .
-.PP
-In the absence of
-.BR -d ,
-.I 9auth
-will present a challenge to be encrypted with the
-.IR user "'s"
-Plan 9 password (using
-.IR netkey ,
-for example;
-see
-.IR passwd (1)).
-If the response is correct, subsequent NFS transactions
-will take place with the
-.IR user "'s"
-privileges.
 .SH EXAMPLES
 A simple
 .B /lib/ndb/nfs
@@ -194,24 +153,10 @@ List of uid/gid maps.
 Log file.
 .SH SOURCE
 .B /sys/src/cmd/9nfs
-.br
-.B /sys/src/cmd/9nfs/9auth.c
 .SH BUGS
-.B 9auth
-.I user
-does not work if the Unix uid running
-.B 9auth
-is not the uid corresponding to 
-.I user 
-in the password file specified by
-.BR /lib/ndb/nfs .
+It would be nice to provide authentication for users, but Unix systems
+provide too low a level of security to be trusted in a Plan 9 world.
 .SH SEE ALSO
-.I Netkey
-in
-.IR passwd (1),
-.IR regexp (6),
-.IR u9fs (4)
-.PP
 RFC1057,
 .I "RPC: Remote Procedure Call Protocol Specification, Version 2."
 .br

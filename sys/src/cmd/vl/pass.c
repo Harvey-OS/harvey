@@ -26,6 +26,17 @@ dodata(void)
 				s->value, s->name, p);
 	}
 
+	if(debug['t']) {
+		/*
+		 * pull out string constants
+		 */
+		for(p = datap; p != P; p = p->link) {
+			s = p->from.sym;
+			if(p->to.type == D_SCONST)
+				s->type = SSTRING;
+		}
+	}
+
 	/*
 	 * pass 1
 	 *	assign 'small' variables to data segment

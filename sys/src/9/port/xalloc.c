@@ -90,7 +90,7 @@ xspanalloc(ulong size, int align, ulong span)
 
 	a = (ulong)xalloc(size+align+span);
 	if(a == 0)
-		panic("xspanalloc: %d %d %lux\n", size, align, span);
+		panic("xspanalloc: %lud %d %lux\n", size, align, span);
 
 	if(span > 2) {
 		v = (a + span) & ~(span-1);
@@ -159,7 +159,7 @@ xfree(void *p)
 	x = (Xhdr*)((ulong)p - datoff);
 	if(x->magix != Magichole) {
 		xsummary();
-		panic("xfree(0x%lux) 0x%lux!=0x%lux", p, Magichole, x->magix);
+		panic("xfree(0x%lux) 0x%lux!=0x%lux", p, (ulong)Magichole, x->magix);
 	}
 	xhole(PADDR(x), x->size);
 }

@@ -436,7 +436,7 @@ The options are:
 .TP
 .B -f
 Do not physically format the disc. Used
-to install a FAT filesystem on a
+to install a FAT file system on a
 previously formatted disc. If
 .I disk
 is not a floppy device, this flag is a no-op.
@@ -473,7 +473,7 @@ is a regular file, the default is
 .BR 3½HD .
 When 
 .I disk
-is a n
+is an
 .IR sd (3)
 device, the default is 
 .BR hard .
@@ -527,7 +527,7 @@ any
 .I files
 listed are added, in order,
 to the root
-directory of the FAT filesystem.  The files are
+directory of the FAT file system.  The files are
 contiguously allocated.
 If a file is named
 .BR 9load ,

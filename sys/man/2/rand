@@ -1,6 +1,6 @@
 .TH RAND 2
 .SH NAME
-rand, lrand, frand, nrand, lnrand, srand, truerand, n_truerand, fastrand \- random number generator
+rand, lrand, frand, nrand, lnrand, srand, truerand, ntruerand, fastrand, nfastrand \- random number generator
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -29,10 +29,23 @@ void	srand(long seed)
 ulong	truerand(void)
 .PP
 .B
-int	n_truerand(int val)
+ulong	ntruerand(ulong val)
 .PP
 .B
 ulong	fastrand(void)
+.PP
+.B
+ulong	nfastrand(ulong val)
+.sp
+.B #include <mp.h>
+.br
+.B #include <libsec.h>
+.PP
+.B
+void	genrandom(uchar *buf, int nbytes)
+.PP
+.B
+void	prng(uchar *buf, int nbytes)
 .SH DESCRIPTION
 .I Rand
 returns a uniform pseudo-random
@@ -99,23 +112,61 @@ Due to the nature of
 truerand can only return a few hundred bits a
 second.
 .PP
-.I N_truerand
-returns a uniform integer
+.I Ntruerand
+returns a uniform random integer
 .IR x ,
-.RI 0≤ x < val.
+.RI 0≤ x < val ≤ 2\u\s732\s10\d-1.
 .PP
 .I Fastrand
 is a pseudo random number generator which is seeded
 and periodically scrambled using
 .IR truerand .
+It returns a uniform random integer
+.IR x ,
+.RI 0≤ x < 2\u\s731\s10\d-1.
 It is approximately 1000 times faster than
 .I truerand
 and is intended for security software that requires a
 larger stream of unguessable data.
+.PP
+.I Nfastrand
+returns a uniform pseudo random integer
+.IR x ,
+.RI 0≤ x < val ≤ 2\u\s731\s10\d-1,
+using
+.IR fastrand .
+.PP
+.I Genrandom
+fills a buffer with bytes from the X9.17 pseudo-random
+number generator.  The X9.17 generator is seeded by 24
+truly random bytes read from
+.BR /dev/random .
+.PP
+.I Prng
+uses the native
+.IR rand (2)
+pseudo-random number generator to fill the buffer.  Used with
+.IR srand ,
+this function can produce a reproducible stream of pseudo random
+numbers useful in testing.
+.PP
+Both functions may be passed to
+.I mprand
+(see
+.IR mp (2)).
 .SH SOURCE
 .B /sys/src/libc/port/rand.c
 .br
 .B /sys/src/libc/9sys/truerand.c
+.br
+.B /sys/src/libsec/port/genrandom.c
+.br
+.B /sys/src/libsec/port/prng.c
 .SH "SEE ALSO
-.IR cons (3)
-
+.IR cons (3),
+.IR mp (2),
+.SH BUGS
+.I Truerand
+and
+.I ntruerand
+maintain a static file descriptor.

@@ -109,6 +109,14 @@ turns off mouse acceleration
 sets mouse resolution to a setting between 0 and
 3 inclusive.
 .TP
+.B hwaccel \fIon/off\fR
+sets whether acceleration is done in hardware or
+software.
+By default, PS2 mice use hardware and serial mice use
+software.
+Some laptops (notably the IBM Thinkpad T23) don't
+implement hardware acceleration for external mice.
+.TP
 .B swap
 swaps the left and right buttons on the mouse.
 .TP

@@ -55,11 +55,13 @@ s_newalloc(int len)
 	sp = _s_alloc();
 	if(sp == nil)
 		sysfatal("s_newalloc: %r");
+	setmalloctag(sp, getcallerpc(&len));
 	if(len < STRLEN)
 		len = STRLEN;
 	sp->base = sp->ptr = malloc(len);
 	if (sp->base == nil)
 		sysfatal("s_newalloc: %r");
+	setmalloctag(sp->base, getcallerpc(&len));
 
 	sp->end = sp->base + len;
 	s_terminate(sp);

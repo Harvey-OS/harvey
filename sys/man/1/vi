@@ -1,6 +1,6 @@
 .TH VI 1
 .SH NAME
-0i, 5i, 9i, ki, vi, xi \- instruction simulators
+0i, 5i, ki, vi \- instruction simulators
 .SH SYNOPSIS
 .B vi
 [
@@ -26,28 +26,12 @@
 .B 5i
 .I pid
 .br
-.B 9i
-[
-.I textfile
-]
-.br
-.B 9i
-.I pid
-.br
 .B ki
 [
 .I textfile
 ]
 .br
 .B ki
-.I pid
-.br
-.B xi
-[
-.I textfile
-]
-.br
-.B xi
 .I pid
 .SH DESCRIPTION
 .I Vi
@@ -63,13 +47,11 @@ single stepping under
 .IR db .
 .IR 0i ,
 .IR 5i ,
-.IR 9i ,
-.IR ki,
 and
-.I xi
+.IR ki
 are similar to
 .I vi
-but interpret little-endian MIPS, ARM 7500, AMD2900, SPARC, and ATT3210 binaries.
+but interpret little-endian MIPS, ARM 7500, and SPARC binaries.
 The following discussion refers to
 .I vi
 but applies to the others

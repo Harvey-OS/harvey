@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
+#include <auth.h>
 #include "ppp.h"
 #include "thwack.h"
 
@@ -63,7 +64,7 @@ unthwackstate(Unthwack *ut, uchar *mask)
 	ulong bseq, seq;
 	int slot, m;
 
-	seq = ~0;
+	seq = ~0UL;
 	m = 0;
 	slot = ut->slot;
 	for(;;){
@@ -73,9 +74,9 @@ unthwackstate(Unthwack *ut, uchar *mask)
 		if(slot == ut->slot)
 			break;
 		if(ut->blocks[slot].maxoff == 0)
-			break;
+			continue;
 		bseq = ut->blocks[slot].seq;
-		if(seq == ~0)
+		if(seq == ~0UL)
 			seq = bseq;
 		else if(seq - bseq > MaxSeqMask)
 			break;
@@ -86,21 +87,24 @@ unthwackstate(Unthwack *ut, uchar *mask)
 	return seq;
 }
 
-int
-unthwackadd(Unthwack *ut, uchar *src, int nsrc, ulong seq)
+/*
+ * insert this block in it's correct sequence number order.
+ * replace the oldest block, which is always pointed to by ut->slot.
+ * the encoder doesn't use a history at wraparound,
+ * so don't worry about that case.
+ */
+static int
+unthwackinsert(Unthwack *ut, int len, ulong seq)
 {
 	uchar *d;
 	int slot, tslot;
-
-	if(nsrc > ThwMaxBlock)
-		return -1;
 
 	tslot = ut->slot;
 	for(;;){
 		slot = tslot - 1;
 		if(slot < 0)
 			slot += DWinBlocks;
-		if(ut->blocks[slot].seq <= seq)
+		if(ut->blocks[slot].seq <= seq || ut->blocks[slot].maxoff == 0)
 			break;
 		d = ut->blocks[tslot].data;
 		ut->blocks[tslot] = ut->blocks[slot];
@@ -108,12 +112,31 @@ unthwackadd(Unthwack *ut, uchar *src, int nsrc, ulong seq)
 		tslot = slot;
 	}
 	ut->blocks[tslot].seq = seq;
-	ut->blocks[tslot].maxoff = nsrc;
-	memmove(ut->blocks[tslot].data, src, nsrc);
+	ut->blocks[tslot].maxoff = len;
 
 	ut->slot++;
 	if(ut->slot >= DWinBlocks)
 		ut->slot = 0;
+
+	ut->blocks[ut->slot].seq = ~0UL;
+	ut->blocks[ut->slot].maxoff = 0;
+
+	return tslot;
+}
+
+int
+unthwackadd(Unthwack *ut, uchar *src, int nsrc, ulong seq)
+{
+	int tslot;
+
+	if(nsrc > ThwMaxBlock)
+		return -1;
+
+	tslot = unthwackinsert(ut, nsrc, seq);
+	if(tslot < 0)
+		return -1;
+	
+	memmove(ut->blocks[tslot].data, src, nsrc);
 
 	return nsrc;
 }
@@ -123,36 +146,17 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 {
 	UnthwBlock blocks[CompBlocks], *b, *eblocks;
 	uchar *s, *d, *dmax, *smax, lit;
-	ulong cmask, cseq, bseq, utbits, lithist;
-	int i, off, len, bits, slot, tslot, use, code, utnbits, overbits;
+	ulong cmask, cseq, bseq, utbits;
+	int i, off, len, bits, slot, use, code, utnbits, overbits, lithist;
 
 	if(nsrc < 4 || nsrc > ThwMaxBlock){
 		snprint(ut->err, ThwErrLen, "block too small or large");
 		return -1;
 	}
 
-	/*
-	 * insert this block in it's correct sequence number order.
-	 * replace the oldest block, which is always pointed to by ut->slot.
-	 * the encoder doesn't use a history at wraparound,
-	 * so don't worry about that case.
-	 */
-	tslot = ut->slot;
-	for(;;){
-		slot = tslot - 1;
-		if(slot < 0)
-			slot += DWinBlocks;
-		if(ut->blocks[slot].seq <= seq)
-			break;
-		d = ut->blocks[tslot].data;
-		ut->blocks[tslot] = ut->blocks[slot];
-		ut->blocks[slot].data = d;
-		tslot = slot;
-	}
+	slot = ut->slot;
 	b = blocks;
-	ut->blocks[tslot].seq = seq;
-	ut->blocks[tslot].maxoff = 0;
-	*b = ut->blocks[tslot];
+	*b = ut->blocks[slot];
 	d = b->data;
 	dmax = d + ndst;
 
@@ -162,7 +166,6 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 	cseq = seq - src[0];
 	cmask = src[1];
 	b++;
-	slot = tslot;
 	while(cseq != seq && b < blocks + CompBlocks){
 		slot--;
 		if(slot < 0)
@@ -315,11 +318,8 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 
 	len = d - blocks->data;
 	memmove(dst, blocks->data, len);
-	ut->blocks[tslot].maxoff = len;
 
-	ut->slot++;
-	if(ut->slot >= DWinBlocks)
-		ut->slot = 0;
+	unthwackinsert(ut, len, seq);
 
 	return len;
 }

@@ -16,7 +16,8 @@ and to create, remove, read, and write files.
 The prototypical server is a separate machine that stores
 large numbers of user files on permanent media;
 such a machine is called, somewhat confusingly, a
-.IR file server .
+.I file
+.IR server .
 Another possibility for a server is to synthesize
 files on demand, perhaps based on information on data structures
 inside the kernel; the
@@ -39,7 +40,7 @@ calls;
 see
 .IR intro (2).
 Processes in the group are then clients
-of the servers:
+of the server:
 system calls operating on files are translated into requests
 and responses transmitted on the connection to the appropriate service.
 .PP
@@ -64,31 +65,68 @@ its reply is called a
 of that type.
 .PP
 Each message consists of a sequence of bytes.
-The first byte is the message type, one of the constants
-in the enumeration in the include file
-.BR <fcall.h> .
-The remaining bytes are parameters.
-Each parameter consists of a
-fixed number of bytes (except the
-.I data
-fields of write requests or read replies);
-in the message descriptions below, the number of bytes in a field
-is given in brackets after the field name.
-The two-, four-, and eight-byte fields may hold unsigned
+Two-, four-, and eight-byte fields hold unsigned
 integers represented in little-endian order
 (least significant byte first).
-Fields that contain names are 28-byte strings
-(including a terminal NUL (zero) byte).
-Other than the NUL terminator,
-all characters are legal
-in file names.
+Data items of larger or variable lengths are represented
+by a two-byte field specifying a count,
+.IR n ,
+followed by
+.I n
+bytes of data.
+Text strings are represented this way,
+with the text itself stored as a UTF-8
+encoded sequence of Unicode characters (see
+.IR utf (6)).
+Text strings in 9P messages are not
+.SM NUL\c
+-terminated:
+.I n
+counts the bytes of UTF-8 data, which include no final zero byte.
+The
+.SM NUL
+character is illegal in all text strings in 9P, and is therefore
+excluded from file names, user names, and so on.
+.PP
+Each 9P message begins with a four-byte size field
+specifying the length in bytes of the complete message including
+the four bytes of the size field itself.
+The next byte is the message type, one of the constants
+in the enumeration in the include file
+.BR <fcall.h> .
+The next two bytes are an identifying
+.IR tag ,
+described below.
+The remaining bytes are parameters of different sizes.
+In the message descriptions, the number of bytes in a field
+is given in brackets after the field name.
+The notation
+.IR parameter [ n ]
+where
+.I n
+is not a constant represents a variable-length parameter:
+.IR n [2]
+followed by
+.I n
+bytes of data forming the
+.IR parameter .
+The notation
+.IR string [ s ]
+(using a literal
+.I s
+character)
+is shorthand for
+.IR s [2]
+followed by
+.I s
+bytes of UTF-8 text.
 (Systems may choose to reduce the set of legal characters
 to reduce syntactic problems,
 for example to remove slashes from name components,
 but the protocol has no such restriction.
 Plan 9 names may contain any printable character (that is, any character
 outside hexadecimal 00-1F and 80-9F)
-except slash and blank.)
+except slash.)
 Messages are transported in byte form to allow for machine independence;
 .IR fcall (2)
 describes routines that convert to and from this form into a machine-dependent
@@ -96,193 +134,176 @@ C structure.
 .SH MESSAGES
 .ta \w'\fLTsession 'u
 .IP
-.B Tnop	
+.ne 2v
+.IR size [4]
+.B Tversion
 .IR tag [2]
+.IR msize [4]
+.IR version [ s ]
 .br
-.B Rnop	
+.IR size [4]
+.B Rversion
 .IR tag [2]
-.IP
-.B
-Tsession	
-.IR tag [2]
-.IR chal [8]
-.br
-.B
-Rsession	
-.IR tag [2]
-.IR chal [8]
-.IR authid [28]
-.IR authdom [48]
-.IP
-.B
-Rerror	
-.IR tag [2]
-.IR ename [64]
-.IP
-.B
-Tflush	
-.IR tag [2]
-.IR oldtag [2]
-.br
-.B
-Rflush	
-.IR tag [2]
-.IP
-.B
-Tattach	
-.IR tag [2]
-.IR fid [2]
-.IR uid [28]
-.IR aname [28]
-.IR ticket [72]
-.IR auth [13]
-.br
-.B
-Rattach	
-.IR tag [2]
-.IR fid [2]
-.IR qid [8]
-.IR rauth [13]
-.IP
-.B
-Tclone	
-.IR tag [2]
-.IR fid [2]
-.IR newfid [2]
-.br
-.B
-Rclone	
-.IR tag [2]
-.IR fid [2]
+.IR msize [4]
+.IR version [ s ]
 .IP
 .ne 2v
-.B
-Tclwalk	
+.IR size [4]
+.B Tauth
 .IR tag [2]
-.IR fid [2]
-.IR newfid [2]
-.IR name [28]
+.IR afid [4]
+.IR afid [4]
+.IR uname [ s ]
+.IR aname [ s ]
 .br
-.B
-Rclwalk	
+.br
+.IR size [4]
+.B Rauth
 .IR tag [2]
-.IR fid [2]
-.IR qid [8]
+.IR aqid [13]
 .IP
 .ne 2v
-.B
-Twalk	
+.IR size [4]
+.B Rerror
 .IR tag [2]
-.IR fid [2]
-.IR name [28]
-.br
-.B
-Rwalk	
-.IR tag [2]
-.IR fid [2]
-.IR qid [8]
+.IR ename [ s ]
 .IP
 .ne 2v
-.B
-Topen	
+.IR size [4]
+.B Tflush
 .IR tag [2]
-.IR fid [2]
+.IR oldtag [4]
+.br
+.IR size [4]
+.B Rflush
+.IR tag [2]
+.IP
+.ne 2v
+.IR size [4]
+.B Tattach
+.IR tag [2]
+.IR fid [4]
+.IR afid [4]
+.IR uname [ s ]
+.IR aname [ s ]
+.br
+.IR size [4]
+.B Rattach
+.IR tag [2]
+.IR qid [13]
+.IP
+.ne 2v
+.IR size [4]
+.B Twalk
+.IR tag [2]
+.IR fid [4]
+.IR newfid [4]
+.IR nwname [2]
+.IR nwname *( wname [ s ])
+.br
+.IR size [4]
+.B Rwalk
+.IR tag [2]
+.IR nwqid [2]
+.IR nwqid *( wqid [13])
+.IP
+.ne 2v
+.IR size [4]
+.B Topen
+.IR tag [2]
+.IR fid [4]
 .IR mode [1]
 .br
-.B
-Ropen	
+.IR size [4]
+.B Ropen
 .IR tag [2]
-.IR fid [2]
-.IR qid [8]
+.IR qid [13]
+.IR iounit [4]
 .IP
 .ne 2v
-.B
-Tcreate	
+.IR size [4]
+.B Tcreate
 .IR tag [2]
-.IR fid [2]
-.IR name [28]
+.IR fid [4]
+.IR name [ s ]
 .IR perm [4]
 .IR mode [1]
 .br
-.B
-Rcreate	
+.IR size [4]
+.B Rcreate
 .IR tag [2]
-.IR fid [2]
-.IR qid [8]
+.IR qid [13]
+.IR iounit [4]
 .IP
 .ne 2v
-.B
-Tread	
+.IR size [4]
+.B Tread
 .IR tag [2]
-.IR fid [2]
+.IR fid [4]
 .IR offset [8]
-.IR count [2]
+.IR count [4]
 .br
-.B
-Rread	
+.IR size [4]
+.B Rread
 .IR tag [2]
-.IR fid [2]
-.IR count [2]
-.IR pad [1]
+.IR count [4]
 .IR data [ count ]
 .IP
 .ne 2v
-.B
-Twrite	
+.IR size [4]
+.B Twrite
 .IR tag [2]
-.IR fid [2]
+.IR fid [4]
 .IR offset [8]
-.IR count [2]
-.IR pad [1]
+.IR count [4]
 .IR data [ count ]
 .br
-.B
-Rwrite	
+.IR size [4]
+.B Rwrite
 .IR tag [2]
-.IR fid [2]
-.IR count [2]
+.IR count [4]
 .IP
-.B
-Tclunk	
+.ne 2v
+.IR size [4]
+.B Tclunk
 .IR tag [2]
-.IR fid [2]
+.IR fid [4]
 .br
-.B
-Rclunk	
+.IR size [4]
+.B Rclunk
 .IR tag [2]
-.IR fid [2]
 .IP
-.B
-Tremove	
+.ne 2v
+.IR size [4]
+.B Tremove
 .IR tag [2]
-.IR fid [2]
+.IR fid [4]
 .br
-.B
-Rremove	
+.IR size [4]
+.B Rremove
 .IR tag [2]
-.IR fid [2]
 .IP
-.B
-Tstat	
+.ne 2v
+.IR size [4]
+.B Tstat
 .IR tag [2]
-.IR fid [2]
+.IR fid [4]
 .br
-.B
-Rstat	
+.IR size [4]
+.B Rstat
 .IR tag [2]
-.IR fid [2]
-.IR stat [116]
+.IR stat [ n ]
 .IP
-.B
-Twstat	
+.ne 2v
+.IR size [4]
+.B Twstat
 .IR tag [2]
-.IR fid [2]
-.IR stat [116]
+.IR fid [4]
+.IR stat [ n ]
 .br
-.B
-Rwstat	
+.IR size [4]
+.B Rwstat
 .IR tag [2]
-.IR fid [2]
 .PP
 Each T-message has a
 .I tag
@@ -291,13 +312,15 @@ The reply to the message will have the same tag.
 Clients must arrange that no two outstanding messages
 on the same connection have the same tag.
 An exception is the tag
-.BR 0xFFFF ,
-meaning `no tag': the client can use it, when establishing a connection,
+.BR NOTAG ,
+defined as
+.B (ushort)~0
+in
+.BR <fcall.h> :
+the client can use it, when establishing a connection,
 to
 override tag matching in
-.B nop
-and
-.B session
+.B version
 messages.
 .PP
 The type of an R-message will either be one greater than the type
@@ -309,23 +332,19 @@ In the latter case, the
 field contains a string describing the reason for failure.
 .PP
 The
-.B nop
-message request has no obvious effect.
-Its main purpose is in debugging the connection between
-a client and a server.
-It is never necessary.
-A
-.B session
-request initializes a connection and
+.B version
+message identifies the version of the protocol and indicates
+the maximum message size the system is prepared to handle.
+It also initializes the connection and
 aborts all outstanding I/O on the connection.
 The set of messages between
-.B session
+.B version
 requests is called a
 .IR session .
 .PP
 Most T-messages contain a
 .IR fid ,
-a 16-bit unsigned integer that the client uses to identify
+a 32-bit unsigned integer that the client uses to identify
 a ``current file'' on the server.
 Fids are somewhat like file descriptors in a user process,
 but they are not restricted to files open for I/O:
@@ -339,35 +358,57 @@ when several clients share a connection,
 the agent managing the sharing must arrange
 that no two clients choose the same fid.
 .PP
-The first fid supplied (in an
+The fid supplied in an
 .B attach
-message)
+message
 will be taken by the server to refer to the root of the served file tree.
 The
 .B attach
 identifies the user
 to the server and may specify a particular file tree served
 by the server (for those that supply more than one).
+.PP
+Permission to attach to the service is proven by providing a special fid, called
+.BR afid ,
+in the
+.B attach
+message.  This
+.B afid
+is established by exchanging
+.B auth
+messages and subsequently manipulated using
+.B read
+and
+.B write
+messages to exchange authentication information not defined explicitly by 9P.
+Once the authentication protocol is complete, the
+.B afid
+is presented in the
+.B attach
+to permit the user to access the service.
+.PP
 A
 .B walk
 message causes the server to change the current file associated
-with a fid to be a file in the directory that is the old current file.
+with a fid to be a file in the directory that is the old current file, or one of
+its subdirectories.
+.B Walk
+returns a new fid that refers to the resulting file.
 Usually, a client maintains a fid for the root,
 and navigates by
 .B walks
-on a fid
-.B cloned
 from the root fid.
 .PP
 A client can send multiple T-messages without waiting for the corresponding
 R-messages, but all outstanding T-messages must specify different tags.
-The server may delay the response to a request on one fid
-and respond to later requests on other fids;
+The server may delay the response to a request
+and respond to later ones;
 this is sometimes necessary, for example when the client reads
 from a file that the server synthesizes from external events
 such as keyboard characters.
 .PP
 Replies (R-messages) to
+.BR auth ,
 .BR attach ,
 .BR walk ,
 .BR open ,
@@ -382,20 +423,17 @@ two files on the same server hierarchy are the same if and only if their qids
 are the same.
 (The client may have multiple fids pointing to a single file on a server
 and hence having a single qid.)
-The eight-byte qid fields represent two four-byte unsigned integers:
-first the qid
+The thirteen-byte qid fields hold a one-byte type,
+specifying whether the file is a directory, append-only file, etc.,
+and two unsigned integers:
+first the eight-byte qid
 .IR path ,
-then the qid
+then the four-byte qid
 .IR version .
 The path is an integer unique among all files in the hierarchy.
 If a file is deleted and recreated with the
 same name in the same directory, the old and new path components of the qids
 should be different.
-Directories always have the
-.B CHDIR
-bit
-.RB ( 0x80000000 )
-set in their qid path.
 The version is a version number for a file;
 typically, it is incremented every time the file is modified.
 .PP
@@ -405,7 +443,6 @@ or a new file may be
 .B created
 in the current (directory) file.
 I/O of a given number of bytes
-(limited to 8192)
 at a given offset
 on an open file is done by
 .B read
@@ -431,14 +468,14 @@ access and modification times, and
 owner and group identifications
 (see
 .IR stat (2)).
-The owner and group identifications are 28-byte names.
+The owner and group identifications are textual names.
 The
 .B wstat
 transaction allows some of a file's properties
 to be changed.
 .PP
 A request can be aborted with a
-.B Tflush
+flush
 request.
 When a server receives a
 .BR Tflush ,
@@ -447,13 +484,28 @@ it should not reply to the message with tag
 (unless it has already replied),
 and it should immediately send an
 .BR Rflush .
-The client should ignore replies with tag
-.IR oldtag
+The client must wait
 until it gets the
-.BR Rflush ,
+.B Rflush
+(even if the reply to the original message arrives in the interim),
 at which point
 .I oldtag
 may be reused.
+.PP
+Because the message size is negotiable and some elements of the
+protocol are variable length, it is possible (although unlikely) to have
+a situation where a valid message is too large to fit within the negotiated size.
+For example, a very long file name may cause a
+.B Rstat
+of the file or
+.B Rread
+of its directory entry to be too large to send.
+In most such cases, the server should generate an error rather than
+modify the data to fit, such as by truncating the file name.
+The exception is that a long error string in an
+.B Rerror
+message should be truncated if necessary, since the string is only
+advisory and in some sense arbitrary.
 .PP
 Most programs do not see the 9P protocol directly; instead calls to library
 routines that access files are
@@ -464,7 +516,7 @@ into 9P messages.
 Directories are created by
 .B create
 with
-.B CHDIR
+.B DMDIR
 set in the permissions argument (see
 .IR stat (5)).
 The members of a directory can be found with
@@ -523,7 +575,29 @@ and the other permissions are in bits 2, 1, and 0.
 The file
 .I mode
 contains some additional attributes besides the permissions.
-If bit 31 is set, the file is a directory;
-if bit 30 is set, the file is append-only (offset is ignored in writes);
-if bit 29 is set, the file is exclusive-use (only one client may have it
-open at a time).
+If bit 31
+.RB ( DMDIR )
+is set, the file is a directory;
+if bit 30
+.RB ( DMAPPEND )
+is set, the file is append-only (offset is ignored in writes);
+if bit 29
+.RB ( DMEXCL )
+is set, the file is exclusive-use (only one client may have it
+open at a time);
+if bit 27
+.RB ( DMAUTH )
+is set, the file is an authentication file established by
+.B auth
+messages.
+(Bit 28 is skipped for historical reasons.)
+These bits are reproduced, from the top bit down, in the type byte of the Qid:
+.BR QTDIR ,
+.BR QTAPPEND ,
+.BR QTEXCL ,
+and (skipping one bit)
+.BR QTAUTH .
+The name
+.BR QTFILE ,
+defined to be zero,
+identifies the value of the type for a plain file.

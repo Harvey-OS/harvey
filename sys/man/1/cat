@@ -9,7 +9,12 @@ cat, read \- catenate files
 .br
 .B read
 [
-.I file
+.B -m
+] [
+.B -n
+.I nline
+] [
+.I file ...
 ]
 .SH DESCRIPTION
 .I Cat
@@ -37,11 +42,26 @@ reads from the standard input.
 Output is buffered in blocks matching the input.
 .PP
 .I Read
-copies one line from the named file
-to standard output.
+copies to standard output exactly one line from the named
+.IR file ,
+default standard input.
 It is useful in interactive
 .IR rc (1)
 scripts.
+.PP
+The
+.B -m
+flag causes it to continue reading and writing multiple lines until end of file;
+.B -n
+causes it to read no more than
+.I nline
+lines.
+.PP
+Read always executes a single
+.B write
+for each line of input, which can be helpful when
+preparing input to programs that expect line-at-a-time data.
+It never reads any more data from the input than it prints to the output.
 .SH SOURCE
 .B /sys/src/cmd/cat.c
 .br

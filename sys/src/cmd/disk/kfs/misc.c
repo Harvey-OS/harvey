@@ -46,10 +46,11 @@ panic(char *fmt, ...)
 	s = buf;
 	s += sprint(s, "%s %s %d: ", progname, procname, getpid());
 	va_start(arg, fmt);
-	s = doprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
+	s = vseprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
 	va_end(arg);
 	*s++ = '\n';
 	write(2, buf, s - buf);
+abort();
 	exits(buf);
 }
 
@@ -62,7 +63,7 @@ cprint(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	out = doprint(buf, buf+SIZE, fmt, arg);
+	out = vseprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
 	write(cmdfd, buf, (long)(out-buf));
 }
@@ -74,53 +75,13 @@ cprint(char *fmt, ...)
 int
 print(char *fmt, ...)
 {
-	char buf[SIZE], *out;
 	va_list arg;
 	int n;
 
 	va_start(arg, fmt);
-	out = doprint(buf, buf+SIZE, fmt, arg);
+	n = vfprint(2, fmt, arg);
 	va_end(arg);
-	n = write(2, buf, (long)(out-buf));
 	return n;
-}
-
-int
-fprint(int f, char *fmt, ...)
-{
-	char buf[SIZE], *out;
-	va_list arg;
-	int n;
-
-	va_start(arg, fmt);
-	out = doprint(buf, buf+SIZE, fmt, arg);
-	va_end(arg);
-	n = write(f, buf, (long)(out-buf));
-	return n;
-}
-
-int
-sprint(char *buf, char *fmt, ...)
-{
-	char *out;
-	va_list arg;
-
-	va_start(arg, fmt);
-	out = doprint(buf, buf+SIZE, fmt, arg);
-	va_end(arg);
-	return out-buf;
-}
-
-int
-snprint(char *buf, int len, char *fmt, ...)
-{
-	char *out;
-	va_list arg;
-
-	va_start(arg, fmt);
-	out = doprint(buf, buf+len, fmt, arg);
-	va_end(arg);
-	return out-buf;
 }
 
 void

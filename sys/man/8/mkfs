@@ -3,7 +3,7 @@
 mkfs, mkext \- archive or update a file system
 .SH SYNOPSIS
 .B disk/mkfs
-.RB [ -aprvx ]
+.RB [ -aprvxU ]
 .RB [ -d
 .IR root ]
 .RB [ -n
@@ -88,6 +88,14 @@ Copy files into the tree rooted at
 .I root 
 (default
 .BR /n/kfs ).
+This option suppresses setting the
+.B uid
+and
+.B gid
+fields when copying files.
+Use
+.B -U
+to reenable it. 
 .TP
 .BI "n " name
 Use

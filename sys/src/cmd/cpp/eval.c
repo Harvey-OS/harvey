@@ -431,7 +431,7 @@ tokval(Token *tp)
 			if (*p=='u' || *p=='U')
 				v.type = UNS;
 			else if (*p=='l' || *p=='L')
-				;
+				{}
 			else {
 				error(ERROR,
 				  "Bad number %t in #if/#elsif", tp);

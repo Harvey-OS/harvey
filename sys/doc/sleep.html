@@ -1,0 +1,548 @@
+<html>
+<title>
+data
+</title>
+<body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+<H1>Process Sleep and Wakeup on a Shared-memory Multiprocessor
+</H1>
+<DL><DD><I>Rob Pike<br>
+Dave Presotto<br>
+Ken Thompson<br>
+Gerard Holzmann<br>
+<br>&#32;<br>
+rob,presotto,ken,gerard@plan9.bell-labs.com<br>
+</I></DL>
+<DL><DD><H4>ABSTRACT</H4>
+<DL>
+<DT><DT>&#32;<DD>
+NOTE:<I> Appeared in a slightly different form in
+Proceedings of the Spring 1991 EurOpen Conference,
+Troms&oslash;, Norway, 1991, pp. 161-166.
+</I><DT>&#32;<DD></dl>
+<br>
+The problem of enabling a `sleeping' process on a shared-memory multiprocessor
+is a difficult one, especially if the process is to be awakened by an interrupt-time
+event.  We present here the code
+for sleep and wakeup primitives that we use in our multiprocessor system.
+The code has been exercised by years of active use and by a verification
+system.
+</DL>
+<br>&#32;<br>
+Our problem is to synchronise processes on a symmetric shared-memory multiprocessor.
+Processes suspend execution, or
+<I>sleep,</I>
+while awaiting an enabling event such as an I/O interrupt.
+When the event occurs, the process is issued a
+<I>wakeup</I>
+to resume its execution.
+During these events, other processes may be running and other interrupts
+occurring on other processors.
+<br>&#32;<br>
+More specifically, we wish to implement subroutines called
+<TT>sleep</TT>,
+callable by a process to relinquish control of its current processor,
+and
+<TT>wakeup</TT>,
+callable by another process or an interrupt to resume the execution
+of a suspended process.
+The calling conventions of these subroutines will remain unspecified
+for the moment.
+<br>&#32;<br>
+We assume the processors have an atomic test-and-set or equivalent
+operation but no other synchronisation method.  Also, we assume interrupts
+can occur on any processor at any time, except on a processor that has
+locally inhibited them.
+<br>&#32;<br>
+The problem is the generalisation to a multiprocessor of a familiar
+and well-understood uniprocessor problem.  It may be reduced to a
+uniprocessor problem by using a global test-and-set to serialise the
+sleeps and wakeups,
+which is equivalent to synchronising through a monitor.
+For performance and cleanliness, however,
+we prefer to allow the interrupt handling and process control to be multiprocessed.
+<br>&#32;<br>
+Our attempts to solve the sleep/wakeup problem in Plan 9
+[Pik90]
+prompted this paper.
+We implemented solutions several times over several months and each
+time convinced ourselves &#173; wrongly &#173; they were correct.
+Multiprocessor algorithms can be
+difficult to prove correct by inspection and formal reasoning about them
+is impractical.  We finally developed an algorithm we trust by
+verifying our code using an
+empirical testing tool.
+We present that code here, along with some comments about the process by
+which it was designed.
+<H4>History
+</H4>
+<br>&#32;<br>
+Since processes in Plan 9 and the UNIX
+system have similar structure and properties, one might ask if
+UNIX
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+[Bac86]
+could not easily be adapted from their standard uniprocessor implementation
+to our multiprocessor needs.
+The short answer is, no.
+<br>&#32;<br>
+The
+UNIX
+routines
+take as argument a single global address
+that serves as a unique
+identifier to connect the wakeup with the appropriate process or processes.
+This has several inherent disadvantages.
+From the point of view of
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>,
+it is difficult to associate a data structure with an arbitrary address;
+the routines are unable to maintain a state variable recording the
+status of the event and processes.
+(The reverse is of course easy &#173; we could
+require the address to point to a special data structure &#173;
+but we are investigating
+UNIX
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>,
+not the code that calls them.)
+Also, multiple processes sleep `on' a given address, so
+<TT>wakeup</TT>
+must enable them all, and let process scheduling determine which process
+actually benefits from the event.
+This is inefficient;
+a queueing mechanism would be preferable
+but, again, it is difficult to associate a queue with a general address.
+Moreover, the lack of state means that
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+cannot know what the corresponding process (or interrupt) is doing;
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+must be executed atomically.
+On a uniprocessor it suffices to disable interrupts during their
+execution.
+On a multiprocessor, however,
+most processors
+can inhibit interrupts only on the current processor,
+so while a process is executing
+<TT>sleep</TT>
+the desired interrupt can come and go on another processor.
+If the wakeup is to be issued by another process, the problem is even harder.
+Some inter-process mutual exclusion mechanism must be used,
+which, yet again, is difficult to do without a way to communicate state.
+<br>&#32;<br>
+In summary, to be useful on a multiprocessor,
+UNIX
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+must either be made to run atomically on a single
+processor (such as by using a monitor)
+or they need a richer model for their communication.
+<H4>The design
+</H4>
+<br>&#32;<br>
+Consider the case of an interrupt waking up a sleeping process.
+(The other case, a process awakening a second process, is easier because
+atomicity can be achieved using an interlock.)
+The sleeping process is waiting for some event to occur, which may be
+modeled by a condition coming true.
+The condition could be just that the event has happened, or something
+more subtle such as a queue draining below some low-water mark.
+We represent the condition by a function of one
+argument of type
+<TT>void*</TT>;
+the code supporting the device generating the interrupts
+provides such a function to be used by
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+to synchronise.  The function returns
+<TT>false</TT>
+if the event has not occurred, and
+<TT>true</TT>
+some time after the event has occurred.
+The
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+routines must, of course, work correctly if the
+event occurs while the process is executing
+<TT>sleep</TT>.
+<br>&#32;<br>
+We assume that a particular call to
+<TT>sleep</TT>
+corresponds to a particular call to
+<TT>wakeup</TT>,
+that is,
+at most one process is asleep waiting for a particular event.
+This can be guaranteed in the code that calls
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+by appropriate interlocks.
+We also assume for the moment that there will be only one interrupt
+and that it may occur at any time, even before
+<TT>sleep</TT>
+has been called.
+<br>&#32;<br>
+For performance,
+we desire that multiple instances of
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+may be running simultaneously on our multiprocessor.
+For example, a process calling
+<TT>sleep</TT>
+to await a character from an input channel need not
+wait for another process to finish executing
+<TT>sleep</TT>
+to await a disk block.
+At a finer level, we would like a process reading from one input channel
+to be able to execute
+<TT>sleep</TT>
+in parallel with a process reading from another input channel.
+A standard approach to synchronisation is to interlock the channel `driver'
+so that only one process may be executing in the channel code at once.
+This method is clearly inadequate for our purposes; we need
+fine-grained synchronisation, and in particular to apply
+interlocks at the level of individual channels rather than at the level
+of the channel driver.
+<br>&#32;<br>
+Our approach is to use an object called a
+<I>rendezvous</I>,
+which is a data structure through which
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+synchronise.
+(The similarly named construct in Ada is a control structure;
+ours is an unrelated data structure.)
+A rendezvous
+is allocated for each active source of events:
+one for each I/O channel,
+one for each end of a pipe, and so on.
+The rendezvous serves as an interlockable structure in which to record
+the state of the sleeping process, so that
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+can communicate if the event happens before or while
+<TT>sleep</TT>
+is executing.
+<br>&#32;<br>
+Our design for
+<TT>sleep</TT>
+is therefore a function
+<DL><DT><DD><TT><PRE>
+void sleep(Rendezvous *r, int (*condition)(void*), void *arg)
+</PRE></TT></DL>
+called by the sleeping process.
+The argument
+<TT>r</TT>
+connects the call to
+<TT>sleep</TT>
+with the call to
+<TT>wakeup</TT>,
+and is part of the data structure for the (say) device.
+The function
+<TT>condition</TT>
+is described above;
+called with argument
+<TT>arg</TT>,
+it is used by
+<TT>sleep</TT>
+to decide whether the event has occurred.
+<TT>Wakeup</TT>
+has a simpler specification:
+<DL><DT><DD><TT><PRE>
+void wakeup(Rendezvous *r).
+</PRE></TT></DL>
+<TT>Wakeup</TT>
+must be called after the condition has become true.
+<H4>An implementation
+</H4>
+<br>&#32;<br>
+The
+<TT>Rendezvous</TT>
+data type is defined as
+<DL><DT><DD><TT><PRE>
+typedef struct{
+	Lock	l;
+	Proc	*p;
+}Rendezvous;
+</PRE></TT></DL>
+Our
+<TT>Locks</TT>
+are test-and-set spin locks.
+The routine
+<TT>lock(Lock *l)</TT>
+returns when the current process holds that lock;
+<TT>unlock(Lock *l)</TT>
+releases the lock.
+<br>&#32;<br>
+Here is our implementation of
+<TT>sleep</TT>.
+Its details are discussed below.
+<TT>Thisp</TT>
+is a pointer to the current process on the current processor.
+(Its value differs on each processor.)
+<DL><DT><DD><TT><PRE>
+void
+sleep(Rendezvous *r, int (*condition)(void*), void *arg)
+{
+	int s;
+
+	s = inhibit();		/* interrupts */
+	lock(&amp;r-&#62;l);
+
+	/*
+	 * if condition happened, never mind
+	 */
+	if((*condition)(arg)){	
+		unlock(&amp;r-&#62;l);
+		allow();	/* interrupts */
+		return;
+	}
+
+	/*
+	 * now we are committed to
+	 * change state and call scheduler
+	 */
+	if(r-&#62;p)
+		error("double sleep %d %d", r-&#62;p-&#62;pid, thisp-&#62;pid);
+	thisp-&#62;state = Wakeme;
+	r-&#62;p = thisp;
+	unlock(&amp;r-&#62;l);
+	allow(s);	/* interrupts */
+	sched();	/* relinquish CPU */
+}
+</PRE></TT></DL>
+Here is
+<TT>wakeup.</TT>
+<DL><DT><DD><TT><PRE>
+void
+wakeup(Rendezvous *r)
+{
+	Proc *p;
+	int s;
+
+	s = inhibit();	/* interrupts; return old state */
+	lock(&amp;r-&#62;l);
+	p = r-&#62;p;
+	if(p){
+		r-&#62;p = 0;
+		if(p-&#62;state != Wakeme)
+			panic("wakeup: not Wakeme");
+		ready(p);
+	}
+	unlock(&amp;r-&#62;l);
+	if(s)
+		allow();
+}
+</PRE></TT></DL>
+<TT>Sleep</TT>
+and
+<TT>wakeup</TT>
+both begin by disabling interrupts
+and then locking the rendezvous structure.
+Because
+<TT>wakeup</TT>
+may be called in an interrupt routine, the lock must be set only
+with interrupts disabled on the current processor,
+so that if the interrupt comes during
+<TT>sleep</TT>
+it will occur only on a different processor;
+if it occurred on the processor executing
+<TT>sleep</TT>,
+the spin lock in
+<TT>wakeup</TT>
+would hang forever.
+At the end of each routine, the lock is released and processor priority
+returned to its previous value.
+(<TT>Wakeup</TT>
+needs to inhibit interrupts in case
+it is being called by a process;
+this is a no-op if called by an interrupt.)
+<br>&#32;<br>
+<TT>Sleep</TT>
+checks to see if the condition has become true, and returns if so.
+Otherwise the process posts its name in the rendezvous structure where
+<TT>wakeup</TT>
+may find it, marks its state as waiting to be awakened
+(this is for error checking only) and goes to sleep by calling
+<TT>sched()</TT>.
+The manipulation of the rendezvous structure is all done under the lock,
+and
+<TT>wakeup</TT>
+only examines it under lock, so atomicity and mutual exclusion
+are guaranteed.
+<br>&#32;<br>
+<TT>Wakeup</TT>
+has a simpler job.  When it is called, the condition has implicitly become true,
+so it locks the rendezvous, sees if a process is waiting, and readies it to run.
+<H4>Discussion
+</H4>
+<br>&#32;<br>
+The synchronisation technique used here
+is similar to known methods, even as far back as Saltzer's thesis
+[Sal66].
+The code looks trivially correct in retrospect: all access to data structures is done
+under lock, and there is no place that things may get out of order.
+Nonetheless, it took us several iterations to arrive at the above
+implementation, because the things that
+<I>can</I>
+go wrong are often hard to see.  We had four earlier implementations
+that were examined at great length and only found faulty when a new,
+different style of device or activity was added to the system.
+<br>&#32;<br>
+Here, for example, is an incorrect implementation of wakeup,
+closely related to one of our versions.
+<DL><DT><DD><TT><PRE>
+void
+wakeup(Rendezvous *r)
+{
+	Proc *p;
+	int s;
+
+	p = r-&#62;p;
+	if(p){
+		s = inhibit();
+		lock(&amp;r-&#62;l);
+		r-&#62;p = 0;
+		if(p-&#62;state != Wakeme)
+			panic("wakeup: not Wakeme");
+		ready(p);
+		unlock(&amp;r-&#62;l);
+		if(s)
+			allow();
+	}
+}
+</PRE></TT></DL>
+The mistake is that the reading of
+<TT>r->p</TT>
+may occur just as the other process calls
+<TT>sleep</TT>,
+so when the interrupt examines the structure it sees no one to wake up,
+and the sleeping process misses its wakeup.
+We wrote the code this way because we reasoned that the fetch
+<TT>p</TT>
+<TT>=</TT>
+<TT>r->p</TT>
+was inherently atomic and need not be interlocked.
+The bug was found by examination when a new, very fast device
+was added to the system and sleeps and interrupts were closely overlapped.
+However, it was in the system for a couple of months without causing an error.
+<br>&#32;<br>
+How many errors lurk in our supposedly correct implementation above?
+We would like a way to guarantee correctness; formal proofs are beyond
+our abilities when the subtleties of interrupts and multiprocessors are
+involved.
+With that in mind, the first three authors approached the last to see
+if his automated tool for checking protocols
+[Hol91]
+could be
+used to verify our new
+<TT>sleep</TT>
+and
+<TT>wakeup</TT>
+for correctness.
+The code was translated into the language for that system
+(with, unfortunately, no way of proving that the translation is itself correct)
+and validated by exhaustive simulation.
+<br>&#32;<br>
+The validator found a bug.
+Under our assumption that there is only one interrupt, the bug cannot
+occur, but in the more general case of multiple interrupts synchronising
+through the same condition function and rendezvous,
+the process and interrupt can enter a peculiar state.
+A process may return from
+<TT>sleep</TT>
+with the condition function false
+if there is a delay between
+the condition coming true and
+<TT>wakeup</TT>
+being called,
+with the delay occurring
+just as the receiving process calls
+<TT>sleep</TT>.
+The condition is now true, so that process returns immediately,
+does whatever is appropriate, and then (say) decides to call
+<TT>sleep</TT>
+again.  This time the condition is false, so it goes to sleep.
+The wakeup process then finds a sleeping process,
+and wakes it up, but the condition is now false.
+<br>&#32;<br>
+There is an easy (and verified) solution: at the end of
+<TT>sleep</TT>
+or after
+<TT>sleep</TT>
+returns,
+if the condition is false, execute
+<TT>sleep</TT>
+again.  This re-execution cannot repeat; the second synchronisation is guaranteed
+to function under the external conditions we are supposing.
+<br>&#32;<br>
+Even though the original code is completely
+protected by interlocks and had been examined carefully by all of us
+and believed correct, it still had problems.
+It seems to us that some exhaustive automated analysis is
+required of multiprocessor algorithms to guarantee their safety.
+Our experience has confirmed that it is almost impossible to
+guarantee by inspection or simple testing the correctness
+of a multiprocessor algorithm.  Testing can demonstrate the presence
+of bugs but not their absence
+[Dij72].
+<br>&#32;<br>
+We close by claiming that the code above with
+the suggested modification passes all tests we have for correctness
+under the assumptions used in the validation.
+We would not, however, go so far as to claim that it is universally correct.
+<H4>References
+</H4>
+<br>&#32;<br>
+[Bac86] Maurice J. Bach,
+<I>The Design of the UNIX Operating System,</I>
+Prentice-Hall,
+Englewood Cliffs,
+1986.
+<br>&#32;<br>
+[Dij72] Edsger W. Dijkstra,
+``The Humble Programmer - 1972 Turing Award Lecture'',
+<I>Comm. ACM,</I>
+15(10), pp. 859-866, 
+October 1972.
+<br>&#32;<br>
+[Hol91] Gerard J. Holzmann,
+<I>Design and Validation of Computer Protocols,</I>
+Prentice-Hall,
+Englewood Cliffs,
+1991.
+<br>&#32;<br>
+[Pik90]
+Rob Pike,
+Dave Presotto,
+Ken Thompson,
+Howard Trickey,
+``Plan 9 from Bell Labs'',
+<I>Proceedings of the Summer 1990 UKUUG Conference,</I>
+pp. 1-9,
+London,
+July, 1990.
+<br>&#32;<br>
+[Sal66] Jerome H. Saltzer,
+<I>Traffic Control in a Multiplexed Computer System</I>
+MIT,
+Cambridge, Mass.,
+1966.
+
+<br>&#32;<br>
+<A href=http://www.lucent.com/copyright.html>
+Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+</body></html>

@@ -91,16 +91,16 @@ The system will not permit the text and stack segments to be detached
 from the address space.
 .PP
 .I Segfree
-allows specific areas of a segment's memory to be returned to the system,
-but leaves that portion of the process's address space valid, to be reconnected
-to initialized memory of the appropriate type
-if addressed again.
-.I Va
-and
-.I len
-are interpreted as in
-.I segattach
-but need not refer to the entire segment.
+tells the system that it may free any physical memory within the span
+.RI [ va ,
+.IR va+len ),
+but leaves that portion of the process's address space valid.
+The system will not free any memory outside that span,
+and may not free all or even any of the specified memory.
+If free'd memory is later referenced,
+it will be initialized as appropriate for the segment type.
+For example data and text segments will be read from the executable file,
+and bss segments will be filled with zero bytes.
 .PP
 The MIPS R2000 and R3000 have no hardware instructions
 to implement locks.  The following method can be used

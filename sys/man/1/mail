@@ -1,6 +1,6 @@
 .TH MAIL 1
 .SH NAME
-mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, filter, fs, biff, pop3 \-  mail commands
+mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, filter, fs, biff, pop3, ml, mlmgr, mlowner, list, deliver, token, vf \-  mail commands
 .SH SYNOPSIS
 .B mail
 [
@@ -67,6 +67,9 @@ mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, filter, fs, biff, 
 .B -r
 ]
 [
+.B -n
+]
+[
 .B -f
 .I mailfile
 ]
@@ -103,7 +106,39 @@ mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, filter, fs, biff, 
 .I "regexp file
 ]*
 .PP
+.B upas/list add|check
+.I patterns
+.I addrfile ...
+.PP
+.B upas/deliver 
+.I recipient
+.I fromfile
+.I mbox
+.PP
+.B upas/token
+.I key
+[
+.I tokenfile
+]
+.PP
 .B upas/pop3
+.PP
+.B upas/mlmgr -c
+.I listname
+.PP
+.B upas/mlmgr -ar
+.I listname
+.I address
+.PP
+.B upas/ml
+.I addressfile
+.I listname
+.PP
+.B upas/mlowner
+.I addressfile
+.I listname
+.PP
+upas/vf
 .SH DESCRIPTION
 .SS Mail
 Mail is a shell script that invokes
@@ -114,19 +149,22 @@ otherwise.
 All command line options are passed through.
 .SS "Sending mail
 .I Marshal
-builds a mail message from standard input and passes it to
-.I send
-for transmission or delivery.
-It adds to the beginning of the message any headers in the file
+builds a mail message from standard input and passes it
+for transmission or delivery to
+.B /bin/myupassend
+if it exists, otherwise to
+.BR /bin/upas/send .
+The message format is both RFC 822 and
+MIME conformant, so
+.I marshal
+adds any required headers not already in the message.
+Before adding any necessary header lines, it prepends
+the contents of
 .BI /mail/box/ username /headers\f1.
 This allows the addition of personal headers like
 .B From:
 lines with a full name or a different
 return address.
-The message format is both RFC 822 and
-MIME conformant, so
-.I marshal
-adds any required headers not already in the message.
 Command line options direct marshal to add a subject line
 and append attachments.  The arguments to
 .I marshal
@@ -277,6 +315,12 @@ Otherwise, the default mailbox is created.
 .B -r
 Reverse: show messages in first-in, first-out order; the default is last-in, first-out.
 .TP
+.B -n
+Make the message numbers the same as the file names in the mail
+box directory.  This implies the
+.B -r
+option.
+.TP
 .BI -f " mailfile"
 Read messages from the specified file (see above) instead of the default mailbox.
 .TP
@@ -390,7 +434,11 @@ where
 is the account name of the sender.
 .TP
 .B h
-Print the disposition, size in characters, and header line of the message.
+Print the disposition, size in characters, reception time, sender,
+and subject of the message.
+.TP
+.B H
+Print the MIME structure of the message.
 .TP
 .B help
 Print a summary of the commands.
@@ -487,17 +535,17 @@ attachment to a message and then deletes the message:
 % mail
 7 messages
 : ,h
-1        mul  4410	Jul 22 12:30  noone@madeup.net  "Add Up To 2
-1.1      txt  1413 
-1.2      html  1966 
-2        txt   504	Jul 22 11:43  jmk
-3        mul   784	Jul 20 09:05  presotto
-3.1      txt   136 
-3.2      txt   323	Jul 12 16:16  presotto
-4        txt   822	Jul 11 09:23  xxx@yyy.net  "You don't call, you don
-5        txt   193	 Jul 6 16:55  presotto
-6        txt   529	 May 7 19:42  jmk
-7        txt   798	 Sep 2 13:55  howard
+1   H  2129	07/22 12:30  noone@madeup.net  "Add Up To 2000 free miles"
+2       504	07/22 11:43  jmk
+3   H   784	07/20 09:05  presotto
+4       822	07/11 09:23  xxx@yyy.net  "You don't call, you don't write..."
+5       193	07/06 16:55  presotto
+6       529	06/01 19:42  jmk
+7       798	09/02  2000  howard
+: 1H
+1       multipart/mixed             2129   from=noone@madeup.net
+ 1.1      text/plain                115    
+ 1.2      text/html                 1705   filename=northwest.htm
 : 1.2w /tmp/northwest.html
 !saved in /tmp/northwest.html
 1.2: d
@@ -570,16 +618,16 @@ The file is run as user
 .B none
 with arguments of the resolved address of
 .I username
-(e.g.
+(e.g.,
 .BR local!presotto )
-and his/her mail box name.
+and the user's mail box name.
 .PP
 .I Filter
 provides simple mail filtering.
-The first two arguments are the recipient's address and mailbox, i.e.,
+The first two arguments are the recipient's address and mailbox, that is,
 the same arguments provided to
 .BR pipeto .
-The remaining arguments are all paired; a regular expression and a file name.
+The remaining arguments are all pairs of a regular expression and a file name.
 With no flags, the sender's address is matched against each
 regular expression starting with the first.  If the expression
 matches, then the message is delivered to the file whose name
@@ -604,6 +652,104 @@ file:
 .EX
 /bin/upas/filter -h $1 $2 'Precedence: bulk' /dev/null
 .EE
+.PP
+Three other commands exist which, combined by an
+.IR rc (1)
+script, allow you to build your own filter.
+.PP
+.I List
+takes two verbs;
+.B check
+and
+.BR add .
+.B Check
+directs
+.I list
+to check each address contained in the
+.IR addressfile s
+against a list of patterns in
+.IR patternfile .
+Patterns come in four forms:
+.TP
+.B ~\fIregular-expression\fP
+If any address matches the regular expression,
+.I list
+returns successfully.
+.TP
+.BR =\fIstring\fP .
+If any address exactly matches
+.IR string ,
+.I list
+returns successfully.
+.TP
+.B !~\fIregular-expression\fP
+If any address matches the regular expression
+and no other address matches a non `!' rule,
+.I list
+returns error status "!match".
+.TP
+.B !=\fIstring\fP
+If any address exactly matches
+.I string
+and no other address matches a non `!' rule,
+.I list
+returns error status "!match".
+.PP
+If no addresses match a pattern,
+.I list
+returns "no match".
+.PP
+The pattern file may also contain lines of the form
+.EX
+#include filename
+.EE
+This allows pattern files to include other pattern
+files.
+All pattern matches are case insensitive.
+.I List
+searches the pattern file (and its includes) in order.
+The first matching pattern determines the action.
+.PP
+.I List
+.B add
+directs
+.I list
+to add a pattern to
+.I patternfile
+for each address in the
+.IR addrssfile 's
+that doesh't already match a pattern.
+.PP
+.IR Token ,
+with only one argument, prints to standard output a unique token
+created from the current date and
+.IR key .
+With two arguments, it checks
+.I token
+against tokens created over the last 10 days with
+.IR key .
+If a match is found, it returns successfully.
+.PP
+.I Deliver
+delivers into mail box
+.I mbox
+the message read from standard input.
+It obeys standard mail file locking and logging
+conventions.
+.PP
+A sample 
+.B pipeto
+using the filter kit can be found in
+.BR /sys/src/cmd/upas/filterkit/pipeto.sample .
+.PP
+A sample
+.BR myupassend ,
+.BR /sys/src/cmd/upas/filterkit/myupassend.sample ,
+is provided which adds all addresses of your outgoing
+mail to your pattern file.
+You should copy it into a directory that normally gets
+bound by your profile onto
+.BR /bin .
 .SS "Mime File system
 .PP
 .I Fs
@@ -821,7 +967,7 @@ causes
 to put itself in
 .B /srv
 with a name of the form
-.BR /srv/upasfs.\fIuser\fB .
+.BR /srv/upasfs.\fIuser\fP .
 .TP
 .B -m
 specifies a mount point other than
@@ -926,6 +1072,101 @@ is normally run by a network listener such as
 Most of the command line options are more conveniently
 specified in the smtpd configuration file stored in
 .BR /mail/lib/smtpd.conf .
+.SS "Mailing lists
+.I Mlmgr
+creates and updates unmoderated mailing lists.
+The
+.B \-c
+option creates mail directories for both
+.I listname
+and
+.IB listname -owner\f1,\fP
+each containing a
+.B pipeto
+file.
+Messages mailed to
+.I listname
+are sent to all members of the mailing list.
+Any
+.B Reply-to:
+and
+.B Precedence:
+fields are
+removed from the messages and new ones are added
+directing replies to
+.I listname
+and specifying bulk precedence.  The envelope address for
+error replies is set to
+.BR /dev/null .
+.PP
+The mailing list membership is the file
+.BR /mail/box/\fIlistname\fP/address-list .
+This file is an add/remove log.  Each line
+represents a single address.  Lines beginning
+with a hash
+.RB ( # )
+are comments.
+Lines beginning with an exclamation point
+.RB ( ! )
+are removals.
+All other lines are additions.
+.PP
+Addition and removal entries can be appended using the
+.B -a
+and
+.B -r
+options to
+.IR mlmgr .
+However, they are normally appended as a consequence or
+user requests.
+.PP
+To be added or removed from the list, a user
+may send a message to
+.IB listname -owner\f1.\fP
+containing a key word in
+the header or body.  The key words are:
+.IP
+subscribe - add my
+.B From:
+address to the list
+.IP
+remove - remove my
+.B From:
+address from the list
+.IP
+unsubscribe - remove my
+.B From:
+address from the list
+.PP
+Addition and removal events cause notification messages to
+be sent to the added/removed address.   In the case of
+addition, the message describes how to be removed.
+.PP
+.I Ml
+and
+.I mlowner
+are the programs that receive messages for
+.I listname
+and
+.IB listname -owner
+respectively.
+Appropriate calls to them are inserted in the
+.B pipeto
+files created by
+.IR mlmgr .
+.SS "Virus Wrapper
+.I Vf
+takes a mail message as standard input, searches for executable
+MIME attachments, wraps them in a warning message, and appends
+.B .suspect
+to any related filenames.
+.B /sys/lib/mimetype
+contains the list of known MIME content types and file extensions.
+.I Vf
+wraps all those for which the fifth field of
+.B mimetype
+is
+.BR n .
 .SS "Mail server
 .I Pop3
 is a rudimentary POP3 server that uses APOP for authentication.

@@ -666,7 +666,7 @@ plot(char *flags)
 		return;
 	}
 
-	scr = allocimage(display, Rect(0, 0, dx, dy), display->chan, 0, DBlack);
+	scr = allocimage(display, Rect(0, 0, dx, dy), RGB24, 0, DBlack);
 	if(scr == nil){
 		fprint(2, "can't allocate image: %r\n");
 		return;

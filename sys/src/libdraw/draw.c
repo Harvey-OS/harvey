@@ -7,13 +7,13 @@ draw1(Image *dst, Rectangle *r, Image *src, Point *p0, Image *mask, Point *p1)
 {
 	uchar *a;
 
-	a = bufimage(dst->display, 1+4+4+4+4*4+2*4+2*4);
+	a = bufimage(dst->display, 1+4+4+4+4*4+2*4+2*4+(dst->display->_isnewdisplay?1:0));
 	if(a == 0)
 		return;
 	if(src == nil)
 		src = dst->display->black;
 	if(mask == nil)
-		mask = dst->display->white;	/* ones */
+		mask = dst->display->opaque;
 	a[0] = 'd';
 	BPLONG(a+1, dst->id);
 	BPLONG(a+5, src->id);
@@ -26,6 +26,8 @@ draw1(Image *dst, Rectangle *r, Image *src, Point *p0, Image *mask, Point *p1)
 	BPLONG(a+33, p0->y);
 	BPLONG(a+37, p1->x);
 	BPLONG(a+41, p1->y);
+	if(dst->display->_isnewdisplay)
+		a[41] = SoverD;
 }
 
 void

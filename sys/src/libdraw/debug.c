@@ -8,7 +8,7 @@ drawsetdebug(int v)
 	uchar *a;
 	a = bufimage(display, 1+1);
 	if(a == 0){
-		_drawprint(2, "drawsetdebug: %r\n");
+		fprint(2, "drawsetdebug: %r\n");
 		return;
 	}
 	a[0] = 'D';

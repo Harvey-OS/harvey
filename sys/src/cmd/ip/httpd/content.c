@@ -24,14 +24,17 @@ static	char*			towhite(char*);
 int
 updateQid(int fd, Qid *q)
 {
-	Dir dir;
+	Dir *dir;
+	Qid dq;
 
-	if(dirfstat(fd, &dir) < 0)
+	dir = dirfstat(fd);
+	if(dir == nil)
 		sysfatal("can't dirfstat");
-	if(q->path == dir.qid.path && q->vers == dir.qid.vers)
+	dq = dir->qid;
+	free(dir);
+	if(q->path == dq.path && q->vers == dq.vers && q->type == dq.type)
 		return 0;
-	q->path = dir.qid.path;
-	q->vers = dir.qid.vers;
+	*q = dq;
 	return 1;
 }
 
@@ -48,7 +51,6 @@ contentinit(void)
 		b = Bopen(file, OREAD);
 		if(b == nil)
 			sysfatal("can't read from %s", file);
-		qid.path = qid.vers = 0;
 	}
 	if(updateQid(Bfildes(b), &qid) == 0)
 		return;
@@ -88,6 +90,8 @@ parsesuffix(char *line, Suffix *suffix)
 		fields[1] = nil;
 	if(fields[1] == nil && fields[3] == nil)
 		return suffix;
+	if(fields[0] == nil)
+		return suffix;
 
 	s = ezalloc(sizeof *s);
 	s->next = suffix;
@@ -110,14 +114,13 @@ uriclass(HConnect *hc, char *name)
 	HContents conts;
 	Suffix *s;
 	HContent *type, *enc;
-	char buf[3*NAMELEN+1], *p;
+	char *buf, *p;
 
 	type = nil;
 	enc = nil;
 	if((p = strrchr(name, '/')) != nil)
 		name = p + 1;
-	strncpy(buf, name, 3*NAMELEN);
-	buf[3*NAMELEN] = 0;
+	buf = hstrdup(hc, name);
 	while((p = strrchr(buf, '.')) != nil){
 		for(s = suffixes; s; s = s->next){
 			if(strcmp(p, s->suffix) == 0){

@@ -6,7 +6,6 @@
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -44,13 +43,12 @@ struct cmdtab cmdtab[]={
 	'<',	0,	0,	0,	0,	aDot,	0,	linex,	pipe_cmd,
 	'|',	0,	0,	0,	0,	aDot,	0,	linex,	pipe_cmd,
 	'>',	0,	0,	0,	0,	aDot,	0,	linex,	pipe_cmd,
-#ifdef asdf
-/* deliberately unimplemented: */
+/* deliberately unimplemented:
 	'k',	0,	0,	0,	0,	aDot,	0,	0,	k_cmd,
 	'n',	0,	0,	0,	0,	aNo,	0,	0,	n_cmd,
 	'q',	0,	0,	0,	0,	aNo,	0,	0,	q_cmd,
 	'!',	0,	0,	0,	0,	aNo,	0,	linex,	plan9_cmd,
-#endif
+ */
 	0,	0,	0,	0,	0,	0,	0,	0,
 };
 
@@ -138,9 +136,8 @@ editerror(char *fmt, ...)
 	va_list arg;
 	char *s;
 
-	s = emalloc(BUFSIZE);
 	va_start(arg, fmt);
-	doprint(s, s+BUFSIZE, fmt, arg);
+	s = vsmprint(fmt, arg);
 	va_end(arg);
 	freecmd();
 	allwindows(allelogterm, nil);	/* truncate the edit logs */

@@ -219,12 +219,12 @@ extern	Optab	optab[];
 extern	char*	anames[];
 extern	char*	cnames[];
 
-int	Aconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Nconv(va_list*, Fconv*);
-int	Pconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
-int	Rconv(va_list*, Fconv*);
+int	Aconv(Fmt*);
+int	Dconv(Fmt*);
+int	Nconv(Fmt*);
+int	Pconv(Fmt*);
+int	Sconv(Fmt*);
+int	Rconv(Fmt*);
 int	aclass(Adr*);
 void	addhist(long, int);
 void	histtoauto(void);

@@ -43,7 +43,6 @@ void	dopipe(char *, List *, char *, List *);
 void	fatal(char *);
 Objtype	*findoty(void);
 void	printlist(List *);
-char	*str(char *, ...);
 
 void
 main(int argc, char *argv[])
@@ -64,13 +63,13 @@ main(int argc, char *argv[])
 	while(argc > 0) {
 		ARGBEGIN {
 		case '+':
-			append(&cpp, str("-%c", ARGC()));
+			append(&cpp, smprint("-%c", ARGC()));
 			break;
 		case 'c':
 			cflag = 1;
 			break;
 		case 'l':
-			append(&objs, str("/%s/lib/ape/lib%s.a", ot->name, ARGF()));
+			append(&objs, smprint("/%s/lib/ape/lib%s.a", ot->name, ARGF()));
 			break;
 		case 'o':
 			oflag = 1;
@@ -83,15 +82,15 @@ main(int argc, char *argv[])
 		case 'N':
 		case 'S':
 		case 'V':
-			append(&cc, str("-%c", ARGC()));
+			append(&cc, smprint("-%c", ARGC()));
 			break;
 		case 's':
-			append(&cc, str("-s%s", ARGF()));
+			append(&cc, smprint("-s%s", ARGF()));
 			break;
 		case 'D':
 		case 'I':
 		case 'U':
-			append(&cpp, str("-%c%s", ARGC(), ARGF()));
+			append(&cpp, smprint("-%c%s", ARGC(), ARGF()));
 			break;
 		case 'v':
 			vflag = 1;
@@ -145,8 +144,8 @@ main(int argc, char *argv[])
 	}
 	if(objs.n == 0)
 		fatal("no files to compile or load");
-	ccpath = str("/bin/%s", ot->cc);
-	append(&cpp, str("-I/%s/include/ape", ot->name));
+	ccpath = smprint("/bin/%s", ot->cc);
+	append(&cpp, smprint("-I/%s/include/ape", ot->name));
 	append(&cpp, "-I/sys/include/ape");
 	cppn = cpp.n;
 	ccn = cc.n;
@@ -174,7 +173,7 @@ main(int argc, char *argv[])
 			append(&ld, ldargs.strings[i]);
 		for(i = 0; i < objs.n; i++)
 			append(&ld, objs.strings[i]);
-		doexec(str("/bin/%s", ot->ld), &ld);
+		doexec(smprint("/bin/%s", ot->ld), &ld);
 		if(objs.n == 1){
 			/* prevent removal of a library */
 			if(strstr(objs.strings[0], ".a") == 0)
@@ -197,8 +196,7 @@ append(List *l, char *s)
 void
 doexec(char *c, List *a)
 {
-	Waitmsg w;
-	int pid;
+	Waitmsg *w;
 
 	if(vflag) {
 		printlist(a);
@@ -211,18 +209,19 @@ doexec(char *c, List *a)
 		exec(c, a->strings);
 		fatal("exec failed");
 	}
-	pid = wait(&w);
-	if(pid < 0)
+	w = wait();
+	if(w == nil)
 		fatal("wait failed");
-	if(w.msg[0])
-		fatal(str("%s: %s", a->strings[0], w.msg));
+	if(w->msg[0])
+		fatal(smprint("%s: %s", a->strings[0], w->msg));
+	free(w);
 }
 
 void
 dopipe(char *c1, List *a1, char *c2, List *a2)
 {
-	Waitmsg w;
-	int pid, pid1, got;
+	Waitmsg *w;
+	int pid1, got;
 	int fd[2];
 
 	if(vflag) {
@@ -257,12 +256,13 @@ dopipe(char *c1, List *a1, char *c2, List *a2)
 	close(fd[0]);
 	close(fd[1]);
 	for(got = 0; got < 2; got++) {
-		pid = wait(&w);
-		if(pid < 0)
+		w = wait();
+		if(w == nil)
 			fatal("wait failed");
-		if(w.msg[0])
-			fatal(str("%s: %s",
-			   (pid == pid1) ? a1->strings[0] : a2->strings[0], w.msg));
+		if(w->msg[0])
+			fatal(smprint("%s: %s",
+			   (w->pid == pid1) ? a1->strings[0] : a2->strings[0], w->msg));
+		free(w);
 	}
 }
 
@@ -304,7 +304,7 @@ changeext(char *src, char *ext)
 	if(!e)
 		return 0;
 	*e = 0;
-	ans = str("%s.%s", b, ext);
+	ans = smprint("%s.%s", b, ext);
 	*e = '.';
 	return ans;
 }
@@ -319,19 +319,4 @@ printlist(List *l)
 		if(i < l->n - 1)
 			fprint(2, " ");
 	}
-}
-
-char *
-str(char *fmt, ...)
-{
-	char *s;
-	char buf[1000];
-	va_list arg;
-
-	va_start(arg, fmt);
-	doprint(buf, &buf[sizeof buf], fmt, arg);
-	va_end(arg);
-	s = malloc(strlen(buf)+1);
-	strcpy(s, buf);
-	return s;
 }

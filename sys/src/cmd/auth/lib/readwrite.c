@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
-#include "authsrv.h"
+#include <authsrv.h>
+#include "authcmdlib.h"
 
 int
 readfile(char *file, char *buf, int n)
@@ -35,9 +35,9 @@ char*
 findkey(char *db, char *user, char *key)
 {
 	int n;
-	char filename[3*NAMELEN];
+	char filename[Maxpath];
 
-	sprint(filename, "%s/%s/key", db, user);
+	snprint(filename, sizeof filename, "%s/%s/key", db, user);
 	n = readfile(filename, key, DESKEYLEN);
 	if(n != DESKEYLEN)
 		return 0;
@@ -49,9 +49,9 @@ char*
 findsecret(char *db, char *user, char *secret)
 {
 	int n;
-	char filename[3*NAMELEN];
+	char filename[Maxpath];
 
-	sprint(filename, "%s/%s/secret", db, user);
+	snprint(filename, sizeof filename, "%s/%s/secret", db, user);
 	n = readfile(filename, secret, SECRETLEN-1);
 	secret[n]=0;
 	if(n <= 0)
@@ -64,9 +64,9 @@ char*
 setkey(char *db, char *user, char *key)
 {
 	int n;
-	char filename[3*NAMELEN];
+	char filename[Maxpath];
 
-	sprint(filename, "%s/%s/key", db, user);
+	snprint(filename, sizeof filename, "%s/%s/key", db, user);
 	n = writefile(filename, key, DESKEYLEN);
 	if(n != DESKEYLEN)
 		return 0;
@@ -78,9 +78,9 @@ char*
 setsecret(char *db, char *user, char *secret)
 {
 	int n;
-	char filename[3*NAMELEN];
+	char filename[Maxpath];
 
-	sprint(filename, "%s/%s/secret", db, user);
+	snprint(filename, sizeof filename, "%s/%s/secret", db, user);
 	n = writefile(filename, secret, strlen(secret));
 	if(n != strlen(secret))
 		return 0;

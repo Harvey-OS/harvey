@@ -1,14 +1,15 @@
 #!/bin/rc
 
+file=/sys/src/libc/9syscall/sys.h
+
 cat <<'!'
-#undef	CHDIR	/* BUG */
 #include "/sys/src/libc/9syscall/sys.h"
 
 typedef long Syscall(ulong*);
 
 !
 
-sed 's/#define[ 	]*([A-Z0-9_][A-Z0-9_]*).*/SYS\1/; s/SYSSYSR1/SYSR1/' /sys/src/libc/9syscall/sys.h |
+sed 's/#define[ 	]*([A-Z0-9_][A-Z0-9_]*).*/SYS\1/; s/SYSSYSR1/SYSR1/' $file |
 	tr A-Z a-z |
 	sed 's/.*/Syscall &;/'
 
@@ -17,7 +18,7 @@ Syscall	sysdeath;
 
 Syscall *systab[]={
 !
-sam -d /sys/src/libc/9syscall/sys.h >[2] /dev/null <<'!'
+sam -d $file >[2] /dev/null <<'!'
 ,s/#define.([A-Z0-9_]+).*/	[\1]	SYS\1,/g
 ,x/SYS[A-Z0-9_]+,/ | tr A-Z a-z
 ,x/syssysr1/c/sysr1
@@ -32,7 +33,7 @@ cat <<'!'
 char *sysctab[]={
 !
 
-sam -d /sys/src/libc/9syscall/sys.h >[2] /dev/null <<'!'
+sam -d $file >[2] /dev/null <<'!'
 ,s/#define.([A-Z0-9_]+).*/	[\1]	"\1",/g
 ,x/"[A-Z0-9_]+",/ y/"[A-Z]/ | tr A-Z a-z
 ,x/_"/c/"

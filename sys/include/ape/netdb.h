@@ -114,9 +114,6 @@ extern char *hstrerror(int);
 
 #define __HOST_SVC_NOT_AVAIL 99		/* libc internal use only */
 
-struct hostent	*gethostbyname(char *);
-struct hostent	*gethostbyaddr(char *, int, int);
-
 #ifdef __cplusplus
 }
 #endif

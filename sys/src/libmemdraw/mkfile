@@ -38,4 +38,3 @@ $O.arctest: arctest.$O ndraw.$O arc.$O $LIB
 
 $O.test: test.$O $LIB
 	$LD -o $target $prereq
-

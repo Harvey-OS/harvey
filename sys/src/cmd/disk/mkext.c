@@ -18,6 +18,7 @@ void	usage(void);
 
 Biobufhdr bin;
 uchar	binbuf[2*LEN];
+char	linebuf[LEN];
 int	uflag;
 int	hflag;
 int	vflag;
@@ -27,9 +28,10 @@ main(int argc, char **argv)
 {
 	Biobuf bout;
 	char *fields[NFLDS], name[2*LEN], *p, *namep;
-	char uid[NAMELEN], gid[NAMELEN];
+	char *uid, *gid;
 	ulong mode, bytes, mtime;
 
+	quotefmtinstall();
 	namep = name;
 	ARGBEGIN{
 	case 'd':
@@ -56,6 +58,8 @@ main(int argc, char **argv)
 	Binits(&bin, 0, OREAD, binbuf, sizeof binbuf);
 	while(p = Brdline(&bin, '\n')){
 		p[Blinelen(&bin)-1] = '\0';
+		strcpy(linebuf, p);
+		p = linebuf;
 		if(strcmp(p, "end of archive") == 0){
 			Bterm(&bout);
 			fprint(2, "done\n");
@@ -67,10 +71,10 @@ main(int argc, char **argv)
 		}
 		strcpy(namep, fields[0]);
 		mode = strtoul(fields[1], 0, 8);
+		uid = fields[2];
+		gid = fields[3];
 		mtime = strtoul(fields[4], 0, 10);
 		bytes = strtoul(fields[5], 0, 10);
-		strncpy(uid, fields[2], NAMELEN);
-		strncpy(gid, fields[3], NAMELEN);
 		if(argc){
 			if(!selected(namep, argc, argv)){
 				if(bytes)
@@ -80,13 +84,13 @@ main(int argc, char **argv)
 			mkdirs(name, namep);
 		}
 		if(hflag){
-			Bprint(&bout, "%s %luo %s %s %lud %lud\n",
+			Bprint(&bout, "%q %luo %q %q %lud %lud\n",
 				name, mode, uid, gid, mtime, bytes);
 			if(bytes)
 				seekpast(bytes);
 			continue;
 		}
-		if(mode & CHDIR)
+		if(mode & DMDIR)
 			mkdir(name, mode, mtime, uid, gid);
 		else
 			extract(name, mode, mtime, uid, gid, bytes);
@@ -128,7 +132,7 @@ mkdirs(char *name, char *namep)
 		if(p[1] == '\0')
 			return;
 		*p = 0;
-		fd = create(buf, OREAD, 0775|CHDIR);
+		fd = create(buf, OREAD, 0775|DMDIR);
 		close(fd);
 		*p = '/';
 	}
@@ -137,62 +141,66 @@ mkdirs(char *name, char *namep)
 void
 mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
 {
-	Dir d;
+	Dir *d, xd;
 	int fd;
 	char *p;
 
 	fd = create(name, OREAD, mode);
 	if(fd < 0){
-		if(dirstat(name, &d) < 0 || !(d.mode & CHDIR)){
-			warn("can't make directory %s: %r", name);
+		if((d = dirstat(name)) == nil || !(d->mode & DMDIR)){
+			free(d);
+			warn("can't make directory %q: %r", name);
 			return;
 		}
-	}else if(dirfstat(fd, &d) < 0)
-		warn("can't stat %s: %r", name);
+	}
 	close(fd);
 
+	d = &xd;
+	nulldir(d);
 	p = utfrrune(name, L'/');
 	if(p)
 		p++;
 	else
 		p = name;
-	strncpy(d.name, p, NAMELEN);
+	d->name = p;
 	if(uflag){
-		strncpy(d.uid, uid, NAMELEN);
-		strncpy(d.gid, gid, NAMELEN);
-		d.mtime = mtime;
+		d->uid = uid;
+		d->gid = gid;
+		d->mtime = mtime;
 	}
-	d.mode = mode;
-	if(dirwstat(name, &d) < 0)
-		warn("can't set modes for %s: %r", name);
+	d->mode = mode;
+	if(dirwstat(name, d) < 0)
+		warn("can't set modes for %q: %r", name);
+
 	if(uflag){
-		if(dirstat(name, &d) < 0)
-			warn("can't reread modes for %s: %r", name);
-		if(d.mtime != mtime)
-			warn("%s: time mismatch %lud %lud\n", name, mtime, d.mtime);
-		if(strcmp(uid, d.uid))
-			warn("%s: uid mismatch %s %s", name, uid, d.uid);
-		if(strcmp(gid, d.gid))
-			warn("%s: gid mismatch %s %s", name, gid, d.gid);
+		if((d = dirstat(name)) == nil){
+			warn("can't reread modes for %q: %r", name);
+			return;
+		}
+		if(d->mtime != mtime)
+			warn("%q: time mismatch %lud %lud\n", name, mtime, d->mtime);
+		if(strcmp(uid, d->uid))
+			warn("%q: uid mismatch %q %q", name, uid, d->uid);
+		if(strcmp(gid, d->gid))
+			warn("%q: gid mismatch %q %q", name, gid, d->gid);
 	}
-	close(fd);
 }
 
 void
 extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, ulong bytes)
 {
-	Dir d;
+	Dir d, *nd;
 	Biobuf *b;
 	char buf[LEN];
 	char *p;
 	ulong n, tot;
 
 	if(vflag)
-		print("x %s %lud bytes\n", name, bytes);
+		print("x %q %lud bytes\n", name, bytes);
 
 	b = Bopen(name, OWRITE);
 	if(!b){
-		warn("can't make file %s: %r", name);
+		warn("can't make file %q: %r", name);
 		seekpast(bytes);
 		return;
 	}
@@ -202,37 +210,39 @@ extract(char *name, ulong mode, ulong mtime, char *uid, char *gid, ulong bytes)
 			n = bytes - tot;
 		n = Bread(&bin, buf, n);
 		if(n <= 0)
-			error("premature eof reading %s", name);
+			error("premature eof reading %q", name);
 		if(Bwrite(b, buf, n) != n)
-			warn("error writing %s: %r", name);
+			warn("error writing %q: %r", name);
 	}
 
-	if(dirfstat(Bfildes(b), &d) < 0)
-		warn("can't stat %s: %r", name);
+	nulldir(&d);
 	p = utfrrune(name, '/');
 	if(p)
 		p++;
 	else
 		p = name;
-	strncpy(d.name, p, NAMELEN);
+	d.name = p;
 	if(uflag){
-		strncpy(d.uid, uid, NAMELEN);
-		strncpy(d.gid, gid, NAMELEN);
+		d.uid = uid;
+		d.gid = gid;
 		d.mtime = mtime;
 	}
 	d.mode = mode;
 	Bflush(b);
 	if(dirfwstat(Bfildes(b), &d) < 0)
-		warn("can't set modes for %s: %r", name);
+		warn("can't set modes for %q: %r", name);
 	if(uflag){
-		if(dirfstat(Bfildes(b), &d) < 0)
-			warn("can't reread modes for %s: %r", name);
-		if(d.mtime != mtime)
-			warn("%s: time mismatch %lud %lud\n", name, mtime, d.mtime);
-		if(strcmp(uid, d.uid))
-			warn("%s: uid mismatch %s %s", name, uid, d.uid);
-		if(strcmp(gid, d.gid))
-			warn("%s: gid mismatch %s %s", name, gid, d.gid);
+		if((nd = dirfstat(Bfildes(b))) == nil)
+			warn("can't reread modes for %q: %r", name);
+		else{
+			if(nd->mtime != mtime)
+				warn("%q: time mismatch %lud %lud\n", name, mtime, nd->mtime);
+			if(strcmp(uid, nd->uid))
+				warn("%q: uid mismatch %q %q", name, uid, nd->uid);
+			if(strcmp(gid, nd->gid))
+				warn("%q: gid mismatch %q %q", name, gid, nd->gid);
+			free(nd);
+		}
 	}
 	Bterm(b);
 }
@@ -259,9 +269,9 @@ error(char *fmt, ...)
 	char buf[1024];
 	va_list arg;
 
-	sprint(buf, "%s: ", argv0);
+	sprint(buf, "%q: ", argv0);
 	va_start(arg, fmt);
-	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s\n", buf);
 	exits(0);
@@ -273,9 +283,9 @@ warn(char *fmt, ...)
 	char buf[1024];
 	va_list arg;
 
-	sprint(buf, "%s: ", argv0);
+	sprint(buf, "%q: ", argv0);
 	va_start(arg, fmt);
-	doprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
+	vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s\n", buf);
 }

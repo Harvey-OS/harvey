@@ -1,21 +1,21 @@
-#    Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999, 2000 Aladdin Enterprises.  All rights reserved.
+#    Copyright (C) 1991, 1995, 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 # 
-# This file is part of AFPL Ghostscript.
+# This file is part of Aladdin Ghostscript.
 # 
-# AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-# distributor accepts any responsibility for the consequences of using it, or
-# for whether it serves any particular purpose or works at all, unless he or
-# she says so in writing.  Refer to the Aladdin Free Public License (the
-# "License") for full details.
+# Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+# or distributor accepts any responsibility for the consequences of using it,
+# or for whether it serves any particular purpose or works at all, unless he
+# or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+# License (the "License") for full details.
 # 
-# Every copy of AFPL Ghostscript must include a copy of the License, normally
-# in a plain ASCII text file named PUBLIC.  The License grants you the right
-# to copy, modify and redistribute AFPL Ghostscript, but only under certain
-# conditions described in the License.  Among other things, the License
-# requires that the copyright notice and this notice be preserved on all
-# copies.
+# Every copy of Aladdin Ghostscript must include a copy of the License,
+# normally in a plain ASCII text file named PUBLIC.  The License grants you
+# the right to copy, modify and redistribute Aladdin Ghostscript, but only
+# under certain conditions described in the License.  Among other things, the
+# License requires that the copyright notice and this notice be preserved on
+# all copies.
 
-# $Id: watclib.mak,v 1.6 2000/09/25 15:06:28 lpd Exp $
+# $Id: watclib.mak,v 1.2 2000/03/10 15:48:58 lpd Exp $
 # makefile for MS-DOS / Watcom C/C++ library testing.
 
 libdefault: $(GLOBJ)gslib.exe
@@ -69,7 +69,7 @@ JVERSION=6
 PSRCDIR=libpng
 !endif
 !ifndef PVERSION
-PVERSION=10008
+PVERSION=10005
 !endif
 
 !ifndef ZSRCDIR
@@ -128,7 +128,7 @@ FILE_IMPLEMENTATION=stdio
 GLCCWIN=$(GLCC)
 !include $(GLSRCDIR)\winplat.mak
 
-watclib_1=$(GLOBJ)gp_getnv.$(OBJ) $(GLOBJ)gp_iwatc.$(OBJ)
+watclib_1=$(GLOBJ)gp_getnv.$(OBJ) $(GLOBJ)gp_iwatc.$(OBJ) $(GLOBJ)gp_dosfb.$(OBJ)
 !ifeq WAT32 0
 watclib_2=$(GLOBJ)gp_dosfs.$(OBJ) $(GLOBJ)gp_dosfe.$(OBJ) $(GLOBJ)gp_msdos.$(OBJ)
 watclib_inc=
@@ -143,7 +143,7 @@ $(GLGEN)watclib_.dev: $(watclib__) $(GLGEN)nosync.dev $(watclib_inc)
 	$(ADDMOD) $(GLGEN)watclib_ -include $(GLGEN)nosync $(watclib_inc)
 
 $(GLOBJ)gp_iwatc.$(OBJ): $(GLSRC)gp_iwatc.c $(stat__h) $(string__h)\
- $(gx_h) $(gp_h) $(gpmisc_h)
+ $(gx_h) $(gp_h)
 	$(GLCC) $(GLO_)gp_iwatc.$(OBJ) $(C_) $(GLSRC)gp_iwatc.c
 
 BEGINFILES=*.err

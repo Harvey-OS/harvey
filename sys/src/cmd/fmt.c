@@ -13,10 +13,13 @@ void	addrune(Rune);
 void	outword(void);
 void	puncttest(void);
 void	flush(void);
+void nextline(void);
 
-int join=1;		/* can input lines be joined? */
-int indent=0;		/* how many spaces to indent */
-int length=70;		/* how many columns per output line */
+int join = 1;			/* can input lines be joined? */
+int indent = 0;			/* how many spaces to indent */
+int tindent = 0;		/* temporary extra indent */
+int length = 70;		/* how many columns per output line */
+int maxtab = 8;
 Biobuf bin;
 Biobuf bout;
 
@@ -31,6 +34,8 @@ void
 main(int argc, char **argv)
 {
 	int i, f;
+	char *s, *err;
+
 	ARGBEGIN{
 	case 'i':
 		indent = atoi(EARGF(usage()));
@@ -45,29 +50,36 @@ main(int argc, char **argv)
 	default:
 		usage();
 	}ARGEND
-	if(length<=indent){
+
+	if(length <= indent){
 		fprint(2, "%s: line length<=indentation\n", argv0);
 		exits("length");
 	}
+
+	s=getenv("tabstop");
+	if(s!=nil && atoi(s)>0)
+		maxtab=atoi(s);
+	err = nil;
 	Binit(&bout, 1, OWRITE);
-	if(argc<=0){
+	if(argc <= 0){
 		Binit(&bin, 0, OREAD);
 		fmt(&bin);
 	}else{
 		for(i=0; i<argc; i++){
-			f=open(argv[i], OREAD);
-			if(f<0)
-				perror(argv[i]);
-			else{
+			f = open(argv[i], OREAD);
+			if(f < 0){
+				fprint(2, "%s: can't open %s: %r\n", argv0, argv[i]);
+				err = "open";
+			}else{
 				Binit(&bin, f, OREAD);
 				fmt(&bin);
 				Bterm(&bin);
-				if(i!=argc-1)
+				if(i != argc-1)
 					Bputc(&bout, '\n');
 			}
 		}
 	}
-	exits(0);
+	exits(err);
 }
 void
 fmt(Biobuf *f)
@@ -79,20 +91,31 @@ fmt(Biobuf *f)
 	flush();
 }
 
-#define TAB 8
-#define	NWORD	(TAB*32)
+#define	NWORD	(maxtab*32)
 
 Rune *word;
 int mword;
 int wp;
 
-int col=0;	/* output column number */
-int bol=1;	/* at beginning of output line? */
-int punct=0;	/* last character out was punctuation? */
-int newline=1;	/* last char read was newline(1) or init space(2) */
+int col = 0;		/* output column number */
+int bol = 1;		/* at beginning of output line? */
+int punct = 0;		/* last character out was punctuation? */
+int newline = 1;	/* last char read was newline */
+int nspace = 0;		/* number of spaces beginning this line */
+
+int
+addspace(int nspace, Rune c)
+{
+	if(c == ' ')
+		return nspace+1;
+	/* else tab */
+	nspace = ((nspace/maxtab)+1)*maxtab;
+	return nspace;
+}
 
 void
-outchar(Rune c){
+outchar(Rune c)
+{
 	switch(c){
 	case '\0':
 		break;
@@ -107,10 +130,11 @@ outchar(Rune c){
 		case 1:
 			flush();
 		case 2:
+			tindent = 0;
 			Bputc(&bout, '\n');
-			wp=0;
+			wp = 0;
 		}
-		newline=1;
+		newline = 1;
 		break;
 	case ' ':
 	case '\t':
@@ -119,17 +143,27 @@ outchar(Rune c){
 			outword();
 			break;
 		case 1:
-			flush();
-			newline=2;
-		case 2:
-			do {
-				addrune(L' ');
-			} while(c=='\t' && wp%TAB);
+			nspace = addspace(nspace, c);
+			outword();
+			break;
 		}
 		break;
 	default:
+		if(nspace > 0){
+			if(!newline && tindent != nspace){
+				nextline();
+				newline = 1;
+			}
+			tindent = nspace;
+			nspace = 0;
+		}else
+			if(newline){
+				if(tindent)
+					nextline();
+				tindent = 0;
+			}
 		addrune(c);
-		newline=0;
+		newline = 0;
 	}
 }
 
@@ -155,22 +189,22 @@ outword(void)
 {
 	int i;
 
-	if(wp==0)
+	if(wp == 0)
 		return;
-	if(wp+col+(bol?0:punct?2:1)>length){
+	if(wp+col+(bol?0:punct?2:1) > length){
 		Bputc(&bout, '\n');
-		col=0;
-		bol=1;
+		col = 0;
+		bol = 1;
 	}
-	if(col==0){
-		for(i=0;i+8<=indent;i+=8)
+	if(col == 0){
+		for(i=0; i+maxtab <= indent+tindent; i+=maxtab)
 			Bputc(&bout, '\t');
-		while(i++<indent)
+		while(i++ < indent+tindent)
 			Bputc(&bout, ' ');
-		col=indent;
+		col = indent+tindent;
 	}
 	if(bol)
-		bol=0;
+		bol = 0;
 	else{
 		if(punct){
 			Bputc(&bout, ' ');
@@ -182,9 +216,10 @@ outword(void)
 	puncttest();
 	for (i = 0; i < wp; i++)
 		Bputrune(&bout, word[i]);
-	col+=i;
-	wp=0;
+	col += i;
+	wp = 0;
 }
+
 /* is the word followed by major punctuation, .?:! */
 /* disregard short things followed by periods; they are probably
    initials or titles like Mrs. and Dr. */
@@ -209,11 +244,16 @@ puncttest(void)
 	}
 }
 void
-flush(void){
+nextline(void)
+{
+	Bputc(&bout, '\n');
+	col = 0;
+	bol = 1;
+}
+void
+flush(void)
+{
 	outword();
-	if(col!=0){
-		Bputc(&bout, '\n');
-		col=0;
-		bol=1;
-	}
+	if(col != 0)
+		nextline();
 }

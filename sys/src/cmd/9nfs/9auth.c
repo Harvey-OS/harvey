@@ -48,7 +48,7 @@ main(int argc, char **argv)
 	if(argc != 1)
 		usage();
 	user = argv[0];
-	sprintf(file, "%s/#%s", root, user);
+	snprintf(file, sizeof file, "%s/#%s", root, user);
 	if(debug)
 		printf("debug=%d, file=%s\n", debug, file);
 	if(delete){

@@ -6,31 +6,29 @@
 #include "../port/error.h"
 #include "io.h"
 
-
 /*
  *  read and crack the card information structure enough to set
  *  important parameters like power
  */
+/* cis memory walking */
+typedef struct Cisdat {
+	uchar	*cisbase;
+	int	cispos;
+	int	cisskip;
+	int	cislen;
+} Cisdat;
+
 static void	tcfig(PCMslot*, Cisdat*, int);
 static void	tentry(PCMslot*, Cisdat*, int);
 static void	tvers1(PCMslot*, Cisdat*, int);
 
-struct {
-	int n;
-	void (*parse)(PCMslot*, Cisdat*, int);
-} cistab[] = {
-	0x15, tvers1,
-	0x1A, tcfig,
-	0x1B, tentry,
-};
-
 static int
-readc(Cisdat *pp, uchar *x)
+readc(Cisdat *cis, uchar *x)
 {
-	if(pp->cispos >= pp->cislen)
+	if(cis->cispos >= cis->cislen)
 		return 0;
-	*x = pp->cisbase[pp->cisskip*pp->cispos];
-	pp->cispos++;
+	*x = cis->cisbase[cis->cisskip*cis->cispos];
+	cis->cispos++;
 	return 1;
 }
 
@@ -102,9 +100,10 @@ pcmcistuple(int slotno, int tuple, int subtuple, void *v, int nv)
 void
 pcmcisread(PCMslot *pp)
 {
-	uchar v[256];
-	int i, nv;
+	int this;
 	Cisdat cis;
+	PCMmap *m;
+	uchar type, link;
 
 	memset(pp->ctab, 0, sizeof(pp->ctab));
 	pp->caddr = 0;
@@ -113,16 +112,47 @@ pcmcisread(PCMslot *pp)
 	pp->nctab = 0;
 	pp->verstr[0] = 0;
 
-	for(i = 0; i < nelem(cistab); i++) {
-		if((nv = pcmcistuple(pp->slotno, cistab[i].n, -1, v, sizeof(v))) >= 0) {
-			cis.cisbase = v;
-			cis.cispos = 0;
-			cis.cisskip = 1;
-			cis.cislen = nv;
-			
-			(*cistab[i].parse)(pp, &cis, cistab[i].n);
+	/*
+	 * Read all tuples in attribute space.
+	 */
+	m = pcmmap(pp->slotno, 0, 0, 1);
+	if(m == 0)
+		return;
+
+	cis.cisbase = KADDR(m->isa);
+	cis.cispos = 0;
+	cis.cisskip = 2;
+	cis.cislen = m->len;
+
+	/* loop through all the tuples */
+	for(;;){
+		this = cis.cispos;
+		if(readc(&cis, &type) != 1)
+			break;
+		if(type == 0xFF)
+			break;
+		if(readc(&cis, &link) != 1)
+			break;
+
+		switch(type){
+		default:
+			break;
+		case 0x15:
+			tvers1(pp, &cis, type);
+			break;
+		case 0x1A:
+			tcfig(pp, &cis, type);
+			break;
+		case 0x1B:
+			tentry(pp, &cis, type);
+			break;
 		}
+
+		if(link == 0xFF)
+			break;
+		cis.cispos = this + (2+link);
 	}
+	pcmunmap(pp->slotno, m);
 }
 
 static ulong
@@ -301,10 +331,14 @@ iospaces(Cisdat *cis, PCMconftab *ct)
 	if(readc(cis, &c) != 1)
 		return;
 
+	/*
+	 * For each of the range descriptions read the
+	 * start address and the length (value is length-1).
+	 */
 	nio = (c&0xf)+1;
 	for(i = 0; i < nio; i++){
 		ct->io[i].start = getlong(cis, (c>>4)&0x3);
-		ct->io[0].len = getlong(cis, (c>>6)&0x3);
+		ct->io[i].len = getlong(cis, (c>>6)&0x3)+1;
 	}
 	ct->nio = nio;
 }

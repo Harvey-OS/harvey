@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <ip.h>
+#include <auth.h>
 #include "ppp.h"
 #include "thwack.h"
 
@@ -392,6 +393,9 @@ thwack(Thwack *tw, int mustadd, uchar *dst, int ndst, Block *bsrc, ulong seq, ul
 		else if(!mustadd)
 			return -1;
 	}
+
+	if(twdst >= twdmax && !mustadd)
+		return -1;
 
 	qlock(&tw->acklock);
 	tw->data[tw->slot] = bsrc;

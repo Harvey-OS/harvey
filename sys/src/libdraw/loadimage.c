@@ -2,14 +2,15 @@
 #include <libc.h>
 #include <draw.h>
 
-#define	CHUNK	7500
-
 int
 loadimage(Image *i, Rectangle r, uchar *data, int ndata)
 {
 	long dy;
 	int n, bpl;
 	uchar *a;
+	int chunk;
+
+	chunk = i->display->bufsize - 64;
 
 	if(!rectinrect(r, i->r)){
 		werrstr("loadimage: bad rectangle");
@@ -24,8 +25,8 @@ loadimage(Image *i, Rectangle r, uchar *data, int ndata)
 	ndata = 0;
 	while(r.max.y > r.min.y){
 		dy = r.max.y - r.min.y;
-		if(dy*bpl > CHUNK)
-			dy = CHUNK/bpl;
+		if(dy*bpl > chunk)
+			dy = chunk/bpl;
 		if(dy <= 0){
 			werrstr("loadimage: image too wide for buffer");
 			return -1;

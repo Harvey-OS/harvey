@@ -1,6 +1,6 @@
 .TH READ 2
 .SH NAME
-read, readn, write, pread, pwrite, read9p, write9p \- read or write file
+read, readn, write, pread, pwrite \- read or write file
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -20,12 +20,6 @@ long pread(int fd, void *buf, long nbytes, vlong offset)
 .PP
 .B
 long pwrite(int fd, void *buf, long nbytes, vlong offset)
-.PP
-.B
-long read9p(int fd, void *buf, long nbytes)
-.PP
-.B
-long write9p(int fd, void *buf, long nbytes)
 .SH DESCRIPTION
 .I Read
 reads
@@ -86,23 +80,6 @@ and, more important,
 permit multiprocess programs to execute multiple concurrent
 read and write operations on the same file descriptor
 without interference.
-.PP
-.I Read9p
-and
-.I write9p
-are like read and write and are used when reading/writing
-.B 9P
-messages to/from a remote file, for example
-.BR /mnt/term/srv/boot .
-9P limits the size of the data in a read or write
-message, normally 8192 bytes.
-When encapsulating a 9P write request or read reply inside another 9P
-message that limit must be relaxed to make room for the extra header.
-.I Read9p
-and
-.I write9p
-are kludges to allow that relaxation.  Using these calls, one
-can encapsulate 9P messages up to 8 levels deep.
 .SH SOURCE
 .B /sys/src/libc/9syscall
 .br
@@ -111,7 +88,8 @@ can encapsulate 9P messages up to 8 levels deep.
 .IR intro (2),
 .IR open (2), 
 .IR dup (2),
-.IR pipe (2)
+.IR pipe (2),
+.IR readv (2)
 .SH DIAGNOSTICS
 These functions set
 .IR errstr .

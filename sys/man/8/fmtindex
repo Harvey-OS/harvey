@@ -1,0 +1,60 @@
+.TH FMTINDEX 8
+.SH NAME
+fmtindex \- format a Venti index
+.SH SYNOPSIS
+.B venti/fmtindex
+[
+.B -a
+]
+.I venti.config
+.SH DESCRIPTION
+.I Fmtindex
+takes the
+.IR venti.conf (6)
+file
+.I venti.config
+and initializes the index sections to form a usable index structure.
+The arena files and index sections must have previously been formatted
+using 
+.IR fmtarenas (8)
+and 
+.IR fmtisect (8)
+respectively.
+.PP
+The function of a Venti index is to map a Sha1 fingerprint to a location
+in the data section of one of the arenas.  The index is composed of
+blocks, each of which contains the mapping for a fixed range of possible
+fingerprint values.
+.I Fmtindex
+determines the mapping between Sha1 values and the blocks
+of the collection of index sections.  Once this mapping has been determined,
+it cannot be changed without rebuilding the index. 
+The basic assumption in the current implementation is that the index
+structure is sufficiently empty that individual blocks of the index will rarely
+overflow.  The total size of the index should be about 2% to 10% of
+the total size of the arenas, but the exact depends both the index block size
+and the compressed size of block stored to Venti.
+.PP
+.I Fmtindex
+also computes a mapping between a linear address space and
+the data section of the collection of arenas.  The
+.B -a
+option can be used to add additional arenas to an index.
+To use this feature,
+add the new arenas to
+.I venti.config
+after the existing arenas and then run
+.I fmtindex
+.BR -a .
+.PP
+A copy of the above mappings is stored in the header for each of the index sections.
+These copies enable
+.IR buildindex (8)
+to restore a single index section without rebuilding the entire index.
+.SH SOURCE
+.B /sys/src/cmd/venti
+.SH "SEE ALSO"
+.IR venti (8),
+.IR fmtarenas (8),
+.IR fmtisect (8),
+.IR venti.conf (6)

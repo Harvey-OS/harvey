@@ -1,21 +1,21 @@
-%    Copyright (C) 1997, 2000 Aladdin Enterprises.  All rights reserved.
+%    Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 % 
-% This file is part of AFPL Ghostscript.
+% This file is part of Aladdin Ghostscript.
 % 
-% AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-% distributor accepts any responsibility for the consequences of using it, or
-% for whether it serves any particular purpose or works at all, unless he or
-% she says so in writing.  Refer to the Aladdin Free Public License (the
-% "License") for full details.
+% Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+% or distributor accepts any responsibility for the consequences of using it,
+% or for whether it serves any particular purpose or works at all, unless he
+% or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+% License (the "License") for full details.
 % 
-% Every copy of AFPL Ghostscript must include a copy of the License, normally
-% in a plain ASCII text file named PUBLIC.  The License grants you the right
-% to copy, modify and redistribute AFPL Ghostscript, but only under certain
-% conditions described in the License.  Among other things, the License
-% requires that the copyright notice and this notice be preserved on all
-% copies.
+% Every copy of Aladdin Ghostscript must include a copy of the License,
+% normally in a plain ASCII text file named PUBLIC.  The License grants you
+% the right to copy, modify and redistribute Aladdin Ghostscript, but only
+% under certain conditions described in the License.  Among other things, the
+% License requires that the copyright notice and this notice be preserved on
+% all copies.
 
-% $Id: gs_ll3.ps,v 1.6.2.1 2000/11/16 00:37:03 raph Exp $
+% $Id: gs_ll3.ps,v 1.1 2000/03/09 08:40:40 lpd Exp $
 % Initialization file for PostScript LanguageLevel 3 functions.
 % This file must be loaded after gs_lev2.ps and gs_res.ps.
 % These definitions go into ll3dict or various ProcSets.
@@ -199,11 +199,7 @@ end
 
 .imagetypes
   dup 3 /.image3 load put
-  dup 4 /.image4 load put
-% We also detect ImageType 103 here: it isn't worth making a separate file
-% just for this.
-  /.image3x where { pop dup 103 /.image3x load put } if
-pop
+  4 /.image4 load put
 
 % ------ Functions ------ %
 
@@ -237,19 +233,19 @@ systemdict /.reuseparamdict mark
   /CloseSource true
 .dicttomark readonly put
 /.buildshading {	% <shadingdict> .buildshading <shading>
-        % Unfortunately, we always need to make the DataSource reusable,
-        % because if clipping is involved, even shfill may need to read
-        % the source data multiple times.  If it weren't for this,
-        % we would only need to create a reusable stream if the ultimate
-        % source of the data is a procedure (since the library can't
-        % suspend shading to do a procedure callout).
+	% The current implementation of shadings can't deal with
+	% procedure-based DataSource.
   dup /DataSource .knownget {
     dup type /filetype eq {
-      //.reuseparamdict /ReusableStreamDecode filter
-      .currentglobal 1 index gcheck .setglobal
+      dup .isprocfilter {
+	//.reuseparamdict /ReusableStreamDecode filter
+	.currentglobal 1 index gcheck .setglobal
 		% Stack: shdict rsdfile saveglobal
-      2 index dup length dict copy exch .setglobal
-      dup /DataSource 4 -1 roll put exch pop
+	2 index dup length dict copy exch .setglobal
+	dup /DataSource 4 -1 roll put exch pop
+      } {
+	pop
+      } ifelse
     } {
       pop
     } ifelse
@@ -288,6 +284,62 @@ systemdict /.reuseparamdict undef
 
 % Establish an initial smoothness value that matches Adobe RIPs.
 0.02 setsmoothness
+
+% ------ ReusableStreamDecode filter ------ %
+
+/.reusablestreamdecode {	% <source> <dict> .reusablestreamdecode <file>
+				% <source> .reusablestreamdecode <file>
+		% Collect the filter parameters.
+  dup type /dicttype eq { 2 copy } { dup 0 dict } ifelse
+  dup .rsdparams
+		% Construct the filter pipeline.
+		% The very first filter should use the value of CloseSource
+		% from the RSD dictionary; all the others should have
+		% CloseSource = true.
+		% Stack: source dict filters parms
+  2 index /CloseSource .knownget not { false } if 5 -1 roll
+		% Stack: dict filters parms CloseSource source
+  0 1 5 index length 1 sub {
+    4 index 1 index get
+		% Stack: dict filters parms CloseSource source index filtname
+    4 index null eq {
+      0 dict
+    } {
+      4 index 2 index get dup null eq { pop } if
+    } ifelse
+    3 -1 roll pop exch filter
+    exch pop true exch		% set CloseSource for further filters
+  } for
+		% See if we can create the filter directly.
+		% Stack: dict filters parms CloseSource file
+  null 2 index { .reusablestream } .internalstopped {
+    pop pop
+		% No luck.  Read the entire contents of the stream now.
+    dup type /filetype ne {
+		% Make a stream from a procedure or string data source.
+      0 () .subfiledecode
+    } if
+    10 dict exch {
+		% Stack: dict filters parms CloseSource contdict file
+      dup 1000 string readstring
+      3 index dup length 4 -1 roll put not { exit } if
+    } loop pop
+		% Concatenate the contents into one big string.
+		% Stack: dict filters parms CloseSource contdict
+    0 1 index { length exch pop add } forall
+    .bigstring exch {
+		% Stack: dict filters parms CloseSource string index substring
+      exch 1000 mul exch 2 index 3 1 roll putinterval
+    } forall
+		% Now create the stream on the string.
+    null 2 index .reusablestream
+  } if
+		% We created the stream successfully: clean up.
+  4 { exch pop } repeat
+  1 index type /dicttype eq { exch pop } if exch pop
+} odef
+
+filterdict /ReusableStreamDecode /.reusablestreamdecode load put
 
 % ------ UseCIEColor ------ %
 
@@ -348,12 +400,12 @@ currentdict /.useciecolorkeydict undef
 
 /.setglobal {		% <bool> .setglobal -
   dup .currentglobal ne {
-	% If there are no local definitions of the Default keys,
-	% changing VM can't affect the definition of any resource.
-    /.localcsdefaults .uservar {
 	% We only want to change substitutions for color spaces
 	% whose definitions are actually changing.
-      /ColorSpace /Category findresource begin
+    /ColorSpace /Category findresource begin
+	% If there are no local definitions of the Default keys,
+	% changing VM can't affect the definition of any resource.
+    .LocalDefaults {
       /DefaultGray .getdefaultcs
       /DefaultRGB .getdefaultcs
       /DefaultCMYK .getdefaultcs
@@ -371,7 +423,7 @@ currentdict /.useciecolorkeydict undef
       dup 4 index ne { 0 exch .setdefaultcs } { pop } ifelse
       pop pop pop pop
     } {
-      .setglobal
+      end .setglobal
     } ifelse
   } {
     .setglobal
@@ -385,9 +437,7 @@ currentdict /.useciecolorkeydict undef
 
 /.setdevicenspace where {
   pop colorspacedict /DeviceN {
-    dup 2 get setcolorspace dup
-    dup 1 get length		% # of components
-    .converttinttransform .setdevicenspace
+    dup 2 get setcolorspace dup .setdevicenspace
   } bind put
 } if
 

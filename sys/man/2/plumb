@@ -1,6 +1,6 @@
 .TH PLUMB 2
 .SH NAME
-eplumb, plumbfree, plumbopen, plumbsend, plumblookup, plumbpack, plumbpackattr, plumbaddattr, plumbdelattr, plumbrecv, plumbunpack, plumbunpackpartial, plumbunpackattr, Plumbmsg  \- plumb messages
+eplumb, plumbfree, plumbopen, plumbsend, plumbsendtext, plumblookup, plumbpack, plumbpackattr, plumbaddattr, plumbdelattr, plumbrecv, plumbunpack, plumbunpackpartial, plumbunpackattr, Plumbmsg  \- plumb messages
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -15,6 +15,9 @@ int	plumbopen(char *port, int omode)
 .PP
 .B
 int	plumbsend(int fd, Plumbmsg *m)
+.PP
+.B
+int	plumbsendtext(int fd, char *src, char *dst, char *wdir, char *data)
 .PP
 .B
 void	plumbfree(Plumbmsg *m)
@@ -110,6 +113,18 @@ to the file descriptor
 which will usually be the result of
 .B plumbopen("send",
 .BR OWRITE) .
+.I Plumbsendtext
+is a simplified version for text-only messages; it assumes
+.B type
+is
+.BR text ,
+sets
+.B attr
+to nil,
+and sets
+.B ndata
+to
+.BI strlen( data )\f1.
 .PP
 .I Plumbfree
 frees all the data associated with the message

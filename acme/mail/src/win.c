@@ -48,17 +48,23 @@ wineventproc(void *v)
 	}
 }
 
-int
-winopenfile(Window *w, char *f)
+static int
+winopenfile1(Window *w, char *f, int m)
 {
 	char buf[64];
 	int fd;
 
 	sprint(buf, "/mnt/wsys/%d/%s", w->id, f);
-	fd = open(buf, ORDWR|OCEXEC);
+	fd = open(buf, m|OCEXEC);
 	if(fd < 0)
 		error("can't open window file %s: %r", f);
 	return fd;
+}
+
+int
+winopenfile(Window *w, char *f)
+{
+	return winopenfile1(w, f, ORDWR);
 }
 
 void
@@ -180,19 +186,7 @@ wingetevent(Window *w, Event *e)
 void
 winwriteevent(Window *w, Event *e)
 {
-	threadprint(w->event, "%c%c%d %d\n", e->c1, e->c2, e->q0, e->q1);
-}
-
-static int
-nrunes(char *s, int nb)
-{
-	int i, n;
-	Rune r;
-
-	n = 0;
-	for(i=0; i<nb; n++)
-		i += chartorune(&r, s+i);
-	return n;
+	fprint(w->event, "%c%c%d %d\n", e->c1, e->c2, e->q0, e->q1);
 }
 
 void
@@ -213,7 +207,7 @@ winread(Window *w, uint q0, uint q1, char *data)
 		n = read(w->data, buf, sizeof buf);
 		if(n <= 0)
 			error("reading data: %r");
-		nr = nrunes(buf, n);
+		nr = utfnlen(buf, n);
 		while(m+nr >q1){
 			do; while(n>0 && (buf[--n]&0xC0)==0x80);
 			--nr;
@@ -319,3 +313,27 @@ winreadbody(Window *w, int *np)	/* can't use readfile because acme doesn't repor
 	*np = n;
 	return s;
 }
+
+char*
+winselection(Window *w)
+{
+	int fd, m, n;
+	char *buf;
+
+	fd = winopenfile1(w, "rdsel", OREAD);
+	if(fd < 0)
+		error("can't open rdsel: %r");
+	n = 0;
+	buf = nil;
+	for(;;){
+		buf = erealloc(buf, n+1024+1);
+		m = read(fd, buf+n, 	1024);
+		if(m <= 0)
+			break;
+		n += 1024;
+		buf[n] = '\0';
+	}
+	close(fd);
+	return buf;
+}
+

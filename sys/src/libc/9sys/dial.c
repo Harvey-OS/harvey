@@ -35,7 +35,7 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 {
 	DS ds;
 	int rv;
-	char err[ERRLEN], alterr[ERRLEN];
+	char err[ERRMAX], alterr[ERRMAX];
 
 	ds.local = local;
 	ds.dir = dir;
@@ -49,25 +49,23 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 	rv = csdial(&ds);
 	if(rv >= 0)
 		return rv;
-	err[0] = 0;
-	errstr(err);
-/*
-	if(strstr(err, "translate") == 0 && strstr(err, "unreachable") == 0){
-		werrstr(err);
+	err[0] = '\0';
+	errstr(err, sizeof err);
+	if(strstr(err, "refused") != 0){
+		werrstr("%s", err);
 		return rv;
 	}
-*/
 	ds.netdir = "/net.alt";
 	rv = csdial(&ds);
 	if(rv >= 0)
 		return rv;
 
 	alterr[0] = 0;
-	errstr(alterr);
-	if(strstr(alterr, "translate") || strstr(alterr, "file does not exist"))
-		werrstr(err);
+	errstr(alterr, sizeof alterr);
+	if(strstr(alterr, "translate") || strstr(alterr, "does not exist"))
+		werrstr("%s", err);
 	else
-		werrstr(alterr);
+		werrstr("%s", alterr);
 	return rv;
 }
 
@@ -75,7 +73,7 @@ static int
 csdial(DS *ds)
 {
 	int n, fd, rv;
-	char *p, buf[Maxstring], clone[Maxpath], err[ERRLEN], besterr[ERRLEN];
+	char *p, buf[Maxstring], clone[Maxpath], err[ERRMAX], besterr[ERRMAX];
 
 	/*
 	 *  open connection server
@@ -93,7 +91,6 @@ csdial(DS *ds)
 	 */
 	snprint(buf, sizeof(buf), "%s!%s", ds->proto, ds->rem);
 	if(write(fd, buf, strlen(buf)) < 0){
-		werrstr("%r(%s)", buf);
 		close(fd);
 		return -1;
 	}
@@ -114,17 +111,17 @@ csdial(DS *ds)
 		rv = call(buf, p, ds);
 		if(rv >= 0)
 			break;
-		err[0] = 0;
-		errstr(err);
-		if(strstr(err, "file does not exist") == 0)
-			memmove(besterr, err, ERRLEN);
+		err[0] = '\0';
+		errstr(err, sizeof err);
+		if(strstr(err, "does not exist") == 0)
+			strcpy(besterr, err);
 	}
 	close(fd);
 
 	if(rv < 0 && *besterr)
-		werrstr(besterr);
+		werrstr("%s", besterr);
 	else
-		werrstr(err);
+		werrstr("%s", err);
 	return rv;
 }
 
@@ -135,10 +132,8 @@ call(char *clone, char *dest, DS *ds)
 	char name[Maxpath], data[Maxpath], *p;
 
 	cfd = open(clone, ORDWR);
-	if(cfd < 0){
-		werrstr("%r(%s)", clone);
+	if(cfd < 0)
 		return -1;
-	}
 
 	/* get directory name */
 	n = read(cfd, name, sizeof(name)-1);
@@ -162,7 +157,6 @@ call(char *clone, char *dest, DS *ds)
 	else
 		snprint(name, sizeof(name), "connect %s", dest);
 	if(write(cfd, name, strlen(name)) < 0){
-		werrstr("%r(%s)", name);
 		close(cfd);
 		return -1;
 	}
@@ -170,7 +164,6 @@ call(char *clone, char *dest, DS *ds)
 	/* open data connection */
 	fd = open(data, ORDWR);
 	if(fd < 0){
-		werrstr("%r(%s)", data);
 		close(cfd);
 		return -1;
 	}

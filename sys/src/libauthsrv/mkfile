@@ -1,0 +1,23 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libauthsrv.a
+OFILES=\
+	_asgetticket.$O\
+	_asrdresp.$O\
+	authdial.$O\
+	convA2M.$O\
+	convM2A.$O\
+	convM2PR.$O\
+	convM2T.$O\
+	convM2TR.$O\
+	convPR2M.$O\
+	convT2M.$O\
+	convTR2M.$O\
+	nvcsum.$O\
+	opasstokey.$O\
+	passtokey.$O\
+	readnvram.$O\
+
+HFILES=/sys/include/authsrv.h
+
+</sys/src/cmd/mksyslib

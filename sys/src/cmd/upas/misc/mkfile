@@ -10,6 +10,12 @@ installall:Q:	install
 install:V:
 	cp mail.rc /rc/bin/mail
 
+safeinstall:V:
+	cp mail.rc /rc/bin/mail
+
+safeinstallall:V:
+	cp mail.rc /rc/bin/mail
+
 clean:Q:
 	;
 nuke:V:

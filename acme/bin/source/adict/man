@@ -1,0 +1,26 @@
+adict [-d dictionary] [pattern]
+
+	adict with no arguments opens a window that displays all the currently
+available dictionaries.  To select a dictionary, click the right mouse button on
+its name.
+
+-d dictionary	Opens a window that interfaces to the specified dictionary.  To
+	look up a word, enter it in the window, and click the right mouse button on it.
+
+[pattern]	If no dictionary is specified, adict looks up the pattern in "oed" (Oxford
+	English Dictionary).  If more than one entry is found, adict opens a window
+	displaying the headers of the matching entries.  To display a particular entry
+	click the right mouse button on the number to its left.
+
+Quit		Exit and remove all windows associated with this one.
+
+Nmatch	Display the next matching entry.
+
+Next		Display the next entry in the dictionary.
+
+Prev		Display the previous entry in the dictionary.
+
+	Nmatch works independently of Prev and Next.
+
+	Any word in the window displaying an entry can be looked up in the selected
+dictionary by clicking the right mouse button on that word.

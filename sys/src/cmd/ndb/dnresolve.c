@@ -501,6 +501,7 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 {
 	RR *rp;
 	DN *soaowner;
+	ulong ttl;
 
 	/* no cache time specified, don' make anything up */
 	if(soarr != nil){
@@ -512,6 +513,12 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 	} else 
 		soaowner = nil;
 
+	/* the attach can cause soarr to be freed so mine it now */
+	if(soarr != nil && soarr->soa != nil)
+		ttl = soarr->soa->minttl+now;
+	else
+		ttl = 5*Min;
+
 	/* add soa and negative RR to the database */
 	rrattach(soarr, 1);
 
@@ -520,10 +527,7 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 	rp->negative = 1;
 	rp->negsoaowner = soaowner;
 	rp->negrcode = rcode;
-	if(soarr != nil && soarr->soa != nil)
-		rp->ttl = soarr->soa->minttl+now;
-	else
-		rp->ttl = 5*Min;
+	rp->ttl = ttl;
 	rrattach(rp, 1);
 }
 
@@ -716,14 +720,8 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 		return 0;
 
 	/* use alloced buffers rather than ones from the stack */
-	ibuf = malloc(Maxudpin+Udphdrsize);
-	if(ibuf == 0)
-		return 0;
-	obuf = malloc(Maxudp+Udphdrsize);
-	if(obuf == 0){
-		free(ibuf);
-		return 0;
-	}
+	ibuf = emalloc(Maxudpin+Udphdrsize);
+	obuf = emalloc(Maxudp+Udphdrsize);
 
 	slave(reqp);
 

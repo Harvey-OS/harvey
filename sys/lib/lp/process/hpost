@@ -51,6 +51,9 @@ FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 	if (~ $#facefile 0) {facefile=u/unknown.1; facedepth=1}
 	facefile=/lib/face/48x48x$facedepth/$facefile
 
+	if (! ~ $#facefile 0 1)
+		facefile=$facefile(1)
+
 	if (~ $#facefile 0 || ! test -f $facefile ) {facefile=/lib/face/48x48x2/u/unknown.1; facedepth=2}
 	if (test -r $facefile ) {
 		switch($facedepth){

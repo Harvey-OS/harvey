@@ -32,7 +32,7 @@ dprint(char *z, ...)
 	va_list arg;
 
 	va_start(arg, z);
-	doprint(buf, &buf[BLOCKSIZE], z, arg);
+	vseprint(buf, &buf[BLOCKSIZE], z, arg);
 	va_end(arg);
 	termwrite(buf);
 }
@@ -52,12 +52,12 @@ print_s(char *s, String *a)
 char*
 getuser(void)
 {
-	static char user[NAMELEN];
+	static char user[64];
 	int fd;
 
 	if(user[0] == 0){
 		fd = open("/dev/user", 0);
-		if(fd<0 || read(fd, user, sizeof user)<=0)
+		if(fd<0 || read(fd, user, sizeof user-1)<=0)
 			strcpy(user, "none");
 		close(fd);
 	}
@@ -65,42 +65,46 @@ getuser(void)
 }
 
 int
-statfile(char *name, ulong *dev, ulong *id, long *time, long *length, long *appendonly)
+statfile(char *name, ulong *dev, uvlong *id, long *time, long *length, long *appendonly)
 {
-	Dir dirb;
+	Dir *dirb;
 
-	if(dirstat(name, &dirb) == -1)
+	dirb = dirstat(name);
+	if(dirb == nil)
 		return -1;
 	if(dev)
-		*dev = dirb.type|(dirb.dev<<16);
+		*dev = dirb->type|(dirb->dev<<16);
 	if(id)
-		*id = dirb.qid.path;
+		*id = dirb->qid.path;
 	if(time)
-		*time = dirb.mtime;
+		*time = dirb->mtime;
 	if(length)
-		*length = dirb.length;
+		*length = dirb->length;
 	if(appendonly)
-		*appendonly = dirb.mode & CHAPPEND;
+		*appendonly = dirb->mode & DMAPPEND;
+	free(dirb);
 	return 1;
 }
 
 int
-statfd(int fd, ulong *dev, ulong *id, long *time, long *length, long *appendonly)
+statfd(int fd, ulong *dev, uvlong *id, long *time, long *length, long *appendonly)
 {
-	Dir dirb;
+	Dir *dirb;
 
-	if(dirfstat(fd, &dirb) == -1)
+	dirb = dirfstat(fd);
+	if(dirb == nil)
 		return -1;
 	if(dev)
-		*dev = dirb.type|(dirb.dev<<16);
+		*dev = dirb->type|(dirb->dev<<16);
 	if(id)
-		*id = dirb.qid.path;
+		*id = dirb->qid.path;
 	if(time)
-		*time = dirb.mtime;
+		*time = dirb->mtime;
 	if(length)
-		*length = dirb.length;
+		*length = dirb->length;
 	if(appendonly)
-		*appendonly = dirb.mode & CHAPPEND;
+		*appendonly = dirb->mode & DMAPPEND;
+	free(dirb);
 	return 1;
 }
 
@@ -138,11 +142,19 @@ newtmp(int num)
 int
 waitfor(int pid)
 {
-	int rpid;
-	Waitmsg wm;
+	int msg;
+	Waitmsg *w;
 
-	do; while((rpid = wait(&wm)) != pid && rpid != -1);
-	return wm.msg[0];
+	while((w = wait()) != nil){
+		if(w->pid != pid){
+			free(w);
+			continue;
+		}
+		msg = (w->msg[0] != '\0');
+		free(w);
+		return msg;
+	}
+	return -1;
 }
 
 void

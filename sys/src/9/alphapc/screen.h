@@ -6,7 +6,7 @@ struct Cursorinfo {
 };
 
 /* devmouse.c */
-extern void mousetrack(int, int, int);
+extern void mousetrack(int, int, int, int);
 extern Point mousexy(void);
 
 extern void mouseaccelerate(int);
@@ -122,11 +122,13 @@ enum {
 };
 
 /* mouse.c */
-extern void mousectl(char*[], int);
+extern void mousectl(Cmdbuf*);
 
 /* screen.c */
-extern int		hwaccel;	/* use hw acceleration; default on */
-extern int		hwblank;	/* use hw blanking; default on */
+extern int	hwaccel;	/* use hw acceleration; default on */
+extern int	hwblank;	/* use hw blanking; default on */
+extern void	addvgaseg(char*, ulong, ulong);
+extern uchar*	attachscreen(Rectangle*, ulong*, int*, int*, int*);
 extern void	flushmemscreen(Rectangle);
 extern int	cursoron(int);
 extern void	cursoroff(int);
@@ -138,7 +140,7 @@ extern void	blankscreen(int);
 
 /* devdraw.c */
 extern void	deletescreenimage(void);
-extern int		drawhasclients(void);
+extern int	drawhasclients(void);
 extern ulong	blanktime;
 /* vga.c */
 extern void	vgascreenwin(VGAscr*);

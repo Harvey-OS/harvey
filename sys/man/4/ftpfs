@@ -95,8 +95,8 @@ end.  Normally this can be determined automatically using the
 FTP SYST command.  However, in some cases the server doesn't implement
 the SYST command.  The
 .B -o
-option will force the case by specifyng the name of the operating
-system.  Known systems types are are:
+option will force the case by specifying the name of the operating
+system.  Known system types are are:
 .BR Unix ,
 .BR Sun ,
 .BR Tops ,
@@ -144,7 +144,7 @@ import gateway /net
 ftpfs -a yourname@yourmachine export.lcs.mit.edu
 .EE
 .SH SOURCE
-.B /sys/src/cmd/ftpfs
+.B /sys/src/cmd/ip/ftpfs
 .SH "SEE ALSO"
 .IR bind (2)
 .SH BUGS

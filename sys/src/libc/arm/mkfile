@@ -6,6 +6,7 @@ OFILES=\
 	main9.$O\
 	main9p.$O\
 	argv0.$O\
+	getfcr.$O\
 	setjmp.$O\
 	notejmp.$O\
 	div.$O\
@@ -14,9 +15,9 @@ OFILES=\
 	memmove.$O\
 	memset.$O\
 	strchr.$O\
+	strcpy.$O\
 	strcmp.$O\
 	tas.$O\
-	getfcr.$O\
 
 HFILES=/sys/include/libc.h
 

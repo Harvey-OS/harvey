@@ -218,13 +218,13 @@ void	sugen(Node*, int, Node*, long);
 
 
 void	listinit(void);
-int	Bconv(va_list*, Fconv*);
-int	Pconv(va_list*, Fconv*);
-int	Aconv(va_list*, Fconv*);
-int	Xconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Rconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
+int	Bconv(Fmt*);
+int	Pconv(Fmt*);
+int	Aconv(Fmt*);
+int	Xconv(Fmt*);
+int	Dconv(Fmt*);
+int	Rconv(Fmt*);
+int	Sconv(Fmt*);
 
 void	peep(void);
 void	excise(Reg*);

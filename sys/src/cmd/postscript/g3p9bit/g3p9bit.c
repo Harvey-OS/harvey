@@ -55,7 +55,7 @@ error(char *fmt, ...)
 
 	if(fmt){
 		va_start(arg, fmt);
-		doprint(buf, buf+sizeof buf, fmt, arg);
+		vseprint(buf, buf+sizeof buf, fmt, arg);
 		va_end(arg);
 		fprint(2, "g3: %s\n", buf);
 	}
@@ -74,7 +74,7 @@ main(int argc, char **argv)
 {
 	int y, fd, n, m;
 	char *t;
-	char *file, err[ERRLEN], tbuf[5*12+1];
+	char *file, err[ERRMAX], tbuf[5*12+1];
 	int gray=0;
 	int yscale=1;
 

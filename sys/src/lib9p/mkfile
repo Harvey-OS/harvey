@@ -2,15 +2,21 @@
 
 LIB=/$objtype/lib/lib9p.a
 OFILES=\
+	dirread.$O\
 	fid.$O\
 	file.$O\
 	intmap.$O\
+	mem.$O\
 	req.$O\
+	post.$O\
 	srv.$O\
-	threadsrv.$O\
+	tpost.$O\
 	uid.$O\
 	util.$O\
 
 HFILES=/sys/include/9p.h
 
 </sys/src/cmd/mksyslib
+
+$O.ramfs: ramfs.$O $LIB
+	$LD -o $target $prereq

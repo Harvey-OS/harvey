@@ -1,0 +1,16 @@
+APE=/sys/src/ape
+<$APE/config
+LIB=/$objtype/lib/ape/libap.a
+OFILES=\
+	getgrent.$O\
+	getpwent.$O\
+	locale.$O\
+	mkfifo.$O\
+	pathconf.$O\
+	sigset.$O\
+	sysconf.$O\
+	tzset.$O\
+
+</sys/src/cmd/mksyslib
+
+CFLAGS=-c -D_POSIX_SOURCE

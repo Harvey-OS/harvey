@@ -1,28 +1,27 @@
-/* Copyright (C) 1989, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1989, 1992, 1993, 1994, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: zgeneric.c,v 1.3 2000/09/19 19:00:54 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zgeneric.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
 /* Array/string/dictionary generic operators for PostScript */
 #include "memory_.h"
 #include "ghost.h"
 #include "gsstruct.h"		/* for st_bytes */
 #include "oper.h"
-#include "dstack.h"		/* for systemdict */
 #include "estack.h"		/* for forall */
 #include "iddict.h"
 #include "iname.h"
@@ -238,58 +237,6 @@ str:	    check_write(*op2);
 	    goto str;
 	default:
 	    return_op_typecheck(op2);
-    }
-    pop(3);
-    return 0;
-}
-
-/* <array> <index> <obj> .forceput - */
-/* <dict> <key> <value> .forceput - */
-/*
- * This forces a "put" even if the object is not writable, and (if the
- * object is systemdict or the save level is 0) even if the value is in
- * local VM.  It is meant to be used only for replacing the value of
- * FontDirectory in systemdict when switching between local and global VM,
- * and a few similar applications.  After initialization, this operator
- * should no longer be accessible by name.
- */
-private int
-zforceput(i_ctx_t *i_ctx_p)
-{
-    os_ptr op = osp;
-    os_ptr op1 = op - 1;
-    os_ptr op2 = op - 2;
-    int code;
-
-    switch (r_type(op2)) {
-    case t_array:
-	check_int_ltu(*op1, r_size(op2));
-	if (r_space(op2) > r_space(op)) {
-	    if (imemory_save_level(iimemory))
-		return_error(e_invalidaccess);
-	}
-	{
-	    ref *eltp = op2->value.refs + (uint) op1->value.intval;
-
-	    ref_assign_old(op2, eltp, op, "put");
-	}
-	break;
-    case t_dictionary:
-	if (op2->value.pdict == systemdict->value.pdict ||
-	    !imemory_save_level(iimemory)
-	    ) {
-	    uint space = r_space(op2);
-
-	    r_set_space(op2, avm_local);
-	    code = idict_put(op2, op1, op);
-	    r_set_space(op2, space);
-	} else
-	    code = idict_put(op2, op1, op);
-	if (code < 0)
-	    return code;
-	break;
-    default:
-	return_error(e_typecheck);
     }
     pop(3);
     return 0;
@@ -540,7 +487,6 @@ const op_def zgeneric_op_defs[] =
 {
     {"1copy", zcopy},
     {"2forall", zforall},
-    {"3.forceput", zforceput},
     {"2get", zget},
     {"3getinterval", zgetinterval},
     {"1length", zlength},

@@ -42,6 +42,12 @@ main(int argc, char *argv[])
 		if(c >= 0 && c < sizeof(debug))
 			debug[c]++;
 		break;
+	case 'u':
+		debug['r'] = 1;
+		if(undefsp >= nelem(undefs))
+			diag("too many -u options");
+		undefs[undefsp++] = ARGF();
+		break;
 	case 'o': /* output to (next arg) */
 		outfile = ARGF();
 		break;
@@ -75,6 +81,12 @@ main(int argc, char *argv[])
 	if(*argv == 0) {
 		diag("usage: 8l [-options] objects\n");
 		errorexit();
+	}
+	if(!debug['9'] && debug['r']) {
+		if(INITTEXT == -1)
+			INITTEXT = 0;
+		if(INITRND == -1)
+			INITRND = 4;
 	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
@@ -233,13 +245,17 @@ main(int argc, char *argv[])
 
 	if(INITENTRY == 0) {
 		INITENTRY = "_main";
-		if(debug['p'])
+		if(debug['r'])
+			INITENTRY++;
+		else if(debug['p'])
 			INITENTRY = "_mainp";
 		if(!debug['l'])
 			lookup(INITENTRY, 0)->type = SXREF;
 	} else
 		lookup(INITENTRY, 0)->type = SXREF;
 
+	if(debug['r'])
+		readundefs();
 	while(*argv)
 		objfile(*argv++);
 	if(!debug['l'])
@@ -247,6 +263,7 @@ main(int argc, char *argv[])
 	firstp = firstp->link;
 	if(firstp == P)
 		errorexit();
+	reloc = debug['r'];
 	patch();
 	follow();
 	dodata();
@@ -492,7 +509,7 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 void
 addlib(char *obj)
 {
-	char name[MAXHIST*NAMELEN], comp[4*NAMELEN], *p;
+	char name[1024], comp[256], *p;
 	int i;
 
 	if(histfrogp <= 0)
@@ -514,7 +531,7 @@ addlib(char *obj)
 	}
 
 	for(; i<histfrogp; i++) {
-		snprint(comp, 2*NAMELEN, histfrog[i]->name+1);
+		snprint(comp, sizeof comp, histfrog[i]->name+1);
 		for(;;) {
 			p = strstr(comp, "$O");
 			if(p == 0)
@@ -526,14 +543,14 @@ addlib(char *obj)
 			p = strstr(comp, "$M");
 			if(p == 0)
 				break;
-			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
-			memmove(p, thestring, strlen(thestring));
-			if(strlen(comp) > NAMELEN) {
+			if(strlen(comp)+strlen(thestring)-2+1 >= sizeof comp) {
 				diag("library component too long");
 				return;
 			}
+			memmove(p+strlen(thestring), p+2, strlen(p+2)+1);
+			memmove(p, thestring, strlen(thestring));
 		}
-		if(strlen(comp) > NAMELEN || strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
+		if(strlen(name) + strlen(comp) + 3 >= sizeof(name)) {
 			diag("library component too long");
 			return;
 		}
@@ -873,7 +890,7 @@ loop:
 				skip = 1;
 				goto casdef;
 			}
-			diag("redefinition: %s\n%P\n", s->name, p);
+			diag("%s: redefinition: %s\n%P\n", pn, s->name, p);
 		}
 		s->type = STEXT;
 		s->value = pc;
@@ -1364,4 +1381,37 @@ ieeedtod(Ieee *ieeep)
 	exp = (ieeep->h>>20) & ((1L<<11)-1L);
 	exp -= (1L<<10) - 2L;
 	return ldexp(fr, exp);
+}
+
+void
+readundefs(void)
+{
+	int i, n;
+	Sym *s;
+	Biobuf *b;
+	char *l, buf[256], *fields[5];
+
+	for(i = 0; i < undefsp; i++) {
+		b = Bopen(undefs[i], OREAD);
+		if(b == nil) {
+			diag("could not open %s: %r", undefs[i]);
+			errorexit();
+		}
+		while((l = Brdline(b, '\n')) != nil) {
+			n = Blinelen(b);
+			if(n >= sizeof(buf)) {
+				diag("%s: line too long", undefs[i]);
+				errorexit();
+			}
+			strncpy(buf, l, n);
+			n = getfields(buf, fields, nelem(fields), 1, " \t\r\n");
+			if(n == nelem(fields)) {
+				diag("%s: bad format", undefs[i]);
+				errorexit();
+			}
+			s = lookup(fields[0], 0);
+			s->type = SUNDEF;
+		}
+		Bterm(b);
+	}
 }

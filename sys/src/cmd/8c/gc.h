@@ -177,6 +177,7 @@ EXTERN	long	regbits;
 EXTERN	long	exregbits;
 
 EXTERN	int	change;
+EXTERN	int	suppress;
 
 EXTERN	Reg*	firstr;
 EXTERN	Reg*	lastr;
@@ -198,7 +199,7 @@ void	noretval(int);
 void	usedset(Node*, int);
 void	xcom(Node*);
 void	indx(Node*);
-void	bcomplex(Node*);
+int	bcomplex(Node*, Node*);
 
 /*
  * cgen.c
@@ -263,13 +264,13 @@ void	ieeedtod(Ieee*, double);
  * list
  */
 void	listinit(void);
-int	Pconv(va_list*, Fconv*);
-int	Aconv(va_list*, Fconv*);
-int	Dconv(va_list*, Fconv*);
-int	Sconv(va_list*, Fconv*);
-int	Rconv(va_list*, Fconv*);
-int	Xconv(va_list*, Fconv*);
-int	Bconv(va_list*, Fconv*);
+int	Pconv(Fmt*);
+int	Aconv(Fmt*);
+int	Dconv(Fmt*);
+int	Sconv(Fmt*);
+int	Rconv(Fmt*);
+int	Xconv(Fmt*);
+int	Bconv(Fmt*);
 
 /*
  * reg.c

@@ -48,11 +48,11 @@ case 4
 		cp $spool/$1.1 /n/emelie/lib/nyt/nyt.$3
 		rm -f $spool/$1.*
 	case *
-		{echo $*; echo FAX: page $spool/$1.'*'} | mail `{cat $recipients}
+		{echo $*; echo FAX: page -w $spool/$1.'*'} | mail `{cat $recipients}
 	}
 case 3
-	{echo $*; echo FAX: page $spool/$1.'*'} | mail `{cat $recipients}
+	{echo $*; echo FAX: page -w $spool/$1.'*'} | mail `{cat $recipients}
 case *
-	{echo $*; echo FAX: page $spool/$1.'*'} | mail jmk
+	{echo $*; echo FAX: page -w $spool/$1.'*'} | mail jmk
 }
 exit 0

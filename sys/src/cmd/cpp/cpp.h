@@ -86,6 +86,7 @@ enum errtype { WARNING, ERROR, FATAL };
 void	expandlex(void);
 void	fixlex(void);
 void	setup(int, char **);
+#define gettokens cpp_gettokens
 int	gettokens(Tokenrow *, int);
 int	comparetokens(Tokenrow *, Tokenrow *);
 Source	*setsource(char *, int, char *);

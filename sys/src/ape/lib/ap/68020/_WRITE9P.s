@@ -1,4 +1,0 @@
-TEXT _WRITE9P(SB), 1, $0
-MOVL $37, R0
-TRAP $0
-RTS

@@ -26,7 +26,7 @@ The group numbered 9999, normally called
 .BR noworld ,
 is special
 on the file server.  Any user belonging to that group has
-attenuated access priviledges.  Specifically, when checking such
+attenuated access privileges.  Specifically, when checking such
 a user's access to files, the file's permission bits are first ANDed
 with 0770 for normal files or 0771 for directories.  The effect is
 to deny world access permissions to
@@ -142,3 +142,7 @@ Sean Quinlan,
 .I
 Software \- Practice and Experience,
 December, 1991
+.SH BUGS
+For the moment, the file server serves both the old (third edition) and new (fourth
+edition) versions of 9P, deciding which to serve by sniffing the first packet on each
+connection.

@@ -47,7 +47,7 @@ int	dohttp(URL*, Range*, int, long);
 int	crackurl(URL*, char*);
 Range*	crackrange(char*);
 int	getheader(int, char*, int);
-int	httpheaders(int, URL*, Range*);
+int	httpheaders(int, int, URL*, Range*);
 int	httprcode(int);
 int	cistrncmp(char*, char*, int);
 int	cistrcmp(char*, char*);
@@ -83,7 +83,8 @@ main(int argc, char **argv)
 	URL u;
 	Range r;
 	int fd, errs, n;
-	Dir d;
+	ulong mtime;
+	Dir *d;
 	char postbody[4096], *p, *e, *t;
 
 	ofile = nil;
@@ -91,7 +92,7 @@ main(int argc, char **argv)
 	e = p + sizeof(postbody);
 	r.start = 0;
 	r.end = -1;
-	d.mtime = 0;
+	mtime = 0;
 	memset(&u, 0, sizeof(u));
 
 	ARGBEGIN {
@@ -136,7 +137,8 @@ main(int argc, char **argv)
 
 	fd = 1;
 	if(ofile != nil){
-		if(dirstat(ofile, &d) < 0){
+		d = dirstat(ofile);
+		if(d == nil){
 			fd = create(ofile, OWRITE, 0664);
 			if(fd < 0)
 				sysfatal("creating %s: %r", ofile);
@@ -144,7 +146,9 @@ main(int argc, char **argv)
 			fd = open(ofile, OWRITE);
 			if(fd < 0)
 				sysfatal("can't open %s: %r", ofile);
-			r.start = d.length;
+			r.start = d->length;
+			mtime = d->mtime;
+			free(d);
 		}
 	}
 
@@ -157,7 +161,7 @@ main(int argc, char **argv)
 		/* transfer data */
 		werrstr("");
 		seek(fd, 0, 0);
-		n = (*method[u.method].f)(&u, &r, fd, d.mtime);
+		n = (*method[u.method].f)(&u, &r, fd, mtime);
 
 		switch(n){
 		case Eof:
@@ -270,8 +274,7 @@ catch(void*, char*)
 {
 	Dir d;
 
-	if(dirfstat(note.fd, &d) < 0)
-		sysfatal("catch: can't dirfstat: %r");
+	nulldir(&d);
 	d.mtime = note.mtime;
 	if(dirfwstat(note.fd, &d) < 0)
 		sysfatal("catch: can't dirfwstat: %r");
@@ -281,13 +284,13 @@ catch(void*, char*)
 int
 dohttp(URL *u, Range *r, int out, long mtime)
 {
-	int fd;
+	int fd, cfd;
 	int redirect, loop;
 	int n, rv, code;
 	long tot, vtime;
 	Tm *tm;
 	char buf[1024];
-	char err[ERRLEN];
+	char err[ERRMAX];
 
 
 	/*  always move back to a previous 512 byte bound because some
@@ -331,6 +334,18 @@ dohttp(URL *u, Range *r, int out, long mtime)
 					tm->year+1900, tm->hour, tm->min, tm->sec);
 			}
 		}
+		if((cfd = open("/mnt/webcookies/http", ORDWR)) >= 0){
+			if(fprint(cfd, "http://%s%s", u->host, u->page) > 0){
+				while((n = read(cfd, buf, sizeof buf)) > 0){
+					if(debug)
+						write(2, buf, n);
+					write(fd, buf, n);
+				}
+			}else{
+				close(cfd);
+				cfd = -1;
+			}
+		}
 		dfprint(fd, "\r\n", u->host);
 
 		redirect = 0;
@@ -340,6 +355,7 @@ dohttp(URL *u, Range *r, int out, long mtime)
 		case Error:	/* connection timed out */
 		case Eof:
 			close(fd);
+			close(cfd);
 			return code;
 
 		case 200:	/* OK */
@@ -359,6 +375,7 @@ dohttp(URL *u, Range *r, int out, long mtime)
 		case 301:	/* Moved Permanently */
 		case 302:	/* Moved Temporarily */
 			redirect = 1;
+			u->postbody = nil;
 			break;
 
 		case 304:	/* Not Modified */
@@ -398,7 +415,8 @@ dohttp(URL *u, Range *r, int out, long mtime)
 			u->redirect = nil;
 		}
 
-		rv = httpheaders(fd, u, r);
+		rv = httpheaders(fd, cfd, u, r);
+		close(cfd);
 		if(rv != 0){
 			close(fd);
 			return rv;
@@ -437,16 +455,16 @@ dohttp(URL *u, Range *r, int out, long mtime)
 	notify(nil);
 	close(fd);
 
-	errstr(err);
 	if(ofile != nil && u->mtime != 0){
 		Dir d;
 
-		dirfstat(out, &d);
+		rerrstr(err, sizeof err);
+		nulldir(&d);
 		d.mtime = u->mtime;
 		if(dirfwstat(out, &d) < 0)
 			fprint(2, "couldn't set mtime: %r\n");
+		errstr(err, sizeof err);
 	}
-	errstr(err);
 
 	return tot;
 }
@@ -493,7 +511,7 @@ struct {
 	{ "location:", hhlocation },
 };
 int
-httpheaders(int fd, URL *u, Range *r)
+httpheaders(int fd, int cfd, URL *u, Range *r)
 {
 	char buf[2048];
 	char *p;
@@ -503,6 +521,8 @@ httpheaders(int fd, URL *u, Range *r)
 		n = getheader(fd, buf, sizeof(buf));
 		if(n <= 0)
 			break;
+		if(cfd >= 0)
+			fprint(cfd, "%s\n", buf);
 		for(i = 0; i < nelem(headers); i++){
 			n = strlen(headers[i].name);
 			if(cistrncmp(buf, headers[i].name, n) == 0){
@@ -705,8 +725,8 @@ int ftprestart(int, int, URL*, Range*, long);
 int
 doftp(URL *u, Range *r, int out, long mtime)
 {
-	int pid, ctl, data, rv, wrv;
-	Waitmsg w;
+	int pid, ctl, data, rv;
+	Waitmsg *w;
 	char msg[64];
 	char conndir[NETPATHLEN];
 	char *p;
@@ -767,14 +787,19 @@ doftp(URL *u, Range *r, int out, long mtime)
 	close(ctl);
 
 	/* wait for process to terminate */
+	w = nil;
 	for(;;){
-		wrv = wait(&w);
-		if(wrv < 0)
+		free(w);
+		w = wait();
+		if(w == nil)
 			return Error;
-		if(wrv == pid){
-			if(w.msg[0] == 0)
+		if(w->pid == pid){
+			if(w->msg[0] == 0){
+				free(w);
 				break;
-			werrstr("xfer: %s", w.msg);
+			}
+			werrstr("xfer: %s", w->msg);
+			free(w);
 			return Error;
 		}
 	}
@@ -796,7 +821,7 @@ ftpcmd(int ctl, char *fmt, ...)
 	char buf[2*1024], *s;
 
 	va_start(arg, fmt);
-	s = doprint(buf, buf + (sizeof(buf)-4) / sizeof(*buf), fmt, arg);
+	s = vseprint(buf, buf + (sizeof(buf)-4) / sizeof(*buf), fmt, arg);
 	va_end(arg);
 	if(debug)
 		fprint(2, "%d -> %s\n", ctl, buf);
@@ -1210,7 +1235,7 @@ dfprint(int fd, char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	if(debug)
 		fprint(2, "%d -> %s", fd, buf);

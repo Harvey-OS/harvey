@@ -218,7 +218,7 @@ void	ilsettimeout(Ilcb*);
 char*	ilstart(Conv*, int, int);
 void	ilackproc(void*);
 void	iloutoforder(Conv*, Ilhdr*, Block*);
-void	iliput(Proto*, uchar*, Block*);
+void	iliput(Proto*, Ipifc*, Block*);
 void	iladvise(Proto*, Block*, char*);
 int	ilnextqt(Ilcb*);
 void	ilcbinit(Ilcb*);
@@ -528,7 +528,7 @@ ilackto(Ilcb *ic, ulong ackto, Block *bp)
 }
 
 void
-iliput(Proto *il, uchar*, Block *bp)
+iliput(Proto *il, Ipifc*, Block *bp)
 {
 	char *st;
 	Ilcb *ic;
@@ -537,7 +537,7 @@ iliput(Proto *il, uchar*, Block *bp)
 	uchar laddr[IPaddrlen];
 	ushort sp, dp, csum;
 	int plen, illen;
-	Conv *s;
+	Conv *new, *s;
 	Ilpriv *ipriv;
 
 	ipriv = il->priv;
@@ -596,14 +596,15 @@ iliput(Proto *il, uchar*, Block *bp)
 			goto raise;
 		}
 
-		s = Fsnewcall(s, raddr, dp, laddr, sp);
-		if(s == nil){
+		new = Fsnewcall(s, raddr, dp, laddr, sp);
+		if(new == nil){
 			qunlock(il);
 			netlog(il->f, Logil, "il: bad newcall %I/%ud->%ud\n", raddr, sp, dp);
 			ilsendctl(s, ih, Ilclose, 0, nhgetl(ih->ilid), 0);
 			goto raise;
 		}
-	
+		s = new;
+
 		ic = (Ilcb*)s->ptcl;
 	
 		ic->conv = s;
@@ -1014,6 +1015,10 @@ ilsendctl(Conv *ipc, Ilhdr *inih, int type, ulong id, ulong ack, int ilspec)
 
 	if(ilcksum)
 		hnputs(ih->ilsum, ptclcsum(bp, IL_IPSIZE, IL_HDRSIZE));
+if(ipc==nil)
+	panic("ipc is nil caller is %.8lux", getcallerpc(&ipc));
+if(ipc->p==nil)
+	panic("ipc->p is nil");
 
 	netlog(ipc->p->f, Logilmsg, "ctl(%s id %d ack %d %d->%d)\n",
 		iltype[ih->iltype], nhgetl(ih->ilid), nhgetl(ih->ilack), 
@@ -1218,7 +1223,7 @@ ilstart(Conv *c, int type, int fasttimeout)
 {
 	Ilcb *ic;
 	Ilpriv *ipriv;
-	char kpname[NAMELEN];
+	char kpname[KNAMELEN];
 
 	ipriv = c->p->priv;
 
@@ -1381,7 +1386,7 @@ ilinit(Fs *f)
 	il->inuse = ilinuse;
 	il->gc = nil;
 	il->ipproto = IP_ILPROTO;
-	il->nc = Nchans;
+	il->nc = scalednconv();
 	il->ptclsize = sizeof(Ilcb);
 	Fsproto(f, il);
 }

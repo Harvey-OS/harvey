@@ -40,9 +40,23 @@ An
 with
 .B RFCENVG
 splits and then clears the environment.
+.PP
+The special global environment
+.B #ec
+contains kernel configuration variables,
+such as those set in 
+.IR plan9.ini (8).
+All processes see the same
+.BR #ec ;
+its contents are writable only by the host owner.
+[XXX actually everything is world writable; that's a mistake.]
 .SH SEE ALSO
 .IR rc (1),
-.IR fork (2)
+.IR fork (2),
+.B #c/reboot
+in
+.IR cons (3),
+.IR plan9.ini (8)
 .SH SOURCE
 .B /sys/src/9/port/devenv.c
 .SH BUGS

@@ -3,6 +3,8 @@
 #include	"io.h"
 #include	"ureg.h"
 
+#include	"9p1.h"
+
 void
 machinit(void)
 {
@@ -38,6 +40,7 @@ confinit(void)
 	localconfinit();
 
 	conf.nwpath = conf.nfile*8;
+	conf.nauth = conf.nfile/10;
 	conf.gidspace = conf.nuid*3;
 
 	cons.flags = 0;
@@ -68,7 +71,6 @@ main(void)
 		qunlock(&reflock);
 		serveq = newqueue(1000);
 		raheadq = newqueue(1000);
-		authreply = newqueue(Nqueue);
 
 		mbinit();
 
@@ -85,6 +87,7 @@ main(void)
 		wpaths = ialloc(conf.nwpath * sizeof(*wpaths), 0);
 		uid = ialloc(conf.nuid * sizeof(*uid), 0);
 		gidspace = ialloc(conf.gidspace * sizeof(*gidspace), 0);
+		authinit();
 
 		print("iobufinit\n");
 		iobufinit();
@@ -163,10 +166,9 @@ loop:
 void
 serve(void)
 {
-	Fcall fi, fo;
-	Msgbuf *mb, *mb1;
+	int i;
 	Chan *cp;
-	int t, n;
+	Msgbuf *mb;
 
 loop:
 	qlock(&reflock);
@@ -178,97 +180,28 @@ loop:
 	rlock(&mainlock);
 
 	/*
-	 * conversion to structure and
-	 * simple syntax checks.
 	 */
-	if(convM2S(mb->data, &fi, mb->count) == 0) {
-		print("bad M2S conversion\n");
-		goto error;
+	if(cp->protocol == nil){
+		for(i = 0; fsprotocol[i] != nil; i++){
+			if(fsprotocol[i](mb) == 0)
+				continue;
+			cp->protocol = fsprotocol[i];
+			break;
+		}
+		if(cp->protocol == 0){
+			print("no protocol for message\n");
+			for(i = 0; i < 12; i++)
+				print(" %2.2uX", mb->data[i]);
+			print("\n");
+		}
 	}
-	t = fi.type;
+	else
+		cp->protocol(mb);
 
-	if(t < 0 || t >= MAXSYSCALL || (t&1) || !p9call[t]) {
-		print("bad message type\n");
-		goto error;
-	}
-
-	/*
-	 * allocate reply message
-	 */
-	if(t == Tread) {
-		mb1 = mballoc(MAXMSG+MAXDAT, cp, Mbreply2);
-		fo.data = mb1->data + 8;
-	} else
-		mb1 = mballoc(MAXMSG, cp, Mbreply3);
-
-	/*
-	 * call the file system
-	 */
-	cons.work[0].count++;
-	cons.work[1].count++;
-	cons.work[2].count++;
-	cp->work.count++;
-	cons.rate[0].count += mb->count;
-	cons.rate[1].count += mb->count;
-	cons.rate[2].count += mb->count;
-	cp->rate.count += mb->count;
-	fo.err = 0;
-
-	(*p9call[t])(cp, &fi, &fo);
-
-	fo.type = t+1;
-	fo.tag = fi.tag;
-
-	if(fo.err) {
-		if(cons.flags&errorflag)
-			print("	type %d: error: %s\n", t,
-				errstr[fo.err]);
-		if(CHAT(cp))
-			print("	error: %s\n", errstr[fo.err]);
-		fo.type = Rerror;
-		strncpy(fo.ename, errstr[fo.err], sizeof(fo.ename));
-	}
-
-	n = convS2M(&fo, mb1->data);
-	if(n == 0) {
-		print("bad S2M conversion\n");
-		mbfree(mb1);
-		goto error;
-	}
-	mb1->count = n;
-	mb1->param = mb->param;
-	cons.rate[0].count += n;
-	cons.rate[1].count += n;
-	cons.rate[2].count += n;
-	cp->rate.count += n;
-	send(cp->reply, mb1);
-
-out:
 	mbfree(mb);
 	runlock(&mainlock);
 	runlock(&cp->reflock);
 	goto loop;
-
-error:
-	print("type=%d count=%d\n", mb->data[0], mb->count);
-	print(" %.2x %.2x %.2x %.2x\n",
-		mb->data[1]&0xff, mb->data[2]&0xff,
-		mb->data[3]&0xff, mb->data[4]&0xff);
-	print(" %.2x %.2x %.2x %.2x\n",
-		mb->data[5]&0xff, mb->data[6]&0xff,
-		mb->data[7]&0xff, mb->data[8]&0xff);
-	print(" %.2x %.2x %.2x %.2x\n",
-		mb->data[9]&0xff, mb->data[10]&0xff,
-		mb->data[11]&0xff, mb->data[12]&0xff);
-
-	mb1 = mballoc(3, cp, Mbreply4);
-	mb1->data[0] = Rnop;	/* your nop was ok */
-	mb1->data[1] = ~0;
-	mb1->data[2] = ~0;
-	mb1->count = 3;
-	mb1->param = mb->param;
-	send(cp->reply, mb1);
-	goto out;
 }
 
 void
@@ -359,7 +292,7 @@ recalc:
 	if(!conf.nodump)
 		print("next dump at %T\n", nddate);
 
-	ntoytime = time() + HOUR(1);
+	ntoytime = time();
 
 loop:
 	dt = time() - t;

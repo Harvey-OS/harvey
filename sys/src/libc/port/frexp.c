@@ -27,20 +27,50 @@ frexp(double d, int *ep)
 }
 
 double
-ldexp(double d, int e)
+ldexp(double d, int deltae)
 {
+	int e, bits;
 	FPdbleword x;
+	ulong z;
 
 	if(d == 0)
 		return 0;
 	x.x = d;
-	e += (x.hi >> SHIFT) & MASK;
-	if(e <= 0)
-		return 0;	/* underflow */
-	if(e >= MASK){		/* overflow */
-		if(d < 0)
-			return Inf(-1);
-		return Inf(1);
+	e = (x.hi >> SHIFT) & MASK;
+	if(deltae >= 0 || e+deltae >= 1){	/* no underflow */
+		e += deltae;
+		if(e >= MASK){		/* overflow */
+			if(d < 0)
+				return Inf(-1);
+			return Inf(1);
+		}
+	}else{	/* underflow gracefully */
+		deltae = -deltae;
+		/* need to shift d right deltae */
+		if(e > 1){		/* shift e-1 by exponent manipulation */
+			deltae -= e-1;
+			e = 1;
+		}
+		if(deltae > 0 && e==1){	/* shift 1 by switch from 1.fff to 0.1ff */
+			deltae--;
+			e = 0;
+			x.lo >>= 1;
+			x.lo |= (x.hi&1)<<31;
+			z = x.hi & ((1<<SHIFT)-1);
+			x.hi &= ~((1<<SHIFT)-1);
+			x.hi |= (1<<(SHIFT-1)) | (z>>1);
+		}
+		while(deltae > 0){		/* shift bits down */
+			bits = deltae;
+			if(bits > SHIFT)
+				bits = SHIFT;
+			x.lo >>= bits;
+			x.lo |= (x.hi&((1<<bits)-1)) << (32-bits);
+			z = x.hi & ((1<<SHIFT)-1);
+			x.hi &= ~((1<<SHIFT)-1);
+			x.hi |= z>>bits;
+			deltae -= bits;
+		}
 	}
 	x.hi &= ~(MASK << SHIFT);
 	x.hi |= (long)e << SHIFT;

@@ -80,7 +80,7 @@ printfile(int f)
 				dup(Bfildes(cons), 0);
 				execl("/bin/rc", "rc", "-c", cmd+1, 0);
 			}
-			wait(0);
+			waitpid();
 			goto getcmd;
 		}
 	}

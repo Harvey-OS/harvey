@@ -15,6 +15,9 @@ typedef struct _dirdesc {
 	long	dd_loc;		/* buf offset of entry from last readdir() */
 	long	dd_size;	/* amount of valid data in buffer */
 	char	*dd_buf;	/* directory data buffer */
+	void *dirs;
+	int	dirsize;
+	int	dirloc;
 } DIR;
 
 

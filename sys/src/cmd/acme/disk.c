@@ -2,10 +2,10 @@
 #include <libc.h>
 #include <draw.h>
 #include <thread.h>
+#include <cursor.h>
 #include <mouse.h>
 #include <keyboard.h>
 #include <frame.h>
-#include <auth.h>
 #include <fcall.h>
 #include <plumb.h>
 #include "dat.h"
@@ -16,14 +16,13 @@ static	Block	*blist;
 int
 tempfile(void)
 {
-	char dir[DIRLEN];
 	char buf[128];
 	int i, fd;
 
 	snprint(buf, sizeof buf, "/tmp/X%d.%.4sacme", getpid(), getuser());
 	for(i='A'; i<='Z'; i++){
 		buf[5] = i;
-		if(stat(buf, dir) == 0)
+		if(access(buf, AEXIST) == 0)
 			continue;
 		fd = create(buf, ORDWR|ORCLOSE|OCEXEC, 0600);
 		if(fd >= 0)
@@ -33,7 +32,7 @@ tempfile(void)
 }
 
 Disk*
-diskinit(void)
+diskinit()
 {
 	Disk *d;
 
@@ -41,7 +40,7 @@ diskinit(void)
 	d->fd = tempfile();
 	if(d->fd < 0){
 		fprint(2, "acme: can't create temp file: %r\n");
-		exits("diskinit");
+		threadexitsall("diskinit");
 	}
 	return d;
 }
@@ -113,9 +112,7 @@ diskwrite(Disk *d, Block **bp, Rune *r, uint n)
 		b = disknewblock(d, n);
 		*bp = b;
 	}
-	if(seek(d->fd, b->addr, 0) < 0)
-		error("seek error in temp file");
-	if(write(d->fd, r, n*sizeof(Rune)) != n*sizeof(Rune))
+	if(pwrite(d->fd, r, n*sizeof(Rune), b->addr) != n*sizeof(Rune))
 		error("write error to temp file");
 	b->n = n;
 }
@@ -127,8 +124,6 @@ diskread(Disk *d, Block *b, Rune *r, uint n)
 		error("internal error: diskread");
 
 	ntosize(b->n, nil);
-	if(seek(d->fd, b->addr, 0) < 0)
-		error("seek error in temp file");
-	if(read(d->fd, r, n*sizeof(Rune)) != n*sizeof(Rune))
+	if(pread(d->fd, r, n*sizeof(Rune), b->addr) != n*sizeof(Rune))
 		error("read error from temp file");
 }

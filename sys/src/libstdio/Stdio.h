@@ -105,3 +105,5 @@ extern FILE _IO_stream[FOPEN_MAX];
 FILE *sopenr(const char *);
 FILE *sopenw(void);
 char *sclose(FILE *);
+char	*dtoa(double, int, int, int*, int*, char**);
+void	freedtoa(char*);

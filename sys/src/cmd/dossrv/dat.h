@@ -170,8 +170,10 @@ enum
 	DARCH		= 0x20,
 };
 
-#define	GSHORT(p)	(((p)[1]<<8)|(p)[0])
-#define	GLONG(p)	(((ulong)GSHORT(p+2)<<16)|(ulong)GSHORT(p))
+#define	GSHORT(p)	(((p)[0])|(p)[1]<<8)
+#define	GLONG(p)	(((long)(p)[0])|(p)[1]<<8|(p)[2]<<16|(p)[3]<<24)
+#define PSHORT(p,v)	((p)[0]=(v),(p)[1]=(v)>>8)
+#define PLONG(p,v)	((p)[0]=(v),(p)[1]=(v)>>8,(p)[2]=(v)>>16,(p)[3]=(v)>>24)
 
 struct Dosptr{
 	ulong	addr;		/* sector & entry within of file's directory entry */
@@ -191,6 +193,7 @@ struct Dosptr{
 
 struct Xfs{
 	Xfs	*next;
+	int omode;		/* of file containing external fs */
 	char	*name;		/* of file containing external f.s. */
 	Qid	qid;		/* of file containing external f.s. */
 	long	ref;		/* attach count */
@@ -208,11 +211,15 @@ struct Xfile{
 	ulong	flags;
 	Qid	qid;
 	Xfs	*xf;
-	void	*ptr;
+	Dosptr	*ptr;
 };
 
 enum{
 	Asis, Clean, Clunk
+};
+
+enum{
+	Invalid, Short, ShortLower, Long
 };
 
 enum{	/* Xfile flags */
@@ -226,12 +233,18 @@ enum{
 	Enevermind,
 	Eformat,
 	Eio,
+	Enoauth,
 	Enomem,
 	Enonexist,
 	Eperm,
 	Enofilsys,
 	Eauth,
 	Econtig,
+	Ebadfcall,
+	Ebadstat,
+	Eversion,
+	Etoolong,
+	Eerrstr,
 	ESIZE
 };
 
@@ -239,3 +252,4 @@ extern int	chatty;
 extern int	errno;
 extern int	readonly;
 extern char	*deffile;
+extern int trspaces;

@@ -14,12 +14,12 @@ listinit(void)
 static	Prog	*bigP;
 
 int
-Pconv(va_list *arg, Fconv *fp)
+Pconv(Fmt *fp)
 {
 	char str[STRINGSZ];
 	Prog *p;
 
-	p = va_arg(*arg, Prog*);
+	p = va_arg(fp->args, Prog*);
 	bigP = p;
 	if(p->as == ADATA)
 		sprint(str, "(%ld)	%A	%D/%d,%D",
@@ -39,44 +39,41 @@ Pconv(va_list *arg, Fconv *fp)
 	} else
 		sprint(str, "(%ld)	%A	%D,%D",
 			p->line, p->as, &p->from, &p->to);
-	strconv(str, fp);
 	bigP = P;
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Aconv(va_list *arg, Fconv *fp)
+Aconv(Fmt *fp)
 {
 	int i;
 
-	i = va_arg(*arg, int);
-	strconv(anames[i], fp);
-	return 0;
+	i = va_arg(fp->args, int);
+	return fmtstrcpy(fp, anames[i]);
 }
 
 int
-Xconv(va_list *arg, Fconv *fp)
+Xconv(Fmt *fp)
 {
 	char str[20];
 	int i0, i1;
 
 	str[0] = 0;
-	i0 = va_arg(*arg, int);
-	i1 = va_arg(*arg, int);
+	i0 = va_arg(fp->args, int);
+	i1 = va_arg(fp->args, int);
 	if(i0 != D_NONE)
 		sprint(str, "(%R*%d)", i0, i1);
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Dconv(va_list *arg, Fconv *fp)
+Dconv(Fmt *fp)
 {
 	char str[40], s[20];
 	Adr *a;
 	int i;
 
-	a = va_arg(*arg, Adr*);
+	a = va_arg(fp->args, Adr*);
 	i = a->type;
 	if(i >= D_INDIR) {
 		if(a->offset)
@@ -152,17 +149,16 @@ brk:
 		strcat(str, s);
 	}
 conv:
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Rconv(va_list *arg, Fconv *fp)
+Rconv(Fmt *fp)
 {
 	char str[20];
 	int r;
 
-	r = va_arg(*arg, int);
+	r = va_arg(fp->args, int);
 	if(r >= D_R0 && r < D_R0+32)
 		sprint(str, "R%d", r);
 	else
@@ -171,17 +167,16 @@ Rconv(va_list *arg, Fconv *fp)
 	else
 		sprint(str, "gok(%d)", r);
 
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Sconv(va_list *arg, Fconv *fp)
+Sconv(Fmt *fp)
 {
 	int i, c;
 	char str[30], *p, *a;
 
-	a = va_arg(*arg, char*);
+	a = va_arg(fp->args, char*);
 	p = str;
 	for(i=0; i<sizeof(double); i++) {
 		c = a[i] & 0xff;
@@ -217,8 +212,7 @@ Sconv(va_list *arg, Fconv *fp)
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 void
@@ -231,7 +225,7 @@ diag(char *fmt, ...)
 	if(curtext != P && curtext->from.sym != S)
 		tn = curtext->from.sym->name;
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%s: %s\n", tn, buf);
 

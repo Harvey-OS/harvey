@@ -1,8 +1,8 @@
 </$objtype/mkfile
-CPUS=mips 386
 
 TARG=Mail
 OFILES=\
+		html.$O\
 		mail.$O\
 		mesg.$O\
 		reply.$O\
@@ -21,3 +21,4 @@ $O.out: $OFILES
 syms:V:
 	8c -a mail.c	>syms
 	8c -aa mesg.c reply.c util.c win.c 	>>syms
+

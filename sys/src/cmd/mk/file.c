@@ -5,11 +5,7 @@
 long
 mtime(char *name)
 {
-	Dir sbuf;
-
-	if(mkdirstat(name, &sbuf) < 0)
-		return 0;
-	return sbuf.mtime;
+	return mkmtime(name);
 }
 
 long

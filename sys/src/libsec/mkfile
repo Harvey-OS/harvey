@@ -4,8 +4,15 @@ DIRS=port $CPUS
 
 default:V:	all
 
-install clean nuke all:V:
+install all:V:
 	for(i in port $objtype)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+	}
+
+clean nuke:V:
+	for(i in port 386 alpha arm mips power)@{
 		echo $i
 		cd $i
 		mk $MKFLAGS $target

@@ -5,6 +5,7 @@ TARG=dump9660 mk9660
 OFILES=
 
 DFILES=\
+	boot.$O\
 	cdrdwr.$O\
 	conform.$O\
 	direc.$O\

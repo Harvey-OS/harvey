@@ -8,6 +8,10 @@ timesync \- synchronize the system clock to a time source
 .I accuracy
 ]
 [
+.B -s
+.I netroot
+]
+[
 .B -frnDdLil
 ]
 [
@@ -60,9 +64,21 @@ announces what it would do but doesn't do it.
 This is useful for tracking alternate time sources.
 .TP
 .B -a
-specifies the accuracy in nanoseconds to which the
+specifies the
+.I accuracy
+in nanoseconds to which the
 clock should be synchronized.  This determines
 how often the reference clock is accessed.
+.TP
+.B -s
+causes
+.I timesync
+to listen for UDP NTP requests on the
+network rooted at
+.IR netroot .
+Up to 4
+.B -s
+options are allowed.
 .TP
 .B -l
 turns on logging to

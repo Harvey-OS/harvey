@@ -20,7 +20,7 @@ tail \- deliver the last part of a file
 ]
 [
 .B -c
-.I ncharacters
+.I nbytes
 ]
 [
 .I file
@@ -37,7 +37,7 @@ measured from the beginning, or
 .BI - number
 from the end of the input.
 .I Number
-is counted in lines, 1K blocks or characters,
+is counted in lines, 1K blocks or bytes,
 according to the appended flag
 .LR l ,
 .LR b ,
@@ -81,4 +81,7 @@ are limited in length.
 According to custom, option
 .BI + number
 counts lines from 1, and counts
-blocks and characters from 0.
+blocks and bytes from 0.
+.br
+.I Tail
+is ignorant of UTF.

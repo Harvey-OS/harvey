@@ -77,7 +77,7 @@ are:
 .B p9
 This is the default.  Authentication is done using the standard Plan 9
 mechanisms, (see
-.IR auth (6)).
+.IR authsrv (6)).
 No user interaction is required.
 .TP
 .B netkey
@@ -97,7 +97,7 @@ user.
 .PP
 The
 .B -e
-option specifies an encrytion and/or hash algorithm to
+option specifies an encryption and/or hash algorithm to
 use for the connection.  If both are specified, they must
 be space separated and comprise a single argument, so they
 must be quoted if in a shell command.  The default is

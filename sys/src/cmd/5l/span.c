@@ -12,10 +12,10 @@ void
 span(void)
 {
 	Prog *p;
-	Sym *setext;
+	Sym *setext, *s;
 	Optab *o;
-	int m, bflag;
-	long c, otxt;
+	int m, bflag, i;
+	long c, otxt, v;
 
 	if(debug['v'])
 		Bprint(&bso, "%5.2f span\n", cputime());
@@ -114,6 +114,24 @@ span(void)
 			c += m;
 		}
 	}
+
+	if(debug['t']) {
+		/* 
+		 * add strings to text segment
+		 */
+		c = rnd(c, 8);
+		for(i=0; i<NHASH; i++)
+		for(s = hash[i]; s != S; s = s->link) {
+			if(s->type != SSTRING)
+				continue;
+			v = s->value;
+			while(v & 3)
+				v++;
+			s->value = c;
+			c += v;
+		}
+	}
+
 	c = rnd(c, 8);
 
 	setext = lookup("etext", 0);
@@ -150,7 +168,8 @@ flushpool(Prog *p, int skip)
 
 	if(blitrl) {
 		if(skip){
-			if(skip==1)print("note: flush literal pool at %lux: len=%lud ref=%lux\n", p->pc+4, pool.size, pool.start);
+			if(debug['v'] && skip == 1)
+				print("note: flush literal pool at %lux: len=%lud ref=%lux\n", p->pc+4, pool.size, pool.start);
 			q = prg();
 			q->as = AB;
 			q->to.type = D_BRANCH;
@@ -320,13 +339,30 @@ aclass(Adr *a)
 				print("%D\n", a);
 				return C_GOK;
 			}
-			t = a->sym->type;
+			s = a->sym;
+			t = s->type;
 			if(t == 0 || t == SXREF) {
 				diag("undefined external: %s in %s\n",
-					a->sym->name, TNAME);
-				a->sym->type = SDATA;
+					s->name, TNAME);
+				s->type = SDATA;
 			}
-			instoffset = a->sym->value + a->offset - BIG;
+			if(reloc) {
+				switch(t) {
+				default:
+					instoffset = s->value + a->offset + INITDAT;
+					break;
+				case STEXT:
+					if(s->value == -1)
+						undefsym(s);
+				case SCONST:
+				case SLEAF:
+				case SSTRING:
+					instoffset = s->value + a->offset;
+					break;
+				}
+				return C_ADDR;
+			}
+			instoffset = s->value + a->offset - BIG;
 			t = immaddr(instoffset);
 			if(t) {
 				if(immhalf(instoffset))
@@ -396,8 +432,11 @@ aclass(Adr *a)
 				s->type = SDATA;
 			}
 			instoffset = s->value + a->offset + INITDAT;
-			if(s->type == STEXT || s->type == SLEAF)
+			if(s->type == STEXT || s->type == SLEAF) {
+				if(s->value == -1)
+					undefsym(s);
 				instoffset = s->value + a->offset;
+			}
 			return C_LCON;
 		}
 		return C_GOK;
@@ -434,16 +473,21 @@ aclass(Adr *a)
 					s->name, TNAME);
 				s->type = SDATA;
 				break;
-			case SCONST:
 			case STEXT:
+				if(s->value == -1)
+					undefsym(s);
+			case SSTRING:
+			case SCONST:
 			case SLEAF:
 				instoffset = s->value + a->offset;
 				return C_LCON;
 			}
-			instoffset = s->value + a->offset - BIG;
-			t = immrot(instoffset);
-			if(t && instoffset != 0)
-				return C_RECON;
+			if(!reloc) {
+				instoffset = s->value + a->offset - BIG;
+				t = immrot(instoffset);
+				if(t && instoffset != 0)
+					return C_RECON;
+			}
 			instoffset = s->value + a->offset + INITDAT;
 			return C_LCON;
 

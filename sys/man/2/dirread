@@ -1,13 +1,22 @@
 .TH DIRREAD 2
 .SH NAME
-dirread \- read directory
+dirread, dirreadall \- read directory
 .SH SYNOPSIS
 .B #include <u.h>
 .br
 .B #include <libc.h>
 .PP
 .B
-int dirread(int fd, Dir *buf, long nbytes)
+long dirread(int fd, Dir **buf)
+.PP
+.B
+long dirreadall(int fd, Dir **buf)
+.PP
+.B
+#define	STATMAX	65535U
+.PP
+.B
+#define	DIRMAX	(sizeof(Dir)+STATMAX)
 .SH DESCRIPTION
 The data returned by a
 .IR read (2)
@@ -20,37 +29,58 @@ on each file or subdirectory in the directory.
 decodes the directory entries into a machine-dependent form.
 It reads from
 .IR fd
-and unpacks the data into
+and unpacks the data into an array of
 .B Dir
-structures in
-.I buf
+structures
+whose address is returned in
+.B *buf
 (see
 .IR stat (2)
 for the layout of a
 .BR Dir ).
-.I Nbytes
-is the size of
-.BR buf ;
-it should be a multiple of
-.BR sizeof(Dir) .
-Directory entries have length
-.B DIRLEN
-(defined in
-.BR <libc.h> )
-in machine-independent form.
+The array is allocated with
+.IR malloc (2)
+each time
+.I dirread
+is called.
+.PP
+.I Dirreadall
+is like
+.IR dirread ,
+but reads in the entire directory; by contrast,
+.I dirread
+steps through a directory one
+.IR read (2)
+at a time.
+.PP
+Directory entries have variable length.
 A successful
 .I read
-of a directory always returns a multiple of
-.BR DIRLEN ;
+of a directory always returns an integral number of complete directory entries;
 .I dirread
-always returns a multiple of
-.BR sizeof(Dir) .
+always returns complete
+.B Dir
+structures.
+See
+.IR read (5)
+for more information.
+.PP
+The constant
+.B STATMAX
+is the maximum size that a directory entry can occupy.
+The constant
+.B DIRMAX
+is an upper limit on the size necessary to hold a
+.B Dir
+structure and all the associated data.
 .PP
 .I Dirread
-returns the number of bytes filled in
-.BR buf ;
-the number returned may be
-less than the number requested.
+and
+.I dirreadall
+return the number of
+.B Dir
+structures filled in
+.BR buf .
 The file offset is advanced by the number of bytes actually read.
 .SH SOURCE
 .B /sys/src/libc/9sys/dirread.c
@@ -59,5 +89,15 @@ The file offset is advanced by the number of bytes actually read.
 .IR open (2),
 .IR read (2)
 .SH DIAGNOSTICS
-Sets
+.I Dirread
+and
+.I Dirreadall
+return zero for end of file and a negative value for error.
+In either case,
+.B *buf
+is set to
+.B nil
+so the pointer can always be freed with impunity.
+.PP
+These functions set
 .IR errstr .

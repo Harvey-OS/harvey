@@ -1,0 +1,13 @@
+#!/bin/rc
+
+p=`{ps | grep $1 | sed 's/[^ ]* +([^ ]+) .*/\1/' }
+while(! ~ $#p 1) {
+	sleep 1
+	p=`{ps | grep $1 | sed 's/[^ ]* +([^ ]+) .*/\1/'}
+}
+p=$p(1)
+
+{
+	while(test -f /proc/$p/fd)
+		grep '^ *'^$2^' ' /proc/$p/fd >[2]/dev/null
+} | awk '{print $9 " '^$3^'"; fflush("/dev/stdout")}' | bargraph -w 145,129,445,168 $4

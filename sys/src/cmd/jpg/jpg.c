@@ -213,13 +213,13 @@ vidmerge(Rawimage **aa1, Rawimage **aa2)
 			free(a1->chans[c]);
 			free(a2->chans[c]);
 		}
-		if (a2->cmap) free(a2->cmap);
+		if(a2->cmap != nil)
+			free(a2->cmap);
 		free(a1);
 		free(a2);
 	}	
-	if (aa2[i] != nil){
+	if (aa2[i] != nil)
 		fprint(2, "jpg: vidmerge: unequal lengths\n");
-	}
 	free(aa1);
 	free(aa2);
 	return aao;

@@ -8,7 +8,7 @@
 void
 moveto(Mousectl *m, Point pt)
 {
-	_drawprint(m->mfd, "m%d %d", pt.x, pt.y);
+	fprint(m->mfd, "m%d %d", pt.x, pt.y);
 	m->xy = pt;
 }
 
@@ -20,11 +20,7 @@ closemouse(Mousectl *mc)
 
 	postnote(PNPROC, mc->pid, "kill");
 
-#ifdef BUG
-	/* Drain the channel */
-	while(?mc->c)
-		<-mc->c;
-#endif
+	do; while(nbrecv(mc->c, &mc->Mouse) > 0);
 
 	close(mc->mfd);
 	close(mc->cfd);
@@ -40,7 +36,7 @@ readmouse(Mousectl *mc)
 	if(mc->image)
 		flushimage(mc->image->display, 1);
 	if(recv(mc->c, &mc->Mouse) < 0){
-		_drawprint(2, "readmouse: %r\n");
+		fprint(2, "readmouse: %r\n");
 		return -1;
 	}
 	return 0;
@@ -64,7 +60,8 @@ ioproc(void *arg)
 	for(;;){
 		n = read(mc->mfd, buf, sizeof buf);
 		if(n != 1+4*12){
-			_drawprint(2, "mouse: bad count %d not 49: %r\n", n);
+			yield();	/* if error is due to exiting, we'll exit here */
+			fprint(2, "mouse: bad count %d not 49: %r\n", n);
 			if(n<0 || ++nerr>10)
 				threadexits("read error");
 			continue;
@@ -122,7 +119,7 @@ initmouse(char *file, Image *i)
 	mc->image = i;
 	mc->c = chancreate(sizeof(Mouse), 0);
 	mc->resizec = chancreate(sizeof(int), 2);
-	proccreate(ioproc, mc, 8192);
+	proccreate(ioproc, mc, 4096);
 	return mc;
 }
 

@@ -76,7 +76,7 @@ printinputstackrev(Input *in)
 	if(in == nil)
 		return;
 	printinputstackrev(in->next);
-	threadprint(2, "%s:%d: ", in->file, in->lineno);
+	fprint(2, "%s:%d: ", in->file, in->lineno);
 }
 
 void

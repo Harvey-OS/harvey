@@ -1,0 +1,23 @@
+#!/bin/rc
+
+sleep 86400 &
+cd /bin/inst
+. defs
+fn sigint { }
+
+coherence
+
+disks=`{ls /dev/sd*/data >[2]/dev/null | sed 's!/dev/(sd..)/data!\1!'}
+for (i in /dev/sd*/data)
+	if(test -f $i)
+		disk/fdisk -p $i>`{basename -d $i}^/ctl >[2]/dev/null
+for(i in /dev/sd*/plan9*)
+	if(test -f $i)
+		disk/prep -p $i >`{basename -d $i}^/ctl >[2]/dev/null
+
+# we run this while() here so that ctl-d won''t exit from us -- it''ll only exit main!
+# main contains a while() loop too, to avoid the hit of 
+# continually reexecing from here.
+
+while()
+	main

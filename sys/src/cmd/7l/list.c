@@ -18,13 +18,13 @@ prasm(Prog *p)
 }
 
 int
-Pconv(va_list *arg, Fconv *fp)
+Pconv(Fmt *fp)
 {
 	char str[STRINGSZ];
 	Prog *p;
 	int a;
 
-	p = va_arg(*arg, Prog*);
+	p = va_arg(fp->args, Prog*);
 	curp = p;
 	a = p->as;
 	if(a == ADATA)
@@ -41,32 +41,30 @@ Pconv(va_list *arg, Fconv *fp)
 	else
 		sprint(str, "(%ld)	%A	%D,F%d,%D",
 			p->line, a, &p->from, p->reg, &p->to);
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Aconv(va_list *arg, Fconv *fp)
+Aconv(Fmt *fp)
 {
 	char *s;
 	int a;
 
-	a = va_arg(*arg, int);
+	a = va_arg(fp->args, int);
 	s = "???";
 	if(a >= AXXX && a <= AEND)
 		s = anames[a];
-	strconv(s, fp);
-	return 0;
+	return fmtstrcpy(fp, s);
 }
 
 int
-Dconv(va_list *arg, Fconv *fp)
+Dconv(Fmt *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	long v;
 
-	a = va_arg(*arg, Adr*);
+	a = va_arg(fp->args, Adr*);
 	switch(a->type) {
 
 	default:
@@ -140,18 +138,17 @@ Dconv(va_list *arg, Fconv *fp)
 		sprint(str, "$\"%S\"", a->sval);
 		break;
 	}
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Nconv(va_list *arg, Fconv *fp)
+Nconv(Fmt *fp)
 {
 	char str[STRINGSZ];
 	Adr *a;
 	Sym *s;
 
-	a = va_arg(*arg, Adr*);
+	a = va_arg(fp->args, Adr*);
 	s = a->sym;
 	if(s == S) {
 		sprint(str, "%lld", a->offset);
@@ -183,17 +180,16 @@ Nconv(va_list *arg, Fconv *fp)
 		break;
 	}
 out:
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 int
-Sconv(va_list *arg, Fconv *fp)
+Sconv(Fmt *fp)
 {
 	int i, c;
 	char str[STRINGSZ], *p, *a;
 
-	a = va_arg(*arg, char*);
+	a = va_arg(fp->args, char*);
 	p = str;
 	for(i=0; i<sizeof(long); i++) {
 		c = a[i] & 0xff;
@@ -225,8 +221,7 @@ Sconv(va_list *arg, Fconv *fp)
 		*p++ = (c & 7) + '0';
 	}
 	*p = 0;
-	strconv(str, fp);
-	return 0;
+	return fmtstrcpy(fp, str);
 }
 
 void
@@ -239,7 +234,7 @@ diag(char *fmt, ...)
 	if(curtext != P && curtext->from.sym != S)
 		tn = curtext->from.sym->name;
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	print("%s: %s\n", tn, buf);
 

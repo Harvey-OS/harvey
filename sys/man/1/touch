@@ -6,12 +6,18 @@ touch \- set modification date of a file
 [
 .B -c
 ]
+[
+.B -t
+.I time
+]
 .I file ...
 .SH DESCRIPTION
 .I Touch
 attempts to set the modification time of the
 .I files
-to the current time.
+to 
+.I time
+(by default, the current time).
 If a
 .I file
 does not exist,

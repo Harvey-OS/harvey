@@ -180,14 +180,15 @@ msgFile(Msg *m, char *f)
 	Msg *parent, *p;
 	Dir d;
 	Tm tm;
-	char buf[64], dbuf[DIRLEN];
+	char buf[64], nbuf[2];
+	uchar dbuf[64];
 	int i, n, fd, fd1, fd2;
 
 	if(!m->bogus
 	|| strcmp(f, "") != 0 && strcmp(f, "rawbody") != 0
 	&& strcmp(f, "rawheader") != 0 && strcmp(f, "mimeheader") != 0
 	&& strcmp(f, "info") != 0){
-		if(strlen(f) > NAMELEN)
+		if(strlen(f) > MsgNameLen)
 			bye("internal error: msgFile name too long");
 		strcpy(m->efs, f);
 		return cdOpen(m->fsDir, m->fs, OREAD);
@@ -223,12 +224,15 @@ msgFile(Msg *m, char *f)
 		 * all we care about is the name
 		 */
 		if(parent == nil){
-			memset(&d, 0, sizeof(Dir));
-			d.mode = CHDIR|0600;
+			nulldir(&d);
+			d.mode = DMDIR|0600;
+			d.qid.type = QTDIR;
+			d.name = nbuf;
+			nbuf[1] = '\0';
 			for(i = '1'; i <= '4'; i++){
-				d.name[0] = i;
-				n = convD2M(&d, dbuf);
-				if(n != DIRLEN)
+				nbuf[0] = i;
+				n = convD2M(&d, dbuf, sizeof(dbuf));
+				if(n <= BIT16SZ)
 					fprint(2, "bad convD2M %d\n", n);
 				write(fd, dbuf, n);
 			}
@@ -343,12 +347,10 @@ msgIsRfc822(Header *h)
 void
 msgDead(Msg *m)
 {
-	Dir d;
-
 	if(m->expunged)
 		return;
 	*m->efs = '\0';
-	if(cdDirstat(m->fsDir, m->fs, &d) < 0)
+	if(!cdExists(m->fsDir, m->fs))
 		m->expunged = 1;
 }
 
@@ -395,7 +397,7 @@ int
 msgStruct(Msg *m, int top)
 {
 	Msg *k, head, *last;
-	Dir d[NDirs];
+	Dir *d;
 	char *s;
 	ulong max, id;
 	int i, nd, fd, ns;
@@ -408,7 +410,7 @@ msgStruct(Msg *m, int top)
 	|| !msgUnix(m, top)
 	|| !msgBodySize(m)
 	|| !msgHeader(m, &m->mime, "mimeheader")
-	|| (top || msgIsRfc822(&m->mime)) && !msgHeader(m, &m->head, "rawheader")){
+	|| (top || msgIsRfc822(&m->mime) || msgIsMulti(&m->mime)) && !msgHeader(m, &m->head, "rawheader")){
 		if(top && m->bogus && !(m->bogus & BogusTried)){
 			m->bogus |= BogusTried;
 			return msgStruct(m, top);
@@ -420,14 +422,14 @@ msgStruct(Msg *m, int top)
 	/*
 	 * if a message has no kids, it has a kid which is just the body of the real message
 	 */
-	if(!msgIsMulti(&m->head) && !msgIsRfc822(&m->head) && !msgIsRfc822(&m->mime)){
+	if(!msgIsMulti(&m->head) && !msgIsMulti(&m->mime) && !msgIsRfc822(&m->head) && !msgIsRfc822(&m->mime)){
 		k = MKZ(Msg);
 		k->id = 1;
 		k->fsDir = m->fsDir;
 		k->bogus = m->bogus;
 		k->parent = m->parent;
 		ns = m->efs - m->fs;
-		k->fs = emalloc(ns + NAMELEN+1);
+		k->fs = emalloc(ns + (MsgNameLen + 1));
 		memmove(k->fs, m->fs, ns);
 		k->efs = k->fs + ns;
 		*k->efs = '\0';
@@ -448,13 +450,12 @@ msgStruct(Msg *m, int top)
 	max = 0;
 	head.next = nil;
 	last = &head;
-	while((nd = dirread(fd, d, sizeof(Dir) * NDirs)) >= sizeof(Dir)){
-		nd /= sizeof(Dir);
+	while((nd = dirread(fd, &d)) > 0){
 		for(i = 0; i < nd; i++){
 			s = d[i].name;
 			id = strtol(s, &s, 10);
 			if(id <= max || *s != '\0'
-			|| (d[i].mode & CHDIR) != CHDIR)
+			|| (d[i].mode & DMDIR) != DMDIR)
 				continue;
 
 			max = id;
@@ -464,9 +465,9 @@ msgStruct(Msg *m, int top)
 			k->fsDir = m->fsDir;
 			k->bogus = m->bogus;
 			k->parent = m;
-			ns = strlen(m->fs) + 2*(NAMELEN+1);
-			k->fs = emalloc(ns);
-			k->efs = seprint(k->fs, k->fs + ns, "%s%lud/", m->fs, id);
+			ns = strlen(m->fs);
+			k->fs = emalloc(ns + 2 * (MsgNameLen + 1));
+			k->efs = seprint(k->fs, k->fs + ns + (MsgNameLen + 1), "%s%lud/", m->fs, id);
 			k->prev = last;
 			k->size = ~0UL;
 			k->lines = ~0UL;
@@ -478,9 +479,9 @@ msgStruct(Msg *m, int top)
 	m->kids = head.next;
 
 	/*
-	 * if kids fail, just wack them
+	 * if kids fail, just whack them
 	 */
-	top = top && msgIsRfc822(&m->head);
+	top = top && (msgIsRfc822(&m->head) || msgIsMulti(&m->head));
 	for(k = m->kids; k != nil; k = k->next){
 		if(!msgStruct(k, top)){
 			for(k = m->kids; k != nil; ){
@@ -498,15 +499,16 @@ msgStruct(Msg *m, int top)
 static long
 msgReadFile(Msg *m, char *file, char **ss)
 {
-	Dir d;
+	Dir *d;
 	char *s, buf[BufSize];
+	vlong length;
 	long n, nn;
 	int fd;
 
 	fd = msgFile(m, file);
 	if(fd < 0){
 		msgDead(m);
-		return 0;
+		return -1;
 	}
 
 	n = read(fd, buf, BufSize);
@@ -523,19 +525,22 @@ msgReadFile(Msg *m, char *file, char **ss)
 		return n;
 	}
 
-	if(dirfstat(fd, &d) < 0){
+	d = dirfstat(fd);
+	if(d == nil){
 		close(fd);
-		return 0;
+		return -1;
 	}
-	nn = d.length;
+	length = d->length;
+	free(d);
+	nn = length;
 	s = emalloc(nn + 1);
 	memmove(s, buf, n);
 	if(nn > n)
-		nn = read(fd, s+n, nn-n) + n;
+		nn = readn(fd, s+n, nn-n) + n;
 	close(fd);
-	if(nn != d.length){
+	if(nn != length){
 		free(s);
-		return 0;
+		return -1;
 	}
 	s[nn] = '\0';
 	*ss = s;
@@ -576,7 +581,7 @@ msgBogus(Msg *m, int flags)
 }
 
 /*
- *  stolen from upas/marshall; base64 encodes from one fd to another.
+ *  stolen from upas/marshal; base64 encodes from one fd to another.
  *
  *  the size of buf is very important to enc64.  Anything other than
  *  a multiple of 3 will cause enc64 to output a termination sequence.
@@ -653,13 +658,14 @@ bodystrip(int in, int out)
 }
 
 /*
- * read in the message body to count \n without a preceeding \r
+ * read in the message body to count \n without a preceding \r
  */
 static int
 msgBodySize(Msg *m)
 {
-	Dir d;
+	Dir *d;
 	char buf[BufSize + 2], *s, *se;
+	vlong length;
 	ulong size, lines, bad;
 	int n, fd, c;
 
@@ -668,10 +674,13 @@ msgBodySize(Msg *m)
 	fd = msgFile(m, "rawbody");
 	if(fd < 0)
 		return 0;
-	if(dirfstat(fd, &d) < 0){
+	d = dirfstat(fd);
+	if(d == nil){
 		close(fd);
 		return 0;
 	}
+	length = d->length;
+	free(d);
 
 	size = 0;
 	lines = 0;
@@ -697,7 +706,7 @@ msgBodySize(Msg *m)
 		}
 		buf[0] = buf[n];
 	}
-	if(size != d.length)
+	if(size != length)
 		bye("bad length reading rawbody");
 	size += bad;
 	m->size = size;
@@ -1332,7 +1341,7 @@ headAddrSpec(char *e, char *w)
 
 /*
  * find the ! in domain!rest, where domain must have at least
- * on internal '.'
+ * one internal '.'
  */
 static char*
 domBang(char *s)

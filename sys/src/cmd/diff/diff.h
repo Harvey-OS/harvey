@@ -4,6 +4,7 @@ char rflag;			/* recurse down directory trees */
 char mflag;			/* pseudo flag: doing multiple files, one dir */
 int anychange;
 extern Biobuf	stdout;
+extern int	binary;
 
 #define MALLOC(t, n)		((t *)emalloc((n)*sizeof(t)))
 #define REALLOC(p, t, n)	((t *)erealloc((void *)(p), (n)*sizeof(t)))
@@ -21,3 +22,4 @@ Biobuf *prepare(int, char *);
 void panic(int, char *, ...);
 void check(Biobuf *, Biobuf *);
 void change(int, int, int, int);
+

@@ -1,22 +1,22 @@
 /* Copyright (C) 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
 
-/*$Id: zdpnext.c,v 1.3 2000/09/21 15:12:01 rayjj Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zdpnext.c,v 1.1 2000/03/09 08:40:44 lpd Exp $ */
 /* NeXT Display PostScript extensions */
 #include "math_.h"
 #include "ghost.h"
@@ -96,7 +96,7 @@ typedef struct alpha_composite_state_s {
 /* Forward references */
 private int begin_composite(P2(i_ctx_t *, alpha_composite_state_t *));
 private void end_composite(P2(i_ctx_t *, alpha_composite_state_t *));
-private int xywh_param(P2(os_ptr, double[4]));
+private int rect_param(P2(os_ptr, double[4]));
 
 /* <width> <height> <bits/comp> <matrix> */
 /*      <datasrc_0> ... <datasrc_ncomp-1> true <ncomp> alphaimage - */
@@ -115,7 +115,7 @@ zcompositerect(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
     double dest_rect[4];
     alpha_composite_state_t cstate;
-    int code = xywh_param(op - 1, dest_rect);
+    int code = rect_param(op - 1, dest_rect);
 
     if (code < 0)
 	return code;
@@ -147,7 +147,7 @@ composite_image(i_ctx_t *i_ctx_p, const gs_composite_alpha_params_t * params)
     double src_rect[4];
     double dest_pt[2];
     gs_matrix save_ctm;
-    int code = xywh_param(op - 4, src_rect);
+    int code = rect_param(op - 4, src_rect);
 
     cstate.params = *params;
     gs_image2_t_init(&image);
@@ -351,7 +351,7 @@ const op_def zdpnext_op_defs[] =
 
 /* Collect a rect operand. */
 private int
-xywh_param(os_ptr op, double rect[4])
+rect_param(os_ptr op, double rect[4])
 {
     int code = num_params(op, 4, rect);
 

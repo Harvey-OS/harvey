@@ -5,32 +5,12 @@
 #include	"fns.h"
 #include	"io.h"
 
-/*
- *  There are 2 coherence calls in this file, before each putcr3() (mmuflushtlb
- *  is really a putcr3() call).  They are there because of my IBM 570 and ehg's
- *  IBM 600E.  We found that when the coherence() instructions were removed from
- *  unlock and iunlock, the processors would hang and/or get spurious interrupts.
- *  I posited that we were getting hit by some interaction between the tlb,
- *  cache flushing, and tlb flushing, so I moved the calls here and it seems
- *  to work.
- *
- *  I don't really understand why they'ld change anything since the putcr3 is
- *  supposed to be a serializing instruction.  Also, reads and writes are supposed
- *  to be ordered in the view of the processing core.  This is just desperation.
- *  I can only believe that the coherence() is fixing something else.
- *
- *  The 570 is a Celeron and the 600E is a PentiumII/Xeon.  Both screw up when
- *  pounding on PCMCIA devices.
- *
- *  -- presotto
- */
-
 #define	DATASEGM(p) 	{ 0xFFFF, SEGG|SEGB|(0xF<<16)|SEGP|SEGPL(p)|SEGDATA|SEGW }
 #define	EXECSEGM(p) 	{ 0xFFFF, SEGG|SEGD|(0xF<<16)|SEGP|SEGPL(p)|SEGEXEC|SEGR }
 #define	TSSSEGM(b,p)	{ ((b)<<16)|sizeof(Tss),\
 			  ((b)&0xFF000000)|(((b)>>16)&0xFF)|SEGTSS|SEGPL(p)|SEGP }
 
-Segdesc gdt[6] =
+Segdesc gdt[NGDT] =
 {
 [NULLSEG]	{ 0, 0},		/* null descriptor */
 [KDSEG]		DATASEGM(0),		/* kernel data/stack */
@@ -39,9 +19,6 @@ Segdesc gdt[6] =
 [UESEG]		EXECSEGM(3),		/* user code */
 [TSSSEG]	TSSSEGM(0,0),		/* tss segment */
 };
-
-#define PDX(va)		((((ulong)(va))>>22) & 0x03FF)
-#define PTX(va)		((((ulong)(va))>>12) & 0x03FF)
 
 static void
 taskswitch(ulong pdb, ulong stack)
@@ -56,8 +33,48 @@ taskswitch(ulong pdb, ulong stack)
 	tss->ss2 = KDSEL;
 	tss->esp2 = stack;
 	tss->cr3 = pdb;
-	coherence();	// *** See note at beginning of file ***
 	putcr3(pdb);
+}
+
+/* 
+ * On processors that support it, we set the PTEGLOBAL bit in
+ * page table and page directory entries that map kernel memory.
+ * Doing this tells the processor not to bother flushing them
+ * from the TLB when doing the TLB flush associated with a 
+ * context switch (write to CR3).  Since kernel memory mappings
+ * are never removed, this is safe.  (If we ever remove kernel memory
+ * mappings, we can do a full flush by turning off the PGE bit in CR4,
+ * writing to CR3, and then turning the PGE bit back on.) 
+ *
+ * See also mmukmap below.
+ * 
+ * Processor support for the PTEGLOBAL bit is enabled in devarch.c.
+ */
+static void
+memglobal(void)
+{
+	int i, j;
+	ulong *pde, *pte;
+
+	/* only need to do this once, on bootstrap processor */
+	if(m->machno != 0)
+		return;
+
+	if(!m->havepge)
+		return;
+
+	pde = m->pdb;
+	for(i=512; i<1024; i++){	/* 512: start at entry for virtual 0x80000000 */
+		if(pde[i] & PTEVALID){
+			pde[i] |= PTEGLOBAL;
+			if(!(pde[i] & PTESIZE)){
+				pte = KADDR(pde[i]&~(BY2PG-1));
+				for(j=0; j<1024; j++)
+					if(pte[j] & PTEVALID)
+						pte[j] |= PTEGLOBAL;
+			}
+		}
+	}			
 }
 
 void
@@ -66,21 +83,33 @@ mmuinit(void)
 	ulong x, *p;
 	ushort ptr[3];
 
+	memglobal();
+
 	m->tss = malloc(sizeof(Tss));
 	memset(m->tss, 0, sizeof(Tss));
 
-	memmove(m->gdt, gdt, sizeof(m->gdt));
+	/*
+	 * We used to keep the GDT in the Mach structure, but it
+	 * turns out that that slows down access to the rest of the
+	 * page.  Since the Mach structure is accessed quite often,
+	 * it pays off anywhere from a factor of 1.25 to 2 on real
+	 * hardware to separate them (the AMDs are more sensitive
+	 * than Intels in this regard).  Under VMware it pays off
+	 * a factor of about 10 to 100.
+	 */
+
+	memmove(m->gdt, gdt, sizeof gdt);
 	x = (ulong)m->tss;
 	m->gdt[TSSSEG].d0 = (x<<16)|sizeof(Tss);
 	m->gdt[TSSSEG].d1 = (x&0xFF000000)|((x>>16)&0xFF)|SEGTSS|SEGPL(0)|SEGP;
 
-	ptr[0] = sizeof(m->gdt);
+	ptr[0] = sizeof(gdt)-1;
 	x = (ulong)m->gdt;
 	ptr[1] = x & 0xFFFF;
 	ptr[2] = (x>>16) & 0xFFFF;
 	lgdt(ptr);
 
-	ptr[0] = sizeof(Segdesc)*256;
+	ptr[0] = sizeof(Segdesc)*256-1;
 	x = IDTADDR;
 	ptr[1] = x & 0xFFFF;
 	ptr[2] = (x>>16) & 0xFFFF;
@@ -247,7 +276,6 @@ putmmu(ulong va, ulong pa, Page*)
 
 	s = splhi();
 	pdb[PDX(MACHADDR)] = m->pdb[PDX(MACHADDR)];
-	coherence();	// *** See note at beginning of file ***
 	mmuflushtlb(up->mmupdb->pa);
 	splx(s);
 }
@@ -278,7 +306,7 @@ mmuwalk(ulong* pdb, ulong va, int level, int create)
 
 	case 2:
 		if(*table & PTESIZE)
-			panic("mmuwalk2: va %uX entry %uX\n", va, *table);
+			panic("mmuwalk2: va %luX entry %luX\n", va, *table);
 		if(!(*table & PTEVALID)){
 			pa = PADDR(xspanalloc(BY2PG, BY2PG, 0));
 			*table = pa|PTEWRITE|PTEVALID;
@@ -365,7 +393,7 @@ mmukmap(ulong pa, ulong va, int size)
 				 */
 				x = PPN(*table);
 				if(x != pa)
-					panic("mmukmap1: pa %uX  entry %uX\n",
+					panic("mmukmap1: pa %luX  entry %luX\n",
 						pa, *table);
 				x += 4*MB;
 				if(pae <= x){
@@ -388,7 +416,7 @@ mmukmap(ulong pa, ulong va, int size)
 				if(pte && *pte & PTEVALID){
 					x = PPN(*pte);
 					if(x != pa)
-						panic("mmukmap2: pa %uX entry %uX\n",
+						panic("mmukmap2: pa %luX entry %luX\n",
 							pa, *pte);
 					pgsz = BY2PG;
 					pa += pgsz;
@@ -405,14 +433,24 @@ mmukmap(ulong pa, ulong va, int size)
 		 * starts on a 4MB boundary, size >= 4MB and processor can do it.
 		 * If not a big page, walk the walk, talk the talk.
 		 * Sync is set.
+		 *
+		 * If we're creating a kernel mapping, we know that it will never
+		 * expire and thus we can set the PTEGLOBAL bit to make the entry
+	 	 * persist in the TLB across flushes.  If we do add support later for
+		 * unmapping kernel addresses, see devarch.c for instructions on
+		 * how to do a full TLB flush.
 		 */
 		if(pse && (pa % (4*MB)) == 0 && (pae >= pa+4*MB)){
 			*table = pa|PTESIZE|PTEWRITE|PTEUNCACHED|PTEVALID;
+			if((va&KZERO) && m->havepge)
+				*table |= PTEGLOBAL;
 			pgsz = 4*MB;
 		}
 		else{
 			pte = mmuwalk(mach0->pdb, va, 2, 1);
 			*pte = pa|PTEWRITE|PTEUNCACHED|PTEVALID;
+			if((va&KZERO) && m->havepge)
+				*pte |= PTEGLOBAL;
 			pgsz = BY2PG;
 		}
 		pa += pgsz;

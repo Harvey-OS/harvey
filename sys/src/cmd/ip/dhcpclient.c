@@ -39,7 +39,7 @@ struct {
 	ulong	timeout;	/* time to timeout - seconds */
 } dhcp;
 
-char	net[2*NAMELEN];
+char	net[64];
 
 char optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
 
@@ -58,9 +58,9 @@ main(int argc, char *argv[])
 		setnetmtpt(net, sizeof(net), p);
 	}ARGEND;
 
-	fmtinstall('E', eipconv);
-	fmtinstall('I', eipconv);
-	fmtinstall('V', eipconv);
+	fmtinstall('E', eipfmt);
+	fmtinstall('I', eipfmt);
+	fmtinstall('V', eipfmt);
 
 	dhcpinit();
 	
@@ -646,7 +646,7 @@ myfatal(char *fmt, ...)
 	va_list arg;
 
 	va_start(arg, fmt);
-	doprint(buf, buf+sizeof(buf), fmt, arg);
+	vseprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
 	fprint(2, "%s: %s\n", argv0, buf);
 	postnote(PNGROUP, getpid(), "die");

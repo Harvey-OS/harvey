@@ -118,6 +118,35 @@ enum {					/* type 1 pre-defined header */
 	PciBCR		= 0x3E,		/* bridge control register */
 };
 
+enum {					/* type 2 pre-defined header */
+	PciCBExCA	= 0x10,
+	PciCBSPSR	= 0x16,
+	PciCBPBN	= 0x18,		/* primary bus number */
+	PciCBSBN	= 0x19,		/* secondary bus number */
+	PciCBUBN	= 0x1A,		/* subordinate bus number */
+	PciCBSLTR	= 0x1B,		/* secondary latency timer */
+	PciCBMBR0	= 0x1C,
+	PciCBMLR0	= 0x20,
+	PciCBMBR1	= 0x24,
+	PciCBMLR1	= 0x28,
+	PciCBIBR0	= 0x2C,		/* I/O base */
+	PciCBILR0	= 0x30,		/* I/O limit */
+	PciCBIBR1	= 0x34,		/* I/O base */
+	PciCBILR1	= 0x38,		/* I/O limit */
+	PciCBBCTL	= 0x3E,		/* Bridhe control */
+	PciCBSVID	= 0x40,		/* subsystem vendor ID */
+	PciCBSID	= 0x42,		/* subsystem ID */
+	PciCBLMBAR	= 0x44,		/* legacy mode base address */
+};
+
+typedef struct Pcisiz Pcisiz;
+struct Pcisiz
+{
+	Pcidev*	dev;
+	int	siz;
+	int	bar;
+};
+
 typedef struct Pcidev Pcidev;
 typedef struct Pcidev {
 	int	tbdf;			/* type+bus+device+function */
@@ -134,14 +163,27 @@ typedef struct Pcidev {
 		int	size;
 	} mem[6];
 
+	struct {
+		ulong	bar;
+		int	size;
+	} rom;
 	uchar	intl;			/* interrupt line */
 
 	Pcidev*	list;
 	Pcidev*	bridge;			/* down a bus */
 	Pcidev*	link;			/* next device on this bno */
+	struct {
+		ulong	bar;
+		int	size;
+	} ioa, mema;
 
 	ulong	pcr;
 };
+
+#define PCIWINDOW	0
+#define PCIWADDR(va)	(PADDR(va)+PCIWINDOW)
+#define ISAWINDOW	0
+#define ISAWADDR(va)	(PADDR(va)+ISAWINDOW)
 
 /*
  * PCMCIA support code.

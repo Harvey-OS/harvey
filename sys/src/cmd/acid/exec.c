@@ -28,7 +28,7 @@ error(char *fmt, ...)
 		silent = 0;
 	else {
 		va_start(arg, fmt);
-		doprint(buf, buf+sizeof(buf), fmt, arg);
+		vseprint(buf, buf+sizeof(buf), fmt, arg);
 		va_end(arg);
 		fprint(2, "%L: (error) %s\n", buf);
 	}
@@ -66,6 +66,7 @@ execute(Node *n)
 	Node res, xx;
 	static int stmnt;
 
+	gc();
 	if(gotint)
 		error("interrupted");
 

@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+LIB=\
+	cache.$O\
+	fs.$O\
+	file.$O\
+	source.$O\
+	error.$O\
+
+HFILES=\
+	/sys/include/venti.h\
+	stdinc.h\
+	vac.h\
+	dat.h\
+	fns.h\
+
+TARG=vacfs vac
+BIN=/$objtype/bin
+
+default:V: all test
+
+test:V: $O.srcload $O.wtest $O.rtest $O.vtdump $O.vtread
+
+</sys/src/cmd/mkmany

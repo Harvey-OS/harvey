@@ -1,8 +1,6 @@
 #pragma src "/sys/src/libdraw"
 #pragma lib "libdraw.a"
 
-#pragma	varargck	argpos	_drawprint	2
-
 typedef struct	Cachefont Cachefont;
 typedef struct	Cacheinfo Cacheinfo;
 typedef struct	Cachesubf Cachesubf;
@@ -19,8 +17,8 @@ typedef struct	Subfont Subfont;
 
 #pragma varargck	type	"R"	Rectangle
 #pragma varargck	type	"P"	Point
-extern	int	Rconv(va_list*, Fconv*);
-extern	int	Pconv(va_list*, Fconv*);
+extern	int	Rfmt(Fmt*);
+extern	int	Pfmt(Fmt*);
 
 enum
 {
@@ -82,6 +80,29 @@ enum
 };
 
 #define	ARROW(a, b, c)	(Endarrow|((a)<<5)|((b)<<14)|((c)<<23))
+
+/*
+ * Porter-Duff operators
+ */
+enum
+{
+	Clear	= 0,
+
+	SinD	= 8,
+	DinS	= 4,
+	SoutD	= 2,
+	DoutS	= 1,
+
+	S		= SinD|SoutD,
+	SoverD	= SinD|SoutD|DoutS,
+	SatopD	= SinD|DoutS,
+	SxorD	= SoutD|DoutS,
+
+	D		= DinS|DoutS,
+	DoverS	= DinS|DoutS|SoutD,
+	DatopS	= DinS|SoutD,
+	DxorS	= DoutS|SoutD,	/* == SxorD */
+};
 
 /*
  * image channel descriptors 
@@ -156,8 +177,6 @@ struct Display
 	int		ctlfd;
 	int		imageid;
 	int		local;
-	int		depth;
-	ulong	chan;
 	void		(*error)(Display*, char*);
 	char		*devdir;
 	char		*windir;
@@ -165,14 +184,17 @@ struct Display
 	ulong		dataqid;
 	Image		*white;
 	Image		*black;
-	Image		*image;
 	Image		*opaque;
 	Image		*transparent;
-	uchar		buf[Displaybufsize+1];	/* +1 for flush message */
+	Image		*image;
+	uchar		*buf;
+	int			bufsize;
 	uchar		*bufp;
 	Font		*defaultfont;
 	Subfont		*defaultsubfont;
 	Image		*windows;
+	Image		*screenimage;
+	int			_isnewdisplay;
 };
 
 struct Image
@@ -299,7 +321,6 @@ extern uchar*	bufimage(Display*, int);
 extern int	bytesperline(Rectangle, int);
 extern void	closedisplay(Display*);
 extern void	drawerror(Display*, char*);
-extern int	_drawprint(int, char*, ...);
 extern int	flushimage(Display*, int);
 extern int	freeimage(Image*);
 extern int	_freeimage1(Image*);
@@ -455,13 +476,15 @@ extern	int	_drawdebug;	/* set to 1 to see errors from flushimage */
 #define	BPLONG(p, v)		(BPSHORT(p, (v)), BPSHORT(p+2, (v)>>16))
 
 /*
- * Compressed image file parameters
+ * Compressed image file parameters and helper routines
  */
 #define	NMATCH	3		/* shortest match possible */
 #define	NRUN	(NMATCH+31)	/* longest match possible */
 #define	NMEM	1024		/* window size */
 #define	NDUMP	128		/* maximum length of dump */
 #define	NCBLOCK	6000		/* size of compressed blocks */
+extern	void	_twiddlecompressed(uchar*, int);
+extern	int	_compblocksize(Rectangle, int);
 
 /* XXX backwards helps; should go */
 extern	int		log2[];

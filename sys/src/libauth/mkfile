@@ -1,36 +1,22 @@
 </$objtype/mkfile
 
-
 LIB=/$objtype/lib/libauth.a
 OFILES=\
 	amount.$O\
-	apopchal.$O\
-	auth.$O\
-	authdial.$O\
-	authenticate.$O\
-	convT2M.$O\
-	convA2M.$O\
-	convTR2M.$O\
-	convPR2M.$O\
-	convM2A.$O\
-	convM2T.$O\
-	convM2TR.$O\
-	convM2PR.$O\
-	getchal.$O\
+	amount_getkey.$O\
+	attr.$O\
+	auth_attr.$O\
+	auth_challenge.$O\
+	auth_chuid.$O\
+	auth_getkey.$O\
+	auth_getuserpasswd.$O\
+	auth_proxy.$O\
+	auth_respond.$O\
+	auth_rpc.$O\
+	auth_userpasswd.$O\
 	login.$O\
-	passtokey.$O\
-	opasstokey.$O\
-	nvcsum.$O\
 	newns.$O\
-	srvauth.$O\
-	httpauth.$O\
-	vncchal.$O\
 	noworld.$O\
-	_asreadn.$O\
-	_asgetticket.$O\
-	_asrdfile.$O\
-	_asrdresp.$O\
-
 
 HFILES=/sys/include/auth.h
 

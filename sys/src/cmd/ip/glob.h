@@ -1,10 +1,16 @@
 typedef struct Glob Glob;
+typedef struct Globlist Globlist;
 
 struct Glob{
-	char *glob;
-	Glob *next;
+	String	*glob;
+	Glob	*next;
 };
 
-extern Glob*	glob(char *p);
-extern void	globfree(Glob*);
-extern void	globadd(char*);
+struct Globlist{
+	Glob	*first;
+	Glob	**l;
+};
+
+extern	Globlist*	glob(char*);
+extern	void		globadd(Globlist*, char*, char*);
+extern	void		globlistfree(Globlist *gl);

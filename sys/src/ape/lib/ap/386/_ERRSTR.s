@@ -1,4 +1,0 @@
-TEXT _ERRSTR(SB), 1, $0
-MOVL $1, AX
-INT $64
-RET

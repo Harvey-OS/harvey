@@ -8,18 +8,20 @@ openfont(Display *d, char *name)
 	Font *fnt;
 	int fd, i, n;
 	char *buf;
-	Dir dir;
+	Dir *dir;
 
 	fd = open(name, OREAD);
 	if(fd < 0)
 		return 0;
 
-	if(dirfstat(fd, &dir) < 0){
+	dir = dirfstat(fd);
+	if(dir == nil){
     Err0:
 		close(fd);
 		return 0;
 	}
-	n = dir.length;
+	n = dir->length;
+	free(dir);
 	buf = malloc(n+1);
 	if(buf == 0)
 		goto Err0;

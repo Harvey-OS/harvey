@@ -6,7 +6,6 @@ typedef uchar		Byte4LM[4];
 typedef uchar		Byte4L[4];
 typedef uchar		Byte4M[4];
 typedef uchar		Byte8LM[8];
-typedef struct Isofile	Isofile;
 typedef union Drec	Drec;
 typedef union Voldesc	Voldesc;
 
@@ -126,10 +125,6 @@ union	Drec
 		uchar	r_pad[24];
 		uchar	r_flags;
 	};
-	struct
-	{
-		uchar	namepad[NAMELEN+1];
-	};
 };
 
 struct	Isofile
@@ -137,6 +132,7 @@ struct	Isofile
 	short	fmt;		/* 'z' if iso, 'r' if high sierra */
 	short	blksize;
 	long	offset;		/* true offset when reading directory */
+	long odelta;	/* true size of directory just read */
 	long	doffset;	/* plan9 offset when reading directory */
 	Drec	d;
 };

@@ -1,5 +1,5 @@
 @echo off
-@rem $Id: ps2pdf13.bat,v 1.4 2000/07/24 15:12:21 lpd Exp $
+@rem $Id: ps2pdf13.bat,v 1.3 2000/03/14 20:20:20 lpd Exp $
 
 rem Convert PostScript to PDF 1.3 (Acrobat 4-and-later compatible).
 
@@ -12,4 +12,4 @@ echo %1 >>_.at
 shift
 :bot
 if not "%3"=="" goto top
-call ps2pdfxx %1 %2
+ps2pdfxx %1 %2

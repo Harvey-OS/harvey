@@ -31,26 +31,6 @@ Devcall devcall[MAXDEV] = {
 	[Devwren]	{wreninit, wrenream, wrencheck, wrensuper, wrenroot, wrensize, wrenread, wrenwrite},
 };
 
-void
-(*p9call[MAXSYSCALL])(Chan*, Fcall*, Fcall*) =
-{
-	[Tnop]		f_nop,
-	[Tsession]	f_session,
-	[Tflush]	f_flush,
-	[Tattach]	f_attach,
-	[Tclone]	f_clone,
-	[Twalk]		f_walk,
-	[Topen]		f_open,
-	[Tcreate]	f_create,
-	[Tread]		f_read,
-	[Twrite]	f_write,
-	[Tclunk]	f_clunk,
-	[Tremove]	f_remove,
-	[Tstat]		f_stat,
-	[Twstat]	f_wstat,
-	[Tclwalk]	f_clwalk,
-};
-
 char*	tagnames[] =
 {
 	[Tbuck]		"Tbuck",
@@ -74,7 +54,8 @@ char	*errstring[MAXERR] =
 	[Ecount]	"read/write -- count too big",
 	[Ealloc]	"phase error -- directory entry not allocated",
 	[Eqid]		"phase error -- qid does not match",
-	[Eauth]		"no authentication",
+	[Eauth]		"authentication failed",
+	[Eauthmsg]	"kfs: authentication not required",
 	[Eaccess]	"access permission denied",
 	[Eentry]	"directory entry not found",
 	[Emode]		"open/create -- unknown mode",
@@ -87,6 +68,9 @@ char	*errstring[MAXERR] =
 	[Ebadu]		"attach -- privileged user",
 	[Enotu]		"wstat -- not owner",
 	[Enotg]		"wstat -- not in group",
+	[Enotl]		"wstat -- attempt to change length",
+	[Enotd]		"wstat -- attempt to change directory",
+	[Enotm]		"wstat -- unknown type/mode",
 	[Ename]		"create/wstat -- bad character in file name",
 	[Ewalk]		"walk -- too many (system wide)",
 	[Eronly]	"file system read only",
@@ -94,4 +78,10 @@ char	*errstring[MAXERR] =
 	[Eoffset]	"read/write -- offset negative",
 	[Elocked]	"open/create -- file is locked",
 	[Ebroken]	"close/read/write -- lock is broken",
+	[Efidinuse]	"fid already in use",
+	[Etoolong]	"name too long",
+	[Ersc]	"it's russ's fault.  bug him.",
+	[Econvert]	"protocol botch",
+	[Eqidmode]	"wstat -- qid.type/dir.mode mismatch",
+	[Esystem]	"kfs system error",
 };

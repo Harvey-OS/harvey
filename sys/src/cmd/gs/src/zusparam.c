@@ -1,22 +1,22 @@
-/* Copyright (C) 1996, 2000 Aladdin Enterprises.  All rights reserved.
-  
-  This file is part of AFPL Ghostscript.
-  
-  AFPL Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author or
-  distributor accepts any responsibility for the consequences of using it, or
-  for whether it serves any particular purpose or works at all, unless he or
-  she says so in writing.  Refer to the Aladdin Free Public License (the
-  "License") for full details.
-  
-  Every copy of AFPL Ghostscript must include a copy of the License, normally
-  in a plain ASCII text file named PUBLIC.  The License grants you the right
-  to copy, modify and redistribute AFPL Ghostscript, but only under certain
-  conditions described in the License.  Among other things, the License
-  requires that the copyright notice and this notice be preserved on all
-  copies.
-*/
+/* Copyright (C) 1996, 1997, 1998, 1999 Aladdin Enterprises.  All rights reserved.
 
-/*$Id: zusparam.c,v 1.3 2000/09/19 19:00:55 lpd Exp $ */
+   This file is part of Aladdin Ghostscript.
+
+   Aladdin Ghostscript is distributed with NO WARRANTY OF ANY KIND.  No author
+   or distributor accepts any responsibility for the consequences of using it,
+   or for whether it serves any particular purpose or works at all, unless he
+   or she says so in writing.  Refer to the Aladdin Ghostscript Free Public
+   License (the "License") for full details.
+
+   Every copy of Aladdin Ghostscript must include a copy of the License,
+   normally in a plain ASCII text file named PUBLIC.  The License grants you
+   the right to copy, modify and redistribute Aladdin Ghostscript, but only
+   under certain conditions described in the License.  Among other things, the
+   License requires that the copyright notice and this notice be preserved on
+   all copies.
+ */
+
+/*$Id: zusparam.c,v 1.1 2000/03/09 08:40:45 lpd Exp $ */
 /* User and system parameter operators */
 #include "memory_.h"
 #include "string_.h"
@@ -35,7 +35,6 @@
 #include "iparam.h"
 #include "dstack.h"
 #include "iname.h"
-#include "itoken.h"
 #include "iutil2.h"
 #include "ivmem2.h"
 #include "store.h"
@@ -481,12 +480,8 @@ zsetuserparams(i_ctx_t *i_ctx_p)
     os_ptr op = osp;
     int code = set_user_params(i_ctx_p, op);
 
-    if (code >= 0) {
-	/* Update cached scanner options. */
-	i_ctx_p->scanner_options =
-	    ztoken_scanner_options(op, i_ctx_p->scanner_options);
+    if (code >= 0)
 	pop(1);
-    }
     return code;
 }
 

@@ -1,0 +1,80 @@
+# files like NOTICE
+*	- sys sys
+
+# adm owns adm
+adm	- adm adm
+	+	- adm adm
+
+# upas owns mail
+mail	- upas upas
+	box	- upas upas
+		glenda	- glenda glenda
+			+	- glenda glenda
+	faxoutqueue	- upas upas
+	faxqueue	- upas upas
+		+	- upas upas
+	fs	- upas upas
+	lib	- upas upas
+		+	- upas upas
+	queue	- upas upas
+	tmp	- upas upas
+
+# glenda owns her home directory
+usr	- sys sys
+	glenda	- glenda glenda
+		+	- glenda glenda
+
+# architectures owned by sys
+29000	- sys sys
+	+	- sys sys
+386	- sys sys
+	+	- sys sys
+68000	- sys sys
+	+	- sys sys
+68020	- sys sys
+	+	- sys sys
+960	- sys sys
+	+	- sys sys
+alpha	- sys sys
+	+	- sys sys
+arm	- sys sys
+	+	- sys sys
+mips	- sys sys
+	+	- sys sys
+power	- sys sys
+	+	- sys sys
+sparc	- sys sys
+	+	- sys sys
+
+# everything else is owned by sys
+acme	- sys sys
+	+	- sys sys
+cron	- sys sys
+	upas	- upas sys
+fd	- sys sys
+	+	- sys sys
+env	- sys sys
+	+	- sys sys
+lib	- sys sys
+	+	- sys sys
+lp	- sys sys
+	+	- sys sys
+mnt	- sys sys
+	+	- sys sys
+n	- sys sys
+	+	- sys sys
+rc	- sys sys
+	+	- sys sys
+sys	- sys sys
+	+	- sys sys
+tmp	- sys sys
+	+	- sys sys
+
+# distribution metadata
+dist	- sys sys
+	replica	- sys sys
+		kfs	- sys sys
+		cd	- sys sys
+		network	- sys sys
+		plan9.proto	- sys sys
+

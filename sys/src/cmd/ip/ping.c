@@ -117,16 +117,17 @@ sender(int fd, int msglen, int interval, int n)
 {
 	char buf[64*1024+512];
 	Icmp *ip;
-	int i, j;
+	int i;
 	Req *r;
 	ushort seq;
-	ulong randn;
 
 	ip = (Icmp*)buf;
 
 	srand(time(0));
 	seq = rand();
 
+	for(i = 32; i < msglen; i++)
+		buf[i] = i;
 	ip->type = EchoRequest;
 	ip->code = 0;
 
@@ -139,11 +140,6 @@ sender(int fd, int msglen, int interval, int n)
 			ip->seq[1] = seq>>8;
 			r->seq = seq;
 			r->next = nil;
-			randn = seq;
-			for(j = 32; j < msglen; j++) {
-				randn = randn*1103515245 + 12345;
-				buf[j] = randn>>24;
-			}
 			lock(&listlock);
 			if(first == nil)
 				first = r;
@@ -171,7 +167,6 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 	int i, n, munged;
 	vlong now;
 	Req *r;
-	ulong randn;
 
 	ip = (Icmp*)buf;
 	sum = 0;
@@ -187,16 +182,13 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 			print("bad len %d/%d\n", n, msglen);
 			continue;
 		}
-		x = (ip->seq[1]<<8)|ip->seq[0];
 		munged = 0;
-		randn = x;
-		for(i = 32; i < msglen; i++) {
-			randn = randn*1103515245 + 12345;
-			if(buf[i] != (randn>>24))
+		for(i = 32; i < msglen; i++)
+			if(buf[i] != (i&0xff))
 				munged++;
-		}
 		if(munged)
-			print("corrupted reply\n");
+			print("currupted reply\n");
+		x = (ip->seq[1]<<8)|ip->seq[0];
 		if(ip->type != EchoReply || ip->code != 0) {
 			print("bad sequence/code/type %d/%d/%d\n",
 				ip->type, ip->code, x);
@@ -219,7 +211,6 @@ main(int argc, char **argv)
 {
 	int fd;
 	int msglen, interval, nmsg;
-	Waitmsg w;
 
 	nsec();		/* make sure time file is already open */
 
@@ -270,7 +261,7 @@ main(int argc, char **argv)
 		exits(0);
 	default:
 		sender(fd, msglen, interval, nmsg);
-		wait(&w);
+		wait();
 		exits(0);
 	}
 }

@@ -10,13 +10,26 @@ static Xfs	*xhead;
 static Xfile	*xfiles[FIDMOD], *freelist;
 static MLock	xlock, xlocks[FIDMOD], freelock;
 
-Xfs *
-getxfs(char *name)
+static int
+okmode(int omode, int fmode)
 {
-	int fd; Dir dir; Xfs *xf, *fxf;
+	if(omode == OREAD)
+		return fmode & 4;
+	/* else ORDWR */
+	return (fmode & 6) == 6;
+}
+
+Xfs *
+getxfs(char *user, char *name)
+{
+	Xfs *xf, *fxf;
+	Dir *dir;
+	Qid dqid;
 	char *p, *q;
 	long offset;
+	int fd, omode;
 
+	USED(user);
 	if(name==nil || name[0]==0)
 		name = deffile;
 	if(name == nil){
@@ -43,16 +56,31 @@ getxfs(char *name)
 		offset *= Sectorsize;
 	}
 
-	fd = open(name, ORDWR);
+	if(readonly)
+		omode = OREAD;
+	else
+		omode = ORDWR;
+	fd = open(name, omode);
+
+	if(fd < 0 && omode==ORDWR){
+		omode = OREAD;
+		fd = open(name, omode);
+	}
+
 	if(fd < 0){
-		errno = Enonexist;
+		chat("can't open %s: %r\n", name);
+		errno = Eerrstr;
 		return 0;
 	}
-	if(dirfstat(fd, &dir) < 0){
+	dir = dirfstat(fd);
+	if(dir == nil){
 		errno = Eio;
 		close(fd);
 		return 0;
 	}
+
+	dqid = dir->qid;
+	free(dir);
 	mlock(&xlock);
 	for(fxf=0,xf=xhead; xf; xf=xf->next){
 		if(xf->ref == 0){
@@ -60,7 +88,7 @@ getxfs(char *name)
 				fxf = xf;
 			continue;
 		}
-		if(xf->qid.path != dir.qid.path || xf->qid.vers != dir.qid.vers)
+		if(!eqqid(xf->qid, dqid))
 			continue;
 		if(strcmp(xf->name, name) != 0 || xf->dev < 0)
 			continue;
@@ -88,12 +116,13 @@ getxfs(char *name)
 	chat("alloc \"%s\", dev=%d...", name, fd);
 	fxf->name = strdup(name);
 	fxf->ref = 1;
-	fxf->qid = dir.qid;
+	fxf->qid = dqid;
 	fxf->dev = fd;
 	fxf->fmt = 0;
 	fxf->offset = offset;
 	fxf->ptr = nil;
 	fxf->isfat32 = 0;
+	fxf->omode = omode;
 	unmlock(&xlock);
 	return fxf;
 }
@@ -178,7 +207,7 @@ xfile(int fid, int flag)
 	unmlock(&xlocks[k]);
 	f->fid = fid;
 	f->flags = 0;
-	f->qid = (Qid){0,0};
+	f->qid = (Qid){0,0,0};
 	f->xf = nil;
 	f->ptr = nil;
 	return f;
@@ -196,7 +225,7 @@ clean(Xfile *f)
 		f->xf = nil;
 	}
 	f->flags = 0;
-	f->qid = (Qid){0,0};
+	f->qid = (Qid){0,0,0};
 	return f;
 }
 

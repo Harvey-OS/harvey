@@ -40,8 +40,7 @@ _envsetup(void)
 	int fdinited;
 	char *ps, *p;
 	char **pp;
-	char cd[DIRLEN];
-	Dir db;
+	Dir *d9;
 
 	nohandle = 0;
 	fdinited = 0;
@@ -57,11 +56,11 @@ _envsetup(void)
 	psize = Envhunk;
 	while((de = readdir(d)) != NULL){
 		strcpy(name+3, de->d_name);
-		if(_STAT(name, cd) < 0)
+		if((d9 = _dirstat(name)) == nil)
 			continue;
-		convM2D(cd, &db);
 		n = strlen(de->d_name);
-		m = db.length;
+		m = d9->length;
+		free(d9);
 		i = p - ps;
 		if(i+n+1+m+1 > psize) {
 			psize += (n+m+2 < Envhunk)? Envhunk : n+m+2;

@@ -23,7 +23,7 @@ child processes in user code, and child processes in system calls.
 .I Cputime
 returns the sum of those same times, converted to seconds.
 .I Times
-returns the real time, in milliseconds used by the process so far.
+returns the elapsed real time, in milliseconds, that the process has been running.
 .PP
 These functions read
 .BR /dev/cputime ,

@@ -68,7 +68,7 @@ static	void	initheaders(void);
 static void	parseattachments(Message*, Mailbox*);
 
 int		debug;
-char		stdmbox[4*NAMELEN];
+char		stdmbox[Pathlen];
 
 char *Enotme = "path not served by this file server";
 
@@ -163,8 +163,8 @@ newmbox(char *path, char *name, int std)
 
 	qlock(mb);
 	if(mb->ctl){
-		henter(CHDIR|PATH(mb->id, Qmbox), "ctl",
-			(Qid){PATH(mb->id, Qmboxctl), 0}, nil, mb);
+		henter(PATH(mb->id, Qmbox), "ctl",
+			(Qid){PATH(mb->id, Qmboxctl), 0, QTFILE}, nil, mb);
 	}
 	rv = syncmbox(mb, 0);
 	qunlock(mb);
@@ -184,7 +184,7 @@ freembox(char *name)
 			mboxdecref(mb);
 			break;
 		}
-	hfree(CHDIR|PATH(0, Qtop), name);
+	hfree(PATH(0, Qtop), name);
 	qunlock(&mbllock);
 }
 
@@ -235,15 +235,15 @@ parseheaders(Message *m, int justmime, Mailbox *mb)
 	int i;
 
 	if(m->whole == m->whole->whole){
-		henter(CHDIR|PATH(mb->id, Qmbox), m->name,
-			(Qid){CHDIR|PATH(m->id, Qdir), 0}, m, mb);
+		henter(PATH(mb->id, Qmbox), m->name,
+			(Qid){PATH(m->id, Qdir), 0, QTDIR}, m, mb);
 	} else {
-		henter(CHDIR|PATH(m->whole->id, Qdir), m->name,
-			(Qid){CHDIR|PATH(m->id, Qdir), 0}, m, mb);
+		henter(PATH(m->whole->id, Qdir), m->name,
+			(Qid){PATH(m->id, Qdir), 0, QTDIR}, m, mb);
 	}
 	for(i = 0; i < Qmax; i++)
-		henter(CHDIR|PATH(m->id, Qdir), dirtab[i],
-			(Qid){PATH(m->id, i), 0}, m, mb);
+		henter(PATH(m->id, Qdir), dirtab[i],
+			(Qid){PATH(m->id, i), 0, QTFILE}, m, mb);
 
 	// parse mime headers
 	p = m->header;
@@ -299,6 +299,8 @@ parseheaders(Message *m, int justmime, Mailbox *mb)
 			m->unixdate = date822tounix(s_to_c(m->date822));
 	}
 
+	if(m->unixheader != nil)
+		s_free(m->unixheader);
 	m->unixheader = s_copy("From ");
 	if(m->unixfrom)
 		s_append(m->unixheader, s_to_c(m->unixfrom));
@@ -316,20 +318,39 @@ parseheaders(Message *m, int justmime, Mailbox *mb)
 	s_append(m->unixheader, "\n");
 }
 
+String*
+promote(String **sp)
+{
+	String *s;
+
+	if(*sp != nil)
+		s = s_clone(*sp);
+	else
+		s = nil;
+	return s;
+}
+
 void
 parsebody(Message *m, Mailbox *mb)
 {
-	// if the message isn't mime, ignore the type
-	if(m->whole == m->whole->whole && m->mimeversion == nil){
-		s_append(s_reset(m->type), "text/plain");
-	} else {
-		// recurse
-		if(strncmp(s_to_c(m->type), "multipart/", 10) == 0){
-			parseattachments(m, mb);
-		} else if(strcmp(s_to_c(m->type), "message/rfc822") == 0){
-			decode(m);
-			parseattachments(m, mb);
-		}
+	Message *nm;
+
+	// recurse
+	if(strncmp(s_to_c(m->type), "multipart/", 10) == 0){
+		parseattachments(m, mb);
+	} else if(strcmp(s_to_c(m->type), "message/rfc822") == 0){
+		decode(m);
+		parseattachments(m, mb);
+		nm = m->part;
+
+		// promote headers
+		m->from822 = promote(&nm->from822);
+		m->to822 = promote(&nm->to822);
+		m->date822 = promote(&nm->date822);
+		m->sender822 = promote(&nm->sender822);
+		m->replyto822 = promote(&nm->replyto822);
+		m->subject822 = promote(&nm->subject822);
+		m->unixdate = promote(&nm->unixdate);
 	}
 }
 
@@ -377,28 +398,16 @@ parseattachments(Message *m, Mailbox *mb)
 		}
 		for(nm = m->part; nm != nil; nm = nm->next)
 			parse(nm, 1, mb);
-	} else {
-		// reparse rfc822 messages
-		if(strcmp(s_to_c(m->type), "message/rfc822") == 0){
-			if(m->unixfrom == nil && m->from822 == nil){
-				m->header = m->body;
-				if(m->ballocd){
-					m->hallocd = 1;
-					m->ballocd = 0;
-				}
-				s_free(m->type);
-				m->type = s_copy("text/plain");
-				m->decoded = 0;
-				m->converted = 0;
-				parse(m, 0, mb);
-			} else {
-				nm = newmessage(m);
-				m->part = nm;
-				nm->start = nm->header = nm->body = nm->rbody = m->body;
-				nm->end = nm->bend = nm->rbend = m->bend;
-				parse(nm, 0, mb);
-			}
-		}
+		return;
+	}
+
+	// if we've got an rfc822 message, recurse...
+	if(strcmp(s_to_c(m->type), "message/rfc822") == 0){
+		nm = newmessage(m);
+		m->part = nm;
+		nm->start = nm->header = nm->body = nm->rbody = m->body;
+		nm->end = nm->bend = nm->rbend = m->bend;
+		parse(nm, 0, mb);
 	}
 }
 
@@ -770,11 +779,11 @@ delmessage(Mailbox *mb, Message *m)
 
 		// clear out of name lookup hash table
 		if(m->whole->whole == m->whole)
-			hfree(CHDIR|PATH(mb->id, Qmbox), m->name);
+			hfree(PATH(mb->id, Qmbox), m->name);
 		else
-			hfree(CHDIR|PATH(m->whole->id, Qdir), m->name);
+			hfree(PATH(m->whole->id, Qdir), m->name);
 		for(i = 0; i < Qmax; i++)
-			hfree(CHDIR|PATH(m->id, Qdir), dirtab[i]);
+			hfree(PATH(m->id, Qdir), dirtab[i]);
 	}
 
 	/* recurse through sub-parts */
@@ -790,6 +799,7 @@ delmessage(Mailbox *mb, Message *m)
 		free(m->body);
 	s_free(m->unixfrom);
 	s_free(m->unixdate);
+	s_free(m->unixheader);
 	s_free(m->from822);
 	s_free(m->sender822);
 	s_free(m->to822);
@@ -869,6 +879,7 @@ msgdecref(Mailbox *mb, Message *m)
 void
 mboxincref(Mailbox *mb)
 {
+	assert(mb->refs > 0);
 	mb->refs++;
 }
 void
@@ -876,6 +887,7 @@ mboxdecref(Mailbox *mb)
 {
 	Mailbox **l;
 
+	assert(mb->refs > 0);
 	qlock(mb);
 	mb->refs--;
 	if(mb->refs == 0){
@@ -888,7 +900,7 @@ mboxdecref(Mailbox *mb)
 		delmessage(mb, mb->root);
 		qunlock(mb);
 		if(mb->ctl)
-			hfree(CHDIR|PATH(mb->id, Qmbox), "ctl");
+			hfree(PATH(mb->id, Qmbox), "ctl");
 		if(mb->close)
 			(*mb->close)(mb);
 		free(mb);
@@ -955,7 +967,7 @@ getstring(char *p, String *s, int dolower)
 		return p;
 	}
 
-	for(;!isspace(*p) && *p != ';'; p++)
+	for(; *p && !isspace(*p) && *p != ';'; p++)
 		if(dolower)
 			s_putc(s, tolower(*p));
 		else
@@ -1241,6 +1253,7 @@ xtoutf(char *charset, char **out, char *in, char *e)
 		dup(fromtcs[1], 1);
 		dup(totcs[0], 0);
 		close(fromtcs[1]); close(totcs[0]);
+		dup(open("/dev/null", OWRITE), 2);
 		exec("/bin/tcs", av);
 		_exits(0);
 	default:
@@ -1403,9 +1416,11 @@ mailplumb(Mailbox *mb, Message *m, int delete)
 	a[ai].value = date;
 	a[ai-1].next = &a[ai];
 
-	a[++ai].name = "digest";
-	a[ai].value = s_to_c(m->sdigest);
-	a[ai-1].next = &a[ai];
+	if(m->sdigest){
+		a[++ai].name = "digest";
+		a[ai].value = s_to_c(m->sdigest);
+		a[ai-1].next = &a[ai];
+	}
 
 	a[ai].next = nil;
 

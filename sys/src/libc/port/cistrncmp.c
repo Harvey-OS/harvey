@@ -22,7 +22,7 @@ cistrncmp(char *s1, char *s2, int n)
 		if(c1 != c2)
 			return c1 - c2;
 	}
-	if(n == 0)
+	if(n <= 0)
 		return 0;
 	return -*s2;
 }

@@ -52,8 +52,7 @@ asmb(void)
 			Bprint(&bso, pcstr, pc);
 			for(op1 = and; op1 < andptr; op1++)
 				Bprint(&bso, " %.8lux", *op1);
-			Bprint(&bso, "%.*s", (32+7-printcol)/8, "\t\t\t\t");
-			Bprint(&bso, "%P\n", curp);
+			Bprint(&bso, "\t%P\n", curp);
 		}
 		for(op1 = and; op1 < andptr; op1++) {
 			v = *op1;
@@ -312,8 +311,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[fnuxi4[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi4[i]];
@@ -326,8 +324,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[fnuxi8[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[fnuxi8[i]];
@@ -342,8 +339,7 @@ datblk(long s, long n)
 				Bprint(&bso, pcstr, l+s+INITDAT);
 				for(j=0; j<c; j++)
 					Bprint(&bso, "%.2ux", p->to.scon[j] & 0xff);
-				Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-				Bprint(&bso, "%P\n", curp);
+				Bprint(&bso, "\t%P\n", curp);
 			}
 			for(; i<c; i++) {
 				buf.dbuf[l] = p->to.scon[i];
@@ -371,8 +367,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[inuxi1[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi1[i]];
@@ -384,8 +379,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[inuxi2[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi2[i]];
@@ -397,8 +391,7 @@ datblk(long s, long n)
 					Bprint(&bso, pcstr, l+s+INITDAT);
 					for(j=0; j<c; j++)
 						Bprint(&bso, "%.2ux", cast[inuxi4[j]] & 0xff);
-					Bprint(&bso, "%.*s", (24+7-printcol)/8, "\t\t\t");
-					Bprint(&bso, "%P\n", curp);
+					Bprint(&bso, "\t%P\n", curp);
 				}
 				for(; i<c; i++) {
 					buf.dbuf[l] = cast[inuxi4[i]];

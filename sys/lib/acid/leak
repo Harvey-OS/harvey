@@ -118,3 +118,11 @@ leakdump(l)
 	}
 	print("==LEAK END==\n");
 }
+
+defn
+blockdump()
+{
+	print("==BLOCK BEGIN==\n");
+	dumppool(sbrkmem);
+	print("==BLOCK END==\n");
+}

@@ -3,7 +3,7 @@
 
 LIB=../lib.$O.a
 OFILES=\
-	keyconv.$O\
+	keyfmt.$O\
 	netcheck.$O\
 	okpasswd.$O\
 	readwrite.$O\
@@ -19,7 +19,7 @@ OFILES=\
 	getexpiration.$O\
 
 
-HFILES=/sys/include/auth.h
+HFILES=/sys/include/auth.h /sys/include/authsrv.h ../authcmdlib.h
 
 </sys/src/cmd/mksyslib
 CFLAGS=-w -I..

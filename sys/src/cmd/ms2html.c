@@ -562,21 +562,26 @@ int lastsrc;
 void
 pushsrc(char *name)
 {
-	Dir d;
+	Dir *d;
 	int fd;
 
 	if(ssp == &sstack[Maxsstack-1]){
 		fprint(2, "ms2html: .so's too deep\n");
 		return;
 	}
+	d = nil;
 	if(name == nil){
-		dirfstat(0, &d);
-		name = d.name;
+		d = dirfstat(0);
+		if(d == nil){
+			fprint(2, "ms2html: can't stat %s: %r\n", name);
+			return;
+		}
+		name = d->name;
 		fd = 0;
 	} else {
 		fd = open(name, OREAD);
 		if(fd < 0){
-			fprint(2, "ms2html: .can't open %s: %r\n", name);
+			fprint(2, "ms2html: can't open %s: %r\n", name);
 			return;
 		}
 	}
@@ -585,6 +590,7 @@ pushsrc(char *name)
 	Binit(&ssp->in, fd, OREAD);
 	snprint(ssp->filename, sizeof(ssp->filename), "%s", name);
 	ssp->lno = ssp->rlno = 1;
+	free(d);
 }
 
 /* get next logical byte.  from stdin or a defined string */
@@ -672,11 +678,11 @@ changefont(Font *f)
 	return token;
 }
 
-/* get next logical byteacter.  expand it with escapes */
+/* get next logical character.  expand it with escapes */
 char*
 getnext(void)
 {
-	int r, mult, size;
+	int r;
 	Entity *e;
 	Troffspec *t;
 	Rune R;
@@ -685,7 +691,7 @@ getnext(void)
 	r = getrune();
 	if(r < 0)
 		return nil;
-	if(r > 128){
+	if(r > 128 || r == '<' || r == '>'){
 		for(e = entity; e->name; e++)
 			if(e->value == r)
 				return e->name;
@@ -839,24 +845,8 @@ getnext(void)
 
 		/* font size */
 		case 's':
-			mult = 1;
-			size = 0;
-			for(;;){
-				r = getrune();
-				if(r < 0)
-					return nil;
-				if(r == '+' || r == '(')
-					;
-				else if(r == '-')
-					mult *= -1;
-				else if(r >= '0' && r <= '9')
-					size = size*10 + (r-'0');
-				else{
-					ungetrune();
-					return getnext();
-				}
-			}
-			break;
+			getnext();	/* ignore size change */
+			return getnext();
 
 		/* vertical movement */
 		case 'v':
@@ -1938,7 +1928,7 @@ g_startgif(int, char **argv)
 	int pfd[2];
 	char *e, *p;
 	char name[32];
-	Dir d;
+	Dir *d;
 
 	if(strcmp(argv[0], "EQ") == 0)
 		e = ".EN";
@@ -1996,13 +1986,16 @@ g_startgif(int, char **argv)
 				break;
 		}
 		close(pfd[1]);
-		wait(nil);
-		if(dirstat(name, &d) < 0)
+		waitpid();
+		d = dirstat(name);
+		if(d == nil)
 			break;
-		if(d.length == 0){
+		if(d->length == 0){
 			remove(name);
+			free(d);
 			break;
 		}
+		free(d);
 		fprint(2, "ms2html: created auxiliary file %s\n", name);
 		Bprint(&bout, "<br><img src=\"%s\"><br>\n", name);
 		break;
@@ -2034,7 +2027,7 @@ g_BP(int argc, char **argv)
 	int fd;
 	char *p, *ext;
 	char name[32];
-	Dir d;
+	Dir *d;
 
 	if(argc < 2)
 		return;
@@ -2076,13 +2069,16 @@ g_BP(int argc, char **argv)
 		_exits(nil);
 	default:
 		close(fd);
-		wait(nil);
-		if(dirstat(name, &d) < 0)
+		waitpid();
+		d = dirstat(name);
+		if(d == nil)
 			break;
-		if(d.length == 0){
+		if(d->length == 0){
 			remove(name);
+			free(d);
 			break;
 		}
+		free(d);
 		fprint(2, "ms2html: created auxiliary file %s\n", name);
 		Bprint(&bout, "<br><img src=\"%s\"><br>\n", name);
 		break;

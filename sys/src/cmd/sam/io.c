@@ -25,7 +25,8 @@ writef(File *f)
 	Posn n;
 	char *name;
 	int i, samename, newfile;
-	ulong dev, qid;
+	ulong dev;
+	uvlong qid;
 	long mtime, appendonly, length;
 
 	newfile = 0;
@@ -46,7 +47,7 @@ writef(File *f)
 		free(genc);
 	genc = Strtoc(&genstr);
 	if((io=create(genc, 1, 0666L)) < 0)
-		error_s(Ecreate, genc);
+		error_r(Ecreate, genc);
 	dprint("%s: ", genc);
 	if(statfd(io, 0, 0, 0, &length, &appendonly) > 0 && appendonly && length>0)
 		error(Eappend);
@@ -78,7 +79,8 @@ readio(File *f, int *nulls, int setdate, int toterm)
 	Rune *r;
 	Posn nt;
 	Posn p = addr.r.p2;
-	ulong dev, qid;
+	ulong dev;
+	uvlong qid;
 	long mtime;
 	char buf[BLOCKSIZE+1], *s;
 
