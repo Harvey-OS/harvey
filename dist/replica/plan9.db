@@ -3186,7 +3186,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1040076722 237819
+sys/games/lib/fortunes - 664 sys sys 1043697004 238254
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1032324435 4127
 sys/include/String.h - 664 sys sys 1014929061 1133
@@ -4743,7 +4743,7 @@ sys/man/4/iostats - 664 sys sys 959566568 1415
 sys/man/4/keyfs - 664 sys sys 1017251244 5003
 sys/man/4/kfs - 664 sys sys 1019058716 2159
 sys/man/4/lnfs - 664 sys sys 1018973955 1006
-sys/man/4/mntgen - 664 sys sys 1037327201 446
+sys/man/4/mntgen - 664 sys sys 1043680799 473
 sys/man/4/namespace - 664 sys sys 1018386777 6916
 sys/man/4/nntpfs - 664 sys sys 1032632346 2771
 sys/man/4/paqfs - 664 sys sys 1017723482 1541
@@ -5786,7 +5786,7 @@ sys/src/ape/lib/ap/plan9/umask.c - 664 sys sys 1014921985 182
 sys/src/ape/lib/ap/plan9/uname.c - 664 sys sys 1014921985 408
 sys/src/ape/lib/ap/plan9/unlink.c - 664 sys sys 1038237528 1505
 sys/src/ape/lib/ap/plan9/utime.c - 664 sys sys 1014921985 526
-sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1014921985 1122
+sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1043681702 1133
 sys/src/ape/lib/ap/plan9/write.c - 664 sys sys 1038237529 348
 sys/src/ape/lib/ap/posix - 20000000775 sys sys 1014921981 0
 sys/src/ape/lib/ap/posix/getgrent.c - 664 sys sys 1014921981 945
