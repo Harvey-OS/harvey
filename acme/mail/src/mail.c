@@ -74,8 +74,9 @@ void
 threadmain(int argc, char *argv[])
 {
 	char *s, *name;
-	char err[ERRMAX], cmd[256];
+	char err[ERRMAX], *cmd;
 	int i, newdir;
+	Fmt fmt;
 
 	doquote = needsrcquote;
 	quotefmtinstall();
@@ -184,7 +185,17 @@ threadmain(int argc, char *argv[])
 	winname(wbox, mbox.name);
 	wintagwrite(wbox, "Put Mail Delmesg ", 3+1+4+1+7+1);
 	threadcreate(mainctl, wbox, STACK);
-	snprint(cmd, sizeof cmd, "Mail %s", name);
+
+	fmtstrinit(&fmt);
+	fmtprint(&fmt, "Mail");
+	if(shortmenu)
+		fmtprint(&fmt, " -%c", "sS"[shortmenu-1]);
+	if(outgoing)
+		fmtprint(&fmt, " -o %s", outgoing);
+	fmtprint(&fmt, " %s", name);
+	cmd = fmtstrflush(&fmt);
+	if(cmd == nil)
+		sysfatal("out of memory");
 	winsetdump(wbox, "/acme/mail", cmd);
 	mbox.w = wbox;
 

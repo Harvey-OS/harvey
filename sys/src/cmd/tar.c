@@ -1,17 +1,52 @@
+/*
+ * tar - `tape archiver', actually usable on any medium.
+ *	POSIX "ustar" compliant when extracting, and by default when creating.
+ *	this tar attempts to read and write multiple Tblock-byte blocks
+ *	at once to and from the filesystem, and does not copy blocks
+ *	around internally.
+ */
+
 #include <u.h>
 #include <libc.h>
-#include <auth.h>
-#include <fcall.h>
-#include <bio.h>
+#include <fcall.h>		/* for %M */
+#include <String.h>
 
-#define TBLOCK	512
-#define NBLOCK	40	/* maximum blocksize */
-#define DBLOCK	20	/* default blocksize */
-#define NAMSIZ	100
+/*
+ * modified versions of those in libc.h; scans only the first arg for
+ * keyletters and options.
+ */
+#define	TARGBEGIN {\
+	(argv0 || (argv0 = *argv)), argv++, argc--;\
+	if (argv[0]) {\
+		char *_args, *_argt;\
+		Rune _argc;\
+		_args = &argv[0][0];\
+		_argc = 0;\
+		while(*_args && (_args += chartorune(&_argc, _args)))\
+			switch(_argc)
+#define	TARGEND	SET(_argt); USED(_argt);USED(_argc);USED(_args); \
+	argc--, argv++; } \
+	USED(argv); USED(argc); }
+#define	TARGC() (_argc)
 
+#define ROUNDUP(a, b)	(((a) + (b) - 1)/(b))
+#define BYTES2TBLKS(bytes) ROUNDUP(bytes, Tblock)
+
+typedef vlong Off;
+typedef char *(*Refill)(int ar, char *bufs);
+
+enum { Stdin, Stdout, Stderr };
+enum { Rd, Wr };			/* pipe fd-array indices */
+enum { Output, Input };
+enum { None, Toc, Xtract, Replace };
 enum {
+	Tblock = 512,
+	Nblock = 40,		/* maximum blocksize */
+	Dblock = 20,		/* default blocksize */
+	Namsiz = 100,
 	Maxpfx = 155,		/* from POSIX */
-	Maxname = NAMSIZ + 1 + Maxpfx,
+	Maxname = Namsiz + 1 + Maxpfx,
+	DEBUG = 0,
 };
 
 /* POSIX link flags */
@@ -32,12 +67,11 @@ enum {
 #define islink(lf)	(isreallink(lf) || issymlink(lf))
 #define isreallink(lf)	((lf) == LF_LINK)
 #define issymlink(lf)	((lf) == LF_SYMLINK1 || (lf) == LF_SYMLINK2)
-union	hblock
-{
-	char	dummy[TBLOCK];
-	struct	header
-	{
-		char	name[NAMSIZ];
+
+typedef union {
+	uchar	data[Tblock];
+	struct {
+		char	name[Namsiz];
 		char	mode[8];
 		char	uid[8];
 		char	gid[8];
@@ -45,7 +79,8 @@ union	hblock
 		char	mtime[12];
 		char	chksum[8];
 		char	linkflag;
-		char	linkname[NAMSIZ];
+		char	linkname[Namsiz];
+
 		/* rest are defined by POSIX's ustar format; see p1003.2b */
 		char	magic[6];	/* "ustar" */
 		char	version[2];
@@ -53,54 +88,303 @@ union	hblock
 		char	gname[32];
 		char	devmajor[8];
 		char	devminor[8];
-		char	prefix[155];  /* if non-null, path = prefix "/" name */
-	} dbuf;
-} dblock, tbuf[NBLOCK];
+		char	prefix[Maxpfx]; /* if non-null, path= prefix "/" name */
+	};
+} Hdr;
 
-Dir *stbuf;
-Biobuf bout;
-static int ustar;		/* flag: tape block just read is ustar format */
-static char *fullname;			/* if non-nil, prefix "/" name */
+typedef struct {
+	char	*comp;
+	char	*decomp;
+	char	*sfx[4];
+} Compress;
 
-int	rflag, xflag, vflag, tflag, mt, cflag, fflag, Tflag, Rflag;
-int	uflag, gflag;
-static int posix;		/* flag: we're writing ustar format archive */
-int	chksum, recno, first;
-int	nblock = DBLOCK;
+static Compress comps[] = {
+	"gzip",		"gunzip",	{ ".tar.gz", ".tgz" },	/* default */
+	"compress",	"uncompress",	{ ".tar.Z",  ".tz" },
+	"bzip2",	"bunzip2",	{ ".tar.bz", ".tbz",
+					  ".tar.bz2",".tbz2" },
+};
 
-void	usage(void);
-void	dorep(char **);
-int	endtar(void);
-void	getdir(void);
-void	passtar(void);
-void	putfile(char*, char *, char *);
-void	doxtract(char **);
-void	dotable(void);
-void	putempty(void);
-void	longt(Dir *);
-int	checkdir(char *, int, Qid*);
-void	tomodes(Dir *);
-int	checksum(void);
-int	checkupdate(char *);
-int	prefix(char *, char *);
-int	readtar(char *);
-int	writetar(char *);
-void	backtar(void);
-void	flushtar(void);
-void	affix(int, char *);
-int	volprompt(void);
+typedef struct {
+	int	kid;
+	int	fd;	/* original fd */
+	int	rfd;	/* replacement fd */
+	int	input;
+	int	open;
+} Pushstate;
 
-static int
-isustar(struct header *hp)
+#define OTHER(rdwr) (rdwr == Rd? Wr: Rd)
+
+static int debug;
+static int verb;
+static int posix = 1;
+static int docreate;
+static int aruid;
+static int argid;
+static int relative;
+static int settime;
+static int verbose;
+static int docompress;
+static int keepexisting;
+
+static int nblock = Dblock;
+static char *usefile;
+static char origdir[Maxname*2];
+static Hdr *tpblk, *endblk;
+static Hdr *curblk;
+
+static void
+usage(void)
 {
-	return strcmp(hp->magic, "ustar") == 0;
+	fprint(2, "usage: %s {crtx}[PRTfgkmpuvz] [archive] file1 file2...\n",
+		argv0);
+	exits("usage");
+}
+
+/* compression */
+
+static Compress *
+compmethod(char *name)
+{
+	int i, nmlen = strlen(name), sfxlen;
+	Compress *cp;
+
+	for (cp = comps; cp < comps + nelem(comps); cp++)
+		for (i = 0; i < nelem(cp->sfx) && cp->sfx[i]; i++) {
+			sfxlen = strlen(cp->sfx[i]);
+			if (nmlen > sfxlen &&
+			    strcmp(cp->sfx[i], name + nmlen - sfxlen) == 0)
+				return cp;
+		}
+	return docompress? comps: nil;
+}
+
+/*
+ * push a filter, cmd, onto fd.  if input, it's an input descriptor.
+ * returns a descriptor to replace fd, or -1 on error.
+ */
+static int
+push(int fd, char *cmd, int input, Pushstate *ps)
+{
+	int nfd, pifds[2];
+	String *s;
+
+	ps->open = 0;
+	ps->fd = fd;
+	ps->input = input;
+	if (fd < 0 || pipe(pifds) < 0)
+		return -1;
+	ps->kid = fork();
+	switch (ps->kid) {
+	case -1:
+		return -1;
+	case 0:
+		if (input)
+			dup(pifds[Wr], Stdout);
+		else
+			dup(pifds[Rd], Stdin);
+		close(pifds[input? Rd: Wr]);
+		dup(fd, (input? Stdin: Stdout));
+		s = s_new();
+		if (cmd[0] != '/')
+			s_append(s, "/bin/");
+		s_append(s, cmd);
+		execl(s_to_c(s), cmd, nil);
+		sysfatal("can't exec %s: %r", cmd);
+	default:
+		nfd = pifds[input? Rd: Wr];
+		close(pifds[input? Wr: Rd]);
+		break;
+	}
+	ps->rfd = nfd;
+	ps->open = 1;
+	return nfd;
+}
+
+static char *
+pushclose(Pushstate *ps)
+{
+	Waitmsg *wm;
+
+	if (ps->fd < 0 || ps->rfd < 0 || !ps->open)
+		return "not open";
+	close(ps->rfd);
+	ps->rfd = -1;
+	ps->open = 0;
+	while ((wm = wait()) != nil && wm->pid != ps->kid)
+		continue;
+	return wm? wm->msg: nil;
+}
+
+/*
+ * block-buffer management
+ */
+
+static void
+initblks(void)
+{
+	free(tpblk);
+	tpblk = malloc(Tblock * nblock);
+	assert(tpblk != nil);
+	endblk = tpblk + nblock;
+}
+
+/* (re)fill block buffers from archive */
+static char *
+refill(int ar, char *bufs)
+{
+	int i, n;
+	unsigned bytes = Tblock * nblock;
+	static int done, first = 1;
+
+	if (done)
+		return nil;
+
+	/* try to size non-pipe input at first read */
+	if (first && usefile) {
+		first = 0;
+		n = read(ar, bufs, bytes);
+		if (n <= 0)
+			sysfatal("error reading archive: %r");
+		i = n;
+		if (i % Tblock != 0) {
+			fprint(2, "%s: archive block size (%d) error\n",
+				argv0, i);
+			exits("blocksize");
+		}
+		i /= Tblock;
+		if (i != nblock) {
+			nblock = i;
+			fprint(2, "%s: blocking = %d\n", argv0, nblock);
+			endblk = (Hdr *)bufs + nblock;
+			bytes = n;
+		}
+	} else
+		n = readn(ar, bufs, bytes);
+	if (n == 0)
+		sysfatal("unexpected EOF reading archive");
+	else if (n < 0)
+		sysfatal("error reading archive: %r");
+	else if (n%Tblock != 0)
+		sysfatal("partial block read from archive");
+	if (n != bytes) {
+		done = 1;
+		memset(bufs + n, 0, bytes - n);
+	}
+	return bufs;
+}
+
+static Hdr *
+getblk(int ar, Refill rfp)
+{
+	if (curblk == nil || curblk >= endblk) {  /* input block exhausted? */
+		if (rfp != nil && (*rfp)(ar, (char *)tpblk) == nil)
+			return nil;
+		curblk = tpblk;
+	}
+	return curblk++;
+}
+
+static Hdr *
+getblkrd(int ar)
+{
+	return getblk(ar, refill);
+}
+
+static Hdr *
+getblke(int ar)
+{
+	return getblk(ar, nil);
+}
+
+static Hdr *
+getblkz(int ar)
+{
+	Hdr *hp = getblke(ar);
+
+	if (hp != nil)
+		memset(hp->data, 0, Tblock);
+	return hp;
+}
+
+/*
+ * how many block buffers are available, starting at the address
+ * just returned by getblk*?
+ */
+static int
+gothowmany(int max)
+{
+	int n = endblk - (curblk - 1);
+
+	return n > max? max: n;
+}
+
+/*
+ * indicate that one is done with the last block obtained from getblke
+ * and it is now available to be written into the archive.
+ */
+static void
+putlastblk(int ar)
+{
+	unsigned bytes = Tblock * nblock;
+
+	/* if writing end-of-archive, aid compression (good hygiene too) */
+	if (curblk < endblk)
+		memset(curblk, 0, (char *)endblk - (char *)curblk);
+	if (write(ar, tpblk, bytes) != bytes)
+		sysfatal("error writing archive: %r");
 }
 
 static void
-setustar(struct header *hp)
+putblk(int ar)
 {
-	strncpy(hp->magic, "ustar", sizeof hp->magic);
-	strncpy(hp->version, "00", sizeof hp->version);
+	if (curblk >= endblk)
+		putlastblk(ar);
+}
+
+static void
+putbackblk(int ar)
+{
+	curblk--;
+	USED(ar);
+}
+
+static void
+putreadblks(int ar, int blks)
+{
+	curblk += blks - 1;
+	USED(ar);
+}
+
+static void
+putblkmany(int ar, int blks)
+{
+	curblk += blks - 1;
+	putblk(ar);
+}
+
+/*
+ * common routines
+ */
+
+/* modifies hp->chksum */
+long
+chksum(Hdr *hp)
+{
+	int n = Tblock;
+	long i = 0;
+	uchar *cp = hp->data;
+
+	memset(hp->chksum, ' ', sizeof hp->chksum);
+	while (n-- > 0)
+		i += *cp++;
+	return i;
+}
+
+static int
+isustar(Hdr *hp)
+{
+	return strcmp(hp->magic, "ustar") == 0;
 }
 
 /*
@@ -111,57 +395,97 @@ setustar(struct header *hp)
 static int
 strnlen(char *s, int n)
 {
-	if (s[n - 1] != '\0')
-		return n;
-	else
-		return strlen(s);
+	return s[n - 1] != '\0'? n: strlen(s);
 }
 
-/* set fullname from header; called from getdir() */
-static void
-getfullname(struct header *hp)
+/* set fullname from header */
+static char *
+name(Hdr *hp)
 {
 	int pfxlen, namlen;
+	static char fullname[Maxname + 1];
 
-	if (fullname != nil)
-		free(fullname);
 	namlen = strnlen(hp->name, sizeof hp->name);
-	if (hp->prefix[0] == '\0' || !ustar) {	/* old-style name? */
-		fullname = malloc(namlen + 1);
-		if (fullname == nil)
-			sysfatal("out of memory: %r");
+	if (hp->prefix[0] == '\0' || !isustar(hp)) {	/* old-style name? */
 		memmove(fullname, hp->name, namlen);
 		fullname[namlen] = '\0';
-		return;
+		return fullname;
 	}
+
+	/* name is in two pieces */
 	pfxlen = strnlen(hp->prefix, sizeof hp->prefix);
-	fullname = malloc(pfxlen + 1 + namlen + 1);
-	if (fullname == nil)
-		sysfatal("out of memory: %r");
 	memmove(fullname, hp->prefix, pfxlen);
 	fullname[pfxlen] = '/';
 	memmove(fullname + pfxlen + 1, hp->name, namlen);
 	fullname[pfxlen + 1 + namlen] = '\0';
+	return fullname;
+}
+
+static int
+isdir(Hdr *hp)
+{
+	/* the mode test is ugly but sometimes necessary */
+	return hp->linkflag == LF_DIR ||
+		strrchr(name(hp), '\0')[-1] == '/' ||
+		(strtoul(hp->mode, nil, 8)&0170000) == 040000;
+}
+
+static int
+eotar(Hdr *hp)
+{
+	return name(hp)[0] == '\0';
+}
+
+static Hdr *
+readhdr(int ar)
+{
+	long hdrcksum;
+	Hdr *hp;
+
+	hp = getblkrd(ar);
+	if (hp == nil)
+		sysfatal("unexpected EOF instead of archive header");
+	if (eotar(hp))			/* end-of-archive block? */
+		return nil;
+	hdrcksum = strtoul(hp->chksum, nil, 8);
+	if (chksum(hp) != hdrcksum)
+		sysfatal("bad archive header checksum: name %.64s...",
+			hp->name);
+	return hp;
 }
 
 /*
- * if name is longer than NAMSIZ bytes, try to split it at a slash and fit the
+ * tar r[c]
+ */
+
+/*
+ * if name is longer than Namsiz bytes, try to split it at a slash and fit the
  * pieces into hp->prefix and hp->name.
  */
 static int
-putfullname(struct header *hp, char *name)
+putfullname(Hdr *hp, char *name)
 {
 	int namlen, pfxlen;
 	char *sl, *osl;
+	String *slname = nil;
+
+	if (isdir(hp)) {
+		slname = s_new();
+		s_append(slname, name);
+		s_append(slname, "/");		/* posix requires this */
+		name = s_to_c(slname);
+	}
 
 	namlen = strlen(name);
-	if (namlen <= NAMSIZ) {
-		strncpy(hp->name, name, NAMSIZ);
+	if (namlen <= Namsiz) {
+		strncpy(hp->name, name, Namsiz);
 		hp->prefix[0] = '\0';		/* ustar paranoia */
 		return 0;
 	}
-	if (!posix || namlen > NAMSIZ + 1 + sizeof hp->prefix) {
-		fprint(2, "tar: name too long for tar header: %s\n", name);
+
+	if (!posix || namlen > Maxname) {
+		fprint(2, "%s: name too long for tar header: %s\n",
+			argv0, name);
 		return -1;
 	}
 	/*
@@ -173,7 +497,7 @@ putfullname(struct header *hp, char *name)
 	sl = strrchr(name, '/');
 	while (sl != nil) {
 		pfxlen = sl - name;
-		if (pfxlen <= sizeof hp->prefix && namlen-1 - pfxlen <= NAMSIZ)
+		if (pfxlen <= sizeof hp->prefix && namlen-1 - pfxlen <= Namsiz)
 			break;
 		osl = sl;
 		*osl = '\0';
@@ -181,615 +505,498 @@ putfullname(struct header *hp, char *name)
 		*osl = '/';
 	}
 	if (sl == nil) {
-		fprint(2, "tar: name can't be split to fit tar header: %s\n",
-			name);
+		fprint(2, "%s: name can't be split to fit tar header: %s\n",
+			argv0, name);
 		return -1;
 	}
 	*sl = '\0';
 	strncpy(hp->prefix, name, sizeof hp->prefix);
-	*sl = '/';
-	strncpy(hp->name, sl + 1, sizeof hp->name);
+	*sl++ = '/';
+	strncpy(hp->name, sl, sizeof hp->name);
+	if (slname)
+		s_free(slname);
 	return 0;
 }
 
-void
-main(int argc, char **argv)
+static int
+mkhdr(Hdr *hp, Dir *dir, char *file)
 {
-	char *usefile;
-	char *cp, *ap;
-
-	if (argc < 2)
-		usage();
-
-	Binit(&bout, 1, OWRITE);
-	usefile =  0;
-	argv[argc] = 0;
-	argv++;
-	for (cp = *argv++; *cp; cp++) 
-		switch(*cp) {
-		case 'f':
-			usefile = *argv++;
-			if(!usefile)
-				usage();
-			fflag++;
-			break;
-		case 'u':
-			ap = *argv++;
-			if(!ap)
-				usage();
-			uflag = strtoul(ap, 0, 0);
-			break;
-		case 'g':
-			ap = *argv++;
-			if(!ap)
-				usage();
-			gflag = strtoul(ap, 0, 0);
-			break;
-		case 'c':
-			cflag++;
-			rflag++;
-			break;
-		case 'p':
-			posix++;
-			break;
-		case 'r':
-			rflag++;
-			break;
-		case 'v':
-			vflag++;
-			break;
-		case 'x':
-			xflag++;
-			break;
-		case 'T':
-			Tflag++;
-			break;
-		case 't':
-			tflag++;
-			break;
-		case 'R':
-			Rflag++;
-			break;
-		case '-':
-			break;
-		default:
-			fprint(2, "tar: %c: unknown option\n", *cp);
-			usage();
-		}
-
-	fmtinstall('M', dirmodefmt);
-
-	if (rflag) {
-		if (!usefile) {
-			if (cflag == 0) {
-				fprint(2, "tar: can only create standard output archives\n");
-				exits("arg error");
-			}
-			mt = dup(1, -1);
-			nblock = 1;
-		}
-		else if ((mt = open(usefile, ORDWR)) < 0) {
-			if (cflag == 0 || (mt = create(usefile, OWRITE, 0666)) < 0) {
-				fprint(2, "tar: cannot open %s: %r\n", usefile);
-				exits("open");
-			}
-		}
-		dorep(argv);
+	/*
+	 * these fields run together, so we format them in order and don't use
+	 * snprint.
+	 */
+	sprint(hp->mode, "%6lo ", dir->mode & 0777);
+	sprint(hp->uid, "%6o ", aruid);
+	sprint(hp->gid, "%6o ", argid);
+	/*
+	 * files > 2⁳⁳ bytes can't be described
+	 * (unless we resort to xustar or exustar formats).
+	 */
+	if (dir->length >= (Off)1<<33) {
+		fprint(2, "%s: %s: too large for tar header format\n",
+			argv0, file);
+		return -1;
 	}
-	else if (xflag)  {
-		if (!usefile) {
-			mt = dup(0, -1);
-			nblock = 1;
-		}
-		else if ((mt = open(usefile, OREAD)) < 0) {
-			fprint(2, "tar: cannot open %s: %r\n", usefile);
-			exits("open");
-		}
-		doxtract(argv);
+	sprint(hp->size, "%11lluo ", dir->length);
+	sprint(hp->mtime, "%11luo ", dir->mtime);
+	hp->linkflag = (dir->mode&DMDIR? LF_DIR: LF_PLAIN1);
+	putfullname(hp, file);
+	if (posix) {
+		strncpy(hp->magic, "ustar", sizeof hp->magic);
+		strncpy(hp->version, "00", sizeof hp->version);
+		strncpy(hp->uname, dir->uid, sizeof hp->uname);
+		strncpy(hp->gname, dir->gid, sizeof hp->gname);
 	}
-	else if (tflag) {
-		if (!usefile) {
-			mt = dup(0, -1);
-			nblock = 1;
-		}
-		else if ((mt = open(usefile, OREAD)) < 0) {
-			fprint(2, "tar: cannot open %s: %r\n", usefile);
-			exits("open");
-		}
-		dotable();
-	}
-	else
-		usage();
-	exits(0);
+	sprint(hp->chksum, "%6luo", chksum(hp));
+	return 0;
 }
 
-void
-usage(void)
+static void addtoar(int ar, char *file, char *shortf);
+
+static void
+addtreetoar(int ar, char *file, char *shortf, int fd)
 {
-	fprint(2, "tar: usage  tar {txrc}[Rvf] [tarfile] file1 file2...\n");
-	exits("usage");
-}
+	int n;
+	Dir *dent, *dirents;
+	String *name = s_new();
 
-void
-dorep(char **argv)
-{
-	char cwdbuf[2048], *cwd, thisdir[2048];
-	char *cp, *cp2;
-	int cd;
-
-	if (getwd(cwdbuf, sizeof(cwdbuf)) == 0) {
-		fprint(2, "tar: can't find current directory: %r\n");
-		exits("cwd");
-	}
-	cwd = cwdbuf;
-
-	if (!cflag) {
-		getdir();
-		do {
-			passtar();
-			getdir();
-		} while (!endtar());
-	}
-
-	while (*argv) {
-		cp2 = *argv;
-		if (!strcmp(cp2, "-C") && argv[1]) {
-			argv++;
-			if (chdir(*argv) < 0)
-				perror(*argv);
-			cwd = *argv;
-			argv++;
-			continue;
-		}
-		cd = 0;
-		for (cp = *argv; *cp; cp++)
-			if (*cp == '/')
-				cp2 = cp;
-		if (cp2 != *argv) {
-			*cp2 = '\0';
-			chdir(*argv);
-			if(**argv == '/')
-				strncpy(thisdir, *argv, sizeof(thisdir));
-			else
-				snprint(thisdir, sizeof(thisdir), "%s/%s", cwd, *argv);
-			*cp2 = '/';
-			cp2++;
-			cd = 1;
-		} else
-			strncpy(thisdir, cwd, sizeof(thisdir));
-		putfile(thisdir, *argv++, cp2);
-		if(cd && chdir(cwd) < 0) {
-			fprint(2, "tar: can't cd back to %s: %r\n", cwd);
-			exits("cwd");
-		}
-	}
-	putempty();
-	putempty();
-	flushtar();
-}
-
-int
-isendtar(void)
-{
-	return fullname[0] == '\0';
-}
-
-int
-endtar(void)
-{
-	if (isendtar()) {
-		backtar();
-		return(1);
-	}
-	else
-		return(0);
-}
-
-void
-getdir(void)
-{
-	Dir *sp;
-
-	readtar((char*)&dblock);
-	ustar = isustar(&dblock.dbuf);
-	getfullname(&dblock.dbuf);
-	if (isendtar())
+	n = dirreadall(fd, &dirents);
+	close(fd);
+	if (n == 0)
 		return;
-	if(stbuf == nil){
-		stbuf = malloc(sizeof(Dir));
-		if(stbuf == nil)
-			sysfatal("out of memory: %r");
+
+	if (chdir(shortf) < 0)
+		sysfatal("chdir %s: %r", file);
+	if (DEBUG)
+		fprint(2, "chdir %s\t# %s\n", shortf, file);
+
+	for (dent = dirents; dent < dirents + n; dent++) {
+		s_reset(name);
+		s_append(name, file);
+		s_append(name, "/");
+		s_append(name, dent->name);
+		addtoar(ar, s_to_c(name), dent->name);
 	}
-	sp = stbuf;
-	sp->mode = strtol(dblock.dbuf.mode, 0, 8);
-	sp->uid = "adm";
-	sp->gid = "adm";
-	sp->length = strtol(dblock.dbuf.size, 0, 8);
-	sp->mtime = strtol(dblock.dbuf.mtime, 0, 8);
-	chksum = strtol(dblock.dbuf.chksum, 0, 8);
-	if (chksum != checksum())
-		sysfatal("header checksum error");
-	sp->qid.type = 0;
-	/* the mode test is ugly but sometimes necessary */
-	if (dblock.dbuf.linkflag == LF_DIR || (sp->mode&0170000) == 040000 ||
-	    strrchr(fullname, '\0')[-1] == '/') {
-		sp->qid.type |= QTDIR;
-		sp->mode |= DMDIR;
+	s_free(name);
+	free(dirents);
+
+	if (chdir("..") < 0)
+		sysfatal("chdir %s/..: %r", file);
+	if (DEBUG)
+		fprint(2, "chdir ..\n");
+}
+
+static void
+addtoar(int ar, char *file, char *shortf)
+{
+	int n, fd, isdir;
+	long bytes;
+	ulong blksleft, blksread;
+	Hdr *hbp;
+	Dir *dir;
+
+	fd = open(shortf, OREAD);
+	if (fd < 0) {
+		fprint(2, "%s: can't open %s: %r\n", argv0, file);
+		return;
+	}
+	dir = dirfstat(fd);
+	if (dir == nil)
+		sysfatal("can't fstat %s: %r", file);
+
+	hbp = getblkz(ar);
+	isdir = !!(dir->qid.type&QTDIR);
+	if (mkhdr(hbp, dir, file) < 0) {
+		putbackblk(ar);
+		free(dir);
+		close(fd);
+		return;
+	}
+	putblk(ar);
+
+	blksleft = BYTES2TBLKS(dir->length);
+	free(dir);
+
+	if (isdir)
+		addtreetoar(ar, file, shortf, fd);
+	else {
+		for (; blksleft > 0; blksleft -= blksread) {
+			hbp = getblke(ar);
+			blksread = gothowmany(blksleft);
+			bytes = blksread * Tblock;
+			n = readn(fd, hbp->data, bytes);
+			if (n < 0)
+				sysfatal("error reading %s: %r", file);
+			/*
+			 * ignore EOF.  zero any partial block to aid
+			 * compression and emergency recovery of data.
+			 */
+			if (n < Tblock)
+				memset(hbp->data + n, 0, bytes - n);
+			putblkmany(ar, blksread);
+		}
+		close(fd);
+		if (verbose)
+			fprint(2, "%s\n", file);
 	}
 }
 
-void
-passtar(void)
+static char *
+replace(char **argv)
 {
-	long blocks;
-	char buf[TBLOCK];
+	int i, ar;
+	ulong blksleft, blksread;
+	Off bytes;
+	Hdr *hp;
+	Compress *comp = nil;
+	Pushstate ps;
 
-	switch (dblock.dbuf.linkflag) {
+	if (usefile && docreate) {
+		ar = create(usefile, OWRITE, 0666);
+		if (docompress)
+			comp = compmethod(usefile);
+	} else if (usefile)
+		ar = open(usefile, ORDWR);
+	else
+		ar = Stdout;
+	if (comp)
+		ar = push(ar, comp->comp, Output, &ps);
+	if (ar < 0)
+		sysfatal("can't open archive %s: %r", usefile);
+
+	if (usefile && !docreate) {
+		/* skip quickly to the end */
+		while ((hp = readhdr(ar)) != nil) {
+			bytes = strtoull(hp->size, nil, 8);
+			if(isdir(hp))
+				bytes = 0;
+			for (blksleft = BYTES2TBLKS(bytes);
+			     blksleft > 0 && getblkrd(ar) != nil;
+			     blksleft -= blksread) {
+				blksread = gothowmany(blksleft);
+				putreadblks(ar, blksread);
+			}
+		}
+		/*
+		 * we have just read the end-of-archive Tblock.
+		 * now seek back over the (big) archive block containing it,
+		 * and back up curblk ptr over end-of-archive Tblock in memory.
+		 */
+		if (seek(ar, -Tblock*nblock, 1) < 0)
+			sysfatal("can't seek back over end-of-archive: %r");
+		curblk--;
+	}
+
+	for (i = 0; argv[i] != nil; i++)
+		addtoar(ar, argv[i], argv[i]);
+
+	/* write end-of-archive marker */
+	getblkz(ar);
+	putblk(ar);
+	getblkz(ar);
+	putlastblk(ar);
+
+	if (comp)
+		return pushclose(&ps);
+	if (ar > Stderr)
+		close(ar);
+	return nil;
+}
+
+/*
+ * tar [xt]
+ */
+
+/* is pfx a file-name prefix of name? */
+static int
+prefix(char *name, char *pfx)
+{
+	int pfxlen = strlen(pfx);
+	char clpfx[Maxname+1];
+
+	if (pfxlen > Maxname)
+		return 0;
+	strcpy(clpfx, pfx);
+	cleanname(clpfx);
+	return strncmp(pfx, name, pfxlen) == 0 &&
+		(name[pfxlen] == '\0' || name[pfxlen] == '/');
+}
+
+static int
+match(char *name, char **argv)
+{
+	int i;
+	char clname[Maxname+1];
+
+	if (argv[0] == nil)
+		return 1;
+	strcpy(clname, name);
+	cleanname(clname);
+	for (i = 0; argv[i] != nil; i++)
+		if (prefix(clname, argv[i]))
+			return 1;
+	return 0;
+}
+
+static int
+makedir(char *s)
+{
+	int f;
+
+	if (access(s, AEXIST) == 0)
+		return -1;
+	f = create(s, OREAD, DMDIR | 0777);
+	if (f >= 0)
+		close(f);
+	return f;
+}
+
+static void
+mkpdirs(char *s)
+{
+	int done = 0;
+	char *p = s;
+
+	while (!done && (p = strchr(p + 1, '/')) != nil) {
+		*p = '\0';
+		done = (access(s, AEXIST) < 0 && makedir(s) < 0);
+		*p = '/';
+	}
+}
+
+/* copy a file from the archive into the filesystem */
+static void
+extract1(int ar, Hdr *hp, char *fname)
+{
+	int wrbytes, fd = -1, dir = 0;
+	long mtime = strtol(hp->mtime, nil, 8);
+	ulong mode = strtoul(hp->mode, nil, 8) & 0777;
+	Off bytes = strtoll(hp->size, nil, 8);
+	ulong blksread, blksleft = BYTES2TBLKS(bytes);
+	Hdr *hbp;
+
+	if (isdir(hp)) {
+		mode |= DMDIR|0700;
+		blksleft = 0;
+		dir = 1;
+	}
+	switch (hp->linkflag) {
 	case LF_LINK:
 	case LF_SYMLINK1:
 	case LF_SYMLINK2:
 	case LF_FIFO:
-		return;
+		blksleft = 0;
+		break;
 	}
-	blocks = stbuf->length;
-	blocks += TBLOCK-1;
-	blocks /= TBLOCK;
-
-	while (blocks-- > 0)
-		readtar(buf);
-}
-
-void
-putfile(char *dir, char *longname, char *sname)
-{
-	int infile;
-	long blocks;
-	char buf[TBLOCK];
-	char curdir[4096];
-	char shortname[4096];
-	char *cp;
-	Dir *db;
-	int i, n;
-
-	if(strlen(sname) > sizeof shortname - 3){
-		fprint(2, "tar: %s: name too long (max %d)\n", sname, sizeof shortname - 3);
-		return;
-	}
-	if (sname[0] != '/')		/* protect relative names like #foo */
-		snprint(shortname, sizeof shortname, "./%s", sname);
-	else
-		strcpy(shortname, sname);
-	infile = open(shortname, OREAD);
-	if (infile < 0) {
-		fprint(2, "tar: %s: cannot open file - %r\n", longname);
-		return;
-	}
-
-	if(stbuf != nil)
-		free(stbuf);
-	stbuf = dirfstat(infile);
-
-	if (stbuf->qid.type & QTDIR) {
-		/* Directory */
-		for (i = 0, cp = buf; *cp++ = longname[i++];)
-			;
-		*--cp = '/';
-		*++cp = 0;
-		stbuf->length = 0;
-
-		tomodes(stbuf);
-		if (putfullname(&dblock.dbuf, buf) < 0) {
-			close(infile);
-			return;		/* putfullname already complained */
-		}
-		dblock.dbuf.linkflag = LF_DIR;
-		sprint(dblock.dbuf.chksum, "%6o", checksum());
-		writetar( (char *) &dblock);
-
-		if (chdir(shortname) < 0) {
-			fprint(2, "tar: can't cd to %s: %r\n", shortname);
-			snprint(curdir, sizeof(curdir), "cd %s", shortname);
-			exits(curdir);
-		}
-		sprint(curdir, "%s/%s", dir, sname);
-		while ((n = dirread(infile, &db)) > 0) {
-			for(i = 0; i < n; i++){
-				strncpy(cp, db[i].name, sizeof buf - (cp-buf));
-				putfile(curdir, buf, db[i].name);
-			}
-			free(db);
-		}
-		close(infile);
-		if (chdir(dir) < 0 && chdir("..") < 0) {
-			fprint(2, "tar: can't cd to ..(%s): %r\n", dir);
-			snprint(curdir, sizeof(curdir), "cd ..(%s)", dir);
-			exits(curdir);
-		}
-		return;
-	}
-
-	/* plain file; write header block first */
-	tomodes(stbuf);
-	if (putfullname(&dblock.dbuf, longname) < 0) {
-		close(infile);
-		return;		/* putfullname already complained */
-	}
-	blocks = (stbuf->length + (TBLOCK-1)) / TBLOCK;
-	if (vflag) {
-		fprint(2, "a %s ", longname);
-		fprint(2, "%ld blocks\n", blocks);
-	}
-	dblock.dbuf.linkflag = LF_PLAIN1;
-	sprint(dblock.dbuf.chksum, "%6o", checksum());
-	writetar( (char *) &dblock);
-
-	/* then copy contents */
-	while ((i = readn(infile, buf, TBLOCK)) > 0 && blocks > 0) {
-		writetar(buf);
-		blocks--;
-	}
-	close(infile);
-	if (blocks != 0 || i != 0)
-		fprint(2, "%s: file changed size\n", longname);
-	while (blocks-- >  0)
-		putempty();
-}
-
-
-void
-doxtract(char **argv)
-{
-	Dir null;
-	int wrsize;
-	long blocks, bytes;
-	char buf[TBLOCK], outname[Maxname+3+1];
-	char **cp;
-	int ofile;
-
-	for (;;) {
-		getdir();
-		if (endtar())
+	if (relative && fname[0] == '/')
+		fname++;
+	if (verb == Xtract) {
+		cleanname(fname);
+		switch (hp->linkflag) {
+		case LF_LINK:
+		case LF_SYMLINK1:
+		case LF_SYMLINK2:
+			fprint(2, "%s: can't make (sym)link %s\n",
+				argv0, fname);
 			break;
-
-		if (*argv == 0)
-			goto gotit;
-
-		for (cp = argv; *cp; cp++)
-			if (prefix(*cp, fullname))
-				goto gotit;
-		passtar();
-		continue;
-
-gotit:
-		if(checkdir(fullname, stbuf->mode, &stbuf->qid))
-			continue;
-
-		if (dblock.dbuf.linkflag == LF_LINK) {
-			fprint(2, "tar: can't link %s %s\n",
-				dblock.dbuf.linkname, fullname);
-			remove(fullname);
-			continue;
-		}
-		if (dblock.dbuf.linkflag == LF_SYMLINK1 ||
-		    dblock.dbuf.linkflag == LF_SYMLINK2) {
-			fprint(2, "tar: %s: cannot symlink\n", fullname);
-			continue;
-		}
-		if(fullname[0] != '/' || Rflag)
-			sprint(outname, "./%s", fullname);
-		else
-			strcpy(outname, fullname);
-		if ((ofile = create(outname, OWRITE, stbuf->mode & 0777)) < 0) {
-			fprint(2, "tar: %s - cannot create: %r\n", outname);
-			passtar();
-			continue;
-		}
-
-		blocks = ((bytes = stbuf->length) + TBLOCK-1)/TBLOCK;
-		if (vflag)
-			fprint(2, "x %s, %ld bytes\n", fullname, bytes);
-		while (blocks-- > 0) {
-			readtar(buf);
-			wrsize = (bytes > TBLOCK? TBLOCK: bytes);
-			if (write(ofile, buf, wrsize) != wrsize) {
-				fprint(2,
-				    "tar: %s: HELP - extract write error: %r\n",
-					fullname);
-				exits("extract write");
-			}
-			bytes -= TBLOCK;
-		}
-		if(Tflag){
-			nulldir(&null);
-			null.mtime = stbuf->mtime;
-			dirfwstat(ofile, &null);
-		}
-		close(ofile);
-	}
-}
-
-void
-dotable(void)
-{
-	for (;;) {
-		getdir();
-		if (endtar())
+		case LF_FIFO:
+			fprint(2, "%s: can't make fifo %s\n", argv0, fname);
 			break;
-		if (vflag)
-			longt(stbuf);
-		Bprint(&bout, "%s", fullname);
-		if (dblock.dbuf.linkflag == '1')
-			Bprint(&bout, " linked to %s", dblock.dbuf.linkname);
-		if (dblock.dbuf.linkflag == 's')
-			Bprint(&bout, " -> %s", dblock.dbuf.linkname);
-		Bprint(&bout, "\n");
-		passtar();
-	}
-}
+		default:
+			if (!keepexisting || access(fname, AEXIST) < 0) {
+				int rw = (dir? OREAD: OWRITE);
 
-void
-putempty(void)
-{
-	char buf[TBLOCK];
-
-	memset(buf, 0, TBLOCK);
-	writetar(buf);
-}
-
-void
-longt(Dir *st)
-{
-	char *cp;
-
-	Bprint(&bout, "%M %4d/%1d ", st->mode, 0, 0);	/* 0/0 uid/gid */
-	Bprint(&bout, "%8lld", st->length);
-	cp = ctime(st->mtime);
-	Bprint(&bout, " %-12.12s %-4.4s ", cp+4, cp+24);
-}
-
-int
-checkdir(char *name, int mode, Qid *qid)
-{
-	char *cp;
-	int f;
-	Dir *d, null;
-
-	if(Rflag && *name == '/')
-		name++;
-	cp = name;
-	if(*cp == '/')
-		cp++;
-	for (; *cp; cp++) {
-		if (*cp == '/') {
-			*cp = '\0';
-			if (access(name, 0) < 0) {
-				f = create(name, OREAD, DMDIR + 0775L);
-				if(f < 0)
-					fprint(2, "tar: mkdir %s failed: %r\n", name);
-				close(f);
+				fd = create(fname, rw, mode);
+				if (fd < 0) {
+					mkpdirs(fname);
+					fd = create(fname, rw, mode);
+				}
+				if (fd < 0 &&
+				    (!dir || access(fname, AEXIST) < 0))
+					fprint(2, "%s: can't create %s: %r\n",
+						argv0, fname);
 			}
-			*cp = '/';
+			if (fd >= 0 && verbose)
+				fprint(2, "%s\n", fname);
+			break;
 		}
-	}
+	} else if (verbose) {
+		char *cp = ctime(mtime);
 
-	/* if this is a directory, chmod it to the mode in the tar plus 700 */
-	if(cp[-1] == '/' || (qid->type&QTDIR)){
-		if((d=dirstat(name)) != 0){
-			nulldir(&null);
-			null.mode = DMDIR | (mode & 0777) | 0700;
-			dirwstat(name, &null);
-			free(d);
-		}
-		return 1;
+		print("%M %8lld %-12.12s %-4.4s %s\n",
+			mode, bytes, cp+4, cp+24, fname);
 	} else
-		return 0;
+		print("%s\n", fname);
+
+	for (; blksleft > 0; blksleft -= blksread) {
+		hbp = getblkrd(ar);
+		if (hbp == nil)
+			sysfatal("unexpected EOF on archive extracting %s",
+				fname);
+		blksread = gothowmany(blksleft);
+		wrbytes = Tblock*blksread;
+		if(wrbytes > bytes)
+			wrbytes = bytes;
+		if (fd >= 0 && write(fd, hbp->data, wrbytes) != wrbytes)
+			sysfatal("write error on %s: %r", fname);
+		putreadblks(ar, blksread);
+		bytes -= wrbytes;
+	}
+	if (fd >= 0) {
+		/*
+		 * directories should be wstated after we're done
+		 * creating files in them.
+		 */
+		if (settime) {
+			Dir nd;
+
+			nulldir(&nd);
+			nd.mtime = mtime;
+			if (isustar(hp))
+				nd.gid = hp->gname;
+			dirfwstat(fd, &nd);
+		}
+		close(fd);
+	}
+}
+
+static void
+skip(int ar, Hdr *hp, char *fname)
+{
+	Off bytes;
+	ulong blksleft, blksread;
+	Hdr *hbp;
+
+	if (isdir(hp))
+		return;
+	bytes = strtoull(hp->size, nil, 8);
+	blksleft = BYTES2TBLKS(bytes);
+	for (; blksleft > 0; blksleft -= blksread) {
+		hbp = getblkrd(ar);
+		if (hbp == nil)
+			sysfatal("unexpected EOF on archive extracting %s",
+				fname);
+		blksread = gothowmany(blksleft);
+		putreadblks(ar, blksread);
+	}
+}
+
+static char *
+extract(char **argv)
+{
+	int ar;
+	char *longname;
+	Hdr *hp;
+	Compress *comp = nil;
+	Pushstate ps;
+
+	if (usefile) {
+		ar = open(usefile, OREAD);
+		comp = compmethod(usefile);
+	} else
+		ar = Stdin;
+	if (comp)
+		ar = push(ar, comp->decomp, Input, &ps);
+	if (ar < 0)
+		sysfatal("can't open archive %s: %r", usefile);
+
+	while ((hp = readhdr(ar)) != nil) {
+		longname = name(hp);
+		if (match(longname, argv))
+			extract1(ar, hp, longname);
+		else
+			skip(ar, hp, longname);
+	}
+
+	if (comp)
+		return pushclose(&ps);
+	if (ar > Stderr)
+		close(ar);
+	return nil;
 }
 
 void
-tomodes(Dir *sp)
+main(int argc, char *argv[])
 {
-	memset(dblock.dummy, 0, sizeof(dblock.dummy));
-	sprint(dblock.dbuf.mode, "%6lo ", sp->mode & 0777);
-	sprint(dblock.dbuf.uid, "%6o ", uflag);
-	sprint(dblock.dbuf.gid, "%6o ", gflag);
-	sprint(dblock.dbuf.size, "%11llo ", sp->length);
-	sprint(dblock.dbuf.mtime, "%11lo ", sp->mtime);
-	if (posix) {
-		setustar(&dblock.dbuf);
-		strncpy(dblock.dbuf.uname, sp->uid, sizeof dblock.dbuf.uname);
-		strncpy(dblock.dbuf.gname, sp->gid, sizeof dblock.dbuf.gname);
+	int errflg = 0;
+	char *ret = nil;
+
+	quotefmtinstall();
+	fmtinstall('M', dirmodefmt);
+
+	TARGBEGIN {
+	case 'c':
+		docreate++;
+		verb = Replace;
+		break;
+	case 'f':
+		usefile = EARGF(usage());
+		break;
+	case 'g':
+		argid = strtoul(EARGF(usage()), 0, 0);
+		break;
+	case 'k':
+		keepexisting++;
+		break;
+	case 'm':	/* compatibility */
+		settime = 0;
+		break;
+	case 'p':
+		posix++;
+		break;
+	case 'P':
+		posix = 0;
+		break;
+	case 'r':
+		verb = Replace;
+		break;
+	case 'R':
+		relative++;
+		break;
+	case 't':
+		verb = Toc;
+		break;
+	case 'T':
+		settime++;
+		break;
+	case 'u':
+		aruid = strtoul(EARGF(usage()), 0, 0);
+		break;
+	case 'v':
+		verbose++;
+		break;
+	case 'x':
+		verb = Xtract;
+		break;
+	case 'z':
+		docompress++;
+		break;
+	case '-':
+		break;
+	default:
+		fprint(2, "tar: unknown letter %C\n", TARGC());
+		errflg++;
+		break;
+	} TARGEND
+
+	if (argc < 0 || errflg)
+		usage();
+
+	initblks();
+	switch (verb) {
+	case Toc:
+	case Xtract:
+		ret = extract(argv);
+		break;
+	case Replace:
+		if (getwd(origdir, sizeof origdir) == nil)
+			strcpy(origdir, "/tmp");
+		ret = replace(argv);
+		chdir(origdir);		/* for profiling */
+		break;
+	default:
+		usage();
+		break;
 	}
-}
-
-int
-checksum(void)
-{
-	int i;
-	char *cp;
-
-	for (cp = dblock.dbuf.chksum; cp < &dblock.dbuf.chksum[sizeof(dblock.dbuf.chksum)]; cp++)
-		*cp = ' ';
-	i = 0;
-	for (cp = dblock.dummy; cp < &dblock.dummy[TBLOCK]; cp++)
-		i += *cp & 0xff;
-	return(i);
-}
-
-int
-prefix(char *s1, char *s2)
-{
-	while (*s1)
-		if (*s1++ != *s2++)
-			return(0);
-	if (*s2)
-		return(*s2 == '/');
-	return(1);
-}
-
-int
-readtar(char *buffer)
-{
-	int i;
-
-	if (recno >= nblock || first == 0) {
-		if ((i = readn(mt, tbuf, TBLOCK*nblock)) <= 0) {
-			if (i == 0)
-				werrstr("unexpected end of file");
-			fprint(2, "tar: archive read error: %r\n");
-			exits("archive read");
-		}
-		if (first == 0) {
-			if ((i % TBLOCK) != 0) {
-				fprint(2, "tar: archive blocksize error: %r\n");
-				exits("blocksize");
-			}
-			i /= TBLOCK;
-			if (i != nblock) {
-				fprint(2, "tar: blocksize = %d\n", i);
-				nblock = i;
-			}
-		}
-		recno = 0;
-	}
-	first = 1;
-	memmove(buffer, &tbuf[recno++], TBLOCK);
-	return(TBLOCK);
-}
-
-int
-writetar(char *buffer)
-{
-	first = 1;
-	if (recno >= nblock) {
-		if (write(mt, tbuf, TBLOCK*nblock) != TBLOCK*nblock) {
-			fprint(2, "tar: archive write error: %r\n");
-			exits("write");
-		}
-		recno = 0;
-	}
-	memmove(&tbuf[recno++], buffer, TBLOCK);
-	if (recno >= nblock) {
-		if (write(mt, tbuf, TBLOCK*nblock) != TBLOCK*nblock) {
-			fprint(2, "tar: archive write error: %r\n");
-			exits("write");
-		}
-		recno = 0;
-	}
-	return(TBLOCK);
-}
-
-/*
- * backup over last tar block
- */
-void
-backtar(void)
-{
-	seek(mt, -TBLOCK*nblock, 1);
-	recno--;
-}
-
-void
-flushtar(void)
-{
-	write(mt, tbuf, TBLOCK*nblock);
+	exits(ret);
 }
