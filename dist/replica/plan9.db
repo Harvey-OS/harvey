@@ -5449,8 +5449,8 @@ sys/src/9/port/nulledf.c - 664 sys sys 1037669300 821
 sys/src/9/port/page.c - 664 sys sys 1055688510 8107
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
-sys/src/9/port/portclock.c - 664 sys sys 1072704672 4294
-sys/src/9/port/portdat.h - 664 sys sys 1072704671 22700
+sys/src/9/port/portclock.c - 664 sys sys 1073323995 4758
+sys/src/9/port/portdat.h - 664 sys sys 1073324006 22707
 sys/src/9/port/portfns.h - 664 sys sys 1068215525 11376
 sys/src/9/port/portmkfile - 664 sys sys 1067722766 2098
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
@@ -9744,7 +9744,7 @@ sys/src/cmd/ndb/time.c - 664 sys sys 957402055 321
 sys/src/cmd/netstat.c - 664 sys sys 1063854991 3794
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
 sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
-sys/src/cmd/nm.c - 664 sys sys 1014926696 4908
+sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
 sys/src/cmd/nntpfs.c - 664 sys sys 1055699250 18903
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558
 sys/src/cmd/p.c - 664 sys sys 1043516305 1497

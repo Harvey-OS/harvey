@@ -158,7 +158,7 @@ zenter(Sym *s)
 
 	if (s->value > maxf) {
 		maxf = (s->value+CHUNK-1) &~ (CHUNK-1);
-		fnames = realloc(fnames, maxf*sizeof(*fnames));
+		fnames = realloc(fnames, (maxf+1)*sizeof(*fnames));
 		if(fnames == 0) {
 			error("out of memory", argv0);
 			exits("memory");
