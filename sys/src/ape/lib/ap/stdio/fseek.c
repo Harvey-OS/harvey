@@ -2,7 +2,7 @@
  * pANS stdio -- fseek
  */
 #include "iolib.h"
-long long fseek(FILE *f, long long offs, int type){
+int fseek(FILE *f, long long offs, int type){
 	switch(f->state){
 	case ERR:
 	case CLOSED:

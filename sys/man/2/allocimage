@@ -266,7 +266,7 @@ equals
 .B Cloadimage
 does the same as
 .IR loadimage ,
-bu tfor
+but for
 .I ndata
 bytes of compressed image
 .I data
@@ -288,7 +288,7 @@ and
 return the number of bytes copied.
 .PP
 .I Readimage
-creates a image from data contained an external file (see
+creates an image from data contained in an external file (see
 .IR image (6)
 for the file format);
 .I fd

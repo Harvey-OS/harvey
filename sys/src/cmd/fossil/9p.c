@@ -116,7 +116,7 @@ rTwstat(Msg* m)
 {
 	Dir dir;
 	Fid *fid;
-	ulong mode;
+	ulong mode, oldmode;
 	DirEntry de;
 	char *gid, *strs, *uid;
 	int gl, op, retval, tsync;
@@ -242,6 +242,14 @@ rTwstat(Msg* m)
 	}
 
 	if(dir.length != ~0){
+		/*
+		 * Cannot change length on append-only files.
+		 * If we're changing the append bit, it's okay.
+		 */
+		if((de.mode & ModeAppend) && (oldmode & ModeAppend)){
+			vtSetError("wstat -- attempt to change length of append-only file");
+			goto error;
+		}
 		if(de.mode & ModeDir){
 			vtSetError("wstat -- attempt to change length of directory");
 			goto error;
