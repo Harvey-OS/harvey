@@ -70,12 +70,8 @@ threadsetname(char *name)
 	if(p->nthreads == 1){
 		snprint(buf, sizeof buf, "#p/%d/args", getpid());
 		if((fd = open(buf, OWRITE)) >= 0){
-			snprint(buf, sizeof buf, "%s [%s]", argv0, name);
-			n = strlen(buf)+1;
-			s = strchr(buf, ' ');
-			if(s)
-				*s = '\0';
-			write(fd, buf, n);
+			n = strlen(name)+1;
+			write(fd, name, n);
 			close(fd);
 		}
 	}
