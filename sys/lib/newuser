@@ -16,6 +16,9 @@ chmod 775 /cron/$user
 chgrp $user /cron/$user
 bind -c $home/tmp /tmp
 
+mail -c
+cron -c
+
 cat > lib/profile <<!
 bind -a $x^home/bin/rc /bin
 bind -a $x^home/bin/$x^cputype /bin

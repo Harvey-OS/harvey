@@ -1281,7 +1281,7 @@ static void
 dumpmach64bios(Mach64xx *mp)
 {
 	int i, romtable, clocktable, freqtable, lcdtable, lcdpanel;
-	uchar bios[0x1000];
+	uchar bios[0x10000];
 
 	memmove(bios, readbios(sizeof bios, 0xC0000), sizeof bios);
 
@@ -1308,7 +1308,7 @@ dumpmach64bios(Mach64xx *mp)
 		return;
 	}
 
-	freqtable = *(ushort*)(bios-2);
+	freqtable = *(ushort*)(bios+clocktable-2);
 	if(freqtable+0x20 > sizeof(bios)) {
 		Bprint(&stdout, "couldn't find ATI frequency table\n");
 		return;

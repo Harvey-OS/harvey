@@ -191,6 +191,7 @@ main(int arc, char *arv[]){
 		process(bp);
 	}
 	closepl();
+	flushimage(display, 1);
 	for(;;){
 		m=emouse();
 		if(m.buttons&4 && emenuhit(3, &m, &menu)==0) exits(0);

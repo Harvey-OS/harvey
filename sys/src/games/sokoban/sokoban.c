@@ -6,7 +6,7 @@
 #include "sokoban.h"
 
 char *LEasy = "/sys/games/lib/sokoban/levels/easy.slc";
-char *LHard = "levels/hard.slc";
+char *LHard = "/sys/games/lib/sokoban/levels/hard.slc";
 char *levelfile;
 
 char		*GRImage = "/sys/games/lib/sokoban/images/right.bit";

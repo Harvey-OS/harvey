@@ -26,6 +26,8 @@ char	*rewritezone(char *);
 int	dBprint(char*, ...);
 int	dBputc(int);
 String*	fixrouteaddr(String*, Node*, Node*);
+int	ping;
+int	insecure;
 
 #define Retry	"Retry, Temporary Failure"
 #define Giveup	"Permanent Failure"
@@ -33,6 +35,7 @@ String*	fixrouteaddr(String*, Node*, Node*);
 int	debug;		/* true if we're debugging */
 String	*reply;		/* last reply */
 String	*toline;
+int	alarmscale;
 int	last = 'n';	/* last character sent by putcrnl() */
 int	filter;
 int	trysecure;	/* Try to use TLS if the other side supports it */
@@ -53,7 +56,7 @@ Biobuf	bfile;
 void
 usage(void)
 {
-	fprint(2, "usage: smtp [-ads] [-uuser] [-hhost] [.domain] net!host[!service] sender rcpt-list\n");
+	fprint(2, "usage: smtp [-adips] [-uuser] [-hhost] [.domain] net!host[!service] sender rcpt-list\n");
 	exits(Giveup); 
 }
 
@@ -81,6 +84,17 @@ timeout(void *x, char *msg)
 }
 
 void
+removenewline(char *p)
+{
+	int n = strlen(p)-1;
+
+	if(n < 0)
+		return;
+	if(p[n] == '\n')
+		p[n] = 0;
+}
+
+void
 main(int argc, char **argv)
 {
 	char hellodomain[256];
@@ -93,6 +107,7 @@ main(int argc, char **argv)
 	int i, ok, rcvrs;
 	char **errs;
 
+	alarmscale = 60*1000;	/* minutes */
 	quotefmtinstall();
 	errs = malloc(argc*sizeof(char*));
 	reply = s_new();
@@ -113,6 +128,13 @@ main(int argc, char **argv)
 		break;
 	case 'h':
 		host = ARGF();
+		break;
+	case 'i':
+		insecure = 1;
+		break;
+	case 'p':
+		alarmscale = 10*1000;	/* tens of seconds */
+		ping = 1;
 		break;
 	case 's':
 		trysecure = 1;
@@ -179,13 +201,13 @@ main(int argc, char **argv)
 	/* 10 minutes to get through the initial handshake */
 	atnotify(timeout, 1);
 
-	alarm(10*60*1000);
+	alarm(10*alarmscale);
 	if((rv = connect(addr)) != 0)
 		exits(rv);
-	alarm(10*60*1000);
+	alarm(10*alarmscale);
 	if((rv = hello(hellodomain, 0)) != 0)
 		goto error;
-	alarm(10*60*1000);
+	alarm(10*alarmscale);
 	if((rv = mailfrom(s_to_c(from))) != 0)
 		goto error;
 
@@ -198,6 +220,7 @@ main(int argc, char **argv)
 			if(rv != Giveup)
 				rv = trv;
 			errs[rcvrs] = strdup(s_to_c(reply));
+			removenewline(errs[rcvrs]);
 		} else {
 			ok++;
 			errs[rcvrs] = 0;
@@ -209,10 +232,17 @@ main(int argc, char **argv)
 	if(ok == 0 || rv == Retry)
 		goto error;
 
+	if(ping){
+		quit(0);
+		exits(0);
+	}
+
 	rv = data(from, &bfile);
+if(debug) fprint(2, "data rv %s\n", rv);
 	if(rv != 0)
 		goto error;
 	quit(0);
+if(debug) fprint(2, "rcvrs %d ok %d\n", rcvrs, ok);
 	if(rcvrs == ok)
 		exits(0);
 
@@ -222,7 +252,7 @@ main(int argc, char **argv)
 	fprint(2, "%s connect to %s:\n", thedate(), addr);
 	for(i = 0; i < rcvrs; i++){
 		if(errs[i]){
-			syslog(0, "smtp.fail", "delivery to %s failed: %s", addr, errs[i]);
+			syslog(0, "smtp.fail", "delivery to %s at %s failed: %s", argv[i], addr, errs[i]);
 			fprint(2, "  mail to %s failed: %s", argv[i], errs[i]);
 		}
 	}
@@ -232,10 +262,15 @@ main(int argc, char **argv)
 	 *  here when all rcvrs failed
 	 */
 error:
-	syslog(0, "smtp.fail", "delivery to %s failed: %s", addr, s_to_c(reply));
+	removenewline(s_to_c(reply));
+	syslog(0, "smtp.fail", "%s to %s failed: %s",
+		ping ? "ping" : "delivery",
+		addr, s_to_c(reply));
 	fprint(2, "%s connect to %s:\n%s\n", thedate(), addr, s_to_c(reply));
+if(debug) fprint(2, "errors %s\n", rv);
 	if(!filter)
 		quit(rv);
+if(debug) fprint(2, "exits %s\n", rv);
 	exits(rv);
 }
 
@@ -421,7 +456,7 @@ hello(char *me, int encrypted)
 			s_free(r);
 			return(dotls(me));
 		}
-		if(tryauth && encrypted &&
+		if(tryauth && (encrypted || insecure) &&
 		    (strncmp(s, "250 AUTH", strlen("250 AUTH")) == 0 ||
 		     strncmp(s, "250-AUTH", strlen("250 AUTH")) == 0) &&
 		    strstr(s, "PLAIN") != nil){
@@ -478,7 +513,7 @@ rcptto(char *to)
 		s_append(toline, ddomain);
 		dBprint("RCPT TO:<%s@%s>\r\n", s_to_c(s), ddomain);
 	}
-	alarm(10*60*1000);
+	alarm(10*alarmscale);
 	switch(getreply()){
 	case 2:
 		break;
@@ -544,7 +579,7 @@ data(String *from, Biobuf *b)
 	/*
 	 *  print message observing '.' escapes and using \r\n for \n
 	 */
-	alarm(20*60*1000);
+	alarm(20*alarmscale);
 	if(!filter){
 		dBprint("DATA\r\n");
 		switch(getreply()){
@@ -622,7 +657,7 @@ data(String *from, Biobuf *b)
 			}
 			if(n == 0)
 				break;
-			alarm(10*60*1000);
+			alarm(10*alarmscale);
 			putcrnl(buf, n);
 			nbytes += n;
 		}
@@ -633,7 +668,7 @@ data(String *from, Biobuf *b)
 			dBprint("\r\n.\r\n");
 		else
 			dBprint(".\r\n");
-		alarm(10*60*1000);
+		alarm(10*alarmscale);
 		switch(getreply()){
 		case 2:
 			break;
@@ -657,7 +692,7 @@ quit(char *rv)
 		/* 60 minutes to quit */
 	quitting = 1;
 	quitrv = rv;
-	alarm(60*60*1000);
+	alarm(60*alarmscale);
 	dBprint("QUIT\r\n");
 	getreply();
 	Bterm(&bout);
