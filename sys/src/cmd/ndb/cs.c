@@ -414,7 +414,8 @@ io(void)
 			error("mount read");
 		job = newjob();
 		if(convM2S(mdata, n, &job->request) != n){
-			syslog(1, logfile, "format error %ux %ux %ux %ux %ux", mdata[0], mdata[1], mdata[2], mdata[3], mdata[4]);
+			syslog(1, logfile, "format error %ux %ux %ux %ux %ux",
+				mdata[0], mdata[1], mdata[2], mdata[3], mdata[4]);
 			freejob(job);
 			continue;
 		}
@@ -730,6 +731,7 @@ rwrite(Job *job, Mfile *mf)
 	int cnt, n;
 	char *err;
 	char *field[4];
+	char curerr[64];
 
 	err = 0;
 	cnt = job->request.count;
@@ -820,8 +822,10 @@ rwrite(Job *job, Mfile *mf)
 	/*
 	 *  do the first net worth of lookup
 	 */
-	if(lookup(mf) == 0)
-		err = "can't translate address";
+	if(lookup(mf) == 0){
+		rerrstr(curerr, sizeof curerr);
+		err = curerr;
+	}
 send:
 	job->reply.count = cnt;
 	sendmsg(job, err);
@@ -1258,7 +1262,7 @@ ipserv(Network *np, char *name, char *buf)
 			{}
 		else if(isalpha(*p) || *p == '-' || *p == '$')
 			alpha = 1;
-		else
+		else 
 			return 0;
 	}
 	if(alpha){
@@ -1334,8 +1338,9 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	 *  start with the service since it's the most likely to fail
 	 *  and costs the least
 	 */
+	werrstr("can't translate address");
 	if(serv==0 || ipserv(np, serv, ts) == 0){
-		werrstr("can't translate address");
+		werrstr("can't translate service");
 		return 0;
 	}
 
@@ -1378,6 +1383,7 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	 *  resolve domain names.  if that fails try the database.
 	 */
 	t = 0;
+	werrstr("can't translate address");
 	if(strcmp(attr, "dom") == 0)
 		t = dnsiplookup(host, &s);
 	if(t == 0)
@@ -1433,9 +1439,10 @@ iptrans(Ndbtuple *t, Network *np, char *serv, char *rem, int hack)
 	if(strcmp(t->attr, "ip") != 0)
 		return 0;
 
-	if(serv == 0 || ipserv(np, serv, ts) == 0)
+	if(serv == 0 || ipserv(np, serv, ts) == 0){
+		werrstr("can't translate service");
 		return 0;
-
+	}
 	if(rem != nil)
 		snprint(x, sizeof(x), "!%s", rem);
 	else
@@ -1463,6 +1470,7 @@ telcolookup(Network *np, char *host, char *serv, int nolookup)
 
 	USED(np, nolookup, serv);
 
+	werrstr("can't translate address");
 	t = ndbgetval(db, &s, "sys", host, "telco", th);
 	if(t == 0)
 		return mktuple("telco", host);
@@ -1568,6 +1576,14 @@ dnsiplookup(char *host, Ndbs *s)
 	else
 		t = dnsquery(mntpt, buf, "ip");
 	s->t = t;
+
+	if(t == nil){
+		rerrstr(buf, sizeof buf);
+		if(strstr(buf, "exist"))
+			werrstr("can't translate address: %s", buf);
+		else if(strstr(buf, "dns failure"))
+			werrstr("temporary problem: %s", buf);
+	}
 
 	lock(&dblock);
 	return t;

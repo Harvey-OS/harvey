@@ -78,14 +78,14 @@ dns.safeinstall: $O.dns
 
 dns.update:V:
 	SRC=`{echo $DNSOBJ|sed 's/\.'$O'/.c/g'}
-	update dns.h $SRC /386/bin/ndb/dns
+	update $UPDATEFLAGS dns.h $SRC
 
 %.update:V:
-	update $stem.c /386/bin/ndb/$stem
+	update $UPDATEFLAGS $stem.c
 
 update:V:
 	mk clean
 	T=`{echo $TARG|sed 's/( |$)/.update /g'}
-	mk $T
-	update mkfile
+	mk 'UPDATEFLAGS='$"UPDATEFLAGS $T
+	update $UPDATEFLAGS mkfile
 

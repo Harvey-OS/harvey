@@ -53,7 +53,7 @@ char *rrtname[] =
 };
 
 /* names of response codes */
-char *rname[] =
+char *rname[Rmask+1] =
 {
 [Rok]			"ok",
 [Rformat]		"format error",

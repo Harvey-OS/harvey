@@ -137,8 +137,9 @@ out:
 		for(tp = rp; tp; tp = tp->next)
 			tp->owner = dp;
 	} else {
-		if(inmyarea(name) == nil)
-			err = 0;
+		/* don't call it non-existent if it's not ours */
+		if(err == Rname && !inmyarea(name))
+			err = Rserver;
 		dp->nonexistent = err;
 	}
 
