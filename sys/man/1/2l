@@ -101,12 +101,10 @@ Print the object code in assembly language, with addresses.
 .B -v
 Print debugging output that annotates the activities of the load.
 .TP
-.TP
 .BI -M
 .RI ( Kl
 only) Generate instructions rather than calls to emulation routines
 for multiply and divide.
-.TP
 .TP
 .BI -E symbol
 The entry point for the binary is
