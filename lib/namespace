@@ -11,6 +11,9 @@ bind #p /proc
 bind -c #s /srv
 bind -a #¤ /dev
 
+# mount points
+mount /srv/slashn /n
+
 # authentication
 mount -a /srv/factotum /mnt
 
@@ -18,7 +21,8 @@ mount -a /srv/factotum /mnt
 bind /$cputype/bin /bin
 bind -a /rc/bin /bin
 
-# networks
+# internal networks
+# mount -a /srv/ip /net
 bind -a #l /net
 bind -a #I /net
 mount -a /srv/cs /net
@@ -28,3 +32,6 @@ bind -a #D /net
 
 bind -c /usr/$user/tmp /tmp
 cd /usr/$user
+
+. /lib/namespace.local
+. /lib/namespace.$sysname
