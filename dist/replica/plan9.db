@@ -394,7 +394,7 @@
 386/bin/srvold9p - 775 sys sys 1064598316 130962
 386/bin/ssh - 775 sys sys 1071245349 210501
 386/bin/sshnet - 775 sys sys 1071245354 284821
-386/bin/stats - 775 sys sys 1071245355 188617
+386/bin/stats - 775 sys sys 1074237203 188651
 386/bin/strings - 775 sys sys 1064598320 60633
 386/bin/strip - 775 sys sys 1064598321 60583
 386/bin/sum - 775 sys sys 1064598321 40087
@@ -539,7 +539,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1074060976 78536
+386/lib/libmp.a - 664 sys sys 1074237203 77700
 386/lib/libndb.a - 664 sys sys 1073851273 54474
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -4645,7 +4645,7 @@ sys/man/1/history - 664 sys sys 1044909169 1709
 sys/man/1/hoc - 664 sys sys 944959676 2357
 sys/man/1/idiff - 664 sys sys 1018386774 927
 sys/man/1/join - 664 sys sys 957920006 2562
-sys/man/1/jpg - 664 sys sys 1072106983 4789
+sys/man/1/jpg - 664 sys sys 1074280543 4758
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
 sys/man/1/leak - 664 sys sys 1017423522 2871
