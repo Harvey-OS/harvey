@@ -57,7 +57,7 @@ RSApriv*	asn1toRSApriv(uchar *priv, int npriv)
 void		asn1dump(uchar *der, int len)
 .PP
 .B
-uchar*	decodepem(char *s, char *type, int *len)
+uchar*	decodePEM(char *s, char *type, int *len, char **new_s)
 .PP
 .B
 uchar*	X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
@@ -172,7 +172,7 @@ structure.
 .I Asn1dump
 prints an ASN1 object to standard output.
 .PP
-.I Decodepem
+.I DecodePEM
 takes a zero terminated string,
 .IR s ,
 and decodes the PEM (privacy-enhanced mail) formatted section for
@@ -180,10 +180,14 @@ and decodes the PEM (privacy-enhanced mail) formatted section for
 within it.
 If successful, it returns the decoded section and sets
 .BI * len
-to its decoded length.
-If not, it returns
-.BR nil ,
-and
+to its decoded length.  If not nil,
+.I new_s
+is set to the first character beyond the
+.I type
+section.
+Otherwise
+.B nil
+is returned and
 .BI * len
 is undefined.
 .SH SOURCE

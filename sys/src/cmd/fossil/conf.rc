@@ -5,7 +5,7 @@
 
 rfork e
 fn usage {
-	echo 'usage: fossil/conf [-w] /dev/sdC0/fossil' >[1=2]
+	echo 'usage: fossil/conf [-w] /dev/sdC0/fossil [config]' >[1=2]
 	exit usage
 }
 

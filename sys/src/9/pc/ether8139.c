@@ -278,14 +278,19 @@ rtl8139ifstat(Ether* edev, void* a, long n, ulong offset)
 static int
 rtl8139reset(Ctlr* ctlr)
 {
+	int timeo;
+
 	/*
 	 * Soft reset the controller.
 	 */
 	csr8w(ctlr, Cr, Rst);
-	while(csr8r(ctlr, Cr) & Rst)
-		;
+	for(timeo = 0; timeo < 1000; timeo++){
+		if(!(csr8r(ctlr, Cr) & Rst))
+			return 0;
+		delay(1);
+	}
 
-	return 0;
+	return -1;
 }
 
 static void

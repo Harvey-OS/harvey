@@ -338,6 +338,12 @@ mimeok(Hlex *h, char *name, int multipart, HContent *head)
 					head->q = v;
 				else if(strcmp(s, "mxb") == 0)
 					head->mxb = v;
+				else{
+					/* cope with accept: application/xhtml+xml; profile=http://www.wapforum.org/xhtml, */
+					while(lex(h) == Word || (h->tok != ',' && h->eol == 0) )
+						;
+					return mimeok(h, name, multipart, head);
+				}
 			}
 			break;
 		case ',':

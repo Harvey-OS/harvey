@@ -194,6 +194,7 @@ void	rc4back(RC4state*, int);
 /////////////////////////////////////////////////////////
 typedef struct RSApub RSApub;
 typedef struct RSApriv RSApriv;
+typedef struct PEMChain PEMChain;
 
 // public/encryption key
 struct RSApub
@@ -217,6 +218,12 @@ struct RSApriv
 	mpint	*c2;	// (inv p) mod q
 };
 
+struct PEMChain{
+	PEMChain *next;
+	uchar *pem;
+	int pemlen;
+};
+
 RSApriv*	rsagen(int nlen, int elen, int rounds);
 RSApriv*	rsafill(mpint *n, mpint *e, mpint *d, mpint *p, mpint *q);
 mpint*		rsaencrypt(RSApub *k, mpint *in, mpint *out);
@@ -229,11 +236,13 @@ RSApub*		rsaprivtopub(RSApriv*);
 RSApub*		X509toRSApub(uchar*, int, char*, int);
 RSApriv*	asn1toRSApriv(uchar*, int);
 void		asn1dump(uchar *der, int len);
-uchar*		decodepem(char *s, char *type, int *len);
+uchar*		decodePEM(char *s, char *type, int *len, char **new_s);
+PEMChain*	decodepemchain(char *s, char *type);
 uchar*		X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
 uchar*		X509req(RSApriv *priv, char *subj, int *certlen);
 char*		X509verify(uchar *cert, int ncert, RSApub *pk);
 void		X509dump(uchar *cert, int ncert);
+
 /////////////////////////////////////////////////////////
 // elgamal
 /////////////////////////////////////////////////////////
@@ -329,16 +338,18 @@ typedef struct TLSconn{
 	uchar *sessionID;
 	int certlen, sessionIDlen;
 	int (*trace)(char*fmt, ...);
+	PEMChain *chain; // optional extra certificate evidence for servers to present
 } TLSconn;
 
 // tlshand.c
-extern int tlsClient(int fd, TLSconn *c);
-extern int tlsServer(int fd, TLSconn *c);
+int tlsClient(int fd, TLSconn *c);
+int tlsServer(int fd, TLSconn *c);
 
 // thumb.c
-extern Thumbprint* initThumbprints(char *ok, char *crl);
-extern void freeThumbprints(Thumbprint *ok);
-extern int okThumbprint(uchar *sha1, Thumbprint *ok);
+Thumbprint* initThumbprints(char *ok, char *crl);
+void	freeThumbprints(Thumbprint *ok);
+int		okThumbprint(uchar *sha1, Thumbprint *ok);
 
 // readcert.c
-extern uchar *readcert(char *filename, int *pcertlen);
+uchar	*readcert(char *filename, int *pcertlen);
+PEMChain *readcertchain(char *filename);

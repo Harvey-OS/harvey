@@ -141,10 +141,10 @@ for(i){
 		9fs $xdump
 
 	if(~ $#last 0){
-		xlast=`{ls -t /n/$xdump/$year|sed 1q}
+		xlast=`{ls /n/$xdump/$year|sed -n '$p'}
 		switch($defdump){
 		case snap
-			xlast=`{ls -t $xlast|sed 1q}
+			xlast=`{ls $xlast|sed -n '$p'}
 		}
 	}
 	if not

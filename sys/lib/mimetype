@@ -66,7 +66,7 @@
 .ltx		application	x-latex		-		y
 .man		application	x-troff-man	-		y
 .me		application	x-troff-me	-		y
-.mid		application	midi		-		y # MIDI music
+.mid		audio		midi		-		y # MIDI music
 .mime		message		rfc822		-		y
 .mod		text		plain		-		y # AMPL et al.
 .mov		video		quicktime	-		y

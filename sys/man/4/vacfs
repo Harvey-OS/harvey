@@ -18,6 +18,10 @@ vacfs \- a Venti-based file system
 .B -m
 .I mtpt
 ]
+[
+.B -S
+.I srvname
+]
 .I vacfile
 .SH DESCRIPTION
 .I Vacfs
@@ -65,7 +69,16 @@ The location to mount the file system. The default is
 Disables permission checking.
 .TP
 .B -s
-Post the 9P channel on #s/vacfs rather than
+Post the 9P channel in
+.B /srv/vacfs
+rather than
+mounting it on
+.IR mtpt .
+.TP
+.BI -S " srvname
+Post the 9P channel in
+.BI /srv/ srvname
+rather than
 mounting it on
 .IR mtpt .
 .SH SOURCE

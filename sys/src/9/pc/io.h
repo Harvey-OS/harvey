@@ -10,7 +10,7 @@ enum {
 	Vector2F	= 8,		/* double fault */
 	VectorCSO	= 9,		/* coprocessor segment overrun */
 	VectorPF	= 14,		/* page fault */
-	Vector15 = 15,		/* reserved */
+	Vector15	= 15,		/* reserved */
 	VectorCERR	= 16,		/* coprocessor error */
 
 	VectorPIC	= 32,		/* external i8259 interrupts */
