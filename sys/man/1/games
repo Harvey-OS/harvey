@@ -1,0 +1,86 @@
+.TH GAMES 1
+.SH NAME
+mahjongg, sokoban \- time wasters
+.SH SYNOPSIS
+.B games/mahjongg
+[
+.B -c
+] [
+.B -b
+.I background
+] [
+.B -t 
+.I tileset
+] [
+.B -l
+.I layout
+]
+.br
+.B games/sokoban
+[
+.B level
+]
+.SH DESCRIPTION
+There are a few games in
+.BR /bin/games :
+.TP
+.B mahjongg
+Remove all tiles
+from the board. Click on tiles with the same face that
+are not blocked by others. A blocked tile is one that is partially or
+fully covered on top or has neighbouring tiles to the left and right.
+The game finishes when either all tiles are gone or there are no
+more moves left. The arguments are for changing background
+.RB (-b),
+tile
+.RB (-t)
+and layout
+.RB (-l)
+images;
+.RB -c
+selects a true-color buffer image, use with
+drawterm or in case selecting a tile obscures it completely.
+The 
+.LR N
+key will generate a new level, 
+.LR R
+restarts the current one. 
+.LR Q
+and 
+.LR Del
+quit, 
+.LR H
+gives a hint, either trying to match the currently selected tile, or if no tile is
+selected finding out the first available tile.
+.TP
+.B sokoban
+Guide Glenda through a room full of walls, pebbles and holes to put
+the pebbles in.  Your goal is to arrange all pebbles into holes by
+pushing them around, but you can only push a pebble if there is no
+wall or another pebble blocking the way.
+Arrow keys move Glenda up-down-left-right.  
+.LR N 
+and 
+.LR P 
+keys switch between
+the next and previous levels, 
+.LR R
+restarts the current level.  
+.LR Del 
+and
+.LR Q
+quit.  The right mouse button invokes a menu to restart the current level or load different
+level sets.  The middle mouse button lets you change between levels. 
+.I Sokoban
+accepts a level file as its argument.
+.SH FILES
+.TP
+.B /sys/games/lib/mahjongg/*
+image sprites, levels and backgrounds used by
+.I mahjongg
+.TP
+.B /sys/games/lib/sokoban/*
+image sprites and levels used by
+.I sokoban
+.SH SOURCE
+.B /sys/src/games
