@@ -34,7 +34,7 @@ dumparena(arena)
 		if nb > atail then {
 			b = (Bhdr)(b+4);
 			print("lost at block ", (b-4)\X, ", scanning forward\n");
-			while b < atail && b.magic != KEMPT_MAGIC && b.magic != FREE_MAGIC do
+			while b < atail && b.magic != ALLOC_MAGIC && b.magic != FREE_MAGIC do
 				b = (Bhdr)(b+4);
 			print("stopped at ", b\X, " ", *b\X, "\n");
 		}else
@@ -59,14 +59,14 @@ dumpblock(addr)
 {
 	complex Bhdr addr;
 
-	if addr.magic == KEMPT_MAGIC || addr.magic == FREE_MAGIC then {
+	if addr.magic == ALLOC_MAGIC || addr.magic == FREE_MAGIC then {
 		local a, x, s;
 
 		a = addr;
 		complex Alloc a;
 
 		x = addr+8;
-		if addr.magic == KEMPT_MAGIC then
+		if addr.magic == ALLOC_MAGIC then
 			s = "block";
 		else
 			s = "free";
