@@ -29,6 +29,10 @@ installall:V:
 	for(objtype in $CPUS)
 		mk install
 
+allall:V:
+	for(objtype in $CPUS)
+		mk all
+
 nuke:V:
 	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output *.acid $TARG
 
