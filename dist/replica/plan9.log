@@ -13840,3 +13840,14 @@
 1076689810 16 a sys/src/cmd/qi/symbols.c - 644 sys sys 1076688569 1741
 1076689810 17 a sys/src/cmd/qi/syscall.c - 644 sys sys 1076688569 14402
 1076689810 18 a sys/src/cmd/qi/timing - 644 sys sys 1076688570 641
+1076776223 0 c sys/src/cmd/8c/cgen.c - 664 sys sys 1076774954 26295
+1076776223 1 c sys/src/cmd/cc/cc.h - 664 sys sys 1076774919 11746
+1076776223 2 c sys/src/cmd/cc/com.c - 664 sys sys 1076774920 18843
+1076776223 3 c sys/src/cmd/cc/dpchk.c - 664 sys sys 1076774921 6738
+1076776223 4 c sys/src/cmd/cc/sub.c - 664 sys sys 1076774922 30940
+1076778023 0 c sys/src/cmd/rio/rio.c - 664 sys sys 1076777377 21415
+1076790626 0 c sys/src/libcomplete/complete.c - 664 sys sys 1076789202 2726
+1076817630 0 c 386/bin/8c - 775 sys sys 1076817071 299629
+1076817630 1 c 386/bin/acme - 775 sys sys 1076817072 422441
+1076817630 2 c 386/bin/rio - 775 sys sys 1076817073 311241
+1076817630 3 c 386/lib/libcomplete.a - 664 sys sys 1076817073 6312

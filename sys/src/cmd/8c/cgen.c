@@ -439,7 +439,7 @@ cgen(Node *n, Node *nn)
 	case OASMOD:
 		if(l->op == OBIT)
 			goto asbitop;
-		if(typefd[n->type->etype])
+		if(typefd[r->type->etype])
 			goto asfop;
 		if(o == OASMUL && r->op == OCONST) {
 			if(hardleft)
