@@ -2,12 +2,15 @@
 .SH NAME
 usbmouse,
 usbaudio,
-usbprint
+usbprinter
 \- Universal Serial Bus user level device drivers
 .SH SYNOPSIS
 .B usb/usbmouse
 [
-.B -f
+.B -fsv
+] [
+.B -a
+.I accel
 ] [
 .I ctrlno
 .I n
@@ -30,7 +33,7 @@ usbprint
 .I n
 ]
 .PP
-.B usb/usbprint
+.B usb/usbprinter
 .SH DESCRIPTION
 These programs implement support for specific USB device classes.
 They should be run after
@@ -41,18 +44,24 @@ Dynamic handling of device insertion and removal is currently not supported.
 .SS Mice
 .B Usbmouse
 sends mouse events from a USB mouse to
-.B #m/mousein
+.B /dev/mousein
 where the Plan 9 kernel processes them like other mice.
 .PP
 Without arguments, it scans the USB status files to find a mouse
 and uses the first one it finds.  A pair of numeric arguments overrides this search
-with a specific USB controller and device.
-.PP
-The
-.B -f
-flag runs
-.B usbmouse
-in the foreground.
+with a specific USB controller and device.  The options are
+.TP
+.BI -f
+Run usbmouse in foreground.
+.TP
+.BI -s
+Use the scrollwheel.
+.TP
+.BI -v
+Verbose mode.
+.TP
+.BI -a " accel"
+Accelerate mouse movements.
 .SS Audio devices
 .B Usbaudio
 configures and manages a usb audio device.  It implements a file system,
@@ -139,7 +148,7 @@ The data format is little endian, samples ordered primarily by time and
 secondarily by channel.  Samples occupy the minimum integral number
 of bytes.  Read and write operations of arbitrary size are allowed.
 .SS Printers
-.B Usbprint
+.B Usbprinter
 is a script that mounts a usb printer on
 .BR /dev/lp .
 .SH EXAMPLE

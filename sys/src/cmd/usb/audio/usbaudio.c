@@ -240,7 +240,7 @@ findendpoints(void)
 void
 usage(void)
 {
-	fprint(2, "usage: usbaudio [-V] [-v volume[%%]] [-m mountpoint] [-s srvname] [ctrlno id]\n");
+	fprint(2, "usage: usbaudio [-V] [-v volume] [-m mountpoint] [-s srvname] [ctrlno n]\n");
 	threadexitsall("usage");
 }
 
@@ -266,20 +266,20 @@ threadmain(int argc, char **argv)
 		verbose++;
 		break;
 	case 'd':
-		debug = strtol(ARGF(), nil, 0);
+		debug = strtol(EARGF(usage()), nil, 0);
 		if (debug == -1) debugdebug++;
 		verbose++;
 		break;
 	case 'v':
-		volume[0] = strtol(ARGF(), &p, 0);
+		volume[0] = strtol(EARGF(usage()), &p, 0);
 		for(i = 1; i < 8; i++)
 			volume[i] = volume[0];
 		break;
 	case 'm':
-		mntpt = ARGF();
+		mntpt = EARGF(usage());
 		break;
 	case 's':
-		srvpost = ARGF();
+		srvpost = EARGF(usage());
 		break;
 	default:
 		usage();

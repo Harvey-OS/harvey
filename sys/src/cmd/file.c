@@ -159,6 +159,7 @@ int	isrtf(void);
 int	ismsdos(void);
 int	iself(void);
 int	istring(void);
+int	iff(void);
 int	long0(void);
 int	istar(void);
 int	p9bitnum(uchar*);
@@ -172,6 +173,7 @@ int	(*call[])(void) =
 {
 	long0,		/* recognizable by first 4 bytes */
 	istring,	/* recognizable by first string */
+	iff,		/* interchange file format (strings) */
 	isrfc822,	/* email file */
 	ismbox,		/* mail box */
 	istar,		/* recognizable by tar checksum */
@@ -521,6 +523,7 @@ Filemagic long0tab[] = {
 	0x04034B50,	0xFFFFFFFF,	"zip archive\n", "application/zip",
 	070707,		0xFFFF,		"cpio archive\n", OCTET,
 	0x2F7,		0xFFFF,		"tex dvi\n", "application/dvi",
+	0xfffa0000,	0xfffe0000,	"mp3 audio",	"audio/mpeg",
 };
 
 int
@@ -657,6 +660,7 @@ struct	FILE_STRING
 	"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",	"microsoft office document",	8,	"application/octet-stream",
 	"<MakerFile ",		"FrameMaker file",		11,	"application/framemaker",
 	"\033%-12345X",	"HPJCL file",		9,	"application/hpjcl",
+	"ID3",			"mp3 audio with id3",	3,	"audio/mpeg",
 	0,0,0,0
 };
 
@@ -683,6 +687,17 @@ istring(void)
 			print(OCTET);
 		else
 			print("%.*s picture\n", utfnlen((char*)buf+5, i-5), (char*)buf+5);
+		return 1;
+	}
+	return 0;
+}
+
+int
+iff(void)
+{
+	if (strncmp((char*)buf, "FORM", 4) == 0 &&
+	    strncmp((char*)buf+8, "AIFF", 4) == 0) {
+		print("%s\n", mime? "audio/x-aiff": "aiff audio");
 		return 1;
 	}
 	return 0;

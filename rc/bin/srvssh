@@ -32,7 +32,7 @@
 rfork e
 
 fn usage {
-	echo 'usage: srvssh [-R] [-r] [-s] [-u u9fspath] [srvname [mtpt]]' >[1=2]
+	echo 'usage: srvssh [-R] [-r] [-s] [-u u9fspath] system [srvname [mtpt]]' >[1=2]
 	exit usage
 }
 
