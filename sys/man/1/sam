@@ -1,7 +1,7 @@
 .TH SAM 1
 .ds a \fR*\ \fP
 .SH NAME
-sam, B, sam.save \- screen editor with structural regular expressions 
+sam, B, sam.save, samterm \- screen editor with structural regular expressions 
 .SH SYNOPSIS
 .B sam
 [
@@ -39,6 +39,12 @@ the editor's file until it first becomes the current file\(emthat to
 which editing commands apply\(emwhereupon its menu entry is printed.
 The options are
 .TF -rmachine
+.TP
+.B -a
+Autoindent.  In this mode, when a newline character is typed
+in the terminal interface,
+.I samterm
+copies leading white space from the current line to the new line.
 .TP
 .B -d
 Do not `download' the terminal part of

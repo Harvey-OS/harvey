@@ -501,6 +501,12 @@ main(int argc, char **argv)
 				continue;
 			}
 		    DoMetaDb:
+			if(!havedb){
+				if(havelocal)
+					dbd = ld;
+				else
+					dbd = rd;
+			}
 			if(dbd.mode&DMDIR)
 				dbd.mtime = now;
 			dbd.gid = rd.gid;
