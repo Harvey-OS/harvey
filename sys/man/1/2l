@@ -18,8 +18,8 @@ load the named
 into executable files for the corresponding architectures; see
 .IR 2c (1)
 for the correspondence between an architecture and the character
-.RB ( 0 ,
-.RB 1 ,
+.RB ( 1 ,
+.RB 2 ,
 etc.) that specifies it.
 The files should be object files or libraries (archives of object files)
 for the appropriate architecture.
@@ -114,6 +114,29 @@ The entry point for the binary is
 .B _mainp
 under
 .BR -p ).
+.TP
+.B -x 
+[
+.I file
+]
+Produce an export table in the executable.
+The optional
+.I file
+restricts the exported symbols to those listed in the file.
+See
+.IR dynld (2).
+.TP
+.B -u 
+[
+.I file
+]
+Produce an export table, import table
+and a dynamic load section in the executable.
+The optional
+.I file
+restricts the imported symbols to those listed in the file.
+See
+.IR dynld (2).
 .TP
 .BI -H n
 Executable header is type

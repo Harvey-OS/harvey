@@ -13,7 +13,7 @@ CPU servers alike.
 .SS Name Spaces
 In Plan 9, almost all objects look like files.
 The object retrieved by a given name is determined by a mapping called the
-.IR name space .
+.IR "name space" .
 A quick tour of the standard name space is in
 .IR namespace (4).
 Every program running in Plan 9 belongs to a
