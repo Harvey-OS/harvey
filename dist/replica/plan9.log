@@ -13251,3 +13251,8 @@
 1072836117 0 c 386/lib/ape/libap.a - 664 sys sys 1072835459 812790
 1072836117 1 c sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1072835434 9924
 1072836117 2 c sys/src/ape/lib/ap/plan9/lib.h - 664 sys sys 1072835434 2071
+1072909862 0 a sys/include/complete.h - 664 sys sys 1072904891 517
+1072909862 1 a sys/man/2/complete - 664 sys sys 1072905221 2175
+1072909862 2 a sys/src/libcomplete - 20000000775 sys sys 1072904881 0
+1072909862 3 a sys/src/libcomplete/complete.c - 664 sys sys 1072904881 2673
+1072909862 4 a sys/src/libcomplete/mkfile - 664 sys sys 1072904881 208

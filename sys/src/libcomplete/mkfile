@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libcomplete.a
+OFILES=\
+	complete.$O\
+
+HFILES=/sys/include/complete.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib
