@@ -40,6 +40,7 @@ char	*tlscert;
 List	senders;
 List	rcvers;
 
+char pipbuf[ERRMAX];
 char	*piperror;
 int	pipemsg(int*);
 String*	startcmd(void);
@@ -256,9 +257,10 @@ hello(String *himp, int extended)
 {
 	char **mynames;
 
+	him = s_to_c(himp);
+	syslog(0, "smtpd", "%s from %s as %s", extended ? "ehlo" : "helo", nci->rsys, him);
 	if(rejectcheck())
 		return;
-	him = s_to_c(himp);
 
 	if(strchr(him, '.') && nci && !trusted && fflag && strcmp(nci->rsys, nci->lsys) != 0){
 		/*
@@ -1011,7 +1013,8 @@ pipemsg(int *byteswritten)
 	s_free(line);
 	if(sawdot == 0){
 		/* message did not terminate normally */
-		piperror = "unexpected eof";
+		snprint(pipbuf, sizeof pipbuf, "network eof: %r");
+		piperror = pipbuf;
 		syskillpg(pp->pid);
 		status = 1;
 	}

@@ -95,6 +95,11 @@ Legal values are 1 or 2.
 Set number of bits per byte to
 .IR n .
 Legal values are 5, 6, 7, or 8.
+.TP
+.BI w n
+Set the uart clock timer to
+n times 100us.
+.IP
 .PP
 The status
 files contain a textual representation of the status of the line, in the format of the

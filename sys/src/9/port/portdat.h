@@ -833,7 +833,7 @@ struct PhysUart
 };
 
 enum {
-	Stagesize=	1024
+	Stagesize=	2048
 };
 
 /*
@@ -865,12 +865,15 @@ struct Uart
 	int	perr;			/* parity errors */
 	int	ferr;			/* framing errors */
 	int	oerr;			/* rcvr overruns */
+	int	berr;			/* no input buffers */
+	int	serr;			/* input queue overflow */
 
 	/* buffers */
 	int	(*putc)(Queue*, int);
 	Queue	*iq;
 	Queue	*oq;
 
+	Lock	rlock;
 	uchar	istage[Stagesize];
 	uchar	*iw;
 	uchar	*ir;

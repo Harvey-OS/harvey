@@ -3450,7 +3450,7 @@ sys/include/html.h - 664 sys sys 1091904420 15220
 sys/include/httpd.h - 664 sys sys 1091904418 5771
 sys/include/ip.h - 664 sys sys 1089299185 2958
 sys/include/keyboard.h - 664 sys sys 1079577798 815
-sys/include/libc.h - 664 sys sys 1089299187 19463
+sys/include/libc.h - 664 sys sys 1102093062 19516
 sys/include/libsec.h - 664 sys sys 1084318867 9264
 sys/include/mach.h - 664 sys sys 1089313992 8164
 sys/include/memdraw.h - 664 sys sys 1091904419 5645
@@ -3460,7 +3460,7 @@ sys/include/mp.h - 664 sys sys 1014929065 4610
 sys/include/ndb.h - 664 sys sys 1091904429 4369
 sys/include/nfs3.h - 664 sys sys 1045589438 15082
 sys/include/plumb.h - 664 sys sys 1014929065 989
-sys/include/pool.h - 664 sys sys 1032058257 1156
+sys/include/pool.h - 664 sys sys 1102093074 1219
 sys/include/rdbg.h - 664 sys sys 1014929066 95
 sys/include/realtime.h - 664 sys sys 1037669237 869
 sys/include/regexp.h - 664 sys sys 1014929066 1308
@@ -4881,7 +4881,7 @@ sys/man/2/isalpharune - 664 sys sys 1015091523 1059
 sys/man/2/keyboard - 664 sys sys 950892860 2065
 sys/man/2/lock - 664 sys sys 1048643958 4692
 sys/man/2/mach - 664 sys sys 1080179298 7995
-sys/man/2/malloc - 664 sys sys 1101135773 4375
+sys/man/2/malloc - 664 sys sys 1102093069 4763
 sys/man/2/matrix - 664 sys sys 950892861 6090
 sys/man/2/memdraw - 664 sys sys 1040484074 10144
 sys/man/2/memlayer - 664 sys sys 1040484074 6963
@@ -4898,7 +4898,7 @@ sys/man/2/open - 664 sys sys 1015091524 3404
 sys/man/2/perror - 664 sys sys 944959696 1881
 sys/man/2/pipe - 664 sys sys 950892864 1587
 sys/man/2/plumb - 664 sys sys 1015091524 4816
-sys/man/2/pool - 664 sys sys 1017423720 8134
+sys/man/2/pool - 664 sys sys 1102093086 8574
 sys/man/2/postnote - 664 sys sys 944959695 790
 sys/man/2/prime - 664 sys sys 1063855709 1962
 sys/man/2/print - 664 sys sys 1046620831 8889
@@ -4976,7 +4976,7 @@ sys/man/3/segment - 664 sys sys 1017423721 2378
 sys/man/3/srv - 664 sys sys 958419690 1470
 sys/man/3/ssl - 664 sys sys 1018386776 3413
 sys/man/3/tls - 664 sys sys 1045501496 7018
-sys/man/3/uart - 664 sys sys 1068393771 1651
+sys/man/3/uart - 664 sys sys 1102093395 1710
 sys/man/3/usb - 664 sys sys 1063855746 6727
 sys/man/3/vga - 664 sys sys 1020356225 4827
 sys/man/4 - 20000000775 sys sys 1018581459 0
@@ -4999,7 +4999,7 @@ sys/man/4/ftpfs - 664 sys sys 1048285446 4327
 sys/man/4/import - 664 sys sys 1034195346 2204
 sys/man/4/iostats - 664 sys sys 959566568 1415
 sys/man/4/keyfs - 664 sys sys 1017251244 5003
-sys/man/4/kfs - 664 sys sys 1019058716 2159
+sys/man/4/kfs - 664 sys sys 1102088374 2164
 sys/man/4/lnfs - 664 sys sys 1073491345 1219
 sys/man/4/mntgen - 664 sys sys 1043680799 473
 sys/man/4/namespace - 664 sys sys 1018386777 6916
@@ -5121,7 +5121,7 @@ sys/man/8/ppp - 664 sys sys 1096036494 4424
 sys/man/8/prep - 664 sys sys 1079705872 13820
 sys/man/8/qer - 664 sys sys 1067723129 4909
 sys/man/8/reboot - 664 sys sys 969499895 414
-sys/man/8/replica - 664 sys sys 1021579979 6239
+sys/man/8/replica - 664 sys sys 1102088374 6295
 sys/man/8/rsa - 664 sys sys 1057955511 4628
 sys/man/8/scanmail - 664 sys sys 969499895 10803
 sys/man/8/scuzz - 664 sys sys 984709640 7916
@@ -5431,7 +5431,7 @@ sys/src/9/pc/sdata.c - 664 sys sys 1099487462 50970
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1092080705 20458
-sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
+sys/src/9/pc/uarti8250.c - 664 sys sys 1102093392 13917
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
 sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
 sys/src/9/pc/usbuhci.c - 664 sys sys 1099760881 30955
@@ -5463,7 +5463,7 @@ sys/src/9/pc/wavelan.c - 664 sys sys 1056299581 27253
 sys/src/9/pc/wavelan.h - 664 sys sys 1055700615 6151
 sys/src/9/port - 20000000775 sys sys 1018469625 0
 sys/src/9/port/alarm.c - 664 sys sys 1067722766 1426
-sys/src/9/port/alloc.c - 664 sys sys 1067722763 5329
+sys/src/9/port/alloc.c - 664 sys sys 1102093389 5645
 sys/src/9/port/allocb.c - 664 sys sys 1067722759 3200
 sys/src/9/port/auth.c - 664 sys sys 1055688251 2308
 sys/src/9/port/cache.c - 664 sys sys 1055688274 9241
@@ -5497,7 +5497,7 @@ sys/src/9/port/devsrv.c - 664 sys sys 1086406908 5198
 sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1086406907 45225
-sys/src/9/port/devuart.c - 664 sys sys 1077055016 11683
+sys/src/9/port/devuart.c - 664 sys sys 1102093393 12192
 sys/src/9/port/edf.c - 664 sys sys 1099760881 12742
 sys/src/9/port/edf.h - 664 sys sys 1084475128 1156
 sys/src/9/port/error.h - 664 sys sys 1055700517 2630
@@ -5522,12 +5522,12 @@ sys/src/9/port/mksystab - 664 sys sys 1014931176 783
 sys/src/9/port/mul64fract.c - 664 sys sys 1071671674 867
 sys/src/9/port/netif.c - 664 sys sys 1066514951 13421
 sys/src/9/port/netif.h - 664 sys sys 1066514947 2975
-sys/src/9/port/page.c - 664 sys sys 1055688510 8107
+sys/src/9/port/page.c - 664 sys sys 1102133425 8281
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1072704671 3940
-sys/src/9/port/portclock.c - 664 sys sys 1084475128 4542
-sys/src/9/port/portdat.h - 664 sys sys 1091904422 22118
-sys/src/9/port/portfns.h - 664 sys sys 1091904430 11426
+sys/src/9/port/portclock.c - 664 sys sys 1102093397 4556
+sys/src/9/port/portdat.h - 664 sys sys 1102093399 22207
+sys/src/9/port/portfns.h - 664 sys sys 1102093388 11474
 sys/src/9/port/portmkfile - 664 sys sys 1091733856 2087
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1099760501 28207
@@ -10919,7 +10919,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1097901337 19565
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1064589597 1084
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1100893957 30201
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1102093207 30350
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1061836986 6949
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1098803961 10231
@@ -10928,7 +10928,7 @@ sys/src/cmd/upas/unesc/mkfile - 664 sys sys 1075080255 164
 sys/src/cmd/upas/unesc/unesc.c - 664 sys sys 1075080255 789
 sys/src/cmd/upas/vf - 20000000775 sys sys 1015096796 0
 sys/src/cmd/upas/vf/mkfile - 664 sys sys 1064393881 241
-sys/src/cmd/upas/vf/vf.c - 664 sys sys 1087829630 17442
+sys/src/cmd/upas/vf/vf.c - 664 sys sys 1102093227 17450
 sys/src/cmd/usb - 20000000775 sys sys 1017802022 0
 sys/src/cmd/usb/audio - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1100568596 18166
@@ -11682,7 +11682,7 @@ sys/src/libc/port/lock.c - 664 sys sys 1014927398 493
 sys/src/libc/port/log.c - 664 sys sys 1014927398 1026
 sys/src/libc/port/lrand.c - 664 sys sys 1035832917 1109
 sys/src/libc/port/malloc.acid - 664 sys sys 1014927398 6227
-sys/src/libc/port/malloc.c - 664 sys sys 1014927398 5381
+sys/src/libc/port/malloc.c - 664 sys sys 1102093081 5697
 sys/src/libc/port/memccpy.c - 664 sys sys 1014927398 216
 sys/src/libc/port/memchr.c - 664 sys sys 1014927398 182
 sys/src/libc/port/memcmp.c - 664 sys sys 1014927398 259
@@ -11698,7 +11698,7 @@ sys/src/libc/port/netmkaddr.c - 664 sys sys 1014927400 863
 sys/src/libc/port/nrand.c - 664 sys sys 1035832917 191
 sys/src/libc/port/ntruerand.c - 664 sys sys 1014927400 371
 sys/src/libc/port/perror.c - 664 sys sys 1014927400 199
-sys/src/libc/port/pool.c - 664 sys sys 1067719044 27913
+sys/src/libc/port/pool.c - 664 sys sys 1102093118 30853
 sys/src/libc/port/pow.c - 664 sys sys 1014927401 965
 sys/src/libc/port/pow10.c - 664 sys sys 1014927401 1946
 sys/src/libc/port/profile.c - 664 sys sys 1067719045 5495

@@ -108,7 +108,7 @@ and mount it on
 .BR /n/kfs .
 .IP
 .EX
-% kfs -rb4096 -nlocal
+% disk/kfs -rb4096 -nlocal
 % mount -c /srv/kfs.local /n/kfs
 .EE
 .PP
