@@ -32,7 +32,7 @@ These are a control file
 which may be read for a textual summary of the device function,
 and a `raw' file
 .RL ( /dev/pci/\fIbus\fP.\fIdev\fP.\fIfn\fPraw )
-which may be read to obtain the raw contents of PCI configuration space.
+which may be used to read or write the raw contents of PCI configuration space.
 .PP
 The first field of a PCI control file contains the class, sub-class and
 programming interface values for the device function, expressed
@@ -135,8 +135,6 @@ grep '^03' /dev/pci/*ctl
 .SH SOURCE
 .B /sys/src/9/port/devpnp.c
 .SH BUGS
-There is currently no way to write to PCI configuration space,
-or to perform reads of less than 32 bits.
 Access to the I/O and memory regions of a PCI device is not provided.
 .PP
 The ability to set a Plug 'n' Play card's configurable settings has not been

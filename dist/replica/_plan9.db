@@ -4944,7 +4944,7 @@ sys/man/3/lpt - 664 sys sys 944959698 893
 sys/man/3/mnt - 664 sys sys 944959698 1994
 sys/man/3/mouse - 664 sys sys 1020313480 4276
 sys/man/3/pipe - 664 sys sys 1032640674 1145
-sys/man/3/pnp - 664 sys sys 1019864752 4645
+sys/man/3/pnp - 664 sys sys 1088560895 4547
 sys/man/3/proc - 664 sys sys 1074785156 12026
 sys/man/3/root - 664 sys sys 1046958450 632
 sys/man/3/rtc - 664 sys sys 954378857 667
@@ -5461,7 +5461,7 @@ sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
 sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
-sys/src/9/port/devpnp.c - 664 sys sys 1055688361 13021
+sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
 sys/src/9/port/devproc.c - 664 sys sys 1084475128 28427
 sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1071245428 28564
