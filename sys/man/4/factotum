@@ -566,7 +566,7 @@ An RPC consists of writing a request message to
 followed by reading a reply message back.
 RPC's are strictly ordered; requests and replies of
 different RPC's cannot be interleaved.
-Messages consist of of a verb, a singe space, and data.
+Messages consist of a verb, a single space, and data.
 The data format depends on the verb.  The request verbs are:
 .TP
 .B "start \fIattribute-value-list\fP
@@ -634,7 +634,7 @@ is the reason.
 .B "protocol not started
 a
 .B start
-RPC needs to be preceed reads and writes
+RPC needs to precede reads and writes
 .TP
 .B "needkey \fIattribute-value-list\fP
 a key matching the argument is needed.  This argument
