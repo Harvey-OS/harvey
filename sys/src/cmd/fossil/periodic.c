@@ -29,10 +29,10 @@ periodicAlloc(void (*f)(void*), void *a, int msec)
 	vtThread(periodicThread, p);
 	return p;
 }
-	
+
 void
 periodicKill(Periodic *p)
-{	
+{
 	if(p == nil)
 		return;
 	vtLock(p->lk);
@@ -62,7 +62,7 @@ periodicThread(void *a)
 		/* skip missed */
 		while(t <= ct)
 			t += p->msec;
-		
+
 		ts = t - ct;
 		if(ts > 1000)
 			ts = 1000;

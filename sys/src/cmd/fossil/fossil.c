@@ -25,7 +25,7 @@ readCmdPart(char *file, char ***pcmd, int *pncmd)
 	int i, fd, n;
 	char **cmd;
 	int ncmd;
-	
+
 	cmd = *pcmd;
 	ncmd = *pncmd;
 

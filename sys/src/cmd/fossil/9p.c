@@ -293,7 +293,7 @@ rTwstat(Msg* m)
 	/*
 	 * Check for permission to change group, must be
 	 * either owner and in new group or leader of both groups.
-	 * If gid is nil here then 
+	 * If gid is nil here then
 	 */
 	if(strcmp(gid, de.gid) != 0){
 		if(!fsysWstatAllow(fid->fsys)
@@ -501,7 +501,7 @@ rTwrite(Msg* m)
 		n = fileWrite(fid->file, m->t.data, count, m->t.offset, fid->uid);
 	if(n < 0)
 		goto error;
-	
+
 
 	m->r.count = n;
 

@@ -39,7 +39,7 @@ stringUnpack(char **s, uchar **p, int *n)
 
 	if(*n < 2)
 		return 0;
-	
+
 	nn = U16GET(*p);
 	*p += 2;
 	*n -= 2;
@@ -87,7 +87,7 @@ if(0)fprint(2, "mbSearch %s\n", elem);
 			*ri = i;
 			return 1;
 		}
-	
+
 		if(x < 0)
 			b = i+1;
 		else /* x > 0 */
@@ -95,7 +95,7 @@ if(0)fprint(2, "mbSearch %s\n", elem);
 	}
 
 	assert(b == t);
-	
+
 	*ri = b;	/* b is the index to insert this entry */
 	memset(me, 0, sizeof(*me));
 
@@ -118,7 +118,7 @@ mbInit(MetaBlock *mb, uchar *p, int n, int ne)
 
 int
 mbUnpack(MetaBlock *mb, uchar *p, int n)
-{	
+{
 	u32int magic;
 	int i;
 	int eo, en, omin;
@@ -147,7 +147,7 @@ mbUnpack(MetaBlock *mb, uchar *p, int n)
 	if(n < omin)
 		goto Err;
 
-	
+
 	p += MetaHeaderSize;
 
 	/* check the index table - ensures that meUnpack and meCmp never fail */
@@ -297,7 +297,7 @@ meCmp(MetaEntry *me, char *s)
 	p += 6;
 	n = U16GET(p);
 	p += 2;
-	
+
 	if(n > me->size - 8)
 		n = me->size - 8;
 
@@ -336,7 +336,7 @@ meCmpOld(MetaEntry *me, char *s)
 	p += 6;
 	n = U16GET(p);
 	p += 2;
-	
+
 	if(n > me->size - 8)
 		n = me->size - 8;
 
@@ -422,7 +422,7 @@ mbCompact(MetaBlock *mb, MetaChunk *mc)
 	int oo, o, n, i;
 
 	oo = MetaHeaderSize + mb->maxindex*MetaIndexSize;
-	
+
 	for(i=0; i<mb->nindex; i++){
 		o = mc[i].offset;
 		n = mc[i].size;
@@ -487,7 +487,7 @@ int
 deSize(DirEntry *dir)
 {
 	int n;
-	
+
 	/* constant part */
 
 	n = 	4 +	/* magic */
@@ -527,7 +527,7 @@ dePack(DirEntry *dir, MetaEntry *me)
 	ulong t32;
 
 	p = me->p;
-	
+
 	U32PUT(p, DirMagic);
 	U16PUT(p+4, 9);		/* version */
 	p += 6;
@@ -544,7 +544,7 @@ dePack(DirEntry *dir, MetaEntry *me)
 	p += stringPack(dir->uid, p);
 	p += stringPack(dir->gid, p);
 	p += stringPack(dir->mid, p);
-	
+
 	U32PUT(p, dir->mtime);
 	U32PUT(p+4, dir->mcount);
 	U32PUT(p+8, dir->ctime);
@@ -570,20 +570,20 @@ deUnpack(DirEntry *dir, MetaEntry *me)
 {
 	int t, nn, n, version;
 	uchar *p;
-	
+
 	p = me->p;
 	n = me->size;
 
 	memset(dir, 0, sizeof(DirEntry));
 
-if(0)print("vdUnpack\n");
+if(0)print("deUnpack\n");
 	/* magic */
 	if(n < 4 || U32GET(p) != DirMagic)
 		goto Err;
 	p += 4;
 	n -= 4;
 
-if(0)print("vdUnpack: got magic\n");
+if(0)print("deUnpack: got magic\n");
 	/* version */
 	if(n < 2)
 		goto Err;
@@ -591,15 +591,15 @@ if(0)print("vdUnpack: got magic\n");
 	if(version < 7 || version > 9)
 		goto Err;
 	p += 2;
-	n -= 2;	
+	n -= 2;
 
-if(0)print("vdUnpack: got version\n");
+if(0)print("deUnpack: got version\n");
 
 	/* elem */
 	if(!stringUnpack(&dir->elem, &p, &n))
 		goto Err;
 
-if(0)print("vdUnpack: got elem\n");
+if(0)print("deUnpack: got elem\n");
 
 	/* entry  */
 	if(n < 4)
@@ -608,7 +608,7 @@ if(0)print("vdUnpack: got elem\n");
 	p += 4;
 	n -= 4;
 
-if(0)print("vdUnpack: got entry\n");
+if(0)print("deUnpack: got entry\n");
 
 	if(version < 9){
 		dir->gen = 0;
@@ -624,7 +624,7 @@ if(0)print("vdUnpack: got entry\n");
 		n -= 3*4;
 	}
 
-if(0)print("vdUnpack: got gen etc\n");
+if(0)print("deUnpack: got gen etc\n");
 
 	/* size is gotten from VtEntry */
 	dir->size = 0;
@@ -636,7 +636,7 @@ if(0)print("vdUnpack: got gen etc\n");
 	p += 8;
 	n -= 8;
 
-if(0)print("vdUnpack: got qid\n");
+if(0)print("deUnpack: got qid\n");
 	/* skip replacement */
 	if(version == 7){
 		if(n < VtScoreSize)
@@ -644,7 +644,7 @@ if(0)print("vdUnpack: got qid\n");
 		p += VtScoreSize;
 		n -= VtScoreSize;
 	}
-	
+
 	/* uid */
 	if(!stringUnpack(&dir->uid, &p, &n))
 		goto Err;
@@ -657,7 +657,7 @@ if(0)print("vdUnpack: got qid\n");
 	if(!stringUnpack(&dir->mid, &p, &n))
 		goto Err;
 
-if(0)print("vdUnpack: got ids\n");
+if(0)print("deUnpack: got ids\n");
 	if(n < 5*4)
 		goto Err;
 	dir->mtime = U32GET(p);
@@ -668,7 +668,7 @@ if(0)print("vdUnpack: got ids\n");
 	p += 5*4;
 	n -= 5*4;
 
-if(0)print("vdUnpack: got times\n");
+if(0)print("deUnpack: got times\n");
 	/* optional meta data */
 	while(n > 0){
 		if(n < 3)
@@ -708,15 +708,15 @@ if(0)print("vdUnpack: got times\n");
 		p += nn;
 		n -= nn;
 	}
-if(0)print("vdUnpack: got options\n");
+if(0)print("deUnpack: got options\n");
 
 	if(p != me->p + me->size)
 		goto Err;
 
-if(0)print("vdUnpack: correct size\n");
+if(0)print("deUnpack: correct size\n");
 	return 1;
 Err:
-if(0)print("vdUnpack: XXXXXXXXXXXX EbadMeta\n");
+if(0)print("deUnpack: XXXXXXXXXXXX EBadMeta\n");
 	vtSetError(EBadMeta);
 	deCleanup(dir);
 	return 0;

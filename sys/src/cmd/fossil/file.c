@@ -62,10 +62,10 @@ static void
 fileFree(File *f)
 {
 	sourceClose(f->source);
-	vtLockFree(f->lk);	
+	vtLockFree(f->lk);
 	sourceClose(f->msource);
 	deCleanup(&f->dir);
-	
+
 	memset(f, ~0, sizeof(File));
 	vtMemFree(f);
 }
@@ -108,7 +108,7 @@ dirLookup(File *f, char *elem)
 			ff->mode = f->mode;
 			return ff;
 		}
-		
+
 		blockPut(b);
 		b = nil;
 	}
@@ -191,7 +191,7 @@ Err:
 		sourceClose(r2);
 	if(mr)
 		fileFree(mr);
-	if(root)		
+	if(root)
 		fileFree(root);
 	sourceUnlock(r);
 
@@ -274,7 +274,7 @@ _fileWalk(File *f, char *elem, int partial)
 		 * Usually the sources can't be opened, hence we won't even bother.
 		 * Be VERY careful with the returned file.  If you hand it to a routine
 		 * expecting ff->source and/or ff->msource to be non-nil, we're
-		 * likely to dereference nil.  FileClri should be the only routine 
+		 * likely to dereference nil.  FileClri should be the only routine
 		 * setting partial.
 		 */
 		ff->partial = 1;
@@ -692,7 +692,7 @@ fileSetDir(File *f, DirEntry *dir, char *uid)
 				goto Err;
 			}
 		}
-	
+
 		ff = dirLookup(f->up, dir->elem);
 		if(ff != nil){
 			fileDecRef(ff);
@@ -759,7 +759,7 @@ Err:
 
 int
 fileSetQidSpace(File *f, u64int offset, u64int max)
-{	
+{
 	int ret;
 
 	if(!fileLock(f))
@@ -786,7 +786,7 @@ ulong
 fileGetMcount(File *f)
 {
 	ulong mcount;
-	
+
 	fileMetaLock(f);
 	mcount = f->dir.mcount;
 	fileMetaUnlock(f);
@@ -797,7 +797,7 @@ ulong
 fileGetMode(File *f)
 {
 	ulong mode;
-	
+
 	fileMetaLock(f);
 	mode = f->dir.mode;
 	fileMetaUnlock(f);
@@ -896,6 +896,9 @@ fileMetaFlush2(File *f, char *oelem)
 
 	if(!sourceLock(fp->msource, -1))
 		return 0;
+	/* can happen if source is clri'ed out from under us */
+	if(f->boff == NilBlock)
+		goto Err1;
 	b = sourceBlock(fp->msource, f->boff, OReadWrite);
 	if(b == nil)
 		goto Err1;
@@ -915,7 +918,7 @@ if(0)fprint(2, "old size %d new size %d\n", me.size, n);
 			mbSearch(&mb, f->dir.elem, &i, &me2);
 		dePack(&f->dir, &me);
 		mbInsert(&mb, i, &me);
-		mbPack(&mb);	
+		mbPack(&mb);
 		blockDirty(b);
 		blockPut(b);
 		sourceUnlock(fp->msource);
@@ -936,17 +939,17 @@ if(0)fprint(2, "old size %d new size %d\n", me.size, n);
 	boff = fileMetaAlloc(fp, &f->dir, f->boff+1);
 	if(boff == NilBlock){
 		/* mbResize might have modified block */
-		mbPack(&mb);	
+		mbPack(&mb);
 		blockDirty(b);
 		goto Err;
-	}	
+	}
 fprint(2, "fileMetaFlush moving entry from %ud -> %ud\n", f->boff, boff);
 	f->boff = boff;
 
 	/* make sure deletion goes to disk after new entry */
 	bb = sourceBlock(fp->msource, f->boff, OReadWrite);
 	mbDelete(&mb, i);
-	mbPack(&mb);	
+	mbPack(&mb);
 	blockDependency(b, bb, -1, nil, nil);
 	blockPut(bb);
 	blockDirty(b);
@@ -1000,7 +1003,7 @@ fprint(2, "S\n");
 
 	blockDirty(b);
 	blockPut(b);
-	
+
 	f->removed = 1;
 	f->boff = NilBlock;
 	f->dirty = 0;
@@ -1066,7 +1069,7 @@ fileRemove(File *f, char *uid)
 		goto Err1;
 	if(fileIsDir(f) && !fileCheckEmpty(f))
 		goto Err;
-		
+
 	for(ff=f->down; ff; ff=ff->next)
 		assert(ff->removed);
 
@@ -1081,9 +1084,9 @@ fileRemove(File *f, char *uid)
 
 	if(!fileMetaRemove(f, uid))
 		return 0;
-	
+
 	return 1;
-		
+
 Err:
 	sourceUnlock(f->source);
 	if(f->msource)
@@ -1132,7 +1135,7 @@ fileIncRef(File *vf)
 	return vf;
 }
 
-int 
+int
 fileDecRef(File *f)
 {
 	File *p, *q, **qq;
@@ -1222,14 +1225,14 @@ dirEntrySize(Source *s, ulong elem, ulong gen, uvlong *size)
 		goto Err;
 	if(!entryUnpack(&e, b->data, elem))
 		goto Err;
-	
+
 	/* hanging entries are returned as zero size */
 	if(!(e.flags & VtEntryActive) || e.gen != gen)
 		*size = 0;
 	else
 		*size = e.size;
 	blockPut(b);
-	return 1;	
+	return 1;
 
 Err:
 	blockPut(b);
@@ -1317,7 +1320,7 @@ deeRead(DirEntryEnum *dee, DirEntry *de)
 			goto Return;
 		}
 	}
-	
+
 	memmove(de, dee->buf + dee->i, sizeof(DirEntry));
 	dee->i++;
 	ret = 1;
@@ -1424,7 +1427,7 @@ fileMetaAlloc(File *f, DirEntry *dir, u32int start)
 		blockDependency(b, bb, -1, nil, nil);
 		blockPut(bb);
 	}
-	
+
 	blockDirty(b);
 	blockPut(b);
 	return bo;

@@ -79,7 +79,7 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 		 * If no authentication is asked for, allow
 		 * "none" provided the connection has already
 		 * been authenticatated.
-		 * 
+		 *
 		 * The console is allowed to attach without
 		 * authentication.
 		 */

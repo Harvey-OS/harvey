@@ -48,7 +48,7 @@ main(int argc, char *argv[])
 {
 	int fd, force;
 	Header h;
-	ulong bn;	
+	ulong bn;
 	Entry e;
 	char *label = "vfs";
 	char *host = nil;
@@ -88,7 +88,7 @@ main(int argc, char *argv[])
 
 	if(argc != 1)
 		usage();
-		
+
 	vtAttach();
 
 	fmtinstall('V', scoreFmt);
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 	if((d = dirfstat(fd)) == nil)
 		vtFatal("dirfstat: %r");
 
-	if(d->type == 'M' && !force 
+	if(d->type == 'M' && !force
 	&& !confirm("fs file is mounted via devmnt (is not a kernel device); are you sure?"))
 		goto Out;
 
@@ -184,11 +184,11 @@ partition(int fd, int bsize, Header *h)
 	lpb = bsize/LabelSize;
 
 	nblock = fdsize(fd)/bsize;
-	
+
 	/* sanity check */
 	if(nblock < (HeaderOffset*10)/bsize)
 		vtFatal("file too small");
-	
+
 	h->super = (HeaderOffset + 2*bsize)/bsize;
 	h->label = h->super + 1;
 	ndata = ((u64int)lpb)*(nblock - h->label)/(lpb+1);
@@ -292,7 +292,7 @@ rootInit(Entry *e)
 	entryInit(e);
 	e->flags |= VtEntryDir;
 	entryPack(e, buf, 0);
-	
+
 	entryInit(e);
 	entryPack(e, buf, 1);
 
@@ -313,7 +313,7 @@ rootInit(Entry *e)
 	return addr;
 }
 
-	
+
 static u32int
 blockAlloc(int type, u32int tag)
 {
@@ -347,7 +347,7 @@ superInit(char *label, u32int root, uchar score[VtScoreSize])
 	s.epochLow = 1;
 	s.epochHigh = 1;
 	s.qid = qid;
-	s.active = root;	
+	s.active = root;
 	s.next = NilBlock;
 	s.current = NilBlock;
 	strecpy(s.name, s.name+sizeof(s.name), label);
@@ -544,7 +544,7 @@ parseScore(uchar *score, char *buf)
 
 		if((i & 1) == 0)
 			c <<= 4;
-	
+
 		score[i>>1] |= c;
 	}
 	return 1;

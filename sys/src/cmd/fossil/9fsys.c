@@ -187,7 +187,7 @@ static ulong modebits[] = {
 	ModeSnapshot,
 	0
 };
-	
+
 char*
 fsysModeString(ulong mode, char *buf)
 {
@@ -675,7 +675,7 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 		return 0;
 	}
 
-	consPrint("\t%sblock %#ux %ud %ud %.*H\n", 
+	consPrint("\t%sblock %#ux %ud %ud %.*H\n",
 		argc==4 ? "old: " : "", addr, offset, count, count, b->data+offset);
 
 	if(argc == 4){
@@ -702,7 +702,7 @@ fsysBlock(Fsys* fsys, int argc, char* argv[])
 			buf[i>>1] |= c;
 		}
 		memmove(b->data+offset, buf, count);
-		consPrint("\tnew: block %#ux %ud %ud %.*H\n", 
+		consPrint("\tnew: block %#ux %ud %ud %.*H\n",
 			addr, offset, count, count, b->data+offset);
 		blockDirty(b);
 	}
@@ -929,7 +929,7 @@ fsysEsearch1(File* f, char* s, u32int elo)
 
 	return n;
 }
-			
+
 static int
 fsysEsearch(Fs* fs, char* path, u32int elo)
 {
@@ -996,7 +996,7 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 	 * There's a small race here -- a new snapshot with epoch < low might
 	 * get introduced now that we unlocked fs->elk.  Low has to
 	 * be <= fs->ehi.  Of course, in order for this to happen low has
-	 * to be equal to the current fs->ehi _and_ a snapshot has to 
+	 * to be equal to the current fs->ehi _and_ a snapshot has to
 	 * run right now.  This is a small enough window that I don't care.
 	 */
 	if(n != 0 && !force){
@@ -1074,7 +1074,7 @@ fsysCreate(Fsys* fsys, int argc, char* argv[])
 	}
 
 	if(strcmp(de.gid, argv[2]) != 0){
-		vtMemFree(de.gid);		
+		vtMemFree(de.gid);
 		de.gid = vtStrDup(argv[2]);
 		if(!fileSetDir(file, &de, argv[1])){
 			vtSetError("wstat failed after create: %R");
@@ -1088,7 +1088,7 @@ out2:
 out1:
 	fileDecRef(file);
 out:
-	vtMemFree(path);	
+	vtMemFree(path);
 	vtRUnlock(fsys->fs->elk);
 
 	return r;
@@ -1271,13 +1271,16 @@ fsysVenti(char* name, int argc, char* argv[])
 
 	/* already open: do a redial */
 	if(fsys->fs != nil){
+		if(fsys->session == nil){
+			vtSetError("file system was opened with -V");
+			r = 0;
+			goto out;
+		}
 		r = 1;
 		if(!vtRedial(fsys->session, host)
 		|| !vtConnect(fsys->session, 0))
 			r = 0;
-		vtUnlock(fsys->lock);
-		fsysPut(fsys);
-		return r;
+		goto out;
 	}
 
 	/* not yet open: try to dial */
@@ -1287,6 +1290,7 @@ fsysVenti(char* name, int argc, char* argv[])
 	if((fsys->session = vtDial(host, 0)) == nil
 	|| !vtConnect(fsys->session, 0))
 		r = 0;
+out:
 	vtUnlock(fsys->lock);
 	fsysPut(fsys);
 	return r;
@@ -1298,11 +1302,11 @@ fsysOpen(char* name, int argc, char* argv[])
 	char *p, *host;
 	Fsys *fsys;
 	long ncache;
-	int noauth, noperm, rflag, wstatallow;
-	char *usage = "usage: fsys name open [-APWr] [-c ncache]";
+	int noauth, noventi, noperm, rflag, wstatallow;
+	char *usage = "usage: fsys name open [-APVWr] [-c ncache]";
 
 	ncache = 1000;
-	noauth = noperm = wstatallow = 0;
+	noauth = noperm = wstatallow = noventi = 0;
 	rflag = OReadWrite;
 
 	ARGBEGIN{
@@ -1313,6 +1317,9 @@ fsysOpen(char* name, int argc, char* argv[])
 		break;
 	case 'P':
 		noperm = 1;
+		break;
+	case 'V':
+		noventi = 1;
 		break;
 	case 'W':
 		wstatallow = 1;
@@ -1349,7 +1356,7 @@ fsysOpen(char* name, int argc, char* argv[])
 		else
 			host = nil;
 		fsys->session = vtDial(host, 1);
-		if(!vtConnect(fsys->session, nil))
+		if(!vtConnect(fsys->session, nil) && !noventi)
 			fprint(2, "warning: connecting to venti: %R\n");
 	}
 	if((fsys->fs = fsOpen(fsys->dev, fsys->session, ncache, rflag)) == nil){
@@ -1468,14 +1475,14 @@ static struct {
 	{ "clri",	fsysClri, },
 	{ "clrp",	fsysClrp, },
 	{ "create",	fsysCreate, },
-	{ "df",	fsysDf, },
+	{ "df",		fsysDf, },
 	{ "epoch",	fsysEpoch, },
 	{ "halt",	fsysHalt, },
 	{ "label",	fsysLabel, },
 	{ "remove",	fsysRemove, },
 	{ "snap",	fsysSnap, },
 	{ "snaptime",	fsysSnapTime, },
-	{ "snapclean", fsysSnapClean, },
+	{ "snapclean",	fsysSnapClean, },
 	{ "stat",	fsysStat, },
 	{ "sync",	fsysSync, },
 	{ "unhalt",	fsysUnhalt, },

@@ -35,7 +35,7 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 		return nil;
 	}
 
-	bwatchInit();	
+	bwatchInit();
 	disk = diskAlloc(fd);
 	if(disk == nil){
 		vtSetError("diskAlloc: %R");
@@ -48,7 +48,7 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 	fs->blockSize = diskBlockSize(disk);
 	fs->elk = vtLockAlloc();
 	fs->cache = cacheAlloc(disk, z, ncache, mode);
-	if(mode == OReadWrite)
+	if(mode == OReadWrite && z)
 		fs->arch = archInit(fs->cache, disk, fs, z);
 	fs->z = z;
 
@@ -235,7 +235,7 @@ fileOpenSnapshot(Fs *fs, int doarchive)
 	Tm now;
 
 	if(doarchive){
-		/* 
+		/*
 		 * a snapshot intended to be archived to venti.
 		 */
 		dir = fileOpen(fs, "/archive");
@@ -443,11 +443,11 @@ bumpEpoch(Fs *fs, int doarchive)
 	 * We force the super block to disk so that super.epochHigh gets updated.
 	 * Otherwise, if we crash and come back, we might incorrectly treat as active
 	 * some of the blocks that making up the snapshot we just created.
-	 * Basically every block in the active file system and all the blocks in 
+	 * Basically every block in the active file system and all the blocks in
 	 * the recently-created snapshot depend on the super block now.
 	 * Rather than record all those dependencies, we just force the block to disk.
 	 *
-	 * Note that blockWrite might actually (will probably) send a slightly outdated 
+	 * Note that blockWrite might actually (will probably) send a slightly outdated
 	 * super.active to disk.  It will be the address of the most recent root that has
 	 * gone to disk.
 	 */
@@ -478,7 +478,7 @@ int
 fsSnapshot(Fs *fs, int doarchive)
 {
 	File *src, *dst;
-	
+
 	assert(fs->mode == OReadWrite);
 
 	dst = nil;
@@ -504,11 +504,11 @@ fsSnapshot(Fs *fs, int doarchive)
 	 * It is important that we maintain the invariant that:
 	 *	if both b and bb are marked as Active with epoch e
 	 *	and b points at bb, then no other pointers to bb exist.
-	 * 
+	 *
 	 * The archiver uses this property to aggressively reclaim
 	 * such blocks once they have been stored on Venti, and
 	 * blockCleanup knows about this property as well.
-	 * 
+	 *
 	 * Let's say src->source is block sb, and src->msource is block
 	 * mb.  Let's also say that block b holds the Entry structures for
 	 * both src->source and src->msource (their Entry structures might
@@ -524,7 +524,7 @@ fsSnapshot(Fs *fs, int doarchive)
 	 * pointers to sb and mb in new Entries corresponding to dst,
 	 * which breaks the invariant.  Thus we need to do something
 	 * about b.  Specifically, we bump the file system's epoch and
-	 * then rewalk the path from the root down to and including b.  
+	 * then rewalk the path from the root down to and including b.
 	 * This will copy-on-write as we walk, so now the state will be:
 	 *
 	 *	b	Snap w/ epoch e, holds ptrs to sb and mb.

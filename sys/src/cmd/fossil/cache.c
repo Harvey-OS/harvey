@@ -75,7 +75,7 @@ struct BList {
 	u32int tag;
 	u32int epoch;
 	u32int vers;
-	
+
 	/* for roll back */
 	int index;			/* -1 indicates not valid */
 	union {
@@ -137,7 +137,7 @@ int vtType[BtMax] = {
 };
 
 /*
- * Allocate the memory cache. 
+ * Allocate the memory cache.
  */
 Cache *
 cacheAlloc(Disk *disk, VtSession *z, ulong nblocks, int mode)
@@ -267,7 +267,7 @@ cacheFree(Cache *c)
 
 static void
 cacheDump(Cache *c)
-{	
+{
 	int i;
 	Block *b;
 
@@ -364,7 +364,7 @@ cacheBumpBlock(Cache *c)
 		b->prev = nil;
 	}
 
- 	
+
 if(0)fprint(2, "droping %d:%x:%V\n", b->part, b->addr, b->score);
 	/* set block to a reasonable state */
 	b->ref = 1;
@@ -422,7 +422,7 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 			abort();
 		case BioEmpty:
 		case BioLabel:
-		case BioClean:	
+		case BioClean:
 		case BioDirty:
 			if(b->vers != vers){
 				blockPut(b);
@@ -481,7 +481,7 @@ fprint(2, "_cacheLocal want epoch %ud got %ud\n", epoch, b->l.epoch);
 		b->ref++;
 		break;
 	}
-			
+
 	if(b == nil){
 		b = cacheBumpBlock(c);
 
@@ -503,7 +503,7 @@ fprint(2, "_cacheLocal want epoch %ud got %ud\n", epoch, b->l.epoch);
 	 * BUG: what if the epoch changes right here?
 	 * In the worst case, we could end up in some weird
 	 * lock loop, because the block we want no longer exists,
-	 * and instead we're trying to lock a block we have no 
+	 * and instead we're trying to lock a block we have no
 	 * business grabbing.
 	 *
 	 * For now, I'm not going to worry about it.
@@ -661,7 +661,7 @@ if(0)fprint(2, "cacheGlobal %V %d\n", score, type);
 		}
 		vtZeroExtend(vtType[type], b->data, n, c->size);
 		blockSetIOState(b, BioClean);
-		return b;	
+		return b;
 	case BioClean:
 		return b;
 	case BioVentiError:
@@ -932,7 +932,7 @@ if(0)fprint(2, "blockPut: %d: %d %x %d %s\n", getpid(), b->part, b->addr, c->nhe
 	 * b->nlock should probably stay at zero while
 	 * the block is unlocked, but diskThread and vtSleep
 	 * conspire to assume that they can just vtLock(b->lk); blockPut(b),
-	 * so we have to keep b->nlock set to 1 even 
+	 * so we have to keep b->nlock set to 1 even
 	 * when the block is unlocked.
 	 */
 	assert(b->nlock == 0);
@@ -990,7 +990,7 @@ blockCleanup(Block *b, u32int epoch)
 	bwatchReset(b->score);
 
 	blockSetIOState(b, BioClean);
-	
+
 	/* do not recursively free directories */
 	if(type == BtData || type == BtDir)
 		return;
@@ -1091,7 +1091,7 @@ blistAlloc(Block *b)
 		assert(b->iostate == BioClean);
 		return nil;
 	}
-		
+
 	/*
 	 * Easy: maybe there's a free list left.
 	 */
@@ -1162,7 +1162,7 @@ blockFlush(Block *b)
 //fprint(2, "blockFlush %p\n", b);
 
 	c = b->c;
-	
+
 	first = 1;
 	pp = &b->prior;
 	for(p=*pp; p; p=*pp){
@@ -1218,7 +1218,7 @@ blockDependency(Block *b, Block *bb, int index, uchar *score, Entry *e)
 	/*
 	 * Dependencies for blocks containing Entry structures
 	 * or scores must always be explained.  The problem with
-	 * only explaining some of them is this.  Suppose we have two 
+	 * only explaining some of them is this.  Suppose we have two
 	 * dependencies for the same field, the first explained
 	 * and the second not.  We try to write the block when the first
 	 * dependency is not written but the second is.  We will roll back
@@ -1235,7 +1235,7 @@ blockDependency(Block *b, Block *bb, int index, uchar *score, Entry *e)
 
 	p = blistAlloc(bb);
 	if(p == nil)
-		return;	
+		return;
 
 if(0)fprint(2, "%d:%x:%d depends on %d:%x:%d\n", b->part, b->addr, b->l.type, bb->part, bb->addr, bb->l.type);
 
@@ -1298,7 +1298,7 @@ blockDirty(Block *b)
 
 /*
  * Block b once pointed at the block bb at addr/type/tag, but no longer does.
- * 
+ *
  * The file system maintains the following invariants (i-iv checked by flchk):
  *
  * (i) b.e in [bb.e, bb.eClose)
@@ -1312,7 +1312,7 @@ blockDirty(Block *b)
  *
  * Condition (i) lets us reclaim blocks once the low epoch is greater
  * than epochClose.
- * 
+ *
  * If the condition in (iii) is satisfied, then this is the only pointer to bb,
  * so bb can be reclaimed once b has been written to disk.  blockRemoveLink
  * checks !(b.state&Copied) as an optimization.  UnlinkBlock and blockCleanup
@@ -1350,11 +1350,11 @@ blockRemoveLink(Block *b, u32int addr, int type, u32int tag)
 	 * Because bl != nil, we know b is dirty.
 	 * (Linking b->uhead onto a clean block is
 	 * counterproductive, since we only look at
-	 * b->uhead when a block transitions from 
+	 * b->uhead when a block transitions from
 	 * dirty to clean.)
 	 */
 	assert(b->iostate == BioDirty);
-	
+
 	bl->part = PartData;
 	bl->addr = addr;
 	bl->type = type;
@@ -1362,7 +1362,7 @@ blockRemoveLink(Block *b, u32int addr, int type, u32int tag)
 	bl->epoch = b->l.epoch;
 	if(b->uhead == nil)
 		b->uhead = bl;
-	else 
+	else
 		b->utail->next = bl;
 	b->utail = bl;
 	bl->next = nil;
@@ -1411,9 +1411,9 @@ blockSetLabel(Block *b, Label *l)
 	/*
 	 * If we're allocating the block, make sure the label (bl)
 	 * goes to disk before the data block (b) itself.  This is to help
-	 * the blocks that in turn depend on b. 
+	 * the blocks that in turn depend on b.
 	 *
-	 * Suppose bx depends on (must be written out after) b.  
+	 * Suppose bx depends on (must be written out after) b.
 	 * Once we write b we'll think it's safe to write bx.
 	 * Bx can't get at b unless it has a valid label, though.
 	 *
@@ -1450,7 +1450,7 @@ blockRollback(Block *b, uchar *buf)
 	/* easy case */
 	if(b->prior == nil)
 		return b->data;
-	
+
 	memmove(buf, b->data, b->c->size);
 	for(p=b->prior; p; p=p->next){
 		/*
@@ -1479,9 +1479,9 @@ blockRollback(Block *b, uchar *buf)
 }
 
 /*
- * Try to write block b. 
+ * Try to write block b.
  * If b depends on other blocks:
- * 
+ *
  *	If the block has been written out, remove the dependency.
  *	If the dependency is replaced by a more recent dependency,
  *		throw it out.
@@ -1526,7 +1526,7 @@ blockWrite(Block *b)
 
 		/*
 		 * same version of block is still in cache.
-		 * 
+		 *
 		 * the assertion is true because the block still has version p->vers,
 		 * which means it hasn't been written out since we last saw it.
 		 */
@@ -1574,7 +1574,7 @@ blockSetIOState(Block *b, int iostate)
 	BList *p, *q;
 
 if(0) fprint(2, "iostate part=%d addr=%x %s->%s\n", b->part, b->addr, bioStr(b->iostate), bioStr(iostate));
-	
+
 	c = b->c;
 
 	dowakeup = 0;
@@ -1776,7 +1776,7 @@ upHeap(int i, Block *b)
 	u32int now;
 	int p;
 	Cache *c;
-	
+
 	c = b->c;
 	now = c->now;
 	for(; i != 0; i = p){
@@ -1800,7 +1800,7 @@ downHeap(int i, Block *b)
 	u32int now;
 	int k;
 	Cache *c;
-	
+
 	c = b->c;
 	now = c->now;
 	for(; ; i = k){
@@ -1984,14 +1984,14 @@ flushFill(Cache *c)
 		c->ndirty = ndirty;
 	}
 	vtUnlock(c->lk);
-	
+
 	c->bw = p - c->baddr;
 	qsort(c->baddr, c->bw, sizeof(BAddr), baddrCmp);
 }
 
 /*
  * This is not thread safe, i.e. it can't be called from multiple threads.
- * 
+ *
  * It's okay how we use it, because it only gets called in
  * the flushThread.  And cacheFree, but only after
  * cacheFree has killed off the flushThread.

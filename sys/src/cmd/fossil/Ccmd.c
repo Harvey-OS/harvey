@@ -413,7 +413,7 @@ cmdInit(void)
 		close(cbox.confd[1]);
 		cbox.confd[0] = cbox.confd[1] = -1;
 		return 0;
-		
+
 	}
 	cbox.con->isconsole = 1;
 
