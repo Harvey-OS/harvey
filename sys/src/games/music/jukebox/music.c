@@ -12,7 +12,7 @@
 
 int	debug = 0; //DBGSERVER|DBGPUMP|DBGSTATE|DBGPICKLE|DBGPLAY;
 
-char	usage[] = "Usage: %s [-t]\n";
+char	usage[] = "Usage: %s [-d mask] [-t] [-w]\n";
 
 typedef struct But {
 	char	*name;
@@ -1026,5 +1026,5 @@ threadmain(int argc, char *argv[]){
 	work();
 
 	closecontrolset(cs);
-	sysfatal("");
+	threadexitsall(nil);
 }

@@ -370,7 +370,7 @@
 386/bin/read - 775 sys sys 1104122049 58046
 386/bin/replica - 20000000775 sys sys 1018321168 0
 386/bin/replica/applychanges - 775 sys sys 1104122049 98562
-386/bin/replica/applylog - 775 sys sys 1104122049 99358
+386/bin/replica/applylog - 775 sys sys 1111032635 116663
 386/bin/replica/changes - 775 sys sys 1020319082 42
 386/bin/replica/compactdb - 775 sys sys 1104122050 78491
 386/bin/replica/pull - 775 sys sys 1020319083 39
@@ -11347,7 +11347,7 @@ sys/src/games/music/jukebox/colors.c - 664 sys sys 1103793918 3819
 sys/src/games/music/jukebox/colors.h - 664 sys sys 1103793918 692
 sys/src/games/music/jukebox/mk.dep - 664 sys sys 1103793918 653
 sys/src/games/music/jukebox/mkfile - 664 sys sys 1103793918 234
-sys/src/games/music/jukebox/music.c - 664 sys sys 1103793919 28890
+sys/src/games/music/jukebox/music.c - 664 sys sys 1111074158 28912
 sys/src/games/music/jukebox/playlist.c - 664 sys sys 1103793919 6456
 sys/src/games/music/jukebox/playlist.h - 664 sys sys 1103793919 505
 sys/src/games/music/jukefs - 20000000775 sys sys 1103793922 0
@@ -12482,4 +12482,8 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/replica/applylog - 775 sys sys 1111032635 116663
+386/9pc - 775 sys sys 1111119465 1833271
+386/9pcdisk - 775 sys sys 1111119470 2038973
+386/9pcf - 775 sys sys 1111119476 2381805
+sys/src/cmd/acme/cols.c - 664 sys sys 1111119425 11229
+sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
