@@ -5390,12 +5390,11 @@ sys/src/9/ppc/msaturn.c - 664 sys sys 1059490753 3009
 sys/src/9/ppc/msaturn.h - 664 sys sys 1059490753 99
 sys/src/9/ppc/mtx.c - 664 sys sys 1059490753 177
 sys/src/9/ppc/random.c - 664 sys sys 1059490753 1983
-sys/src/9/ppc/rcmain - 664 sys sys 1059490838 579
 sys/src/9/ppc/saturntimer.c - 664 sys sys 1059490753 1734
 sys/src/9/ppc/trap.c - 664 sys sys 1059490753 17248
 sys/src/9/ppc/uartsaturn.c - 664 sys sys 1059490754 7151
 sys/src/9/ppc/uartsmc.c - 664 sys sys 1059490754 11713
-sys/src/9/ppc/ucu - 664 sys sys 1059490754 715
+sys/src/9/ppc/ucu - 664 sys sys 1059595927 706
 sys/src/9/ppc/ucu.h - 664 sys sys 1059490754 531
 sys/src/NOTICE - 444 sys sys 1018803112 63
 sys/src/ape - 20000000775 sys sys 1014921996 0

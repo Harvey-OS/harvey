@@ -13001,3 +13001,6 @@
 1059496271 75 d sys/src/9/power/uartsmc.c - 664 sys sys 1059490754 0
 1059496271 76 d sys/src/9/power/ucu - 664 sys sys 1059490754 0
 1059496271 77 d sys/src/9/power/ucu.h - 664 sys sys 1059490754 0
+1059586268 0 c sys/src/9/ppc/ucu - 664 sys sys 1059584672 713
+1059597079 0 c sys/src/9/ppc/ucu - 664 sys sys 1059595927 706
+1059597079 1 d sys/src/9/ppc/rcmain - 664 sys sys 1059490838 0
