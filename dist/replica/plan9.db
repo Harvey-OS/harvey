@@ -851,7 +851,7 @@ dist - 20000000775 sys sys 1017437778 0
 dist/replica - 20000000775 sys sys 1019277119 0
 dist/replica/cd - 664 sys sys 1019527959 390
 dist/replica/kfs - 664 sys sys 1019527929 237
-dist/replica/network - 775 sys sys 1070911277 994
+dist/replica/network - 775 sys sys 1071079179 996
 dist/replica/plan9.proto - 664 sys sys 1022112985 1209
 env - 20000000775 sys sys 1015094872 0
 fd - 20000000775 sys sys 947958544 0
@@ -2816,7 +2816,7 @@ mail/lib/remotemail - 775 upas upas 959722371 180
 mail/lib/rewrite - 664 upas upas 964036209 295
 mail/lib/rewrite.direct - 664 upas upas 1020271916 1048
 mail/lib/rewrite.gateway - 664 upas upas 1020271916 1078
-mail/lib/setup.bayes - 775 upas upas 1063950943 441
+mail/lib/setup.bayes - 775 upas upas 1071065627 468
 mail/lib/smtpd.conf - 664 upas upas 961114164 536
 mail/lib/smtpd.conf.ext - 664 upas upas 956777845 763
 mail/lib/spam.rc - 775 upas upas 1063950954 400
@@ -5977,7 +5977,7 @@ sys/src/ape/lib/ap/math/tan.c - 664 sys sys 1014921986 1295
 sys/src/ape/lib/ap/math/tanh.c - 664 sys sys 1014921986 374
 sys/src/ape/lib/ap/mips - 20000000775 sys sys 1014921989 0
 sys/src/ape/lib/ap/mips/getfcr.s - 664 sys sys 1014921989 167
-sys/src/ape/lib/ap/mips/lock.c - 664 sys sys 1014921989 2381
+sys/src/ape/lib/ap/mips/lock.c - 664 sys sys 1071110410 2380
 sys/src/ape/lib/ap/mips/main9.s - 664 sys sys 1014921988 205
 sys/src/ape/lib/ap/mips/main9p.s - 664 sys sys 1014921989 538
 sys/src/ape/lib/ap/mips/memchr.s - 664 sys sys 1014921989 425
@@ -10350,7 +10350,7 @@ sys/src/cmd/ssh/cipherdes.c - 664 sys sys 1016466379 567
 sys/src/cmd/ssh/ciphernone.c - 664 sys sys 1016466379 317
 sys/src/cmd/ssh/cipherrc4.c - 664 sys sys 1016466379 674
 sys/src/cmd/ssh/ciphertwiddle.c - 664 sys sys 1016466379 380
-sys/src/cmd/ssh/cmsg.c - 664 sys sys 1062091015 8350
+sys/src/cmd/ssh/cmsg.c - 664 sys sys 1071095546 8351
 sys/src/cmd/ssh/mkfile - 664 sys sys 1048179592 1045
 sys/src/cmd/ssh/msg.c - 664 sys sys 1062091016 8023
 sys/src/cmd/ssh/pubkey.c - 664 sys sys 1019928902 3974

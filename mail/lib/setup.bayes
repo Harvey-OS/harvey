@@ -2,6 +2,7 @@
 
 cd /mail/box/$user
 >>_bounced
+>>L.spam
 chmod +arw _bounced
 >>_prof.mbox
 >>_prof.spam
@@ -10,6 +11,7 @@ if(! test -s _prof.mbox)
 if(! test -s _prof.spam)
 	cp /mail/lib/prof.spam _prof.spam
 chmod +lrw _prof.mbox _prof.spam
+chmod +lrw L.spam
 >>spam
 chmod +alrw spam
 i=0

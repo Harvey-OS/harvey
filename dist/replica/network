@@ -15,7 +15,7 @@ if ( ! test -e /srv/boot && ! test -e /srv/kfs ) {
 	exit '/srv/boot or /srv/kfs not present'
 }
 
-if (test -e /srv/boot) {
+if (test -e /srv/fscons) {
 	if ( ! test -w /srv/fscons ) { 
 		echo 'error: no write access to /srv/fscons, make sure you are the host owner' 
 		exit 'no write access to /srv/fscons'
