@@ -548,7 +548,7 @@ uboxInit(char* users, int len)
 			comment = 1;
 		blank = 0;
 		if(!comment)
-			*p++ = *q;	
+			*p++ = *q;
 	}
 	*p = '\0';
 

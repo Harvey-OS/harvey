@@ -34,7 +34,7 @@ diskAlloc(int fd)
 	u8int buf[HeaderSize];
 	Header h;
 	Disk *disk;
-	
+
 	if(pread(fd, buf, HeaderSize, HeaderOffset) < HeaderSize){
 		vtSetError("short read: %r");
 		vtOSError();
@@ -191,7 +191,7 @@ diskQueue(Disk *disk, Block *b)
 			break;
 		bp = &bb->ionext;
 	}
-	b->ionext = bb;	
+	b->ionext = bb;
 	*bp = b;
 	if(disk->nqueue == 0)
 		vtWakeup(disk->starve);
@@ -320,7 +320,7 @@ fprint(2, "diskWriteRaw failed: date=%s part=%d addr=%ux: %r\n", ctime(times(0))
 				blockSetIOState(b, BioDirty);
 			break;
 		}
-		
+
 		blockPut(b);		/* remove extra reference, unlock */
 		vtLock(disk->lk);
 		disk->nqueue--;

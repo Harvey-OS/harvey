@@ -335,7 +335,7 @@ msgProc(void*)
 			else
 				e = "Tversion aborted";
 		}
-		else if(con->state != ConUp)	
+		else if(con->state != ConUp)
 			e = "connection not ready";
 		vtUnlock(con->lock);
 
@@ -769,7 +769,7 @@ cmdWho(int argc, char* argv[])
 	}
 	vtRUnlock(cbox.clock);
 	return 1;
-}	
+}
 
 void
 msgInit(void)

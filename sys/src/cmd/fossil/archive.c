@@ -88,11 +88,11 @@ ventiSend(Arch *a, Block *b, uchar *data)
 	if(!vtSync(a->z))
 		return 0;
 	return 1;
-}	
+}
 
 /*
  * parameters for recursion; there are so many,
- * and some only change occasionally.  this is 
+ * and some only change occasionally.  this is
  * easier than spelling things out at each call.
  */
 typedef struct Param Param;
@@ -365,7 +365,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 		p.dsize = 3*VtEntrySize;	/* root has three Entries */
 		p.c = a->c;
 		p.a = a;
-	
+
 		ret = archWalk(&p, addr, BtDir, RootTag);
 		switch(ret){
 		default:

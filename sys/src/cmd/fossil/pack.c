@@ -113,7 +113,7 @@ localToGlobal(u32int addr, uchar score[VtScoreSize])
 	memset(score, 0, VtScoreSize-4);
 	U32PUT(score+VtScoreSize-4, addr);
 }
-	
+
 void
 entryPack(Entry *e, uchar *p, int index)
 {

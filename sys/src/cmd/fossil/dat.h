@@ -114,7 +114,7 @@ struct Source {
 	VtLock *lk;
 	int ref;
 	/*
-	 * epoch for the source 
+	 * epoch for the source
 	 * for ReadWrite sources, epoch is used to lazily notice
 	 * sources that must be split from the snapshots.
 	 * for ReadOnly sources, the epoch represents the minimum epoch
@@ -184,7 +184,7 @@ enum {
  * Transitions
  *	Archiver at generation g
  *	Mutator at generation h
- *	
+ *
  *	Want to modify a block
  *		Venti: create new Active(h)
  *		Active(x): x == h: do nothing
@@ -205,7 +205,7 @@ enum {
  *
  */
 
-/* 
+/*
  * block types
  * more regular than Venti block types
  * bit 3 -> block or data block
@@ -246,7 +246,7 @@ struct Block {
 	ulong	pc;		/* pc that fetched this block from the cache */
 
 	VtLock *lk;
-	
+
 	int 	part;
 	u32int	addr;
 	uchar	score[VtScoreSize];	/* score */

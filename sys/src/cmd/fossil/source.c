@@ -110,7 +110,7 @@ sourceAlloc(Fs *fs, Block *b, Source *p, u32int offset, int mode)
 Bad:
 	vtSetError(EBadEntry);
 	return nil;
-	
+
 }
 
 Source *
@@ -170,7 +170,7 @@ sourceCreate(Source *r, int dsize, int dir, u32int offset)
 	int epb;
 	int psize;
 	Source *rr;
- 
+
 	assert(sourceIsLocked(r));
 
 	if(!r->dir){
@@ -271,7 +271,7 @@ sourceKill(Source *r, int doremove)
 			e.gen++;
 		e.dsize = 0;
 		e.psize = 0;
-		e.flags = 0;	
+		e.flags = 0;
 	}else{
 		e.flags &= ~VtEntryLocal;
 	}
@@ -591,7 +591,7 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 			break;
 //fprint(2, "alloc %lux grow %V\n", bb->addr, b->score);
 		memmove(bb->data, b->score, VtScoreSize);
-		memmove(e->score, bb->score, VtScoreSize);	
+		memmove(e->score, bb->score, VtScoreSize);
 		e->depth++;
 		type++;
 		e->tag = tag;
@@ -727,7 +727,7 @@ sourceBlock(Source *r, ulong bn, int mode)
 			vtSetError(EBadAddr);
 			goto Err;
 		}
-		if(!sourceGrowDepth(r, b, &e, i)) 
+		if(!sourceGrowDepth(r, b, &e, i))
 			goto Err;
 	}
 
@@ -790,7 +790,7 @@ sourceLoadBlock(Source *r, int mode)
 		assert(r->mode == OReadWrite);
 		/*
 		 * This needn't be true -- we might bump the low epoch
-		 * to reclaim some old blocks, but since this score is 
+		 * to reclaim some old blocks, but since this score is
 		 * OReadWrite, the blocks must all still be open, so none
 		 * are reclaimed.  Thus it's okay that the epoch is so low.
 		 * Proceed.
@@ -956,7 +956,7 @@ sizeToDepth(uvlong s, int psize, int dsize)
 {
 	int np;
 	int d;
-	
+
 	/* determine pointer depth */
 	np = psize/VtScoreSize;
 	s = (s + dsize - 1)/dsize;

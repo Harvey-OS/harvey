@@ -659,6 +659,8 @@ t23 = 1400x1050							# 50Hz, ??.?KHz
 	clock=100
 	shb=1460 ehb=1644 ht=1820
 	vrs=1060 vre=1068 vt=1100
+t23 = 1280x1024
+	include=1280x1024@60Hz
 t23 = 1024x768
 	noclockset=1
 	include=1024x768
