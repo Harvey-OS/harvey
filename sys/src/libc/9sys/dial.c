@@ -129,9 +129,17 @@ static int
 call(char *clone, char *dest, DS *ds)
 {
 	int fd, cfd, n;
-	char name[Maxpath], data[Maxpath], *p;
+	char cname[Maxpath], name[Maxpath], data[Maxpath], *p;
 
-	cfd = open(clone, ORDWR);
+	/* because cs is in a different name space, replace the mount point */
+	p = strchr(clone+1, '/');
+	if(p == nil)
+		p = clone;
+	else 
+		p++;
+	snprint(cname, sizeof cname, "%s/%s", ds->netdir, p);
+
+	cfd = open(cname, ORDWR);
 	if(cfd < 0)
 		return -1;
 
@@ -145,11 +153,11 @@ call(char *clone, char *dest, DS *ds)
 	for(p = name; *p == ' '; p++)
 		;
 	snprint(name, sizeof(name), "%ld", strtoul(p, 0, 0));
-	p = strrchr(clone, '/');
+	p = strrchr(cname, '/');
 	*p = 0;
 	if(ds->dir)
-		snprint(ds->dir, NETPATHLEN, "%s/%s", clone, name);
-	snprint(data, sizeof(data), "%s/%s/data", clone, name);
+		snprint(ds->dir, NETPATHLEN, "%s/%s", cname, name);
+	snprint(data, sizeof(data), "%s/%s/data", cname, name);
 
 	/* connect */
 	if(ds->local)

@@ -3332,7 +3332,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1078453847 248109
+sys/games/lib/fortunes - 664 sys sys 1080495629 248306
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
@@ -4612,7 +4612,7 @@ sys/man - 20000000775 sys sys 1012278794 0
 sys/man/1 - 20000000775 sys sys 1018897631 0
 sys/man/1/0intro - 664 sys sys 958249499 9623
 sys/man/1/2a - 664 sys sys 944959673 1032
-sys/man/1/2c - 664 sys sys 1016731553 7349
+sys/man/1/2c - 664 sys sys 1080485731 7341
 sys/man/1/2l - 664 sys sys 944959675 4074
 sys/man/1/INDEX - 664 sys sys 1045538129 2900
 sys/man/1/INDEX.html - 664 sys sys 1026845791 15882
@@ -5232,6 +5232,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1032053196 390
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
+sys/src/9/boot/libboot.a8 - 664 sys sys 1080484754 63496
 sys/src/9/boot/local.c - 664 sys sys 1068835808 5355
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -9763,7 +9764,7 @@ sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1060612175 6862
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
-sys/src/cmd/ndb/cs.c - 664 sys sys 1079357413 33069
+sys/src/cmd/ndb/cs.c - 664 sys sys 1080504975 33075
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1078927860 18090
@@ -11521,7 +11522,7 @@ sys/src/libc/9sys/convM2S.c - 664 sys sys 1017679320 4969
 sys/src/libc/9sys/convS2M.c - 664 sys sys 1021580001 5014
 sys/src/libc/9sys/cputime.c - 664 sys sys 944961712 191
 sys/src/libc/9sys/ctime.c - 664 sys sys 944961712 4919
-sys/src/libc/9sys/dial.c - 664 sys sys 1048796753 3625
+sys/src/libc/9sys/dial.c - 664 sys sys 1080498909 3837
 sys/src/libc/9sys/dirfstat.c - 664 sys sys 1041363499 676
 sys/src/libc/9sys/dirfwstat.c - 664 sys sys 1014927336 242
 sys/src/libc/9sys/dirmodefmt.c - 664 sys sys 1014927337 581
