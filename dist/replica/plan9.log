@@ -12027,3 +12027,4 @@
 1053401563 0 c sys/games/lib/fortunes - 664 sys sys 1053400198 243227
 1053574342 0 c sys/games/lib/fortunes - 664 sys sys 1053573344 243317
 1053577945 0 c sys/man/8/plan9.ini - 664 sys sys 1053576234 20536
+1053838936 0 c sys/src/9/pc/sdata.c - 664 sys sys 1053837290 46979

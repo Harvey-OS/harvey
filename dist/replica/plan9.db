@@ -5186,7 +5186,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1048644129 3760
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1033134905 51568
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1048644136 45225
+sys/src/9/pc/sdata.c - 664 sys sys 1053837290 46979
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1015014523 7412
 sys/src/9/pc/trap.c - 664 sys sys 1047261661 18991
