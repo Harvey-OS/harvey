@@ -49,11 +49,11 @@
 386/bin/auth/changeuser - 775 sys sys 1102171654 96991
 386/bin/auth/convkeys - 775 sys sys 1102171655 87188
 386/bin/auth/convkeys2 - 775 sys sys 1102171655 87239
-386/bin/auth/cron - 775 sys sys 1102171655 142823
+386/bin/auth/cron - 775 sys sys 1102393465 142855
 386/bin/auth/debug - 775 sys sys 1102171656 101029
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1102171656 314174
+386/bin/auth/factotum - 775 sys sys 1102393465 313832
 386/bin/auth/fgui - 775 sys sys 1102171657 217758
 386/bin/auth/guard.srv - 775 sys sys 1102171658 142815
 386/bin/auth/iam - 775 sys sys 1085076981 50791
@@ -2832,7 +2832,7 @@ mail/lib/pipeto.bayes - 664 upas upas 1063950935 129
 mail/lib/pipeto.lib - 664 upas upas 1068478156 3340
 mail/lib/prof.mbox - 664 upas upas 1063950959 13
 mail/lib/prof.spam - 664 upas upas 1063950959 13
-mail/lib/qmail - 775 upas upas 1100638780 182
+mail/lib/qmail - 775 upas upas 1102352695 197
 mail/lib/remotemail - 775 upas upas 959722371 180
 mail/lib/rewrite - 664 upas upas 964036209 295
 mail/lib/rewrite.direct - 664 upas upas 1020271916 1048
@@ -4015,7 +4015,7 @@ sys/lib/man/preface4 - 664 sys sys 1020082276 1758
 sys/lib/man/secindex - 775 sys sys 956337727 322
 sys/lib/man/title - 664 sys sys 1019915894 746
 sys/lib/man/trademarks - 664 sys sys 958527089 1838
-sys/lib/mimetype - 664 sys sys 1089299188 5778
+sys/lib/mimetype - 664 sys sys 1102352651 6153
 sys/lib/newuser - 775 sys sys 1097900388 1259
 sys/lib/plumb - 20000000775 sys sys 944957365 0
 sys/lib/plumb/basic - 664 sys sys 1070330856 2930
@@ -5265,8 +5265,6 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1091732792 404
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
-sys/src/9/boot/libboot.a8 - 664 sys sys 1089299185 63496
-sys/src/9/boot/libboot.aq - 664 sys sys 1089390072 78666
 sys/src/9/boot/local.c - 664 sys sys 1068835808 5355
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -6854,13 +6852,13 @@ sys/src/cmd/auth/changeuser.c - 664 sys sys 1015008431 2933
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1015008430 2347
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1015008432 2401
-sys/src/cmd/auth/cron.c - 664 sys sys 1063858528 11410
+sys/src/cmd/auth/cron.c - 664 sys sys 1102346964 11487
 sys/src/cmd/auth/debug.c - 664 sys sys 1083771270 7356
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
 sys/src/cmd/auth/factotum - 20000000775 sys sys 1017165894 0
 sys/src/cmd/auth/factotum/apop.c - 664 sys sys 1071260312 6074
-sys/src/cmd/auth/factotum/chap.c - 664 sys sys 1099176467 8774
+sys/src/cmd/auth/factotum/chap.c - 664 sys sys 1102347052 8751
 sys/src/cmd/auth/factotum/confirm.c - 664 sys sys 1044829586 3103
 sys/src/cmd/auth/factotum/dat.h - 664 sys sys 1099176466 4809
 sys/src/cmd/auth/factotum/fgui.c - 664 sys sys 1044829587 15948

@@ -17567,3 +17567,11 @@
 1102172490 400 c acme/bin/386/spout - 775 sys sys 1102171815 61582
 1102172490 401 c acme/bin/386/win - 775 sys sys 1102171815 178910
 1102172490 402 c acme/mail/386/Mail - 775 sys sys 1102171816 178677
+1102347123 0 c sys/src/cmd/auth/cron.c - 664 sys sys 1102346964 11487
+1102347123 1 c sys/src/cmd/auth/factotum/chap.c - 664 sys sys 1102347052 8751
+1102354204 0 c mail/lib/qmail - 775 upas upas 1102352695 197
+1102354204 1 c sys/lib/mimetype - 664 sys sys 1102352651 6153
+1102354204 2 d sys/src/9/boot/libboot.aq - 664 sys sys 1089390072 0
+1102354204 3 d sys/src/9/boot/libboot.a8 - 664 sys sys 1089299185 0
+1102393811 0 c 386/bin/auth/cron - 775 sys sys 1102393465 142855
+1102393811 1 c 386/bin/auth/factotum - 775 sys sys 1102393465 313832
