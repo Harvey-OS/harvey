@@ -2,8 +2,8 @@
 #include "io.h"
 #include "mem.h"
 
-extern Scsiio (*buslogic)(int, ISAConf*);
-extern Scsiio (*ncr53c8xxreset)(int, ISAConf*);
+extern Scsiio buslogic(int, ISAConf*);
+extern Scsiio ncr53c8xxreset(int, ISAConf*);
 
 static struct {
 	char*	type;
