@@ -317,7 +317,7 @@
 386/bin/mtime - 775 sys sys 1064598257 57628
 386/bin/mv - 775 sys sys 1064598258 64748
 386/bin/ndb - 20000000775 sys sys 985743147 0
-386/bin/ndb/cs - 775 sys sys 1080134985 150506
+386/bin/ndb/cs - 775 sys sys 1081082307 150693
 386/bin/ndb/csquery - 775 sys sys 1080134987 59854
 386/bin/ndb/dns - 775 sys sys 1080134992 221096
 386/bin/ndb/dnsdebug - 775 sys sys 1080135002 193477
@@ -7511,9 +7511,9 @@ sys/src/cmd/execnet/main.c - 664 sys sys 1019861330 657
 sys/src/cmd/execnet/mkfile - 664 sys sys 1032059543 208
 sys/src/cmd/execnet/note.c - 664 sys sys 1019855740 2315
 sys/src/cmd/exportfs - 20000000775 sys sys 988249971 0
-sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1069024197 15669
+sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1081082332 16169
 sys/src/cmd/exportfs/exportfs.h - 664 sys sys 1066823091 2800
-sys/src/cmd/exportfs/exportsrv.c - 664 sys sys 1066823092 11325
+sys/src/cmd/exportfs/exportsrv.c - 664 sys sys 1081082332 11914
 sys/src/cmd/exportfs/mkfile - 664 sys sys 1066825703 194
 sys/src/cmd/exportfs/pattern.c - 664 sys sys 1066823092 2960
 sys/src/cmd/ext2srv - 20000000775 sys sys 1055687763 0
@@ -9421,7 +9421,7 @@ sys/src/cmd/htmlfmt/mkfile - 664 sys sys 1034015650 297
 sys/src/cmd/htmlfmt/util.c - 664 sys sys 1015364025 1765
 sys/src/cmd/iconv.c - 664 sys sys 1039753035 1801
 sys/src/cmd/idiff.c - 664 sys sys 1014926695 6896
-sys/src/cmd/import.c - 664 sys sys 1044893799 6192
+sys/src/cmd/import.c - 664 sys sys 1081082324 6711
 sys/src/cmd/init.c - 664 sys sys 1071873627 4452
 sys/src/cmd/iostats - 20000000775 sys sys 944962001 0
 sys/src/cmd/iostats/iostats.c - 664 sys sys 1014925727 9691

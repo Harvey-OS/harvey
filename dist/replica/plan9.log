@@ -14783,3 +14783,7 @@
 1080592276 0 c sys/man/8/fossilcons - 664 sys sys 1080590977 16286
 1080838919 0 c sys/games/lib/fortunes - 664 sys sys 1080838116 248410
 1080923440 0 c sys/man/4/exportfs - 664 sys sys 1080922547 4454
+1081083623 0 c 386/bin/ndb/cs - 775 sys sys 1081082307 150693
+1081083623 1 c sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1081082332 16169
+1081083623 2 c sys/src/cmd/exportfs/exportsrv.c - 664 sys sys 1081082332 11914
+1081083623 3 c sys/src/cmd/import.c - 664 sys sys 1081082324 6711
