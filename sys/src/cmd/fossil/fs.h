@@ -13,7 +13,7 @@ enum {
 Fs *fsOpen(char*, VtSession*, long, int);
 void fsClose(Fs*);
 File *fsGetRoot(Fs*);
-int fsSnapshot(Fs*, int);
+int fsSnapshot(Fs*, char*, char*, int);
 void fsSnapshotRemove(Fs*);
 void fsSnapshotCleanup(Fs*, u32int);
 int fsSync(Fs*);

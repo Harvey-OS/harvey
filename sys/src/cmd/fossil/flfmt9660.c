@@ -379,7 +379,7 @@ iso9660copy(Fs *fs)
 	iso9660copydir(fs, root, (Cdir*)v->rootdir);
 	fileDecRef(root);
 	vtRUnlock(fs->elk);
-	if(!fsSnapshot(fs, 0))
+	if(!fsSnapshot(fs, nil, nil, 0))
 		vtFatal("snapshot failed: %R");
 	vtRLock(fs->elk);
 }

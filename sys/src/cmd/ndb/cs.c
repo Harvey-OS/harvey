@@ -1209,9 +1209,7 @@ lookup(Mfile *mf)
 		/*
 		 *  known network
 		 */
-syslog(0, logfile, "specific lookup %s", np->net);
 		nt = (*np->lookup)(np, mf->host, mf->serv, 1);
-syslog(0, logfile, "returned %p", nt);
 		for(t = nt; mf->nreply < Nreply && t; t = t->entry){
 			cp = (*np->trans)(t, np, mf->serv, mf->rem, 0);
 			if(cp){

@@ -14771,3 +14771,13 @@
 1080496911 0 c sys/games/lib/fortunes - 664 sys sys 1080495629 248306
 1080500511 0 c sys/src/libc/9sys/dial.c - 664 sys sys 1080498909 3837
 1080505912 0 c sys/src/cmd/ndb/cs.c - 664 sys sys 1080504975 33075
+1080574325 0 c sys/src/9/pc/i8253.c - 664 sys sys 1080572900 6240
+1080574325 1 c sys/src/cmd/ndb/cs.c - 664 sys sys 1080572749 32985
+1080586927 0 c sys/src/cmd/fossil/9fsys.c - 664 sys sys 1080586882 30218
+1080586927 1 c sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1080586882 7982
+1080586927 2 c sys/src/cmd/fossil/flfmt.c - 664 sys sys 1080586881 10753
+1080586927 3 c sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1080586883 12314
+1080586927 4 c sys/src/cmd/fossil/fs.c - 664 sys sys 1080586883 21525
+1080586927 5 c sys/src/cmd/fossil/fs.h - 664 sys sys 1080586883 1503
+1080588728 0 c sys/man/8/fossilcons - 664 sys sys 1080588009 16283
+1080592276 0 c sys/man/8/fossilcons - 664 sys sys 1080590977 16286

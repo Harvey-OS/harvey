@@ -438,7 +438,7 @@ topLevel(char *name)
 	root = fsGetRoot(fs);
 	if(root == nil)
 		vtFatal("could not open root: %r");
-	addFile(root, "active", 0777);	/* BUG: add create command to Ccmd instead */
+	addFile(root, "active", 0555);
 	addFile(root, "archive", 0555);
 	addFile(root, "snapshot", 0555);
 	fileDecRef(root);

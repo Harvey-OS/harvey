@@ -330,8 +330,11 @@ static int
 fsysSnap(Fsys* fsys, int argc, char* argv[])
 {
 	int doarchive;
-	char *usage = "usage: [fsys name] snap [-a]";
+	char *usage = "usage: [fsys name] snap [-a] [-s /active] [-d /archive/yyyy/mmmm]";
+	char *src, *dst;
 
+	src = nil;
+	dst = nil;
 	doarchive = 0;
 	ARGBEGIN{
 	default:
@@ -339,11 +342,19 @@ fsysSnap(Fsys* fsys, int argc, char* argv[])
 	case 'a':
 		doarchive = 1;
 		break;
+	case 'd':
+		if((dst = ARGF()) == nil)
+			return cliError(usage);
+		break;
+	case 's':
+		if((src = ARGF()) == nil)
+			return cliError(usage);
+		break;
 	}ARGEND
 	if(argc)
 		return cliError(usage);
 
-	if(!fsSnapshot(fsys->fs, doarchive))
+	if(!fsSnapshot(fsys->fs, src, dst, doarchive))
 		return 0;
 
 	return 1;

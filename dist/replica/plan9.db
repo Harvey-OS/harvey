@@ -5061,7 +5061,7 @@ sys/man/8/cpurc - 664 sys sys 971455510 1275
 sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1032654987 5237
 sys/man/8/drawterm - 664 sys sys 958419689 2458
-sys/man/8/fossilcons - 664 sys sys 1072705694 15161
+sys/man/8/fossilcons - 664 sys sys 1080590977 16286
 sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1045501600 8142
 sys/man/8/httpd - 664 sys sys 1065640802 6426
@@ -5351,7 +5351,7 @@ sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
 sys/src/9/pc/fns.h - 664 sys sys 1074785127 4299
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
-sys/src/9/pc/i8253.c - 664 sys sys 1074785126 6179
+sys/src/9/pc/i8253.c - 664 sys sys 1080572900 6240
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
@@ -7561,7 +7561,7 @@ sys/src/cmd/fossil/9auth.c - 664 sys sys 1061530721 3393
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1072705704 2075
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
-sys/src/cmd/fossil/9fsys.c - 664 sys sys 1068591358 29979
+sys/src/cmd/fossil/9fsys.c - 664 sys sys 1080586882 30218
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
 sys/src/cmd/fossil/9p.c - 664 sys sys 1077896346 21766
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
@@ -7569,7 +7569,7 @@ sys/src/cmd/fossil/9proc.c - 664 sys sys 1079034426 14680
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1077896346 3879
 sys/src/cmd/fossil/9user.c - 664 sys sys 1071179088 17260
 sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
-sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1066098098 7244
+sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1080586882 7982
 sys/src/cmd/fossil/Ccons.c - 664 sys sys 1055703737 6620
 sys/src/cmd/fossil/Clog.c - 664 sys sys 1042005505 591
 sys/src/cmd/fossil/archive.c - 664 sys sys 1072705705 9558
@@ -7587,15 +7587,15 @@ sys/src/cmd/fossil/error.c - 664 sys sys 1073851927 1450
 sys/src/cmd/fossil/error.h - 664 sys sys 1073851928 796
 sys/src/cmd/fossil/file.c - 664 sys sys 1073140359 30215
 sys/src/cmd/fossil/flchk.c - 664 sys sys 1061530720 14296
-sys/src/cmd/fossil/flfmt.c - 664 sys sys 1072705703 10799
-sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1072830620 12304
+sys/src/cmd/fossil/flfmt.c - 664 sys sys 1080586881 10753
+sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1080586883 12314
 sys/src/cmd/fossil/flfmt9660.h - 664 sys sys 1072830621 134
 sys/src/cmd/fossil/flproto - 664 sys sys 1042005508 210
 sys/src/cmd/fossil/fns.h - 664 sys sys 1072705709 3168
 sys/src/cmd/fossil/fossil-acid - 664 sys sys 1042005508 3965
 sys/src/cmd/fossil/fossil.c - 664 sys sys 1077896345 2435
-sys/src/cmd/fossil/fs.c - 664 sys sys 1072705707 21071
-sys/src/cmd/fossil/fs.h - 664 sys sys 1072705709 1489
+sys/src/cmd/fossil/fs.c - 664 sys sys 1080586883 21525
+sys/src/cmd/fossil/fs.h - 664 sys sys 1080586883 1503
 sys/src/cmd/fossil/history - 664 sys sys 1055703793 1400
 sys/src/cmd/fossil/invariants - 664 sys sys 1042005509 4073
 sys/src/cmd/fossil/mkfile - 664 sys sys 1072830618 2103
@@ -9764,7 +9764,7 @@ sys/src/cmd/mv.c - 664 sys sys 1014926695 4276
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1060612175 6862
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248
-sys/src/cmd/ndb/cs.c - 664 sys sys 1080504975 33075
+sys/src/cmd/ndb/cs.c - 664 sys sys 1080572749 32985
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1078927860 18090
