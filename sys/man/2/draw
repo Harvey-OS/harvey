@@ -11,6 +11,11 @@ runestringnbg, _string, ARROW, drawsetdebug \- graphics functions
 .nf
 ..
 .SH SYNOPSIS
+.de PB
+.PP
+.ft L
+.nf
+..
 .PB
 #include <u.h>
 #include <libc.h>
