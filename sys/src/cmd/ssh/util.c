@@ -60,7 +60,7 @@ erealloc(void *v, long n)
 }
 
 
-static int killpid[16];
+static int killpid[32];
 static int nkillpid;
 void
 atexitkiller(void)

@@ -466,6 +466,18 @@ rexec(User *user, Job *j)
 	 * remote call, auth, cmd with no i/o
 	 * give it 2 min to complete
 	 */
+	if(strcmp(j->host, "local") == 0){
+		if(becomeuser(user->name) < 0){
+			syslog(0, CRONLOG, "%s: can't change uid for %s on %s: %r", user->name, j->cmd, j->host);
+			_exits(0);
+		}
+syslog(0, CRONLOG, "%s: ran '%s' on %s", user->name, j->cmd, j->host);
+		execl("/bin/rc", "rc", "-c", buf, nil);
+		syslog(0, CRONLOG, "%s: exec failed for %s on %s: %r",
+			user->name, j->cmd, j->host);
+		_exits(0);
+	}
+
 	alarm(2*60*1000);
 	fd = call(j->host);
 	if(fd < 0){
@@ -606,7 +618,6 @@ becomeuser(char *new)
 {
 	char *cap;
 	int rv;
-
 	cap = mkcap(getuser(), new);
 	if(cap == nil)
 		return -1;

@@ -2,6 +2,7 @@
 
 TARG = 	dhcpclient\
 	ftpd\
+	gizzard\
 	gping\
 	hogports\
 	ipconfig\
@@ -22,13 +23,13 @@ TARG = 	dhcpclient\
 DIRS=ftpfs dhcpd httpd ppp imap4d snoopy
 
 BIN=/$objtype/bin/ip
+HFILES=dhcp.h arp.h bootp.h glob.h telnet.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
-	${TARG:%=/386/bin/ip/%}\
 
 </sys/src/cmd/mkmany
 

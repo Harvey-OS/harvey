@@ -33,7 +33,7 @@ _quotesetup(char *s, Rune *r, int nin, int nout, Quoteinfo *q, int sharp, int ru
 		q->nbytesout = 2;
 		q->nrunesout = 2;
 	}
-	for(; nin!=0; nin-=w){
+	for(; nin!=0; nin--){
 		if(s)
 			w = chartorune(&c, s);
 		else{
@@ -168,12 +168,14 @@ qstrfmt(char *sin, Rune *rin, Quoteinfo *q, Fmt *f)
 int
 _quotestrfmt(int runesin, Fmt *f)
 {
-	int outlen;
+	int nin, outlen;
 	Rune *r;
 	char *s;
 	Quoteinfo q;
 
-	f->flags &= ~FmtPrec;	/* ignored for %q %Q, so disable for %s %S in easy case */
+	nin = -1;
+	if(f->flags&FmtPrec)
+		nin = f->prec;
 	if(runesin){
 		r = va_arg(f->args, Rune *);
 		s = nil;
@@ -191,7 +193,7 @@ _quotestrfmt(int runesin, Fmt *f)
 	else
 		outlen = (char*)f->stop - (char*)f->to;
 
-	_quotesetup(s, r, -1, outlen, &q, f->flags&FmtSharp, f->runes);
+	_quotesetup(s, r, nin, outlen, &q, f->flags&FmtSharp, f->runes);
 //print("bytes in %d bytes out %d runes in %d runesout %d\n", q.nbytesin, q.nbytesout, q.nrunesin, q.nrunesout);
 
 	if(runesin){

@@ -2062,8 +2062,16 @@ flushThread(void *a)
 		vtSleep(c->flush);
 		vtUnlock(c->lk);
 		for(i=0; i<FlushSize; i++)
-			if(!cacheFlushBlock(c))
+			if(!cacheFlushBlock(c)){
+				/*
+				 * If i==0, could be someone is waking us repeatedly
+				 * to flush the cache but there's no work to do.
+				 * Pause a little.
+				 */
+				if(i==0)
+					sleep(250);
 				break;
+			}
 		if(i==0 && c->ndirty){
 			/*
 			 * All the blocks are being written right now -- there's nothing to do.

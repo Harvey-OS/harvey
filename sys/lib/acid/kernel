@@ -249,6 +249,26 @@ defn up() {
 	return mach.externup;
 }
 
+defn intrcount() {
+	local p, pp, t, i, j;
+
+	p = intrtimes;
+	i=0;
+	loop 1,256 do {
+		pp = p[i];
+		i=i+1;
+		if pp != 0 then {
+			j=0;
+			t=0;
+			loop 1,1000 do {
+				t = t+pp[j];
+				j=j+1;
+			}
+			print(itoa(i, "%5d"), " ", itoa(t, "%11d"), "\n");
+		}
+	}
+}
+
 print("/sys/lib/acid/kernel");
 
 defn needacid(s){

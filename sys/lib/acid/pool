@@ -206,7 +206,7 @@ checkarena(arena)
 
 	atail = A2TB(arena);
 	complex Bhdr arena;
-	b = a;
+	b = arena;
 	while b.magic != ARENATAIL_MAGIC && b < atail do {
 		checkblock(b);
 		if B2NB(b) == b then {
@@ -225,6 +225,7 @@ defn
 checkpool(p)
 {
 	complex Pool p;
+	local a;
 	a = p.arenalist;
 
 	while a != 0 do {
@@ -252,3 +253,54 @@ dumptree(f)
 {
 	gendumptree(f, 0, "*");
 }
+
+defn
+poolwhopointsat(p, addr)
+{
+	complex Pool p;
+	local a;
+
+	a = p.arenalist;
+	while a != 0 do {
+		complex Arena a;
+		arenawhopointsat(a, addr);
+		a = a.down;
+	}
+}
+
+defn 
+arenawhopointsat(arena, addr)
+{
+	local atail, b;
+
+	atail = A2TB(arena);
+	complex Bhdr arena;
+	b = arena;
+	while b < atail do {
+		if *b == addr then 
+			print(b\X, "\n");
+		b = b+4;
+	}
+}
+
+defn
+whopointsat(addr)
+{
+	poolwhopointsat(*mainmem, addr);
+}
+
+defn
+blockhdr(addr)
+{
+	addr = addr & ~3;
+
+	while *addr != FREE_MAGIC 
+		&& *addr !=  ARENA_MAGIC
+		&& *addr != UNKEMPT_MAGIC
+		&& *addr != KEMPT_MAGIC
+		&& *addr != ARENATAIL_MAGIC
+	do
+		addr = addr-4;
+	return addr;
+}
+

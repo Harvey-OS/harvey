@@ -39,6 +39,8 @@ cache(int fd)
 				bd[i-4] = 0;
 			else if(strcmp("fs", &bd[i-2]) == 0)
 				bd[i-2] = 0;
+			else if(strcmp("fossil", &bd[i-6]) == 0)
+				bd[i-6] = 0;
 			sprint(partition, "%scache", bd);
 			if(stat(partition, statbuf, sizeof statbuf) < 0)
 				*bd = 0;

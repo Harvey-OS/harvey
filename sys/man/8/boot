@@ -304,11 +304,12 @@ The loopback interface is still configured.
 same as the last but specify alternate venti service and web addresses.
 The loopback interface is still configured.
 .TP
-.B tcp!135.104.9.2!17034
+.B tcp!135.104.9.2!17034 \fR[ \fIargs\fR ]
 the network address of a venti server running on a separate machine.
 .I Boot
-will configure the IP stack by passing any remaining
-boot arguments to
+will configure the IP stack by passing
+.IR args ,
+if any, to
 .IR ipconfig (8).
 .PP
 If the disk is not a

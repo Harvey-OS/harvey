@@ -7,10 +7,11 @@
 enum {PNCTL=3};
 
 static char* rdenv(char*);
-void newwin(char*);
+int newwin(char*);
 Rectangle screenrect(void);
 
 int nokill;
+int textmode;
 char *title;
 
 Image *light;
@@ -27,26 +28,51 @@ initcolor(void)
 
 Rectangle rbar;
 Point ptext;
-long n, d;
+vlong n, d;
 int last;
 int lastp;
+int first = 1;
+
+char backup[80];
 
 void
 drawbar(void)
 {
-	int i;
+	int i, j;
 	int p;
-	char buf[10];
+	char buf[10], bar[100];
 
 	if(n > d || n < 0 || d <= 0)
 		return;
 
-	i = (Dx(rbar)*(vlong)n)/d;
+	i = (Dx(rbar)*n)/d;
 	p = (n*100LL)/d;
 
 	if(lastp == p && last == i)
 		return;
 
+	if(textmode){
+		bar[0] = '|';
+		for(j=0; j<i; j++)
+			bar[j+1] = '#';
+		for(; j<60; j++)
+			bar[j+1] = '-';
+		bar[61] = '|';
+		bar[62] = ' ';
+		sprint(bar+63, "%3d%%", p);
+		if(first)
+			first = 0;
+		else{
+			for(i=0; i<strlen(bar); i++)
+				backup[i] = '\b';
+			write(1, backup, i);
+		}
+		write(1, bar, strlen(bar));
+		lastp = p;
+		last = i;
+		return;
+	}
+		
 	if(lastp != p){
 		sprint(buf, "%d%%", p);
 		
@@ -100,7 +126,7 @@ bar(Biobuf *b)
 	parent = getpid();
 
 	die = 0;
-	switch(child = rfork(RFMEM|RFPROC)) {
+	if(!textmode) switch(child = rfork(RFMEM|RFPROC)) {
 	case 0:
 		sleep(1000);
 		while(!die && (k = eread(Ekeyboard|Emouse, &e))) {
@@ -117,8 +143,8 @@ bar(Biobuf *b)
 		p[Blinelen(b)-1] = '\0';
 		if(tokenize(p, f, 2) != 2)
 			continue;
-		n = atol(f[0]);
-		d = atol(f[1]);
+		n = strtoll(f[0], 0, 0);
+		d = strtoll(f[1], 0, 0);
 		drawbar();
 	}
 	postnote(PNCTL, child, "kill");
@@ -129,7 +155,7 @@ bar(Biobuf *b)
 void
 usage(void)
 {
-	fprint(2, "usage: bargraph [-w minx,miny,maxx,maxy] 'title'\n");
+	fprint(2, "usage: bargraph [-kt] [-w minx,miny,maxx,maxy] 'title'\n");
 	exits("usage");
 }
 
@@ -140,11 +166,14 @@ main(int argc, char **argv)
 	char *p, *q;
 	int lfd;
 
-	p = "0,0,200,40";
+	p = "0,0,200,60";
 	
 	ARGBEGIN{
 	case 'w':
 		p = ARGF();
+		break;
+	case 't':
+		textmode = 1;
 		break;
 	case 'k':
 		nokill = 1;
@@ -162,15 +191,16 @@ main(int argc, char **argv)
 
 	while(q = strchr(p, ','))
 		*q = ' ';
-	newwin(p);
-
-	initdraw(0, 0, "bar");
-	initcolor();
-
-	einit(Emouse|Ekeyboard);
-
 	Binit(&b, lfd, OREAD);
-	eresized(0);
+	if(textmode || newwin(p) < 0){
+		textmode = 1;
+		rbar = Rect(0, 0, 60, 1);
+	}else{
+		initdraw(0, 0, "bar");
+		initcolor();
+		einit(Emouse|Ekeyboard);
+		eresized(0);
+	}
 	bar(&b);
 }
 
@@ -198,7 +228,7 @@ rdenv(char *name)
 	return v;
 }
 
-void
+int
 newwin(char *win)
 {
 	char *srv, *mntsrv;
@@ -207,8 +237,8 @@ newwin(char *win)
 
 	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFENVG|RFNOTEG|RFNOWAIT)){
 	case -1:
-		fprint(2, "page: can't fork: %r\n");
-		exits("no fork");
+		fprint(2, "bargraph: can't fork: %r\n");
+		return -1;
 	case 0:
 		break;
 	default:
@@ -219,8 +249,8 @@ newwin(char *win)
 	if(srv == 0){
 		mntsrv = rdenv("/mnt/term/env/wsys");
 		if(mntsrv == 0){
-			fprint(2, "page: can't find $wsys\n");
-			exits("srv");
+			fprint(2, "bargraph: can't find $wsys\n");
+			return -1;
 		}
 		srv = malloc(strlen(mntsrv)+10);
 		sprint(srv, "/mnt/term%s", mntsrv);
@@ -231,13 +261,13 @@ newwin(char *win)
 	srvfd = open(srv, ORDWR);
 	free(srv);
 	if(srvfd == -1){
-		fprint(2, "page: can't open %s: %r\n", srv);
-		exits("no srv");
+		fprint(2, "bargraph: can't open %s: %r\n", srv);
+		return -1;
 	}
 	sprint(spec, "new -r %s", win);
 	if(mount(srvfd, -1, "/mnt/wsys", 0, spec) == -1){
-		fprint(2, "page: can't mount /mnt/wsys: %r (spec=%s)\n", spec);
-		exits("no mount");
+		fprint(2, "bargraph: can't mount /mnt/wsys: %r (spec=%s)\n", spec);
+		return -1;
 	}
 	close(srvfd);
 	unmount("/mnt/acme", "/dev");
@@ -245,8 +275,8 @@ newwin(char *win)
 	cons = open("/dev/cons", OREAD);
 	if(cons==-1){
 	NoCons:
-		fprint(2, "page: can't open /dev/cons: %r");
-		exits("no cons");
+		fprint(2, "bargraph: can't open /dev/cons: %r");
+		return -1;
 	}
 	dup(cons, 0);
 	close(cons);
@@ -257,6 +287,7 @@ newwin(char *win)
 	dup(cons, 2);
 	close(cons);
 //	wctlfd = open("/dev/wctl", OWRITE);
+	return 0;
 }
 
 Rectangle

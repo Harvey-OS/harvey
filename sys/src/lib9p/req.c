@@ -66,6 +66,8 @@ if(chatty9p > 1)
 void
 closereq(Req *r)
 {
+	int i;
+
 	if(r == nil)
 		return;
 
@@ -81,6 +83,9 @@ if(chatty9p > 1)
 			closefid(r->afid);
 		if(r->oldreq)
 			closereq(r->oldreq);
+		for(i=0; i<r->nflush; i++)
+			respond(r->flush[i], nil);
+		free(r->flush);
 		switch(r->ifcall.type){
 		case Tstat:
 			free(r->ofcall.stat);

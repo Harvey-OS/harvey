@@ -214,9 +214,12 @@ vmfifowr(Vmware *vm, ulong v)
 		vmwait(vm);
 
 	mm[mm[FifoNextCmd]/sizeof(ulong)] = v;
-	mm[FifoNextCmd] += sizeof(ulong);
-	if(mm[FifoNextCmd]==mm[FifoMax])
-		mm[FifoNextCmd] = mm[FifoMin];
+
+	/* must do this way so mm[FifoNextCmd] is never mm[FifoMax] */
+	v = mm[FifoNextCmd] + sizeof(ulong);
+	if(v == mm[FifoMax])
+		v = mm[FifoMin];
+	mm[FifoNextCmd] = v;
 }
 
 static void
