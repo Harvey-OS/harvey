@@ -149,7 +149,7 @@ The options are
 fix bad tags and clear the contents of the block.
 .TP
 .B d
-delete redundant references to a block.
+delete redundant references to a block, fix bad UTF filenames.
 .TP
 .B f
 rebuild the list of free blocks.

@@ -798,9 +798,9 @@ sourceLoadBlock(Source *r, int mode)
 		 */
 		if(r->epoch == r->fs->ehi){
 			b = cacheGlobal(r->fs->cache, r->score, BtDir, r->tag, OReadWrite);
-			assert(r->epoch == b->l.epoch);
 			if(b == nil)
 				return nil;
+			assert(r->epoch == b->l.epoch);
 			return b;
 		}
 		assert(r->parent != nil);
