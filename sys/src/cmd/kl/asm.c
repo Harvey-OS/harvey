@@ -1001,6 +1001,11 @@ asmout(Prog *p, Optab *o, int aflag)
 			}
 		}
 		break;
+
+	case 57:	/* op r1,r2 with reserved rs1 */
+		r = 0;
+		o1 = OP_RRR(opcode(p->as), p->from.reg, r, p->to.reg);
+		break;
 	}
 	if(aflag)
 		return o1;

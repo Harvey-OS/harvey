@@ -13231,3 +13231,6 @@
 1105632024 0 c sys/src/cmd/troff2html/mkfile - 664 sys sys 1105631961 242
 1105632024 1 c sys/src/cmd/troff2html/troff2html.c - 664 sys sys 1105631971 14160
 1105677032 0 c 386/bin/troff2html - 775 sys sys 1105675429 85684
+1105799458 0 c sys/src/9/port/devfs.c - 664 sys sys 1105799131 10783
+1105799458 1 c sys/src/cmd/kl/asm.c - 664 sys sys 1105798985 26122
+1105799458 2 c sys/src/cmd/kl/optab.c - 664 sys sys 1105798985 7369
