@@ -17298,3 +17298,4 @@
 1045164780 0 c sys/lib/lp/process/post - 775 sys sys 1045164703 1955
 1045164780 1 a sys/lib/lp/process/psextract - 775 sys sys 1045164704 777
 1045236676 0 c sys/man/4/srv - 664 sys sys 1045236157 4649
+1045337480 0 a sys/src/libc/386/387/mkfile - 664 sys sys 1045336041 157
