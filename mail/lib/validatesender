@@ -38,7 +38,7 @@ if(~ $sysname ethel){
 		netroot=/net.alt
 }
 
-if(x=`{upas/smtp -p $netroot/tcp!$dom postmaster $addr >[2=1] | 
+if(x=`{upas/smtp -p $netroot/tcp!$dom /dev/null $addr >[2=1] | 
 		tee >{sed 's/^/'$sysname' '$pid' /' >> /sys/log/smtpd.mx} |
 		tail -1})
 	exit ''
