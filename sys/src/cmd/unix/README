@@ -20,3 +20,6 @@ programs are supplied:
 A README file in each subdirectory further explains each
 program.
 
+For a more up-to-date copy of sam and tcs, see Plan 9 from
+User Space at http://swtch.com/plan9port.
+

@@ -3350,7 +3350,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1109471220 253178
+sys/games/lib/fortunes - 664 sys sys 1110309055 253240
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -10576,7 +10576,7 @@ sys/src/cmd/unix/9pfreebsd/mount_9fs/Makefile - 644 sys sys 960684604 412
 sys/src/cmd/unix/9pfreebsd/mount_9fs/crypt.c - 644 sys sys 960684604 18042
 sys/src/cmd/unix/9pfreebsd/mount_9fs/mount_9fs.8 - 644 sys sys 960684604 10864
 sys/src/cmd/unix/9pfreebsd/mount_9fs/mount_9fs.c - 644 sys sys 960684605 25118
-sys/src/cmd/unix/README - 664 sys sys 959299279 644
+sys/src/cmd/unix/README - 664 sys sys 1110289527 746
 sys/src/cmd/unix/bootp - 20000000775 sys sys 944961309 0
 sys/src/cmd/unix/bootp/README - 664 sys sys 944961309 2986
 sys/src/cmd/unix/bootp/unix.bootp.tar - 664 sys sys 944961309 153600
@@ -10765,7 +10765,7 @@ sys/src/cmd/unix/drawterm/winscreen.c - 664 sys sys 954098657 11393
 sys/src/cmd/unix/drawterm/wstrtoutf.c - 664 sys sys 954098657 393
 sys/src/cmd/unix/netkey.c - 755 sys sys 1045152984 21761
 sys/src/cmd/unix/sam - 20000000775 sys sys 954263160 0
-sys/src/cmd/unix/sam/README - 664 sys sys 954263462 178
+sys/src/cmd/unix/sam/README - 664 sys sys 1110289373 306
 sys/src/cmd/unix/spin - 20000000775 sys sys 956275829 0
 sys/src/cmd/unix/spin/readme - 664 sys sys 956275829 271
 sys/src/cmd/unix/spin/spin334.tar.gz - 664 sys sys 956275830 264112
