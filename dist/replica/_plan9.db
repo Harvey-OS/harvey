@@ -298,7 +298,7 @@
 386/bin/ktrace - 775 sys sys 1091936093 111408
 386/bin/lens - 775 sys sys 1085077076 122322
 386/bin/lex - 775 sys sys 1085077076 96662
-386/bin/lnfs - 775 sys sys 1085077076 97466
+386/bin/lnfs - 775 sys sys 1094218813 97410
 386/bin/look - 775 sys sys 1085077077 63516
 386/bin/ls - 775 sys sys 1088823722 80345
 386/bin/mc - 775 sys sys 1085077077 130848
@@ -329,7 +329,7 @@
 386/bin/news - 775 sys sys 1085077084 69654
 386/bin/nfs - 775 sys sys 1089397314 313346
 386/bin/nm - 775 sys sys 1091936093 113471
-386/bin/nntpfs - 775 sys sys 1089397315 158830
+386/bin/nntpfs - 775 sys sys 1094218814 158833
 386/bin/ns - 775 sys sys 1085077086 63226
 386/bin/p - 775 sys sys 1085077086 62948
 386/bin/page - 775 sys sys 1087442536 229962
@@ -370,7 +370,7 @@
 386/bin/rx - 775 sys sys 1085077094 79893
 386/bin/sam - 775 sys sys 1085077095 155916
 386/bin/scat - 775 sys sys 1085077095 281706
-386/bin/scp - 775 sys sys 1092539157 149860
+386/bin/scp - 775 sys sys 1094218814 149872
 386/bin/scuzz - 775 sys sys 1085077096 109619
 386/bin/sed - 775 sys sys 1085077096 87471
 386/bin/seq - 775 sys sys 1085077096 38178
@@ -12337,6 +12337,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/lnfs - 775 sys sys 1094180929 97410
-386/bin/nntpfs - 775 sys sys 1094180930 158833
-386/bin/scp - 775 sys sys 1094180930 149872
