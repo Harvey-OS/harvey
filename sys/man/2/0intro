@@ -86,7 +86,8 @@ The ANSI C Standard I/O library,
 .IR libstdio ,
 is defined by
 .BR <stdio.h> ,
-which has no prerequisites.
+which needs
+.BR <u.h> .
 There are a few other, less commonly used libraries defined on
 individual pages of this section.
 .PP
@@ -94,15 +95,25 @@ The include file
 .BR <u.h> ,
 a prerequisite of several other include files,
 declares the architecture-dependent and -independent types, including:
-.IR ushort ,
 .IR uchar ,
+.IR ushort ,
 and
 .IR ulong ,
 the unsigned integer types;
 .IR schar ,
 the signed char type;
-.IR vlong ,
-a very long integral type;
+.I vlong
+and
+.IR uvlong ,
+the signed and unsigned very long integral types;
+.IR Rune ,
+the Unicode character type;
+.IR u8int ,
+.IR u16int ,
+.IR u32int ,
+and
+.IR u64int ,
+the unsigned integral types with specific widths;
 .IR jmp_buf ,
 the type of the argument to
 .I setjmp
@@ -115,24 +126,13 @@ plus macros that define the layout of
 definitions of the bits in the floating-point control register
 as used by
 .IR getfcr (2);
+and
 the macros
 .B va_arg
 and friends for accessing arguments of variadic functions (identical to the
 macros defined in
 .B <stdarg.h>
-in ANSI C);
-and
-.IR Length ,
-for historical reasons a union,
-representing the 64-bit length of a file, declared something like
-.IP
-.EX
-.ta 6n +6n +6n
-typedef union
-{
-	vlong	length;
-} Length;
-.EE
+in ANSI C).
 .SS "Name space
 Files are collected into a hierarchical organization called a
 .I "file tree
@@ -144,16 +144,13 @@ File names, also called
 .IR paths ,
 consist of a number of
 .BR / -separated
-.IR "path elements"
+.I "path elements"
 with the slashes corresponding to directories.
 A path element must contain only printable
-characters (those outside
+characters (those outside the control spaces of
 .SM ASCII
-and Latin-1 control space)
-that occupy no more than
-.B NAMELEN-1
-bytes.
-A path element cannot contain a space or slash.
+and Latin-1).
+A path element cannot contain a slash.
 .PP
 When a process presents a file name to Plan 9, it is
 .I evaluated
@@ -245,11 +242,7 @@ system call.
 .PP
 Directories may be opened and read much like regular files.
 They contain an integral number of records, called
-.IR "directory entries" ,
-of length
-.B DIRLEN
-(defined in
-.BR <libc.h> ).
+.IR "directory entries" .
 Each entry is a machine-independent representation of
 the information about an existing file in the directory,
 including the name, ownership,
@@ -279,7 +272,7 @@ execute the appropriate translations (see
 .PP
 New files are made with
 .I create
-(in
+(see
 .IR open (2))
 and deleted with
 .IR remove (2).
@@ -368,9 +361,7 @@ other segments for special purposes.
 A process terminates by calling
 .IR exits (2).
 A parent process may call
-.I wait
-(in
-.IR exits (2))
+.IR wait (2)
 to wait for some child to terminate.
 A string of status information
 may be passed from
@@ -431,7 +422,9 @@ call may block all the threads in a process.
 Therefore, a program that shouldn't block unexpectedly will use a process
 to serve the I/O request, passing the result to the main processes
 over a channel when the request completes.
-For an example of this design, see
+For examples of this design, see
+.IR ioproc (2)
+or
 .IR mouse (2).
 .SH SEE ALSO
 .IR nm (1), 
@@ -459,7 +452,3 @@ mechanism to report errors.
 Functions that may affect the value of the error string are said to ``set
 .IR errstr '';
 it is understood that the error string is altered only if an error occurs.
-.SH BUGS
-The limitation of path elements to 27 bytes
-.RB ( NAMELEN-1 )
-is a liability in the networked world.

@@ -4543,7 +4543,7 @@ sys/man/1/xd - 664 sys sys 944959674 1517
 sys/man/1/yacc - 664 sys sys 944959676 3273
 sys/man/1/yesterday - 664 sys sys 959299265 2045
 sys/man/2 - 20000000775 sys sys 1017423721 0
-sys/man/2/0intro - 664 sys sys 958249500 11777
+sys/man/2/0intro - 664 sys sys 1044724217 11574
 sys/man/2/9p - 664 sys sys 1044430182 15044
 sys/man/2/9pcmdbuf - 664 sys sys 1044430197 2057
 sys/man/2/9pfid - 664 sys sys 1030451710 3644
