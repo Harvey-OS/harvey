@@ -158,7 +158,7 @@ grekick(void *x, Block *bp)
 	ghp->frag[0] = 0;
 	ghp->frag[1] = 0;
 
-	ipoput4(c->p->f, bp, 0, c->ttl, c->tos);
+	ipoput4(c->p->f, bp, 0, c->ttl, c->tos, nil);
 }
 
 static void

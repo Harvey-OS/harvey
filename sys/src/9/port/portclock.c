@@ -124,17 +124,13 @@ hzclock(Ureg *ur)
 	if(up == 0 || up->state != Running)
 		return;
 
-	/* i.e. don't deschedule an EDF process here! */
-	if(anyready() && !edf->isedf(up)){
-		sched();
-		splhi();
-	}
-
 	/* user profiling clock */
-	if(userureg(ur)) {
+	if(userureg(ur)){
 		(*(ulong*)(USTKTOP-BY2WD)) += TK2MS(1);
 		segclock(ur->pc);
 	}
+
+	hzsched();	/* in proc.c */
 }
 
 void

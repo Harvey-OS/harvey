@@ -75,10 +75,10 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 	/* find oldest entry */
 	e = &arp->cache[NCACHE];
 	a = arp->cache;
-	t = a->used;
+	t = a->utime;
 	for(f = a; f < e; f++){
-		if(f->used < t){
-			t = f->used;
+		if(f->utime < t){
+			t = f->utime;
 			a = f;
 		}
 	}
@@ -124,11 +124,11 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 	*l = a;
 
 	memmove(a->ip, ip, sizeof(a->ip));
-	a->used = NOW;
-	a->time = 0;
+	a->utime = NOW;
+	a->ctime = a->utime;
 	a->type = m;
 
-	a->rxtat = NOW + ReTransTimer;
+	a->rtime = NOW + ReTransTimer;
 	a->rxtsrem = MAX_MULTICAST_SOLICIT;
 	a->ifc = ifc;
 	a->ifcid = ifc->ifcid;
@@ -165,8 +165,8 @@ cleanarpent(Arp *arp, Arpent *a)
 {
 	Arpent *f, **l;
 
-	a->used = 0;
-	a->time = 0;
+	a->utime = 0;
+	a->ctime = 0;
 	a->type = 0;
 	a->state = 0;
 	
@@ -227,7 +227,7 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uchar *ip, uchar *mac)
 		a = newarp6(arp, ip, ifc, (version != V4));
 		a->state = AWAIT;
 	}
-	a->used = NOW;
+	a->utime = NOW;
 	if(a->state == AWAIT){
 		if(bp != nil){
 			if(a->hold)
@@ -241,6 +241,11 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uchar *ip, uchar *mac)
 	}
 
 	memmove(mac, a->mac, a->type->maclen);
+
+	/* remove old entries */
+	if(NOW - a->ctime > 15*60*1000)
+		cleanarpent(arp, a);
+
 	qunlock(arp);
 	return nil;
 }
@@ -280,7 +285,7 @@ arpresolve(Arp *arp, Arpent *a, Medium *type, uchar *mac)
 	memmove(a->mac, mac, type->maclen);
 	a->type = type;
 	a->state = AOK;
-	a->used = NOW;
+	a->utime = NOW;
 	bp = a->hold;
 	a->hold = nil;
 	qunlock(arp);
@@ -308,12 +313,12 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 
 	switch(version){
 	case V4:
-		r = v4lookup(fs, ip);
+		r = v4lookup(fs, ip, nil);
 		v4tov6(v6ip, ip);
 		ip = v6ip;
 		break;
 	case V6:
-		r = v6lookup(fs, ip);
+		r = v6lookup(fs, ip, nil);
 		break;
 	default:
 		panic("arpenter: version %d", version);
@@ -375,7 +380,8 @@ arpenter(Fs *fs, int version, uchar *ip, uchar *mac, int n, int refresh)
 					freeb(bp);
 				bp = next;
 			}
-			a->used = NOW;
+			a->utime = NOW;
+			a->ctime = a->utime;
 			return;
 		}
 	}
@@ -421,7 +427,7 @@ arpwrite(Fs *fs, char *s, int len)
 			memset(a->mac, 0, sizeof(a->mac));
 			a->hash = nil;
 			a->state = 0;
-			a->used = 0;
+			a->utime = 0;
 			while(a->hold != nil){
 				bp = a->hold->list;
 				freeblist(a->hold);
@@ -441,9 +447,9 @@ arpwrite(Fs *fs, char *s, int len)
 		case 3:
 			parseip(ip, f[1]);
 			if(isv4(ip))
-				r = v4lookup(fs, ip+IPv4off);
+				r = v4lookup(fs, ip+IPv4off, nil);
 			else
-				r = v6lookup(fs, ip);
+				r = v6lookup(fs, ip, nil);
 			if(r == nil)
 				error("Destination unreachable");
 			m = r->ifc->m;
@@ -532,7 +538,7 @@ rxmitsols(Arp *arp)
 		nrxt = 0;
 		goto dodrops; 		//return nrxt;
 	}
-	nrxt = a->rxtat - NOW;
+	nrxt = a->rtime - NOW;
 	if(nrxt > 3*ReTransTimer/4) 
 		goto dodrops; 		//return nrxt;
 
@@ -589,14 +595,13 @@ rxmitsols(Arp *arp)
 	*l = a;
 	a->rxtsrem--;
 	a->nextrxt = nil;
-	a->time = NOW;
-	a->rxtat = NOW + ReTransTimer;
+	a->rtime = NOW + ReTransTimer;
 
 	a = arp->rxmt;
 	if(a==nil)
 		nrxt = 0;
 	else 
-		nrxt = a->rxtat - NOW;
+		nrxt = a->rtime - NOW;
 
 dodrops:
 	xp = arp->dropf;

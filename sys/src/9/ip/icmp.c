@@ -183,7 +183,7 @@ icmpkick(void *x, Block *bp)
 	memset(p->cksum, 0, sizeof(p->cksum));
 	hnputs(p->cksum, ptclcsum(bp, ICMP_IPSIZE, blocklen(bp) - ICMP_IPSIZE));
 	ipriv->stats[OutMsgs]++;
-	ipoput4(c->p->f, bp, 0, c->ttl, c->tos);
+	ipoput4(c->p->f, bp, 0, c->ttl, c->tos, nil);
 }
 
 extern void
@@ -209,7 +209,7 @@ icmpttlexceeded(Fs *f, uchar *ia, Block *bp)
 	hnputs(np->seq, 0);
 	memset(np->cksum, 0, sizeof(np->cksum));
 	hnputs(np->cksum, ptclcsum(nbp, ICMP_IPSIZE, blocklen(nbp) - ICMP_IPSIZE));
-	ipoput4(f, nbp, 0, MAXTTL, DFLTTOS);
+	ipoput4(f, nbp, 0, MAXTTL, DFLTTOS, nil);
 
 }
 
@@ -248,7 +248,7 @@ icmpunreachable(Fs *f, Block *bp, int code, int seq)
 	hnputs(np->seq, seq);
 	memset(np->cksum, 0, sizeof(np->cksum));
 	hnputs(np->cksum, ptclcsum(nbp, ICMP_IPSIZE, blocklen(nbp) - ICMP_IPSIZE));
-	ipoput4(f, nbp, 0, MAXTTL, DFLTTOS);
+	ipoput4(f, nbp, 0, MAXTTL, DFLTTOS, nil);
 }
 
 extern void
@@ -362,7 +362,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 			bp = trimblock(bp, 0, iplen);
 		r = mkechoreply(bp);
 		ipriv->out[EchoReply]++;
-		ipoput4(icmp->f, r, 0, MAXTTL, DFLTTOS);
+		ipoput4(icmp->f, r, 0, MAXTTL, DFLTTOS, nil);
 		break;
 	case Unreachable:
 		if(p->code > 5 || p->code < 0)

@@ -97,7 +97,7 @@ igmpsendreport(Media *m, byte *addr)
 	hnputs(p->igmpcksum, ptclcsum(bp, IGMP_IPHDRSIZE, IGMP_HDRSIZE));
 	netlog(Logigmp, "igmpreport %I\n", p->group);
 	stats.outreports++;
-	ipoput4(bp, 0, 1, DFLTTOS);	/* TTL of 1 */
+	ipoput4(bp, 0, 1, DFLTTOS, nil);	/* TTL of 1 */
 }
 
 static int

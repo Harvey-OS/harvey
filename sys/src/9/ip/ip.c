@@ -221,7 +221,7 @@ iprouting(Fs *f, int on)
 }
 
 int
-ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
+ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 {
 	Ipifc *ifc;
 	uchar *gate;
@@ -259,7 +259,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 		goto free;
 	}
 
-	r = v4lookup(f, eh->dst);
+	r = v4lookup(f, eh->dst, c);
 	if(r == nil){
 		ip->stats[OutNoRoutes]++;
 		netlog(f, Logip, "no interface %V\n", eh->dst);
@@ -273,7 +273,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 	else
 	if(r->type & (Rbcast|Rmulti)) {
 		gate = eh->dst;
-		sr = v4lookup(f, eh->src);
+		sr = v4lookup(f, eh->src, nil);
 		if(sr != nil && (sr->type & Runi))
 			ifc = sr->ifc;
 	}
@@ -415,7 +415,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 	int notforme;
 	uchar *dp, v6dst[IPaddrlen];
 	IP *ip;
-	Route *r, *sr;
+	Route *r;
 
 	if(BLKIPVER(bp) != IP_VER4) {
 		ipiput6(f, ifc, bp);
@@ -476,15 +476,17 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 
 	/* route */
 	if(notforme) {
+		Conv conv;
+
 		if(!ip->iprouting){
 			freeb(bp);
 			return;
 		}
-		/* don't forward to source's network */
-		sr = v4lookup(f, h->src);
-		r = v4lookup(f, h->dst);
 
-		if(r == nil || sr == r){
+		/* don't forward to source's network */
+		conv.r = nil;
+		r = v4lookup(f, h->dst, &conv);
+		if(r != nil && r->ifc == ifc){
 			ip->stats[OutDiscards]++;
 			freeblist(bp);
 			return;
@@ -516,7 +518,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		ip->stats[ForwDatagrams]++;
 		tos = h->tos;
 		hop = h->ttl;
-		ipoput4(f, bp, 1, hop - 1, tos);
+		ipoput4(f, bp, 1, hop - 1, tos, &conv);
 		return;
 	}
 

@@ -45,6 +45,8 @@ enum
 	CMstop,
 	CMwaitstop,
 	CMwired,
+	CMfair,
+	CMunfair,
 };
 
 #define	STATSIZE	(2*KNAMELEN+12+9*12)
@@ -91,6 +93,8 @@ Cmdtab proccmd[] = {
 	CMstop,		"stop",		1,
 	CMwaitstop,	"waitstop",	1,
 	CMwired,	"wired",	2,
+	CMfair,	"fair",	1,
+	CMunfair,	"unfair",	1,
 };
 
 /* Segment type from portdat.h */
@@ -117,6 +121,8 @@ Chan*	proctext(Chan*, Proc*);
 Segment* txt2data(Proc*, Segment*);
 int	procstopped(void*);
 void	mntscan(Mntwalk*, Proc*);
+
+extern int unfair;
 
 static int
 procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
@@ -1088,7 +1094,7 @@ void
 procctlreq(Proc *p, char *va, int n)
 {
 	Segment *s;
-	int i, npc;
+	int npc, pri;
 	Cmdbuf *cb;
 	Cmdtab *ct;
 
@@ -1109,17 +1115,6 @@ procctlreq(Proc *p, char *va, int n)
 		break;
 	case CMclosefiles:
 		procctlclosefiles(p, 1, 0);
-		break;
-	case CMfixedpri:
-		i = atoi(cb->f[1]);
-		if(i < 0)
-			i = 0;
-		if(i >= Nrq)
-			i = Nrq - 1;
-		if(i > p->basepri && !iseve())
-			error(Eperm);
-		p->basepri = i;
-		p->fixedpri = 1;
 		break;
 	case CMhang:
 		p->hang = 1;
@@ -1146,15 +1141,15 @@ procctlreq(Proc *p, char *va, int n)
 		p->noswap = 1;
 		break;
 	case CMpri:
-		i = atoi(cb->f[1]);
-		if(i < 0)
-			i = 0;
-		if(i >= Nrq)
-			i = Nrq - 1;
-		if(i > p->basepri && !iseve())
+		pri = atoi(cb->f[1]);
+		if(pri > PriNormal && !iseve())
 			error(Eperm);
-		p->basepri = i;
-		p->fixedpri = 0;
+		procpriority(p, pri, 0);
+		break;
+	case CMfixedpri:
+		if(!iseve())
+			error(Eperm);
+		procpriority(p, atoi(cb->f[1]), 1);
 		break;
 	case CMprivate:
 		p->privatemem = 1;

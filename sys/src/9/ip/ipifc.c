@@ -1291,7 +1291,7 @@ findlocalip(Fs *f, uchar *local, uchar *remote)
 	USED(atype);
 	USED(atypel);
 	qlock(f->ipifc);
-	r = v6lookup(f, remote);
+	r = v6lookup(f, remote, nil);
  	version = (memcmp(remote, v4prefix, IPv4off) == 0) ? V4 : V6;
 	
 	if(r != nil){
@@ -1424,7 +1424,7 @@ ipproxyifc(Fs *f, Ipifc *ifc, uchar *ip)
 	Iplifc *lifc;
 
 	/* see if this is a direct connected pt to pt address */
-	r = v6lookup(f, ip);
+	r = v6lookup(f, ip, nil);
 	if(r == nil)
 		return 0;
 	if((r->type & (Rifc|Rptpt|Rproxy)) != (Rifc|Rptpt|Rproxy))
@@ -1648,7 +1648,7 @@ adddefroute6(Fs *f, uchar *gate, int force)
 {
 	Route *r;
 
-	r = v6lookup(f, v6Unspecified);
+	r = v6lookup(f, v6Unspecified, nil);
 	if(r!=nil) 
 	if(!(force) && (strcmp(r->tag,"ra")!=0))	// route entries generated
 		return;			// by all other means take

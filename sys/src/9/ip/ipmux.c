@@ -665,10 +665,10 @@ ipmuxkick(void *x)
 	else {
 		Ip4hdr *ih4 = (Ip4hdr*)(bp->rp);
 		if((ih4->vihl)&0xF0 != 0x60)
-			ipoput4(c->p->f, bp, 0, ih4->ttl, ih4->tos);
+			ipoput4(c->p->f, bp, 0, ih4->ttl, ih4->tos, nil);
 		else {
 			ih6 = (struct Ip6hdr*)ih4;
-			ipoput6(c->p->f, bp, 0, ih6->ttl, 0);
+			ipoput6(c->p->f, bp, 0, ih6->ttl, 0, nil);
 		}
 	}
 }
