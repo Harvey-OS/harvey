@@ -47,6 +47,7 @@ enum
 {
 	RENDHASH = 13,
 	Printsize = 2048,
+	NPRIV = 8,
 };
 
 struct Rgrp
@@ -90,7 +91,7 @@ struct Thread
 	Chanstate	chan;		/* which channel operation is current */
 	Alt		*alt;			/* pointer to current alt structure (debugging) */
 
-	void*	udata;		/* User per-thread data pointer */
+	void*	udata[NPRIV];	/* User per-thread data pointer */
 };
 
 struct Execargs
@@ -140,8 +141,8 @@ struct Pqueue {		/* Proc queue */
 
 struct Ioproc
 {
-	int pid;
-	Channel *c;
+	int tid;
+	Channel *c, *creply;
 	int inuse;
 	long (*op)(va_list*);
 	va_list arg;

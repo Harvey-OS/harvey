@@ -7,6 +7,7 @@
 
 int	verb;
 int	uflag;
+int	force;
 int	diff;
 int	diffb;
 char*	ndump;
@@ -32,6 +33,9 @@ main(int argc, char *argv[])
 	case 'v':
 		verb = 1;
 		break;
+	case 'f':
+		force = 1;
+		break;
 	case 'd':
 		ndump = ARGF();
 		break;
@@ -51,7 +55,7 @@ main(int argc, char *argv[])
 
 	if(argc == 0) {
 	usage:
-		fprint(2, "usage: history [-vuD] [-d 9fsname] [-s yyyymmdd] files\n");
+		fprint(2, "usage: history [-vufD] [-d 9fsname] [-s yyyymmdd] files\n");
 		exits(0);
 	}
 
@@ -85,9 +89,9 @@ void
 ysearch(char *file)
 {
 	char fil[400], buf[500], pair[2][500];
-	Dir *dir;
+	Dir *dir, *d;
 	ulong otime, dt;
-	int toggle, started;
+	int toggle, started, missing;
 
 	started = 0;
 	dir = dirstat(file);
@@ -110,17 +114,30 @@ ysearch(char *file)
 	for(;;) {
 		lastbefore(otime, fil, buf);
 		dir = dirstat(buf);
-		if(dir == nil)
-			return;
+		if(dir == nil) {
+			if(!force)
+				return;
+			dir = malloc(sizeof(Dir));
+			nulldir(dir);
+			dir->mtime = otime + 1;
+		}
 		dt = HOUR(12);
-		while(otime <= dir->mtime) {
+		missing = 0;
+		while(otime <= dir->mtime){
 			if(verb)
 				print("backup %ld, %ld\n", dir->mtime, otime-dt);
 			lastbefore(otime-dt, fil, buf);
-			free(dir);
-			dir = dirstat(buf);
-			if(dir == nil)
-				return;
+			d = dirstat(buf);
+			if(d == nil){
+				if(!force)
+					return;
+				if(!missing)
+					print("removed %s\n", buf);
+				missing = 1;
+			}else{
+				free(dir);
+				dir = d;
+			}
 			dt += HOUR(12);
 		}
 		strcpy(pair[toggle], buf);
@@ -146,6 +163,7 @@ ysearch(char *file)
 		toggle ^= 1;
 		started = 1;
 		otime = dir->mtime;
+		free(dir);
 	}
 }
 

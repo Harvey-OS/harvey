@@ -44,8 +44,6 @@ changemsize(Srv *srv, int msize)
 	free(srv->wbuf);
 	srv->rbuf = emalloc9p(msize);
 	srv->wbuf = emalloc9p(msize);
-	if(srv->rbuf==nil || srv->wbuf==nil)
-		sysfatal("out of memory");	/* BUG */
 	qunlock(&srv->rlock);
 	qunlock(&srv->wlock);
 }
@@ -129,8 +127,8 @@ filewalk(Req *r)
 	respond(r, nil);
 }
 
-static void
-conswalk(Req *r, char *(*clone)(Fid*, Fid*), char *(*walk1)(Fid*, char*, Qid*))
+void
+walkandclone(Req *r, char *(*walk1)(Fid*, char*, void*), char *(*clone)(Fid*, Fid*, void*), void *arg)
 {
 	int i;
 	char *e;
@@ -142,7 +140,7 @@ conswalk(Req *r, char *(*clone)(Fid*, Fid*), char *(*walk1)(Fid*, char*, Qid*))
 
 	if(r->fid != r->newfid){
 		r->newfid->qid = r->fid->qid;
-		if(clone && (e = clone(r->fid, r->newfid))){
+		if(clone && (e = clone(r->fid, r->newfid, arg))){
 			respond(r, e);
 			return;
 		}
@@ -150,9 +148,9 @@ conswalk(Req *r, char *(*clone)(Fid*, Fid*), char *(*walk1)(Fid*, char*, Qid*))
 
 	e = nil;
 	for(i=0; i<r->ifcall.nwname; i++){
-		if(e = walk1(r->newfid, r->ifcall.wname[i], &r->ofcall.wqid[i]))
+		if(e = walk1(r->newfid, r->ifcall.wname[i], arg))
 			break;
-		r->newfid->qid = r->ofcall.wqid[i];
+		r->ofcall.wqid[i] = r->newfid->qid;
 	}
 
 	r->ofcall.nwqid = i;
@@ -162,12 +160,538 @@ conswalk(Req *r, char *(*clone)(Fid*, Fid*), char *(*walk1)(Fid*, char*, Qid*))
 		respond(r, nil);
 }
 
+static void
+sversion(Srv*, Req *r)
+{
+	if(strncmp(r->ifcall.version, "9P", 2) != 0){
+		r->ofcall.version = "unknown";
+		respond(r, nil);
+		return;
+	}
+
+	r->ofcall.version = "9P2000";
+	r->ofcall.msize = r->ifcall.msize;
+	respond(r, nil);
+}
+static void
+rversion(Req *r, char *error)
+{
+	assert(error == nil);
+	changemsize(r->srv, r->ofcall.msize);
+}
+
+static void
+sauth(Srv *srv, Req *r)
+{
+	char e[ERRMAX];
+
+	if((r->afid = allocfid(srv->fpool, r->ifcall.afid)) == nil){
+		respond(r, Edupfid);
+		return;
+	}
+	if(srv->auth)
+		srv->auth(r);
+	else{
+		snprint(e, sizeof e, "%s: authentication not required", argv0);
+		respond(r, e);
+	}
+}
+static void
+rauth(Req *r, char *error)
+{
+	if(error && r->afid)
+		closefid(removefid(r->srv->fpool, r->afid->fid));
+}
+
+static void
+sattach(Srv *srv, Req *r)
+{
+	if((r->fid = allocfid(srv->fpool, r->ifcall.fid)) == nil){
+		respond(r, Edupfid);
+		return;
+	}
+	r->afid = nil;
+	if(r->ifcall.afid != NOFID && (r->afid = lookupfid(srv->fpool, r->ifcall.afid)) == nil){
+		respond(r, Eunknownfid);
+		return;
+	}
+	r->fid->uid = estrdup9p(r->ifcall.uname);
+	if(srv->tree){
+		r->fid->file = srv->tree->root;
+		/* BUG? incref(r->fid->file) ??? */
+		r->ofcall.qid = r->fid->file->qid;
+		r->fid->qid = r->ofcall.qid;
+	}
+	if(srv->attach)
+		srv->attach(r);
+	else
+		respond(r, nil);
+	return;
+}
+static void
+rattach(Req *r, char *error)
+{
+	if(error && r->fid)
+		closefid(removefid(r->srv->fpool, r->fid->fid));
+}
+
+static void
+sflush(Srv *srv, Req *r)
+{
+	r->oldreq = lookupreq(srv->rpool, r->ifcall.oldtag);
+	if(r->oldreq == nil || r->oldreq == r)
+		respond(r, nil);
+	else if(srv->flush)
+		srv->flush(r);
+	else
+		respond(r, nil);
+}
+static int
+rflush(Req *r, char *error)
+{
+	Req *or;
+
+	assert(error == nil);
+	or = r->oldreq;
+	if(or){
+		qlock(&or->lk);
+		if(or->responded == 0){
+			or->flush = erealloc9p(or->flush, (or->nflush+1)*sizeof(or->flush[0]));
+			or->flush[or->nflush++] = r;
+			qunlock(&or->lk);
+			return -1;		/* delay response until or is responded */
+		}
+		qunlock(&or->lk);
+		closereq(or);
+	}
+	r->oldreq = nil;
+	return 0;
+}
+
+static char*
+oldwalk1(Fid *fid, char *name, void *arg)
+{
+	char *e;
+	Qid qid;
+	Srv *srv;
+
+	srv = arg;
+	e = srv->walk1(fid, name, &qid);
+	if(e)
+		return e;
+	if(qid.type != fid->qid.type
+	|| qid.vers != fid->qid.vers
+	|| qid.path != fid->qid.path){
+		fprint(2, "fid/qid mismatch in walk1 function");
+		abort();
+	}
+	return nil;
+}
+
+static char*
+oldclone(Fid *fid, Fid *newfid, void *arg)
+{
+	Srv *srv;
+
+	srv = arg;
+	if(srv->clone == nil)
+		return nil;
+	return srv->clone(fid, newfid);
+}
+
+static void
+swalk(Srv *srv, Req *r)
+{
+	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+		respond(r, Eunknownfid);
+		return;
+	}
+	if(r->fid->omode != -1){
+		respond(r, "cannot clone open fid");
+		return;
+	}
+	if(r->ifcall.nwname && !(r->fid->qid.type&QTDIR)){
+		respond(r, Ewalknodir);
+		return;
+	}
+	if(r->ifcall.fid != r->ifcall.newfid){
+		if((r->newfid = allocfid(srv->fpool, r->ifcall.newfid)) == nil){
+			respond(r, Edupfid);
+			return;
+		}
+		r->newfid->uid = estrdup9p(r->fid->uid);
+	}else{
+		incref(&r->fid->ref);
+		r->newfid = r->fid;
+	}
+	if(r->fid->file){
+		filewalk(r);
+	}else if(srv->walk1)
+		walkandclone(r, oldwalk1, oldclone, srv);
+	else if(srv->walk)
+		srv->walk(r);
+	else
+		sysfatal("no walk function, no file trees");
+}
+static void
+rwalk(Req *r, char *error)
+{
+	if(error || r->ofcall.nwqid < r->ifcall.nwname){
+		if(r->ifcall.fid != r->ifcall.newfid && r->newfid)
+			closefid(removefid(r->srv->fpool, r->newfid->fid));
+		if (r->ofcall.nwqid==0){
+			if(error==nil && r->ifcall.nwname!=0)
+				r->error = Enotfound;
+		}else
+			r->error = nil;	// No error on partial walks
+	}else{
+		if(r->ofcall.nwqid == 0){
+			/* Just a clone */
+			r->newfid->qid = r->fid->qid;
+		}else{
+			/* if file trees are in use, filewalk took care of the rest */
+			r->newfid->qid = r->ofcall.wqid[r->ofcall.nwqid-1];
+		}
+	}
+}
+
+static void
+sopen(Srv *srv, Req *r)
+{
+	int p;
+
+	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+		respond(r, Eunknownfid);
+		return;
+	}
+	if(r->fid->omode != -1){
+		respond(r, Ebotch);
+		return;
+	}
+	if((r->fid->qid.type&QTDIR) && (r->ifcall.mode&~ORCLOSE) != OREAD){
+		respond(r, Eisdir);
+		return;
+	}
+	r->ofcall.qid = r->fid->qid;
+	switch(r->ifcall.mode&3){
+	default:
+		assert(0);
+	case OREAD:
+		p = AREAD;	
+		break;
+	case OWRITE:
+		p = AWRITE;
+		break;
+	case ORDWR:
+		p = AREAD|AWRITE;
+		break;
+	case OEXEC:
+		p = AEXEC;	
+		break;
+	}
+	if(r->ifcall.mode&OTRUNC)
+		p |= AWRITE;
+	if((r->fid->qid.type&QTDIR) && p!=AREAD){
+		respond(r, Eperm);
+		return;
+	}
+	if(r->fid->file){
+		if(!hasperm(r->fid->file, r->fid->uid, p)){
+			respond(r, Eperm);
+			return;
+		}
+	/* BUG RACE */
+		if((r->ifcall.mode&ORCLOSE)
+		&& !hasperm(r->fid->file->parent, r->fid->uid, AWRITE)){
+			respond(r, Eperm);
+			return;
+		}
+		r->ofcall.qid = r->fid->file->qid;
+		if((r->ofcall.qid.type&QTDIR)
+		&& (r->fid->rdir = opendirfile(r->fid->file)) == nil){
+			respond(r, "opendirfile failed");
+			return;
+		}
+	}
+	if(srv->open)
+		srv->open(r);
+	else
+		respond(r, nil);
+}
+static void
+ropen(Req *r, char *error)
+{
+	char errbuf[ERRMAX];
+	if(error)
+		return;
+	if(chatty9p){
+		snprint(errbuf, sizeof errbuf, "fid mode is 0x%ux\n", r->ifcall.mode);
+		write(2, errbuf, strlen(errbuf));
+	}
+	r->fid->omode = r->ifcall.mode;
+	r->fid->qid = r->ofcall.qid;
+	if(r->ofcall.qid.type&QTDIR)
+		r->fid->diroffset = 0;
+}
+
+static void
+screate(Srv *srv, Req *r)
+{
+	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil)
+		respond(r, Eunknownfid);
+	else if(r->fid->omode != -1)
+		respond(r, Ebotch);
+	else if(!(r->fid->qid.type&QTDIR))
+		respond(r, Ecreatenondir);
+	else if(r->fid->file && !hasperm(r->fid->file, r->fid->uid, AWRITE))
+		respond(r, Eperm);
+	else if(srv->create)
+		srv->create(r);
+	else
+		respond(r, Enocreate);
+}
+static void
+rcreate(Req *r, char *error)
+{
+	if(error)
+		return;
+	r->fid->omode = r->ifcall.mode;
+	r->fid->qid = r->ofcall.qid;
+}
+
+static void
+sread(Srv *srv, Req *r)
+{
+	int o;
+
+	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+		respond(r, Eunknownfid);
+		return;
+	}
+	if(r->ifcall.count < 0){
+		respond(r, Ebotch);
+		return;
+	}
+	if(r->ifcall.offset < 0
+	|| ((r->fid->qid.type&QTDIR) && r->ifcall.offset != 0 && r->ifcall.offset != r->fid->diroffset)){
+		respond(r, Ebadoffset);
+		return;
+	}
+
+	if(r->ifcall.count > srv->msize - IOHDRSZ)
+		r->ifcall.count = srv->msize - IOHDRSZ;
+	r->rbuf = emalloc9p(r->ifcall.count);
+	r->ofcall.data = r->rbuf;
+	o = r->fid->omode & 3;
+	if(o != OREAD && o != ORDWR && o != OEXEC){
+		respond(r, Ebotch);
+		return;
+	}
+	if((r->fid->qid.type&QTDIR) && r->fid->file){
+		r->ofcall.count = readdirfile(r->fid->rdir, r->rbuf, r->ifcall.count);
+		respond(r, nil);
+		return;
+	}
+	if(srv->read)
+		srv->read(r);
+	else
+		respond(r, "no srv->read");
+}
+static void
+rread(Req *r, char *error)
+{
+	if(error==nil && (r->fid->qid.type&QTDIR))
+		r->fid->diroffset += r->ofcall.count;
+}
+
+static void
+swrite(Srv *srv, Req *r)
+{
+	int o;
+	char e[ERRMAX];
+
+	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+		respond(r, Eunknownfid);
+		return;
+	}
+	if(r->ifcall.count < 0){
+		respond(r, Ebotch);
+		return;
+	}
+	if(r->ifcall.offset < 0){
+		respond(r, Ebotch);
+		return;
+	}
+	if(r->ifcall.count > srv->msize - IOHDRSZ)
+		r->ifcall.count = srv->msize - IOHDRSZ;
+	o = r->fid->omode & 3;
+	if(o != OWRITE && o != ORDWR){
+		snprint(e, sizeof e, "write on fid with open mode 0x%ux", r->fid->omode);
+		respond(r, e);
+		return;
+	}
+	if(srv->write)
+		srv->write(r);
+	else
+		respond(r, "no srv->write");
+}
+static void
+rwrite(Req *r, char *error)
+{
+	if(error)
+		return;
+	if(r->fid->file)
+		r->fid->file->qid.vers++;
+}
+
+static void
+sclunk(Srv *srv, Req *r)
+{
+	if((r->fid = removefid(srv->fpool, r->ifcall.fid)) == nil)
+		respond(r, Eunknownfid);
+	else
+		respond(r, nil);
+}
+static void
+rclunk(Req*, char*)
+{
+}
+
+static void
+sremove(Srv *srv, Req *r)
+{
+	if((r->fid = removefid(srv->fpool, r->ifcall.fid)) == nil){
+		respond(r, Eunknownfid);
+		return;
+	}
+	/* BUG RACE */
+	if(r->fid->file && !hasperm(r->fid->file->parent, r->fid->uid, AWRITE)){
+		respond(r, Eperm);
+		return;
+	}
+	if(srv->remove)
+		srv->remove(r);
+	else
+		respond(r, r->fid->file ? nil : Enoremove);
+}
+static void
+rremove(Req *r, char *error, char *errbuf)
+{
+	if(error)
+		return;
+	if(r->fid->file){
+		if(removefile(r->fid->file) < 0){
+			snprint(errbuf, ERRMAX, "remove %s: %r", 
+				r->fid->file->name);
+			r->error = errbuf;
+		}
+		r->fid->file = nil;
+	}
+}
+
+static void
+sstat(Srv *srv, Req *r)
+{
+	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+		respond(r, Eunknownfid);
+		return;
+	}
+	if(r->fid->file){
+		r->d = r->fid->file->Dir;
+		if(r->d.name)
+			r->d.name = estrdup9p(r->d.name);
+		if(r->d.uid)
+			r->d.uid = estrdup9p(r->d.uid);
+		if(r->d.gid)
+			r->d.gid = estrdup9p(r->d.gid);
+		if(r->d.muid)
+			r->d.muid = estrdup9p(r->d.muid);
+	}
+	if(srv->stat)	
+		srv->stat(r);	
+	else if(r->fid->file)
+		respond(r, nil);
+	else
+		respond(r, Enostat);
+}
+static void
+rstat(Req *r, char *error)
+{
+	int n;
+	uchar *statbuf;
+	uchar tmp[BIT16SZ];
+
+	if(error)
+		return;
+	if(convD2M(&r->d, tmp, BIT16SZ) != BIT16SZ){
+		r->error = "convD2M(_,_,BIT16SZ) did not return BIT16SZ";
+		return;
+	}
+	n = GBIT16(tmp)+BIT16SZ;
+	statbuf = emalloc9p(n);
+	if(statbuf == nil){
+		r->error = "out of memory";
+		return;
+	}
+	r->ofcall.nstat = convD2M(&r->d, statbuf, n);
+	r->ofcall.stat = statbuf;	/* freed in closereq */
+	if(r->ofcall.nstat < 0){
+		r->error = "convD2M fails";
+		free(statbuf);
+		return;
+	}
+}
+
+static void
+swstat(Srv *srv, Req *r)
+{
+	if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
+		respond(r, Eunknownfid);
+		return;
+	}
+	if(srv->wstat == nil){
+		respond(r, Enowstat);
+		return;
+	}
+	if(convM2D(r->ifcall.stat, r->ifcall.nstat, &r->d, (char*)r->ifcall.stat) != r->ifcall.nstat){
+		respond(r, Ebaddir);
+		return;
+	}
+	if((ushort)~r->d.type){
+		respond(r, "wstat -- attempt to change type");
+		return;
+	}
+	if((uint)~r->d.dev){
+		respond(r, "wstat -- attempt to change dev");
+		return;
+	}
+	if((uchar)~r->d.qid.type || (ulong)~r->d.qid.vers || (uvlong)~r->d.qid.path){
+		respond(r, "wstat -- attempt to change qid");
+		return;
+	}
+	if(r->d.muid && r->d.muid[0]){
+		respond(r, "wstat -- attempt to change muid");
+		return;
+	}
+	if((ulong)~r->d.atime != 0){
+		respond(r, "wstat -- attempt to change atime");
+		return;
+	}
+	if((ulong)~r->d.mode && (r->d.mode&DMDIR) != (r->fid->qid.type&DMDIR)){
+		respond(r, "wstat -- attempt to change DMDIR bit");
+		return;
+	}
+	srv->wstat(r);
+}
+static void
+rwstat(Req*, char*)
+{
+}
+
 void
 srv(Srv *srv)
 {
-	int o, p;
 	Req *r;
-	char e[ERRMAX];
 
 	fmtinstall('D', dirfmt);
 	fmtinstall('F', fcallfmt);
@@ -189,302 +713,23 @@ srv(Srv *srv)
 			respond(r, r->error);
 			continue;	
 		}
-
-		switch(r->type){
+		switch(r->ifcall.type){
 		default:
 			respond(r, "unknown message");
 			break;
-
-		case Tversion:
-			if(strncmp(r->ifcall.version, "9P", 2) != 0){
-				r->ofcall.version = "unknown";
-				respond(r, nil);
-				break;
-			}
-
-			r->ofcall.version = "9P2000";
-			r->ofcall.msize = r->ifcall.msize;
-			respond(r, nil);
-			break;
-
-		case Tauth:
-			if((r->afid = allocfid(srv->fpool, r->ifcall.afid)) == nil){
-				respond(r, Edupfid);
-				break;
-			}
-			if(srv->auth)
-				srv->auth(r);
-			else{
-				snprint(e, sizeof e, "%s: authentication not required", argv0);
-				respond(r, e);
-			}
-			break;
-
-		case Tattach:
-			if((r->fid = allocfid(srv->fpool, r->ifcall.fid)) == nil){
-				respond(r, Edupfid);
-				break;
-			}
-			r->afid = nil;
-			if(r->ifcall.afid != NOFID && (r->afid = lookupfid(srv->fpool, r->ifcall.afid)) == nil){
-				respond(r, Eunknownfid);
-				break;
-			}
-			r->fid->uid = estrdup9p(r->ifcall.uname);
-			if(srv->tree){
-				r->fid->file = srv->tree->root;
-				/* BUG? incref(r->fid->file) ??? */
-				r->ofcall.qid = r->fid->file->qid;
-				r->fid->qid = r->ofcall.qid;
-			}
-			if(srv->attach)
-				srv->attach(r);
-			else
-				respond(r, nil);
-			break;
-
-		case Tflush:
-			r->oldreq = lookupreq(srv->rpool, r->ifcall.oldtag);
-			if(r->oldreq == nil || r->oldreq == r)
-				respond(r, nil);
-			else if(srv->flush)
-				srv->flush(r);
-			else
-				sysfatal("outstanding message but flush not provided");
-			break;
-
-		case Twalk:
-			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
-				respond(r, Eunknownfid);
-				break;
-			}
-			if(r->fid->omode != -1){
-				respond(r, "cannot clone open fid");
-				break;
-			}
-			if(r->ifcall.nwname && !(r->fid->qid.type&QTDIR)){
-				respond(r, Ewalknodir);
-				break;
-			}
-			if(r->ifcall.fid != r->ifcall.newfid){
-				if((r->newfid = allocfid(srv->fpool, r->ifcall.newfid)) == nil){
-					respond(r, Edupfid);
-					break;
-				}
-				r->newfid->uid = estrdup9p(r->fid->uid);
-			}else{
-				incref(&r->fid->ref);
-				r->newfid = r->fid;
-			}
-
-			if(r->fid->file){
-				filewalk(r);
-			}else if(srv->walk1)
-				conswalk(r, srv->clone, srv->walk1);
-			else if(srv->walk)
-				srv->walk(r);
-			else
-				sysfatal("no walk function, no file trees");
-			break;
-
-		case Topen:
-			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
-				respond(r, Eunknownfid);
-				break;
-			}
-			if(r->fid->omode != -1){
-				respond(r, Ebotch);
-				break;
-			}
-			if((r->fid->qid.type&QTDIR) && (r->ifcall.mode&~ORCLOSE) != OREAD){
-				respond(r, Eisdir);
-				break;
-			}
-			r->ofcall.qid = r->fid->qid;
-			switch(r->ifcall.mode&3){
-			default:
-				assert(0);
-			case OREAD:
-				p = AREAD;	
-				break;
-			case OWRITE:
-				p = AWRITE;
-				break;
-			case ORDWR:
-				p = AREAD|AWRITE;
-				break;
-			case OEXEC:
-				p = AEXEC;	
-				break;
-			}
-			if(r->ifcall.mode&OTRUNC)
-				p |= AWRITE;
-			if((r->fid->qid.type&QTDIR) && p!=AREAD){
-				respond(r, Eperm);
-				break;
-			}
-			if(r->fid->file){
-				if(!hasperm(r->fid->file, r->fid->uid, p)){
-					respond(r, Eperm);
-					break;
-				}
-			/* BUG RACE */
-				if((r->ifcall.mode&ORCLOSE)
-				&& !hasperm(r->fid->file->parent, r->fid->uid, AWRITE)){
-					respond(r, Eperm);
-					break;
-				}
-				r->ofcall.qid = r->fid->file->qid;
-				if((r->ofcall.qid.type&QTDIR)
-				&& (r->fid->rdir = opendirfile(r->fid->file)) == nil){
-					respond(r, "opendirfile failed");
-					break;
-				}
-			}
-			if(srv->open)
-				srv->open(r);
-			else
-				respond(r, nil);
-			break;
-			
-		case Tcreate:
-			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil)
-				respond(r, Eunknownfid);
-			else if(r->fid->omode != -1)
-				respond(r, Ebotch);
-			else if(!(r->fid->qid.type&QTDIR))
-				respond(r, Ecreatenondir);
-			else if(r->fid->file && !hasperm(r->fid->file, r->fid->uid, AWRITE))
-				respond(r, Eperm);
-			else if(srv->create)
-				srv->create(r);
-			else
-				respond(r, Enocreate);
-			break;
-
-		case Tread:
-			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
-				respond(r, Eunknownfid);
-				break;
-			}
-			if(r->ifcall.count < 0){
-				respond(r, Ebotch);
-				break;
-			}
-			if(r->ifcall.offset < 0
-			|| ((r->fid->qid.type&QTDIR) && r->ifcall.offset != 0 && r->ifcall.offset != r->fid->diroffset)){
-				respond(r, Ebadoffset);
-				break;
-			}
-
-			if(r->ifcall.count > srv->msize - IOHDRSZ)
-				r->ifcall.count = srv->msize - IOHDRSZ;
-			if((r->rbuf = emalloc9p(r->ifcall.count)) == nil){
-				respond(r, Enomem);
-				break;
-			}
-			r->ofcall.data = r->rbuf;
-			o = r->fid->omode & 3;
-			if(o != OREAD && o != ORDWR && o != OEXEC){
-				respond(r, Ebotch);
-				break;
-			}
-			if((r->fid->qid.type&QTDIR) && r->fid->file){
-				r->ofcall.count = readdirfile(r->fid->rdir, r->rbuf, r->ifcall.count);
-				respond(r, nil);
-				break;
-			}
-			if(srv->read)
-				srv->read(r);
-			else
-				respond(r, "no srv->read");
-			break;
-
-		case Twrite:
-			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
-				respond(r, Eunknownfid);
-				break;
-			}
-			if(r->ifcall.count < 0){
-				respond(r, Ebotch);
-				break;
-			}
-			if(r->ifcall.offset < 0){
-				respond(r, Ebotch);
-				break;
-			}
-			if(r->ifcall.count > srv->msize - IOHDRSZ)
-				r->ifcall.count = srv->msize - IOHDRSZ;
-			o = r->fid->omode & 3;
-			if(o != OWRITE && o != ORDWR){
-				snprint(e, sizeof e, "write on fid with open mode 0x%ux", r->fid->omode);
-				respond(r, e);
-				break;
-			}
-			if(srv->write)
-				srv->write(r);
-			else
-				respond(r, "no srv->write");
-			break;
-
-		case Tclunk:
-			if((r->fid = removefid(srv->fpool, r->ifcall.fid)) == nil)
-				respond(r, Eunknownfid);
-			else
-				respond(r, nil);
-			break;
-
-		case Tremove:
-			if((r->fid = removefid(srv->fpool, r->ifcall.fid)) == nil){
-				respond(r, Eunknownfid);
-				break;
-			}
-			/* BUG RACE */
-			if(r->fid->file && !hasperm(r->fid->file->parent, r->fid->uid, AWRITE)){
-				respond(r, Eperm);
-				break;
-			}
-			if(srv->remove)
-				srv->remove(r);
-			else
-				respond(r, r->fid->file ? nil : Enoremove);
-			break;
-
-		case Tstat:
-			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil){
-				respond(r, Eunknownfid);
-				break;
-			}
-			if(r->fid->file){
-				r->d = r->fid->file->Dir;
-				if(r->d.name)
-					r->d.name = estrdup9p(r->d.name);
-				if(r->d.uid)
-					r->d.uid = estrdup9p(r->d.uid);
-				if(r->d.gid)
-					r->d.gid = estrdup9p(r->d.gid);
-				if(r->d.muid)
-					r->d.muid = estrdup9p(r->d.muid);
-			}
-			if(srv->stat)	
-				srv->stat(r);	
-			else if(r->fid->file)
-				respond(r, nil);
-			else
-				respond(r, Enostat);
-			break;
-
-		case Twstat:
-			if((r->fid = lookupfid(srv->fpool, r->ifcall.fid)) == nil)
-				respond(r, Eunknownfid);
-			else if(srv->wstat){
-				if(convM2D(r->ifcall.stat, r->ifcall.nstat, &r->d, (char*)r->ifcall.stat) != r->ifcall.nstat)
-					respond(r, Ebaddir);
-				else
-					srv->wstat(r);
-			}else
-				respond(r, Enowstat);
-			break;
+		case Tversion:	sversion(srv, r);	break;
+		case Tauth:	sauth(srv, r);	break;
+		case Tattach:	sattach(srv, r);	break;
+		case Tflush:	sflush(srv, r);	break;
+		case Twalk:	swalk(srv, r);	break;
+		case Topen:	sopen(srv, r);	break;
+		case Tcreate:	screate(srv, r);	break;
+		case Tread:	sread(srv, r);	break;
+		case Twrite:	swrite(srv, r);	break;
+		case Tclunk:	sclunk(srv, r);	break;
+		case Tremove:	sremove(srv, r);	break;
+		case Tstat:	sstat(srv, r);	break;
+		case Twstat:	swstat(srv, r);	break;
 		}
 	}
 
@@ -495,9 +740,7 @@ srv(Srv *srv)
 void
 respond(Req *r, char *error)
 {
-	int m, n;
-	Req *or;
-	uchar *statbuf, tmp[BIT16SZ];
+	int i, m, n;
 	char errbuf[ERRMAX];
 	Srv *srv;
 
@@ -505,147 +748,38 @@ respond(Req *r, char *error)
 	assert(srv != nil);
 
 	assert(r->responded == 0);
-	r->responded = 1;
+	r->error = error;
 
 	switch(r->ifcall.type){
 	default:
 		assert(0);
-
-	case Tversion:
-		assert(error == nil);
-		changemsize(srv, r->ofcall.msize);
-		break;
-
-	case Tauth:
-		if(error){
-			if(r->afid)
-				closefid(removefid(srv->fpool, r->afid->fid));
-			break;
-		}
-		break;
-
-	case Tattach:
-		if(error){
-			if(r->fid)
-				closefid(removefid(srv->fpool, r->fid->fid));
-			break;
-		}
-		break;
-
+	/*
+	 * Flush is special.  If the handler says so, we return
+	 * without further processing.  Respond will be called
+	 * again once it is safe.
+	 */
 	case Tflush:
-		assert(error == nil);
-		if(r->oldreq){
-			if(or = removereq(r->pool, r->oldreq->tag)){
-				assert(or == r->oldreq);
-				if(or->ifcall.type == Twalk && or->ifcall.fid != or->ifcall.newfid)
-					closefid(removefid(srv->fpool, or->newfid->fid));
-				closereq(or);
-			}
-			closereq(r->oldreq);
-		}
-		r->oldreq = nil;
+		if(rflush(r, error)<0)
+			return;
 		break;
-		
-	case Twalk:
-		if(error || r->ofcall.nwqid < r->ifcall.nwname){
-			if(r->ifcall.fid != r->ifcall.newfid && r->newfid)
-				closefid(removefid(srv->fpool, r->newfid->fid));
-			if (r->ofcall.nwqid==0){
-				if(error==nil && r->ifcall.nwname!=0)
-					error = Enotfound;
-			}else
-				error = nil;	// No error on partial walks
-			break;
-		}else{
-			if(r->ofcall.nwqid == 0){
-				/* Just a clone */
-				r->newfid->qid = r->fid->qid;
-			}else{
-				/* if file trees are in use, filewalk took care of the rest */
-				r->newfid->qid = r->ofcall.wqid[r->ofcall.nwqid-1];
-			}
-		}
-		break;
-
-	case Topen:
-		if(error){
-			break;
-		}
-		if(chatty9p){
-			snprint(errbuf, sizeof errbuf, "fid mode is 0x%ux\n", r->ifcall.mode);
-			write(2, errbuf, strlen(errbuf));
-		}
-		r->fid->omode = r->ifcall.mode;
-		r->fid->qid = r->ofcall.qid;
-		if(r->ofcall.qid.type&QTDIR)
-			r->fid->diroffset = 0;
-		break;
-
-	case Tcreate:
-		if(error){
-			break;
-		}
-		r->fid->omode = r->ifcall.mode;
-		r->fid->qid = r->ofcall.qid;
-		break;
-
-	case Tread:
-		if(error==nil && (r->fid->qid.type&QTDIR))
-			r->fid->diroffset += r->ofcall.count;
-		break;
-
-	case Twrite:
-		if(error)
-			break;
-		if(r->fid->file)
-			r->fid->file->qid.vers++;
-		break;
-
-	case Tclunk:
-		break;
-
-	case Tremove:
-		if(error)
-			break;
-		if(r->fid->file){
-			if(removefile(r->fid->file) < 0){
-				snprint(errbuf, ERRMAX, "remove %s: %r", 
-					r->fid->file->name);
-				error = errbuf;
-			}
-			r->fid->file = nil;
-		}
-		break;
-
-	case Tstat:
-		if(error)
-			break;
-		if(convD2M(&r->d, tmp, BIT16SZ) != BIT16SZ){
-			error = "convD2M(_,_,BIT16SZ) did not return BIT16SZ";
-			break;
-		}
-		n = GBIT16(tmp)+BIT16SZ;
-		statbuf = emalloc9p(n);
-		if(statbuf == nil){
-			error = "out of memory";
-			break;
-		}
-		r->ofcall.nstat = convD2M(&r->d, statbuf, n);
-		r->ofcall.stat = statbuf;
-		if(r->ofcall.nstat < 0){
-			error = "convD2M fails";
-			break;
-		}
-		break;
-
-	case Twstat:
-		break;
+	case Tversion:	rversion(r, error);	break;
+	case Tauth:	rauth(r, error);	break;
+	case Tattach:	rattach(r, error);	break;
+	case Twalk:	rwalk(r, error);	break;
+	case Topen:	ropen(r, error);	break;
+	case Tcreate:	rcreate(r, error);	break;
+	case Tread:	rread(r, error);	break;
+	case Twrite:	rwrite(r, error);	break;
+	case Tclunk:	rclunk(r, error);	break;
+	case Tremove:	rremove(r, error, errbuf);	break;
+	case Tstat:	rstat(r, error);	break;
+	case Twstat:	rwstat(r, error);	break;
 	}
 
 	r->ofcall.tag = r->ifcall.tag;
 	r->ofcall.type = r->ifcall.type+1;
-	if(error)
-		setfcallerror(&r->ofcall, error);
+	if(r->error)
+		setfcallerror(&r->ofcall, r->error);
 
 if(chatty9p)
 	fprint(2, "-%d-> %F\n", srv->outfd, &r->ofcall);
@@ -657,16 +791,25 @@ if(chatty9p)
 		abort();
 	}
 	assert(n > 2);
-	if(r->pool){	/* not a fake */
+	if(r->pool)	/* not a fake */
 		closereq(removereq(r->pool, r->ifcall.tag));
-		closereq(r);
-	}else
-		free(r);
 	m = write(srv->outfd, srv->wbuf, n);
 	if(m != n)
 		sysfatal("lib9p srv: write %d returned %d on fd %d: %r", n, m, srv->outfd);
 	qunlock(&srv->wlock);
 
+	qlock(&r->lk);	/* no one will add flushes now */
+	r->responded = 1;
+	qunlock(&r->lk);
+
+	for(i=0; i<r->nflush; i++)
+		respond(r->flush[i], nil);
+	free(r->flush);
+
+	if(r->pool)
+		closereq(r);
+	else
+		free(r);
 }
 
 int

@@ -57,6 +57,7 @@ struct Req
 	Srv*		srv;
 
 /* below is implementation-specific; don't use */
+	QLock	lk;
 	Ref		ref;
 	Reqpool*	pool;
 	uchar*	buf;
@@ -64,6 +65,8 @@ struct Req
 	uchar	responded;
 	char*	error;
 	void*	rbuf;
+	Req**	flush;
+	int		nflush;
 };
 
 /*
@@ -221,3 +224,5 @@ enum {
 
 void readstr(Req*, char*);
 void readbuf(Req*, void*, long);
+void	walkandclone(Req*, char*(*walk1)(Fid*,char*,void*), char*(*clone)(Fid*,Fid*,void*), void*);
+

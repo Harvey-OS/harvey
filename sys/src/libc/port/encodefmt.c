@@ -16,6 +16,8 @@ encodefmt(Fmt *f)
 		goto error;
 
 	b = va_arg(f->args, uchar*);
+	if(b == 0)
+		return fmtstrcpy(f, "<nil>");
 
 	ilen = f->prec;
 	f->prec = 0;
