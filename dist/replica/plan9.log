@@ -14013,3 +14013,17 @@
 1112167918 0 c rc/bin/patch/move - 775 sys sys 1112166652 643
 1112167918 1 c sys/games/lib/fortunes - 664 sys sys 1112166661 253478
 1112239933 0 c sys/man/8/snoopy - 664 sys sys 1112238597 3809
+1112270538 0 c acme/mail/386/Mail - 775 sys sys 1112270166 179119
+1112270538 1 c acme/mail/src/reply.c - 664 sys sys 1112270143 11373
+1112270538 2 a rc/bin/service/!il17007 - 775 sys sys 1016832393 82
+1112270538 3 a rc/bin/service/!il17008 - 775 sys sys 945617221 32
+1112270538 4 a rc/bin/service/!il17031 - 775 sys sys 945617222 25
+1112270538 5 a rc/bin/service/!tcp515 - 775 sys sys 960144427 120
+1112270538 6 a rc/bin/service/!tcp564 - 775 sys sys 1018831800 32
+1112270538 7 d rc/bin/service/_tcp564 - 775 sys sys 1018831800 0
+1112270538 8 d rc/bin/service/_tcp515 - 775 sys sys 960144427 0
+1112270538 9 d rc/bin/service/_il17031 - 775 sys sys 945617222 0
+1112270538 10 d rc/bin/service/_il17008 - 775 sys sys 945617221 0
+1112270538 11 d rc/bin/service/_il17007 - 775 sys sys 1016832393 0
+1112277740 0 c rc/bin/reboot - 775 sys sys 1112276658 39
+1112329951 0 c acme/mail/386/Mail - 775 sys sys 1112328581 179119
