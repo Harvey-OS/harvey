@@ -10,7 +10,7 @@ bind '#p' /proc
 bind '#d' /fd
 bind -a /boot /
 
-ipconfig -D
+ipconfig
 
 authaddr=`{sed -n 's/	auth=(.*)/\1/p' /net/ndb|sed 1q}
 fsaddr=`{sed -n 's/	fs=(.*)/\1/p' /net/ndb|sed 1q}

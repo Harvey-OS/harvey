@@ -27,16 +27,16 @@ enum{
 };
 
 static Dirtab irqdir[]={
-	".",			{Qdir, 0, QTDIR},	0,		DMDIR|0555,
-	"irq1",		{Qirq1},			0,		0666,
-	"irq2",		{Qirq2},			0,		0666,
-	"irq3",		{Qirq1},			0,		0666,
-	"irq4",		{Qirq1},			0,		0666,
-	"irq5",		{Qirq1},			0,		0666,
-	"irq6",		{Qirq1},			0,		0666,
-	"irq7",		{Qirq1},			0,		0666,
-	"mstimer",	{Qmstimer},		0,		0666,
-	"fpgareset",	{Qfpgareset},		0,		0222,
+	".",		{Qdir, 0, QTDIR},	0,	DMDIR|0555,
+	"irq1",		{Qirq1},		0,	0666,
+	"irq2",		{Qirq2},		0,	0666,
+	"irq3",		{Qirq1},		0,	0666,
+	"irq4",		{Qirq1},		0,	0666,
+	"irq5",		{Qirq1},		0,	0666,
+	"irq6",		{Qirq1},		0,	0666,
+	"irq7",		{Qirq1},		0,	0666,
+	"mstimer",	{Qmstimer},		0,	0666,
+	"fpgareset",	{Qfpgareset},		0,	0222,
 };
 
 enum
@@ -52,17 +52,18 @@ Cmdtab irqmsg[] =
 {
 	CMinterrupt,	"interrupt",	2,
 	CMmode,		"mode",		2,
-	CMreset,		"reset",		1,
+	CMreset,	"reset",	1,
 	CMwait,		"wait",		1,
-	CMdebug,		"debug",		1,
+	CMdebug,	"debug",	1,
 };
 
 typedef struct Irqconfig Irqconfig;
 struct Irqconfig {
-	int		intenable;		/* Interrupts are enabled */
+	int		intenable;	/* Interrupts are enabled */
 	int		mode;		/* level == 0; edge == 1 */
-	ulong	interrupts;	/* Count interrupts */
-	Rendez	r;			/* Rendez-vous point for interrupt waiting */
+	ulong		interrupts;	/* Count interrupts */
+	ulong		sleepints;	/* interrupt count when waiting */
+	Rendez		r;		/* Rendez-vous point for interrupt waiting */
 	Irqconfig	*next;
 	Timer;
 };
@@ -71,7 +72,7 @@ Irqconfig *irqconfig[NIRQ];	/* irqconfig[0] is not used */
 Lock irqlock;
 
 static void interrupt(Ureg*, void*);
-static void ticmstimer(Ureg*, Timer*);
+void dumpvno(void);
 
 static void
 ticmstimer(Ureg*, Timer *t)
@@ -183,6 +184,15 @@ irqclose(Chan *c)
 	free(ic);
 }
 
+static int
+irqtfn(void *arg)
+{
+	Irqconfig *ic;
+
+	ic = arg;
+	return ic->sleepints != ic->interrupts;
+}
+
 static long
 irqread(Chan *c, void *buf, long n, vlong)
 {
@@ -195,18 +205,19 @@ irqread(Chan *c, void *buf, long n, vlong)
 	irq = (ulong)c->qid.path;
 	if(irq == Qdir)
 		return devdirread(c, buf, n, irqdir, nelem(irqdir), devgen);
-	if(irq >= Qmstimer){
+	if(irq > Qmstimer){
 		print("irqread 0x%llux\n", c->qid.path);
 		error(Egreg);
 	}
 	ic = c->aux;
 	if (ic->intenable == 0)
 		error("disabled");
-	sleep(&ic->r, return0, 0);
+	ic->sleepints = ic->interrupts;
+	sleep(&ic->r, irqtfn, ic);
 	if (irq == Qmstimer)
 		snprint(tmp, sizeof tmp, "%11lud %d", ic->interrupts, ic->mode);
 	else
-		snprint(tmp, sizeof tmp, "%11lud %s", ic->interrupts, ic->mode?"edge":"level");
+		snprint(tmp, sizeof tmp, "%11lud %s", ic->interrupts, ic->mode ?"edge":"level");
 	n = readstr(0, buf, n, tmp);
 	return n;
 }
@@ -249,6 +260,7 @@ irqwrite(Chan *c, void *a, long n, vlong)
 		if (strcmp(cb->f[1], "on") == 0){
 			ilock(&irqlock);
 			irqenable(ic, irq);
+			iomem->siprr = 0x65009770;
 			iunlock(&irqlock);
 		}else if (strcmp(cb->f[1], "off") == 0){
 			ilock(&irqlock);
@@ -268,10 +280,10 @@ irqwrite(Chan *c, void *a, long n, vlong)
 			}
 			ic->tns = MS2NS(ic->mode);
 		}else if (strcmp(cb->f[1], "level") == 0){
-			ic->mode = 0;
+			ic->mode = Level;
 			iomem->siexr &= ~(0x8000 >> irq);
 		}else if (strcmp(cb->f[1], "edge") == 0){
-			ic->mode = 1;
+			ic->mode = Edge;
 			iomem->siexr |= 0x8000 >> irq;
 		}else
 			error(Ebadarg);
@@ -282,13 +294,15 @@ irqwrite(Chan *c, void *a, long n, vlong)
 	case CMwait:
 		if (ic->intenable == 0)
 			error("interrupts are off");
-		sleep(&ic->r, return0, 0);
+		ic->sleepints = ic->interrupts;
+		sleep(&ic->r, irqtfn, ic);
 		break;
 	case CMdebug:
-		print("simr h/l 0x%lux/0x%lux, sipnr h/l 0x%lux/0x%lux, siexr 0x%lux\n",
+		print("simr h/l 0x%lux/0x%lux, sipnr h/l 0x%lux/0x%lux, siexr 0x%lux, siprr 0x%lux\n",
 			iomem->simr_h, iomem->simr_l,
 			iomem->sipnr_h, iomem->sipnr_l,
-			iomem->siexr);
+			iomem->siexr, iomem->siprr);
+		dumpvno();
 	}
 	poperror();
 	free(cb);

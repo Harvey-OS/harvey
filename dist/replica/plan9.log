@@ -17056,3 +17056,12 @@
 1100620895 0 c sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1100619443 9818
 1100638788 0 c mail/lib/qmail - 775 upas upas 1100638780 182
 1100665904 0 c 386/bin/usb/usbaudio - 775 sys sys 1100664617 183278
+1100701911 0 c sys/lib/sysconfig/blast/boot - 775 sys sys 1100701674 568
+1100701911 1 c sys/src/9/ppc/blast - 664 sys sys 1100701674 685
+1100701911 2 c sys/src/9/ppc/clock.c - 664 sys sys 1100701675 1036
+1100701911 3 c sys/src/9/ppc/devirq.c - 664 sys sys 1100701675 6314
+1100701911 4 c sys/src/9/ppc/etherfcc.c - 664 sys sys 1100701674 19690
+1100701911 5 c sys/src/9/ppc/m8260.c - 664 sys sys 1100701674 14498
+1100701911 6 c sys/src/9/ppc/m8260.h - 664 sys sys 1100701674 20899
+1100701911 7 c sys/src/9/ppc/trap.c - 664 sys sys 1100701675 18357
+1100701911 8 c sys/src/libc/power/cycles.s - 664 sys sys 1100701675 322

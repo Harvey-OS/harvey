@@ -112,27 +112,27 @@ char *regname[]={
 	"CAUSE",	"SRR1",
 	"PC",		"GOK",
 	"LR",		"CR",
-	"XER",	"CTR",
+	"XER",		"CTR",
 	"R0",		"R1",
 	"R2",		"R3",
 	"R4",		"R5",
 	"R6",		"R7",
 	"R8",		"R9",
-	"R10",	"R11",
-	"R12",	"R13",
-	"R14",	"R15",
-	"R16",	"R17",
-	"R18",	"R19",
-	"R20",	"R21",
-	"R22",	"R23",
-	"R24",	"R25",
-	"R26",	"R27",
-	"R28",	"R29",
-	"R30",	"R31",
-	"DCMP",	"ICMP",
+	"R10",		"R11",
+	"R12",		"R13",
+	"R14",		"R15",
+	"R16",		"R17",
+	"R18",		"R19",
+	"R20",		"R21",
+	"R22",		"R23",
+	"R24",		"R25",
+	"R26",		"R27",
+	"R28",		"R29",
+	"R30",		"R31",
+	"DCMP",		"ICMP",
 	"DMISS",	"IMISS",
 	"HASH1",	"HASH2",
-	"DAR",	"DSISR",
+	"DAR",		"DSISR",
 };
 
 void
@@ -385,37 +385,84 @@ int intrstack[5];
 uvlong intrtime[5];
 vlong lastoffset;
 int inintr;
+int nintr[10];
+int nintro;
+int dblintr[64];
+ulong thisto[32];
+ulong thistoo;
+vlong vnot[64];
+ulong vnon[64];
+
+void
+dumpvno(void)
+{
+	int i;
+
+	for(i = 0; i < nelem(vnon); i++){
+		if(vnon[i])
+			print("%d	%lld	%lud\n", i, vnot[i], vnon[i]);
+		vnot[i] = 0;
+		vnon[i] = 0;
+	}
+	for(i = 0; i < nelem(thisto); i++){
+		if(thisto[i]) print("%d	%lud\n", i, thisto[i]);
+		thisto[i] = 0;
+	}
+	if(thistoo) print("ovl	%lud\n", thistoo);
+	thistoo = 0;
+}
 
 void
 intr(Ureg *ureg)
 {
-	int vno;
+	int vno, pvno, i;
 	Vctl *ctl, *v;
 	void (*pt)(Proc*, int, vlong);
+	uvlong tt, x;
 
-	vno = intvec();
+	cycles(&tt);
 	pt = proctrace;
-	if(up && up->trace && pt)
-		pt(up, (vno << 16) | SInts, 0);
+	pvno = -1;
+	for(i = 0; i < 64; i++){
+		vno = intvec();
+		if(vno == 0)
+			break;
+		cycles(&x);
+		vnot[vno] -= x;
+		if(vno == pvno)
+			dblintr[vno]++;
+		pvno = vno;
+		if(pt && up && up->trace)
+			pt(up, (vno << 16) | SInts, 0);
+	
+		if(vno > nelem(vctl) || (ctl = vctl[vno]) == 0) {
+			iprint("spurious intr %d\n", vno);
+			return;
+		}
 
-//	intrstack[inintr - 1] = vno;
+		for(v = ctl; v != nil; v = v->next)
+			if(v->f)
+				v->f(ureg, v->a);
 
-	if(vno > nelem(vctl) || (ctl = vctl[vno]) == 0) {
-		iprint("spurious intr %d\n", vno);
-//		inintr--;
-		return;
+		intend(vno);	/* reenable the interrupt */
+
+		if(pt && up && up->trace)
+			pt(up, (vno << 16) | SInte, 0);
+		cycles(&x);
+		vnot[vno] += x;
+		vnon[vno]++;
 	}
-
-	for(v = ctl; v != nil; v = v->next){
-		if(v->f)
-			v->f(ureg, v->a);
-	}
-
-	intend(vno);	/* reenable the interrupt */
-	pt = proctrace;
-	if(up && up->trace && pt)
-		pt(up, (vno << 16) | SInte, 0);
-//	inintr--;
+	if(i < nelem(nintr))
+		nintr[i]++;
+	else
+		nintro++;
+	cycles(&x);
+	tt = x - tt;
+	i = tt / 3600;	 /* 100 microseconds units */
+	if(i < nelem(thisto))
+		thisto[i]++;
+	else
+		thistoo++;
 	preempted();
 }
 

@@ -8,27 +8,27 @@ struct BD {
 
 enum{
 	BDEmpty=	SBIT(0),
-	BDReady=		SBIT(0),
+	BDReady=	SBIT(0),
 	BDWrap=		SBIT(2),
 	BDInt=		SBIT(3),
 	BDLast=		SBIT(4),
-	BDFirst=		SBIT(5),
+	BDFirst=	SBIT(5),
 };
 
 typedef struct Ring Ring;
 
 struct Ring {
-	BD*		rdr;			/* receive descriptor ring */
-	void*	rrb;			/* receive ring buffers */
-	int		rdrx;			/* index into rdr */
-	int		nrdre;		/* length of rdr */
+	BD*	rdr;		/* receive descriptor ring */
+	void*	rrb;		/* receive ring buffers */
+	int	rdrx;		/* index into rdr */
+	int	nrdre;		/* length of rdr */
 
-	BD*		tdr;			/* transmit descriptor ring */
-	void**	txb;			/* corresponding transmit ring buffers */
-	int		tdrh;			/* host index into tdr */
-	int		tdri;			/* interface index into tdr */
-	int		ntdre;		/* length of tdr */
-	int		ntq;			/* pending transmit requests */
+	BD*	tdr;		/* transmit descriptor ring */
+	void**	txb;		/* corresponding transmit ring buffers */
+	int	tdrh;		/* host index into tdr */
+	int	tdri;		/* interface index into tdr */
+	int	ntdre;		/* length of tdr */
+	int	ntq;		/* pending transmit requests */
 };
 
 int	ioringinit(Ring*, int, int, int);
@@ -136,15 +136,15 @@ struct SCC {
 
 typedef struct FCC FCC;
 struct FCC {
-/*0x00*/	ulong	gfmr;	/*  general mode register 28.2/28-3 */
-/*0x04*/	ulong	fpsmr;	/*  protocol-specific mode reg. 29.13.2(ATM) 30.18.1(Ether) */
-/*0x08*/	ushort	ftodr;	/*  transmit on demand register 28.5/28-7 */
+/*0x00*/	ulong	gfmr;		/*  general mode register 28.2/28-3 */
+/*0x04*/	ulong	fpsmr;		/*  protocol-specific mode reg. 29.13.2(ATM) 30.18.1(Ether) */
+/*0x08*/	ushort	ftodr;		/*  transmit on demand register 28.5/28-7 */
 /*0x0A*/	ushort	Rsvd0A;
 /*0x0C*/	ushort	fdsr;		/*  data synchronization register 28.4/28-7 */
 /*0x0E*/	ushort	Rsvd0E;
 /*0x10*/	ushort	fcce;		/* event register 29.13.3 (ATM), 30.18.2 (Ethernet) */
 /*0x12*/	ushort	Rsvd12;
-/*0x14*/	ushort	fccm;	/* mask register */
+/*0x14*/	ushort	fccm;		/* mask register */
 /*0x16*/	ushort	Rsvd16;
 /*0x18*/	uchar	fccs;		/* status register 8 bits 31.10 (HDLC) */
 /*0x19*/	uchar	Rsvd19[3];
