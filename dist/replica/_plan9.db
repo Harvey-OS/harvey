@@ -49,11 +49,11 @@
 386/bin/auth/changeuser - 775 sys sys 1102171654 96991
 386/bin/auth/convkeys - 775 sys sys 1102171655 87188
 386/bin/auth/convkeys2 - 775 sys sys 1102171655 87239
-386/bin/auth/cron - 775 sys sys 1102171655 142823
+386/bin/auth/cron - 775 sys sys 1102393465 142855
 386/bin/auth/debug - 775 sys sys 1102171656 101029
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1102171656 314174
+386/bin/auth/factotum - 775 sys sys 1102393465 313832
 386/bin/auth/fgui - 775 sys sys 1102171657 217758
 386/bin/auth/guard.srv - 775 sys sys 1102171658 142815
 386/bin/auth/iam - 775 sys sys 1085076981 50791
@@ -2764,7 +2764,7 @@ lib/gettysburg - 664 sys sys 944943772 1555
 lib/hiragana - 664 sys sys 944943772 737
 lib/kana - 664 sys sys 944943772 1061
 lib/katakana - 664 sys sys 944943772 982
-lib/keyboard - 664 sys sys 984694514 25842
+lib/keyboard - 664 sys sys 1102429231 26026
 lib/mammals - 664 sys sys 944943772 27760
 lib/namespace - 664 sys sys 1060354451 590
 lib/namespace.ftp - 664 sys sys 1020313578 373
@@ -2843,7 +2843,7 @@ mail/lib/smtpd.conf.ext - 664 upas upas 1089299188 1032
 mail/lib/spam.rc - 775 upas upas 1063950954 400
 mail/lib/unspam.rc - 775 upas upas 1063950954 400
 mail/lib/validateaddress - 775 upas upas 1098803974 48
-mail/lib/validatesender - 775 upas upas 1100271572 1080
+mail/lib/validatesender - 775 upas upas 1102429113 1117
 mail/lib/white.starter - 664 upas upas 1067739606 326
 mail/queue - 20000000777 upas upas 953302652 0
 mail/tmp - 20000000777 upas upas 953302655 0
@@ -5502,7 +5502,7 @@ sys/src/9/port/error.h - 664 sys sys 1055700517 2630
 sys/src/9/port/fault.c - 664 sys sys 1067722722 6628
 sys/src/9/port/initcode.c - 664 sys sys 1055688491 574
 sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
-sys/src/9/port/latin1.h - 664 sys sys 1015278339 3524
+sys/src/9/port/latin1.h - 664 sys sys 1102429178 3559
 sys/src/9/port/lib.h - 664 sys sys 1091733556 5737
 sys/src/9/port/log.c - 664 sys sys 1014931175 2860
 sys/src/9/port/master - 664 sys sys 1063856961 516
@@ -6505,7 +6505,7 @@ sys/src/boot/pc/ether2114x.c - 664 sys sys 1066618033 37048
 sys/src/boot/pc/ether589.c - 664 sys sys 1015007950 4628
 sys/src/boot/pc/ether79c970.c - 664 sys sys 1015007950 11717
 sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
-sys/src/boot/pc/ether8139.c - 664 sys sys 1015007950 14731
+sys/src/boot/pc/ether8139.c - 664 sys sys 1102429126 14806
 sys/src/boot/pc/ether82557.c - 664 sys sys 1098848150 18911
 sys/src/boot/pc/ether83815.c - 664 sys sys 1019537742 19576
 sys/src/boot/pc/ether8390.c - 664 sys sys 1015007951 16065
@@ -11122,7 +11122,7 @@ sys/src/cmd/vnc/vncs.c - 664 sys sys 1046184848 21022
 sys/src/cmd/vnc/vncs.h - 664 sys sys 1046200146 908
 sys/src/cmd/vnc/vncv.c - 664 sys sys 1082221235 3197
 sys/src/cmd/vnc/vncv.h - 664 sys sys 1044880750 643
-sys/src/cmd/vnc/wsys.c - 664 sys sys 1045758533 4049
+sys/src/cmd/vnc/wsys.c - 664 sys sys 1102429521 4052
 sys/src/cmd/vt - 20000000775 sys sys 954038635 0
 sys/src/cmd/vt/cons.h - 664 sys sys 984718311 1660
 sys/src/cmd/vt/consctl.c - 664 sys sys 952627639 1815
@@ -11292,12 +11292,14 @@ sys/src/games/mahjongg/mahjongg.c - 644 sys sys 1095792293 3452
 sys/src/games/mahjongg/mahjongg.h - 644 sys sys 1095792293 1606
 sys/src/games/mahjongg/mkfile - 644 sys sys 1095792293 230
 sys/src/games/sokoban - 20000000775 sys sys 1095792097 0
+sys/src/games/sokoban/README - 664 sys sys 1102439103 781
 sys/src/games/sokoban/graphics.c - 664 sys sys 1095792097 1846
 sys/src/games/sokoban/level.c - 664 sys sys 1095792097 1654
-sys/src/games/sokoban/mkfile - 664 sys sys 1095792097 236
+sys/src/games/sokoban/mkfile - 664 sys sys 1102439103 247
 sys/src/games/sokoban/move.c - 664 sys sys 1095792097 2671
-sys/src/games/sokoban/sokoban.c - 664 sys sys 1097901017 4783
-sys/src/games/sokoban/sokoban.h - 664 sys sys 1095792097 1197
+sys/src/games/sokoban/route.c - 664 sys sys 1102439103 3684
+sys/src/games/sokoban/sokoban.c - 664 sys sys 1102439104 5540
+sys/src/games/sokoban/sokoban.h - 664 sys sys 1102439105 1876
 sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/_post.c - 664 sys sys 1044836326 1641
 sys/src/lib9p/dirread.c - 664 sys sys 1015023310 641
@@ -12392,5 +12394,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/auth/cron - 775 sys sys 1102393465 142855
-386/bin/auth/factotum - 775 sys sys 1102393465 313832
+386/9loaddebug - 775 sys sys 1102478836 300021
+386/bin/vncv - 775 sys sys 1102478835 518549

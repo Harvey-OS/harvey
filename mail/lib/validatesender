@@ -24,6 +24,7 @@ addr=$2
 if(~ $dom swtch.com && ~ $addr glenda && ! ~ $sysname olive)
 	exit 'deferred: always defer this one'
 
+# Sites that we have to special case
 # Lucent only - use external network when mail from external domains
 # is delivered to us internally.  Assume that local domains are fine.
 netroot=/net

@@ -85,11 +85,10 @@ enum {					/* Tcr */
 	Acrc		= 0x00010000,	/* Append CRC (not) */
 	LbkSHIFT	= 17,		/* Loopback Test */
 	LbkMASK		= 0x00060000,
-	Rtl8139ArevG	= 0x00800000,	/* RTL8139A Rev. G ID */
 	IfgSHIFT	= 24,		/* Interframe Gap */
 	IfgMASK		= 0x03000000,
-	HwveridSHIFT	= 26,		/* Hardware Version ID */
-	HwveridMASK	= 0x7C000000,
+	HwveridSHIFT	= 22,		/* Hardware Version ID */
+	HwveridMASK	= 0x7CC00000,
 };
 
 enum {					/* Rcr */
@@ -528,6 +527,8 @@ static struct {
 } rtl8139pci[] = {
 	{ "rtl8139",	(0x8139<<16)|0x10EC, },	/* generic */
 	{ "smc1211",	(0x1211<<16)|0x1113, },	/* SMC EZ-Card */
+	{ "dfe-538tx",	(0x1300<<16)|0x1186, }, /* D-Link DFE-538TX */
+	{ "dfe-560txd",	(0x1340<<16)|0x1186, }, /* D-Link DFE-560TXD */
 	{ nil },
 };
 
