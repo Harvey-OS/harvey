@@ -12,125 +12,332 @@ enum {
 };
 
 static struct {
-	VtLock*	lock;
-	Con**	con;			/* arena */
-	int	ncon;			/* how many in arena */
-	int	hi;			/* high watermark */
-	int	cur;			/* hint for allocation */
-
-	u32int	msize;
-} cbox;
-
-static struct {
-	VtLock*	lock;
-
-	Msg*	free;
-	VtRendez* alloc;
-
-	Msg*	head;
-	Msg*	tail;
-	VtRendez* work;
+	VtLock*	alock;			/* alloc */
+	Msg*	ahead;
+	VtRendez* arendez;
 
 	int	maxmsg;
 	int	nmsg;
+	int	nmsgstarve;
+
+	VtLock*	rlock;			/* read */
+	Msg*	rhead;
+	Msg*	rtail;
+	VtRendez* rrendez;
+
 	int	maxproc;
 	int	nproc;
+	int	nprocstarve;
 
 	u32int	msize;			/* immutable */
 } mbox;
 
-static void
-msgFree(Msg* m)
-{
-	vtLock(mbox.lock);
-	if(mbox.nmsg > mbox.maxmsg){
-		vtMemFree(m->data);
-		vtMemFree(m);
-		mbox.nmsg--;
-		vtUnlock(mbox.lock);
-		return;
-	}
-	m->next = mbox.free;
-	mbox.free = m;
-	if(m->next == nil)
-		vtWakeup(mbox.alloc);
-	vtUnlock(mbox.lock);
-}
+static struct {
+	VtLock*	alock;			/* alloc */
+	Con*	ahead;
+	VtRendez* arendez;
+
+	VtLock*	clock;
+	Con*	chead;
+	Con*	ctail;
+
+	int	maxcon;
+	int	ncon;
+	int	nconstarve;
+
+	u32int	msize;
+} cbox;
 
 static void
 conFree(Con* con)
 {
+	assert(con->version == nil);
+	assert(con->mhead == nil);
+	assert(con->whead == nil);
+	assert(con->nfid == 0);
+	assert(con->state == ConMoribund);
+
 	if(con->fd >= 0){
 		close(con->fd);
 		con->fd = -1;
 	}
+	con->state = ConDead;
 
-	assert(con->version == nil);
-	assert(con->mhead == nil);
-	assert(con->nmsg == 0);
-	assert(con->nfid == 0);
-	assert(con->state == CsMoribund);
+	vtLock(cbox.alock);
+	if(con->cprev != nil)
+		con->cprev->cnext = con->cnext;
+	else
+		cbox.chead = con->cnext;
+	if(con->cnext != nil)
+		con->cnext->cprev = con->cprev;
+	else
+		cbox.ctail = con->cprev;
+	con->cprev = con->cnext = nil;
 
-	con->state = CsDead;
+	if(cbox.ncon > cbox.maxcon){
+		if(con->name != nil)
+			vtMemFree(con->name);
+		vtLockFree(con->fidlock);
+		vtMemFree(con->data);
+		vtRendezAlloc(con->wrendez);
+		vtLockFree(con->wlock);
+		vtRendezAlloc(con->mrendez);
+		vtLockFree(con->mlock);
+		vtRendezAlloc(con->rendez);
+		vtLockFree(con->lock);
+		vtMemFree(con);
+		cbox.ncon--;
+		vtUnlock(cbox.alock);
+		return;
+	}
+	con->anext = cbox.ahead;
+	cbox.ahead = con;
+	if(con->anext == nil)
+		vtWakeup(cbox.arendez);
+	vtUnlock(cbox.alock);
+}
+
+static void
+msgFree(Msg* m)
+{
+	assert(m->rwnext == nil);
+	assert(m->fnext == nil && m->fprev == nil);
+
+	vtLock(mbox.alock);
+	if(mbox.nmsg > mbox.maxmsg){
+		vtMemFree(m->data);
+		vtMemFree(m);
+		mbox.nmsg--;
+		vtUnlock(mbox.alock);
+		return;
+	}
+	m->anext = mbox.ahead;
+	mbox.ahead = m;
+	if(m->anext == nil)
+		vtWakeup(mbox.arendez);
+	vtUnlock(mbox.alock);
+}
+
+static Msg*
+msgAlloc(Con* con)
+{
+	Msg *m;
+
+	vtLock(mbox.alock);
+	while(mbox.ahead == nil){
+		if(mbox.nmsg >= mbox.maxmsg){
+			mbox.nmsgstarve++;
+			vtSleep(mbox.arendez);
+			continue;
+		}
+		m = vtMemAllocZ(sizeof(Msg));
+		m->data = vtMemAlloc(mbox.msize);
+		m->msize = mbox.msize;
+		mbox.nmsg++;
+		mbox.ahead = m;
+		break;
+	}
+	m = mbox.ahead;
+	mbox.ahead = m->anext;
+	m->anext = nil;
+	vtUnlock(mbox.alock);
+
+	m->con = con;
+	m->state = MsgR;
+
+	return m;
+}
+
+static void
+msgMunlink(Msg* m)
+{
+	Con *con;
+
+	con = m->con;
+
+	if(m->mprev != nil)
+		m->mprev->mnext = m->mnext;
+	else
+		con->mhead = m->mnext;
+	if(m->mnext != nil)
+		m->mnext->mprev = m->mprev;
+	else
+		con->mtail = m->mprev;
+	m->mprev = m->mnext = nil;
+}
+
+static void
+msgUnlinkUnlockAndFree(Msg* m)
+{
+	/*
+	 * Unlink the message from the flush and message queues,
+	 * unlock the connection message lock and free the message.
+	 * Called with con->mlock locked.
+	 */
+	if(m->fprev != nil)
+		m->fprev->fnext = m->fnext;
+	if(m->fnext != nil)
+		m->fnext->fprev = m->fprev;
+	m->fprev = m->fnext = nil;
+
+	msgMunlink(m);
+	vtUnlock(m->con->mlock);
+	msgFree(m);
+}
+
+void
+msgFlush(Msg* m)
+{
+	Msg *old;
+	Con *con;
+
+	con = m->con;
+
+	/*
+	 * Look for the message to be flushed in the
+	 * queue of all messages still on this connection.
+	 */
+	vtLock(con->mlock);
+	for(old = con->mhead; old != nil; old = old->mnext)
+		if(old->t.tag == m->t.oldtag)
+			break;
+	if(old == nil){
+		if(Dflag)
+			fprint(2, "msgFlush: cannot find %d\n", m->t.oldtag);
+		vtUnlock(con->mlock);
+		return;
+	}
+
+	/*
+	 * Found it.
+	 *
+	 * Easy case is no 9P processing done yet,
+	 * message is on the read queue.
+	 * Mark the message as flushed and let the read
+	 * process throw it away after after pulling
+	 * it off the read queue.
+	 */
+	if(old->state == MsgR){
+		old->state = MsgF;
+		if(Dflag)
+			fprint(2, "msgFlush: change %d from MsgR to MsgF\n", m->t.oldtag);
+		vtUnlock(con->mlock);
+		return;
+	}
+
+	/*
+	 * Flushing flushes.
+	 * Since they don't affect the server state, flushes
+	 * can be deleted when in Msg9 or MsgW state.
+	 */
+	if(old->t.type == Tflush){
+		/*
+		 * For Msg9 state, the old message may
+		 * or may not be on the write queue.
+		 * Mark the message as flushed and let
+		 * the write process throw it away after
+		 * after pulling it off the write queue.
+		 */
+		if(old->state == Msg9){
+			old->state = MsgF;
+			if(Dflag)
+				fprint(2, "msgFlush: change %d from Msg9 to MsgF\n", m->t.oldtag);
+			vtUnlock(con->mlock);
+			return;
+		}
+		assert(old->state == MsgW);
+
+		/*
+		 * A flush in MsgW state implies it is waiting
+		 * for its corresponding old message to be written,
+		 * so it can be deleted right here, right now...
+		 * right here, right now... right here, right now...
+		 * right about now... the funk soul brother.
+		 */
+		if(Dflag)
+			fprint(2, "msgFlush: delete pending flush %F\n", &old->t);
+		msgUnlinkUnlockAndFree(old);
+		return;
+	}
+
+	/*
+	 * Must wait for the old message to be written.
+	 * Add m to old's flush queue.
+	 * Old is the head of its own flush queue.
+	 */
+	m->fprev = old;
+	m->fnext = old->fnext;
+	if(m->fnext)
+		m->fnext->fprev = m;
+	old->fnext = m;
+	if(Dflag)
+		fprint(2, "msgFlush: add %d to %d queue\n", m->t.tag, old->t.tag);
+	vtUnlock(con->mlock);
 }
 
 static void
 msgProc(void*)
 {
-	int n;
 	Msg *m;
 	char *e;
 	Con *con;
 
-	vtThreadSetName("msg");
+	vtThreadSetName("msgProc");
 
-	vtLock(mbox.lock);
-	while(mbox.nproc <= mbox.maxproc){
-		while(mbox.head == nil)
-			vtSleep(mbox.work);
-		m = mbox.head;
-		mbox.head = m->next;
-		m->next = nil;
-
-		e = nil;
+	for(;;){
+		/*
+		 * If surplus to requirements, exit.
+		 * If not, wait for and pull a message off
+		 * the read queue.
+		 */
+		vtLock(mbox.rlock);
+		if(mbox.nproc > mbox.maxproc){
+			mbox.nproc--;
+			vtUnlock(mbox.rlock);
+			break;
+		}
+		while(mbox.rhead == nil)
+			vtSleep(mbox.rrendez);
+		m = mbox.rhead;
+		mbox.rhead = m->rwnext;
+		m->rwnext = nil;
+		vtUnlock(mbox.rlock);
 
 		con = m->con;
-		vtLock(con->lock);
-		assert(con->state != CsDead);
-		con->nmsg++;
+		e = nil;
 
+		/*
+		 * If the message has been flushed before any
+		 * 9P processing has started, just throw it away.
+		 */
+		vtLock(con->mlock);
+		if(m->state == MsgF){
+			msgUnlinkUnlockAndFree(m);
+			continue;
+		}
+		m->state = Msg9;
+		vtUnlock(con->mlock);
+
+		/*
+		 * explain this
+		 */
+		vtLock(con->lock);
 		if(m->t.type == Tversion){
 			con->version = m;
-			con->state = CsDown;
-			while(con->mhead != nil)
-				vtSleep(con->active);
-			assert(con->state == CsDown);
+			con->state = ConDown;
+			while(con->mhead != m)
+				vtSleep(con->rendez);
+			assert(con->state == ConDown);
 			if(con->version == m){
 				con->version = nil;
-				con->state = CsInit;
+				con->state = ConInit;
 			}
 			else
 				e = "Tversion aborted";
 		}
-		else if(con->state != CsUp)	
+		else if(con->state != ConUp)	
 			e = "connection not ready";
-
-		/*
-		 * Add Msg to end of active list.
-		 */
-		if(con->mtail != nil){
-			m->prev = con->mtail;
-			con->mtail->next = m;
-		}
-		else{
-			con->mhead = m;
-			m->prev = nil;
-		}
-		con->mtail = m;
-		m->next = nil;
-
 		vtUnlock(con->lock);
-		vtUnlock(mbox.lock);
 
 		/*
 		 * Dispatch if not error already.
@@ -145,93 +352,37 @@ msgProc(void*)
 		else
 			m->r.type = m->t.type+1;
 
-		vtLock(con->lock);
+
 		/*
-		 * Remove Msg from active list.
+		 * Put the message (with reply) on the
+		 * write queue and wakeup the write process.
 		 */
-		if(m->prev != nil)
-			m->prev->next = m->next;
+		vtLock(con->wlock);
+		if(con->whead == nil)
+			con->whead = m;
 		else
-			con->mhead = m->next;
-		if(m->next != nil)
-			m->next->prev = m->prev;
-		else
-			con->mtail = m->prev;
-		m->prev = m->next = nil;
-		if(con->mhead == nil)
-			vtWakeup(con->active);
-
-		if(Dflag)
-			fprint(2, "msgProc: r %F\n", &m->r);
-
-		if((con->state == CsNew || con->state == CsUp) && !m->flush){
-			/*
-			 * TODO: optimise this copy away somehow for
-			 * read, stat, etc.
-			 */
-			assert(n = convS2M(&m->r, con->data, con->msize));
-			if(write(con->fd, con->data, n) != n){
-				if(con->fd >= 0){
-					close(con->fd);
-					con->fd = -1;
-				}
-			}
-		}
-
-		con->nmsg--;
-		if(con->state == CsMoribund && con->nmsg == 0){
-			vtUnlock(con->lock);
-			conFree(con);
-		}
-		else
-			vtUnlock(con->lock);
-
-		vtLock(mbox.lock);
-		m->next = mbox.free;
-		mbox.free = m;
-		if(m->next == nil)
-			vtWakeup(mbox.alloc);
+			con->wtail->rwnext = m;
+		con->wtail = m;
+		vtWakeup(con->wrendez);
+		vtUnlock(con->wlock);
 	}
-	mbox.nproc--;
-	vtUnlock(mbox.lock);
 }
 
 static void
-conProc(void* v)
+msgRead(void* v)
 {
 	Msg *m;
 	Con *con;
 	int eof, fd, n;
 
-	vtThreadSetName("con");
+	vtThreadSetName("msgRead");
 
 	con = v;
-	if(Dflag)
-		fprint(2, "conProc: con->fd %d\n", con->fd);
 	fd = con->fd;
 	eof = 0;
 
-	vtLock(mbox.lock);
 	while(!eof){
-		while(mbox.free == nil){
-			if(mbox.nmsg >= mbox.maxmsg){
-				vtSleep(mbox.alloc);
-				continue;
-			}
-			m = vtMemAllocZ(sizeof(Msg));
-			m->data = vtMemAlloc(mbox.msize);
-			m->msize = mbox.msize;
-			mbox.nmsg++;
-			mbox.free = m;
-			break;
-		}
-		m = mbox.free;
-		mbox.free = m->next;
-		m->next = nil;
-		vtUnlock(mbox.lock);
-
-		m->con = con;
-		m->flush = 0;
+		m = msgAlloc(con);
 
 		while((n = read9pmsg(fd, m->data, con->msize)) == 0)
 			;
@@ -245,92 +396,204 @@ conProc(void* v)
 		}
 		else if(convM2S(m->data, n, &m->t) != n){
 			if(Dflag)
-				fprint(2, "conProc: convM2S error: %s\n",
+				fprint(2, "msgRead: convM2S error: %s\n",
 					con->name);
 			msgFree(m);
-			vtLock(mbox.lock);
 			continue;
 		}
 		if(Dflag)
-			fprint(2, "conProc: t %F\n", &m->t);
+			fprint(2, "msgRead: t %F\n", &m->t);
 
-		vtLock(mbox.lock);
-		if(mbox.head == nil){
-			mbox.head = m;
-			if(!vtWakeup(mbox.work) && mbox.nproc < mbox.maxproc){
-				if(vtThread(msgProc, nil) > 0)
-					mbox.nproc++;
+		vtLock(con->mlock);
+		if(con->mtail != nil){
+			m->mprev = con->mtail;
+			con->mtail->mnext = m;
+		}
+		else{
+			con->mhead = m;
+			m->mprev = nil;
+		}
+		con->mtail = m;
+		vtUnlock(con->mlock);
+
+		vtLock(mbox.rlock);
+		if(mbox.rhead == nil){
+			mbox.rhead = m;
+			if(!vtWakeup(mbox.rrendez)){
+				if(mbox.nproc < mbox.maxproc){
+					if(vtThread(msgProc, nil) > 0)
+						mbox.nproc++;
+				}
+				else
+					mbox.nprocstarve++;
 			}
-			vtWakeup(mbox.work);
+			/*
+			 * don't need this surely?
+			vtWakeup(mbox.rrendez);
+			 */
 		}
 		else
-			mbox.tail->next = m;
-		mbox.tail = m;
+			mbox.rtail->rwnext = m;
+		mbox.rtail = m;
+		vtUnlock(mbox.rlock);
 	}
-	vtUnlock(mbox.lock);
+}
+
+static int
+_msgWrite(Msg* m)
+{
+	Con *con;
+	int eof, n;
+
+	con = m->con;
+
+	/*
+	 * An Rflush with a .fprev implies it is on a flush queue waiting for
+	 * its corresponding 'oldtag' message to go out first, so punt
+	 * until the 'oldtag' message goes out (see below).
+	 */
+	if(m->r.type == Rflush && m->fprev != nil){
+		fprint(2, "msgWrite: delay r %F\n", &m->r);
+		return 0;
+	}
+
+	msgMunlink(m);
+	vtUnlock(con->mlock);
+
+	/*
+	 * TODO: optimise this copy away somehow for
+	 * read, stat, etc.
+	 */
+	assert(n = convS2M(&m->r, con->data, con->msize));
+	if(write(con->fd, con->data, n) != n)
+		eof = 1;
+	else
+		eof = 0;
+
+	if(Dflag)
+		fprint(2, "msgWrite: r %F\n", &m->r);
+
+	/*
+	 * Just wrote a reply. If it has any flushes waiting
+	 * for it to have gone out, recurse down the list writing
+	 * them out too.
+	 */
+	vtLock(con->mlock);
+	if(m->fnext != nil){
+		m->fnext->fprev = nil;
+		eof += _msgWrite(m->fnext);
+		m->fnext = nil;
+	}
+	msgFree(m);
+
+	return eof;
+}
+
+static void
+msgWrite(void* v)
+{
+	Msg *m;
+	int eof;
+	Con *con;
+
+	vtThreadSetName("msgWrite");
+
+	con = v;
+	if(vtThread(msgRead, con) < 0){
+		conFree(con);
+		return;
+	}
+
+	for(;;){
+		/*
+		 * Wait for and pull a message off the write queue.
+		 */
+		vtLock(con->wlock);
+		while(con->whead == nil)
+			vtSleep(con->wrendez);
+		m = con->whead;
+		con->whead = m->rwnext;
+		m->rwnext = nil;
+		vtUnlock(con->wlock);
+
+		/*
+		 * Throw the message away if it's a flushed flush,
+		 * otherwise change its state and try to write it out.
+		 */
+		vtLock(con->mlock);
+		if(m->state == MsgF){
+			assert(m->t.type == Tflush);
+			msgUnlinkUnlockAndFree(m);
+			continue;
+		}
+		m->state = MsgW;
+		eof = _msgWrite(m);
+		vtUnlock(con->mlock);
+
+		vtLock(con->lock);
+		if(eof && con->fd >= 0){
+			close(con->fd);
+			con->fd = -1;
+		}
+		if(con->state == ConDown)
+			vtWakeup(con->rendez);
+		if(con->state == ConMoribund && con->mhead == nil){
+			vtUnlock(con->lock);
+			conFree(con);
+			break;
+		}
+		vtUnlock(con->lock);
+	}
 }
 
 Con*
 conAlloc(int fd, char* name)
 {
 	Con *con;
-	int cur, i;
 
-	vtLock(cbox.lock);
-	cur = cbox.cur;
-	for(i = 0; i < cbox.hi; i++){
-		/*
-		 * Look for any unallocated or CsDead up to the
-		 * high watermark; cur is a hint where to start.
-		 * Wrap around the whole arena.
-		 */
-		if(cbox.con[cur] == nil || cbox.con[cur]->state == CsDead)
-			break;
-		if(++cur >= cbox.hi)
-			cur = 0;
-	}
-	if(i >= cbox.hi){
-		/*
-		 * None found.
-		 * If the high watermark is up to the limit of those
-		 * allocated, increase the size of the arena.
-		 * Bump up the watermark and take the next.
-		 */
-		if(cbox.hi >= cbox.ncon){
-			cbox.con = vtMemRealloc(cbox.con,
-					(cbox.ncon+NConInit)*sizeof(Con*));
-			memset(&cbox.con[cbox.ncon], 0, NConInit*sizeof(Con*));
-			cbox.ncon += NConInit;
+	vtLock(cbox.alock);
+	while(cbox.ahead == nil){
+		if(cbox.ncon >= cbox.maxcon){
+			cbox.nconstarve++;
+			vtSleep(cbox.arendez);
+			continue;
 		}
-		cur = cbox.hi++;
-	}
-
-	/*
-	 * Do one-time initialisation if necessary.
-	 * Put back a new hint.
-	 * Do specific initialisation and start the proc.
-	 */
-	con = cbox.con[cur];
-	if(con == nil){
 		con = vtMemAllocZ(sizeof(Con));
 		con->lock = vtLockAlloc();
+		con->rendez = vtRendezAlloc(con->lock);
 		con->data = vtMemAlloc(cbox.msize);
 		con->msize = cbox.msize;
-		con->active = vtRendezAlloc(con->lock);
+		con->alock = vtLockAlloc();
+		con->mlock = vtLockAlloc();
+		con->mrendez = vtRendezAlloc(con->mlock);
+		con->wlock = vtLockAlloc();
+		con->wrendez = vtRendezAlloc(con->wlock);
 		con->fidlock = vtLockAlloc();
-		cbox.con[cur] = con;
+
+		cbox.ncon++;
+		cbox.ahead = con;
+		break;
 	}
+	con = cbox.ahead;
+	cbox.ahead = con->anext;
+	con->anext = nil;
+
+	if(cbox.ctail != nil){
+		con->cprev = cbox.ctail;
+		cbox.ctail->cnext = con;
+	}
+	else{
+		cbox.chead = con;
+		con->cprev = nil;
+	}
+	cbox.ctail = con;
+
 	assert(con->mhead == nil);
-	assert(con->nmsg == 0);
+	assert(con->whead == nil);
 	assert(con->fhead == nil);
 	assert(con->nfid == 0);
 
-	con->state = CsNew;
-
-	if(++cur >= cbox.hi)
-		cur = 0;
-	cbox.cur = cur;
-
+	con->state = ConNew;
 	con->fd = fd;
 	if(con->name != nil){
 		vtMemFree(con->name);
@@ -338,10 +601,12 @@ conAlloc(int fd, char* name)
 	}
 	if(name != nil)
 		con->name = vtStrDup(name);
+	else
+		con->name = vtStrDup("unknown");
 	con->aok = 0;
-	vtUnlock(cbox.lock);
+	vtUnlock(cbox.alock);
 
-	if(vtThread(conProc, con) < 0){
+	if(vtThread(msgWrite, con) < 0){
 		conFree(con);
 		return nil;
 	}
@@ -353,8 +618,8 @@ static int
 cmdMsg(int argc, char* argv[])
 {
 	char *p;
-	int maxmsg, maxproc;
 	char *usage = "usage: msg [-m nmsg] [-p nproc]";
+	int maxmsg, nmsg, nmsgstarve, maxproc, nproc, nprocstarve;
 
 	maxmsg = maxproc = 0;
 
@@ -381,35 +646,100 @@ cmdMsg(int argc, char* argv[])
 	if(argc)
 		return cliError(usage);
 
-	vtLock(mbox.lock);
+	vtLock(mbox.alock);
 	if(maxmsg)
 		mbox.maxmsg = maxmsg;
 	maxmsg = mbox.maxmsg;
+	nmsg = mbox.nmsg;
+	nmsgstarve = mbox.nmsgstarve;
+	vtUnlock(mbox.alock);
+
+	vtLock(mbox.rlock);
 	if(maxproc)
 		mbox.maxproc = maxproc;
 	maxproc = mbox.maxproc;
-	vtUnlock(mbox.lock);
+	nproc = mbox.nproc;
+	nprocstarve = mbox.nprocstarve;
+	vtUnlock(mbox.rlock);
 
 	consPrint("\tmsg -m %d -p %d\n", maxmsg, maxproc);
+	consPrint("\tnmsg %d nmsgstarve %d nproc %d nprocstarve %d\n",
+		nmsg, nmsgstarve, nproc, nprocstarve);
 
 	return 1;
 }
 
 void
-procInit(void)
+msgInit(void)
 {
-	mbox.lock = vtLockAlloc();
-	mbox.alloc = vtRendezAlloc(mbox.lock);
-	mbox.work = vtRendezAlloc(mbox.lock);
+	mbox.alock = vtLockAlloc();
+	mbox.arendez = vtRendezAlloc(mbox.alock);
+
+	mbox.rlock = vtLockAlloc();
+	mbox.rrendez = vtRendezAlloc(mbox.rlock);
 
 	mbox.maxmsg = NMsgInit;
 	mbox.maxproc = NMsgProcInit;
 	mbox.msize = NMsizeInit;
 
 	cliAddCmd("msg", cmdMsg);
+}
 
-	cbox.lock = vtLockAlloc();
-	cbox.con = nil;
-	cbox.ncon = 0;
+static int
+cmdCon(int argc, char* argv[])
+{
+	char *p;
+	Con *con;
+	char *usage = "usage: con [-m ncon]";
+	int maxcon, ncon, nconstarve;
+
+	maxcon = 0;
+
+	ARGBEGIN{
+	default:
+		return cliError(usage);
+	case 'm':
+		p = ARGF();
+		if(p == nil)
+			return cliError(usage);
+		maxcon = strtol(argv[0], &p, 0);
+		if(maxcon <= 0 || p == argv[0] || *p != '\0')
+			return cliError(usage);
+		break;
+	}ARGEND
+	if(argc)
+		return cliError(usage);
+
+	vtLock(cbox.clock);
+	if(maxcon)
+		cbox.maxcon = maxcon;
+	maxcon = cbox.maxcon;
+	ncon = cbox.ncon;
+	nconstarve = cbox.nconstarve;
+	vtUnlock(cbox.clock);
+
+	consPrint("\tcon -m %d\n", maxcon);
+	consPrint("\tncon %d nconstarve %d\n", ncon, nconstarve);
+
+	vtRLock(cbox.clock);
+	for(con = cbox.chead; con != nil; con = con->cnext){
+		consPrint("\t%s\n", con->name);
+	}
+	vtRUnlock(cbox.clock);
+
+	return 1;
+}
+
+void
+conInit(void)
+{
+	cbox.alock = vtLockAlloc();
+	cbox.arendez = vtRendezAlloc(cbox.alock);
+
+	cbox.clock = vtLockAlloc();
+
+	cbox.maxcon = NConInit;
 	cbox.msize = NMsizeInit;
+
+	cliAddCmd("con", cmdCon);
 }

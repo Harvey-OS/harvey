@@ -713,7 +713,7 @@ cmdUname(int argc, char* argv[])
 	int d, dflag, i, r;
 	char *p, *uid, *uname;
 	char *createfmt = "fsys main create /active/usr/%s %s %s d775";
-	char *usage = "usage: uname uname [uid|:uid|%%newname|=leader|+member|-member]";
+	char *usage = "usage: uname [-d] uname [uid|:uid|%%newname|=leader|+member|-member]";
 
 	dflag = 0;
 
@@ -726,14 +726,12 @@ cmdUname(int argc, char* argv[])
 	}ARGEND
 
 	if(argc < 1){
-		if(dflag){
-			vtRLock(ubox.lock);
-			if(dflag)
-				uboxDump(ubox.box);
-			vtRUnlock(ubox.lock);
-			return 1;
-		}
-		return cliError(usage);
+		if(!dflag)
+			return cliError(usage);
+		vtRLock(ubox.lock);
+		uboxDump(ubox.box);
+		vtRUnlock(ubox.lock);
+		return 1;
 	}
 
 	uname = argv[0];

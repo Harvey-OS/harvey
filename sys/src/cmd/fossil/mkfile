@@ -49,7 +49,6 @@ UPDATE=\
 	mkfile\
 	$CFILES\
 	$HFILES\
-	${TARG:%=/386/bin/%}
 
 default:V: all
 

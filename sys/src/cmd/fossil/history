@@ -25,3 +25,12 @@ changes since initial alpha release
 		not get updated when you change it right before a reboot,
 		and i don't understand why.
 
+10 feb 2003
+	better error messages for fossil console functions
+
+18 feb 2003
+	correct handling of flush messages
+	add msgWrite procs to handle output queues
+	comment out an overeager assert in source.c.
+	move setting of fid->qid.path higher in rTcreate for exclAlloc.
+

@@ -18,27 +18,56 @@ struct Msg {
 	Fcall	t;
 	Fcall	r;
 	Con*	con;
-	int	flush;
 
-	Msg*	next;
-	Msg*	prev;
+	Msg*	anext;			/* alloc */
+
+	Msg*	mnext;			/* Con */
+	Msg* 	mprev;
+
+	Msg*	rwnext;			/* proc read/write */
+
+	int	state;
+
+	Msg*	fnext;			/* proc flush */
+	Msg*	fprev;
+};
+
+enum {
+	MsgN		= 0,
+	MsgR		= 1,
+	Msg9		= 2,
+	MsgW		= 3,
+	MsgF		= 4,
 };
 
 struct Con {
-	VtLock*	lock;
-	int	fd;
 	char*	name;
 	uchar*	data;			/* max, not negotiated */
-	u32int	msize;			/* negotiated with Tversion */
-	int	state;
-	int	aok;
-	Msg*	version;
-	int	isconsole;
+	int	isconsole;		/* immutable */
 
-	Msg*	mhead;			/* active queue */
+	VtLock*	lock;
+	int	state;
+	int	fd;
+	Msg*	version;
+	u32int	msize;			/* negotiated with Tversion */
+	VtRendez* rendez;
+
+	Con*	anext;			/* alloc */
+	Con*	cnext;			/* in use */
+	Con*	cprev;
+
+	VtLock*	alock;
+	int	aok;			/* authentication done */
+
+	VtLock*	mlock;
+	Msg*	mhead;			/* all Msgs on this connection */
 	Msg*	mtail;
-	VtRendez* active;
-	int	nmsg;
+	VtRendez* mrendez;
+
+	VtLock*	wlock;
+	Msg*	whead;			/* write queue */
+	Msg*	wtail;
+	VtRendez* wrendez;
 
 	VtLock*	fidlock;		/* */
 	Fid*	fidhash[NFidHash];
@@ -48,12 +77,12 @@ struct Con {
 };
 
 enum {
-	CsDead,
-	CsNew,
-	CsDown,
-	CsInit,
-	CsUp,
-	CsMoribund,
+	ConDead		= 0,
+	ConNew		= 1,
+	ConDown		= 2,
+	ConInit		= 3,
+	ConUp		= 4,
+	ConMoribund	= 5,
 };
 
 struct Fid {
@@ -64,6 +93,7 @@ struct Fid {
 	int	flags;
 
 	int	open;
+	Fsys*	fsys;
 	File*	file;
 	Qid	qid;
 	char*	uid;
@@ -73,7 +103,6 @@ struct Fid {
 
 	VtLock*	alock;			/* Tauth/Tattach */
 	AuthRpc* rpc;
-	Fsys*	fsys;
 	char*	cuname;
 
 	Fid*	hash;			/* lookup by fidno */
@@ -125,6 +154,7 @@ extern int exclUpdate(Fid*);
  * 9fid.c
  */
 extern void fidClunk(Fid*);
+extern void fidClunkAll(Con*);
 extern Fid* fidGet(Con*, u32int, int);
 extern void fidInit(void);
 extern void fidPut(Fid*);
@@ -132,10 +162,11 @@ extern void fidPut(Fid*);
 /*
  * 9fsys.c
  */
-extern Fsys* fsysGet(char*);
-extern Fs* fsysGetFs(Fsys*);
 extern void fsysFsRlock(Fsys*);
 extern void fsysFsRUnlock(Fsys*);
+extern Fs* fsysGetFs(Fsys*);
+extern Fsys* fsysGet(char*);
+extern char* fsysGetName(Fsys*);
 extern File* fsysGetRoot(Fsys*, char*);
 extern Fsys* fsysIncRef(Fsys*);
 extern int fsysInit(void);
@@ -143,7 +174,6 @@ extern int fsysNoAuthCheck(Fsys*);
 extern int fsysNoPermCheck(Fsys*);
 extern void fsysPut(Fsys*);
 extern int fsysWstatAllow(Fsys*);
-extern char* fsysGetName(Fsys*);
 
 /*
  * 9lstn.c
@@ -154,7 +184,9 @@ extern int lstnInit(void);
  * 9proc.c
  */
 extern Con* conAlloc(int, char*);
-extern void procInit(void);
+extern void conInit(void);
+extern void msgFlush(Msg*);
+extern void msgInit(void);
 
 /*
  * 9srv.c

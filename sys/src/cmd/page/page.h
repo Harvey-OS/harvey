@@ -68,3 +68,11 @@ int	opentemp(char *template);
 
 extern int stdinfd;
 extern int truecolor;
+
+/* BUG BUG BUG BUG BUG: cannot use new draw operations in drawterm,
+ * or in vncs, and there is a bug in the kernel for copying images
+ * from cpu memory -> video memory (memmove is not being used).
+ * until all that is settled, ignore the draw operators.
+ */
+#define drawop(a,b,c,d,e,f) draw(a,b,c,d,e)
+#define gendrawop(a,b,c,d,e,f,g) gendraw(a,b,c,d,e,f)

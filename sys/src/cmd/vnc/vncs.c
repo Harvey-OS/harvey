@@ -77,7 +77,7 @@ static void vncname(char*, ...);
 void
 usage(void)
 {
-	fprint(2, "usage: vncs [-nv] [-c cert] [-d :display] [-g widthXheight] [-p pixelfmt] [cmd [args]...]\n");
+	fprint(2, "usage: vncs [-v] [-c cert] [-d :display] [-g widthXheight] [-p pixelfmt] [cmd [args]...]\n");
 	fprint(2, "\tto kill a server: vncs [-v] -k :display\n");
 	exits("usage");
 }

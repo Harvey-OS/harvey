@@ -677,7 +677,7 @@ mkVac(VtSession *z, uint blockSize, Entry *pe, Entry *pee, DirEntry *pde, uchar 
 	 * Save root.
 	 */
 	root.version = VtRootVersion;
-	strcpy(root.type, "vac");
+	strecpy(root.type, root.type+sizeof root.type, "vac");
 	strecpy(root.name, root.name+sizeof root.name, de.elem);
 	root.blockSize = blockSize;
 	vtRootPack(&root, buf);
