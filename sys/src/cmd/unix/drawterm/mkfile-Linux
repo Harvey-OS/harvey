@@ -11,7 +11,7 @@ LDFLAGS=-g -o drawterm -static
 DEVIP=devip-unix
 DEVFS=devunixfs
 OSFILES=md-iprint.$O canlock-x86-gcc.$O
-LIBS=-lm -L/usr/X11R6/lib -lX11 -lpthread
+LIBS=-lm -L/usr/X11R6/lib -lX11 -lpthread -ldl
 
 ml-%.$O:	$DSRC/libmemlayer/%.c
 	$CC $CFLAGS -o ml-$stem.o $DSRC/libmemlayer/$stem.c
