@@ -424,7 +424,7 @@ _ifmt(Fmt *f)
 				n++;
 		}
 	}
-	if((fl & FmtZero) && !(fl & FmtLeft)){
+	if((fl & FmtZero) && !(fl & (FmtLeft|FmtPrec))){
 		for(w = f->width; n < w && p > buf+3; n++)
 			*p-- = '0';
 		f->width = 0;

@@ -11645,11 +11645,11 @@ sys/src/libc/arm/tas.s - 664 sys sys 984709514 62
 sys/src/libc/arm/vlop.s - 664 sys sys 984709514 262
 sys/src/libc/arm/vlrt.c - 664 sys sys 1067719009 8950
 sys/src/libc/fmt - 20000000775 sys sys 1014927318 0
-sys/src/libc/fmt/dofmt.c - 664 sys sys 1084468557 8555
+sys/src/libc/fmt/dofmt.c - 664 sys sys 1104099108 8565
 sys/src/libc/fmt/dorfmt.c - 664 sys sys 1014927313 777
 sys/src/libc/fmt/errfmt.c - 664 sys sys 1016731560 175
 sys/src/libc/fmt/fltfmt.c - 664 sys sys 1034952854 4339
-sys/src/libc/fmt/fmt.c - 664 sys sys 1028218352 2935
+sys/src/libc/fmt/fmt.c - 664 sys sys 1104100968 3102
 sys/src/libc/fmt/fmtdef.h - 664 sys sys 1018029975 1808
 sys/src/libc/fmt/fmtfd.c - 664 sys sys 1014927314 508
 sys/src/libc/fmt/fmtlock.c - 664 sys sys 1014927314 134
@@ -12269,7 +12269,7 @@ sys/src/libsec/port/md4.c - 664 sys sys 1015013579 4260
 sys/src/libsec/port/md4test.c - 664 sys sys 984710522 537
 sys/src/libsec/port/md5.c - 664 sys sys 1084318868 3254
 sys/src/libsec/port/md5block.c - 664 sys sys 985124885 5015
-sys/src/libsec/port/md5pickle.c - 664 sys sys 1081199854 716
+sys/src/libsec/port/md5pickle.c - 664 sys sys 1104105067 716
 sys/src/libsec/port/mkfile - 664 sys sys 1044931345 879
 sys/src/libsec/port/nfastrand.c - 664 sys sys 1063853595 354
 sys/src/libsec/port/primetest.c - 664 sys sys 984710523 2486
