@@ -4,10 +4,11 @@ enum {
 	/* Edf.flags field */
 	Admitted		= 0x01,
 	Sporadic		= 0x02,
-	Yieldonblock	= 0x04,
+	Yieldonblock		= 0x04,
 	Sendnotes		= 0x08,
 	Deadline		= 0x10,
 	Yield			= 0x20,
+	Extratime		= 0x40,
 
 	Infinity = ~0ULL,
 };
