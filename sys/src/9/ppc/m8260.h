@@ -655,3 +655,4 @@ BD*	bdalloc(int);
 void	cpmop(int, int, int);
 void	ioplock(void);
 void	iopunlock(void);
+void	kreboot(ulong);

@@ -430,6 +430,7 @@ fccsetup(Ctlr *ctlr, FCC *fcc, uchar *ea)
 	/* Turn Ethernet off */
 	fcc->gfmr &= ~(ENR | ENT);
 
+	ioplock();
 	switch(ctlr->port) {
 	default:
 		iopunlock();

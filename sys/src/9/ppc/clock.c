@@ -15,6 +15,7 @@ delayloopinit(void)
 	uvlong x;
 
 	/* initial value for loopconst set in machinit */
+	m->loopconst = 1000;
 	v = getdec();
 	delay(1000);
 	v -= getdec();
@@ -49,8 +50,6 @@ clockintr(Ureg *)
 		v = 0;
 	}
 	putdec(clkreload-v);
-
-//	timerintr(ureg, 0);		We now use the 8260 fast clock
 }
 
 void

@@ -15,7 +15,7 @@
 enum {
 	PCIS3		= 0x5333,		/* PCI VID */
 
-	SAVAGE3D	= 0x8A20,	/* PCI DID */
+	SAVAGE3D	= 0x8A20,		/* PCI DID */
 	SAVAGE3DMV	= 0x8A21,
 	SAVAGE4		= 0x8A22,
 	PROSAVAGEP	= 0x8A25,
@@ -325,7 +325,6 @@ s3move(VGAscr* scr, Point p)
 	vgaxo(Crtx, 0x4E, xo);
 	vgaxo(Crtx, 0x4F, yo);
 	vgaxo(Crtx, 0x48, (y>>8) & 0x07);
-	s3vsyncactive();
 
 	return 0;
 }

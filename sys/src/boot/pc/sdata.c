@@ -429,10 +429,10 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 static Drive*
 atadrive(int cmdport, int ctlport, int dev)
 {
-	ushort *sp;
 	Drive *drive;
 	int as, i, pkt;
 	uchar buf[512], *p;
+	ushort iconfig, *sp;
 
 	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
 	pkt = 1;
@@ -465,8 +465,18 @@ retry:
 	}
 
 	drive->secsize = 512;
-	if((drive->info[Iconfig] & 0xC000) == 0x8000){
-		if(drive->info[Iconfig] & 0x01)
+
+	/*
+	 * Beware the CompactFlash Association feature set.
+	 * Now, why this value in Iconfig just walks all over the bit
+	 * definitions used in the other parts of the ATA/ATAPI standards
+	 * is a mystery and a sign of true stupidity on someone's part.
+	 * Anyway, the standard says if this value is 0x848A then it's
+	 * CompactFlash and it's NOT a packet device.
+	 */
+	iconfig = drive->info[Iconfig];
+	if(iconfig != 0x848A && (iconfig & 0xC000) == 0x8000){
+		if(iconfig & 0x01)
 			drive->pkt = 16;
 		else
 			drive->pkt = 12;
@@ -495,8 +505,7 @@ retry:
 
 	if(DEBUG & DbgCONFIG){
 		print("dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
-			dev, cmdport,
-			drive->info[Iconfig], drive->info[Icapabilities]);
+			dev, cmdport, iconfig, drive->info[Icapabilities]);
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
@@ -1356,21 +1365,56 @@ atapnp(void)
 			break;
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
+		case (0x4D68<<16)|0x105A:	/* Promise PDC20268 */
+			pi = 0x85;
+			break;
 		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */
 			pi = 0x85;
+			/*
+			 * Turn off fast interrupt prediction.
+			 */
+			if((r = pcicfgr8(p, 0x51)) & 0x80)
+				pcicfgw8(p, 0x51, r & ~0x80);
+			if((r = pcicfgr8(p, 0x55)) & 0x80)
+				pcicfgw8(p, 0x55, r & ~0x80);
 			break;
 		case (0x0640<<16)|0x1095:	/* CMD 640B */
 			/*
 			 * Bugfix code here...
 			 */
 			break;
+		case (0x7441<<16)|0x1022:	/* AMD 768 */
+			/*
+			 * Set:
+			 *	0x41	prefetch, postwrite;
+			 *	0x43	FIFO configuration 1/2 and 1/2;
+			 *	0x44	status register read retry;
+			 *	0x46	DMA read and end of sector flush.
+			 */
+			r = pcicfgr8(p, 0x41);
+			pcicfgw8(p, 0x41, r|0xF0);
+			r = pcicfgr8(p, 0x43);
+			pcicfgw8(p, 0x43, (r & 0x90)|0x2A);
+			r = pcicfgr8(p, 0x44);
+			pcicfgw8(p, 0x44, r|0x08);
+			r = pcicfgr8(p, 0x46);
+			pcicfgw8(p, 0x46, (r & 0x0C)|0xF0);
+			break;
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
-		case (0x248A<<16)|0x8086:	/* 82801BAM ICH2-M */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */
+		case (0x2411<<16)|0x8086:	/* 82801AA (ICH) */
+		case (0x2421<<16)|0x8086:	/* 82801AB (ICH0) */
+		case (0x244A<<16)|0x8086:	/* 82801BA (ICH2, Mobile) */
+		case (0x244B<<16)|0x8086:	/* 82801BA (ICH2, High-End) */
+		case (0x248A<<16)|0x8086:	/* 82801CA (ICH3, Mobile) */
+		case (0x248B<<16)|0x8086:	/* 82801CA (ICH3, High-End) */
+		case (0x24CA<<16)|0x8086:	/* 82801DBM (ICH4, Mobile) */
+		case (0x24CB<<16)|0x8086:	/* 82801DB (ICH4, High-End) */
+		case (0x24DB<<16)|0x8086:	/* 82801EB (ICH5) */
 			break;
 		}
 

@@ -5,7 +5,7 @@
 29000/lib - 20000000775 sys sys 948037563 0
 29000/mkfile - 664 sys sys 948141302 46
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1066618054 181248
+386/9load - 775 sys sys 1068156766 181788
 386/9loaddebug - 775 sys sys 1064598409 260250
 386/9loadlite - 775 sys sys 1066618055 124684
 386/9loadlitedebug - 775 sys sys 1064598410 183708
@@ -229,9 +229,9 @@
 386/bin/fortune - 775 sys sys 1064598140 66084
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1056364255 1497
-386/bin/fossil/flchk - 775 sys sys 1064598141 232263
-386/bin/fossil/flfmt - 775 sys sys 1064598142 230228
-386/bin/fossil/fossil - 775 sys sys 1066848944 345758
+386/bin/fossil/flchk - 775 sys sys 1068129393 232619
+386/bin/fossil/flfmt - 775 sys sys 1068129394 230584
+386/bin/fossil/fossil - 775 sys sys 1068129395 345623
 386/bin/freq - 775 sys sys 1064598145 60197
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1064598146 95907
@@ -532,7 +532,7 @@
 386/lib/libplumb.a - 664 sys sys 1045538125 19000
 386/lib/libregexp.a - 664 sys sys 1064598468 37616
 386/lib/libscribble.a - 664 sys sys 1056364454 108138
-386/lib/libsec.a - 664 sys sys 1064598471 644080
+386/lib/libsec.a - 664 sys sys 1068129726 647418
 386/lib/libstdio.a - 664 sys sys 1056364455 128500
 386/lib/libsunrpc.a - 664 sys sys 1050868863 357292
 386/lib/libthread.a - 664 sys sys 1065139515 71512
@@ -2949,6 +2949,7 @@ rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1045493437 788
 rc/bin/Kill - 775 sys sys 1018637942 115
 rc/bin/a: - 775 sys sys 1063856406 255
+rc/bin/ap - 775 sys sys 1068124620 651
 rc/bin/ape - 20000000775 sys sys 954039414 0
 rc/bin/ape/ar89 - 775 sys sys 945617285 308
 rc/bin/ape/c89 - 775 sys sys 945617285 39
@@ -3380,7 +3381,7 @@ sys/include/httpd.h - 664 sys sys 1014929064 5726
 sys/include/ip.h - 664 sys sys 1050702405 2908
 sys/include/keyboard.h - 664 sys sys 1014929064 799
 sys/include/libc.h - 664 sys sys 1067718922 19305
-sys/include/libsec.h - 664 sys sys 1063853592 8965
+sys/include/libsec.h - 664 sys sys 1068129557 8966
 sys/include/mach.h - 664 sys sys 1032058231 8101
 sys/include/memdraw.h - 664 sys sys 1039752978 5616
 sys/include/memlayer.h - 664 sys sys 1051031022 1851
@@ -4530,6 +4531,7 @@ sys/man/1/INDEX - 664 sys sys 1045538129 2900
 sys/man/1/INDEX.html - 664 sys sys 1026845791 15882
 sys/man/1/acid - 664 sys sys 1046201556 9731
 sys/man/1/acme - 664 sys sys 1019828741 17587
+sys/man/1/ap - 664 sys sys 1068124617 364
 sys/man/1/ar - 664 sys sys 1055701045 3149
 sys/man/1/ascii - 664 sys sys 957920005 2733
 sys/man/1/awk - 664 sys sys 944959677 10645
@@ -4654,6 +4656,7 @@ sys/man/1/tcs - 664 sys sys 952627441 2575
 sys/man/1/tee - 664 sys sys 969499886 351
 sys/man/1/tel - 664 sys sys 1045501423 941
 sys/man/1/test - 664 sys sys 1015024741 2871
+sys/man/1/thesaurus - 664 sys sys 1068121775 222
 sys/man/1/time - 664 sys sys 944959673 380
 sys/man/1/touch - 664 sys sys 1018369246 461
 sys/man/1/tr - 664 sys sys 944959675 1730
@@ -5317,7 +5320,7 @@ sys/src/9/pc/vgamga4xx.c - 664 sys sys 1015014527 11122
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1032375144 10693
 sys/src/9/pc/vganvidia.c - 664 sys sys 1060269772 6545
 sys/src/9/pc/vgargb524.c - 664 sys sys 1015014527 4235
-sys/src/9/pc/vgas3.c - 664 sys sys 1064679984 12160
+sys/src/9/pc/vgas3.c - 664 sys sys 1068129423 12143
 sys/src/9/pc/vgasavage.c - 664 sys sys 1064679984 16251
 sys/src/9/pc/vgat2r4.c - 664 sys sys 1015014528 10355
 sys/src/9/pc/vgatvp3020.c - 664 sys sys 1015014528 4491
@@ -5363,7 +5366,7 @@ sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1066737478 45222
 sys/src/9/port/devuart.c - 664 sys sys 1067722718 11683
-sys/src/9/port/edf.c - 664 sys sys 1067722765 11931
+sys/src/9/port/edf.c - 664 sys sys 1068135508 12286
 sys/src/9/port/edf.h - 664 sys sys 1067722760 1124
 sys/src/9/port/error.h - 664 sys sys 1055700517 2630
 sys/src/9/port/fault.c - 664 sys sys 1067722722 6628
@@ -5390,12 +5393,12 @@ sys/src/9/port/nulledf.c - 664 sys sys 1037669300 821
 sys/src/9/port/page.c - 664 sys sys 1055688510 8107
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1067722718 3944
-sys/src/9/port/portclock.c - 664 sys sys 1067722761 4271
+sys/src/9/port/portclock.c - 664 sys sys 1068135508 4305
 sys/src/9/port/portdat.h - 664 sys sys 1067722763 22621
 sys/src/9/port/portfns.h - 664 sys sys 1067722759 11369
 sys/src/9/port/portmkfile - 664 sys sys 1067722766 2098
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
-sys/src/9/port/proc.c - 664 sys sys 1067722762 24755
+sys/src/9/port/proc.c - 664 sys sys 1068135509 24818
 sys/src/9/port/qio.c - 664 sys sys 1067953182 23406
 sys/src/9/port/qlock.c - 664 sys sys 1067722765 3196
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
@@ -5417,14 +5420,14 @@ sys/src/9/ppc - 20000000775 sys sys 1059490838 0
 sys/src/9/ppc/blast - 664 sys sys 1067722850 659
 sys/src/9/ppc/blast.c - 664 sys sys 1059490750 1422
 sys/src/9/ppc/blast.h - 664 sys sys 1059490750 3109
-sys/src/9/ppc/clock.c - 664 sys sys 1059490750 1066
+sys/src/9/ppc/clock.c - 664 sys sys 1068135488 1032
 sys/src/9/ppc/dat.h - 664 sys sys 1067723142 4676
 sys/src/9/ppc/devether.c - 664 sys sys 1059490750 9264
 sys/src/9/ppc/devflash.c - 664 sys sys 1059490750 19885
 sys/src/9/ppc/devirq.c - 664 sys sys 1067722849 6057
 sys/src/9/ppc/devtls.c - 664 sys sys 1059490751 43721
 sys/src/9/ppc/errstr.h - 664 sys sys 1059490751 2137
-sys/src/9/ppc/etherfcc.c - 664 sys sys 1059490751 14295
+sys/src/9/ppc/etherfcc.c - 664 sys sys 1068135488 14307
 sys/src/9/ppc/etherif.h - 664 sys sys 1059490751 785
 sys/src/9/ppc/ethersaturn.c - 664 sys sys 1059490751 4321
 sys/src/9/ppc/fns.h - 664 sys sys 1067722798 4211
@@ -5435,7 +5438,7 @@ sys/src/9/ppc/l.s - 664 sys sys 1067722848 21035
 sys/src/9/ppc/lblast.h - 664 sys sys 1059490752 1694
 sys/src/9/ppc/lucu.h - 664 sys sys 1059490752 935
 sys/src/9/ppc/m8260.c - 664 sys sys 1059490752 14264
-sys/src/9/ppc/m8260.h - 664 sys sys 1059490752 20892
+sys/src/9/ppc/m8260.h - 664 sys sys 1068135488 20913
 sys/src/9/ppc/main.c - 664 sys sys 1059490752 9203
 sys/src/9/ppc/mcc.c - 664 sys sys 1059490752 9667
 sys/src/9/ppc/mem.h - 664 sys sys 1059490752 7015
@@ -5448,7 +5451,7 @@ sys/src/9/ppc/random.c - 664 sys sys 1059490753 1983
 sys/src/9/ppc/saturntimer.c - 664 sys sys 1059490753 1734
 sys/src/9/ppc/trap.c - 664 sys sys 1059490753 17248
 sys/src/9/ppc/uartsaturn.c - 664 sys sys 1059490754 7151
-sys/src/9/ppc/uartsmc.c - 664 sys sys 1059490754 11713
+sys/src/9/ppc/uartsmc.c - 664 sys sys 1068135489 11462
 sys/src/9/ppc/ucu - 664 sys sys 1067722849 672
 sys/src/9/ppc/ucu.h - 664 sys sys 1059490754 531
 sys/src/NOTICE - 444 sys sys 1018803112 63
@@ -6281,7 +6284,7 @@ sys/src/boot/pc/bootp.c - 664 sys sys 1015007948 9417
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
 sys/src/boot/pc/clock.c - 664 sys sys 1015007948 5648
 sys/src/boot/pc/conf.c - 664 sys sys 1063855536 10128
-sys/src/boot/pc/console.c - 664 sys sys 1063855537 3459
+sys/src/boot/pc/console.c - 664 sys sys 1068158999 3487
 sys/src/boot/pc/dat.h - 664 sys sys 1056073257 3432
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
@@ -6339,7 +6342,7 @@ sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1032215925 2404
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1015007954 52004
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdata.c - 664 sys sys 1045504828 33498
+sys/src/boot/pc/sdata.c - 664 sys sys 1068156754 35084
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1015007955 28743
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1018553454 6680
 sys/src/boot/pc/trap.c - 664 sys sys 1018462833 7098
@@ -6649,7 +6652,7 @@ sys/src/cmd/acme/fsys.c - 664 sys sys 1022512648 12727
 sys/src/cmd/acme/look.c - 664 sys sys 1041137125 14840
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
-sys/src/cmd/acme/rows.c - 664 sys sys 1016833877 14726
+sys/src/cmd/acme/rows.c - 664 sys sys 1068140772 14637
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1045504840 24133
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
@@ -6720,7 +6723,7 @@ sys/src/cmd/auth/factotum/p9sk1.c - 664 sys sys 1048614974 9606
 sys/src/cmd/auth/factotum/pass.c - 664 sys sys 1048614974 1511
 sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1044829590 11147
 sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1048614986 3462
-sys/src/cmd/auth/factotum/secstore.c - 664 sys sys 1048614989 14894
+sys/src/cmd/auth/factotum/secstore.c - 664 sys sys 1068129501 14932
 sys/src/cmd/auth/factotum/sshrsa.c - 664 sys sys 1048614985 3396
 sys/src/cmd/auth/factotum/util.c - 664 sys sys 1048614988 17031
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1048614986 2205
@@ -7293,7 +7296,7 @@ sys/src/cmd/file.c - 664 sys sys 1065017417 20590
 sys/src/cmd/fmt.c - 664 sys sys 1025298248 3897
 sys/src/cmd/fortune.c - 664 sys sys 1035832953 1674
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
-sys/src/cmd/fossil/9.h - 664 sys sys 1066098099 4163
+sys/src/cmd/fossil/9.h - 664 sys sys 1068129294 4165
 sys/src/cmd/fossil/9auth.c - 664 sys sys 1061530721 3393
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1042005502 1995
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
@@ -7302,7 +7305,7 @@ sys/src/cmd/fossil/9fsys.c - 664 sys sys 1061530721 29881
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
 sys/src/cmd/fossil/9p.c - 664 sys sys 1066098096 21486
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
-sys/src/cmd/fossil/9proc.c - 664 sys sys 1063855223 15345
+sys/src/cmd/fossil/9proc.c - 664 sys sys 1068129294 15100
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1066098097 3682
 sys/src/cmd/fossil/9user.c - 664 sys sys 1066098098 17239
 sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
