@@ -110,7 +110,7 @@ extern int ungetc(int, FILE *);
 extern size_t fread(void *, size_t, size_t, FILE *);
 extern size_t fwrite(const void *, size_t, size_t, FILE *);
 extern int fgetpos(FILE *, fpos_t *);
-extern long long fseek(FILE *, long long, int);
+extern int fseek(FILE *, long long, int);
 extern int fsetpos(FILE *, const fpos_t *);
 extern long long ftell(FILE *);
 extern void rewind(FILE *);

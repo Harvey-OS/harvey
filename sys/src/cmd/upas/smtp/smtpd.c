@@ -30,6 +30,7 @@ int	sflag;
 int	authenticate;
 int	authenticated;
 int	passwordinclear;
+int	tlsok;
 
 List senders;
 List rcvers;
@@ -124,6 +125,9 @@ main(int argc, char **argv)
 		break;
 	case 'p':
 		passwordinclear = 1;
+		break;
+	case 't':
+		tlsok = 1;
 		break;
 	default:
 		fprint(2, "usage: smtpd [-dfhrs] [-n net]\n");
@@ -253,7 +257,8 @@ hello(String *himp, int extended)
 
 	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
 	if (extended) {
-		reply("250-STARTTLS\r\n");
+		if(tlsok)
+			reply("250-STARTTLS\r\n");
 		if (passwordinclear)		
 			reply("250 AUTH CRAM-MD5 PLAIN LOGIN\r\n");
 		else
@@ -280,7 +285,9 @@ sender(String *path)
 		reply("503 Start by saying HELO, please.\r\n", s_to_c(path));
 		return;
 	}
-	if(strchr(s_to_c(path), '!') == 0){
+
+	/* don't add the domain onto black holes or we will loop */
+	if(strchr(s_to_c(path), '!') == 0 && strcmp(s_to_c(path), "/dev/null") != 0){
 		s = s_new();
 		s_append(s, him);
 		s_append(s, "!");
@@ -674,6 +681,46 @@ getaddr(Node *p)
 }
 
 /*
+ *  add waring headers of the form
+ *	X-warning: <reason>
+ *  for any headers that looked like they might be forged.
+ *
+ *  return byte count of new headers
+ */
+static int
+forgedheaderwarnings(void)
+{
+	int nbytes;
+	Field *f;
+
+	nbytes = 0;
+
+	/* warn about envelope sender */
+	if(strcmp(s_to_c(senders.last->p), "/dev/null") != 0 && masquerade(senders.last->p, nil))
+		nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect envelope domain\n");
+
+	/*
+	 *  check Sender: field.  If it's OK, ignore the others because this is an
+	 *  exploded mailing list.
+	 */
+	for(f = firstfield; f; f = f->next){
+		if(f->node->c == SENDER){
+			if(masquerade(getaddr(f->node), him))
+				nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect Sender: domain\n");
+			else
+				return nbytes;
+		}
+	}
+
+	/* check From: */
+	for(f = firstfield; f; f = f->next){
+		if(f->node->c == FROM && masquerade(getaddr(f->node), him))
+			nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect From: domain\n");
+	}
+	return nbytes;
+}
+
+/*
  *  pipe message to mailer with the following transformations:
  *	- change \r\n into \n.
  *	- add sender's domain to any addrs with no domain
@@ -742,18 +789,11 @@ pipemsg(int *byteswritten)
 	yyparse();
 
 	/*
- 	 *  look for masquerades
+ 	 *  Llook for masquerades.  Let Sender: trump From: to allow mailing list
+	 *  forwarded messages.
 	 */
-	if(fflag){
-		if(masquerade(senders.last->p, nil))
-			nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect envelope domain\n");
-		for(f = firstfield; f; f = f->next){
-			if(f->node->c == FROM && masquerade(getaddr(f->node), him))
-				nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect From: domain\n");
-			if(f->node->c == SENDER && masquerade(getaddr(f->node), him))
-				nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect Sender: domain\n");
-		}
-	}
+	if(fflag)
+		nbytes += forgedheaderwarnings();
 
 	/*
 	 *  add an orginator and/or destination if either is missing
@@ -964,8 +1004,15 @@ s_dec64(String *sin)
 {
 	String *sout;
 	int lin, lout;
-	lin = s_len(sin) - 1;	// strip nl
-	sout = s_newalloc(lin + 1);	// for nul
+	lin = s_len(sin);
+
+	/*
+	 * if the string is coming from smtpd.y, it will have no nl.
+	 * if it is coming from getcrnl below, it will have an nl.
+	 */
+	if (*(s_to_c(sin)+lin-1) == '\n')
+		lin--;
+	sout = s_newalloc(lin+1);
 	lout = dec64((uchar *)s_to_c(sout), lin, s_to_c(sin), lin);
 	if (lout < 0) {
 		s_free(sout);
@@ -1022,6 +1069,8 @@ auth(String *mech, String *resp)
 
 	if (rejectcheck())
 		goto bomb_out;
+
+	syslog(0, "smtpd", "auth(%s, %s) from %s\n", s_to_c(mech), s_to_c(resp), him);
 
 	if (authenticated) {
 	bad_sequence:
@@ -1119,7 +1168,7 @@ auth(String *mech, String *resp)
 			reply("501 Cannot decode base64\r\n");
 			goto bomb_out;
 		}
-		// should be of form <user><space><response>
+		/* should be of form <user><space><response> */
 		resp = s_to_c(s_resp1);
 		t = strchr(resp, ' ');
 		if (t == nil) {
@@ -1153,5 +1202,3 @@ bomb_out:
 	if (s_resp2_64)
 		s_free(s_resp2_64);
 }
-
-
