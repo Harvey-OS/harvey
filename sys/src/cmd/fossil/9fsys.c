@@ -107,6 +107,12 @@ fsysGet(char* name)
 	return fsys;
 }
 
+char*
+fsysGetName(Fsys *fsys)
+{
+	return fsys->name;
+}
+
 Fsys*
 fsysIncRef(Fsys* fsys)
 {
@@ -1226,7 +1232,7 @@ fsysOpen(char* name, int argc, char* argv[])
 			host = nil;
 		fsys->session = vtDial(host, 1);
 		if(!vtConnect(fsys->session, nil))
-			fprint(2, "vtConnect: %R\n");
+			fprint(2, "warning: connecting to venti: %R\n");
 	}
 	if((fsys->fs = fsOpen(fsys->dev, fsys->session, ncache, rflag)) == nil){
 		vtUnlock(fsys->lock);

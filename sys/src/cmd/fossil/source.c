@@ -498,6 +498,8 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	Cache *c;
 	u32int addr;
 	int type;
+	uchar oscore[VtScoreSize];
+	Entry oe;
 
 	c = fs->cache;
 
@@ -517,6 +519,8 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	if(!(b->l.state&BsClosed) && b->l.epoch == fs->ehi)
 		return b;
 
+	oe = *e;
+
 	/*
 	 * Copy on write.
 	 */
@@ -533,14 +537,16 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 
 	assert(b->l.epoch == fs->ehi);
 
+	blockDirty(b);
 	if(p->l.type == BtDir){
 		memmove(e->score, b->score, VtScoreSize);
 		entryPack(e, p->data, index);
-	}else{	
+		blockDependency(p, b, index, nil, &oe);
+	}else{
+		memmove(oscore, p->data+index*VtScoreSize, VtScoreSize);
 		memmove(p->data+index*VtScoreSize, b->score, VtScoreSize);
+		blockDependency(p, b, index, oscore, nil);
 	}
-	blockDirty(b);
-	blockDependency(p, b, index, b->score);
 	blockDirty(p);
 
 	if(addr != NilBlock)
@@ -559,6 +565,7 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 	Block *b, *bb;
 	u32int tag;
 	int type;
+	Entry oe;
 
 	assert(sourceIsLocked(r));
 	assert(depth <= VtPointerDepth);
@@ -571,6 +578,8 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 	tag = e->tag;
 	if(tag == 0)
 		tag = tagGen();
+
+	oe = *e;
 
 	/*
 	 * Keep adding layers until we get to the right depth
@@ -586,14 +595,14 @@ sourceGrowDepth(Source *r, Block *p, Entry *e, int depth)
 		type++;
 		e->tag = tag;
 		e->flags |= VtEntryLocal;
-		blockDependency(bb, b, -1, nil);
+		blockDependency(bb, b, 0, vtZeroScore, nil);
 		blockPut(b);
 		blockDirty(bb);
 		b = bb;
 	}
 
 	entryPack(e, p->data, r->offset % r->epb);
-	blockDependency(p, b, -1, nil);
+	blockDependency(p, b, r->offset % r->epb, nil, &oe);
 	blockPut(b);
 	blockDirty(p);
 
@@ -606,6 +615,7 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 	Block *b, *nb, *ob, *rb;
 	u32int tag;
 	int type, d;
+	Entry oe;
 
 	assert(sourceIsLocked(r));
 	assert(depth <= VtPointerDepth);
@@ -623,6 +633,8 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 	 * Walk down to the new root block.
 	 * We may stop early, but something is better than nothing.
 	 */
+	oe = *e;
+
 	ob = nil;
 	b = rb;
 	for(d=e->depth; d > depth; d--, type++){
@@ -656,11 +668,12 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 	e->depth = d;
 	memmove(e->score, b->score, VtScoreSize);
 	entryPack(e, p->data, r->offset % r->epb);
+	blockDependency(p, b, r->offset % r->epb, nil, &oe);
 	blockDirty(p);
 
 	/* (ii) */
 	memmove(ob->data, vtZeroScore, VtScoreSize);
-	blockDependency(ob, p, -1, nil);
+	blockDependency(ob, p, 0, b->score, nil);
 	blockDirty(ob);
 
 	/* (iii) */
@@ -670,8 +683,7 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 	blockPut(rb);
 	if(ob!=nil && ob!=rb)
 		blockPut(ob);
-	if(b!=rb)
-		blockPut(b);
+	blockPut(b);
 
 	return d == depth;
 }

@@ -27,6 +27,7 @@ struct Cache
 
 	Disk 	*disk;
 	int	size;			/* block size */
+	int	ndmap;		/* size of per-block dirty pointer map used in blockWrite */
 	VtSession *z;
 	u32int	now;			/* ticks for usage timestamps */
 	Block	**heads;		/* hash table for finding address */
@@ -55,6 +56,8 @@ struct Cache
 	int bw, br, be;
 	int nflush;
 
+	Periodic *sync;
+
 	/* unlink daemon */
 	BList *uhead;
 	BList *utail;
@@ -71,8 +74,10 @@ struct BList {
 	
 	/* for roll back */
 	int index;			/* -1 indicates not valid */
-	uchar score[VtScoreSize];
-
+	union {
+		uchar score[VtScoreSize];
+		uchar entry[VtEntrySize];
+	} old;
 	BList *next;
 };
 
@@ -101,7 +106,7 @@ static void flushThread(void *a);
 static void flushBody(Cache *c);
 static void unlinkBody(Cache *c);
 static int cacheFlushBlock(Cache *c);
-
+static void cacheSync(void*);
 /*
  * Mapping from local block type to Venti type
  */
@@ -141,7 +146,7 @@ cacheAlloc(Disk *disk, VtSession *z, ulong nblocks, int mode)
 
 	/* reasonable number of BList elements */
 	nbl = nblocks * 4;
-	
+
 	c->lk = vtLockAlloc();
 	c->ref = 1;
 	c->disk = disk;
@@ -150,12 +155,13 @@ cacheAlloc(Disk *disk, VtSession *z, ulong nblocks, int mode)
 bwatchSetBlockSize(c->size);
 	/* round c->size up to be a nice multiple */
 	c->size = (c->size + 127) & ~127;
+	c->ndmap = (c->size/20 + 7) / 8;
 	c->nblocks = nblocks;
 	c->hashSize = nblocks;
 	c->heads = vtMemAllocZ(c->hashSize*sizeof(Block*));
 	c->heap = vtMemAllocZ(nblocks*sizeof(Block*));
 	c->blocks = vtMemAllocZ(nblocks*sizeof(Block));
-	c->mem = vtMemAllocZ(nblocks * c->size + nbl * sizeof(BList));
+	c->mem = vtMemAllocZ(nblocks * (c->size + c->ndmap) + nbl * sizeof(BList));
 	c->baddr = vtMemAllocZ(nblocks * sizeof(BAddr));
 	c->mode = mode;
 	c->vers++;
@@ -171,13 +177,19 @@ bwatchSetBlockSize(c->size);
 		p += c->size;
 	}
 	c->nheap = nblocks;
-
-	for(i=0; i<nbl; i++){
+	for(i = 0; i < nbl; i++){
 		bl = (BList*)p;
 		bl->next = c->blfree;
 		c->blfree = bl;
 		p += sizeof(BList);
 	}
+	/* separate loop to keep blocks and blists reasonably aligned */
+	for(i = 0; i < nblocks; i++){
+		b = &c->blocks[i];
+		b->dmap = p;
+		p += c->ndmap;
+	}
+
 	c->blrend = vtRendezAlloc(c->lk);
 
 	c->maxdirty = nblocks*(DirtyPercentage*0.01);
@@ -187,6 +199,7 @@ bwatchSetBlockSize(c->size);
 	c->unlink = vtRendezAlloc(c->lk);
 	c->flush = vtRendezAlloc(c->lk);
 	c->flushwait = vtRendezAlloc(c->lk);
+	c->sync = periodicAlloc(cacheSync, c, 30*1000);
 
 	if(mode == OReadWrite){
 		c->ref += 2;
@@ -209,6 +222,7 @@ cacheFree(Cache *c)
 	/* kill off daemon threads */
 	vtLock(c->lk);
 	c->die = vtRendezAlloc(c->lk);
+	periodicKill(c->sync);
 	vtWakeup(c->flush);
 	vtWakeup(c->unlink);
 	while(c->ref > 1)
@@ -805,7 +819,7 @@ blockCopy(Block *b, u32int tag, u32int ehi, u32int elo)
 			blockPut(bb);
 			return nil;
 		}
-		blockDependency(bb, lb, -1, nil);
+		blockDependency(bb, lb, -1, nil, nil);
 		blockPut(lb);
 	}
 
@@ -1131,18 +1145,30 @@ blockFlush(Block *b)
 }
 
 /*
- * record that bb must be written out before b.
- * if index is given, we're about to overwrite the score
- * at that index in the block.  save the old value so we
+ * Record that bb must be written out before b.
+ * If index is given, we're about to overwrite the score/e
+ * at that index in the block.  Save the old value so we
  * can write a safer ``old'' version of the block if pressed.
  */
 void
-blockDependency(Block *b, Block *bb, int index, uchar *score)
+blockDependency(Block *b, Block *bb, int index, uchar *score, Entry *e)
 {
 	BList *p;
 
 	if(bb->iostate == BioClean)
 		return;
+
+	/*
+	 * Dependencies for blocks containing Entry structures
+	 * or scores must always be explained.  The problem with
+	 * only explaining some of them is this.  Suppose we have two 
+	 * dependencies for the same field, the first explained
+	 * and the second not.  We try to write the block when the first
+	 * dependency is not written but the second is.  We will roll back
+	 * the first change even though the second trumps it.
+	 */
+	if(index == -1 && bb->part == PartData)
+		assert(b->l.type == BtData);
 
 	assert(bb->iostate == BioDirty);
 
@@ -1157,8 +1183,16 @@ if(0)fprint(2, "%d:%x:%d depends on %d:%x:%d\n", b->part, b->addr, b->l.type, bb
 	p->type = bb->l.type;
 	p->vers = bb->vers;
 	p->index = index;
-	if(p->index >= 0)
-		memmove(p->score, score, VtScoreSize);
+	if(p->index >= 0){
+		/*
+		 * This test would just be b->l.type==BtDir except
+		 * we need to exclude the super block.
+		 */
+		if(b->l.type == BtDir && b->part == PartData)
+			entryPack(e, p->old.entry, 0);
+		else
+			memmove(p->old.score, score, VtScoreSize);
+	}
 	p->next = b->prior;
 	b->prior = p;
 }
@@ -1186,9 +1220,9 @@ blockDirty(Block *b)
 	if(b->iostate == BioDirty)
 		return 1;
 	assert(b->iostate == BioClean);
-	b->iostate = BioDirty;
 
 	vtLock(c->lk);
+	b->iostate = BioDirty;
 	c->ndirty++;
 	if(c->ndirty > (c->maxdirty>>1))
 		vtWakeup(c->flush);
@@ -1222,29 +1256,6 @@ blockDirty(Block *b)
  * so bb can be reclaimed once b has been written to disk.  blockRemoveLink
  * checks !(b.state&Copied) as an optimization.  UnlinkBlock and blockCleanup
  * will check the conditions again for each block they consider.
- *
- * 12/28/2002 01:11 RSC BUG
- * When Entry structures are changed, most code does (for example):
- *
- *	oe = e;
- *	memset(&e, 0, sizeof e);
- *	entryPack(&e, b->data, index);
- *	blockDirty(b);
- *	blockDependency(b, block referenced by new e);
- *	addr = globalToLocal(oe.score);
- *	if(addr != NilBlock)
- *		blockRemoveLink(b, addr, entryType(&oe), oe.tag);
- *
- * This is wrong if there is already a different dependency for that entry
- * and the entries have different types (different heights of the hash tree).
- * Because the dependency only records the block address and not the
- * entry type, putting the old block address into the new entry results in
- * a bogus entry structure.  blockRollback catches this in an assert failure.
- * I think the solution is to record the entry type and tag in the BList structure,
- * but I want to mull it over a bit longer.
- *
- * In two and a half months running the system I have seen exactly one
- * crash due to this bug.
  */
 int
 blockRemoveLink(Block *b, u32int addr, int type, u32int tag)
@@ -1357,18 +1368,15 @@ blockSetLabel(Block *b, Label *l)
 	 */
 
 	if(oldl.state == BsFree)
-		blockDependency(b, lb, -1, nil);
+		blockDependency(b, lb, -1, nil, nil);
 	blockPut(lb);
 	return 1;
 }
 
 /*
- * We've decided to write out b.
- * Maybe b has some pointers to blocks
- * that haven't yet been written to disk.
- * If so, construct a slightly out-of-date
- * copy of b that is safe to write out.
- * (diskThread will make sure the block
+ * We've decided to write out b.  Maybe b has some pointers to blocks
+ * that haven't yet been written to disk.  If so, construct a slightly out-of-date
+ * copy of b that is safe to write out.  (diskThread will make sure the block
  * remains marked as dirty.)
  */
 uchar *
@@ -1376,7 +1384,6 @@ blockRollback(Block *b, uchar *buf)
 {
 	u32int addr;
 	BList *p;
-	Entry e;
 	Super super;
 
 	/* easy case */
@@ -1393,28 +1400,19 @@ blockRollback(Block *b, uchar *buf)
 		if(b->part == PartSuper){
 			assert(p->index == 0);
 			superUnpack(&super, buf);
-			addr = globalToLocal(p->score);
+			addr = globalToLocal(p->old.score);
 			if(addr == NilBlock){
-				fprint(2, "rolling back super block: bad replacement addr %V\n", p->score);
+				fprint(2, "rolling back super block: bad replacement addr %V\n", p->old.score);
 				abort();
 			}
 			super.active = addr;
 			superPack(&super, buf);
 			continue;
 		}
-		if(b->l.type != BtDir){
-			memmove(buf+p->index*VtScoreSize, p->score, VtScoreSize);
-			continue;
-		}
-		entryUnpack(&e, buf, p->index);
-		assert(entryType(&e) == p->type);
-		memmove(e.score, p->score, VtScoreSize);
-		if(globalToLocal(p->score) == NilBlock){
-			e.flags &= ~VtEntryLocal;	
-			e.tag = 0;
-			e.snap = 0;
-		}
-		entryPack(&e, buf, p->index);
+		if(b->l.type == BtDir)
+			memmove(buf+p->index*VtEntrySize, p->old.entry, VtEntrySize);
+		else
+			memmove(buf+p->index*VtScoreSize, p->old.score, VtScoreSize);
 	}
 	return buf;
 }
@@ -1432,6 +1430,7 @@ blockRollback(Block *b, uchar *buf)
 int
 blockWrite(Block *b)
 {
+	uchar *dmap;
 	Cache *c;
 	BList *p, **pp;
 	Block *bb;
@@ -1442,16 +1441,24 @@ blockWrite(Block *b)
 	if(b->iostate != BioDirty)
 		return 1;
 
+	dmap = b->dmap;
+	memset(dmap, 0, c->ndmap);
 	pp = &b->prior;
 	for(p=*pp; p; p=*pp){
+		if(p->index >= 0){
+			/* more recent dependency has succeeded; this one can go */
+			if(dmap[p->index/8] & (1<<(p->index%8)))
+				goto ignblock;
+		}
+
+		lockfail = 0;
 		bb = _cacheLocalLookup(c, p->part, p->addr, p->vers, 0, &lockfail);
 		if(bb == nil){
 			if(lockfail)
 				return 0;
-			/* block must have been written already */
-			*pp = p->next;
-			blistFree(c, p);
-			continue;
+			/* block not in cache => was written already */
+			dmap[p->index/8] |= 1<<(p->index%8);
+			goto ignblock;
 		}
 
 		/*
@@ -1474,6 +1481,12 @@ blockWrite(Block *b)
 		}
 		/* keep walking down the list */
 		pp = &p->next;
+		continue;
+
+ignblock:
+		*pp = p->next;
+		blistFree(c, p);
+		continue;
 	}
 
 	diskWrite(c->disk, b);
@@ -1525,6 +1538,7 @@ if(0) fprint(2, "iostate part=%d addr=%x %s->%s\n", b->part, b->addr, bioStr(b->
 		if(b->iostate == BioDirty || b->iostate == BioWriting){
 			vtLock(c->lk);
 			c->ndirty--;
+			b->iostate = iostate;	/* change here to keep in sync with ndirty */
 			b->vers = c->vers++;
 			if(b->uhead){
 				/* add unlink blocks to unlink queue */
@@ -1871,32 +1885,42 @@ baddrCmp(void *a0, void *a1)
 static void
 flushFill(Cache *c)
 {
-	int i;
+	int i, ndirty;
 	BAddr *p;
 	Block *b;
 
 	vtLock(c->lk);
-	if(c->ndirty == 0){
-		vtUnlock(c->lk);
-		return;
-	}
+//	if(c->ndirty == 0){
+//		vtUnlock(c->lk);
+//		return;
+//	}
 
 	p = c->baddr;
+	ndirty = 0;
 	for(i=0; i<c->nblocks; i++){
 		b = c->blocks + i;
-		if(b->part == PartError || b->iostate != BioDirty)
+		if(b->part == PartError)
+			continue;
+		if(b->iostate == BioDirty || b->iostate == BioWriting)
+			ndirty++;
+		if(b->iostate != BioDirty)
 			continue;
 		p->part = b->part;
 		p->addr = b->addr;
 		p->vers = b->vers;
 		p++;
 	}
+	if(ndirty != c->ndirty){
+		fprint(2, "ndirty mismatch expected %d found %d\n",
+			c->ndirty, ndirty);
+		c->ndirty = ndirty;
+	}
 	vtUnlock(c->lk);
 	
 	c->bw = p - c->baddr;
 	qsort(c->baddr, c->bw, sizeof(BAddr), baddrCmp);
 }
-	
+
 /*
  * This is not thread safe, i.e. it can't be called from multiple threads.
  * 
@@ -1997,4 +2021,16 @@ cacheFlush(Cache *c, int wait)
 	}else
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);
+}
+
+/*
+ * Kick the flushThread every 30 seconds.
+ */
+static void
+cacheSync(void *v)
+{
+	Cache *c;
+
+	c = v;
+	cacheFlush(c, 0);
 }

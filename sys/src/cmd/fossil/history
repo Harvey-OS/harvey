@@ -14,4 +14,14 @@ changes since initial alpha release
 	make fossil chatter a bit less to stderr.  errors
 	still go to stderr.
 
+11 jan 2003
+	add console prints on auth failure, for debugging
+	mark vtConnect message as warning
+	fix create command in user command
+	add background process to sync disk periodically
+	allow multiple snapshots per minute
+	fix bugs in soft updates
+	add double-check of ndirty to flushFill.  i've seen metadata
+		not get updated when you change it right before a reboot,
+		and i don't understand why.
 

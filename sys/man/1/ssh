@@ -78,8 +78,8 @@ force input to be read in cooked mode:
 ``line at a time'' with local echo.
 .TP
 .B -f
-diable agent forwarding.
-By default,
+enable agent forwarding.
+With this flag,
 .I ssh
 uses SSH's agent forwarding protocol to allow
 programs running on the remote server to
