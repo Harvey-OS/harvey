@@ -638,27 +638,6 @@ outhist(void)
 	}
 }
 
-void
-praghjdicks(void)
-{
-	while(getnsc() != '\n')
-		;
-}
-
-void
-pragvararg(void)
-{
-	while(getnsc() != '\n')
-		;
-}
-
-void
-pragfpround(void)
-{
-	while(getnsc() != '\n')
-		;
-}
-
 #include "../cc/lexbody"
 #include "../cc/macbody"
 #include "../cc/compat"

@@ -28,6 +28,8 @@ struct	Vlong
 
 void	abort(void);
 
+/* needed by profiler; can't be profiled. */
+#pragma profile off
 void
 _addv(Vlong *r, Vlong a, Vlong b)
 {
@@ -53,6 +55,8 @@ _subv(Vlong *r, Vlong a, Vlong b)
 	r->lo = lo;
 	r->hi = hi;
 }
+
+#pragma profile on
 
 void
 _d2v(Vlong *y, double d)

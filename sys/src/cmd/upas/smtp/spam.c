@@ -1,6 +1,6 @@
 #include "common.h"
 #include "smtpd.h"
-#include "ip.h"
+#include <ip.h>
 
 enum {
 	NORELAY = 0,
@@ -42,8 +42,12 @@ static Keyword actions[] = {
 };
 
 static	int	hisaction;
+static	List	ourdoms;
+static	List 	badguys;
+static	ulong	v4peerip;
 
 static	char*	getline(Biobuf*);
+static	int	cidrcheck(char*);
 
 static int
 findkey(char *val, Keyword *p)
@@ -106,6 +110,10 @@ getconf(void)
 	char *cp, *p;
 	String *s;
 	char buf[512];
+	uchar addr[4];
+
+	v4parseip(addr, nci->rsys);
+	v4peerip = nhgetl(addr);
 
 	trusted = istrusted(nci->rsys);
 	hisaction = getaction(nci->rsys, "ip");
@@ -390,7 +398,8 @@ masquerade(String *path, char *him)
 	return rv;
 }
 
-int
+/* this is a v4 only check */
+static int
 cidrcheck(char *cp)
 {
 	char *p;
@@ -398,10 +407,10 @@ cidrcheck(char *cp)
 	uchar addr[IPv4addrlen];
 	uchar mask[IPv4addrlen];
 
-	if(peerip == 0)
+	if(v4peerip == 0)
 		return 0;
 
-		/* parse a list of CIDR addresses comparing each to the peer IP addr */
+	/* parse a list of CIDR addresses comparing each to the peer IP addr */
 	while(cp && *cp){
 		v4parsecidr(addr, mask, cp);
 		a = nhgetl(addr);
@@ -420,12 +429,31 @@ cidrcheck(char *cp)
 			/* force at least a class B */
 			m |= 0xffff0000;
 		}
-		if((peerip&m) == a)
+		if((v4peerip&m) == a)
 			return 1;
 		cp += strlen(cp)+1;
 	}		
 	return 0;
 }
+
+int
+isbadguy(void)
+{
+	Link *l;
+
+	/* check if this IP address is banned */
+	for(l = badguys.first; l; l = l->next)
+		if(cidrcheck(s_to_c(l->p)))
+			return 1;
+
+	return 0;
+}
+
+void
+addbadguy(char *p)
+{
+	listadd(&badguys, s_copy(p));
+};
 
 char*
 dumpfile(char *sender)

@@ -16,14 +16,15 @@ typedef struct Mousestate	Mousestate;
 
 struct Mousestate
 {
-	Point	xy;			/* mouse.xy */
-	int	buttons;		/* mouse.buttons */
+	Point	xy;		/* mouse.xy */
+	int	buttons;	/* mouse.buttons */
 	ulong	counter;	/* increments every update */
-	ulong	msec;	/* time of last event */
+	ulong	msec;		/* time of last event */
 };
 
 struct Mouseinfo
 {
+	Lock;
 	Mousestate;
 	int	dx;
 	int	dy;
@@ -37,10 +38,10 @@ struct Mouseinfo
 	int	inopen;
 	int	acceleration;
 	int	maxacc;
-	Mousestate 	queue[16];	/* circular buffer of click events */
-	int	ri;	/* read index into queue */
-	int	wi;	/* write index into queue */
-	uchar	qfull;	/* queue is full */
+	Mousestate	queue[16];	/* circular buffer of click events */
+	int	ri;		/* read index into queue */
+	int	wi;		/* write index into queue */
+	uchar	qfull;		/* queue is full */
 };
 
 enum
@@ -54,7 +55,7 @@ static Cmdtab mousectlmsg[] =
 {
 	CMbuttonmap,	"buttonmap",	0,
 	CMswap,		"swap",		1,
-	CMwildcard,	"*",			0,
+	CMwildcard,	"*",		0,
 };
 
 Mouseinfo	mouse;

@@ -82,6 +82,32 @@ before running
 .IR program .
 If the buffer fills, subsequent function calls may not be recorded.
 .PP
+The profiling code provided by the linker initializes itself to profile the current pid,
+producing a file called
+.B prof.\f2pid\fP.
+If a process forks, only the parent will continue to be profiled.  Forked children
+can cause themselves to be profile by calling
+.EX
+    prof(fn, arg, entries, what)
+.EE
+which causes the function \f2fn\fP(\f2arg\fP) to be profiled.  When \f2fn\fP
+returns 
+.B prof.\f2pid\fP
+is produced for the current process pid.
+.PP
+The environment variable
+.B proftype
+can be set to one of
+.BR user ,
+.BR kernel ,
+.BR elapsed ,
+or
+.BR sample ,
+to profile time measured spent in user mode, time spent in user+kernel mode, or elapsed time,
+using the cycle counter, or the time in user mode using the kernel's HZ clock.  The cycle counter
+is currently only available on modern PCs and on the PowerPC.  Default profiling measures user
+time, using the cycle counter if it is available.
+.PP
 .I Tprof
 is similar to
 .IR prof ,

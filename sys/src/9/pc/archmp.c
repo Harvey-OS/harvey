@@ -54,6 +54,18 @@ mpsearch(void)
 	return mpscan(KADDR(0xF0000), 0x10000);
 }
 
+static int identify(void);
+
+PCArch archmp = {
+.id=		"_MP_",	
+.ident=		identify,
+.reset=		mpshutdown,
+.intrinit=	mpinit,
+.intrenable=	mpintrenable,
+.fastclock=	i8253read,
+.timerset=	lapictimerset,
+};
+
 static int
 identify(void)
 {
@@ -86,6 +98,8 @@ identify(void)
 	if(sum || (pcmp->version != 1 && pcmp->version != 4))
 		return 1;
 
+	if(cpuserver && m->havetsc)
+		archmp.fastclock = tscticks;
 	return 0;
 }
 
@@ -102,37 +116,21 @@ syncclock(void)
 	if(m->machno == 0){
 		wrmsr(0x10, 0);
 		m->tscticks = 0;
-		m->tscoff = 0;
 	} else {
 		x = MACHP(0)->tscticks;
 		while(x == MACHP(0)->tscticks)
 			;
-		m->tscoff = MACHP(0)->tscticks;
-		wrmsr(0x10, 0);
-		m->tscticks = 0;
+		wrmsr(0x10, MACHP(0)->tscticks);
+		m->tscticks = MACHP(0)->tscticks;
 	}
 }
 
 uvlong
 tscticks(uvlong *hz)
 {
-	uvlong t;
-
 	if(hz != nil)
 		*hz = m->cpuhz;
 
-	rdtsc(&t);
-	m->tscticks = t;
-
-	return t+m->tscoff;
+	cycles(&m->tscticks);	/* Uses the rdtsc instruction */
+	return m->tscticks;
 }
-
-PCArch archmp = {
-.id=		"_MP_",	
-.ident=		identify,
-.reset=		mpshutdown,
-.intrinit=	mpinit,
-.intrenable=	mpintrenable,
-.fastclock=	i8253read,
-.timerset=	lapictimerset,
-};

@@ -529,3 +529,25 @@ getconf(char*)
 {
 	return nil;
 }
+
+long
+_xdec(long *p)
+{
+	int x;
+	long v;
+
+	x = splhi();
+	v = --*p;
+	splx(x);
+	return v;
+}
+
+void
+_xinc(long *p)
+{
+	int x;
+
+	x = splhi();
+	++*p;
+	splx(x);
+}

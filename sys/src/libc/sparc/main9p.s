@@ -3,7 +3,7 @@
 TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 
 	MOVW	$setSB(SB), R2
-	MOVW	R7, _clock(SB)
+	MOVW	R7, _tos(SB)
 
 	MOVW	$p-64(SP),R7
 	MOVW	R7,_privates+0(SB)

@@ -121,7 +121,7 @@ void	freealias(Alias*);
 void	freealiases(Alias*);
 int	doublequote(Fmt*);
 
-int rflag, lbflag, xflag, holding, nflag, Fflag, eightflag;
+int rflag, lbflag, xflag, holding, nflag, Fflag, eightflag, dflag;
 int pgpflag = 0;
 char *user;
 char *login;
@@ -231,6 +231,9 @@ main(int argc, char **argv)
 	case 'r':
 		rflag = 1;		// for sendmail
 		break;
+	case 'd':
+		dflag = 1;		// for sendmail
+		break;
 	case '#':
 		lbflag = 1;		// for sendmail
 		break;
@@ -280,7 +283,7 @@ main(int argc, char **argv)
 
 	flags = 0;
 	headersrv = Nomessage;
-	if(!nflag && !xflag && !lbflag) {
+	if(!nflag && !xflag && !lbflag &&!dflag) {
 		// pass through headers, keeping track of which we've seen,
 		// perhaps building to list.
 		holding = holdon();
@@ -309,7 +312,7 @@ main(int argc, char **argv)
 	fd = sendmail(to, cc, &pid, Fflag ? argv[0] : nil);
 	if(fd < 0)
 		sysfatal("execing sendmail: %r\n:");
-	if(xflag || lbflag){
+	if(xflag || lbflag || dflag){
 		close(fd);
 		exits(waitforsubprocs());
 	}
@@ -1028,7 +1031,7 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 		ac++;
 	for(a = cc; a != nil; a = a->next)
 		ac++;
-	v = av = emalloc(sizeof(char*)*(ac+8));
+	v = av = emalloc(sizeof(char*)*(ac+20));
 	ac = 0;
 	v[ac++] = "sendmail";
 	if(xflag)
@@ -1037,6 +1040,8 @@ sendmail(Addr *to, Addr *cc, int *pid, char *rcvr)
 		v[ac++] = "-r";
 	if(lbflag)
 		v[ac++] = "-#";
+	if(dflag)
+		v[ac++] = "-d";
 	for(a = to; a != nil; a = a->next)
 		v[ac++] = a->v;
 	for(a = cc; a != nil; a = a->next)

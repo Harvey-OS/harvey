@@ -3,8 +3,7 @@
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include "io.h"
-#include "m8260.h"
+#include	"m8260.h"
 #include	"../port/error.h"
 
 enum{
@@ -79,7 +78,7 @@ ticmstimer(Ureg*, Timer *t)
 {
 	Irqconfig *ic;
 
-	ic = t->a;
+	ic = t->ta;
  	ic->interrupts++;
 	wakeup(&ic->r);
 }
@@ -92,9 +91,9 @@ irqenable(Irqconfig *ic, int irq)
 	if (ic->intenable)
 		return;
 	if (irq == Qmstimer){
-		if (ic->period == 0)
-			ic->period = ms2fastticks(ic->mode);
-		ic->when = 0;
+		if (ic->tstatus == Tidle)
+			ic->tns = MS2NS(ic->mode);
+		ic->tmode = Tperiodic;
 		timeradd(&ic->Timer);
 	}else{
 		if (irqconfig[irq]){
@@ -157,8 +156,8 @@ irqopen(Chan *c, int omode)
 	irq = (ulong)c->qid.path;
 	if(irq != Qdir){
 		ic = mallocz(sizeof(Irqconfig), 1);
-		ic->f = ticmstimer;
-		ic->a = ic;
+		ic->tf = ticmstimer;
+		ic->ta = ic;
 		if (irq == Qmstimer)
 			ic->mode = 1000;
 		c->aux = ic;
@@ -263,11 +262,11 @@ irqwrite(Chan *c, void *a, long n, vlong)
 		if (irq == Qmstimer){
 			ic->mode = strtol(cb->f[1], nil, 0);
 			if (ic->mode <= 0){
-				ic->period = ms2fastticks(1000);
+				ic->tns = MS2NS(1000);
 				ic->mode = 1000;
 				error(Ebadarg);
 			}
-			ic->period = ms2fastticks(ic->mode);
+			ic->tns = MS2NS(ic->mode);
 		}else if (strcmp(cb->f[1], "level") == 0){
 			ic->mode = 0;
 			iomem->siexr &= ~(0x8000 >> irq);
@@ -310,9 +309,9 @@ interrupt(Ureg*, void *arg)
 		print("Unexpected interrupt: %d\n", irq);
 		return;
 	}
+	ilock(&irqlock);
 	if (irq <= Qirq7)
 		iomem->sipnr_h |= 0x8000 >> irq;	/* Clear the interrupt */
-	ilock(&irqlock);
 	for(ic = *pic; ic; ic = ic->next){
 		ic->interrupts++;
 		wakeup(&ic->r);

@@ -51,28 +51,6 @@ checkalarms(void)
 
 	if(p && p->alarm <= now)
 		wakeup(&alarmr);
-
-	if(talarm.list == 0 || !canlock(&talarm))
-		return;
-
-	for(;;) {
-		p = talarm.list;
-		if(p == 0)
-			break;
-
-		if(p->twhen == 0) {
-			talarm.list = p->tlink;
-			p->trend = 0;
-			continue;
-		}
-		if(now < p->twhen)
-			break;
-		wakeup(p->trend);
-		talarm.list = p->tlink;
-		p->trend = 0;
-	}
-
-	unlock(&talarm);
 }
 
 ulong

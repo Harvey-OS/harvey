@@ -139,13 +139,13 @@ guesscpuhz(int aalcycles)
 		 */
 		outb(Tmode, Latch0);
 		if(m->havetsc)
-			rdtsc(&a);
+			cycles(&a);
 		x = inb(T0cntr);
 		x |= inb(T0cntr)<<8;
 		aamloop(loops);
 		outb(Tmode, Latch0);
 		if(m->havetsc)
-			rdtsc(&b);
+			cycles(&b);
 		y = inb(T0cntr);
 		y |= inb(T0cntr)<<8;
 		x -= y;
@@ -176,6 +176,7 @@ guesscpuhz(int aalcycles)
 		 */
 		m->cpumhz = (b+500000)/1000000L;
 		m->cpuhz = b;
+		m->cyclefreq = b;
 	} else {
 		/*
 		 *  add in possible 0.5% error and convert to MHz
@@ -234,7 +235,6 @@ i8253clock(Ureg* ureg, void*)
 void
 i8253enable(void)
 {
-print("i8253enable...");
 	i8253.enabled = 1;
 	i8253.period = Freq/HZ;
 	intrenable(IrqCLOCK, i8253clock, 0, BUSUNKNOWN, "clock");
@@ -306,6 +306,6 @@ perfticks(void)
 
 	if(!m->havetsc)
 		return m->ticks;
-	rdtsc(&x);
+	cycles(&x);
 	return x;
 }

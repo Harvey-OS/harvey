@@ -6,8 +6,6 @@
 #include "io.h"
 #include "ureg.h"
 
-typedef struct Timers Timers;
-
 struct Timers
 {
 	Lock;
@@ -20,54 +18,73 @@ ulong intrcount[MAXMACH];
 ulong fcallcount[MAXMACH];
 
 static uvlong
-tadd(Timers *tt, Timer *nt)
+tadd(Timers *tt, Timer *nt, uvlong now)
 {
-	Timer *t, **last, *pt;
+	Timer *t, **last;
 
-	pt = nil;
-	for(last = &tt->head; t = *last; last = &t->next){
-		if(t == nt){
-			/* timer's changing, remove it before putting it back on */
-			*last = t->next;
-			break;
-		}
-		if(t->period == nt->period){
+	/* Called with tt locked */
+	assert(nt->tt == nil);
+	switch(nt->tmode){
+	default:
+		panic("timer");
+		break;
+	case Trelative:
+		assert(nt->tns > 0);
+		nt->twhen = now + ns2fastticks(nt->tns);
+		break;
+	case Tabsolute:
+		nt->twhen = tod2fastticks(nt->tns);
+		break;
+	case Tperiodic:
+		assert(nt->tns > 0);
+		if(nt->twhen == 0){
 			/* look for another timer at same frequency for combining */
-			pt = t;
-		}
+			for(t = tt->head; t; t = t->tnext){
+				if(t->tmode == Tperiodic && t->tns == nt->tns)
+					break;
+			}
+			if (t)
+				nt->twhen = t->twhen;
+			else
+				nt->twhen = now + ns2fastticks(nt->tns);
+		}else
+			nt->twhen = now + ns2fastticks(nt->tns);
+		break;
 	}
 
-	if(nt->when == 0){
-		/* Try to synchronize periods to reduce # of interrupts */
-		assert(nt->period);
-		if(pt)
-			nt->when = pt->when;
-		else
-			nt->when = (uvlong)fastticks(nil) + nt->period;
-	}
-	
-	for(last = &tt->head; t = *last; last = &t->next){
-		if(t->when > nt->when)
+	for(last = &tt->head; t = *last; last = &t->tnext){
+		if(t->twhen > nt->twhen)
 			break;
 	}
-	nt->next = *last;
+	nt->tnext = *last;
 	*last = nt;
+	nt->tt = tt;
 	if(last == &tt->head)
-		return nt->when;
-	else
-		return 0;
+		return nt->twhen;
+	return 0;
 }
 
-/* add of modify a timer */
+/* add or modify a timer */
 void
 timeradd(Timer *nt)
 {
 	Timers *tt;
 	uvlong when;
 
+	if (nt->tmode == Tabsolute){
+		when = todget(nil);
+		if (nt->tns <= when){
+			if (nt->tns + MS2NS(1) <= when)	/* Give it some slack, small deviations will happen */
+				print("timeradd (%lld %lld) %lld too early 0x%lux\n",
+					when, nt->tns, when - nt->tns, getcallerpc(&nt));
+			nt->tns = when;
+		}
+	}
+	if (nt->tt)
+		timerdel(nt);
 	tt = &timers[m->machno];
 	ilock(tt);
-	when = tadd(tt, nt);
+	when = tadd(tt, nt, fastticks(nil));
 	if(when)
 		timerset(when);
 	iunlock(tt);
@@ -79,17 +96,24 @@ timerdel(Timer *dt)
 	Timer *t, **last;
 	Timers *tt;
 
-	tt = &timers[m->machno];
-	ilock(tt);
-	for(last = &tt->head; t = *last; last = &t->next){
-		if(t == dt){
-			*last = t->next;
-			break;
+	while(tt = dt->tt){
+		ilock(tt);
+		if (tt != dt->tt){
+			iunlock(tt);
+			continue;
 		}
+		for(last = &tt->head; t = *last; last = &t->tnext){
+			if(t == dt){
+				assert(dt->tt);
+				dt->tt = nil;
+				*last = t->tnext;
+				break;
+			}
+		}
+		if(last == &tt->head && tt->head)
+			timerset(tt->head->twhen);
+		iunlock(tt);
 	}
-	if(last == &tt->head && tt->head)
-		timerset(tt->head->when);
-	iunlock(tt);
 }
 
 void
@@ -114,23 +138,15 @@ hzclock(Ureg *ur)
 	if((active.machs&(1<<m->machno)) == 0)
 		return;
 
-	if(active.exiting && (active.machs & (1<<m->machno))) {
+	if(active.exiting) {
 		print("someone's exiting\n");
 		exit(0);
 	}
 
 	checkalarms();
 
-	if(up == 0 || up->state != Running)
-		return;
-
-	/* user profiling clock */
-	if(userureg(ur)){
-		(*(ulong*)(USTKTOP-BY2WD)) += TK2MS(1);
-		segclock(ur->pc);
-	}
-
-	hzsched();	/* in proc.c */
+	if(up && up->state == Running)
+		hzsched();	/* in proc.c */
 }
 
 void
@@ -151,7 +167,7 @@ timerintr(Ureg *u, uvlong)
 	now = fastticks(nil);
 	ilock(tt);
 	while(t = tt->head){
-		when = t->when;
+		when = t->twhen;
 		if(when > now){
 			timerset(when);
 			iunlock(tt);
@@ -160,36 +176,36 @@ timerintr(Ureg *u, uvlong)
 				hzclock(u);
 			return;
 		}
-		tt->head = t->next;
+		tt->head = t->tnext;
+		assert(t->tt == tt);
+		t->tt = nil;
 		fcallcount[m->machno]++;
 		iunlock(tt);
-		if(t->f){
-			(*t->f)(u, t);
+		if(t->tf){
+			(*t->tf)(u, t);
 			splhi();
 		} else
 			callhzclock++;
 		ilock(tt);
-		if(t->period){
-			t->when += t->period;
-			tadd(tt, t);
+		if(t->tmode == Tperiodic){
+			t->twhen += ns2fastticks(t->tns);
+			tadd(tt, t, now);
 		}
 	}
 	iunlock(tt);
 }
-
-uvlong hzperiod;
 
 void
 timersinit(void)
 {
 	Timer *t;
 
-	hzperiod = ms2fastticks(1000/HZ);
-
+	todinit();
 	t = malloc(sizeof(*t));
-	t->when = 0;
-	t->period = hzperiod;
-	t->f = nil;
+	t->tmode = Tperiodic;
+	t->tt = nil;
+	t->tns = 1000000000/HZ;
+	t->tf = nil;
 	timeradd(t);
 }
 
@@ -197,20 +213,21 @@ void
 addclock0link(void (*f)(void), int ms)
 {
 	Timer *nt;
+	uvlong ft;
 
-	/* Synchronize this to hztimer: reduces # of interrupts */
+	/* Synchronize to hztimer if ms is 0 */
 	nt = malloc(sizeof(Timer));
-	nt->when = 0;
 	if(ms == 0)
 		ms = 1000/HZ;
-	nt->period = ms2fastticks(ms);
-	nt->f = (void (*)(Ureg*, Timer*))f;
+	nt->tns = (vlong)ms*1000000LL;
+	nt->tmode = Tperiodic;
+	nt->tt = nil;
+	nt->tf = (void (*)(Ureg*, Timer*))f;
+
+	ft = fastticks(nil);
 
 	ilock(&timers[0]);
-	tadd(&timers[0], nt);
-	/* no need to restart timer:
-	 * this one's synchronized with hztimer which is already running
-	 */
+	tadd(&timers[0], nt, ft);
 	iunlock(&timers[0]);
 }
 

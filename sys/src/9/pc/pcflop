@@ -14,7 +14,6 @@ dev
 #	tls
 	cap
 #	kprof
-#	realtime	realtimesub edf
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -49,7 +48,7 @@ link
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
-	etherigbe pci ethermii
+	etherigbe	pci ethermii
 #	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -63,7 +62,7 @@ misc
 #	archmp		mp apic
 
 	sdata		pci sdscsi
-	sd53c8xx		pci sdscsi
+	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
 
 	uarti8250
@@ -77,7 +76,7 @@ misc
 	vgacyber938x	+cur
 	vgaet4000	+cur
 	vgahiqvideo	+cur
-	vgai81x	+cur
+	vgai81x		+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
 	vgamga4xx	+cur

@@ -8,7 +8,7 @@ char *fparts[] =
 	"add params	0x0040000 0x0080000",
 	"add kernel	0x0080000 0x0140000",
 	"add user	0x0140000 0x0200000",
-	"add ramdisk	0x0200000 0x0800000",
+	"add ramdisk	0x0200000 0x0600000",
 };
 
 void

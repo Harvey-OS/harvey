@@ -369,6 +369,26 @@ to be laid out in memory tightly packed in successive bytes, disregarding
 the usual alignment rules.
 Accessing such data can cause faults.
 .LP
+Similarly, 
+.CW #pragma
+.CW profile
+.CW off
+(or
+.CW no
+or
+.CW 0 )
+causes subsequently declared functions, until
+.CW #pragma
+.CW profile
+.CW on
+(or
+.CW yes
+or
+.CW 1 ),
+to be marked as unprofiled.
+Such functions will not be profiled when 
+profiling is enabled for the rest of the program.
+.LP
 Two
 .CW #pragma
 statements allow type-checking of

@@ -44,8 +44,8 @@ enum
 int debug;
 char *ofile;
 
-int	doftp(URL*, Range*, int, long);
-int	dohttp(URL*, Range*, int, long);
+int	doftp(URL*, URL*, Range*, int, long);
+int	dohttp(URL*, URL*,  Range*, int, long);
 int	crackurl(URL*, char*);
 Range*	crackrange(char*);
 int	getheader(int, char*, int);
@@ -66,7 +66,7 @@ int	headerprint;
 
 struct {
 	char	*name;
-	int	(*f)(URL*, Range*, int, long);
+	int	(*f)(URL*, URL*, Range*, int, long);
 } method[] = {
 	[Http]	{ "http",	dohttp },
 	[Https]	{ "https",	dohttp },
@@ -89,7 +89,8 @@ main(int argc, char **argv)
 	int fd, errs, n;
 	ulong mtime;
 	Dir *d;
-	char postbody[4096], *p, *e, *t;
+	char postbody[4096], *p, *e, *t, *hpx;
+	URL px; // Proxy
 
 	ofile = nil;
 	p = postbody;
@@ -98,6 +99,8 @@ main(int argc, char **argv)
 	r.end = -1;
 	mtime = 0;
 	memset(&u, 0, sizeof(u));
+	memset(&px, 0, sizeof(px));
+	hpx = getenv("httpproxy");
 
 	ARGBEGIN {
 	case 'o':
@@ -163,12 +166,14 @@ main(int argc, char **argv)
 
 	if(crackurl(&u, argv[0]) < 0)
 		sysfatal("%r");
+	if(hpx && crackurl(&px, hpx) < 0)
+		sysfatal("%r");
 
 	for(;;){
 		/* transfer data */
 		werrstr("");
 		seek(fd, 0, 0);
-		n = (*method[u.method].f)(&u, &r, fd, mtime);
+		n = (*method[u.method].f)(&u, &px, &r, fd, mtime);
 
 		switch(n){
 		case Eof:
@@ -289,7 +294,7 @@ catch(void*, char*)
 }
 
 int
-dohttp(URL *u, Range *r, int out, long mtime)
+dohttp(URL *u, URL *px, Range *r, int out, long mtime)
 {
 	int fd, cfd;
 	int redirect, loop;
@@ -310,7 +315,11 @@ dohttp(URL *u, Range *r, int out, long mtime)
 	/* loop for redirects, requires reading both response code and headers */
 	fd = -1;
 	for(loop = 0; loop < 32; loop++){
-		fd = dial(netmkaddr(u->host, tcpdir, u->port), 0, 0, 0);
+		if(px->host == nil){
+			fd = dial(netmkaddr(u->host, tcpdir, u->port), 0, 0, 0);
+		} else {
+			fd = dial(netmkaddr(px->host, tcpdir, px->port), 0, 0, 0);
+		}
 		if(fd < 0)
 			return Error;
 
@@ -334,12 +343,21 @@ dohttp(URL *u, Range *r, int out, long mtime)
 
 		/* write request, use range if not start of file */
 		if(u->postbody == nil){
-			dfprint(fd,	"GET %s HTTP/1.0\r\n"
-					"Host: %s\r\n"
-					"User-agent: Plan9/hget\r\n"
-					"Cache-Control: no-cache\r\n"
-					"Pragma: no-cache\r\n",
-					u->page, u->host);
+			if(px->host == nil){
+				dfprint(fd,	"GET %s HTTP/1.0\r\n"
+						"Host: %s\r\n"
+						"User-agent: Plan9/hget\r\n"
+						"Cache-Control: no-cache\r\n"
+						"Pragma: no-cache\r\n",
+						u->page, u->host);
+			} else {
+				dfprint(fd,	"GET http://%s%s HTTP/1.0\r\n"
+						"Host: %s\r\n"
+						"User-agent: Plan9/hget\r\n"
+						"Cache-Control: no-cache\r\n"
+						"Pragma: no-cache\r\n",
+						u->host, u->page, u->host);
+			}
 		} else {
 			dfprint(fd,	"POST %s HTTP/1.0\r\n"
 					"Host: %s\r\n"
@@ -753,7 +771,7 @@ int getaddrport(char*, uchar*, uchar*);
 int ftprestart(int, int, URL*, Range*, long);
 
 int
-doftp(URL *u, Range *r, int out, long mtime)
+doftp(URL *u, URL *px, Range *r, int out, long mtime)
 {
 	int pid, ctl, data, rv;
 	Waitmsg *w;
@@ -761,7 +779,13 @@ doftp(URL *u, Range *r, int out, long mtime)
 	char conndir[NETPATHLEN];
 	char *p;
 
-	ctl = dial(netmkaddr(u->host, tcpdir, u->port), 0, conndir, 0);
+	/* untestet, proxy dosn't work with ftp (I think) */
+	if(px->host != nil){
+		ctl = dial(netmkaddr(u->host, tcpdir, u->port), 0, conndir, 0);
+	} else {
+		ctl = dial(netmkaddr(px->host, tcpdir, px->port), 0, conndir, 0);
+	}
+
 	if(ctl < 0)
 		return Error;
 	if(net == nil){

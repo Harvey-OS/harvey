@@ -211,6 +211,7 @@ elogdelete(File *f, int q0, int q1)
 	f->elog.nd = q1-q0;
 }
 
+#define tracelog 0
 void
 elogapply(File *f)
 {
@@ -230,6 +231,8 @@ elogapply(File *f)
 
 	/*
 	 * The edit commands have already updated the selection in t->q0, t->q1.
+	 * (At least, they are supposed to have updated them.
+	 * We still keep finding commands that don't do it right.)
 	 * The textinsert and textdelete calls below will update it again, so save the
 	 * current setting and restore it at the end.
 	 */
@@ -252,6 +255,9 @@ elogapply(File *f)
 			break;
 
 		case Replace:
+			if(tracelog)
+				warning(nil, "elog replace %d %d\n",
+					b.q0, b.q0+b.nd);
 			if(!mod){
 				mod = TRUE;
 				filemark(f);
@@ -269,6 +275,9 @@ elogapply(File *f)
 			break;
 
 		case Delete:
+			if(tracelog)
+				warning(nil, "elog delete %d %d\n",
+					b.q0, b.q0+b.nd);
 			if(!mod){
 				mod = TRUE;
 				filemark(f);
@@ -278,6 +287,9 @@ elogapply(File *f)
 			break;
 
 		case Insert:
+			if(tracelog)
+				warning(nil, "elog insert %d %d\n",
+					b.q0, b.q0+b.nr);
 			if(!mod){
 				mod = TRUE;
 				filemark(f);
@@ -323,7 +335,9 @@ elogapply(File *f)
 	elogterm(f);
 
 	/*
-	 * Bad addresses will cause bufload to crash, so double check.
+	 * The q0 and q1 are supposed to be fine (see comment
+	 * above, where we saved them), but bad addresses
+	 * will cause bufload to crash, so double check.
 	 */
 	if(q0 > f->nc || q1 > f->nc || q0 > q1){
 		warning(nil, "elogapply: can't happen %d %d %d\n", q0, q1, f->nc);

@@ -96,7 +96,7 @@ transact(SMBus *s, int type, int addr, int cmd, uchar *data)
 	for(tries = 0; tries < 1000000; tries++){
 		if((inb(s->base+Hoststatus) & Host_busy) == 0)
 			break;
-		sched();
+		sched(nil);
 	}
 	if(tries >= 1000000){
 		// try aborting current transaction
@@ -104,7 +104,7 @@ transact(SMBus *s, int type, int addr, int cmd, uchar *data)
 		for(tries = 0; tries < 1000000; tries++){
 			if((inb(s->base+Hoststatus) & Host_busy) == 0)
 				break;
-			sched();
+			sched(nil);
 		}
 		if(tries >= 1000000){
 			snprint(err, sizeof(err), "SMBus jammed: %2.2ux", inb(s->base+Hoststatus));
@@ -138,7 +138,7 @@ transact(SMBus *s, int type, int addr, int cmd, uchar *data)
 		status = inb(s->base+Hoststatus);
 		if(status & (Failed|Bus_error|Dev_error|Host_complete))
 			break;
-		sched();
+		sched(nil);
 	}
 	if((status & Host_complete) == 0){
 		snprint(err, sizeof(err), "SMBus request failed: %2.2ux", status);

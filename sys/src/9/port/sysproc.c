@@ -1,9 +1,11 @@
 #include	"u.h"
+#include	"tos.h"
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
+#include	"edf.h"
 
 #include	<a.out.h>
 
@@ -246,6 +248,7 @@ sysexec(ulong *arg)
 	Fgrp *f;
 	Image *img;
 	ulong magic, text, entry, data, bss;
+	Tos *tos;
 
 	validaddr(arg[0], 1, 0);
 	file = (char*)arg[0];
@@ -316,7 +319,7 @@ sysexec(ulong *arg)
 	/*
 	 * Args: pass 1: count
 	 */
-	nbytes = BY2WD;		/* hole for profiling clock at top of stack */
+	nbytes = sizeof(Tos);		/* hole for profiling clock at top of stack (and more) */
 	nargs = 0;
 	if(indir){
 		argp = progarg;
@@ -363,6 +366,12 @@ sysexec(ulong *arg)
 	/*
 	 * Args: pass 2: assemble; the pages will be faulted in
 	 */
+	tos = (Tos*)(TSTKTOP - sizeof(Tos));
+	tos->cyclefreq = m->cyclefreq;
+	cycles((uvlong*)&tos->pcycles);
+	tos->pcycles = -tos->pcycles;
+	tos->kcycles = tos->pcycles;
+	tos->clock = 0;
 	argv = (char**)(TSTKTOP - ssize);
 	charp = (char*)(TSTKTOP - nbytes);
 	args = charp;
@@ -540,7 +549,10 @@ syssleep(ulong *arg)
 
 	n = arg[0];
 	if(n <= 0) {
-		yield();
+		if (up->edf && (up->edf->flags & Admitted))
+			edfyield();
+		else
+			yield();
 		return 0;
 	}
 	if(n < TK2MS(1))
@@ -839,8 +851,6 @@ sysrendezvous(ulong *arg)
 	*l = up;
 	up->state = Rendezvous;
 	unlock(up->rgrp);
-	if(edf->isedf(up))
-		edf->edfblock(up);
 
 	sched();
 

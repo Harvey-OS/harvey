@@ -6,7 +6,7 @@ sp=65
 TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 
 	MOVL	$setR67(SB), R67
-	MOVL	R(arg), _clock(SB)
+	MOVL	R(arg), _tos(SB)
 
 	MOVL	$p-64(SP),R(arg)
 	MOVL	R(arg),_privates+0(SB)

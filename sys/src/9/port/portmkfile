@@ -75,7 +75,8 @@ latin1.$O:	../port/latin1.h
 thwack.$O:	../port/thwack.h
 unthwack.$O:	../port/thwack.h
 devsdp.$O:	../port/thwack.h
-devrealtime.$O edf.$O realtime.$O: ../port/edf.h
+devproc.$O sysproc.$O:	/sys/include/tos.h
+devproc.$O edf.$O proc.$O: /sys/include/trace.h
 
 boot$CONF.out: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c

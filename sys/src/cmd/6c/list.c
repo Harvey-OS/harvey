@@ -51,13 +51,17 @@ Pconv(Fmt *fp)
 		sprint(str, "(%ld)	%A	%D/%d,%D",
 			p->lineno, p->as, &p->from, p->from.scale, &p->to);
 	else
+	if(p->as == ATEXT)
+		sprint(str, "(%ld)	%A	%D,%d,%D",
+			p->lineno, p->as, &p->from, p->from.scale, &p->to);
+	else
 	if(p->type != D_NONE) {
 		if(p->type >= D_R0 && p->type < D_R0+32)
 			sprint(str, "(%ld)	%A	%D,%R,%D",
 				p->lineno, p->as, &p->from, (int)p->type, &p->to);
 		else
 		if(p->type == D_CONST)
-			sprint(str, "(%ld)	%A	%D,$%d,%D",
+			sprint(str, "(%ld)	%A	%D,%d,%D",
 				p->lineno, p->as, &p->from, p->offset, &p->to);
 		else
 			sprint(str, "(%ld)	%A	%D,gok(%d),%D",

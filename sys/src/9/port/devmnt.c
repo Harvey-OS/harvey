@@ -20,15 +20,15 @@
 
 struct Mntrpc
 {
-	Chan*	c;		/* Channel for whom we are working */
+	Chan*	c;			/* Channel for whom we are working */
 	Mntrpc*	list;		/* Free/pending list */
 	Fcall	request;	/* Outgoing file system protocol message */
 	Fcall 	reply;		/* Incoming reply */
-	Mnt*	m;		/* Mount device during rpc */
-	Rendez	r;		/* Place to hang out */
+	Mnt*	m;			/* Mount device during rpc */
+	Rendez	r;			/* Place to hang out */
 	uchar*	rpc;		/* I/O Data buffer */
-	uint		rpclen;	/* len of buffer */
-	Block	*b;		/* reply blocks */
+	uint	rpclen;		/* len of buffer */
+	Block	*b;			/* reply blocks */
 	char	done;		/* Rpc completed */
 	uvlong	stime;		/* start time for mnt statistics */
 	ulong	reqlen;		/* request length for mnt statistics */
@@ -66,15 +66,15 @@ void	mntpntfree(Mnt*);
 void	mntqrm(Mnt*, Mntrpc*);
 Mntrpc*	mntralloc(Chan*, ulong);
 long	mntrdwr(int, Chan*, void*, long, vlong);
-int	mntrpcread(Mnt*, Mntrpc*);
+int		mntrpcread(Mnt*, Mntrpc*);
 void	mountio(Mnt*, Mntrpc*);
 void	mountmux(Mnt*, Mntrpc*);
 void	mountrpc(Mnt*, Mntrpc*);
-int	rpcattn(void*);
+int		rpcattn(void*);
 Chan*	mntchan(void);
 
 char	Esbadstat[] = "invalid directory entry received from server";
-char Enoversion[] = "version not established for mount channel";
+char 	Enoversion[] = "version not established for mount channel";
 
 
 void (*mntstats)(int, Chan*, uvlong, ulong);

@@ -49,7 +49,7 @@ enum
 	DEF_MSS		= 1460,		/* Default mean segment */
 	DEF_MSS6	= 1280,		/* Default mean segment (min) for v6 */
 	DEF_RTT		= 500,		/* Default round trip */
-	DEF_KAT		= 30000,	/* Default time ms) between keep alives */
+	DEF_KAT		= 120000,	/* Default time ms) between keep alives */
 	TCP_LISTEN	= 0,		/* Listen connection */
 	TCP_CONNECT	= 1,		/* Outgoing connection */
 	SYNACK_RXTIMER	= 250,		/* ms between SYNACK retransmits */
@@ -2066,9 +2066,7 @@ reset:
 	seg.wnd <<= tcb->rcv.scale;
 
 	if(tcb->kacounter > 0)
-		tcb->kacounter = MAXBACKMS / (tcb->katimer.start*MSPTICK);
-	if(tcb->kacounter < 3)
-		tcb->kacounter = 3;
+		tcpsetkacounter(tcb);
 
 	switch(tcb->state) {
 	case Closed:
@@ -2667,7 +2665,7 @@ tcpsendka(Conv *s)
 void
 tcpsetkacounter(Tcpctl *tcb)
 {
-	tcb->kacounter = MAXBACKMS / (tcb->katimer.start*MSPTICK);;
+	tcb->kacounter = (12 * 60 * 1000) / (tcb->katimer.start*MSPTICK);
 	if(tcb->kacounter < 3)
 		tcb->kacounter = 3;
 }

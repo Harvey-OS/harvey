@@ -1898,6 +1898,7 @@ atapnp(void)
 		case (0x244B<<16)|0x8086:	/* 82801BA (ICH2, High-End) */
 		case (0x248A<<16)|0x8086:	/* 82801CA (ICH3, Mobile) */
 		case (0x248B<<16)|0x8086:	/* 82801CA (ICH3, High-End) */
+		case (0x24CA<<16)|0x8086:	/* 82801DBM (ICH4, Mobile) */
 		case (0x24CB<<16)|0x8086:	/* 82801DB (ICH4, High-End) */
 		case (0x24DB<<16)|0x8086:	/* 82801EB (ICH5) */
 			break;

@@ -6,7 +6,7 @@ sb=12
 
 TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 	MOVW	$setR12(SB), R(sb)
-	MOVW	R(arg), _clock(SB)
+	MOVW	R(arg), _tos(SB)
 
 	MOVW	$p-64(SP), R1
 	MOVW	R1, _privates(SB)

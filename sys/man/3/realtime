@@ -10,43 +10,7 @@ realtime \- real time scheduling
 .B bind -a #R /dev
 .ift .sp 0.5
 .ifn .sp
-/dev/realtime/clone
-/dev/realtime/debug
-/dev/realtime/log
-/dev/realtime/nblog
-/dev/realtime/resources
-/dev/realtime/task/0
-/dev/realtime/task/1
-/dev/realtime/task/...
-/dev/realtime/time
-.sp
-#include "realtime.h"
-.ift .sp 0.5
-.ifn .sp
-enum SEvent {
-	SAdmit,	/* new proc arrives*/
-	SRelease,	/* released, but not yet scheduled */
-	SRun,	/* one of this task's procs started running */
-	SPreempt,	/* the running task was preempted */
-	SBlock,	/* the last of the runnable procs in a task blocked */
-	SResume,	/* task was scheduled after blocking */
-	SDeadline,	/* proc's deadline (reported ahead of time) */
-	SYield,	/* proc reached voluntary early deadline */
-	SSlice,	/* slice exhausted */
-	SExpel,	/* proc was expelled */
-	SResack,	/* acquire resource */
-	SResrel,	/* release resource */
-};
-typedef enum SEvent SEvent;
-typedef vlong Time;
-typedef struct Schedevent Schedevent;
-.ift .sp 0.5
-.ifn .sp
-struct Schedevent {
-	ushort	tid;	/* Task ID */
-	SEvent	etype;	/* Event type */
-	Time	ts;	/* Event time */
-};
+/proc/\fIn\fP/ctl
 .EE
 .SH DESCRIPTION
 The Plan 9 real-time scheduler allows mixing real-time processes and best-effort
@@ -55,145 +19,112 @@ under 100% CPU utilization with minimum periods in the order of a hundred thousa
 instruction times.  The precision of the scheduler depends on the precision of the
 machine's programmable real-time clock.
 .PP
-The unit of real-time scheduling is a
-.BR task .
-A task can contain zero or more processes.  The processes in a task
-share a common period, deadline and CPU allocation.  Tasks allow
-cooperating processes to collaborate to achieve a common deadline, for
-instance, processes receiving, decompressing and displaying video in a
-pipeline can share a single task.
-.PP
-Tasks are scheduled using Earliest-Deadline First (EDF).  Each task
+Real-time processes are scheduled using Earliest-Deadline First (EDF).  Each process
 has three primary scheduling parameters, a period $T$, a deadline $D$
-and a cost $C$, expressed in nanoseconds (but converted internally to
-a machine- and architecture-dependent unit called
-.IR tick ).
-Every $T$ nanoseconds, the task is
+and a cost $C$, expressed in nanoseconds.
+Every $T$ nanoseconds, the process is
 .I released
 — i.e., it becomes schedulable — and it receives a
 .I slice
 of $C$ nsec.
-When the task is released, its
+When the process is released, its
 .I "release time"
 $r$ is set to the current time.
-The task's
+The process's
 .I "absolute deadline"
 $d$ is set to $r + D$.
 (Note the use of capital letters to indicate intervals and lower-case
 letters to indicate `points in time'.)
-Between release and deadline the task must be scheduled often enough
+Between release and deadline, the process must be scheduled often enough
 to be able to consume its slice of $C$ nsec of CPU time.
 So, to be schedulable, $C <= D <= T$ must hold.
-If $D < T$, tasks are not schedulable (runnable) between their
-deadline and the next release.
-Tasks are
-.I released
+If $D < T$, processes are not real-time schedulable (runnable) between their
+deadline and the next release, but they may run as best-effort processes and compete with
+other processes for the CPU.
+Processes are scheduled according to the EDF rule
 from the moment of release until their deadline or their slice runs
-out, whichever happens first.  Additionally, tasks can voluntarily
+out, whichever happens first.  Additionally, processes can voluntarily
 declare the slice for the current period empty, allowing other
-real-time tasks or best-effort tasks the CPU time remaining in their
+real-time processes or best-effort processes to use the CPU time remaining in their
 slice.
 .PP
-Before they are released for the first time, tasks have to be
+Before they are released for the first time, processes have to be
 .IR admitted
 into the system.  Before admission, a test is conducted to determine
-whether the task, plus the already admitted tasks can all meet their
-deadlines, given their scheduling parameters.  When a task changes its
-scheduling parameters, it is temporarily
+whether the process, plus the already admitted processes, given their
+scheduling parameters, can all meet their deadlines.  When a process
+changes its scheduling parameters, it is temporarily
 .I expelled
-and will be readmitted if the new scheduling parameters allow all
-tasks to continue to meet their deadlines.
+and will be readmitted only if the new scheduling parameters allow all
+processes to continue to meet their deadlines.
 .PP
-The EDF scheduler schedules the released task with the earliest
-deadline.  When a task is released it can, therefore, preempt a task
+The EDF scheduler schedules the released process with the earliest
+deadline.  When a process is released it can, therefore, preempt a process
 that has a later deadline, but was released earlier.
+.\" .PP
+.\" Real-time processes sharing resources, however, may need to be prevented
+.\" from preempting each other.  They must do this by declaring their shared
+.\" resources.  The scheduler will not preempt one process with another that
+.\" shares a common resource.  To do this, processes can name resources they use
+.\" and the scheduler will not allow preemption of a process by another that
+.\" has named the same resource.
+.\" .PP
+.\" Note that, if all processes share a common resource, the scheduler reduces to
+.\" non-preemptive EDF scheduling.  Note also that resources in this context
+.\" are just named placeholders for the actual resources shared by the processes.
+.\" It is up to the programmer to define the relationship between actual
+.\" shared resources (data structures, for example) and the named resources
+.\" used by the scheduler.
+.\" .PP
+.\" During the admission test, information about resource sharing is used
+.\" to calculate
+.\" .IR "inherited deadlines" ,
+.\" for each process.  A resource's
+.\" .IR "inherited deadline" ,
+.\" $Δ$, is the minimum of the deadlines $D$ of each of the processes
+.\" that shares that resource.  A process's $Δ$ is the minimum of the
+.\" resource $Δ$s of all resources held by the process.
+.\" .PP
+.\" The scheduler allows a released process $T$ to preempt running process $T'$
+.\" iff $d < d' ^ D < Δ'$; the first half of the condition says that the
+.\" released process's deadline must be earlier, the second implies that the
+.\" released process may not share resources with the running one (after all,
+.\" if $T'$ had acquired a resource that $T$ uses, its $Δ'$ would, by the
+.\" definition of inherited deadlines, be less than or equal to $D$).
+.\" .PP
+.\" The admission test takes these limitations into account.  Note that,
+.\" in practice, processes rarely share resources.
 .PP
-Real-time tasks sharing resources, however, may need to be prevented
-from preempting each other.  They must do this by declaring their shared
-resources.  The scheduler will not preempt one task with another that
-shares a common resource.  To do this, the scheduler needs to know the
-names of the sharable resources used by each of the tasks, the amount
-of time the resources are used, and the way in which resource usage is
-nested.
-.PP
-Resource usage must be strictly nested; i.e., it is legal for a task to
-first to acquire resource $A$, then to acquire resource $B$, to
-release $B$ again and finally to release $A$.  It is also legal for it
-to acquire and release $A$ before acquiring and releasing $B$.  But
-it is not legal to acquire $A$, acquire $B$, release $A$ and release $B$
-in that order.
-.PP
-During the admission test, information about resource sharing is used
-to calculate
-.IR "inherited deadlines" ,
-for each task.  A resource's
-.IR "inherited deadline" ,
-$Δ$, is the minimum of the deadlines $D$ of each of the tasks
-that shares that resource.  A task's $Δ$ is the minimum of the
-resource $Δ$s of all resources held by the task.
-.PP
-Acquiring a resource may lower the $Δ$ of the task; releasing one
-may increase it.
-.PP
-The scheduler allows a released task $T$ to preempt running task $T'$
-iff $d < d' ^ D < Δ'$; the first half of the condition says that the
-released task's deadline must be earlier, the second implies that the
-released task may not share resources with the running one (after all,
-if $T'$ had acquired a resource that $T$ uses, its $Δ'$ would, by the
-definition of inherited deadlines, be less than or equal to $D$).
-.PP
-The admission test takes these limitations into account.  Note that,
-in practice, tasks rarely share resources.
-.PP
-Normally, tasks can block (when all their processes are blocked on
-system calls) during their release.  The time spent blocking is not
-accounted against the current slice, but, since the scheduler has no
-control over the time spent blocking, there are no guarantees that the
-deadline will be made if a task blocks during its release.  Whether or
-not tasks actually block, they will normally complete the work to be
-done in a period (slightly) before the slice runs out — and before
-the deadline.  To tell the scheduler that they no longer require the
-CPU until the next release, tasks can
-.I yield
+Normally, processes can block (when all their processes are blocked on
+system calls) during their release.  The time spent blocking may be
+accounted against the current slice, because blocked processes may stop
+other processes from getting the processor (due to shared resources).
+Processes can tell the scheduler that they no longer require the CPU until the next
+release, by
+.I yielding
 (see below).
 .PP
-Tasks can also run in another mode where blocking automatically
+Processes can also run in another mode where blocking automatically
 implies immediate yielding.  This mode truly guarantees that deadlines
 will be made, but programmers must know more about the (blocking)
-nature of the system calls used in order to use this mode.
+nature of system calls used in order to use this mode.
 .sp
 .LP
-The real-time scheduler is controlled through the
-.B #R
-file system, normally bound to
-.BR /dev .
-Opening
-.B /dev/realtime/clone
-for writing (and reading, if desired), causes a new task to be created in the
-non-admitted (expelled) state.  The new task will be represented by a file in
-the
-.B /dev/realtime/task
-directory whose name $n$ is the task's number.
-The file descriptor resulting from opening
-.B /dev/realtime/clone
-provides the equivalent functionality as that resulting from opening
-.BI /dev/realtime/task/ n
-except for the initial creation of a new task when opening the
-.B clone
-file.  The task file may also be opened read-only.
+The real-time scheduler is controlled through
+.BR /proc/\fPpid\fP/ctl .
+See
+.IR proc (3).
 .PP
-The task's parameters are set or modified by writing one of these files and they
+The process' parameters are set or modified by writing one of these files and they
 can be examined by reading it.
 A parameter is presented in the form
-\f2name\fP=\f2value\fP, \f2name\fP+=\f2value\fP, or \f2name\fP-=\f2value\fP.
+\f2name\fP \f2value\fP, \f2name\fP +\f2value\fP, or \f2name\fP -\f2value\fP.
 A command is presented in the form
 .IR commandname .
-Parameters and commands are separated by white space; quoting conventions apply
-(see
-.IR quote (2)).
+Parameters and commands are separated by semicolons.
 The settable parameters are
 .TP
-.B T
+.B period
 Sets the period.  The value must be given as a number with or without decimal point
 and directly followed (no white space) by one of
 .I s
@@ -207,190 +138,74 @@ for microseconds,
 .I ns
 or
 nothing
-for nanoseconds.  The
-.B +=
-operator adds to the period already set, the
-.B -=
-operator subtracts from it.
+for nanoseconds.
+If the value is signed, it is taken as an increment (decrement) of the value
+perviously set.
 .TP
-.B D
-Sets the deadline.  Value syntax and operators as above.
+.B deadline
+Sets the deadline.  Value specified as above.
 .TP
-.B C
-Sets the cost.  Value syntax and operators as above.
-.TP
-.B resources
-Sets the list of resources; resource names must consist of letters, digits, or underscores
-and they must not start with a digit.  A resource name may be followed by its cost
-(using the same notation of time as in setting the $T$ attribute) and by resources
-nested within.  These nested resources are indicated by an open brace '{', a list of
-nested resources and a closing brace '}'.  Quoting is usually necessary.
-An example of a resource specification is
-.ti +2m
-.B "resources='a 10ms { b 2ms c 3ms {d} }'
-.br
-Here, resource $a$ is held for at most 10 ms; during this time, resource $b$ is
-acquired and then released within 2 ms.  After releasing $b$, resource $c$ can
-be acquired and then resource $d$.  No time is specified for $d$, so its cost
-is inherited from its parent: 3 ms.  Resources $d$, $c$ and $a$ must be released
-in that order.
-.br
-.ti +1m
-The
-.B +=
-and
-.B -=
-operators are not allowed for resources (they must be specified completely every time).
-.TP
-.B acquire
-is a run time command which tells the scheduler that the named resource is being acquired.
-The scheduler will adjust the task's $Δ$ accordingly.  It is illegal to acquire a resource
-not specified or not to follow the nesting order.  It is legal, however, not to acquire a resource
-(and all the ones nested inside) that may legally be acquired.
-The
-.B +=
-and
-.B -=
-operators do not apply.
-.TP
-.B procs
-Sets, adds to, or subtracts from the process membership of a task.  Processes
-are identified by their
-.I pid
-or the special value
-.B self
-identifying the process writing the
-.I clone
-or
-.I task
-file.
+.B cost
+Sets the cost.  Value specified as above.
 .TP
 .B yieldonblock
-When the (integer) value is non-zero, the task is placed in
+When the (integer) value is non-zero or absent, the process is placed in
 .I yield-on-block
-mode: when all processes in the task are blocked on system calls, the task automatically
-declares the current deadline reached and will be released again in the next period.
-When the value is zero, the task can block without forfeiting the current release.
-However, when the task blocks long, the deadline may be missed.  The default value is zero.
-.LP
-In addition to these settable attributes, there are a number of attributes
-to be read:
+mode: when the process is blocked on a system call, the process automatically
+declares the current deadline reached and will be released again in the next period or when the process
+becomes runnable again, whichever occurs last.
+When the value is zero, the process can block without forfeiting the current release.
+The default value is zero.
 .TP
-.B n
-Number of releases of this task,
-.TP
-.B m
-Number of deadlines missed,
-.TP
-.B p
-Number of times the task was preempted by one with an earlier deadline,
-.TP
-.B t
-Total time used (divide this by
-.I n
-to get the average time used per period),
-.TP
-.B c
-Aged average time used,
-.LP
-The commands accepted are
-.TP
-.B verbose
-This is for debugging and causes the progression of the admission test to be displayed.
+.B sporadic
+When the (integer) value is non-zero or absent, the process is placed in
+.I sporadic
+mode.  This mode resembles
+.IR yield-on-block .
+When the process unblocks and the time elapsed since last release is more than the period, it
+is released immediately, rather than at the next period boundary.  Sporadic scheduling is
+useful for processes that are interrupt driven.  The period merely specifies the maximum
+invocation rate.  The default value is zero.
 .TP
 .B admit
 This initiates an admission test.  If the test fails, the write containing the
 .B admit
-command will fail.  If the test succeeds the task is admitted and, if it contains
-runnable processes, it will be released (almost) immediately.
+command will fail.  If the test succeeds the process is admitted and will be released.
 .TP
 .B expel
-Expel the task.
-.TP
-.B remove
-Remove the task, the file descriptor will become invalid.
-.TP
-.B release
-Release the last resource acquired.  There is no attribute.
-.TP
-.B yield
-Gives up the processor until the next release.
+Expels the process by turning it back into a regular best-effort process.
 .LP
-.sp
-.B /dev/realtime/debug
-prints debugging information about the task queues maintained by the scheduler.
-This file will go away.
-.PP
-.B /dev/realtime/log
-and
-.B /dev/realtime/nblog
-are files used by real-time monitoring processes such as
-.B rtstats
-(see
-.IR rtstats (1)).
-Reading them produces a stream of
-.B Schedevent
-structures in the machine representation.  These events are
-nearly ordered by Time (nanoseconds since boot); some events can
-be reported earlier or later than they occur.
-.I Tid
-corresponds to the file name in the directory
-.BR /dev/realtime/task ,
-.I etype
-is one of the events of
-.I SEvent
-as explained in
-.BR /sys/src/9/port/devrealtime.h ,
-and
-.I ts
-is the time at which the event occurred (or will occur).
-.B Nblog
-is a non-blocking version that returns zero bytes each time there is
-nothing left to read.
-.PP
-.B /dev/realtime/resources
-is a read-only file listing the resources declared by the current set of tasks.
-.PP
-.B /dev/realtime/time
-returns the number of nanoseconds since boot, the number of ticks since boot and
-.IR fasthz ,
-the number of clock ticks per second, a billion times the ratio between the other two numbers.
-Each number is returned as a binary
-.I vlong
-in architecture-dependent representation.
+.BR Sleep(0)
+will yield (i.e., giveup the processor until the next release time).  In non-real-time
+processes,
+.B sleep(0)
+will invoke the scheduler, allowing higher priority processes to run.
+.TP
 .SH EXAMPLE
 .EX
 .ta 4n +4n +4n +4n +4n +4n +4n
-char *clonedev = "#R/realtime/clone";
+char *ctl[128];
 
 void
 processvideo(){
 	int fd;
 
-	if ((fd = open(clonedev, ORDWR)) < 0) 
-		sysfatal("%s: %r", clonedev);
-	if (fprint(fd, "T=33ms D=20ms C=8ms procs=self admit") < 0)
-		sysfatal("%s: admit: %r", clonedev);
+	snprint(ctl, sizeof ctl, "/proc/%ld/ctl", getpid());
+	if ((fd = open(ctl, ORDWR)) < 0) 
+		sysfatal("%s: %r", ctl);
+	if (fprint(fd, "period 33ms;deadline 20ms;cost 8ms;admit") < 0)
+		sysfatal("%s: admit: %r", ctl);
+	close(fd);
 	for (;;){
 		processframe();
-		if (fprint(fd, "yield") < 0)
-			sysfatal("%s: yield: %r", clonedev);
+		sleep(0);
 	}
-	if (fprint(fd, "remove") < 0)
-		sysfatal("%s: remove: %r", clonedev);
-	close(fd);
 }
 .EE
 .SH "SEE ALSO
-.IR rtstats (1)
-.SH FILES
-.B /sys/src/cmd/rtstats/edfproc.c
-as an example of using the scheduler for a trivial test run.
-.B /sys/src/cmd/rtstats/resproc.c
-as an example of using resources.
+.IR trace (1)
+.LP
 .SH SOURCE
-.B /sys/src/9/port/devrealtime.c
-.br
 .B /sys/src/9/port/edf.c
 .SH BUGS
 The admission test does not take multiprocessors into account.  The total

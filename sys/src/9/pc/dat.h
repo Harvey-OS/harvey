@@ -190,6 +190,7 @@ struct Mach
 
 	Lock	apictimerlock;
 	int	cpumhz;
+	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
 	uvlong	cpuhz;
 	int	cpuidax;
 	int	cpuiddx;
@@ -198,7 +199,6 @@ struct Mach
 	int	havetsc;
 	int	havepge;
 	uvlong	tscticks;
-	uvlong	tscoff;
 
 	vlong	mtrrcap;
 	vlong	mtrrdef;

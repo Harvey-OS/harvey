@@ -1,0 +1,22 @@
+# internal net
+10.0.0.0/8
+# yahoo mail hosts
+66.218.66.0/24
+66.218.84.0/24
+# bellnexxia.net
+209.226.175.0/24
+# telus.net
+199.185.220.0/24
+# amazon
+207.171.188.0/24
+# careerbuilder.com
+66.45.112.0/24
+
+# psuvax1.cse.psu.edu - 9fans
+130.203.4.6
+# plan9.bell-labs.com
+204.178.31.2
+# ieee
+140.98.194.25
+# jetblue.com
+64.50.124.126

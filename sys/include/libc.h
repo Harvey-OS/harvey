@@ -312,6 +312,8 @@ extern	long	times(long*);
 extern	long	tm2sec(Tm*);
 extern	vlong	nsec(void);
 
+extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
+
 /*
  * one-of-a-kind
  */
@@ -358,7 +360,7 @@ extern	double	modf(double, double*);
 extern	int	netcrypt(void*, void*);
 extern	void	notejmp(void*, jmp_buf, int);
 extern	void	perror(char*);
-extern  int	postnote(int, int, char *);
+extern	int	postnote(int, int, char *);
 extern	double	pow10(int);
 extern	int	putenv(char*, char*);
 extern	void	qsort(void*, long, long, int (*)(void*, void*));
@@ -375,6 +377,18 @@ extern	void	syslog(int, char*, char*, ...);
 extern	long	time(long*);
 extern	int	tolower(int);
 extern	int	toupper(int);
+
+/*
+ *  profiling
+ */
+enum {
+	Profoff,			/* No profiling */
+	Profuser,			/* Measure user time only (default) */
+	Profkernel,		/* Measure user + kernel time */
+	Proftime,			/* Measure total time */
+	Profsample,		/* Use clock interrupt to sample (default when there is no cycle counter) */
+}; /* what */
+extern	void	prof(void (*fn)(void*), void *arg, int entries, int what);
 
 /*
  *  synchronization

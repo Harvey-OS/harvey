@@ -1129,7 +1129,6 @@ runproc(void *argvp)
 				}
 			}
 			winid = win->id;
-			winclose(win);
 		}else{
 			filename = nil;
 			winid = 0;
@@ -1137,6 +1136,9 @@ runproc(void *argvp)
 				winid = activewin->id;
 		}
 		rfork(RFNAMEG|RFENVG|RFFDG|RFNOTEG);
+		sprint(buf, "%d", winid);
+		putenv("winid", buf);
+
 		if(filename){
 			putenv("%", filename);
 			free(filename);
@@ -1169,8 +1171,6 @@ runproc(void *argvp)
 			dup(1, 2);
 		}
 	}else{
-		if(win)
-			winclose(win);
 		rfork(RFFDG|RFNOTEG);
 		fsysclose();
 		close(0);
@@ -1179,6 +1179,9 @@ runproc(void *argvp)
 		open(acmeerrorfile, OWRITE);
 		dup(1, 2);
 	}
+
+	if(win)
+		winclose(win);
 
 	if(argaddr)
 		putenv("acmeaddr", argaddr);

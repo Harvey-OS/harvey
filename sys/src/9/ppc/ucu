@@ -11,10 +11,10 @@ dev
 	cap
 	kprof
 	uart
-	realtime	realtimesub edf
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netif netlog nullmedium pktmedium ptclbsum inferno
+	ce
 
 link
 	ethersaturn
@@ -37,9 +37,9 @@ ip
 port
 	int cpuserver = 1;
 
-boot boot #S/sdC0/
+boot cpu
 	il
-	local
+	tcp
 
 bootdir
 	/power/bin/rc

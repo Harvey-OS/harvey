@@ -13,7 +13,6 @@ dev
 	kprof
 	uart
 	irq
-	realtime	realtimesub edf
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netif netlog nullmedium pktmedium ptclbsum inferno
@@ -39,8 +38,8 @@ port
 	int cpuserver = 1;
 
 boot cpu
-	tcp
 	il
+	tcp
 
 bootdir
 	/power/bin/rc
@@ -54,8 +53,8 @@ bootdir
 	/power/bin/echo
 	/power/bin/mount
 	/power/bin/sleep
-	/power/bin/auth/factotum
 	/power/bin/ip/ipconfig
+	/power/bin/auth/factotum
 	/power/bin/ls
 	/power/bin/ps
 	/power/bin/auth/wrkey

@@ -15,6 +15,7 @@ int	cistrncmp(char*, char*, int);
 void	clockinit(void);
 ulong	clockpower(int);
 #define	coherence()
+#define cycles(x)
 #define	dcflush(a, b)
 void	delay(int);
 void	µcpower(int);

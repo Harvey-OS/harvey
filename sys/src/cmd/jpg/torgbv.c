@@ -132,10 +132,21 @@ torgbv(Rawimage *i, int errdiff)
 					r = cm[0] +*rp;
 					g = cm[1] +*gp;
 					b = cm[2] +*bp;
+
+					/* sanity checks are new */
+					if(r >= 256+CLAMPOFF)
+						r = 0;
+					if(g >= 256+CLAMPOFF)
+						g = 0;
+					if(b >= 256+CLAMPOFF)
+						b = 0;
 					r1 = clamp[r+CLAMPOFF];
 					g1 = clamp[g+CLAMPOFF];
 					b1 = clamp[b+CLAMPOFF];
-					col = closestrgb[b1+16*(g1+16*r1)];
+					if(r1 >= 16 || g1 >= 16 || b1 >= 16)
+						col = 0;
+					else
+						col = closestrgb[b1+16*(g1+16*r1)];
 					*outp++ = col;
 
 					rgb = rgbmap[col];

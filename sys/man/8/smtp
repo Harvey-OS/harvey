@@ -24,7 +24,7 @@ smtp, smtpd \-  mail transport
 .PP
 .B upas/smtpd
 [
-.B -dfr
+.B -dfrg
 ][
 .B -n
 .I netdir
@@ -76,10 +76,7 @@ use
 .I host
 as the local system name;
 it may be fully-qualified or not.  If not
-specified, the local system name will be
-contents of the environment variable
-.BR site .
-If that isn't specified, it will be the contents of
+specified, it will default to the contents of
 .BR /dev/sysname .
 .TP
 .B -f
@@ -114,6 +111,21 @@ turns on debugging output to standard error.
 .TP
 .B -r
 turns on forward DNS validation of non-trusted sender address.
+.TP
+.B -g
+turns on grey/white list processing.  All mail is rejected (with a
+retry code) unless the sender's IP address is on the whitelist,
+.BR /mail/lib/whitelist .
+Addresses can be added to the whitelist by the administrator.  However,
+the usual way for addresses to be added is by smtpd itself.  Whenever,
+a message is received and the sender's address isn't on the whitelist,
+.B smtpd
+first looks for the file,
+.B /mail/grey/<remote ipaddr>/<local ipaddr>/<recipient> .
+If that file exists, the remote address is added to the whitelist.  If
+not, the file is created and the mail is rejected with a 'try again'
+code.  The expectation is that spammers will not retry and that others
+will.
 .TP
 .B -f
 prevents relaying from non-trusted networks.

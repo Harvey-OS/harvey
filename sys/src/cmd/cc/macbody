@@ -655,6 +655,10 @@ macprag(void)
 		pragfpround();
 		return;
 	}
+	if(s && strcmp(s->name, "profile") == 0) {
+		pragprofile();
+		return;
+	}
 	if(s && strcmp(s->name, "varargck") == 0) {
 		pragvararg();
 		return;

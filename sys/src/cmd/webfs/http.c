@@ -178,9 +178,9 @@ httpopen(Client *c, Url *url)
 		if(httpdebug)
 			fprint(2, "iodial: %r\n");
 		free(hs->netaddr);
-		free(hs);
 		close(hs->fd);
-			hs->fd = -1;
+		hs->fd = -1;
+		free(hs);
 		c->aux = nil;
 		return -1;
 	}

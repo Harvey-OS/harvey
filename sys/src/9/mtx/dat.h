@@ -138,6 +138,7 @@ struct Mach
 	ulong	bushz;
 	ulong	dechz;
 	ulong	tbhz;
+	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
 
 	ulong	pcclast;
 	uvlong	fastclock;

@@ -17,6 +17,7 @@ SFILES=\
 
 CFILES=\
 	_seek.c\
+	cycles.c\
 	notejmp.c\
 
 HFILES=/sys/include/libc.h

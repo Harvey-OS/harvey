@@ -1,4 +1,5 @@
 #include	"u.h"
+#include	"tos.h"
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
@@ -11,15 +12,16 @@ void	noted(Ureg*, ulong);
 
 static void debugbpt(Ureg*, void*);
 static void fault386(Ureg*, void*);
+static void doublefault(Ureg*, void*);
 
 static Lock vctllock;
 static Vctl *vctl[256];
-ulong *intrtimes[256];
 
 enum
 {
-	Ntimevec = 1000		/* number of time buckets for each intr */
+	Ntimevec = 10		/* number of time buckets for each intr */
 };
+ulong intrtimes[256][Ntimevec];
 
 void
 intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
@@ -58,8 +60,6 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 				vctl[vno]->isr, v->isr, vctl[vno]->eoi, v->eoi);
 		v->next = vctl[vno];
 	}
-	if(intrtimes[vno] == nil)
-		intrtimes[vno] = xalloc(Ntimevec*sizeof(ulong));
 	vctl[vno] = v;
 	iunlock(&vctllock);
 }
@@ -89,7 +89,7 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 	v = *pv;
 	*pv = (*pv)->next;	/* Link out the entry */
 	
-	if (vctl[vno] == nil && arch->intrdisable != nil)
+	if(vctl[vno] == nil && arch->intrdisable != nil)
 		arch->intrdisable(irq);
 	iunlock(&vctllock);
 	xfree(v);
@@ -208,6 +208,7 @@ trapinit(void)
 	 */
 	trapenable(VectorBPT, debugbpt, 0, "debugpt");
 	trapenable(VectorPF, fault386, 0, "fault386");
+	trapenable(Vector2F, doublefault, 0, "doublefault");
 
 	nmienable();
 
@@ -256,8 +257,9 @@ void
 intrtime(Mach*, int vno)
 {
 	ulong diff;
-	ulong x = perfticks();
+	ulong x;
 
+	x = perfticks();
 	diff = x - m->perf.intrts;
 	m->perf.intrts = x;
 
@@ -265,11 +267,27 @@ intrtime(Mach*, int vno)
 	if(up == nil && m->perf.inidle > diff)
 		m->perf.inidle -= diff;
 
-	diff /= m->cpumhz;
-	if(diff >= Ntimevec){
+	diff /= m->cpumhz*10;	// quantum = 10µsec
+	if(diff >= Ntimevec)
 		diff = Ntimevec-1;
-	}
 	intrtimes[vno][diff]++;
+}
+
+/* go to user space */
+void
+kexit(Ureg*)
+{
+	uvlong t;
+	Tos *tos;
+
+	/* precise time accounting, kernel exit */
+	tos = (Tos*)(USTKTOP-sizeof(Tos));
+	if(m->havetsc){
+		cycles(&t);
+		tos->kcycles += t - up->kentry;
+	}
+	tos->pcycles = up->pcycles;
+	tos->pid = up->pid;
 }
 
 /*
@@ -286,12 +304,18 @@ trap(Ureg* ureg)
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 	Mach *mach;
+	Ureg urcopy;
+	ulong *u;
+
+	urcopy = *ureg;
+	memset(buf, 0, sizeof(buf));
 
 	m->perf.intrts = perfticks();
-	user = 0;
-	if((ureg->cs & 0xFFFF) == UESEL){
-		user = 1;
+	user = (ureg->cs & 0xFFFF) == UESEL;
+	if(user){
 		up->dbgreg = ureg;
+		if (m->havetsc)
+			cycles(&up->kentry);
 	}
 
 	vno = ureg->trap;
@@ -305,8 +329,20 @@ trap(Ureg* ureg)
 		if(ctl->isr)
 			ctl->isr(vno);
 		for(v = ctl; v != nil; v = v->next){
-			if(v->f)
+			if(v->f){
 				v->f(ureg, v->a);
+				if (vno & ~0xff){
+					u = (ulong*)&u;
+					for(i = 0; i < 40; ++i && (u+=4))
+						iprint("0x%lux:	0x%lux	0x%lux	0x%lux	0x%lux\n", u, u[0], u[1], u[2], u[3]);
+					iprint("vno 0x%ux after calling %s\n", vno, v->name);
+					iprint("ureg di si bp nsp bx dx cx ax gs fs es ds trap ecode pc cs flags sp ss\n");
+					u = (ulong*)ureg;
+					for(i = 0; i < 19; i++)
+						iprint("0x%lux ", u[i]);
+					panic("vno");
+				}
+			}
 		}
 		if(ctl->eoi)
 			ctl->eoi(vno);
@@ -363,6 +399,12 @@ trap(Ureg* ureg)
 		}
 		print("\n");
 		m->spuriousintr++;
+		if(user){
+			/* if we delayed sched because we held a lock, sched now */
+			if(up->delaysched)
+				sched();
+			kexit(ureg);
+		}
 		return;
 	}
 	else{
@@ -380,9 +422,15 @@ trap(Ureg* ureg)
 		panic("unknown trap/intr: %d\n", vno);
 	}
 
-	if(user && (up->procctl || up->nnote)){
-		splhi();
-		notify(ureg);
+	if(user){
+		if(up->procctl || up->nnote){
+			splhi();
+			notify(ureg);
+		}
+		/* if we delayed sched because we held a lock, sched now */
+		if(up->delaysched)
+			sched();
+		kexit(ureg);
 	}
 }
 
@@ -510,6 +558,13 @@ debugbpt(Ureg* ureg, void*)
 }
 
 static void
+doublefault(Ureg*, void*)
+{
+	panic("double fault");
+}
+
+
+static void
 fault386(Ureg* ureg, void*)
 {
 	ulong addr;
@@ -552,16 +607,24 @@ syscall(Ureg* ureg)
 	char *e;
 	ulong	sp;
 	long	ret;
-	int	i;
+	int	i, s;
 	ulong scallnr;
 
 	if((ureg->cs & 0xFFFF) != UESEL)
 		panic("syscall: cs 0x%4.4luX\n", ureg->cs);
 
+	if (m->havetsc)
+		cycles(&up->kentry);
+
 	m->syscall++;
 	up->insyscall = 1;
 	up->pc = ureg->pc;
 	up->dbgreg = ureg;
+
+	if(up->procctl == Proc_tracesyscall){
+		up->procctl = Proc_stopme;
+		procctl(up);
+	}
 
 	scallnr = ureg->ax;
 	up->scallnr = scallnr;
@@ -599,15 +662,12 @@ syscall(Ureg* ureg)
 			print("syscall %lud error %s\n", scallnr, up->syserrstr);
 	}
 	if(up->nerrlab){
-		print("bad errstack [%uld]: %d extra\n", scallnr, up->nerrlab);
+		print("bad errstack [%lud]: %d extra\n", scallnr, up->nerrlab);
 		for(i = 0; i < NERR; i++)
 			print("sp=%lux pc=%lux\n",
 				up->errlab[i].sp, up->errlab[i].pc);
 		panic("error stack");
 	}
-
-	up->insyscall = 0;
-	up->psstate = 0;
 
 	/*
 	 *  Put return value in frame.  On the x86 the syscall is
@@ -617,6 +677,16 @@ syscall(Ureg* ureg)
 	 */
 	ureg->ax = ret;
 
+	if(up->procctl == Proc_tracesyscall){
+		up->procctl = Proc_stopme;
+		s = splhi();
+		procctl(up);
+		splx(s);
+	}
+
+	up->insyscall = 0;
+	up->psstate = 0;
+
 	if(scallnr == NOTED)
 		noted(ureg, *(ulong*)(sp+BY2WD));
 
@@ -624,6 +694,10 @@ syscall(Ureg* ureg)
 		splhi();
 		notify(ureg);
 	}
+	/* if we delayed sched because we held a lock, sched now */
+	if(up->delaysched)
+		sched();
+	kexit(ureg);
 }
 
 /*
@@ -814,7 +888,7 @@ execregs(ulong entry, ulong ssize, ulong nargs)
 	ureg = up->dbgreg;
 	ureg->usp = (ulong)sp;
 	ureg->pc = entry;
-	return USTKTOP-BY2WD;		/* address of user-level clock */
+	return USTKTOP-sizeof(Tos);		/* address of kernel/user shared data */
 }
 
 /*

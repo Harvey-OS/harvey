@@ -13,6 +13,7 @@ void	(*coherence)(void);
 void	cpuid(char*, int*, int*);
 int	cpuidentify(void);
 void	cpuidprint(void);
+void	cycles(uvlong*);
 void	delay(int);
 int	dmacount(int);
 int	dmadone(int);
@@ -118,13 +119,12 @@ void	pcmspecialclose(int);
 void	(*_pcmspecialclose)(int);
 void	pcmunmap(int, PCMmap*);
 void	printcpufreq(void);
-#define	procrestore(p)
+void	procrestore(Proc*);
 void	procsave(Proc*);
 void	procsetup(Proc*);
 void	putcr3(ulong);
 void	putcr4(ulong);
 void	rdmsr(int, vlong*);
-void	rdtsc(uvlong*);
 void	screeninit(void);
 int	screenprint(char*, ...);			/* debugging */
 void	(*screenputs)(char*, int);
