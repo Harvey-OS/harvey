@@ -133,7 +133,7 @@
 386/bin/aux/posttek - 775 sys sys 1087442508 163239
 386/bin/aux/rdwr - 775 sys sys 1104121984 38303
 386/bin/aux/reboot - 775 sys sys 1104121984 60321
-386/bin/aux/samterm - 775 sys sys 1104121985 247786
+386/bin/aux/samterm - 775 sys sys 1106280481 247878
 386/bin/aux/searchfs - 775 sys sys 1104121985 89556
 386/bin/aux/sprog - 775 sys sys 1104121985 79349
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
@@ -4806,7 +4806,7 @@ sys/man/1/yacc - 664 sys sys 944959676 3273
 sys/man/1/yesterday - 664 sys sys 1070288431 2348
 sys/man/2 - 20000000775 sys sys 1017423721 0
 sys/man/2/0intro - 664 sys sys 1044724217 11574
-sys/man/2/9p - 664 sys sys 1106072437 15235
+sys/man/2/9p - 664 sys sys 1106291974 15232
 sys/man/2/9pcmdbuf - 664 sys sys 1044430197 2057
 sys/man/2/9pfid - 664 sys sys 1106072437 3663
 sys/man/2/9pfile - 664 sys sys 1048637158 4408
@@ -12457,4 +12457,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/samterm - 775 sys sys 1106280481 247878
