@@ -532,6 +532,7 @@
 68000 - 20000000775 sys sys 947991045 0
 68000/bin - 20000000775 sys sys 985559408 0
 68000/bin/bitsy - 20000000775 sys sys 985559408 0
+68000/bin/dial - 20000000775 sys sys 1059180056 0
 68000/bin/fossil - 20000000775 sys sys 1042090587 0
 68000/bin/venti - 20000000775 sys sys 1019679272 0
 68000/include - 20000000775 sys sys 948037602 0
@@ -545,6 +546,7 @@
 68020/bin/auth - 20000000775 sys sys 954268392 0
 68020/bin/aux - 20000000775 sys sys 954268392 0
 68020/bin/bitsy - 20000000775 sys sys 985559408 0
+68020/bin/dial - 20000000775 sys sys 1059180056 0
 68020/bin/disk - 20000000775 sys sys 954268392 0
 68020/bin/fossil - 20000000775 sys sys 1042090587 0
 68020/bin/ip - 20000000775 sys sys 954275231 0
@@ -600,6 +602,7 @@ acme/bin/alpha - 20000000775 sys sys 1015011562 0
 acme/bin/ap - 775 sys sys 1015011256 221
 acme/bin/arm - 20000000775 sys sys 1015011562 0
 acme/bin/aspell - 775 sys sys 1015011256 822
+acme/bin/dial - 20000000775 sys sys 1059180057 0
 acme/bin/guide - 444 sys sys 1015011256 47
 acme/bin/ind - 755 sys sys 1015011256 27
 acme/bin/mips - 20000000775 sys sys 1015011561 0
@@ -766,6 +769,7 @@ alpha/bin/ape - 20000000775 sys sys 954435372 0
 alpha/bin/auth - 20000000775 sys sys 954435372 0
 alpha/bin/aux - 20000000775 sys sys 954435372 0
 alpha/bin/bitsy - 20000000775 sys sys 985559408 0
+alpha/bin/dial - 20000000775 sys sys 1059180057 0
 alpha/bin/disk - 20000000775 sys sys 954435373 0
 alpha/bin/fossil - 20000000775 sys sys 1042090587 0
 alpha/bin/fs - 20000000775 sys sys 954380757 0
@@ -795,6 +799,7 @@ arm/bin/ape - 20000000775 sys sys 985644327 0
 arm/bin/auth - 20000000775 sys sys 985644308 0
 arm/bin/aux - 20000000775 sys sys 985644327 0
 arm/bin/bitsy - 20000000775 sys sys 985559407 0
+arm/bin/dial - 20000000775 sys sys 1059180057 0
 arm/bin/disk - 20000000775 sys sys 985644211 0
 arm/bin/fossil - 20000000775 sys sys 1042090587 0
 arm/bin/fs - 20000000775 sys sys 985644327 0
@@ -2785,6 +2790,7 @@ mips/bin/ape/psh - 775 sys sys 1042088845 34
 mips/bin/auth - 20000000775 sys sys 954268391 0
 mips/bin/aux - 20000000775 sys sys 954268391 0
 mips/bin/bitsy - 20000000775 sys sys 985559407 0
+mips/bin/dial - 20000000775 sys sys 1059180057 0
 mips/bin/disk - 20000000775 sys sys 954268391 0
 mips/bin/fossil - 20000000775 sys sys 1042090588 0
 mips/bin/fs - 20000000775 sys sys 954380757 0
@@ -2880,6 +2886,7 @@ power/bin/ape - 20000000775 sys sys 958422762 0
 power/bin/auth - 20000000775 sys sys 958422762 0
 power/bin/aux - 20000000775 sys sys 958422762 0
 power/bin/bitsy - 20000000775 sys sys 985559408 0
+power/bin/dial - 20000000775 sys sys 1059180057 0
 power/bin/disk - 20000000775 sys sys 958422762 0
 power/bin/fossil - 20000000775 sys sys 1042090588 0
 power/bin/fs - 20000000775 sys sys 958422762 0
@@ -2926,6 +2933,7 @@ rc/bin/broke - 775 sys sys 945617206 132
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
 rc/bin/cpurc - 775 sys sys 1048777186 1338
+rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/dircp - 775 sys sys 953344769 113
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 945617206 1726
@@ -3048,6 +3056,7 @@ sparc/bin/ape - 20000000775 sys sys 954268391 0
 sparc/bin/auth - 20000000775 sys sys 954268391 0
 sparc/bin/aux - 20000000775 sys sys 954268391 0
 sparc/bin/bitsy - 20000000775 sys sys 985559408 0
+sparc/bin/dial - 20000000775 sys sys 1059180057 0
 sparc/bin/disk - 20000000775 sys sys 954268391 0
 sparc/bin/fossil - 20000000775 sys sys 1042090588 0
 sparc/bin/ip - 20000000775 sys sys 954268392 0
