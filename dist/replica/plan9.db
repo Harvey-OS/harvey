@@ -2920,7 +2920,7 @@ rc/bin/replica - 20000000775 sys sys 1018321122 0
 rc/bin/replica/changes - 775 sys sys 1022177304 276
 rc/bin/replica/defs - 664 sys sys 1019058724 782
 rc/bin/replica/pull - 775 sys sys 1019526606 1422
-rc/bin/replica/push - 775 sys sys 1019276168 349
+rc/bin/replica/push - 775 sys sys 1043865725 361
 rc/bin/replica/scan - 775 sys sys 1018323467 401
 rc/bin/replica/setupdirs - 775 sys sys 1018321122 408
 rc/bin/rwd - 775 sys sys 1042418590 349

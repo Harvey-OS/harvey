@@ -17125,3 +17125,4 @@
 1043789528 0 c sys/src/libthread/id.c - 664 sys sys 1043788754 1330
 1043789528 1 c sys/src/libthread/ioproc.c - 664 sys sys 1043788755 928
 1043805300 0 a sys/src/cmd/venti/printarena.c - 664 sys sys 1043805294 2557
+1043866956 0 c rc/bin/replica/push - 775 sys sys 1043865725 361
