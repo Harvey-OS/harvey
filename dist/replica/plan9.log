@@ -16810,3 +16810,8 @@
 1040457033 1 c 386/lib/libdraw.a - 664 sys sys 1040456882 372606
 1040457033 2 c sys/man/2/draw - 664 sys sys 1040457027 19338
 1040457033 3 c sys/man/3/draw - 664 sys sys 1040457030 13813
+1040481117 0 c rc/bin/ape/psh - 775 sys sys 1040481105 240
+1040484167 0 c sys/man/2/memdraw - 664 sys sys 1040484074 10144
+1040484167 1 c sys/man/2/memlayer - 664 sys sys 1040484074 6963
+1040522506 0 a sys/lib/postscript/troff/R.nomath - 664 sys sys 1040521371 366
+1040522506 1 a sys/lib/troff/font/devutf/R.nomath - 664 sys sys 1040521261 25129

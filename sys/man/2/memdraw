@@ -124,17 +124,17 @@ void	memfillcolor(Memimage *i, ulong color)
 .ft L
 .nf
 void	memarc(Memimage *dst, Point c, int a, int b, int thick,
-	   Memimage *src, Point sp, int alpha, int phi)
+	   Memimage *src, Point sp, int alpha, int phi, Drawop op)
 void	mempoly(Memimage *dst, Point *p, int np, int end0,
-	   int end1, int radius, Memimage *src, Point sp)
+	   int end1, int radius, Memimage *src, Point sp, Drawop op)
 void	memellipse(Memimage *dst, Point c, int a, int b,
-	   int thick, Memimage *src, Point sp)
+	   int thick, Memimage *src, Point sp, Drawop op)
 void	memfillpoly(Memimage *dst, Point *p, int np, int wind,
-		   Memimage *src, Point sp)
+		   Memimage *src, Point sp, Drawop op)
 void	memimageline(Memimage *dst, Point p0, Point p1, int end0,
-	   int end1, int radius, Memimage *src, Point sp)
+	   int end1, int radius, Memimage *src, Point sp, Drawop op)
 void	memimagedraw(Memimage *dst, Rectangle r, Memimage *src,
-	   Point sp, Memimage *mask, Point mp)
+	   Point sp, Memimage *mask, Point mp, Drawop op)
 .PP
 .ft L
 .nf
@@ -154,7 +154,7 @@ void	freememsubfont(Memsubfont *f)
 Point	memsubfontwidth(Memsubfont *f, char *s)
 Memsubfont*	getmemdefont(void)
 Point	memimagestring(Memimage *dst, Point p, Memimage *color,
-	    Point cp, Memsubfont *f, char *cs)
+	    Point cp, Memsubfont *f, char *cs, Drawop op)
 .PP
 .ft L
 .nf

@@ -81,7 +81,7 @@ int	memlorigin(Memimage *i, Point log, Point phys)
 void	memdraw(Image *dst, Rectangle r,
 .br
 .B
-		   Image *src, Point sp, Image *mask, Point mp)
+		   Image *src, Point sp, Image *mask, Point mp, Drawop op)
 .fi
 .B
 int	memload(Memimage *i, Rectangle r,
