@@ -47,3 +47,4 @@ String*	yywhite(void);
 Node*	whiten(Node*);
 void	yycleanup(void);
 int	mxdial(char*, char*, char*);
+char*	expand_meta(char *);

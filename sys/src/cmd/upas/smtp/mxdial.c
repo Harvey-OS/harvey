@@ -265,3 +265,47 @@ dial_string_parse(char *str, DS *ds)
 	if(ds->service)
 		*ds->service++ = 0;
 }
+
+char *
+expand_meta(char *addr)
+{
+	DS ds;
+	int fd, n;
+	char *p, cs[128];
+	static char buf[1024];
+
+	dial_string_parse(addr, &ds);
+
+	if (*ds.host != '$')
+		return addr;
+	if (! ds.netdir)
+		ds.netdir = "/net";
+
+	snprint(cs, sizeof(cs), "%s/cs", ds.netdir);
+	if ((fd = open(cs, ORDWR)) == -1){
+		syslog(0, "smtp", "cannot open cs: %r", cs);
+		return addr;
+	}
+
+	snprint(buf, sizeof(buf), "!ipinfo %s", ds.host+1);	// +1 to skip $
+	if(write(fd, buf, strlen(buf)) <= 0){
+		syslog(0, "smtp", "%s to %s - write failed: %r", buf, cs);
+		close(fd);
+		return addr;
+	}
+
+	seek(fd, 0, 0);
+	if((n = read(fd, buf, sizeof(buf)-1)) < 0){
+		syslog(0, "smtp", "%s - read failed: %r", cs);
+		close(fd);
+		return addr;
+	}
+	close(fd);
+
+	buf[n] = 0;
+	if((p = strchr(buf, '=')) == nil){
+		syslog(0, "smtp", "%q from %s - bad response: %r", buf, cs);
+		return addr;
+	}
+	return p+1; 	// +1 to skip =
+}

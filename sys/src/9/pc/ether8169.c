@@ -784,7 +784,6 @@ rtl8169receive(Ether* edev)
 			case Pid0:
 				if(control & Tcpf){
 					ctlr->tcpf++;
-					print("T%8.8uX+", control);
 					break;
 				}
 				bp->flag |= Btcpck;

@@ -17,6 +17,7 @@ TARG=\
 	listen1\
 	mklatinkbd\
 	ms2\
+	msexceltables\
 	mswordstrings\
 	mouse\
 	nfsmount\
