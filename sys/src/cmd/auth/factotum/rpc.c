@@ -382,7 +382,7 @@ Verb ctltab[] = {
  */
 
 int
-ctlwrite(char *a)
+ctlwrite(char *a, int atzero)
 {
 	char *p;
 	int i, nmatch, ret;
@@ -493,7 +493,7 @@ ctlwrite(char *a)
 			k->privattr = _copyattr(priv);
 			k->ref = 1;
 			k->proto = proto;
-			if(proto->addkey(k) < 0){
+			if(proto->addkey(k, atzero) < 0){
 				ret = -1;
 				closekey(k);
 				continue;

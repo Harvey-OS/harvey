@@ -744,7 +744,7 @@ readcons(char *prompt, char *def, int raw)
  * If the public attributes are identical to some other key, replace that one.
  */
 int
-replacekey(Key *kn)
+replacekey(Key *kn, int before)
 {
 	int i;
 	Key *k;
@@ -761,7 +761,12 @@ replacekey(Key *kn)
 	if(ring->nkey%16 == 0)
 		ring->key = erealloc(ring->key, (ring->nkey+16)*sizeof(ring->key[0]));
 	kn->ref++;
-	ring->key[ring->nkey++] = kn;
+	if(before){
+		memmove(ring->key+1, ring->key, ring->nkey*sizeof ring->key[0]);
+		ring->key[0] = kn;
+		ring->nkey++;
+	}else
+		ring->key[ring->nkey++] = kn;
 	return 0;
 }
 

@@ -362,7 +362,7 @@ getfile(SConn *conn, uchar *key, int nkey)
 		if(q = strchr(p, '\n'))
 			*q++ = '\0';
 		n++;
-		if(ctlwrite(p) < 0)
+		if(ctlwrite(p, 0) < 0)
 			fprint(2, "secstore(%s) line %d: %r\n", gf, n);
 		p = q;
 	}

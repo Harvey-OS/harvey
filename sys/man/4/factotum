@@ -256,6 +256,14 @@ to be used.  Here is an example:
 .EX
     proto=p9sk1 dom=avayalabs.com user=presotto !password=lucent
 .EE
+If
+.I factotum
+discovers, during an authentication, that the auth server does not
+have the same password for the key,
+.I factotum
+will add the attribute
+.B authsrv-mismatch=yes
+to the key.
 .PP
 .BR Apop ,
 .BR cram ,
@@ -428,6 +436,9 @@ The mesages are:
 .B "key \fIattribute-value-list\fP
 add a new key.  This will replace any old key whose
 public, i.e. non ! attributes, match.
+If the offset of the write is zero, the key is added at the beginning of
+.IR factotum 's
+list; otherwise, it is added to the end.
 .TP
 .B "delkey \fIattribute-value-list\fP
 delete a key whose attributes match those given.
