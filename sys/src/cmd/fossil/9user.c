@@ -393,8 +393,8 @@ usersFileWrite(Ubox* box)
 	r = 0;
 	if((dir = fileOpen(fs, "/active")) == nil)
 		goto tidy0;
-	if((file = fileWalk(dir, "adm")) == nil)
-		file = fileCreate(dir, "adm", ModeDir|0775, uidadm);
+	if((file = fileWalk(dir, uidadm)) == nil)
+		file = fileCreate(dir, uidadm, ModeDir|0775, uidadm);
 	fileDecRef(dir);
 	if(file == nil)
 		goto tidy;
@@ -517,7 +517,7 @@ uboxInit(char* users, int len)
 {
 	User *g, *u;
 	Ubox *box, *obox;
-	int blank, comment, i, nuser;
+	int blank, comment, i, nline, nuser;
 	char *buf, *f[5], **line, *p, *q, *s;
 
 	/*
@@ -526,7 +526,7 @@ uboxInit(char* users, int len)
 	 * when the server writes the database back out.
 	 */
 	blank = 1;
-	comment = nuser = 0;
+	comment = nline = 0;
 
 	s = p = buf = vtMemAlloc(len+1);
 	for(q = users; *q != '\0'; q++){
@@ -536,7 +536,7 @@ uboxInit(char* users, int len)
 			if(!blank){
 				if(p != s){
 					*p++ = '\n';
-					nuser++;
+					nline++;
 					s = p;
 				}
 				blank = 1;
@@ -552,15 +552,13 @@ uboxInit(char* users, int len)
 	}
 	*p = '\0';
 
-	line = vtMemAllocZ((nuser+2)*sizeof(char*));
-	if((i = gettokens(buf, line, nuser+2, "\n")) != nuser){
-		fprint(2, "nuser %d (%d) botch\n", nuser, i);
+	line = vtMemAllocZ((nline+2)*sizeof(char*));
+	if((i = gettokens(buf, line, nline+2, "\n")) != nline){
+		fprint(2, "nline %d (%d) botch\n", nline, i);
 		vtMemFree(line);
 		vtMemFree(buf);
 		return 0;
 	}
-
-//	fprint(2, "nuser %d\n", nuser);
 
 	/*
 	 * Everything is updated in a local Ubox until verified.
@@ -571,7 +569,8 @@ uboxInit(char* users, int len)
 	 * First pass - check format, check for duplicates
 	 * and enter in hash buckets.
 	 */
-	for(i = 0; i < nuser; i++){
+	nuser = 0;
+	for(i = 0; i < nline; i++){
 		s = vtStrDup(line[i]);
 		if(getfields(s, f, nelem(f), 0, ":") != 4){
 			fprint(2, "bad line '%s'\n", line[i]);
@@ -606,6 +605,8 @@ uboxInit(char* users, int len)
 
 		u = userAlloc(f[0], f[1]);
 		uboxAddUser(box, u);
+		line[nuser] = line[i];
+		nuser++;
 
 		vtMemFree(s);
 	}

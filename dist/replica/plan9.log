@@ -12961,3 +12961,15 @@
 1071079350 0 c dist/replica/network - 775 sys sys 1071079179 996
 1071095553 0 c sys/src/cmd/ssh/cmsg.c - 664 sys sys 1071095546 8351
 1071111756 0 c sys/src/ape/lib/ap/mips/lock.c - 664 sys sys 1071110410 2380
+1071156761 0 c sys/man/1/con - 664 sys sys 1071156278 4318
+1071156761 1 c sys/src/cmd/rx.c - 664 sys sys 1071155928 4188
+1071176564 0 c 386/9load - 775 sys sys 1071175100 188380
+1071176564 1 c sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1071175883 9740
+1071176564 2 c sys/src/boot/pc/ether.c - 664 sys sys 1071175087 4727
+1071176564 3 a sys/src/boot/pc/ethermii.c - 664 sys sys 1071175087 4493
+1071176564 4 a sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
+1071176564 5 a sys/src/boot/pc/etherrhine.c - 664 sys sys 1071175087 12403
+1071176564 6 c sys/src/boot/pc/mkfile - 664 sys sys 1071175087 3001
+1071180165 0 c 386/bin/fossil/fossil - 775 sys sys 1071179084 345532
+1071180165 1 c sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1071178644 9850
+1071180165 2 c sys/src/cmd/fossil/9user.c - 664 sys sys 1071179088 17260

@@ -33,7 +33,7 @@ con, telnet, rx, xms, xmr \- remote login, execution, and XMODEM file transfer
 .PP
 .B rx
 [
-.B -e
+.B -eTr
 ]
 [
 .B -l
@@ -170,16 +170,26 @@ If the target is a Plan 9 machine,
 .B $service
 there will be
 .BR rx .
-The
+Options are:
+.TP
 .B \-e
-option causes a zero length message to be written to the
+a zero length message will be written to the
 connection when standard input is closed.
-The
+.TP
 .B \-l
-option causes
+allows
 .I remuser
 to be used on the remote machine if the remote
 is a BSD machine.
+.TP
+.B \-r
+same as for
+.I con
+.TP
+.B -T
+same as for
+.I con
+.PD
 .PP
 Network addresses for both
 .I con
