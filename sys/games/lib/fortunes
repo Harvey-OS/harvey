@@ -3866,3 +3866,7 @@ A short stranger will soon enter your life.
 Click Here to GET the penis you want today!!!
 The envMaxSize field is the environment file size. It must not exceed envMaxSize.
 parser.h:16: ISO C++ forbids declaration of `ConsumeOffendingSymbol'
+Click on the following link if you don't want to recieve any more email.
+/usr/include/c++/3.2/backward/backward_warning.h:32:2: warning: #warning This file includes at least one deprecated or antiquated header. Please consider using one of the 32 headers found in section 17.4.1.2 of the C++ standard. Examples include substituting the <X> header for the <X.h> header for C++ includes, or <sstream> instead of the deprecated header <strstream.h>. To disable this warning use -Wno-deprecated.
+with venti there's not a simple way to do anything. - rsc
+Quidquid latine dictum sit, altum viditur.

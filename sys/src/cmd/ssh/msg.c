@@ -99,6 +99,13 @@ allocmsg(Conn *c, int type, int len)
 	return m;
 }
 
+void
+unrecvmsg(Conn *c, Msg *m)
+{
+	free(c->unget);
+	c->unget = m;
+}
+
 static Msg*
 recvmsg0(Conn *c)
 {
@@ -106,6 +113,12 @@ recvmsg0(Conn *c)
 	uchar *p, buf[4];
 	ulong crc, crc0, len;
 	Msg *m;
+
+	if(c->unget){
+		m = c->unget;
+		c->unget = nil;
+		return m;
+	}
 
 	if(readn(c->fd[0], buf, 4) != 4){
 		werrstr("short net read: %r");
@@ -416,7 +429,7 @@ mpint*
 rsapad(mpint *b, int n)
 {
 	int i, pad, nbuf;
-	uchar buf[256];
+	uchar buf[2560];
 	mpint *c;
 
 	if(n > sizeof buf)
@@ -442,7 +455,7 @@ mpint*
 rsaunpad(mpint *b)
 {
 	int i, n;
-	uchar buf[256];
+	uchar buf[2560];
 
 	n = (mpsignif(b)+7)/8;
 	if(n > sizeof buf)

@@ -18618,3 +18618,13 @@
 1047996055 0 c sys/src/9/port/portdat.h - 664 sys sys 1047995947 21197
 1047996055 1 c sys/src/9/port/portfns.h - 664 sys sys 1047995955 10620
 1047996055 2 c sys/src/9/port/sysproc.c - 664 sys sys 1047995943 15125
+1048179656 0 c sys/src/cmd/ssh/agent.c - 664 sys sys 1048179624 9079
+1048179656 1 c sys/src/cmd/ssh/authrsa.c - 664 sys sys 1048179608 2649
+1048179656 2 c sys/src/cmd/ssh/authsrvtis.c - 664 sys sys 1048179599 931
+1048179656 3 c sys/src/cmd/ssh/mkfile - 664 sys sys 1048179592 1045
+1048179656 4 c sys/src/cmd/ssh/msg.c - 664 sys sys 1048179596 7876
+1048179656 5 c sys/src/cmd/ssh/smsg.c - 664 sys sys 1048179694 4225
+1048179656 6 c sys/src/cmd/ssh/ssh.h - 664 sys sys 1048179595 6054
+1048179656 7 c sys/src/cmd/ssh/sshserve.c - 664 sys sys 1048179703 5940
+1048179656 8 c sys/src/cmd/ssh/util.c - 664 sys sys 1048179672 5506
+1048185062 0 c sys/games/lib/fortunes - 664 sys sys 1048184380 239194

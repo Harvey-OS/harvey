@@ -7,7 +7,6 @@ TARG=\
 	ssh\
 	sshnet\
 	sshserve\
-	ssh_genkey\
 
 AUTHOFILES=\
 	authpasswd.$O\
@@ -68,9 +67,6 @@ $O.sshnet: \
 $BIN/sshserve:VQ: $BIN/aux/sshserve
 	;
 
-$BIN/ssh_genkey:VQ: $BIN/aux/ssh_genkey
-	;
-
 $BIN/aux/sshserve: $O.sshserve
 	cp $O.sshserve $BIN/aux/sshserve
 
@@ -80,7 +76,3 @@ $BIN/aux/ssh_genkey: $O.ssh_genkey
 sshserve.safeinstall:
 	test -e $BIN/aux/sshserve && mv $BIN/aux/sshserve $BIN/aux/_sshserve
 	mk sshserve.install
-
-ssh_genkey.safeinstall:
-	test -e $BIN/aux/ssh_genkey && mv $BIN/aux/ssh_genkey $BIN/aux/_ssh_genkey
-	mk ssh_genkey.install
