@@ -13,6 +13,9 @@ NDBFILE=/lib/ndb/local
 if(test -e /rc/bin/termrc.local)
 	. /rc/bin/termrc.local
 
+mntgen -s slashn && chmod 666 /srv/slashn
+
+
 # cs sets sysname
 ndb/cs -f $NDBFILE
 sysname=`{cat /dev/sysname}

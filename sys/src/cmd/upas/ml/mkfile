@@ -24,7 +24,6 @@ UPDATE=\
 	mkfile\
 	$UHFILES\
 	${TARG:%=%.c}\
-	${TARG:%=/386/bin/upas/%}\
 	${OFILES:%.$O=%.c}\
 	../smtp/rfc822.y\
 

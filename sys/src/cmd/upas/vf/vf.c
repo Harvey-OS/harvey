@@ -188,7 +188,7 @@ part(Part *pp)
 			 */
 			if(p->badtype || p->badfile){
 				if(p->badfile == 2){
-					syslog(0, "mail", "vf rejected %s %s", p->type?s_to_c(p->type):"?",
+					syslog(0, "vf", "vf rejected %s %s", p->type?s_to_c(p->type):"?",
 						p->filename?s_to_c(p->filename):"?");
 					fprint(2, "The mail contained an attachment which was a DOS/Windows\n");
 					fprint(2, "executable file.  We refuse all mail containing such.\n");

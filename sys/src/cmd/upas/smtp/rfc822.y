@@ -4,6 +4,7 @@
 #include <ctype.h>
 
 char	*yylp;		/* next character to be lex'd */
+int	yydone;		/* tell yylex to give up */
 char	*yybuffer;	/* first parsed character */
 char	*yyend;		/* end of buffer to be parsed */
 Node	*root;
@@ -12,6 +13,7 @@ Field	*lastfield;
 Node	*usender;
 Node	*usys;
 Node	*udate;
+char	*startfield, *endfield;
 int	originator;
 int	destination;
 int	date;
@@ -50,7 +52,9 @@ int	messageid;
 msg		: fields
 		| unixfrom '\n' fields
 		;
-fields		: field '\n'
+fields		: '\n'
+			{ yydone = 1; }
+		| field '\n'
 		| field '\n' fields
 		;
 field		: dates
@@ -64,6 +68,7 @@ field		: dates
 		| ignored
 		| received
 		| precedence
+		| error '\n' field
 		;
 unixfrom	: FROM route_addr unix_date_time REMOTE FROM word
 			{ freenode($1); freenode($4); freenode($5);
@@ -307,6 +312,8 @@ yylex(void)
 /*	print("lexing\n"); /**/
 	if(yylp >= yyend)
 		return 0;
+	if(yydone)
+		return 0;
 
 	quoting = escaping = 0;
 	start = yylp;
@@ -314,6 +321,7 @@ yylex(void)
 	yylval->white = yylval->s = 0;
 	yylval->next = 0;
 	yylval->addr = 0;
+	yylval->start = yylp;
 	for(t = 0; yylp < yyend; yylp++){
 		c = *yylp & 0xff;
 
@@ -650,12 +658,58 @@ nobody(Node *p)
 }
 
 /*
+ *  add anything that was dropped because of a parse error
+ */
+void
+missing(Node *p)
+{
+	Node *np;
+	char *start, *end;
+	Field *f;
+	String *s;
+
+	start = yybuffer;
+	if(lastfield != nil){
+		for(np = lastfield->node; np; np = np->next)
+			start = np->end+1;
+	}
+
+	end = p->start-1;
+
+	if(end <= start)
+		return;
+
+	if(strncmp(start, "From ", 5) == 0)
+		return;
+
+	np = malloc(sizeof(Node));
+	np->start = start;
+	np->end = end;
+	np->white = nil;
+	s = s_copy("BadHeader: ");
+	np->s = s_nappend(s, start, end-start);
+	np->next = nil;
+
+	f = malloc(sizeof(Field));
+	f->next = 0;
+	f->node = np;
+	f->source = 0;
+	if(firstfield)
+		lastfield->next = f;
+	else
+		firstfield = f;
+	lastfield = f;
+}
+
+/*
  *  create a new field
  */
 void
 newfield(Node *p, int source)
 {
 	Field *f;
+
+	missing(p);
 
 	f = malloc(sizeof(Field));
 	f->next = 0;
@@ -666,6 +720,8 @@ newfield(Node *p, int source)
 	else
 		firstfield = f;
 	lastfield = f;
+	endfield = startfield;
+	startfield = yylp;
 }
 
 /*

@@ -35,8 +35,7 @@ UPDATE=\
 	$HFILES\
 	${UOFILES:%.$O=%.c}\
 	${SMOBJ:%.$O=%.c}\
-	filter.c\
-	${TARG:%=/386/bin/upas/%}\
+	${TARG:%=%.c}\
 
 </sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common
@@ -46,7 +45,7 @@ $O.send: $SMOBJ $OFILES
 
 message.$O:	../smtp/y.tab.h
 
-../smtp/y.tab.h ../smtp/rfc822.tab.$O:
+../smtp/y.tab.h ../smtp/rfc822.tab.$O: ../smtp/rfc822.y
 	@{
 		cd ../smtp
 		mk rfc822.tab.$O
