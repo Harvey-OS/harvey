@@ -491,6 +491,8 @@ struct NetConnInfo
 	char	*lserv;		/* local service */
 	char	*rsys;		/* remote system */
 	char	*rserv;		/* remote service */
+	char	*laddr;		/* local address */
+	char *raddr;		/* remote address */
 };
 extern	NetConnInfo*	getnetconninfo(char*, int);
 extern	void		freenetconninfo(NetConnInfo*);

@@ -195,6 +195,8 @@ network connection.  The structure is:
 	char	*lserv;		/* local service */
 	char	*rsys;		/* remote system */
 	char	*rserv;		/* remote service */
+	char	*laddr;		/* local address */
+	char	*raddr;		/* remote address */
   };
 .EE
 .PP

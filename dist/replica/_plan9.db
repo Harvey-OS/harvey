@@ -1,15 +1,15 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1100269948 208708
-386/9loaddebug - 775 sys sys 1106021711 306647
+386/9loaddebug - 775 sys sys 1108095056 306473
 386/9loadlite - 775 sys sys 1100269949 132260
 386/9loadlitedebug - 775 sys sys 1104122096 195560
-386/9pc - 775 sys sys 1107577216 1834252
+386/9pc - 775 sys sys 1108095061 1833118
 386/9pc.gz - 664 sys sys 1077049336 635727
-386/9pccpu - 775 sys sys 1107490494 1488803
+386/9pccpu - 775 sys sys 1108095065 1487669
 386/9pccpu.gz - 664 sys sys 1077049387 519909
-386/9pcdisk - 775 sys sys 1107577221 2039954
+386/9pcdisk - 775 sys sys 1108095069 2038820
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
-386/9pcf - 775 sys sys 1107577226 2382786
+386/9pcf - 775 sys sys 1108095074 2381652
 386/9pcf.gz - 664 sys sys 1077049490 872650
 386/9pxeload - 775 sys sys 1100269949 208708
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -402,7 +402,7 @@
 386/bin/sshnet - 775 sys sys 1104122059 282717
 386/bin/stats - 775 sys sys 1106799180 189982
 386/bin/strings - 775 sys sys 1104122059 62124
-386/bin/strip - 775 sys sys 1104122060 61981
+386/bin/strip - 775 sys sys 1108095056 61981
 386/bin/sum - 775 sys sys 1104122060 39470
 386/bin/swap - 775 sys sys 1104122060 62094
 386/bin/syscall - 775 sys sys 1104122060 73536
@@ -546,7 +546,7 @@
 386/lib/libhttpd.a - 664 sys sys 1105161539 99488
 386/lib/libip.a - 664 sys sys 1105161539 35602
 386/lib/libl.a - 664 sys sys 1105161539 5384
-386/lib/libmach.a - 664 sys sys 1108008338 652906
+386/lib/libmach.a - 664 sys sys 1108095075 652906
 386/lib/libmemdraw.a - 664 sys sys 1105161541 283188
 386/lib/libmemlayer.a - 664 sys sys 1105161541 47360
 386/lib/libmp.a - 664 sys sys 1105161541 79532
@@ -3461,7 +3461,7 @@ sys/include/html.h - 664 sys sys 1091904420 15220
 sys/include/httpd.h - 664 sys sys 1091904418 5771
 sys/include/ip.h - 664 sys sys 1103554773 2989
 sys/include/keyboard.h - 664 sys sys 1079577798 815
-sys/include/libc.h - 664 sys sys 1102093062 19516
+sys/include/libc.h - 664 sys sys 1108157980 19587
 sys/include/libsec.h - 664 sys sys 1084318867 9264
 sys/include/mach.h - 664 sys sys 1089313992 8164
 sys/include/memdraw.h - 664 sys sys 1091904419 5645
@@ -4844,7 +4844,7 @@ sys/man/2/ctime - 664 sys sys 954378853 2547
 sys/man/2/ctype - 664 sys sys 1079535676 2611
 sys/man/2/debugger - 664 sys sys 944959696 8629
 sys/man/2/des - 664 sys sys 1032058673 3517
-sys/man/2/dial - 664 sys sys 1015701029 6523
+sys/man/2/dial - 664 sys sys 1108158522 6594
 sys/man/2/dirread - 664 sys sys 1015091519 1901
 sys/man/2/disk - 664 sys sys 1015091519 3188
 sys/man/2/draw - 664 sys sys 1059484405 19362
@@ -7252,7 +7252,7 @@ sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
 sys/src/cmd/cc/lex.c - 664 sys sys 1089299182 23826
 sys/src/cmd/cc/lexbody - 664 sys sys 1098499731 9014
 sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
-sys/src/cmd/cc/macbody - 664 sys sys 1098463324 11358
+sys/src/cmd/cc/macbody - 664 sys sys 1108151652 11712
 sys/src/cmd/cc/machcap.c - 664 sys sys 1084472048 78
 sys/src/cmd/cc/mkfile - 664 sys sys 1107365240 563
 sys/src/cmd/cc/pickle.c - 664 sys sys 1063855374 4829
@@ -9792,7 +9792,7 @@ sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
 sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
 sys/src/cmd/nntpfs.c - 664 sys sys 1100524486 18920
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558
-sys/src/cmd/p.c - 664 sys sys 1043516305 1497
+sys/src/cmd/p.c - 664 sys sys 1108151788 1502
 sys/src/cmd/page - 20000000775 sys sys 956344628 0
 sys/src/cmd/page/filter.c - 664 sys sys 1069793856 2166
 sys/src/cmd/page/gfx.c - 664 sys sys 1084470500 6894
@@ -11591,7 +11591,7 @@ sys/src/libc/9sys/dirwstat.c - 664 sys sys 1014927337 246
 sys/src/libc/9sys/fcallfmt.c - 664 sys sys 1033829606 5733
 sys/src/libc/9sys/fork.c - 664 sys sys 950892938 89
 sys/src/libc/9sys/getenv.c - 664 sys sys 985023079 548
-sys/src/libc/9sys/getnetconninfo.c - 664 sys sys 1014927338 2030
+sys/src/libc/9sys/getnetconninfo.c - 664 sys sys 1108157974 2477
 sys/src/libc/9sys/getpid.c - 664 sys sys 944961712 198
 sys/src/libc/9sys/getppid.c - 664 sys sys 944961712 202
 sys/src/libc/9sys/getwd.c - 664 sys sys 971455516 248
@@ -12467,10 +12467,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/9loaddebug - 775 sys sys 1108095056 306473
-386/9pc - 775 sys sys 1108095061 1833118
-386/9pccpu - 775 sys sys 1108095065 1487669
-386/9pcdisk - 775 sys sys 1108095069 2038820
-386/9pcf - 775 sys sys 1108095074 2381652
-386/bin/strip - 775 sys sys 1108095056 61981
-386/lib/libmach.a - 664 sys sys 1108095075 652906
+sys/src/cmd/cc/macbody - 664 sys sys 1108182410 11358
