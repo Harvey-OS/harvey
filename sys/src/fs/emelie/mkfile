@@ -101,9 +101,9 @@ HFILES=\
 	/$objtype/include/ureg.h\
 
 LIB=\
-	-lauthsrv\
+	/$objtype/lib/libauthsrv.a\
 	/$objtype/lib/libc.a\
-	-lsec\
+	/$objtype/lib/libsec.a\
 
 # -I../pc & -DFS are for compat.h
 CFLAGS=-FVw -I. -I../port -I../pc -DFS
@@ -115,12 +115,10 @@ all:V:	$TARG
 <../dev/mkfile
 <../ip/mkfile
 
-$TARG:	$OBJ $TARG.$O
-	$LD -o $target -l -T0x80100020 $prereq $LIB
-	size $target
-
-$TARG.$O:	$TARG.c
+$TARG:	$TARG.c $OBJ $LIB
 	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c
+	$LD -o $target -l -T0x80100020 $OBJ $TARG.$O $LIB
+	size $target
 
 install:V: $TARG
 	cp $TARG /$objtype/

@@ -10569,7 +10569,7 @@ sys/src/fs/emelie/dat.h - 664 sys sys 1037805101 502
 sys/src/fs/emelie/fns.h - 664 sys sys 1037805101 1968
 sys/src/fs/emelie/io.h - 664 sys sys 1037805101 6576
 sys/src/fs/emelie/mem.h - 664 sys sys 1015110098 2865
-sys/src/fs/emelie/mkfile - 664 sys sys 1037805101 1666
+sys/src/fs/emelie/mkfile - 664 sys sys 1044290928 1691
 sys/src/fs/ip - 20000000775 sys sys 1015109990 0
 sys/src/fs/ip/arp.c - 664 sys sys 1015109981 8696
 sys/src/fs/ip/icmp.c - 664 sys sys 1015109981 991
@@ -10623,7 +10623,7 @@ sys/src/fs/port - 20000000775 sys sys 1015110029 0
 sys/src/fs/port/9p1.c - 664 sys sys 1015109993 30114
 sys/src/fs/port/9p1.h - 664 sys sys 1015109994 2122
 sys/src/fs/port/9p1lib.c - 664 sys sys 1015109996 7629
-sys/src/fs/port/9p2.c - 664 sys sys 1041361346 36053
+sys/src/fs/port/9p2.c - 664 sys sys 1044290935 36142
 sys/src/fs/port/all.h - 664 sys sys 1015110002 1883
 sys/src/fs/port/auth.c - 664 sys sys 1041361345 7608
 sys/src/fs/port/chk.c - 664 sys sys 1037805158 13882
