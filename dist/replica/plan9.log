@@ -13177,3 +13177,4 @@
 1072121428 0 c sys/lib/man/mkhtmlindex - 775 sys sys 1072120754 1313
 1072130430 0 c sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
 1072146632 0 c sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
+1072227643 0 c sys/games/lib/fortunes - 664 sys sys 1072227105 247401
