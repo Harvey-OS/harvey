@@ -42,12 +42,16 @@ defn params(param)
 {
 	while param do {
 		sym = head param;
-		print(sym[0], "=", sym[1]);
+		print(sym[0], "=", itoa(sym[1], "%x"));
 		param = tail param;
 		if param then
 			print (",");
 	}	
 }
+
+stkprefix = "";
+stkignore = {};
+stkend = 0;
 
 defn locals(l)
 {
@@ -55,31 +59,61 @@ defn locals(l)
 
 	while l do {
 		sym = head l;
-		print("\t", sym[0], "=", sym[1], "\n");
+		print(stkprefix, "\t", sym[0], "=", itoa(sym[1], "%x"), "\n");
 		l = tail l;
 	}	
 }
 
+defn _stkign(file)
+{
+	s = stkignore;
+	while s do {
+		if regexp(head s, file) then
+			return 1;
+		s = tail s;
+	}
+	return 0;
+}
+
+// print a stack trace
+//
+// in a run of leading frames in files matched by regexps in stkignore,
+// only print the last one.
 defn _stk(pc, sp, link, dolocals)
 {
-	local stk;
-
-	print("At pc:", pc, ":", fmt(pc, 'a'), " ");
-	pfl(pc);
+	local stk, ign, last, lastpc;
 
 	stk = strace(pc, sp, link);
-
+	if stkignore then
+		ign = 1;
+	else
+		ign = 0;
+	last = stk;
+	lastpc = pc;
 	while stk do {
+		if ign then {
+			if !_stkign(pcfile(pc)) then {
+				ign = 0;
+				stk = last;
+				pc = lastpc;
+			}
+		}
 		frame = head stk;
-		print(fmt(frame[0], 'a'), "(");
-		params(frame[2]);
-		print(") ", pcfile(frame[0]), ":", pcline(frame[0]));
-		print("\n\tcalled from ", fmt(frame[1], 'a'), " ");
-		pfl(frame[1]);
+		if !ign then {
+			print(stkprefix, fmt(frame[0], 'a'), "(");
+			params(frame[2]);
+			print(")+", itoa(pc-frame[0], "%x"), " ");
+			pfl(pc);
+			if dolocals then
+				locals(frame[3]);
+		}
+		last = stk;
+		lastpc = pc;
 		stk = tail stk;
-		if dolocals then
-			locals(frame[3]);
+		pc = frame[1];
 	}
+	print(stkprefix, fmt(pc, 'a'), " ");
+	pfl(pc);
 }
 
 defn findsrc(file)
@@ -176,6 +210,22 @@ defn Bsrc(addr)
 		lst = tail lst;
 	}
 	print("no source for ", file, "\n");
+}
+
+defn srcline(addr)
+{
+	local text, cline, line, file, src;
+	file = pcfile(addr);
+	src = match(file,srcfiles);
+	if (src>=0) then
+		src = srctext[src];
+	else
+		src = findsrc(file);
+	if (src=={}) then
+	{
+		return "(no source)";
+	}
+	return src[pcline(addr)-1];
 }
 
 defn src(addr)

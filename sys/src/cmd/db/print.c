@@ -363,6 +363,6 @@ printparams(Symbol *fn, ADDR fp)
 		if (first++)
 			dprint(", ");
 		if (get4(cormap, fp+s.value, &v) > 0)
-			dprint("%s=%lux", s.name, v);
+			dprint("%s=%#lux", s.name, v);
 	}
 }

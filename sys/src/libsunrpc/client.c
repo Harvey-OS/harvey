@@ -179,7 +179,7 @@ rpcMuxThread(void *v)
 
 	for(;;){
 		switch(alt(a)){
-		case 0:	/* rpcchan */
+		case 0:	/* o = <-rpcchan */
 			if(o == nil)
 				goto Done;
 			cli->nsend++;
@@ -212,7 +212,7 @@ if(cli->chatty) fprint(2, "send %lux %lud %lud\n", o->xid, o->st, o->t);
 			a[1].op = CHANRCV;
 			break;
 
-		case 1:	/* timerchan */
+		case 1:	/* <-timerchan */
 			t = msec();
 			for(i=0; i<nout; i++){
 				o = out[i];
@@ -244,7 +244,7 @@ if(cli->chatty) fprint(2, "resend %lux %lud %lud\n", o->xid, t, o->t);
 				a[1].op = CHANNOP;
 			break;
 			
-		case 2:	/* flushchan */
+		case 2:	/* tag = <-flushchan */
 			for(i=0; i<nout; i++){
 				o = out[i];
 				if(o->tag == tag){
@@ -257,7 +257,7 @@ if(cli->chatty) fprint(2, "resend %lux %lud %lud\n", o->xid, t, o->t);
 			}
 			break;
 
-		case 3:	/* readchan */
+		case 3:	/* buf = <-readchan */
 			p = buf;
 			n = (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
 			p += 4;
@@ -274,9 +274,12 @@ if(cli->chatty) fprint(2, "resend %lux %lud %lud\n", o->xid, t, o->t);
 				free(buf);
 				break;
 			}
-			for(i=0; i<nout; i++)
+			o = nil;
+			for(i=0; i<nout; i++){
+				o = out[i];
 				if(o->xid == rpc.xid)
 					break;
+			}
 			if(i==nout){
 				if(cli->chatty) fprint(2, "did not find waiting request\n");
 				free(buf);

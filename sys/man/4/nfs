@@ -90,7 +90,7 @@ and
 files, which are in the traditional Unix format.
 The translation is used to present names for
 user and group in
-.I stat (5)
+.IR stat (5)
 and
 .I wstat
 messages.

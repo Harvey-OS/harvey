@@ -101,6 +101,7 @@ port
 
 boot boot #S/sdC0/
 	il
+	tcp
 	local
 
 bootdir
