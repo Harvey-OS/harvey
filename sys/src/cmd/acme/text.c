@@ -44,7 +44,7 @@ textredraw(Text *t, Rectangle r, Font *f, Image *b, int odx)
 
 	frinit(t, r, f, b, t->Frame.cols);
 	rr = t->r;
-	rr.min.x -= Scrollwid;	/* back fill to scroll bar */
+	rr.min.x -= Scrollwid+Scrollgap;	/* back fill to scroll bar */
 	draw(t->b, rr, t->cols[BACK], nil, ZP);
 	/* use no wider than 3-space tabs in a directory */
 	maxt = maxtab;

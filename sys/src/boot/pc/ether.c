@@ -21,6 +21,7 @@ extern int wd8003reset(Ether*);
 extern int ec2treset(Ether*);
 extern int amd79c970reset(Ether*);
 extern int rtl8139pnp(Ether*);
+extern int rtl8169pnp(Ether*);
 extern int ether83815reset(Ether*);
 extern int rhinepnp(Ether*);
 
@@ -44,6 +45,7 @@ struct {
 	{ "EC2T", ec2treset, 0, },
 	{ "AMD79C970", amd79c970reset, 0, },
 	{ "RTL8139", rtl8139pnp, 0, },
+	{ "RTL8169", rtl8169pnp, 0, },
 	{ "83815", ether83815reset, 0, },
 	{ "rhine", rhinepnp, 0, },
 
@@ -208,9 +210,8 @@ etherrxpkt(int ctlrno, Etherpkt* pkt, int timo)
 
 	ring = &ctlr->rb[ctlr->rh];
 	if(wait(ring, Interface, timo) == 0){
-		/*
-		print("ether%d: rx timeout\n", ctlrno);
-		 */
+		if(debug)
+			print("ether%d: rx timeout\n", ctlrno);
 		return 0;
 	}
 

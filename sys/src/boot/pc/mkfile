@@ -56,6 +56,7 @@ ETHER=\
 	ether79c970.$O\
 	ether8003.$O\
 	ether8139.$O\
+	ether8169.$O\
 	ether82557.$O\
 	ether83815.$O\
 	ether8390.$O\

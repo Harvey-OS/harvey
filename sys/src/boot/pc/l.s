@@ -1,6 +1,10 @@
 #include "x16.h"
 #include "mem.h"
 
+#define WRMSR		BYTE $0x0F; BYTE $0x30	/* WRMSR, argument in AX/DX (lo/hi) */
+#define RDTSC 		BYTE $0x0F; BYTE $0x31	/* RDTSC, result in AX/DX (lo/hi) */
+#define RDMSR		BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
+
 #ifdef PXE
 #define PDB		0x90000		/* temporary page tables (24KB) */
 #else
@@ -533,9 +537,38 @@ TEXT	getcr3(SB),$0		/* page directory base */
 	MOVL	CR3,AX
 	RET
 
-TEXT getcr4(SB), $0		/* CR4 - extensions */
+TEXT	getcr4(SB), $0		/* CR4 - extensions */
 	MOVL	CR4, AX
 	RET
+
+TEXT _cycles(SB), $0				/* time stamp counter */
+	RDTSC
+	MOVL	vlong+0(FP), CX			/* &vlong */
+	MOVL	AX, 0(CX)			/* lo */
+	MOVL	DX, 4(CX)			/* hi */
+	RET
+
+TEXT rdmsr(SB), $0				/* model-specific register */
+	MOVL	index+0(FP), CX
+	RDMSR
+	MOVL	vlong+4(FP), CX			/* &vlong */
+	MOVL	AX, 0(CX)			/* lo */
+	MOVL	DX, 4(CX)			/* hi */
+	RET
+	
+TEXT wrmsr(SB), $0
+	MOVL	index+0(FP), CX
+	MOVL	lo+4(FP), AX
+	MOVL	hi+8(FP), DX
+	WRMSR
+	RET
+
+TEXT mb386(SB), $0
+	POPL	AX				/* return PC */
+	PUSHFL
+	PUSHL	CS
+	PUSHL	AX
+	IRETL
 
 /*
  *  special traps
