@@ -142,7 +142,7 @@
 386/bin/aux/stub - 775 sys sys 1056364215 136382
 386/bin/aux/tcpostio - 775 sys sys 1048745028 196997
 386/bin/aux/text2post - 775 sys sys 1056364215 77273
-386/bin/aux/timesync - 775 sys sys 1056364216 128107
+386/bin/aux/timesync - 775 sys sys 1058474978 128023
 386/bin/aux/tr2post - 775 sys sys 1056364217 176207
 386/bin/aux/trampoline - 775 sys sys 1056364218 81185
 386/bin/aux/typepasswd - 775 sys sys 1056364218 68176
@@ -640,7 +640,7 @@ acme/bin/unind - 755 sys sys 1015011256 27
 acme/bin/wnew - 775 sys sys 1046184422 84
 acme/mail - 20000000775 sys sys 1015011265 0
 acme/mail/386 - 20000000775 sys sys 1015011538 0
-acme/mail/386/Mail - 775 sys sys 1056364448 177497
+acme/mail/386/Mail - 775 sys sys 1058463666 177480
 acme/mail/Mail - 775 sys sys 1015011264 202
 acme/mail/alpha - 20000000775 sys sys 1015011521 0
 acme/mail/arm - 20000000775 sys sys 1015011525 0
@@ -652,7 +652,7 @@ acme/mail/power - 20000000775 sys sys 1015011527 0
 acme/mail/readme - 664 sys sys 1017166342 2725
 acme/mail/src - 20000000775 sys sys 1015364010 0
 acme/mail/src/dat.h - 664 sys sys 1033936953 3857
-acme/mail/src/html.c - 664 sys sys 1034016085 1333
+acme/mail/src/html.c - 664 sys sys 1058463659 1348
 acme/mail/src/mail.c - 664 sys sys 1041481453 10994
 acme/mail/src/mesg.c - 664 sys sys 1043463888 26266
 acme/mail/src/mkfile - 664 sys sys 1037034918 364
@@ -6522,13 +6522,13 @@ sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1050686429 23681
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
-sys/src/cmd/acme/elog.c - 664 sys sys 1045504839 6830
+sys/src/cmd/acme/elog.c - 664 sys sys 1058463684 6777
 sys/src/cmd/acme/exec.c - 664 sys sys 1046620931 27023
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1044626080 2920
 sys/src/cmd/acme/fsys.c - 664 sys sys 1022512648 12727
 sys/src/cmd/acme/look.c - 664 sys sys 1041137125 14840
-sys/src/cmd/acme/mkfile - 664 sys sys 1044626081 566
+sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1016833877 14726
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
@@ -6720,7 +6720,7 @@ sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
 sys/src/cmd/aux/reboot.c - 664 sys sys 1014925091 1411
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
 sys/src/cmd/aux/stub.c - 664 sys sys 1032468954 2637
-sys/src/cmd/aux/timesync.c - 664 sys sys 1053201572 24309
+sys/src/cmd/aux/timesync.c - 664 sys sys 1058474964 24413
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1034780422 3571
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0

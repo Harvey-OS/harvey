@@ -171,7 +171,6 @@ eloginsert(File *f, int q0, Rune *r, int nr)
 	}
 	/* try to merge with previous */
 	if(f->elog.type==Insert && q0==f->elog.q0 && (q0+nr)-f->elog.q0<Maxstring){
-		f->elog.r = runerealloc(f->elog.r, f->elog.nr+nr);
 		runemove(f->elog.r+f->elog.nr, r, nr);
 		f->elog.nr += nr;
 		return;
