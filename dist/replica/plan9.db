@@ -5399,7 +5399,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1071615236 50538
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
-sys/src/9/pc/trap.c - 664 sys sys 1074785126 20668
+sys/src/9/pc/trap.c - 664 sys sys 1083078696 20613
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1063857246 3566
@@ -7567,7 +7567,7 @@ sys/src/cmd/fossil/9auth.c - 664 sys sys 1061530721 3393
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1072705704 2075
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
-sys/src/cmd/fossil/9fsys.c - 664 sys sys 1080586882 30218
+sys/src/cmd/fossil/9fsys.c - 664 sys sys 1083039532 30218
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1042005503 2865
 sys/src/cmd/fossil/9p.c - 664 sys sys 1077896346 21766
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563

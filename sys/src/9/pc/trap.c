@@ -532,7 +532,6 @@ _dumpstack(Ureg *ureg)
 			x += print("\n");
 		}
 	}
-iprint("serialoq %d printed %d\n", qlen(serialoq), x);
 	if(i)
 		print("\n");
 }
