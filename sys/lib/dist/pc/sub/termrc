@@ -9,15 +9,20 @@ if(~ $debug yes) echo env...
 sysname=gnot
 font=/lib/font/bit/lucidasans/typelatin1.7.font
 
-for (i in '#P' '#S' '#f' '#m' '#t' '#v') {
+for (i in '#P' '#f' '#m' '#t' '#v') {
 	if(~ $debug yes) echo bind $i
 	bind -a $i /dev >/dev/null >[2=1]
 }
 if(~ $debug yes) echo binddev done
 
 for(disk in /dev/sd??) {
-	if(test -f $disk/data && test -f $disk/ctl)
+	if(test -f $disk/data && test -f $disk/ctl){
 		disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
+		if(~ $#nosddma 0)
+			echo dma on >$disk/ctl
+		if(~ $#nosdrwm 0)
+			echo rwm on >$disk/ctl
+	}
 }
 
 for (i in /sys/log/*) {
@@ -33,8 +38,10 @@ dossrv
 boota:
 boota:	# again, just in case a timeout made the earlier one fail
 cp /n/a:/plan9.ini /tmp/plan9.orig
-if(! ~ $cdboot yes)
+if(! ~ $cdboot yes){
 	pci >/n/a:/pci.txt >[2]/dev/null
+	cp /dev/kmesg /n/a:/boot.txt >[2]/dev/null
+}
 
 # restore a partial install
 if(test -f /n/a:/9inst.cnf)
@@ -73,7 +80,16 @@ if(~ $#mouseport 1) {
 			aux/vga -vip $vgasize >/n/a:/vgainfo.txt
 		sleep 2	# wait for floppy to finish
 		aux/vga -l $vgasize
-		echo -n 'hwaccel off' >'#v/vgactl' >[2]/dev/null
-		echo -n 'hwblank off' >'#v/vgactl' >[2]/dev/null
+		if(! ~ $#novgaaccel 0)
+			echo -n 'hwaccel off' >'#v/vgactl' >[2]/dev/null
+		if(! ~ $#novgablank 0)
+			echo -n 'hwblank off' >'#v/vgactl' >[2]/dev/null
 	}
 }
+
+# configure loopback device without touching /net/ndb
+{
+	echo bind loopback /dev/null
+	echo add 127.0.0.1 255.255.255.0 
+} >/net/ipifc/clone
+

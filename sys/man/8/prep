@@ -57,6 +57,9 @@ prep, fdisk, format, mbr \- prepare hard and floppy diskettes, flashes
 .PP
 .B disk/mbr
 [
+.B -9
+]
+[
 .B -m
 .I mbrfile
 ]
@@ -636,6 +639,12 @@ If the
 .I mbrfile
 is not specified, a boot block is installed that
 prints a message explaining that the disk is not bootable.
+The
+.B -9
+option initialises the partition table to consist of one
+.BR plan9
+partition which spans the entire disc starting at the end of the
+first track.
 .SH EXAMPLES
 Initialize the kernel disk driver with the partition information
 from the FAT boot sectors.

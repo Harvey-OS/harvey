@@ -160,11 +160,11 @@ doserve(int fd)
 	}
 
 	if(restricted){
-		if(strncmp(bigbuf+2, "../", 3) || strstr(bigbuf+2, "/../") ||
-		  (bigbuf[2] == '/' && strncmp(bigbuf+2, dirsl, dirsllen)!=0)){
+		if(strncmp(bigbuf+2, "../", 3) == 0 || strstr(bigbuf+2, "/../") ||
+		  (bigbuf[2] == '/' && strncmp(bigbuf+2, dirsl, dirsllen) != 0)){
 			nak(fd, 4, "Permission denied");
 			close(fd);
-			syslog(dbg, flog, "bad request %d %s", op, raddr);
+			syslog(dbg, flog, "bad request %d from %s file %s", op, raddr, bigbuf+2);
 			return;
 		}
 	}

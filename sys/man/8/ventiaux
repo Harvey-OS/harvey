@@ -340,10 +340,8 @@ but should only be used when it is known that the file was already zeroed.
 .I Rdarena
 extracts the named
 .I arena
-from the Venti system described by the
-.IR venti.conf (6)
-file
-.I venti.config
+from the arena partition
+.I arenapart
 and writes this arena to standard output.
 This command is typically used to back up an arena to external media.
 The

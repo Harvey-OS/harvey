@@ -24,7 +24,7 @@ The semantics of
 .B flush
 depends on messages arriving in order.
 .PP
-The server must answer the
+The server should answer the
 .B flush
 message immediately.
 If it recognizes
@@ -45,6 +45,29 @@ A
 can never be responded to by an
 .B Rerror
 message.
+.PP
+The server may respond to the pending request before
+responding to the
+.BR Tflush .
+It is possible for a client to send multiple
+.B Tflush
+messages for a particular pending request.  Each
+subsequent
+.B Tflush
+must contain as
+.I oldtag
+the tag of the pending request (not a previous
+.BR Tflush ).
+Should multiple
+.BR Tflush es
+be received for a pending request, they must be answered in
+order.  A
+.B Rflush
+for any of the multiple
+.BR Tflush es
+implies an answer for all previous ones.  Therefore, should
+a server receive a request and then multiple flushes for that
+request, it need respond only to the last flush.
 .PP
 When the client sends a 
 .BR Tflush ,

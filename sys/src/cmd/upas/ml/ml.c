@@ -8,8 +8,9 @@ int na;
 String *from;
 String *sender;
 
-void printmsg(int fd, String *msg, char *replyto);
+void printmsg(int fd, String *msg, char *replyto, char *listname);
 void appendtoarchive(char* listname, String *firstline, String *msg);
+void printsubject(int fd, Field *f, char *listname);
 
 void
 usage(void)
@@ -55,8 +56,9 @@ main(int argc, char **argv)
 	if(s_read_line(&in, firstline) == nil)
 		sysfatal("reading input: %r");
 
-	/* read up to the first 128k of the message.  more is redculous */
-	if(s_read(&in, msg, 128*1024) <= 0)
+	/* read up to the first 128k of the message.  more is redculous. 
+	     Not if word documents are distributed.  Upped it to 2MB (pb) */
+	if(s_read(&in, msg, 2*1024*1024) <= 0)
 		sysfatal("reading input: %r");
 
 	/* parse the header */
@@ -77,7 +79,7 @@ main(int argc, char **argv)
 	fd = startmailer(listname);
 
 	/* send message adding our own reply-to and precedence */
-	printmsg(fd, msg, replytoname);
+	printmsg(fd, msg, replytoname, listname);
 	close(fd);
 
 	/* wait for mailer to end */
@@ -94,14 +96,14 @@ main(int argc, char **argv)
 
 /* send message filtering Reply-to out of messages */
 void
-printmsg(int fd, String *msg, char *replyto)
+printmsg(int fd, String *msg, char *replyto, char *listname)
 {
-	Field *f;
+	Field *f, *subject;
 	Node *p;
 	char *cp, *ocp;
 
+	subject = nil;
 	cp = s_to_c(msg);
-	fprint(fd, "Reply-To: %s\nPrecedence: bulk\n", replyto);
 	for(f = firstfield; f; f = f->next){
 		ocp = cp;
 		for(p = f->node; p; p = p->next)
@@ -110,8 +112,14 @@ printmsg(int fd, String *msg, char *replyto)
 			continue;
 		if(f->node->c == PRECEDENCE)
 			continue;
+		if(f->node->c == SUBJECT){
+			subject = f;
+			continue;
+		}
 		write(fd, ocp, cp-ocp);
 	}
+	printsubject(fd, subject, listname);
+	fprint(fd, "Reply-To: %s\nPrecedence: bulk\n", replyto);
 	write(fd, cp, s_len(msg) - (cp - s_to_c(msg)));
 }
 
@@ -132,4 +140,28 @@ appendtoarchive(char* listname, String *firstline, String *msg)
 	s_append(msg, "\n");
 	write(fd, s_to_c(firstline), s_len(firstline));
 	write(fd, s_to_c(msg), s_len(msg));
+}
+
+/* add the listname to the subject */
+void
+printsubject(int fd, Field *f, char *listname)
+{
+	char *s, *e;
+	Node *p;
+	char *ln;
+
+	if(f == nil || f->node == nil){
+		fprint(fd, "Subject: [%s]\n", listname);
+		return;
+	}
+	s = e = f->node->end + 1;
+	for(p = f->node; p; p = p->next)
+		e = p->end;
+	*e = 0;
+	ln = smprint("[%s]", listname);
+	if(ln != nil && strstr(s, ln) == nil)
+		fprint(fd, "Subject: %s%s\n", ln, s);
+	else
+		fprint(fd, "Subject:%s\n", s);
+	free(ln);
 }

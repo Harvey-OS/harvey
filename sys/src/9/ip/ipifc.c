@@ -68,6 +68,7 @@ static void	remselfcache(Fs *f, Ipifc *ifc, Iplifc *lifc, uchar *a);
 static char*	ipifcjoinmulti(Ipifc *ifc, char **argv, int argc);
 static char*	ipifcleavemulti(Ipifc *ifc, char **argv, int argc);
 static void	ipifcregisterproxy(Fs*, Ipifc*, uchar*);
+static char*	ipifcremlifc(Ipifc*, Iplifc*);
 
 /*
  *  link in a new medium
@@ -175,9 +176,6 @@ ipifcbind(Conv *c, char **argv, int argc)
 static char*
 ipifcunbind(Ipifc *ifc)
 {
-	char *av[4];
-	char ip[32];
-	char mask[32];
 	char *err;
 
 	if(waserror()){
@@ -204,18 +202,10 @@ ipifcunbind(Ipifc *ifc)
 	qclose(ifc->conv->sq);
 
 	/* disassociate logical interfaces */
-	av[0] = "remove";
-	av[1] = ip;
-	av[2] = mask;
-	av[3] = 0;
 	while(ifc->lifc){
-		if(ipcmp(ifc->lifc->mask, IPallbits) == 0)
-			sprint(ip, "%I", ifc->lifc->remote);
-		else
-			sprint(ip, "%I", ifc->lifc->local);
-		sprint(mask, "%M", ifc->lifc->mask);
-		if (err = ipifcrem(ifc, av, 3, 0))
-			print("ipifcunbind, addr %s, mask %s: %s\n", ip, mask, err);
+		err = ipifcremlifc(ifc, ifc->lifc);
+		if(err)
+			error(err);
 	}
 
 	ifc->m = nil;
@@ -228,7 +218,7 @@ ipifcunbind(Ipifc *ifc)
 
 char sfixedformat[] = "device %s maxtu %d sendra %d recvra %d mflag %d oflag %d maxraint %d minraint %d linkmtu %d reachtime %d rxmitra %d ttl %d routerlt %d pktin %lud pktout %lud errin %lud errout %lud\n";
 
-char slineformat[] = "	%-40.40I %-10.10M %-40.40I %-12lud %-12lud\n";
+char slineformat[] = "	%-40I %-10M %-40I %-12lud %-12lud\n";
 
 
 static int
@@ -477,12 +467,8 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 
 	/* check for point-to-point interface */
 	if(ipcmp(ip, v6loopback))  /* skip v6 loopback, it's a special address */
-	if(ipcmp(mask, IPallbits) == 0){
-		/* point to point networks are a hack */
-		if(ipcmp(ip, rem) == 0)
-			findprimaryip(f, lifc->local);
+	if(ipcmp(mask, IPallbits) == 0)
 		type |= Rptpt;
-	}
 
 	/* add local routes */
 	if(isv4(ip))
@@ -558,82 +544,90 @@ out:
 }
 
 /*
- *  remove an address from an interface.
- *  called with c->car locked
+ *  remove a logical interface from an ifc
+ *  always called with ifc wlock'd
  */
-char*
-ipifcrem(Ipifc *ifc, char **argv, int argc, int dolock)
+static char*
+ipifcremlifc(Ipifc *ifc, Iplifc *lifc)
 {
-	uchar ip[IPaddrlen];
-	uchar mask[IPaddrlen];
-	Iplifc *lifc, **l;
+	Iplifc **l;
 	Fs *f;
-	uchar *addr;
-	int type;
-
-	if(argc < 3)
-		return Ebadarg;
 
 	f = ifc->conv->p->f;
-
-	parseip(ip, argv[1]);
-	parseipmask(mask, argv[2]);
-
-	if(dolock)
-		wlock(ifc);
-
-	/* Are we point to point */
-	type = 0;
-	if(ipcmp(mask, IPallbits) == 0)
-		type = Rptpt;
 
 	/*
 	 *  find address on this interface and remove from chain.
 	 *  for pt to pt we actually specify the remote address as the
 	 *  addresss to remove.
 	 */
-	l = &ifc->lifc;
-	for(lifc = *l; lifc != nil; lifc = lifc->next) {
-		addr = lifc->local;
-		if(type == Rptpt)
-			addr = lifc->remote;
-		if (memcmp(ip, addr, IPaddrlen) == 0
-		&& memcmp(mask, lifc->mask, IPaddrlen) == 0) {
-			*l = lifc->next;
-			break;
-		}
-		l = &lifc->next;
-	}
-
-	if(lifc == nil){
-		if(dolock)
-			wunlock(ifc);
-		print("ipifcrem: wrong address\n");
+	for(l = &ifc->lifc; *l != nil && *l != lifc; l = &(*l)->next)
+		;
+	if(*l == nil)
 		return "address not on this interface";
-	}
+	*l = lifc->next;
 
 	/* disassociate any addresses */
 	while(lifc->link)
 		remselfcache(f, ifc, lifc, lifc->link->self->a);
 
 	/* remove the route for this logical interface */
-	if(isv4(ip))
+	if(isv4(lifc->local))
 		v4delroute(f, lifc->remote+IPv4off, lifc->mask+IPv4off, 1);
 	else {
 		v6delroute(f, lifc->remote, lifc->mask, 1);
-		if(ipcmp(ip, v6loopback) == 0)
+		if(ipcmp(lifc->local, v6loopback) == 0)
 			/* remove route for all node multicast */
 			v6delroute(f, v6allnodesN, v6allnodesNmask, 1);
-		else if(memcmp(ip, v6linklocal, v6linklocalprefix) == 0)
+		else if(memcmp(lifc->local, v6linklocal, v6linklocalprefix) == 0)
 			/* remove route for all link multicast */
 			v6delroute(f, v6allnodesL, v6allnodesLmask, 1);
 	}
 
 	free(lifc);
-
-	if(dolock)
-		wunlock(ifc);
 	return nil;
+
+}
+
+/*
+ *  remove an address from an interface.
+ *  called with c->car locked
+ */
+char*
+ipifcrem(Ipifc *ifc, char **argv, int argc)
+{
+	uchar ip[IPaddrlen];
+	uchar mask[IPaddrlen];
+	uchar rem[IPaddrlen];
+	Iplifc *lifc;
+	char *rv;
+
+	if(argc < 3)
+		return Ebadarg;
+
+	parseip(ip, argv[1]);
+	parseipmask(mask, argv[2]);
+	if(argc < 4)
+		maskip(ip, mask, rem);
+	else
+		parseip(rem, argv[3]);
+
+	wlock(ifc);
+
+	/*
+	 *  find address on this interface and remove from chain.
+	 *  for pt to pt we actually specify the remote address as the
+	 *  addresss to remove.
+	 */
+	for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next) {
+		if (memcmp(ip, lifc->local, IPaddrlen) == 0
+		&& memcmp(mask, lifc->mask, IPaddrlen) == 0
+		&& memcmp(rem, lifc->remote, IPaddrlen) == 0)
+			break;
+	}
+
+	rv = ipifcremlifc(ifc, lifc);
+	wunlock(ifc);
+	return rv;
 }
 
 /*
@@ -690,30 +684,21 @@ ipifcconnect(Conv* c, char **argv, int argc)
 {
 	char *err;
 	Ipifc *ifc;
-	char *av[4];
-	char ip[80], mask[80];
 
 	ifc = (Ipifc*)c->ptcl;
 
 	if(ifc->m == nil)
 		 return "ipifc not yet bound to device";
 
-	av[0] = "remove";
-	av[1] = ip;
-	av[2] = mask;
-	av[3] = 0;
 	if(waserror()){
 		wunlock(ifc);
 		nexterror();
 	}
 	wlock(ifc);
 	while(ifc->lifc){
-		if(ipcmp(ifc->lifc->mask, IPallbits) == 0)
-			sprint(ip, "%I", ifc->lifc->remote);
-		else
-			sprint(ip, "%I", ifc->lifc->local);
-		sprint(mask, "%M", ifc->lifc->mask);
-		ipifcrem(ifc, av, 3, 0);
+		err = ipifcremlifc(ifc, ifc->lifc);
+		if(err)
+			error(err);
 	}
 	wunlock(ifc);
 	poperror();
@@ -818,7 +803,7 @@ ipifcctl(Conv* c, char**argv, int argc)
 	else if(strcmp(argv[0], "try") == 0)
 		return ipifcadd(ifc, argv, argc, 1, nil);
 	else if(strcmp(argv[0], "remove") == 0)
-		return ipifcrem(ifc, argv, argc, 1);
+		return ipifcrem(ifc, argv, argc);
 	else if(strcmp(argv[0], "unbind") == 0)
 		return ipifcunbind(ifc);
 	else if(strcmp(argv[0], "joinmulti") == 0)

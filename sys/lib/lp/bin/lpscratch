@@ -14,6 +14,8 @@ if not
 switch($SCRATCHFILESERVER){
 case kfs
 	SCRATCHFILESYSTEM=''
+case fossil
+	SCRATCHFILESYSTEM=''
 case *
 	SCRATCHFILESYSTEM=other
 }

@@ -85,6 +85,7 @@ main(int argc, char *argv[])
 	if(!initArenaSum())
 		fprint(2, "warning: can't initialize arena summing process: %R");
 
+//fprint(2, "initVenti %s\n", config);
 	if(!initVenti(config, &conf))
 		fatal("can't init server: %R");
 	if(vaddr == nil){
@@ -112,8 +113,8 @@ main(int argc, char *argv[])
 	icmem = u64log2(icmem / (sizeof(IEntry) + sizeof(IEntry*)) / ICacheDepth);
 	if(icmem < 4)
 		icmem = 4;
-//	fprint(2, "initialize %d bytes of index cache for %d index entries\n",
-//		(sizeof(IEntry) + sizeof(IEntry*)) * (1 << icmem) * ICacheDepth, (1 << icmem) * ICacheDepth);
+if(0)	fprint(2, "initialize %d bytes of index cache for %d index entries\n",
+		(sizeof(IEntry) + sizeof(IEntry*)) * (1 << icmem) * ICacheDepth, (1 << icmem) * ICacheDepth);
 	initICache(icmem, ICacheDepth);
 
 	/*
@@ -121,10 +122,10 @@ main(int argc, char *argv[])
 	 */
 	if(bcmem < maxBlockSize * (mainIndex->narenas + mainIndex->nsects * 4 + 16))
 		bcmem = maxBlockSize * (mainIndex->narenas + mainIndex->nsects * 4 + 16);
-//	fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
+if(0)	fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
 	initDCache(bcmem);
 
-//	fprint(2, "sync arenas and index...\n");
+if(0)	fprint(2, "sync arenas and index...\n");
 	if(!syncIndex(mainIndex, 1))
 		fatal("can't sync server: %R");
 
@@ -142,11 +143,12 @@ main(int argc, char *argv[])
 			fprint(2, "warning: can't start http server: %R");
 	}
 
-//	fprint(2, "starting server\n");
+if(0)	fprint(2, "starting server\n");
 	adir = vtMemAlloc(100);
 	cfd = announce(vaddr, adir);
 	if(cfd < 0)
 		fatal("can't announce: %s", vtOSError());
+if(0)fprint(2, "announced %s\n", vaddr);
 	if(background)
 		vtThread(daemon, adir);
 	else
@@ -171,7 +173,7 @@ daemon(void *rock)
 		lcfd = listen(adir, ldir);
 		if(lcfd < 0)
 			fatal("listen: %s", vtOSError());
-fprint(2, "new call on %s\n", ldir);
+//fprint(2, "new call on %s\n", ldir);
 checkLumpCache();
 checkDCache();
 //printStats();
@@ -215,13 +217,14 @@ srvSync(VtSession *z)
 static void
 srvClosing(VtSession *z, int clean)
 {
-	long rt, t[4];
+//	long rt, t[4];
 
+	USED(clean);
 	USED(z);
-	if(!clean)
-		fprint(2, "not a clean exit: %s\n", vtGetError());
-	rt = times(t);
-	fprint(2, "times: %.2fu %.2fs %.2fr\n", t[0]*.001, t[1]*.001, rt*.001);
+//	if(!clean)
+//		fprint(2, "not a clean exit: %s\n", vtGetError());
+//	rt = times(t);
+//	fprint(2, "times: %.2fu %.2fs %.2fr\n", t[0]*.001, t[1]*.001, rt*.001);
 packetStats();
 }
 

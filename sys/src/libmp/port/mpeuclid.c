@@ -13,6 +13,9 @@ mpeuclid(mpint *a, mpint *b, mpint *d, mpint *x, mpint *y)
 {
 	mpint *tmp, *x0, *x1, *x2, *y0, *y1, *y2, *q, *r;
 
+	if(a->sign<0 || b->sign<0)
+		sysfatal("mpeuclid: negative arg");
+
 	if(mpcmp(a, b) < 0){
 		tmp = a;
 		a = b;

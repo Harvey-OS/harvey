@@ -1,0 +1,26 @@
+#!/bin/rc
+
+# desc: choose the type of file system to install
+
+switch($1){
+case checkdone
+	if(! ~ $fstype kfs fossil){
+		configfs=ready
+		export configfs
+	}
+
+case go
+	echo 'You can install the following types of file systems:'
+	echo
+	echo '	fossil			an archival (dump) file server'
+	echo '	kfs				the old Plan 9 on-disk file server'
+	echo
+	echo 'If you choose to install fossil, you can add Venti later,'
+	echo 'assuming you leave enough disk space for it.'
+	echo 
+	prompt -d fossil 'File system' fossil kfs
+	fstype=$rd
+	export fstype
+}
+
+

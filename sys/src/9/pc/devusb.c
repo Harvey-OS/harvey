@@ -103,7 +103,7 @@ static Cmdtab usbportmsg[] =
 
 static Cmdtab usbctlmsg[] =
 {
-	CMclass,		"class",	4,
+	CMclass,		"class",	0,
 	CMdata,		"data",	3,
 	CMdebug,		"debug",	3,
 	CMep,		"ep",		6,
@@ -681,7 +681,10 @@ usbread(Chan *c, void *a, long n, vlong offset)
 		break;
 
 	case Qstatus:
-		p = seprint(s, se, "%s %#6.6lux\n", devstates[d->state], d->csp);
+		if (d->did || d->vid)
+			p = seprint(s, se, "%s %#6.6lux %#4.4ux %#4.4ux\n", devstates[d->state], d->csp, d->vid, d->did);
+		else
+			p = seprint(s, se, "%s %#6.6lux\n", devstates[d->state], d->csp);
 		for(i=0; i<nelem(d->ep); i++) {
 			e = d->ep[i];
 			if(e == nil)
@@ -750,12 +753,18 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			d->ls = strtoul(cb->f[1], nil, 0) == 0;
 			break;
 		case CMclass:
-			i = strtoul(cb->f[2], nil, 0);
-			d->npt = strtoul(cb->f[1], nil, 0);
-			/* class config# csp ( == class subclass proto) */
+			if (cb->nf != 4 && cb->nf != 6)
+				cmderror(cb, Ebadusbmsg);
+			/* class #ifc ept csp ( == class subclass proto) [vendor product] */
+			d->npt = strtoul(cb->f[1], nil, 0);	/* # of interfaces */
+			i = strtoul(cb->f[2], nil, 0);		/* endpoint */
 			if (i < 0 || i >= nelem(d->ep)
 			 || d->npt > nelem(d->ep) || i >= d->npt)
 				cmderror(cb, Ebadusbmsg);
+			if (cb->nf == 6) {
+				d->vid = strtoul(cb->f[4], nil, 0);
+				d->did = strtoul(cb->f[5], nil, 0);
+			}
 			if (i == 0)
 				d->csp = strtoul(cb->f[3], nil, 0);
 			if(d->ep[i] == nil){

@@ -157,6 +157,14 @@ the namespace for anonymous users (default
 .B d
 write debugging output to standard error
 .PP
+To preserve intended protections in shared file trees,
+any directory containing a file
+.I .httplogin
+is locked by
+.IR ftpd;
+see
+.IR httpd (8).
+.PP
 .I Imap4d
 provides access to a user's mailboxes via the IMAP4rev1 protocol.
 Only files rooted in

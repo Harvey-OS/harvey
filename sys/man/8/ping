@@ -4,7 +4,7 @@ ping, gping, traceroute, hogports \- probe the Internet
 .SH SYNOPSIS
 .B ping
 [
-.B -d
+.B -alq
 ] [
 .B -i
 .I interval
@@ -50,22 +50,44 @@ ping, gping, traceroute, hogports \- probe the Internet
 .B [\fImtpt\fP/]\fIproto\fP!\fIaddress\fP!\fIstartport\fP[-\fIendport\fP]
 .SH DESCRIPTION
 .I Ping
-sends ICMP echo requests to a system and returns the time
-for a response.  It can be used to determine the network delay
+sends ICMP echo request messages to a system.
+It can be used to determine the network delay
 and whether or not the destination is up.
+By default, a line is written to standard output for
+each request.
+If a reply is received the line contains the request
+id (starting at 0 and incrementing), the round trip time
+for this request, the average round trip time, and the time
+to live in the reply packet.  If no reply is received the line
+contains the word "lost", the request id, and the average round
+trip time.
+.PP
+If a reply is received for each request,
+.I ping
+returns successfully. Otherwise it returns an error status of
+"lost messages".
 .PP
 The options are:
 .TP
-.B n
-requests that a total of
-.I count
-messages be sent, default 32.
+.B a
+adds the IP source and destination addresses to each report.
 .TP
 .B i
 sets the time between messages
 to be
 .I interval
 milliseconds, default 1000 ms.
+.TP
+.B l
+causes only lost messages to be reported.
+.TP
+.B n
+requests that a total of
+.I count
+messages be sent, default 32.
+.TP
+.B q
+suppresses any output (i.e. be quiet).
 .TP
 .B s
 sets the length of the message to be
@@ -74,11 +96,6 @@ bytes, ICMP header included.
 The size cannot be smaller than 32 or
 larger than 8192.  The default is
 64.
-.TP
-.B d
-causes message numbers to be printed
-so that one can see the order with which
-messages are received and which are lost.
 .PP
 .I Gping
 is a

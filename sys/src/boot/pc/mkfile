@@ -87,7 +87,7 @@ all:V:	$TARG
 	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc
 	ls -l $target
 
-9pxeload:	l.$O $CORE $LOAD $ETHER
+9pxeload:	lpxe.$O $CORE $LOAD $ETHER
 	$LD -o $target -H3 -T0x80007C00 -l $prereq -lflate -lc
 	ls -l $target
 
@@ -118,7 +118,10 @@ lddebug:	ld.$O $CORE $BCOM
 	# map({"text", 0x80080100, 0x800B0000, 0x00000020})
 
 ld.$O:	l.s
-	$AS -DDOTCOM -o ld.$O l.s
+	$AS -DDOTCOM -o $target l.s
+
+lpxe.$O: l.s
+	$AS -DPXE -o $target l.s
 
 %.$O:	%.s
 	$AS $stem.s

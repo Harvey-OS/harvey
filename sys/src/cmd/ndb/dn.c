@@ -401,6 +401,7 @@ getactivity(Request *req)
 {
 	int rv;
 
+	if(traceactivity) syslog(0, "dns", "get %d by %d", dnvars.active, getpid());
 	lock(&dnvars);
 	while(dnvars.mutex){
 		unlock(&dnvars);
@@ -419,6 +420,7 @@ putactivity(void)
 {
 	static ulong lastclean;
 
+	if(traceactivity) syslog(0, "dns", "put %d by %d", dnvars.active, getpid());
 	lock(&dnvars);
 	dnvars.active--;
 	assert(dnvars.active >= 0); /* "dnvars.active %d", dnvars.active */;

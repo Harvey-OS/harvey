@@ -3,7 +3,7 @@
 .I cb 
 \- C program beautifier
 .SH SYNOPSIS
-\fBcb\fR [\fB-s\fR] [\fB-j\fR] [\fB-l\fR \fIleng\fR] [\fIfile\fR ...]
+\fBcb\fR [\fB-s\fR] [\fB-j\fR] [\fB-l\fR \fIlength\fR] [\fIfile\fR ...]
 .SH DESCRIPTION
 \fBCb\fR reads syntactically correct C programs from
 from its input or the given files, and writes them to its stdout
@@ -20,8 +20,8 @@ Ritchie found in The C Programming Language.
 .B -j
 Put split lines back together.
 .TP 
-.B -l leng
-Split lines that are longer than \fIleng\fR.
+.B -l length
+Split lines that are longer than \fIlength\fR.
 .SH SOURCE
 .B /sys/src/cmd/cb
 .SH NOTES

@@ -254,9 +254,83 @@ obtained (if any) from DHCP during
 .TP 8
 .B local
 connect to the local file system.
-The
-.I args
-are passed to
+The first argument is a disk holding a file system.
+.I Boot
+inspects the disk.
+If the disk is a 
+.IR fossil (4)
+file system, it invokes
+.B /boot/fossil
+to serve it.
+If the
+.B venti 
+environment variable (really,
+.IR plan9.ini (8)
+variable) is set,
+.I boot
+first arranges for fossil to be able to
+contact the named
+.IR venti (8)
+server.
+The variable's value can take the following forms:
+.TP
+.B /dev/sdC0/arenas
+the file should be a venti partition with a configuration
+stored on using
+.I venti/conf 
+(see
+.IR ventiaux (8)).
+.I Boot
+will start a loopback IP interface on 127.0.0.1
+and start
+.I venti
+announcing on
+.B tcp!127.1!17034
+for venti service
+and 
+.B tcp!127.1!8000
+for web service,
+using the configuration stored in that partition.
+.TP
+.B /dev/sdC0/arenas tcp!*!17034
+same as the last but specify an alternate venti service address.
+In this example, using
+.B *
+will announce on all available IP interfaces (even ones configured later)
+rather than just the loopback device.
+The loopback interface is still configured.
+.TP
+.B /dev/sdC0/arenas tcp!*!17034 tcp!*!80
+same as the last but specify alternate venti service and web addresses.
+The loopback interface is still configured.
+.TP
+.B tcp!135.104.9.2!17034
+the network address of a venti server running on a separate machine.
+.I Boot
+will configure the IP stack by passing any remaining
+boot arguments to
+.IR ipconfig (8).
+.PP
+If the disk is not a
+.IR fossil (4)
+partition, 
+.I boot
+invokes
+.BR /boot/kfs .
+A variety of programs, like
+.IR 9660srv (4)
+and
+.IR dossrv (4)
+masquerade as
+.I kfs
+to allow booting from alternate media formats,
+so as long as the disk is not a
+.I fossil
+disk, no check is made that the disk is in fact
+a
+.I kfs
+disk.
+The args are passed to
 .IR kfs (4).
 .PP
 For the
@@ -308,3 +382,11 @@ line is split only for presentation; it is one line in the file.)
 .IR root (3),
 .IR dhcpd (8),
 .IR init (8)
+.SH BUGS
+The use of
+.B bootargs
+in general is odd.
+The configuration specification
+for fossil and venti servers
+is particularly odd, but it does
+cover the common cases well.

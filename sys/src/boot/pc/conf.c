@@ -193,7 +193,7 @@ again:
 		mtimeout = 0;
 		i = strtol(buf, &p, 0)-1;
 		if(i < 0 || i >= nmitem)
-			continue;
+			goto again;
 		switch(*p){
 		case 'p':
 		case 'P':

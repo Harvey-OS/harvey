@@ -50,6 +50,7 @@ struct VtSession {
 	VtServerVtbl *vtbl;	/* == nil means client side */
 	int cstate;		/* connection state */
 	int fd;
+	char fderror[ERRMAX];
 
 	VtAuth auth;
 

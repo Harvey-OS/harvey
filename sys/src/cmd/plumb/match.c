@@ -423,6 +423,8 @@ execproc(void *v)
 	char buf[1024], *args[NARGS+1], argc[NARGCHAR];
 
 	rfork(RFFDG);
+	close(0);
+	open("/dev/null", OREAD);
 	av = v;
 	stackargv(av, args, argc);
 	free(av);

@@ -268,11 +268,11 @@ diskThread(void *a)
 	for(;;){
 		while(disk->nqueue == 0){
 			t += nsec();
-if(nio >= 10000){
-fprint(2, "disk: io=%d at %.3fms\n", nio, t*1e-6/nio);
-nio = 0;
-t = 0.;
-}
+//if(nio >= 10000){
+//fprint(2, "disk: io=%d at %.3fms\n", nio, t*1e-6/nio);
+//nio = 0;
+//t = 0.;
+//}
 			if(disk->die != nil)
 				goto Done;
 			vtSleep(disk->starve);

@@ -229,7 +229,7 @@ fswalk1(Fid *fid, char *name, void*)
 	fid->aux = ff;
 	mkqid(&fid->qid, ff);
 	return nil;
-}		
+}
 
 char*
 fsclone(Fid *fid, Fid *newfid, void*)
@@ -250,7 +250,7 @@ fswalk(Req *r)
 	vtFileUnlock(f);
 }
 
-Srv fs = 
+Srv fs =
 {
 .destroyfid=	fsdestroyfid,
 .attach=		fsattach,

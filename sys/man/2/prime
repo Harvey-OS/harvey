@@ -67,20 +67,16 @@ generates a prime,
 .IR p ,
 with the following properties:
 .IP \-
+(\fIp\fR-1)/2 is prime.  Therefore
 .IR p -1
 has a large prime factor,
 .IR p '.
-A large factor is one close to 1/2
-the bit length of
-.IR p .
 .IP \-
 .IR p '-1
 has a large prime factor
 .IP \-
 .IR p +1
 has a large prime factor
-.IP \-
-(\fIp\fR-1)/2 is prime
 .PP
 .I DSAprimes
 generates two primes,

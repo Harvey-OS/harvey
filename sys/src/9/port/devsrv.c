@@ -243,6 +243,8 @@ srvwstat(Chan *c, uchar *dp, int n)
 		error (Eshortstat);
 	if(d.mode != ~0UL)
 		sp->perm = d.mode & 0777;
+	if(d.uid && *d.uid)
+		kstrdup(&sp->owner, d.uid);
 
 	qunlock(&srvlk);
 	poperror();

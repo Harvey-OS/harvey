@@ -381,6 +381,7 @@ extern void	mallocsanity(void*);
 extern void	lasthist(void*, int, ulong);
 
 extern int debug;
+extern int traceactivity;
 extern char	*trace;
 extern int	testing;	/* test cache whenever removing a DN */
 extern int	cachedb;

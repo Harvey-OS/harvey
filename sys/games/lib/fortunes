@@ -3977,3 +3977,6 @@ info: Terminal type `dumb' is not smart enough to run Info.
  k=k; /* To suppress warning */
 debug1: Miscellaneous failure
 That doesn't make sense to me.  But then, you are very small.  Perhaps you're right.
+A company is only as good as its least imaginative manager.
+Thank you for ordering from MEDCO SUPPLY COMPANY, INC., where 100% satisfaction is gu
+(mozilla-bin:3115): Gtk-WARNING **: A floating object was finalized. This means that someone called g_object_unref() on an object that had only a floating reference; the initial floating reference is not owned by anyone and must be removed with gtk_object_sink() after a normal reference is obtained with g_object_ref(). - exit message from Mozilla

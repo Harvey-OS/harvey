@@ -26,7 +26,7 @@ void
 main(int argc, char **argv)
 {
 	int i;
-	long a;
+	long a, ae;
 	char *p;
 	Entry e;
 
@@ -54,11 +54,12 @@ main(int argc, char **argv)
 	ARGEND }
 	USED(argc,argv);
 	bdict = Bopen(dict->path, OREAD);
+	ae = Bseek(bdict, 0, 2);
 	if(!bdict) {
 		err("can't open dictionary %s", dict->path);
 		exits("nodict");
 	}
-	for(a = 0; a >= 0; a = (*dict->nextoff)(a+1)) {
+	for(a = 0; a < ae; a = (*dict->nextoff)(a+1)) {
 		linelen = 0;
 		e = getentry(a);
 		Bprint(bout, "%ld\t", a);

@@ -1,0 +1,16 @@
+#!/bin/rc
+
+if(! ~ $#* 1){
+	echo 'usage: isfossil /dev/sdC0/part' >[1=2]
+	exit usage
+}
+
+arg=$1
+if(! cmp -s <{dd -quiet 1 -if $arg -bs 1024 -iseek 127 |
+	dd -quiet 1 -bs 14 -count 1} <{echo 'fossil config'})
+	exit noconfig
+if(! cmp -s <{dd -quiet 1 -if $arg -bs 1024 -iseek 128 |
+	dd -quiet 1 -bs 4 -count 1 | xd -b | sed 1q} <{echo '0000000  37 76 ae 89'})
+	exit notwritebuffer
+exit 0
+

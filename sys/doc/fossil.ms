@@ -235,7 +235,7 @@ is made up of the following bit fields.
 0x20	VtEntryLocal	\fRreserved (q.v.)\fP
 .P2
 .LP
-The depth of the described tree is stored in the 5 bits indicated:
+The depth of the described tree is stored in the 3 bits indicated:
 a tree with a topmost node of type
 .CW VtPointerType3
 has depth 4.

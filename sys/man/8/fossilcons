@@ -484,12 +484,12 @@ none:none::
 noworld:noworld::
 sys:sys::
 glenda:glenda:glenda:
+.EE
 .PP
 Except
 .BR glenda ,
 these users are mandatory: they must appear in all user
 files and cannot be renamed.
-.EE
 .PP
 The
 .B -r

@@ -794,7 +794,7 @@ fn g {gre -e $1 *.[hycl]}
 builtin cd
 /bin/who
 .P2
-.TP "~ \fIsubject pattern ...
+.TP "~ \fIsubject pattern ...\f(CW
 The
 .I subject
 is matched against each

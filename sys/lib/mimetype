@@ -37,7 +37,7 @@
 .executable	application	octet-stream	-		n # DOS executable
 .exz		application	octet-stream	gzip		n # gzipped DOS executable
 .f		text		plain		-		y # fortran-77 program
-.fm		application	octet-stream	-		y # frame maker
+.fm		application	framemaker	-		y
 .f90		text		plain		-		y # fortran-90 program
 .flc		video		x-flc		-		m
 .fli		video		x-fli		-		m
@@ -143,3 +143,4 @@
 .zzz		application	sleep		-		n # testing
 -		application	x-gunzip	-		p # type for .tar.gz
 -		message		delivery-status	-		y # mail bounces
+-		application	pgp-signature	-		y

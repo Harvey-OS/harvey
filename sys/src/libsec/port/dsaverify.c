@@ -8,9 +8,9 @@ dsaverify(DSApub *pub, DSAsig *sig, mpint *m)
 	int rv = -1;
 	mpint *u1, *u2, *v, *sinv;
 
-	if(sig->r->sign < 0 || mpcmp(sig->r, pub->q) >= 0)
+	if(mpcmp(sig->r, mpone) < 0 || mpcmp(sig->r, pub->q) >= 0)
 		return rv;
-	if(sig->s->sign < 0 || mpcmp(sig->s, pub->q) >= 0)
+	if(mpcmp(sig->s, mpone) < 0 || mpcmp(sig->s, pub->q) >= 0)
 		return rv;
 	u1 = mpnew(0);
 	u2 = mpnew(0);

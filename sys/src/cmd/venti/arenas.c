@@ -337,8 +337,8 @@ wbArenaMap(AMap *am, int n, Part *part, u64int base, u64int size)
 /*
  * amap: n '\n' amapelem * n
  * n: u32int
- * amapelem: name '\t' astart '\t' asize '\n'
- * astart, asize: u64int
+ * amapelem: name '\t' astart '\t' astop '\n'
+ * astart, astop: u64int
  */
 int
 parseAMap(IFile *f, AMapN *amn)

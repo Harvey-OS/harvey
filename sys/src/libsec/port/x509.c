@@ -316,8 +316,6 @@ length_decode(uchar** pp, uchar* pend, int* plength)
 		v = *p++;
 		if(v&0x80)
 			err = int_decode(&p, pend, v&0x7F, 1, &num);
-		else if(v == 0x80)
-			num = -1;
 		else
 			num = v;
 	}
@@ -1999,9 +1997,10 @@ digest_certinfo(Bytes *cert, DigestFun digestfun, uchar *digest)
 	p = cert->data;
 	pend = cert->data + cert->len;
 	if(tag_decode(&p, pend, &tag, &isconstr) != ASN_OK ||
-			tag.class != Universal || tag.num != SEQUENCE ||
-			length_decode(&p, pend, &length) != ASN_OK ||
-			p+length > pend)
+	   tag.class != Universal || tag.num != SEQUENCE ||
+	   length_decode(&p, pend, &length) != ASN_OK ||
+	   p+length > pend ||
+	   p+length < p)
 		return;
 	info = p;
 	if(ber_decode(&p, pend, &elem) != ASN_OK || elem.tag.num != SEQUENCE)
@@ -2019,13 +2018,18 @@ verify_signature(Bytes* signature, RSApub *pk, uchar *edigest, Elem **psigalg)
 	uchar *pkcs1buf, *buf;
 	int buflen;
 	mpint *pkcs1;
+	int nlen;
+
+	/* one less than the byte length of the modulus */
+	nlen = (mpsignif(pk->n)-1)/8;
 
 	/* see 9.2.1 of rfc2437 */
 	pkcs1 = betomp(signature->data, signature->len, nil);
 	mpexp(pkcs1, pk->ek, pk->n, pkcs1);
+	pkcs1buf = nil;
 	buflen = mptobe(pkcs1, nil, 0, &pkcs1buf);
 	buf = pkcs1buf;
-	if(buflen < 4 || buf[0] != 1)
+	if(buflen != nlen || buf[0] != 1)
 		return "expected 1";
 	buf++;
 	while(buf[0] == 0xff)

@@ -1803,6 +1803,7 @@ etherelnk3reset(Ether* ether)
 	case 0x7646:		/* 3CSOHO100-TX */
 	case 0x9055:		/* 3C905B-TX */
 	case 0x9200:		/* 3C905C-TX */
+	case 0x9201:		/* 3C920 */
 		/*FALLTHROUGH*/
 	case 0x9000:		/* 3C900-TPO */
 	case 0x9001:		/* 3C900-COMBO */
@@ -1895,6 +1896,7 @@ etherelnk3reset(Ether* ether)
 	case 0x7646:
 	case 0x9055:
 	case 0x9200:
+	case 0x9201:
 		ctlr->xcvr = xcvrMii;
 		txrxreset(port);
 		x = ins(port+ResetOp905B);
