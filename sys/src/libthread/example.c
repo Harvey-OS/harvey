@@ -28,11 +28,11 @@ mouseproc(void *arg)
 	if((mfd = open("/dev/mouse", OREAD)) < 0)
 		sysfatal("open /dev/mouse: %r\en");
 	for(;;){
-		if(read(mfd, &m, sizeof m) != sizeof m)
+		if(read(mfd, m, sizeof m) != sizeof m)
 			sysfatal("eof");
 		if(atoi(m+1+2*12)&4)
 			sysfatal("button 3");
-		send(mousechan, &m);
+		send(mc, m);
 	}
 }
 
@@ -64,11 +64,11 @@ threadmain(int argc, char *argv[])
 
 	/* create mouse event channel and mouse process */
 	a[0].c = chancreate(sizeof m, 0);
-	proccreate(mouseproc, a[0].c, STACKSIZE);
+	proccreate(mouseproc, a[0].c, STACK);
 
 	/* create clock event channel and clock process */
 	a[1].c = chancreate(sizeof(ulong), 0);	/* clock event channel */
-	proccreate(clockproc, a[1].c, STACKSIZE);
+	proccreate(clockproc, a[1].c, STACK);
 
 	for(;;){
 		switch(alt(a)){

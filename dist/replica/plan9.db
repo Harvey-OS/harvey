@@ -467,7 +467,7 @@
 386/lib/libauthsrv.a - 664 sys sys 1038443219 31942
 386/lib/libbin.a - 664 sys sys 1038443219 2556
 386/lib/libbio.a - 664 sys sys 1038443219 28390
-386/lib/libc.a - 664 sys sys 1039758626 496612
+386/lib/libc.a - 664 sys sys 1041443377 496640
 386/lib/libcontrol.a - 664 sys sys 1040456880 243448
 386/lib/libdisk.a - 664 sys sys 1038443222 43692
 386/lib/libdraw.a - 664 sys sys 1040456882 372606
@@ -607,7 +607,7 @@ acme/bin/source/win/win.c - 664 sys sys 1015011255 4240
 acme/bin/unind - 755 sys sys 1015011256 27
 acme/mail - 20000000775 sys sys 1015011265 0
 acme/mail/386 - 20000000775 sys sys 1015011538 0
-acme/mail/386/Mail - 775 sys sys 1041145349 175523
+acme/mail/386/Mail - 775 sys sys 1041481688 175845
 acme/mail/Mail - 775 sys sys 1015011264 202
 acme/mail/alpha - 20000000775 sys sys 1015011521 0
 acme/mail/arm - 20000000775 sys sys 1015011525 0
@@ -620,8 +620,8 @@ acme/mail/readme - 664 sys sys 1017166342 2725
 acme/mail/src - 20000000775 sys sys 1015364010 0
 acme/mail/src/dat.h - 664 sys sys 1033936953 3857
 acme/mail/src/html.c - 664 sys sys 1034016085 1333
-acme/mail/src/mail.c - 664 sys sys 1037034918 10909
-acme/mail/src/mesg.c - 664 sys sys 1037034919 26017
+acme/mail/src/mail.c - 664 sys sys 1041481453 10994
+acme/mail/src/mesg.c - 664 sys sys 1041481453 26236
 acme/mail/src/mkfile - 664 sys sys 1037034918 364
 acme/mail/src/reply.c - 664 sys sys 1041137203 11326
 acme/mail/src/util.c - 664 sys sys 1022112164 1391
@@ -3726,7 +3726,7 @@ sys/lib/man - 20000000775 sys sys 960356011 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
 sys/lib/man/lookman - 20000000775 sys sys 956337764 0
-sys/lib/man/lookman/index - 664 sys sys 1021580074 1335770
+sys/lib/man/lookman/index - 664 sys sys 1041446757 1380093
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
 sys/lib/man/mkhtmlindex - 775 sys sys 959447575 1235
@@ -4378,7 +4378,7 @@ sys/man/1/0intro - 664 sys sys 958249499 9623
 sys/man/1/2a - 664 sys sys 944959673 1032
 sys/man/1/2c - 664 sys sys 1016731553 7349
 sys/man/1/2l - 664 sys sys 944959675 4074
-sys/man/1/INDEX - 664 sys sys 1026845791 3334
+sys/man/1/INDEX - 664 sys sys 1041446629 2895
 sys/man/1/INDEX.html - 664 sys sys 1026845791 15882
 sys/man/1/aan - 664 sys sys 1019856818 1622
 sys/man/1/acid - 664 sys sys 1016833872 9422
@@ -4524,7 +4524,7 @@ sys/man/2/0intro - 664 sys sys 958249500 11777
 sys/man/2/9p - 664 sys sys 1032632905 14553
 sys/man/2/9pfid - 664 sys sys 1030451710 3644
 sys/man/2/9pfile - 664 sys sys 1017423719 4426
-sys/man/2/INDEX - 664 sys sys 1020375094 19606
+sys/man/2/INDEX - 664 sys sys 1041446630 20120
 sys/man/2/INDEX.html - 664 sys sys 1019918562 26387
 sys/man/2/abort - 664 sys sys 944959693 331
 sys/man/2/abs - 664 sys sys 944959693 461
@@ -4665,7 +4665,7 @@ sys/man/2/wait - 664 sys sys 1015091528 2481
 sys/man/2/window - 664 sys sys 950593499 5522
 sys/man/3 - 20000000775 sys sys 1017251174 0
 sys/man/3/0intro - 664 sys sys 984709634 1873
-sys/man/3/INDEX - 664 sys sys 1020375094 363
+sys/man/3/INDEX - 664 sys sys 1041446630 369
 sys/man/3/INDEX.html - 664 sys sys 1019918563 3519
 sys/man/3/apm - 664 sys sys 984709634 1625
 sys/man/3/arch - 664 sys sys 958419692 1425
@@ -4701,7 +4701,7 @@ sys/man/3/usb - 664 sys sys 1019866708 6648
 sys/man/3/vga - 664 sys sys 1020356225 4827
 sys/man/4 - 20000000775 sys sys 1018581459 0
 sys/man/4/0intro - 664 sys sys 944959699 472
-sys/man/4/INDEX - 664 sys sys 1026846912 928
+sys/man/4/INDEX - 664 sys sys 1041446630 953
 sys/man/4/INDEX.html - 664 sys sys 1026846913 4513
 sys/man/4/acme - 664 sys sys 1015024813 9642
 sys/man/4/archfs - 664 sys sys 960000712 533
@@ -4797,7 +4797,7 @@ sys/man/8 - 20000000775 sys sys 1018384448 0
 sys/man/8/0intro - 664 sys sys 944959679 247
 sys/man/8/9load - 664 sys sys 1015024984 8340
 sys/man/8/9pcon - 664 sys sys 1018973955 2226
-sys/man/8/INDEX - 664 sys sys 1026847121 2329
+sys/man/8/INDEX - 664 sys sys 1041446630 2472
 sys/man/8/INDEX.html - 664 sys sys 1026847121 7728
 sys/man/8/aliasmail - 664 sys sys 1026847121 1203
 sys/man/8/apm - 664 sys sys 1017679308 1811
@@ -5104,7 +5104,7 @@ sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1015014519 7956
 sys/src/9/pc/kbd.c - 664 sys sys 1039753498 9134
 sys/src/9/pc/l.s - 664 sys sys 1026847645 20867
-sys/src/9/pc/main.c - 664 sys sys 1034202255 14255
+sys/src/9/pc/main.c - 664 sys sys 1041431178 14272
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1032303986 12994
 sys/src/9/pc/mkfile - 664 sys sys 1040002514 2995
@@ -5185,7 +5185,7 @@ sys/src/9/port/devenv.c - 664 sys sys 1019762849 6562
 sys/src/9/port/devfs.c - 664 sys sys 1041350175 11171
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1018721201 14968
-sys/src/9/port/devmnt.c - 664 sys sys 1039743586 21096
+sys/src/9/port/devmnt.c - 664 sys sys 1041443399 21588
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1036827459 11420
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
@@ -11582,7 +11582,7 @@ sys/src/libthread/channel.c - 664 sys sys 1018387005 8517
 sys/src/libthread/chanprint.c - 664 sys sys 1014928156 328
 sys/src/libthread/create.c - 664 sys sys 1014928156 2829
 sys/src/libthread/debug.c - 664 sys sys 1014928157 832
-sys/src/libthread/example.c - 664 sys sys 1014928157 1419
+sys/src/libthread/example.c - 664 sys sys 1041440306 1402
 sys/src/libthread/exec.c - 664 sys sys 1014928157 1844
 sys/src/libthread/exit.c - 664 sys sys 1015701273 1209
 sys/src/libthread/id.c - 664 sys sys 1014928157 1121

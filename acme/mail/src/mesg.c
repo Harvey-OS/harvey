@@ -62,6 +62,12 @@ char *okheaders[] =
 	nil
 };
 
+char *extraheaders[] =
+{
+	"Resent-",
+	nil,
+};
+
 char*
 line(char *data, char **pp)
 {
@@ -339,7 +345,7 @@ mesgmenu0(Window *w, Message *mbox, char *realdir, char *dir, int ind, Biobuf *f
 	char *name, *tmp;
 	int ogf=0;
 
-	if (strcmp(realdir, "/mail/fs/outgoing/") == 0)
+	if(strstr(realdir, "outgoing") != nil)
 		ogf=1;
 
 	/* show mail box in reverse order, pieces in forward order */
@@ -954,7 +960,7 @@ mimedisplay(Message *m, char *name, char *rootdir, Window *w, int fileonly)
 }
 
 void
-printheader(char *dir, Biobuf *b)
+printheader(char *dir, Biobuf *b, char **okheaders)
 {
 	char *s;
 	char *lines[100];
@@ -987,8 +993,11 @@ mesgload(Message *m, char *rootdir, char *file, Window *w)
 			mesgline(m, "To", m->to);
 			mesgline(m, "CC", m->cc);
 			mesgline(m, "Subject", m->subject);
-		}else
-			printheader(dir, w->body);
+			printheader(dir, w->body, extraheaders);
+		}else{
+			printheader(dir, w->body, okheaders);
+			printheader(dir, w->body, extraheaders);
+		}
 		Bprint(w->body, "\n");
 	}
 
@@ -1025,7 +1034,8 @@ mesgload(Message *m, char *rootdir, char *file, Window *w)
 				Bprint(w->body, "\n===> %s (%s) [%s]\n", strchr(name, '/')+1, mp->type, mp->disposition);
 			if(strcmp(mp->type, "text")==0 || strncmp(mp->type, "text/", 5)==0){
 				mimedisplay(mp, name, rootdir, w, 1);
-				printheader(subdir, w->body);
+				printheader(subdir, w->body, okheaders);
+				printheader(subdir, w->body, extraheaders);
 				winwritebody(w, "\n", 1);
 				s = readbody(mp->type, subdir, &n);
 				winwritebody(w, s, n);
