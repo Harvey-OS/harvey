@@ -225,9 +225,9 @@
 386/bin/fortune - 775 sys sys 1085077045 65146
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1091936092 235427
-386/bin/fossil/flfmt - 775 sys sys 1087009455 243794
-386/bin/fossil/fossil - 775 sys sys 1091936093 358242
+386/bin/fossil/flchk - 775 sys sys 1101269451 235428
+386/bin/fossil/flfmt - 775 sys sys 1101269451 243577
+386/bin/fossil/fossil - 775 sys sys 1101269452 358243
 386/bin/fossil/last - 775 sys sys 1087009456 61307
 386/bin/freq - 775 sys sys 1085077056 59766
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -7574,7 +7574,7 @@ sys/src/cmd/fossil/flproto - 664 sys sys 1042005508 210
 sys/src/cmd/fossil/fns.h - 664 sys sys 1087005596 3204
 sys/src/cmd/fossil/fossil-acid - 664 sys sys 1042005508 3965
 sys/src/cmd/fossil/fossil.c - 664 sys sys 1077896345 2435
-sys/src/cmd/fossil/fs.c - 664 sys sys 1087005595 21544
+sys/src/cmd/fossil/fs.c - 664 sys sys 1101213292 21545
 sys/src/cmd/fossil/fs.h - 664 sys sys 1091904424 1582
 sys/src/cmd/fossil/history - 664 sys sys 1055703793 1400
 sys/src/cmd/fossil/invariants - 664 sys sys 1042005509 4073
@@ -9733,7 +9733,7 @@ sys/src/cmd/mk/varsub.c - 664 sys sys 944961025 4438
 sys/src/cmd/mk/word.c - 664 sys sys 944961025 2595
 sys/src/cmd/mkdir.c - 664 sys sys 1082593106 1026
 sys/src/cmd/mkfile - 664 sys sys 1045534751 2205
-sys/src/cmd/mklib - 664 sys sys 1022112159 599
+sys/src/cmd/mklib - 664 sys sys 1101213349 618
 sys/src/cmd/mkmany - 664 sys sys 1022112160 1196
 sys/src/cmd/mkone - 664 sys sys 1022112160 792
 sys/src/cmd/mkstate.c - 664 sys sys 1014926695 2995

@@ -204,7 +204,7 @@ superWrite(Block* b, Super* super, int forceWrite)
 		while(!blockWrite(b)){
 			/* BUG: what should really happen here? */
 			fprint(2, "could not write super block; waiting 10 seconds\n");
-			sleep(10*000);
+			sleep(10*1000);
 		}
 		while(b->iostate != BioClean && b->iostate != BioDirty){
 			assert(b->iostate == BioWriting);
