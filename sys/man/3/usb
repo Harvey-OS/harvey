@@ -110,12 +110,14 @@ is the endpoint to be configured, and
 .I mode
 is
 .B r
-for read only, or
+for read only,
 .B w
+for write only, or
+.B rw
 for reading and writing.
 In the first form,
 .I maxpkt
-is the maximum packet size to be used (between 1 and 2048),
+is the maximum packet size to be used (between 8 and 1023),
 and
 .I nbuf
 is the number of buffers to be allocated by the driver.
