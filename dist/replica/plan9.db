@@ -31,7 +31,7 @@
 386/bin/ape/expr - 775 sys sys 1038443080 144796
 386/bin/ape/kill - 775 sys sys 1038443080 140422
 386/bin/ape/make - 775 sys sys 1038443081 205157
-386/bin/ape/psh - 775 sys sys 1020319055 209
+386/bin/ape/psh - 775 sys sys 1042088844 34
 386/bin/ape/sed - 775 sys sys 1038443081 160382
 386/bin/ape/sh - 775 sys sys 1038443082 477550
 386/bin/ape/stty - 775 sys sys 1039758529 41577
@@ -501,6 +501,7 @@
 68000 - 20000000775 sys sys 947991045 0
 68000/bin - 20000000775 sys sys 985559408 0
 68000/bin/bitsy - 20000000775 sys sys 985559408 0
+68000/bin/fossil - 20000000775 sys sys 1042090587 0
 68000/bin/venti - 20000000775 sys sys 1019679272 0
 68000/include - 20000000775 sys sys 948037602 0
 68000/include/u.h - 664 sys sys 1015089430 1340
@@ -514,6 +515,7 @@
 68020/bin/aux - 20000000775 sys sys 954268392 0
 68020/bin/bitsy - 20000000775 sys sys 985559408 0
 68020/bin/disk - 20000000775 sys sys 954268392 0
+68020/bin/fossil - 20000000775 sys sys 1042090587 0
 68020/bin/ip - 20000000775 sys sys 954275231 0
 68020/bin/ndb - 20000000775 sys sys 954268392 0
 68020/bin/replica - 20000000775 sys sys 1018321160 0
@@ -731,6 +733,7 @@ alpha/bin/auth - 20000000775 sys sys 954435372 0
 alpha/bin/aux - 20000000775 sys sys 954435372 0
 alpha/bin/bitsy - 20000000775 sys sys 985559408 0
 alpha/bin/disk - 20000000775 sys sys 954435373 0
+alpha/bin/fossil - 20000000775 sys sys 1042090587 0
 alpha/bin/fs - 20000000775 sys sys 954380757 0
 alpha/bin/ip - 20000000775 sys sys 954435373 0
 alpha/bin/ip/httpd - 20000000775 sys sys 954435373 0
@@ -759,6 +762,7 @@ arm/bin/auth - 20000000775 sys sys 985644308 0
 arm/bin/aux - 20000000775 sys sys 985644327 0
 arm/bin/bitsy - 20000000775 sys sys 985559407 0
 arm/bin/disk - 20000000775 sys sys 985644211 0
+arm/bin/fossil - 20000000775 sys sys 1042090587 0
 arm/bin/fs - 20000000775 sys sys 985644327 0
 arm/bin/ip - 20000000775 sys sys 985644327 0
 arm/bin/ip/httpd - 20000000775 sys sys 1038435385 0
@@ -2723,11 +2727,12 @@ mail/tmp - 20000000777 upas upas 953302655 0
 mips - 20000000775 sys sys 947989992 0
 mips/bin - 20000000775 sys sys 1018321186 0
 mips/bin/ape - 20000000775 sys sys 950911680 0
-mips/bin/ape/psh - 775 sys sys 951763818 190
+mips/bin/ape/psh - 775 sys sys 1042088845 34
 mips/bin/auth - 20000000775 sys sys 954268391 0
 mips/bin/aux - 20000000775 sys sys 954268391 0
 mips/bin/bitsy - 20000000775 sys sys 985559407 0
 mips/bin/disk - 20000000775 sys sys 954268391 0
+mips/bin/fossil - 20000000775 sys sys 1042090588 0
 mips/bin/fs - 20000000775 sys sys 954380757 0
 mips/bin/ip - 20000000775 sys sys 954268391 0
 mips/bin/ip/httpd - 20000000775 sys sys 954268391 0
@@ -2822,6 +2827,7 @@ power/bin/auth - 20000000775 sys sys 958422762 0
 power/bin/aux - 20000000775 sys sys 958422762 0
 power/bin/bitsy - 20000000775 sys sys 985559408 0
 power/bin/disk - 20000000775 sys sys 958422762 0
+power/bin/fossil - 20000000775 sys sys 1042090588 0
 power/bin/fs - 20000000775 sys sys 958422762 0
 power/bin/ip - 20000000775 sys sys 958422762 0
 power/bin/ip/httpd - 20000000775 sys sys 1038435389 0
@@ -2981,6 +2987,7 @@ sparc/bin/auth - 20000000775 sys sys 954268391 0
 sparc/bin/aux - 20000000775 sys sys 954268391 0
 sparc/bin/bitsy - 20000000775 sys sys 985559408 0
 sparc/bin/disk - 20000000775 sys sys 954268391 0
+sparc/bin/fossil - 20000000775 sys sys 1042090588 0
 sparc/bin/ip - 20000000775 sys sys 954268392 0
 sparc/bin/ip/httpd - 20000000775 sys sys 954268392 0
 sparc/bin/ndb - 20000000775 sys sys 954268392 0
@@ -3046,9 +3053,9 @@ sys/doc/contents.ms - 664 sys sys 1019916701 4920
 sys/doc/contents.ps - 664 sys sys 1019916845 232629
 sys/doc/docfonts - 664 sys sys 1038117516 208
 sys/doc/fonts - 664 sys sys 944959649 137
-sys/doc/fossil.ms - 664 sys sys 1042044710 31440
-sys/doc/fossil.pdf - 664 sys sys 1042044711 65284
-sys/doc/fossil.ps - 664 sys sys 1042044711 110396
+sys/doc/fossil.ms - 664 sys sys 1042123106 31437
+sys/doc/fossil.pdf - 664 sys sys 1042123169 63200
+sys/doc/fossil.ps - 664 sys sys 1042123131 313750
 sys/doc/fs - 20000000775 sys sys 945616779 0
 sys/doc/fs/fs.html - 664 sys sys 1020013937 21345
 sys/doc/fs/fs.pdf - 664 sys sys 1020384351 47177
@@ -4725,7 +4732,7 @@ sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1018386776 3746
 sys/man/4/factotum - 664 sys sys 1021579982 13900
-sys/man/4/fossil - 664 sys sys 1042005418 8705
+sys/man/4/fossil - 664 sys sys 1042094898 8705
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1018386777 4113
 sys/man/4/import - 664 sys sys 1034195346 2204
