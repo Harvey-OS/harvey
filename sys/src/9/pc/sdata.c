@@ -1890,6 +1890,7 @@ atapnp(void)
 			pcicfgw8(p, 0x44, r|0x08);
 			r = pcicfgr8(p, 0x46);
 			pcicfgw8(p, 0x46, (r & 0x0C)|0xF0);
+		case (0x7469<<16)|0x1022:	/* AMD 3111 */
 			break;
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */

@@ -18,6 +18,7 @@ OFILES=\
 	tabs.$O\
 	text.$O\
 	textbutton.$O\
+	textbutton3.$O\
 
 HFILES=/sys/include/draw.h\
 	/sys/include/mouse.h\

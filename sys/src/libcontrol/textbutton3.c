@@ -1,3 +1,7 @@
+/* use button 3 for a proper function to the application, that is not for plumber
+ *  as default control(2) supposes.
+ *  codes are mostly from /sys/src/libcontrol/textbutton.c
+ */
 #include <u.h>
 #include <libc.h>
 #include <draw.h>
@@ -6,9 +10,9 @@
 #include <keyboard.h>
 #include <control.h>
 
-typedef struct Textbutton Textbutton;
+typedef struct Textbutton3 Textbutton3;
 
-struct Textbutton
+struct Textbutton3
 {
 	Control;
 	CFont	*font;
@@ -18,7 +22,6 @@ struct Textbutton
 	CImage	*bordercolor;
 	CImage	*textcolor;
 	CImage	*pressedtextcolor;
-	CImage	*paletextcolor;
 	int		pressed;
 	int		lastbut;
 	int		lastshow;
@@ -26,9 +29,11 @@ struct Textbutton
 	int		nline;
 	int		align;
 	int		border;
-	int		off;
-	int		showoff;
-	int		prepress;
+	int		left;
+	int		middle;
+	int		right;
+	int		toggle;
+	int		gettextflg;
 };
 
 enum{
@@ -42,7 +47,6 @@ enum{
 	EImage,
 	ELight,
 	EMask,
-	EPaletextcolor,
 	EPressedtextcolor,
 	ERect,
 	EReveal,
@@ -50,6 +54,10 @@ enum{
 	ESize,
 	EText,
 	ETextcolor,
+	EEnable,
+	EDisable,
+	EToggle,
+	EGettext,
 	EValue,
 };
 
@@ -64,7 +72,6 @@ static char *cmds[] = {
 	[EImage] =		"image",
 	[ELight] =			"light",
 	[EMask] =			"mask",
-	[EPaletextcolor] ="paletextcolor",
 	[EPressedtextcolor] ="pressedtextcolor",
 	[ERect] =			"rect",
 	[EReveal] =		"reveal",
@@ -72,66 +79,82 @@ static char *cmds[] = {
 	[ESize] =			"size",
 	[EText] =			"text",
 	[ETextcolor] =		"textcolor",
+	[EEnable] =		"enable",
+	[EDisable] =		"disable",
+	[EToggle] =		"toggle",
+	[EGettext] =		"gettext",
 	[EValue] =			"value",
 	nil
 };
 
-static void	textbuttonshow(Textbutton*);
+static void	textbutton3show(Textbutton3 *);
 
 static void
-textbuttonmouse(Control *c, Mouse *m)
+textbutton3mouse(Control *c, Mouse *m)
 {
-	Textbutton *t;
+	Textbutton3 *t;
 
-	t = (Textbutton *)c;
-	if(m->buttons&7) {
-		if (ptinrect(m->xy,t->rect)) {
-			if (t->off) {
-				t->off = 0;
-				textbuttonshow(t);
-			}
-		} else {
-			if (!t->off) {
-				t->off = 1;
-				textbuttonshow(t);
-			}
-		}
-	}
-	if((m->buttons&7) != t->lastbut){
-		if(m->buttons & 7){
-			t->prepress = t->pressed;
-			if (t->pressed)
-				t->pressed = 0;
+	t = (Textbutton3 *)c;
+	if(t->left == 1) {
+		if((m->buttons&1) == 1 && (t->lastbut&1) == 0){
+			t->pressed ^= 1;
+			textbutton3show(t);
+			t->lastbut = m->buttons & 1;
+		}else if((m->buttons&1) == 0 && (t->lastbut&1) == 1){
+			if(t->gettextflg == 0)
+				chanprint(t->event, t->format, t->name, t->pressed, m->xy.x, m->xy.y);
 			else
-				t->pressed = 1;
-			textbuttonshow(t);
-		}else{	/* generate event on button up */
-			if (ptinrect(m->xy,t->rect))
-				chanprint(t->event, t->format, t->name, t->pressed);
-			else {
-				t->off = 0;
-				t->pressed = t->prepress;
-				textbuttonshow(t);
-			}
+				chanprint(t->event, "%q: value %q", t->name, t->line[0]);
+			t->pressed ^= 1;
+			textbutton3show(t);
+			t->lastbut = m->buttons & 1;
 		}
 	}
-	t->lastbut = m->buttons & 7;
+	if(t->middle == 1) {
+		if((m->buttons&2) == 2 && (t->lastbut&2) == 0){
+			t->pressed ^= 2;
+			textbutton3show(t);
+			t->lastbut = m->buttons & 2;
+		}else if((m->buttons&2) == 0 && (t->lastbut&2) == 2){
+			if(t->gettextflg == 0)
+				chanprint(t->event, t->format, t->name, t->pressed, m->xy.x, m->xy.y);
+			else
+				chanprint(t->event, "%q: value %q", t->name, t->line[0]);
+			t->pressed ^= 2;
+			textbutton3show(t);
+			t->lastbut = m->buttons & 2;
+		}
+	}
+	if(t->right == 1) {
+		if((m->buttons&4) == 4 && (t->lastbut&4) == 0){
+			t->pressed ^= 4;
+			textbutton3show(t);
+			t->lastbut = m->buttons & 4;
+		}else if((m->buttons&4) == 0 && (t->lastbut&4) == 4){
+			if(t->gettextflg == 0)
+				chanprint(t->event, t->format, t->name, t->pressed, m->xy.x, m->xy.y);
+			else
+				chanprint(t->event, "%q: value %q", t->name, t->line[0]);
+			t->pressed ^= 4;
+			textbutton3show(t);
+			t->lastbut = m->buttons & 4;
+		}
+	}
 }
 
 static void
-textbuttonfree(Control *c)
+textbutton3free(Control *c)
 {
 	int i;
-	Textbutton *t;
+	Textbutton3 *t;
 
-	t = (Textbutton*)c;
+	t = (Textbutton3*)c;
 	_putctlfont(t->font);
 	_putctlimage(t->image);
 	_putctlimage(t->light);
 	_putctlimage(t->mask);
 	_putctlimage(t->textcolor);
 	_putctlimage(t->bordercolor);
-	_putctlimage(t->paletextcolor);
 	_putctlimage(t->pressedtextcolor);
 	for(i=0; i<t->nline; i++)
 		free(t->line[i]);
@@ -139,7 +162,7 @@ textbuttonfree(Control *c)
 }
 
 static void
-textbuttonshow(Textbutton *t)
+textbutton3show(Textbutton3 *t)
 {
 	Rectangle r, clipr;
 	int i, dx, dy, w;
@@ -147,16 +170,18 @@ textbuttonshow(Textbutton *t)
 	Point p, q;
 	Image *im;
 
-	if(t->hidden || (t->lastshow == t->pressed && t->showoff == t->off))
+	if(t->hidden || t->lastshow == t->pressed)
 		return;
 	f = t->font->font;
 	draw(t->screen, t->rect, t->image->image, nil, t->image->image->r.min);
+	if(t->pressed || t->toggle)
+		draw(t->screen, t->rect, t->light->image, t->mask->image, t->mask->image->r.min);
 	if(t->border > 0)
 		border(t->screen, t->rect, t->border, t->bordercolor->image, ZP);
 	/* text goes here */
 	dx = 0;
 	for(i=0; i<t->nline; i++){
-		w = stringwidth(f, t->line[i]);
+		w = stringwidth(f, t->line[i]);		/*****/
 		if(dx < w)
 			dx = w;
 	}
@@ -164,9 +189,7 @@ textbuttonshow(Textbutton *t)
 	clipr = insetrect(t->rect, t->border);
 	p = _ctlalignpoint(clipr, dx, dy, t->align);
 	im = t->textcolor->image;
-	if(t->off)
-		im = t->paletextcolor->image;
-	else if(t->pressed)
+	if(t->pressed)
 		im = t->pressedtextcolor->image;
 	for(i=0; i<t->nline; i++){
 		r.min = p;
@@ -178,21 +201,18 @@ textbuttonshow(Textbutton *t)
 			clipr, nil, ZP, SoverD);
 		p.y += f->height;
 	}
-	if(t->off || t->pressed)
-		draw(t->screen, t->rect, t->light->image, t->mask->image, t->mask->image->r.min);
 	t->lastshow = t->pressed;
-	t->showoff = t->off;
 	flushimage(display, 1);
 }
 
 static void
-textbuttonctl(Control *c, CParse *cp)
+textbutton3ctl(Control *c, CParse *cp)
 {
 	int cmd, i;
 	Rectangle r;
-	Textbutton *t;
+	Textbutton3 *t;
 
-	t = (Textbutton*)c;
+	t = (Textbutton3*)c;
 	cmd = _ctllookup(cp->args[0], cmds, nelem(cmds));
 	switch(cmd){
 	default:
@@ -243,11 +263,6 @@ textbuttonctl(Control *c, CParse *cp)
 		_setctlimage(t, &t->mask, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
-	case EPaletextcolor:
-		_ctlargcount(t, cp, 2);
-		_setctlimage(t, &t->paletextcolor, cp->args[1]);
-		t->lastshow = -1;	/* force redraw */
-		break;
 	case EPressedtextcolor:
 		_ctlargcount(t, cp, 2);
 		_setctlimage(t, &t->pressedtextcolor, cp->args[1]);
@@ -268,12 +283,12 @@ textbuttonctl(Control *c, CParse *cp)
 		_ctlargcount(t, cp, 1);
 		t->hidden = 0;
 		t->lastshow = -1;	/* force redraw */
-		textbuttonshow(t);
+		textbutton3show(t);
 		break;
 	case EShow:
 		_ctlargcount(t, cp, 1);
 		t->lastshow = -1;	/* force redraw */
-		textbuttonshow(t);
+		textbutton3show(t);
 		break;
 	case ESize:
 		if (cp->nargs == 3)
@@ -299,29 +314,62 @@ textbuttonctl(Control *c, CParse *cp)
 		for(i=0; i<t->nline; i++)
 			t->line[i] = ctlstrdup(cp->args[i+1]);
 		t->lastshow = -1;	/* force redraw */
-		textbuttonshow(t);
+		textbutton3show(t);
 		break;
 	case ETextcolor:
 		_ctlargcount(t, cp, 2);
 		_setctlimage(t, &t->textcolor, cp->args[1]);
 		t->lastshow = -1;	/* force redraw */
 		break;
+	case EEnable:
+		_ctlargcount(t, cp, 2);
+		if(strcmp(cp->args[1], "left") == 0)
+				t->left = 1;
+		else if(strcmp(cp->args[1], "middle") == 0)
+				t->middle = 1;
+		else if(strcmp(cp->args[1], "right") == 0)
+				t->right = 1;
+		break;
+	case EDisable:
+		_ctlargcount(t, cp, 2);
+		if(strcmp(cp->args[1], "left") == 0)
+			t->left = 0;
+		else if(strcmp(cp->args[1], "middle") == 0)
+			t->middle = 0;
+		else if(strcmp(cp->args[1], "right") == 0)
+			t->right = 0;
+		break;
+	case EToggle:
+		_ctlargcount(t, cp, 2);
+		if(strcmp(cp->args[1], "on") == 0)
+			t->toggle = 1;
+		else if(strcmp(cp->args[1], "off") == 0)
+			t->toggle = 0;
+		t->lastshow = -1;	/* force redraw */
+		break;
+	case EGettext:
+		_ctlargcount(t, cp, 2);
+		if(strcmp(cp->args[1], "on") == 0)
+			t->gettextflg = 1;
+		else if(strcmp(cp->args[1], "off") == 0)
+			t->gettextflg = 0;
+		break;
 	case EValue:
 		_ctlargcount(t, cp, 2);
 		if((cp->iargs[1]!=0) != t->pressed){
 			t->pressed ^= 1;
-			textbuttonshow(t);
+			textbutton3show(t);
 		}
 		break;
 	}
 }
 
 Control*
-createtextbutton(Controlset *cs, char *name)
+createtextbutton3(Controlset *cs, char *name)
 {
-	Textbutton *t;
+	Textbutton3 *t;
 
-	t = (Textbutton *)_createctl(cs, "textbutton", sizeof(Textbutton), name);
+	t = (Textbutton3 *)_createctl(cs, "textbutton3", sizeof(Textbutton3), name);
 	t->line = ctlmalloc(sizeof(char*));
 	t->nline = 0;
 	t->image = _getctlimage("white");
@@ -330,15 +378,16 @@ createtextbutton(Controlset *cs, char *name)
 	t->bordercolor = _getctlimage("black");
 	t->textcolor = _getctlimage("black");
 	t->pressedtextcolor = _getctlimage("black");
-	t->paletextcolor = _getctlimage("paleyellow");
 	t->font = _getctlfont("font");
-	t->format = ctlstrdup("%q: value %d");
+	t->format = ctlstrdup("%q: value %d %d %d");
 	t->lastshow = -1;
-	t->mouse = textbuttonmouse;
-	t->ctl = textbuttonctl;
-	t->exit = textbuttonfree;
-	t->prepress = 0;
-	t->off = 0;
-	t->showoff = -1;
+	t->mouse = textbutton3mouse;
+	t->ctl = textbutton3ctl;
+	t->exit = textbutton3free;
+	t->left = 1;
+	t->middle = 1;
+	t->right = 1;
+	t->toggle = 0;
+	t->gettextflg = 0;
 	return (Control *)t;
 }

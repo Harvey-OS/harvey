@@ -430,6 +430,7 @@ chat("dosinit0a\n");
 		bootdump(b);
 
 	if(b->clustsize == 0) {
+badclustsize:
 		print("dos file system has incorrect cluster size\n");
 		for(i=0; i<3+8+2+1; i++)
 			print(" %.2ux", p->iobuf[i]);
@@ -480,6 +481,9 @@ chat("dosinit1\n");
 	}
 	dos->freeptr = 2;
 
+	if(dos->clustbytes < 512 || dos->clustbytes > 64*1024)
+		goto badclustsize;
+
 chat("dosinit2\n");
 
 	/*
@@ -507,20 +511,20 @@ bootdump(Dosboot *b)
 {
 	if(chatty == 0)
 		return;
-	print("magic: 0x%2.2x 0x%2.2x 0x%2.2x\n",
+	print("magic: 0x%2.2x 0x%2.2x 0x%2.2x ",
 		b->magic[0], b->magic[1], b->magic[2]);
 	print("version: \"%8.8s\"\n", (char*)b->version);
-	print("sectsize: %d\n", GSHORT(b->sectsize));
-	print("allocsize: %d\n", b->clustsize);
-	print("nresrv: %d\n", GSHORT(b->nresrv));
+	print("sectsize: %d ", GSHORT(b->sectsize));
+	print("allocsize: %d ", b->clustsize);
+	print("nresrv: %d ", GSHORT(b->nresrv));
 	print("nfats: %d\n", b->nfats);
-	print("rootsize: %d\n", GSHORT(b->rootsize));
-	print("volsize: %d\n", GSHORT(b->volsize));
+	print("rootsize: %d ", GSHORT(b->rootsize));
+	print("volsize: %d ", GSHORT(b->volsize));
 	print("mediadesc: 0x%2.2x\n", b->mediadesc);
-	print("fatsize: %d\n", GSHORT(b->fatsize));
-	print("trksize: %d\n", GSHORT(b->trksize));
-	print("nheads: %d\n", GSHORT(b->nheads));
-	print("nhidden: %d\n", GLONG(b->nhidden));
+	print("fatsize: %d ", GSHORT(b->fatsize));
+	print("trksize: %d ", GSHORT(b->trksize));
+	print("nheads: %d ", GSHORT(b->nheads));
+	print("nhidden: %d ", GLONG(b->nhidden));
 	print("bigvolsize: %d\n", GLONG(b->bigvolsize));
 /*
 	print("driveno: %d\n", b->driveno);

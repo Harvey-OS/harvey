@@ -6,6 +6,8 @@
 #include <keyboard.h>
 #include <control.h>
 
+static int debug = 0;
+
 enum	/* alts */
 {
 	AKey,
@@ -45,6 +47,7 @@ char *ctltypenames[Ntypes] = {
 	[Ctltabs] =			"tabs",
 	[Ctltext] =			"text",
 	[Ctltextbutton] =	"textbutton",
+	[Ctltextbutton3] =	"textbutton3",
 	[Ctlgroup] =		"group",		// divider between controls and metacontrols
 	[Ctlboxbox] =		"boxbox",
 	[Ctlcolumn] =		"column",
@@ -111,8 +114,8 @@ _ctllookup(char *s, char *tab[], int ntab)
 {
 	int i;
 
-	for(i=0; i<ntab && tab[i] != nil; i++)
-		if(strcmp(s, tab[i]) == 0)
+	for(i=0; i<ntab; i++)
+		if(tab[i] != nil && strcmp(s, tab[i]) == 0)
 			return i;
 	return -1;
 }
@@ -217,13 +220,17 @@ controlsetthread(void *v)
 				if(f->hidden == 0 && f->mouse && ptinrect(mouse.xy, f->rect)){
 					cs->focus = f;
 					_ctlprint(f, "focus 1");
-					if (f->mouse)
+					if (f->mouse) {
+						if (debug) fprint(2, "f->mouse %s\n", f->name);
 						f->mouse(f, &mouse);
+					}
 					break;
 				}
 		Send:
-			if(cs->focus && cs->focus->mouse)
+			if(cs->focus && cs->focus->mouse) {
+				if (debug) fprint(2, "cs->focus->mouse %s\n", cs->focus->name);
 				cs->focus->mouse(cs->focus, &mouse);
+			}
 			prevbut=mouse.buttons;
 			break;
 		case ACtl:
