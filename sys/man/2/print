@@ -328,7 +328,7 @@ conversions, trailing zeros are not removed.
 .PP
 The
 .B s
-verb copies a string
+verb copies a nul-terminated string
 (pointer to
 .BR char )
 to the output.
@@ -342,6 +342,12 @@ These
 characters are justified within a field of
 .I width
 characters as described above.
+If a
+.I precision
+is given, it is safe for the string not to be nul-terminated
+as long as it is at least
+.I precision
+characters (not bytes!) long.
 The
 .B S
 verb is similar, but it interprets its pointer as an array

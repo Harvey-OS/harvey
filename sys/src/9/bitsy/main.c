@@ -145,7 +145,7 @@ bootargs(ulong base)
 	 */
 	sp = (uchar*)base + BY2PG - sizeof(Sargs);
 
-	bootpath = pusharg("/boot");
+	bootpath = pusharg("/boot/boot");
 	ac = 0;
 	av[ac++] = pusharg("boot");
 

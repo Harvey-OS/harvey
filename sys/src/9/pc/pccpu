@@ -32,6 +32,7 @@ link
 	ether79c970	pci
 	ether8003	ether8390
 	ether8139	pci
+	ether82543	pci ethermii
 	ether82543gc	pci
 	ether82557	pci
 	ether83815	pci
@@ -49,8 +50,6 @@ misc
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 
-	ipconfig.root
-	factotum.root
 
 ip
 	il
@@ -69,3 +68,8 @@ port
 
 boot cpu
 	il
+
+bootdir
+	bootpccpu.out boot
+	/386/bin/ip/ipconfig ipconfig
+	factotum.hack factotum

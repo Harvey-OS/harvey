@@ -10,7 +10,7 @@ cache(int fd)
 	int argc, i, p[2];
 	char *argv[5], bd[32], buf[256], partition[64], *pp;
 
-	if(stat("/cfs", statbuf, sizeof statbuf) < 0)
+	if(stat("/boot/cfs", statbuf, sizeof statbuf) < 0)
 		return fd;
 
 	*partition = 0;
@@ -63,9 +63,9 @@ cache(int fd)
 		dup(p[0], 1);
 		close(p[0]);
 		if(fflag)
-			execl("/cfs", "bootcfs", "-rs", "-f", partition, 0);
+			execl("/boot/cfs", "bootcfs", "-rs", "-f", partition, 0);
 		else
-			execl("/cfs", "bootcfs", "-s", "-f", partition, 0);
+			execl("/boot/cfs", "bootcfs", "-s", "-f", partition, 0);
 		break;
 	default:
 		close(p[0]);

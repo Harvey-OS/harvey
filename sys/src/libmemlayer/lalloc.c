@@ -73,7 +73,7 @@ memlalloc(Memscreen *s, Rectangle screenr, Refreshfn refreshfn, void *refreshptr
 	if(val != DNofill){
 		memsetchan(paint, n->chan);
 		memfillcolor(paint, val);
-		memdraw(n, n->r, paint, n->r.min, nil, n->r.min);
+		memdraw(n, n->r, paint, n->r.min, nil, n->r.min, S);
 	}
 	return n;
 }

@@ -1,7 +1,7 @@
 void		accounttime(void);
 void		addclock0link(void (*)(void), int);
 int		addphysseg(Physseg*);
-void		addrootfile(char*, uchar*, ulong);
+void		addbootfile(char*, uchar*, ulong);
 Block*		adjustblock(Block*, int);
 void		alarmkproc(void*);
 Block*		allocb(int);

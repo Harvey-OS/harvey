@@ -203,6 +203,7 @@ EXTERN	long	datsize;
 EXTERN	char	debug[128];
 EXTERN	Prog*	etextp;
 EXTERN	Prog*	firstp;
+EXTERN	char	fnuxi4[4];	/* for 3l [sic] */
 EXTERN	char	fnuxi8[8];
 EXTERN	char*	noname;
 EXTERN	Sym*	hash[NHASH];

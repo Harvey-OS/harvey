@@ -7,7 +7,7 @@ char *host;
 void
 usage(void)
 {
-	fprint(2, "usage: read [-h host] [-t type] score\n");
+	fprint(2, "usage: read [-h host] score [type]\n");
 	exits("usage");
 }
 
@@ -47,20 +47,16 @@ main(int argc, char *argv[])
 	uchar *buf;
 	VtSession *z;
 
-	type = VtDataType;
 	ARGBEGIN{
 	case 'h':
 		host = EARGF(usage());
-		break;
-	case 't':
-		type = atoi(EARGF(usage()));
 		break;
 	default:
 		usage();
 		break;
 	}ARGEND
 
-	if(argc != 1)
+	if(argc != 1 && argc != 2)
 		usage();
 
 	vtAttach();
@@ -80,7 +76,20 @@ main(int argc, char *argv[])
 	if(!vtConnect(z, 0))
 		sysfatal("vtConnect: %r");
 
-	n = vtRead(z, score, type, buf, VtMaxLumpSize);
+	if(argc == 1){
+		n = -1;
+		for(type=0; type<VtMaxType; type++){
+			n = vtRead(z, score, type, buf, VtMaxLumpSize);
+			if(n >= 0){
+				fprint(2, "venti/read%s%s %V %d\n", host ? " -h" : "", host ? host : "",
+					score, type);
+				break;
+			}
+		}
+	}else{
+		type = atoi(argv[1]);
+		n = vtRead(z, score, type, buf, VtMaxLumpSize);
+	}
 	vtClose(z);
 	if(n < 0)
 		vtFatal("could not read block: %s", vtGetError());

@@ -1,0 +1,26 @@
+#!/bin/rc
+
+awk -v 'objtype='$objtype '
+/^$/{
+		next;
+}
+/^#/{
+		next;
+}
+collect && /^[^ \t]/{
+		collect = 0;
+}
+collect && section ~ "bootdir"{
+		x = $1;
+		gsub(/[^a-zA-Z0-9_]/, "_", x);
+		printf "%s.root.s: %s\n\t../port/mkroot %s %s\n", x, $1, $1, x;
+}
+$0 ~ /^[^ \t]/{
+		if($0 ~ "bootdir"){
+			section = $0;
+			collect = 1;
+		}
+		next;
+}
+
+' $*

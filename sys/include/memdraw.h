@@ -100,6 +100,7 @@ struct	Memdrawparam
 	Rectangle sr;
 	Memimage *mask;
 	Rectangle mr;
+	int op;
 
 	ulong state;
 	ulong mval;	/* if Simplemask, the mask pixel in mask format */
@@ -131,18 +132,18 @@ extern int		memsetchan(Memimage*, ulong);
 /*
  * Graphics
  */
-extern void	memdraw(Memimage*, Rectangle, Memimage*, Point, Memimage*, Point);
-extern void	memline(Memimage*, Point, Point, int, int, int, Memimage*, Point);
-extern void	mempoly(Memimage*, Point*, int, int, int, int, Memimage*, Point);
-extern void	memfillpoly(Memimage*, Point*, int, int, Memimage*, Point);
-extern void	_memfillpolysc(Memimage*, Point*, int, int, Memimage*, Point, int, int, int);
-extern void	memimagedraw(Memimage*, Rectangle, Memimage*, Point, Memimage*, Point);
+extern void	memdraw(Memimage*, Rectangle, Memimage*, Point, Memimage*, Point, int);
+extern void	memline(Memimage*, Point, Point, int, int, int, Memimage*, Point, int);
+extern void	mempoly(Memimage*, Point*, int, int, int, int, Memimage*, Point, int);
+extern void	memfillpoly(Memimage*, Point*, int, int, Memimage*, Point, int);
+extern void	_memfillpolysc(Memimage*, Point*, int, int, Memimage*, Point, int, int, int, int);
+extern void	memimagedraw(Memimage*, Rectangle, Memimage*, Point, Memimage*, Point, int);
 extern int	hwdraw(Memdrawparam*);
-extern void	memimageline(Memimage*, Point, Point, int, int, int, Memimage*, Point);
-extern void	_memimageline(Memimage*, Point, Point, int, int, int, Memimage*, Point, Rectangle);
+extern void	memimageline(Memimage*, Point, Point, int, int, int, Memimage*, Point, int);
+extern void	_memimageline(Memimage*, Point, Point, int, int, int, Memimage*, Point, Rectangle, int);
 extern Point	memimagestring(Memimage*, Point, Memimage*, Point, Memsubfont*, char*);
-extern void	memellipse(Memimage*, Point, int, int, int, Memimage*, Point);
-extern void	memarc(Memimage*, Point, int, int, int, Memimage*, Point, int, int);
+extern void	memellipse(Memimage*, Point, int, int, int, Memimage*, Point, int);
+extern void	memarc(Memimage*, Point, int, int, int, Memimage*, Point, int, int, int);
 extern Rectangle	memlinebbox(Point, Point, int, int, int);
 extern int	memlineendsize(int);
 extern void	_memmkcmap(void);

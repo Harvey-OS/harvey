@@ -47,6 +47,8 @@ enum {
 	Pwhite		= 0xFF,
 };
 
+#define VGAMEM()	PADDR(arch->pcimem(0xA0000, 1<<16))
+
 #define vgai(port)		inb(port)
 #define vgao(port, data)	outb(port, data)
 

@@ -58,7 +58,7 @@ screensize(int x, int y, int z, ulong chan)
 			error("screensize: vga soft memory");
 /*		memset(gscreendata.bdata, 0x72, width*BY2WD*y);	/* not really black */
 		scr->useflush = 1;
-		scr->aperture = 0xA0000;
+		scr->aperture = VGAMEM();
 		scr->apsize = 1<<16;
 	}
 	else
@@ -362,7 +362,10 @@ hwdraw(Memdrawparam *par)
 	 * replicate with memset.
 	 */
 	m = Simplesrc|Simplemask|Fullmask;
-	if(scr->fill && (par->state&m)==m && ((par->srgba&0xFF) == 0xFF))
+	if(scr->fill
+	&& (par->state&m)==m
+	&& ((par->srgba&0xFF) == 0xFF)
+	&& (par->op&S) == S)
 		return scr->fill(scr, par->r, par->sdval);
 
 	/*
@@ -370,11 +373,14 @@ hwdraw(Memdrawparam *par)
 	 * source onto the destination.  If the channels are the same and
 	 * the source is not replicated, memmove suffices.
 	 */
+	m = Simplemask|Fullmask;
 	src = par->src;
-	if(scr->scroll && src->data->bdata==dst->data->bdata && !(src->flags&Falpha)
-	&& (par->state&(Simplemask|Fullmask))==(Simplemask|Fullmask)){
+	if(scr->scroll
+	&& src->data->bdata==dst->data->bdata
+	&& !(src->flags&Falpha)
+	&& (par->state&m)==m
+	&& (par->op&S) == S)
 		return scr->scroll(scr, par->r, par->sr);
-	}
 
 	return 0;	
 }

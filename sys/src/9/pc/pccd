@@ -58,11 +58,6 @@ link
 misc
 	archmp		mp apic
 
-	ipconfig.root
-	9660srv.root
-	factotum.root
-	cfs.root
-
 	sdata		pci sdscsi
 	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
@@ -104,3 +99,9 @@ port
 boot boot #S/sdD0/data
 	il
 	local
+
+bootdir
+	bootpccd.out boot
+	/386/bin/ip/ipconfig ipconfig
+	/386/bin/9660srv kfs
+

@@ -3,23 +3,35 @@
 TARG =	faxreceive\
 	faxsend\
 
-RECEIVE=\
+OFILES=\
 	fax2modem.$O\
-	fax2receive.$O\
 	file.$O\
-	receive.$O\
 	modem.$O\
 	subr.$O\
+
+RECEIVE=\
+	$OFILES\
+	receive.$O\
+	fax2receive.$O\
 
 SEND=\
-	fax2modem.$O\
-	fax2send.$O\
-	file.$O\
+	$OFILES\
 	send.$O\
-	modem.$O\
-	subr.$O\
+	fax2send.$O\
 
 BIN=/$objtype/bin/aux
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	receive.c\
+	send.c\
+	fax2receive.c\
+	fax2send.c\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/%}\
+
 </sys/src/cmd/mkmany
 
 $O.faxreceive: $RECEIVE

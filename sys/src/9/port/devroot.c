@@ -5,61 +5,90 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-enum{
-	Qdir=	0,
+enum
+{
+	Qdir = 0,
+	Qboot = 0x1000,
 
-	Nfiles=32,	/* max root files */
+	Nrootfiles = 32,
+	Nbootfiles = 16,
 };
 
-extern ulong	bootlen;
-extern uchar	bootcode[];
-
-Dirtab rootdir[Nfiles] = {
-	".",	{Qdir, 0, QTDIR},	0,		DMDIR|0555,
+typedef struct Dirlist Dirlist;
+struct Dirlist
+{
+	uint base;
+	Dirtab *dir;
+	uchar **data;
+	int ndir;
+	int mdir;
 };
 
-static uchar	*rootdata[Nfiles];
-static int	nroot = 1;
+static Dirtab rootdir[Nrootfiles] = {
+	"#/",		{Qdir, 0, QTDIR},	0,		DMDIR|0555,
+	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
+};
+static uchar *rootdata[Nrootfiles];
+static Dirlist rootlist = 
+{
+	0,
+	rootdir,
+	rootdata,
+	2,
+	Nrootfiles
+};
+
+static Dirtab bootdir[Nbootfiles] = {
+	"boot",	{Qboot, 0, QTDIR},	0,		DMDIR|0555,
+};
+static uchar *bootdata[Nbootfiles];
+static Dirlist bootlist =
+{
+	Qboot,
+	bootdir,
+	bootdata,
+	1,
+	Nbootfiles
+};
 
 /*
- *  add a root file
+ *  add a file to the list
  */
 static void
-addroot(char *name, uchar *contents, ulong len, int perm)
+addlist(Dirlist *l, char *name, uchar *contents, ulong len, int perm)
 {
 	Dirtab *d;
 
-	if(nroot >= Nfiles)
+	if(l->ndir >= l->mdir)
 		panic("too many root files");
-	rootdata[nroot] = contents;
-	d = &rootdir[nroot];
+	l->data[l->ndir] = contents;
+	d = &l->dir[l->ndir];
 	strcpy(d->name, name);
 	d->length = len;
 	d->perm = perm;
 	d->qid.type = 0;
 	d->qid.vers = 0;
-	d->qid.path = nroot+1;
+	d->qid.path = ++l->ndir + l->base;
 	if(perm & DMDIR)
 		d->qid.type |= QTDIR;
-	nroot++;
 }
 
 /*
  *  add a root file
  */
 void
-addrootfile(char *name, uchar *contents, ulong len)
+addbootfile(char *name, uchar *contents, ulong len)
 {
-	addroot(name, contents, len, 0555);
+	addlist(&bootlist, name, contents, len, 0555);
 }
 
 /*
- *  add a root file
+ *  add a root directory
  */
 static void
 addrootdir(char *name)
 {
-	addroot(name, nil, 0, DMDIR|0555);
+	addlist(&rootlist, name, nil, 0, DMDIR|0555);
 }
 
 static void
@@ -75,8 +104,6 @@ rootreset(void)
 	addrootdir("proc");
 	addrootdir("root");
 	addrootdir("srv");
-
-	addrootfile("boot", bootcode, bootlen);	/* always have a boot file */
 }
 
 static Chan*
@@ -85,27 +112,57 @@ rootattach(char *spec)
 	return devattach('/', spec);
 }
 
+static int
+rootgen(Chan *c, char *name, Dirtab*, int, int s, Dir *dp)
+{
+	int t;
+	Dirtab *d;
+	Dirlist *l;
+
+	switch((int)c->qid.path){
+	case Qdir:
+		return devgen(c, name, rootlist.dir, rootlist.ndir, s, dp);
+	case Qboot:
+		if(s == DEVDOTDOT){
+			devdir(c, (Qid){Qdir, 0, QTDIR}, "#/", 0, eve, 0555, dp);
+			return 1;
+		}
+		return devgen(c, name, bootlist.dir, bootlist.ndir, s, dp);
+	default:
+		if((int)c->qid.path < Qboot){
+			t = c->qid.path-1;
+			l = &rootlist;
+		}else{
+			t = c->qid.path - Qboot - 1;
+			l = &bootlist;
+		}
+		if(t >= l->ndir)
+			return -1;
+		if(s != 0)
+			return -1;
+		d = &l->dir[t];
+		devdir(c, d->qid, d->name, d->length, eve, d->perm, dp);
+		return 1;
+	}
+	return -1;
+}
+
 static Walkqid*
 rootwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	return devwalk(c,  nc, name, nname, rootdir, nroot, devgen);
+	return devwalk(c,  nc, name, nname, nil, 0, rootgen);
 }
 
 static int
 rootstat(Chan *c, uchar *dp, int n)
 {
-	return devstat(c, dp, n, rootdir, nroot, devgen);
+	return devstat(c, dp, n, nil, 0, rootgen);
 }
 
 static Chan*
 rootopen(Chan *c, int omode)
 {
-	switch((ulong)c->qid.path) {
-	default:
-		break;
-	}
-
-	return devopen(c, omode, rootdir, nroot, devgen);
+	return devopen(c, omode, nil, 0, devgen);
 }
 
 /*
@@ -121,17 +178,26 @@ rootread(Chan *c, void *buf, long n, vlong off)
 {
 	ulong t;
 	Dirtab *d;
+	Dirlist *l;
 	uchar *data;
 	ulong offset = off;
 
 	t = c->qid.path;
 	switch(t){
 	case Qdir:
-		return devdirread(c, buf, n, rootdir, nroot, devgen);
+	case Qboot:
+		return devdirread(c, buf, n, nil, 0, rootgen);
 	}
 
-	d = &rootdir[t-1];
-	data = rootdata[t-1];
+	if(t<Qboot)
+		l = &rootlist;
+	else{
+		t -= Qboot;
+		l = &bootlist;
+	}
+
+	d = &l->dir[t-1];
+	data = l->data[t-1];
 	if(offset >= d->length)
 		return 0;
 	if(offset+n > d->length)
@@ -141,12 +207,9 @@ rootread(Chan *c, void *buf, long n, vlong off)
 }
 
 static long
-rootwrite(Chan *c, void*, long, vlong)
+rootwrite(Chan*, void*, long, vlong)
 {
-	switch((ulong)c->qid.path){
-	default:
-		error(Egreg);
-	}
+	error(Egreg);
 	return 0;
 }
 
@@ -170,3 +233,4 @@ Dev rootdevtab = {
 	devremove,
 	devwstat,
 };
+

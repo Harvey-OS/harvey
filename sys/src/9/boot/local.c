@@ -58,7 +58,7 @@ connectlocal(void)
 	char **arg, **argp;
 	ulong mode;
 
-	if(stat("/kfs", statbuf, sizeof statbuf) < 0)
+	if(stat("/boot/kfs", statbuf, sizeof statbuf) < 0)
 		return -1;
 
 	dev = disk ? disk : bootdisk;
@@ -100,7 +100,7 @@ connectlocal(void)
 		dup(p[1], 1);
 		close(p[0]);
 		close(p[1]);
-		exec("/kfs", arg);
+		exec("/boot/kfs", arg);
 		fatal("can't exec kfs");
 	default:
 		break;

@@ -393,12 +393,12 @@ screenwin(void)
 
 	r = insetrect(gscreen->r, 4);
 
-	memimagedraw(gscreen, r, memblack, ZP, memopaque, ZP);
+	memimagedraw(gscreen, r, memblack, ZP, memopaque, ZP, S);
 	window = insetrect(r, 4);
-	memimagedraw(gscreen, window, memwhite, ZP, memopaque, ZP);
+	memimagedraw(gscreen, window, memwhite, ZP, memopaque, ZP, S);
 
 	memimagedraw(gscreen, Rect(window.min.x, window.min.y,
-			window.max.x, window.min.y+h+5+6), orange, ZP, nil, ZP);
+			window.max.x, window.min.y+h+5+6), orange, ZP, nil, ZP, S);
 	freememimage(orange);
 	window = insetrect(window, 5);
 
@@ -445,7 +445,7 @@ screenputc(char *buf)
 		pos = 4-(pos%4);
 		*xp++ = curpos.x;
 		r = Rect(curpos.x, curpos.y, curpos.x+pos*w, curpos.y + h);
-		memimagedraw(gscreen, r, back, back->r.min, nil, back->r.min);
+		memimagedraw(gscreen, r, back, back->r.min, nil, back->r.min, S);
 		flushmemscreen(r);
 		curpos.x += pos*w;
 		break;
@@ -454,7 +454,7 @@ screenputc(char *buf)
 			break;
 		xp--;
 		r = Rect(*xp, curpos.y, curpos.x, curpos.y + h);
-		memimagedraw(gscreen, r, back, back->r.min, nil, back->r.min);
+		memimagedraw(gscreen, r, back, back->r.min, nil, back->r.min, S);
 		flushmemscreen(r);
 		curpos.x = *xp;
 		break;
@@ -469,7 +469,7 @@ screenputc(char *buf)
 
 		*xp++ = curpos.x;
 		r = Rect(curpos.x, curpos.y, curpos.x+w, curpos.y + h);
-		memimagedraw(gscreen, r, back, back->r.min, nil, back->r.min);
+		memimagedraw(gscreen, r, back, back->r.min, nil, back->r.min, S);
 		memimagestring(gscreen, curpos, conscol, ZP, memdefont, buf);
 		flushmemscreen(r);
 		curpos.x += w;
@@ -486,10 +486,10 @@ scroll(void)
 	o = 8*h;
 	r = Rpt(window.min, Pt(window.max.x, window.max.y-o));
 	p = Pt(window.min.x, window.min.y+o);
-	memimagedraw(gscreen, r, gscreen, p, nil, p);
+	memimagedraw(gscreen, r, gscreen, p, nil, p, S);
 	flushmemscreen(r);
 	r = Rpt(Pt(window.min.x, window.max.y-o), window.max);
-	memimagedraw(gscreen, r, back, ZP, nil, ZP);
+	memimagedraw(gscreen, r, back, ZP, nil, ZP, S);
 	flushmemscreen(r);
 
 	curpos.y -= o;

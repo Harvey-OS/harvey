@@ -25,7 +25,7 @@ fn select {
 		/^#/			{ next }
 		doprint && /^[^	]/	{ doprint=0 }
 		doprint			{ print $'^$n^' }
-		$0 ~ "^'^$field^'"	{ doprint=1; next }
+		$1 ~ "^'^$field^'$"	{ doprint=1; next }
 	' $*
 }
 

@@ -52,7 +52,7 @@ crop(Memimage *m, ulong c)
 		n = allocmemimage(m->r, RGBA32);
 		if(n == nil)
 			sysfatal("can't allocate temporary image: %r");
-		memimagedraw(n, n->r, m, m->r.min, nil, ZP);
+		memimagedraw(n, n->r, m, m->r.min, nil, ZP, S);
 		m = n;
 	}
 	wpl = wordsperline(m->r, m->depth);
@@ -201,7 +201,7 @@ main(int argc, char *argv[])
 	else
 		memfillcolor(new, 0x000000FF);
 
-	memimagedraw(new, m->clipr, m, m->clipr.min, nil, ZP);
+	memimagedraw(new, m->clipr, m, m->clipr.min, nil, ZP, S);
 	dw = byteaddr(new, ZP) - byteaddr(new, t);
 	new->r = rectaddpt(new->r, t);
 	new->zero += dw;
