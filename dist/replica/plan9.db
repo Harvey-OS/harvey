@@ -8992,17 +8992,12 @@ sys/src/cmd/ip/bootp.h - 664 sys sys 944961013 789
 sys/src/cmd/ip/dhcp.h - 664 sys sys 1051206271 3368
 sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1050714660 11978
 sys/src/cmd/ip/dhcpd - 20000000775 sys sys 988249979 0
-sys/src/cmd/ip/dhcpd/8.dhcpd - 775 sys sys 1051207142 145125
 sys/src/cmd/ip/dhcpd/dat.h - 664 sys sys 1032655000 2503
-sys/src/cmd/ip/dhcpd/db.8 - 664 sys sys 1051207140 13473
 sys/src/cmd/ip/dhcpd/db.c - 664 sys sys 1032655001 7484
-sys/src/cmd/ip/dhcpd/dhcpd.8 - 664 sys sys 1051207140 68307
 sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1050714684 32770
 sys/src/cmd/ip/dhcpd/dhcpleases.c - 664 sys sys 1032655001 779
 sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1050714681 423
-sys/src/cmd/ip/dhcpd/ndb.8 - 664 sys sys 1051207140 13476
 sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1032611012 6058
-sys/src/cmd/ip/dhcpd/ping.8 - 664 sys sys 1051207140 2472
 sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 956275654 1881
 sys/src/cmd/ip/dhcpd/testlook.c - 664 sys sys 950389140 4640
 sys/src/cmd/ip/dhcpd/testlookup.c - 664 sys sys 950389140 3195
