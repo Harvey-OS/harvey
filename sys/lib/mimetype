@@ -27,6 +27,7 @@
 .cpio		application	x-cpio		-		y
 .cpp		text		plain		-		y # DOS C++ program
 .crt		application	x-x509-ca-cert	-		y # DER X.509 CA certificate
+.css		text		css		-		m
 .csv		application	vnd.ms-excel	-		y # Microsoft Excel comma-separated-values
 .dat		text		plain		-		y # AMPL et al.
 .diff		text		plain		-		y
@@ -140,6 +141,7 @@
 .xbm		image		x-xbitmap	-		y # X bitmap
 .xgz		-		-		x-gzip		m # gzipped file
 .xls		application	vnd.ms-excel	-		n # Microsoft Excel
+.xml		text		xml		-		m
 .xpm		image		x-xpixmap	-		y
 .xwd		image		x-xwindowdump	-		y
 .z		-		-		compress	m
