@@ -10786,6 +10786,7 @@ sys/src/libc/386/387/atan.s - 664 sys sys 944961709 56
 sys/src/libc/386/387/atan2.s - 664 sys sys 944961709 70
 sys/src/libc/386/387/exp.s - 664 sys sys 944961709 344
 sys/src/libc/386/387/log.s - 664 sys sys 944961709 302
+sys/src/libc/386/387/mkfile - 664 sys sys 1045336041 157
 sys/src/libc/386/387/sin.s - 644 sys sys 944961709 95
 sys/src/libc/386/387/sqrt.s - 664 sys sys 944961709 128
 sys/src/libc/386/387/tan.s - 664 sys sys 944961709 91
