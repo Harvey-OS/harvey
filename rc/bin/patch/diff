@@ -24,6 +24,6 @@ if(! patch/okay .){
 d=/n/sources/patch/$1
 fn xxx {
 	echo $1
-	diff -n $2.orig $d/$2 | sed 's/^/	/'
+	diff -c $2.orig $d/$2 | sed 's/^/	/'
 }
 cat files | sed 's/^/xxx /' |rc
