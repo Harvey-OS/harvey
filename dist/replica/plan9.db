@@ -102,7 +102,7 @@
 386/bin/aux/g3p9bit - 775 sys sys 1104121976 67278
 386/bin/aux/getflags - 775 sys sys 1104121977 43817
 386/bin/aux/gpsevermore - 775 sys sys 1107490157 71417
-386/bin/aux/gpsfs - 775 sys sys 1108440451 175635
+386/bin/aux/gpsfs - 775 sys sys 1110946100 176112
 386/bin/aux/grabit - 775 sys sys 1020319063 1244
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
@@ -493,7 +493,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1104122086 104270
 386/bin/venti/wrarena - 775 sys sys 1104122086 176179
 386/bin/venti/write - 775 sys sys 1104122087 102499
-386/bin/vncs - 775 sys sys 1109132009 470894
+386/bin/vncs - 775 sys sys 1110946101 470895
 386/bin/vncv - 775 sys sys 1109132010 518017
 386/bin/vt - 775 sys sys 1106799182 172859
 386/bin/vtdump - 775 sys sys 1104122090 159451
@@ -550,7 +550,7 @@
 386/lib/libip.a - 664 sys sys 1108268398 35602
 386/lib/libl.a - 664 sys sys 1108268398 5384
 386/lib/libmach.a - 664 sys sys 1108268400 652906
-386/lib/libmemdraw.a - 664 sys sys 1108699740 283188
+386/lib/libmemdraw.a - 664 sys sys 1110946101 283198
 386/lib/libmemlayer.a - 664 sys sys 1108699740 47360
 386/lib/libmp.a - 664 sys sys 1108268401 79532
 386/lib/libndb.a - 664 sys sys 1108268401 60666
@@ -5379,7 +5379,7 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1071245466 14094
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
-sys/src/9/pc/ether8169.c - 664 sys sys 1105912215 22703
+sys/src/9/pc/ether8169.c - 664 sys sys 1110882037 22704
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1098848151 30040
 sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
@@ -7070,7 +7070,7 @@ sys/src/cmd/aux/flashfs/utils.c - 664 sys sys 1019498850 1097
 sys/src/cmd/aux/gps - 20000000775 sys sys 1107448949 0
 sys/src/cmd/aux/gps/dat.h - 664 sys sys 1107448949 287
 sys/src/cmd/aux/gps/gpsevermore.c - 664 sys sys 1107448815 4501
-sys/src/cmd/aux/gps/gpsfs.c - 664 sys sys 1108397331 17433
+sys/src/cmd/aux/gps/gpsfs.c - 664 sys sys 1110882109 17951
 sys/src/cmd/aux/gps/mkfile - 664 sys sys 1108397331 219
 sys/src/cmd/aux/gps/util.c - 664 sys sys 1107448815 2795
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
@@ -12107,7 +12107,7 @@ sys/src/libmemdraw/ellipse.c - 664 sys sys 1039752933 4866
 sys/src/libmemdraw/fillpoly.c - 664 sys sys 1039752933 9841
 sys/src/libmemdraw/hwdraw.c - 664 sys sys 944961741 147
 sys/src/libmemdraw/iprint.c - 664 sys sys 969511513 112
-sys/src/libmemdraw/line.c - 664 sys sys 1039752934 11041
+sys/src/libmemdraw/line.c - 664 sys sys 1110918933 11040
 sys/src/libmemdraw/load.c - 664 sys sys 944961742 1495
 sys/src/libmemdraw/mkcmap.c - 664 sys sys 1029430944 1394
 sys/src/libmemdraw/mkfile - 664 sys sys 1045502238 593

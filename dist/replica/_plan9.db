@@ -223,6 +223,7 @@
 386/bin/ext2srv - 775 sys sys 1108354552 173894
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
+386/bin/fcp - 775 sys sys 1110859785 82162
 386/bin/file - 775 sys sys 1108008333 112495
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
@@ -5378,7 +5379,7 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1071245466 14094
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
-sys/src/9/pc/ether8169.c - 664 sys sys 1105912215 22703
+sys/src/9/pc/ether8169.c - 664 sys sys 1110882037 22704
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
 sys/src/9/pc/ether82557.c - 664 sys sys 1098848151 30040
 sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
@@ -7069,7 +7070,7 @@ sys/src/cmd/aux/flashfs/utils.c - 664 sys sys 1019498850 1097
 sys/src/cmd/aux/gps - 20000000775 sys sys 1107448949 0
 sys/src/cmd/aux/gps/dat.h - 664 sys sys 1107448949 287
 sys/src/cmd/aux/gps/gpsevermore.c - 664 sys sys 1107448815 4501
-sys/src/cmd/aux/gps/gpsfs.c - 664 sys sys 1108397331 17433
+sys/src/cmd/aux/gps/gpsfs.c - 664 sys sys 1110882109 17951
 sys/src/cmd/aux/gps/mkfile - 664 sys sys 1108397331 219
 sys/src/cmd/aux/gps/util.c - 664 sys sys 1107448815 2795
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
@@ -12106,7 +12107,7 @@ sys/src/libmemdraw/ellipse.c - 664 sys sys 1039752933 4866
 sys/src/libmemdraw/fillpoly.c - 664 sys sys 1039752933 9841
 sys/src/libmemdraw/hwdraw.c - 664 sys sys 944961741 147
 sys/src/libmemdraw/iprint.c - 664 sys sys 969511513 112
-sys/src/libmemdraw/line.c - 664 sys sys 1039752934 11041
+sys/src/libmemdraw/line.c - 664 sys sys 1110918933 11040
 sys/src/libmemdraw/load.c - 664 sys sys 944961742 1495
 sys/src/libmemdraw/mkcmap.c - 664 sys sys 1029430944 1394
 sys/src/libmemdraw/mkfile - 664 sys sys 1045502238 593
@@ -12477,4 +12478,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/fcp - 775 sys sys 1110859785 82162
+386/bin/vncs - 775 sys sys 1110946101 470895
+386/bin/aux/gpsfs - 775 sys sys 1110946100 176112
+386/lib/libmemdraw.a - 664 sys sys 1110946101 283198

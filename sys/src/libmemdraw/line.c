@@ -420,7 +420,7 @@ _memimageline(Memimage *dst, Point p0, Point p1, int end0, int end1, int radius,
 		break;
 	case Endarrow:
 		arrowend(q, pp, end1, sin, cos, radius);
-		_memfillpolysc(dst, pp, 5, ~0, src, addpt(pts[0], mulpt(d, ICOSSCALE)), 1, 10, 1, op);
+		_memfillpolysc(dst, pp, 5, ~0, src, addpt(pp[0], mulpt(d, ICOSSCALE)), 1, 10, 1, op);
 		pp[1] = pp[4];
 		pp += 2;
 	}
