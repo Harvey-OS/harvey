@@ -10481,7 +10481,7 @@ sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1045505917 27332
-sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1056155537 16374
+sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1061779754 18103
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1047490342 28282
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1047490343 7464
