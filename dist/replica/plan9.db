@@ -10631,7 +10631,7 @@ sys/src/cmd/upas/send/message.c - 664 sys sys 1065717617 11064
 sys/src/cmd/upas/send/mkfile - 664 sys sys 1064589602 706
 sys/src/cmd/upas/send/regtest.c - 664 sys sys 944961322 566
 sys/src/cmd/upas/send/rewrite.c - 664 sys sys 1031707304 6294
-sys/src/cmd/upas/send/send.h - 664 sys sys 1016731559 3264
+sys/src/cmd/upas/send/send.h - 664 sys sys 1069366924 3265
 sys/src/cmd/upas/send/sender - 664 sys sys 944961323 4964
 sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
