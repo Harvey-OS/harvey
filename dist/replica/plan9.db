@@ -22,7 +22,7 @@
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/1c - 775 sys sys 1063639729 306762
 386/bin/8a - 775 sys sys 1068385789 113237
-386/bin/8c - 775 sys sys 1076817071 299629
+386/bin/8c - 775 sys sys 1076903524 299636
 386/bin/8l - 775 sys sys 1073851202 107501
 386/bin/9660srv - 775 sys sys 1064598019 104963
 386/bin/aan - 775 sys sys 1064598020 128816
@@ -527,7 +527,7 @@
 386/lib/libauthsrv.a - 664 sys sys 1073851265 33806
 386/lib/libbin.a - 664 sys sys 1073851265 2556
 386/lib/libbio.a - 664 sys sys 1073851265 28338
-386/lib/libc.a - 664 sys sys 1073851266 504454
+386/lib/libc.a - 664 sys sys 1076903525 504442
 386/lib/libcomplete.a - 664 sys sys 1076817073 6312
 386/lib/libcontrol.a - 664 sys sys 1073851267 242856
 386/lib/libdisk.a - 664 sys sys 1073851267 43536
@@ -6674,7 +6674,7 @@ sys/src/cmd/8a/lex.c - 664 sys sys 1067725160 18023
 sys/src/cmd/8a/mkfile - 664 sys sys 1032101905 277
 sys/src/cmd/8c - 20000000775 sys sys 945035118 0
 sys/src/cmd/8c/8.out.h - 664 sys sys 944960730 4107
-sys/src/cmd/8c/cgen.c - 664 sys sys 1076774954 26295
+sys/src/cmd/8c/cgen.c - 664 sys sys 1076855286 26295
 sys/src/cmd/8c/enam.c - 664 sys sys 944960730 3215
 sys/src/cmd/8c/gc.h - 664 sys sys 1018556084 5708
 sys/src/cmd/8c/list.c - 664 sys sys 1067720660 3975
