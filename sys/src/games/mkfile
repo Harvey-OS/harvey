@@ -2,6 +2,7 @@
 
 TARG=catclock\
 	juggle\
+	memo\
 
 OFILES=
 HFILES=
