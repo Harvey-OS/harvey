@@ -745,12 +745,6 @@ cpuidentify(void)
 		if(m->cpuiddx & 0x80)
 			rdmsr(0x01, &mct);
 	}
-if(m->cpuiddx & 0x20){
-    vlong apicbase;
-
-    rdmsr(0x1B, &apicbase);
-    print("apicbase 0x%lluX\n", apicbase);
-}
 
 	cputype = t;
 	return t->family;

@@ -722,18 +722,8 @@ snprintheader(char *buf, int len, Message *m)
 			m->filename);
 	} else if(*m->subject){
 		q = p = strdup(m->subject);
-		for(;;){
-			while(*p == ' ')
-				p++;
-			if(cistrncmp(p, "re:", 3) == 0)
-				p += 3;
-			else if(cistrncmp(p, "fwd:", 4) == 0)
-				p += 4;
-			else if(cistrncmp(p, "fw:", 4) == 0)
-				p += 3;
-			else
-				break;
-		}
+		while(*p == ' ')
+			p++;
 		if(strlen(p) > 50)
 			p[50] = 0;
 		cracktime(m->date, timebuf, sizeof(timebuf));
@@ -1894,8 +1884,7 @@ int
 appendtofile(Message *m, char *part, char *base, int mbox)
 {
 	String *file, *h;
-	int n, in, out, rv;
-	char buf[4096];
+	int in, out, rv;
 
 	file = extendpath(m->path, part);
 	in = open(s_to_c(file), OREAD);
@@ -1925,6 +1914,7 @@ appendtofile(Message *m, char *part, char *base, int mbox)
 		if(out < 0){
 			fprint(2, "!can't open %s: %r\n", s_to_c(file));
 			close(in);
+			s_free(file);
 			return -1;
 		}
 	}
@@ -1940,24 +1930,11 @@ appendtofile(Message *m, char *part, char *base, int mbox)
 		s_free(h);
 	}
 
-	rv = 0;
-	for(;;){
-		n = read(in, buf, sizeof(buf));
-		if(n < 0){
-			fprint(2, "!error reading file: %r\n");
-			rv = -1;
-			break;
-		}
-		if(n == 0)
-			break;
-		if(write(out, buf, n) != n){
-			fprint(2, "!error writing file: %r\n");
-			rv = -1;
-			break;
-		}
-	}
+	// copy the message escaping what we have to ad adding newlines if we have to
 	if(mbox)
-		write(out, "\n", 1);
+		rv = appendfiletombox(in, out);
+	else
+		rv = appendfiletofile(in, out);
 
 	close(in);
 	close(out);

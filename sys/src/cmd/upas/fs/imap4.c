@@ -9,6 +9,7 @@
 #pragma varargck	type	"Z"	char*
 
 int	doublequote(Fmt*);
+int	pipeline = 1;
 
 static char Eio[] = "i/o error";
 
@@ -594,6 +595,7 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 
 	// download new messages
 	t = imap->tag;
+	if(pipeline)
 	switch(rfork(RFPROC|RFMEM)){
 	case -1:
 		sysfatal("rfork: %r");
@@ -619,6 +621,12 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 		if(m->start != nil)
 			continue;
 
+		if(!pipeline){
+			Bprint(&imap->bout, "9X%lud UID FETCH %lud (UID RFC822.SIZE BODY[])\r\n",
+				(ulong)imap->tag, (ulong)m->imapuid);
+			Bflush(&imap->bout);
+		}
+
 		if(s = imap4fetch(mb, m)){
 			// message disappeared?  unchain
 			fprint(2, "download %lud: %s\n", (ulong)m->imapuid, s);
@@ -630,7 +638,8 @@ imap4read(Imap *imap, Mailbox *mb, int doplumb)
 		if(doplumb)
 			mailplumb(mb, m, 0);
 	}
-	waitpid();
+	if(pipeline)
+		waitpid();
 
 	if(nnew || mb->vers == 0){
 		mb->vers++;
