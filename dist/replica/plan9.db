@@ -27,7 +27,7 @@
 386/bin/9660srv - 775 sys sys 1064598019 104963
 386/bin/aan - 775 sys sys 1064598020 128816
 386/bin/acid - 775 sys sys 1081825815 379877
-386/bin/acme - 775 sys sys 1082924480 429258
+386/bin/acme - 775 sys sys 1083466777 428786
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1071245280 133877
 386/bin/ape/cc - 775 sys sys 1064598025 68790
@@ -233,7 +233,7 @@
 386/bin/fossil/conf - 775 sys sys 1056364255 1497
 386/bin/fossil/flchk - 775 sys sys 1081480405 235960
 386/bin/fossil/flfmt - 775 sys sys 1081480406 249787
-386/bin/fossil/fossil - 775 sys sys 1081480406 350948
+386/bin/fossil/fossil - 775 sys sys 1083466778 350947
 386/bin/freq - 775 sys sys 1064598145 60197
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1064598146 95907
@@ -305,7 +305,7 @@
 386/bin/lnfs - 775 sys sys 1064598250 100511
 386/bin/look - 775 sys sys 1064598250 64212
 386/bin/ls - 775 sys sys 1073851233 81182
-386/bin/mc - 775 sys sys 1082924486 131746
+386/bin/mc - 775 sys sys 1083466779 131530
 386/bin/md5sum - 775 sys sys 1064598252 59465
 386/bin/mk - 775 sys sys 1064598253 143638
 386/bin/mkdir - 775 sys sys 1082603187 59419
@@ -514,7 +514,7 @@
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
 386/lib/ape/libap.a - 664 sys sys 1073851261 812790
 386/lib/ape/libbsd.a - 664 sys sys 1073851261 179408
-386/lib/ape/libdraw.a - 664 sys sys 1073851262 574102
+386/lib/ape/libdraw.a - 664 sys sys 1083466780 574918
 386/lib/ape/libfmt.a - 664 sys sys 1073851263 147912
 386/lib/ape/libl.a - 664 sys sys 1073851263 9420
 386/lib/ape/libnet.a - 664 sys sys 1073851263 16950
@@ -531,7 +531,7 @@
 386/lib/libcomplete.a - 664 sys sys 1076817073 6312
 386/lib/libcontrol.a - 664 sys sys 1073851267 242856
 386/lib/libdisk.a - 664 sys sys 1073851267 43536
-386/lib/libdraw.a - 664 sys sys 1082924460 373342
+386/lib/libdraw.a - 664 sys sys 1083466781 373342
 386/lib/libflate.a - 664 sys sys 1073851268 77194
 386/lib/libframe.a - 664 sys sys 1073851269 65534
 386/lib/libgeometry.a - 664 sys sys 1073851269 50732
@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1082862011 77700
+386/lib/libmp.a - 664 sys sys 1083466781 78536
 386/lib/libndb.a - 664 sys sys 1079451578 61344
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -619,7 +619,7 @@ acme/bin/386/acd - 775 sys sys 1032232412 137068
 acme/bin/386/adict - 775 sys sys 1015011247 99806
 acme/bin/386/mkwnew - 775 sys sys 1064598458 39207
 acme/bin/386/spout - 775 sys sys 1064598459 60029
-acme/bin/386/win - 775 sys sys 1082922246 180754
+acme/bin/386/win - 775 sys sys 1083466779 180463
 acme/bin/Battery - 775 sys sys 1017457907 451
 acme/bin/Isspam - 775 sys sys 1063951165 235
 acme/bin/Perl - 775 sys sys 1015011260 230
@@ -5342,6 +5342,7 @@ sys/src/9/pc/ether82557.c - 664 sys sys 1081706477 29736
 sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
 sys/src/9/pc/ether8390.c - 664 sys sys 1071245462 17557
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
+sys/src/9/pc/etherdp83820.c - 664 sys sys 1083430754 31574
 sys/src/9/pc/etherec2t.c - 664 sys sys 1020284820 4038
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1081706477 48724
 sys/src/9/pc/etherga620.c - 664 sys sys 1074785126 28754
