@@ -119,9 +119,8 @@ static Ndbtuple*
 subnet(Ndb *db, uchar *net, Ndbtuple *f, int prefix)
 {
 	Ndbs s;
-	Ndbtuple *t, *nt;
-	char netstr[Ndbvlen];
-	char maskstr[Ndbvlen];
+	Ndbtuple *t, *nt, *xt;
+	char netstr[128];
 	uchar mask[IPaddrlen];
 	int masklen;
 
@@ -129,9 +128,11 @@ subnet(Ndb *db, uchar *net, Ndbtuple *f, int prefix)
 	sprint(netstr, "%I", net);
 	nt = ndbsearch(db, &s, "ip", netstr);
 	while(nt != nil){
-		if(ndblookval(nt, nt, "ipnet", maskstr) != nil){
-			if(ndblookval(nt, nt, "ipmask", maskstr))
-				parseipmask(mask, maskstr);
+		xt = ndbfindattr(nt, nt, "ipnet");
+		if(xt){
+			xt = ndbfindattr(nt, nt, "ipmask");
+			if(xt)
+				parseipmask(mask, xt->val);
 			else
 				ipmove(mask, defmask(net));
 			masklen = prefixlen(mask);
@@ -155,8 +156,9 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 {
 	Ndbtuple *t, *nt, *f;
 	Ndbs s;
-	char ipstr[Ndbvlen];
+	char *ipstr;
 	uchar net[IPaddrlen];
+	uchar ip[IPaddrlen];
 	int prefix, smallestprefix;
 	int force;
 
@@ -171,14 +173,15 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	 *  first look for a matching entry with an ip address
 	 */
 	t = nil;
-	nt = ndbgetval(db, &s, attr, val, "ip", ipstr);
-	if(nt == nil){
+	ipstr = ndbgetvalue(db, &s, attr, val, "ip", &nt);
+	if(ipstr == nil){
 		/* none found, make one up */
 		if(strcmp(attr, "ip") != 0)
 			return nil;
 		t = ndbnew("ip", val);
 		t->line = t;
 		t->entry = nil;
+		parseip(net, val);
 	} else {
 		/* found one */
 		while(nt != nil){
@@ -186,9 +189,11 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 			t = ndbconcatenate(t, nt);
 			nt = ndbsnext(&s, attr, val);
 		}
+		parseip(net, ipstr);
+		free(ipstr);
 	}
+	ipmove(ip, net);
 	t = filter(db, t, f);
-	parseip(net, ipstr);
 
 	/*
 	 *  now go through subnets to fill in any missing attributes
@@ -219,6 +224,17 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 		force = 0;
 		net[prefix/8] &= ~(1<<(7-(prefix%8)));
 		t = ndbconcatenate(t, subnet(db, net, f, prefix));
+	}
+
+	/*
+	 *  if there's an unfulfilled ipmask, make one up
+	 */
+	nt = ndbfindattr(f, f, "ipmask");
+	if(nt && !(nt->ptr & Fignore)){
+		char x[64];
+
+		snprint(x, sizeof(x), "%M", defmask(ip));
+		t = ndbconcatenate(t, ndbnew("ipmask", x));
 	}
 
 	ndbfree(f);

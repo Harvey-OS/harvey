@@ -41,6 +41,8 @@ extern int resizing;
 extern int mknewwindow;
 
 void rot180(Image*);
+Image *rot90(Image*);
+Image *resample(Image*, Image*);
 
 /* ghostscript interface shared by ps, pdf */
 typedef struct GSInfo	GSInfo;

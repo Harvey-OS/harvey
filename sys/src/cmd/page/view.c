@@ -224,17 +224,56 @@ showdata(Plumbmsg *msg)
 	return s && strcmp(s, "showdata")==0;
 }
 
+/* correspond to entries in miditems[] below,
+ * changing one means you need to change
+ */
+enum{
+	Restore = 0,
+	Zin,
+	Fit,
+	Rot,
+	Upside,
+	Empty1,
+	Next,
+	Prev,
+	Empty2,
+	Reverse,
+	Del,
+	Write,
+	Empty3,
+	Exit,
+};
+ 
 void
 viewer(Document *dd)
 {
 	int i, fd, n, oldpage;
 	int nxt;
-	Menu menu;
+	Menu menu, midmenu;
 	Mouse m;
 	Event e;
 	Point dxy, oxy, xy0;
 	Rectangle r;
-	char *fwditems[] = { "this page", "next page", "exit", 0 };
+	Image *tmp;
+	static char *fwditems[] = { "this page", "next page", "exit", 0 };
+	static char *miditems[] = {
+		"orig size",
+		"zoom in",
+		"fit window",
+		"rotate 90",
+		"upside down",
+		"",
+		"next",
+		"prev",
+		"", 
+		"reverse",
+		"discard",
+		"write",
+		"", 
+		"quit", 
+		0 
+	};
+
 	char *s;
 	enum { Eplumb = 4 };
 	Plumbmsg *pm;
@@ -267,6 +306,10 @@ viewer(Document *dd)
 		menu.gen = menugen;
 		menu.lasthit = 0;
 	}
+
+	midmenu.item = miditems;
+	midmenu.gen = 0;
+	midmenu.lasthit = Next;
 
 	showpage(page, &menu);
 	esetcursor(nil);
@@ -429,26 +472,156 @@ viewer(Document *dd)
 				break;
 	
 			case Middle:
-				do
-					m = emouse();
-				while(m.buttons == Middle);
-				if(m.buttons)
-					break;
-	
 				if(doc->npage == 0)
 					break;
 
-				if(reverse)
-					page--;
-				else
-					page++;
+				n = emenuhit(Middle, &m, &midmenu);
+				if(n == -1)
+					break;
+				switch(n){
+				case Next: 	/* next */
+					if(reverse)
+						page--;
+					else
+						page++;
+					if(page < 0) {
+						if(reverse) return;
+						else page = 0;
+					}
+
+					if((page >= doc->npage) && !doc->fwdonly)
+						return;
 	
-				if((page >= doc->npage || page < 0) && !doc->fwdonly)
+					showpage(page, &menu);
+					nxt = 0;
+					break;
+				case Prev:	/* prev */
+					if(reverse)
+						page++;
+					else
+						page--;
+					if(page < 0) {
+						if(reverse) return;
+						else page = 0;
+					}
+
+					if((page >= doc->npage) && !doc->fwdonly && !reverse)
+						return;
+	
+					showpage(page, &menu);
+					nxt = 0;
+					break;
+					break;
+				case Zin:	/* zoom in */
+					{
+						double delta;
+						Rectangle r;
+						
+						r = egetrect(Middle, &m);
+						if((rectclip(&r, rectaddpt(im->r, ul)) == 0) ||
+							Dx(r) == 0 || Dy(r) == 0)
+							break;
+						/* use the smaller side to expand */
+						if(Dx(r) < Dy(r))
+							delta = (double)Dx(im->r)/(double)Dx(r);
+						else
+							delta = (double)Dy(im->r)/(double)Dy(r);
+
+						esetcursor(&reading);
+						tmp = allocimage(display, 
+								Rect(0, 0, (int)((double)Dx(im->r)*delta), (int)((double)Dy(im->r)*delta)), 
+								im->chan, 0, DBlack);
+						resample(im, tmp);
+						freeimage(im);
+						im = tmp;
+						esetcursor(nil);
+						ul = screen->r.min;
+						redraw(screen);
+						flushimage(display, 1);
+						break;
+					}
+				case Fit:	/* fit */
+					{
+						double delta;
+						Rectangle r;
+						
+						delta = (double)Dx(screen->r)/(double)Dx(im->r);
+						if((double)Dy(im->r)*delta > Dy(screen->r))
+							delta = (double)Dy(screen->r)/(double)Dy(im->r);
+
+						r = Rect(0, 0, (int)((double)Dx(im->r)*delta), (int)((double)Dy(im->r)*delta));
+						esetcursor(&reading);
+						tmp = allocimage(display, r, im->chan, 0, DBlack);
+						resample(im, tmp);
+						freeimage(im);
+						im = tmp;
+						esetcursor(nil);
+						ul = screen->r.min;
+						redraw(screen);
+						flushimage(display, 1);
+						break;
+					}
+				case Rot:	/* rotate 90 */
+					esetcursor(&reading);
+					im = rot90(im);
+					esetcursor(nil);
+					redraw(screen);
+					flushimage(display, 1);
+					break;
+				case Upside: 	/* upside-down */
+					if(im==nil)
+						break;
+					esetcursor(&reading);
+					rot180(im);
+					esetcursor(nil);
+					upside = !upside;
+					redraw(screen);
+					flushimage(display, 1);
+					break;
+				case Restore:	/* restore */
+					showpage(page, &menu);
+					break;
+				case Reverse:	/* reverse */
+					if(doc->fwdonly)
+						break;
+					reverse = !reverse;
+					menu.lasthit = doc->npage-1-menu.lasthit;
+	
+					if(page == 0 || page == doc->npage-1) {
+						page = doc->npage-1-page;
+						showpage(page, &menu);
+					}
+					break;
+				case Write: /* write */
+					esetcursor(&reading);
+					s = writebitmap();
+					if(s)
+						string(screen, addpt(screen->r.min, Pt(5,5)), display->black, ZP,
+							display->defaultfont, s);
+					esetcursor(nil);
+					flushimage(display, 1);
+					break;
+				case Del: /* delete */
+					if(doc->rmpage && page < doc->npage) {
+						if(doc->rmpage(doc, page) >= 0) {
+							if(doc->npage < 0)
+								wexits(0);
+							if(page >= doc->npage)
+								page = doc->npage-1;
+							showpage(page, &menu);
+						}
+					}
+					break;
+				case Exit:	/* exit */
 					return;
+				case Empty1:
+				case Empty2:
+				case Empty3:
+					break;
+
+				}; 
+
 	
-				showpage(page, &menu);
-				nxt = 0;
-				break;
 	
 			case Right:
 				if(doc->npage == 0)
@@ -527,6 +700,8 @@ gendrawdiff(Image *dst, Rectangle bot, Rectangle top,
 	Rectangle r;
 	Point origin;
 	Point delta;
+
+	USED(op);
 
 	if(Dx(bot)*Dy(bot) == 0)
 		return;

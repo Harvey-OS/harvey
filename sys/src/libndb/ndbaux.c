@@ -31,14 +31,13 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 		cp++;
 	len = cp - p;
 	if(len >= Ndbalen)
-		len = Ndbalen;
+		len = Ndbalen-1;
 	strncpy(t->attr, p, len);
 
 	/* parse value */
 	EATWHITE(cp);
 	if(*cp == '='){
 		cp++;
-		EATWHITE(cp);
 		if(*cp == '"'){
 			p = ++cp;
 			while(*cp != '\n' && *cp != '"')
