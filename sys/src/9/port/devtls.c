@@ -115,6 +115,7 @@ struct TlsRec
 
 	Lock		statelk;
 	int		state;
+	int		debug;
 
 	/* record layer mac functions for different protocol versions */
 	void		(*packMac)(Secret*, uchar*, uchar*, uchar*, uchar*, int, uchar*);
@@ -238,6 +239,7 @@ static int	sslunpad(uchar *buf, int n, int block);
 static int	tlsunpad(uchar *buf, int n, int block);
 static void	freeSec(Secret *sec);
 static char	*tlsstate(int s);
+static void	pdump(int, void*, char*);
 
 #pragma	varargck	argpos	rcvError	3
 
@@ -622,6 +624,7 @@ ensure(TlsRec *s, Block **l, int n)
 			error(Ehungup);
 		sofar += i;
 	}
+if(s->debug) pprint("ensure read %d\n", sofar);
 }
 
 /*
@@ -743,6 +746,7 @@ tlsrecread(TlsRec *tr)
 	}
 	ensure(tr, &tr->unprocessed, RecHdrLen);
 	consume(&tr->unprocessed, header, RecHdrLen);
+if(tr->debug)pprint("consumed %d header\n", RecHdrLen);
 	nconsumed = RecHdrLen;
 
 	if((tr->handin == 0) && (header[0] & 0x80)){
@@ -782,6 +786,7 @@ tlsrecread(TlsRec *tr)
 		nexterror();
 	}
 	b = qgrab(&tr->unprocessed, len);
+if(tr->debug) pprint("consumed unprocessed %d\n", len);
 
 	in = &tr->in;
 	if(waserror()){
@@ -794,15 +799,17 @@ tlsrecread(TlsRec *tr)
 		/* to avoid Canvel-Hiltgen-Vaudenay-Vuagnoux attack, all errors here
 		        should look alike, including timing of the response. */
 		unpad_len = (*in->sec->dec)(in->sec, p, len);
-		if(unpad_len > in->sec->maclen)
+		if(unpad_len >= in->sec->maclen)
 			len = unpad_len - in->sec->maclen;
+if(tr->debug) pprint("decrypted %d\n", unpad_len);
+if(tr->debug) pdump(unpad_len, p, "decrypted:");
 
 		/* update length */
 		put16(header+3, len);
 		put64(seq, in->seq);
 		in->seq++;
 		(*tr->packMac)(in->sec, in->sec->mackey, seq, header, p, len, hmac);
-		if(unpad_len <= in->sec->maclen)
+		if(unpad_len < in->sec->maclen)
 			rcvError(tr, EBadRecordMac, "short record mac");
 		if(memcmp(hmac, p+len, in->sec->maclen) != 0)
 			rcvError(tr, EBadRecordMac, "record mac mismatch");
@@ -810,7 +817,7 @@ tlsrecread(TlsRec *tr)
 	}
 	qunlock(&in->seclock);
 	poperror();
-	if(len <= 0)
+	if(len < 0)
 		rcvError(tr, EDecodeError, "runt record message");
 
 	switch(type) {
@@ -918,8 +925,10 @@ tlsrecread(TlsRec *tr)
 	case RApplication:
 		if(!tr->opened)
 			rcvError(tr, EUnexpectedMessage, "application message received before handshake completed");
-		tr->processed = b;
-		b = nil;
+		if(BLEN(b) > 0){
+			tr->processed = b;
+			b = nil;
+		}
 		break;
 	}
 	if(b != nil)
@@ -943,6 +952,7 @@ rcvAlert(TlsRec *tr, int err)
 			break;
 		}
 	}
+if(tr->debug) pprint("rcvAlert: %s\n", s);
 
 	tlsError(tr, s);
 	if(!tr->opened)
@@ -962,6 +972,7 @@ rcvError(TlsRec *tr, int err, char *fmt, ...)
 	va_start(arg, fmt);
 	vseprint(msg, msg+sizeof(msg), fmt, arg);
 	va_end(arg);
+if(tr->debug) pprint("rcvError: %s\n", msg);
 
 	sendAlert(tr, err);
 
@@ -1062,6 +1073,8 @@ tlsbread(Chan *c, long n, ulong offset)
 
 		/* return at most what was asked for */
 		b = qgrab(&tr->processed, n);
+if(tr->debug) pprint("consumed processed %d\n", BLEN(b));
+if(tr->debug) pdump(BLEN(b), b->rp, "consumed:");
 		qunlock(&tr->in.io);
 		poperror();
 		tr->datain += BLEN(b);
@@ -1209,6 +1222,9 @@ tlsrecwrite(TlsRec *tr, int type, Block *b)
 		nexterror();
 	}
 	qlock(&out->io);
+if(tr->debug)pprint("send %d\n", BLEN(b));
+if(tr->debug)pdump(BLEN(b), b->rp, "sent:");
+
 
 	ok = SHandshake|SOpen|SRClose;
 	if(type == RAlert)
@@ -1652,6 +1668,14 @@ tlswrite(Chan *c, void *a, long n, vlong off)
 			tlsclosed(tr, SLClose);
 
 		return n;
+	} else if(strcmp(cb->f[0], "debug") == 0){
+		if(cb->nf == 2){
+			if(strcmp(cb->f[1], "on") == 0)
+				tr->debug = 1;
+			else
+				tr->debug = 0;
+		} else
+			tr->debug = 1;
 	} else
 		error(Ebadarg);
 
@@ -1671,6 +1695,12 @@ tlsinit(void)
 	struct Hashalg *h;
 	int n;
 	char *cp;
+	static int already;
+
+	if(!already){
+		fmtinstall('H', encodefmt);
+		already = 1;
+	}
 
 	tlsdevs = smalloc(sizeof(TlsRec*) * maxtlsdevs);
 	trnames = smalloc((sizeof *trnames) * maxtlsdevs);
@@ -1748,6 +1778,7 @@ sendAlert(TlsRec *tr, int err)
 	int i, fatal;
 	char *msg;
 
+if(tr->debug)pprint("sendAlert %d\n", err);
 	fatal = 1;
 	msg = "tls unknown alert";
 	for(i=0; i < nelem(tlserrs); i++) {
@@ -1780,6 +1811,7 @@ tlsError(TlsRec *tr, char *msg)
 {
 	int s;
 
+if(tr->debug)pprint("tleError %s\n", msg);
 	lock(&tr->statelk);
 	s = tr->state;
 	tr->state = SError;
@@ -2112,4 +2144,38 @@ static int
 get16(uchar *p)
 {
 	return (p[0]<<8)|p[1];
+}
+
+static char *charmap = "0123456789abcdef";
+
+static void
+pdump(int len, void *a, char *tag)
+{
+	uchar *p;
+	int i;
+	char buf[65+32];
+	char *q;
+
+	p = a;
+	strcpy(buf, tag);
+	while(len > 0){
+		q = buf + strlen(tag);
+		for(i = 0; len > 0 && i < 32; i++){
+			if(*p >= ' ' && *p < 0x7f){
+				*q++ = ' ';
+				*q++ = *p;
+			} else {
+				*q++ = charmap[*p>>4];
+				*q++ = charmap[*p & 0xf];
+			}
+			len--;
+			p++;
+		}
+		*q = 0;
+
+		if(len > 0)
+			pprint("%s...\n", buf);
+		else
+			pprint("%s\n", buf);
+	}
 }
