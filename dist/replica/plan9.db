@@ -453,9 +453,9 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1091242967 183443
+386/bin/usb/usbaudio - 775 sys sys 1091329730 183070
 386/bin/usb/usbd - 775 sys sys 1091242967 127455
-386/bin/usb/usbmouse - 775 sys sys 1085077119 138047
+386/bin/usb/usbmouse - 775 sys sys 1091329730 137865
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1085077119 167554
 386/bin/vacfs - 775 sys sys 1085077120 172959
@@ -4982,7 +4982,7 @@ sys/man/4/tapefs - 664 sys sys 944959699 1731
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
-sys/man/4/usb - 664 sys sys 1077376395 3332
+sys/man/4/usb - 664 sys sys 1091287633 3428
 sys/man/4/usbd - 664 sys sys 1018386778 731
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
@@ -5397,7 +5397,7 @@ sys/src/9/pc/trap.c - 664 sys sys 1084475212 20378
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1063857246 3566
-sys/src/9/pc/usbuhci.c - 664 sys sys 1086406909 30740
+sys/src/9/pc/usbuhci.c - 664 sys sys 1091287613 30721
 sys/src/9/pc/vga.c - 664 sys sys 1039753497 4963
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1071247360 4867
 sys/src/9/pc/vgaark2000pv.c - 664 sys sys 1015014524 3416
@@ -10906,8 +10906,9 @@ sys/src/cmd/usb/lib/usb.h - 664 sys sys 1091204978 6703
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091205037 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1091205037 274
+sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1091282306 3056
 sys/src/cmd/usb/misc/usbprint - 775 sys sys 1091205037 234
-sys/src/cmd/usb/mkfile - 664 sys sys 1091204978 323
+sys/src/cmd/usb/mkfile - 664 sys sys 1091327562 354
 sys/src/cmd/usb/mouse - 20000000775 sys sys 1017802022 0
 sys/src/cmd/usb/printer - 20000000775 sys sys 1073007760 0
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1017802021 0

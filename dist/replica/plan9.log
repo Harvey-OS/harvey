@@ -16389,3 +16389,9 @@
 1091244706 0 c 386/bin/usb/usbaudio - 775 sys sys 1091242967 183443
 1091244706 1 c 386/bin/usb/usbd - 775 sys sys 1091242967 127455
 1091244706 2 c sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1091243258 9824
+1091282514 0 a sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1091282306 3056
+1091287915 0 c sys/man/4/usb - 664 sys sys 1091287633 3428
+1091287915 1 c sys/src/9/pc/usbuhci.c - 664 sys sys 1091287613 30721
+1091327522 0 c sys/src/cmd/usb/mkfile - 664 sys sys 1091327562 354
+1091331123 0 c 386/bin/usb/usbaudio - 775 sys sys 1091329730 183070
+1091331123 1 c 386/bin/usb/usbmouse - 775 sys sys 1091329730 137865

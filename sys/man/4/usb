@@ -15,7 +15,7 @@ usbprinter
 .PP
 .B usb/usbaudio
 [
-.B -d
+.B -V
 ] [
 .B -v
 .I volume
@@ -71,6 +71,10 @@ The names
 and
 .I /audio
 maintain backward compatibility with the soundblaster driver.
+.PP
+The
+.B \-V
+flag (verbose) causes usbaudio to print information about the device on startup.
 .PP
 The
 .B \-s

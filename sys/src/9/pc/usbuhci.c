@@ -31,19 +31,19 @@ enum
 	Portsc1 = 0x12,
 
 	/* port status */
-	Suspend =		1<<12,
-	PortReset =		1<<9,
-	SlowDevice =		1<<8,
+	Suspend =	1<<12,
+	PortReset =	1<<9,
+	SlowDevice =	1<<8,
 	ResumeDetect =	1<<6,
-	PortChange =		1<<3,	/* write 1 to clear */
-	PortEnable =		1<<2,
+	PortChange =	1<<3,	/* write 1 to clear */
+	PortEnable =	1<<2,
 	StatusChange =	1<<1,	/* write 1 to clear */
 	DevicePresent =	1<<0,
 
 	NFRAME = 	1024,
 	FRAMESIZE=	NFRAME*sizeof(ulong),	/* fixed by hardware; aligned to same */
 
-	Vf =			1<<2,	/* TD only */
+	Vf =		1<<2,	/* TD only */
 	IsQH =		1<<1,
 	Terminate =	1<<0,
 
@@ -56,12 +56,12 @@ enum
 	LowSpeed =	1<<26,
 	IsoSelect =	1<<25,
 	IOC =		1<<24,
-	Active =		1<<23,
-	Stalled =		1<<22,
+	Active =	1<<23,
+	Stalled =	1<<22,
 	DataBufferErr =	1<<21,
 	Babbling =	1<<20,
 	NAKed =		1<<19,
-	CRCorTimeout = 1<<18,
+	CRCorTimeout =	1<<18,
 	BitstuffErr =	1<<17,
 	AnyError = (Stalled | DataBufferErr | Babbling | NAKed | CRCorTimeout | BitstuffErr),
 
@@ -70,7 +70,7 @@ enum
 
 	/* TD.flags (software) */
 	CancelTD=	1<<0,
-	IsoClean=		1<<2,
+	IsoClean=	1<<2,
 };
 
 static struct
@@ -83,10 +83,10 @@ portstatus[] =
 	{ Suspend,		"suspend", },
 	{ PortReset,		"reset", },
 	{ SlowDevice,		"lowspeed", },
-	{ ResumeDetect,	"resume", },
+	{ ResumeDetect,		"resume", },
 	{ PortChange,		"portchange", },
 	{ PortEnable,		"enable", },
-	{ StatusChange,	"statuschange", },
+	{ StatusChange,		"statuschange", },
 	{ DevicePresent,	"present", },
 };
 
@@ -127,13 +127,13 @@ struct Ctlr
 		Endpt*	f;
 	} activends;
 
-	long		usbints;	/* debugging */
-	long		framenumber;
-	long		frameptr;
-	long		usbbogus;
+	long	usbints;	/* debugging */
+	long	framenumber;
+	long	frameptr;
+	long	usbbogus;
 };
 
-#define	IN(x)	ins(ctlr->io+(x))
+#define	IN(x)		ins(ctlr->io+(x))
 #define	OUT(x, v)	outs(ctlr->io+(x), (v))
 
 static Ctlr* ctlrhead;
@@ -141,15 +141,15 @@ static Ctlr* ctlrtail;
 
 struct Endptx
 {
-	QH*		epq;	/* queue of TDs for this endpoint */
+	QH*	epq;		/* queue of TDs for this endpoint */
 
 	/* ISO related: */
 	void*	tdalloc;
 	void*	bpalloc;
 	uchar*	bp0;		/* first block in array */
-	TD	*	td0;		/* first td in array */
-	TD	*	etd;		/* pointer into circular list of TDs for isochronous ept */
-	TD	*	xtd;		/* next td to be cleaned */
+	TD*	td0;		/* first td in array */
+	TD*	etd;		/* pointer into circular list of TDs for isochronous ept */
+	TD*	xtd;		/* next td to be cleaned */
 };
 
 /*
@@ -165,11 +165,11 @@ struct TD
 	/* software */
 	ulong	flags;
 	union{
-		Block*	bp;		/* non-iso */
+		Block*	bp;	/* non-iso */
 		ulong	offset;	/* iso */
 	};
 	Endpt*	ep;
-	TD*		next;
+	TD*	next;
 };
 #define	TFOL(p)	((TD*)KADDR((ulong)(p) & ~(0xF|PCIWINDOW)))
 
@@ -179,10 +179,10 @@ struct QH
 	ulong	entries;	/* address of next TD or QH to process (updated by controller) */
 
 	/* software */
-	QH*		hlink;
-	TD*		first;
-	QH*		next;		/* free list */
-	TD*		last;
+	QH*	hlink;
+	TD*	first;
+	QH*	next;		/* free list */
+	TD*	last;
 	ulong	_d1;		/* fillers */
 	ulong	_d2;
 };
