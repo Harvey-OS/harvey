@@ -700,6 +700,26 @@ igbepromiscuous(void* arg, int on)
 	csr32w(ctlr, Rctl, rctl);
 }
 
+static void
+igbemulticast(void* arg, uchar* addr, int on)
+{
+	int bit, x;
+	Ctlr *ctlr;
+	Ether *edev;
+
+	edev = arg;
+	ctlr = edev->ctlr;
+
+	x = addr[5]>>1;
+	bit = ((addr[5] & 1)<<4)|(addr[4]>>4);
+	if(on)
+		ctlr->mta[x] |= 1<<bit;
+	else
+		ctlr->mta[x] &= ~(1<<bit);
+	
+	csr32w(ctlr, Mta+x*4, ctlr->mta[x]);
+}
+
 static Block*
 igberballoc(void)
 {
@@ -1649,6 +1669,7 @@ igbereset(Ctlr* ctlr)
 	 * Clear the Multicast Table Array.
 	 * It's a 4096 bit vector accessed as 128 32-bit registers.
 	 */
+	memset(ctlr->mta, 0, sizeof(ctlr->mta));
 	for(i = 0; i < 128; i++)
 		csr32w(ctlr, Mta+i*4, 0);
 
@@ -1825,6 +1846,7 @@ igbepnp(Ether* edev)
 
 	edev->arg = edev;
 	edev->promiscuous = igbepromiscuous;
+	edev->multicast = igbemulticast;
 
 	return 0;
 }

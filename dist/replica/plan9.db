@@ -5316,7 +5316,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1071515332 48521
 sys/src/9/pc/etherga620.c - 664 sys sys 1074785126 28754
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1045063564 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1071245461 42444
+sys/src/9/pc/etherigbe.c - 664 sys sys 1077985913 42824
 sys/src/9/pc/ethermii.c - 664 sys sys 1039803177 4555
 sys/src/9/pc/ethermii.h - 664 sys sys 1039895684 3259
 sys/src/9/pc/etherrhine.c - 664 sys sys 1072704797 13438
