@@ -50,6 +50,8 @@ OBJ=\
 	mmu.$O\
 	random.$O\
 	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
 	$DEVS\
 	$PORT\
 

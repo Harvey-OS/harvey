@@ -12315,3 +12315,7 @@
 1055799107 0 c 386/bin/auth/keyfs - 775 sys sys 1055797591 116737
 1055799107 1 c sys/src/cmd/auth/keyfs.c - 664 sys sys 1055797577 17594
 1055818924 0 c sys/games/lib/fortunes - 664 sys sys 1055817277 243905
+1055826132 0 c sys/src/9/alphapc/mkfile - 664 sys sys 1055825921 2018
+1055826132 1 c sys/src/9/bitsy/mkfile - 664 sys sys 1055825921 2471
+1055826132 2 c sys/src/9/mtx/mkfile - 664 sys sys 1055825923 1508
+1055826132 3 c sys/src/9/pc/mkfile - 664 sys sys 1055825916 3100

@@ -1,5 +1,5 @@
 CONF=pc
-CONFLIST=pc pccpu pcdisk pcauth
+CONFLIST=pc pccpu pcdisk pcauth pcblast
 
 objtype=386
 </$objtype/mkfile
@@ -48,6 +48,8 @@ OBJ=\
 	random.$O\
 	rdb.$O\
 	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
 	$DEVS\
 	$PORT\
 
@@ -142,3 +144,6 @@ checkdist:VQ:
 	for(i in pcdisk pcflop)
 	for(j in checkvga checkether)
 		mk $i.$j
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.*
