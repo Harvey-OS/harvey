@@ -14,8 +14,8 @@ enum
 static int	setenv(char*, char*);
 static char	*expandarg(char*, char*);
 static int	splitargs(char*, char*[], char*, int);
-static void nsfile(Biobuf *, AuthRpc *);
-static void	nsop(int, char*[], AuthRpc*);
+static int	nsfile(Biobuf *, AuthRpc *);
+static int	nsop(int, char*[], AuthRpc*);
 static int	callexport(char*, char*);
 static int	catch(void*, char*);
 
@@ -26,6 +26,8 @@ buildns(int newns, char *user, char *file)
 	char home[4*ANAMELEN];
 	int afd;
 	AuthRpc *rpc;
+	int cdroot;
+	char *path;
 
 	rpc = nil;
 	/* try for factotum now because later is impossible */
@@ -57,20 +59,31 @@ buildns(int newns, char *user, char *file)
 		snprint(home, 2*ANAMELEN, "/usr/%s", user);
 		setenv("home", home);
 	}
-	nsfile(b, rpc);
+	cdroot = nsfile(b, rpc);
 	Bterm(b);
 	if(rpc){
 		close(rpc->afd);
 		auth_freerpc(rpc);
 	}
+
+	/* make sure we managed to cd into the new name space */
+	if(newns && !cdroot){
+		path = malloc(1024);
+		if(path == nil || getwd(path, 1024) == 0 || chdir(path) < 0)
+			chdir("/");
+		if(path != nil)
+			free(path);
+	}
+
 	return 0;
 }
 
-static void
+static int
 nsfile(Biobuf *b, AuthRpc *rpc)
 {
 	int argc;
 	char *cmd, *argv[NARG+1], argbuf[MAXARG*NARG];
+	int cdroot = 0;
 
 	atnotify(catch, 1);
 	while(cmd = Brdline(b, '\n')){
@@ -81,9 +94,10 @@ nsfile(Biobuf *b, AuthRpc *rpc)
 			continue;
 		argc = splitargs(cmd, argv, argbuf, NARG);
 		if(argc)
-			nsop(argc, argv, rpc);
+			cdroot |= nsop(argc, argv, rpc);
 	}
 	atnotify(catch, 0);
+	return cdroot;
 }
 
 int
@@ -113,13 +127,14 @@ famount(int fd, AuthRpc *rpc, char *mntpt, int flags, char *aname)
 	return mount(fd, afd, mntpt, flags, aname);
 }
 
-static void
+static int
 nsop(int argc, char *argv[], AuthRpc *rpc)
 {
 	char *argv0;
 	ulong flags;
 	int fd;
 	Biobuf *b;
+	int cdroot = 0;
 
 	flags = 0;
 	argv0 = 0;
@@ -144,8 +159,8 @@ nsop(int argc, char *argv[], AuthRpc *rpc)
 	if(strcmp(argv0, ".") == 0 && argc == 1){
 		b = Bopen(argv[0], OREAD);
 		if(b == nil)
-			return;
-		nsfile(b, rpc);
+			return 0;
+		cdroot |= nsfile(b, rpc);
 		Bterm(b);
 	} else if(strcmp(argv0, "clear") == 0 && argc == 0)
 		rfork(RFCNAMEG);
@@ -171,7 +186,9 @@ nsop(int argc, char *argv[], AuthRpc *rpc)
 			famount(fd, rpc, argv[2], flags, "");
 		close(fd);
 	} else if(strcmp(argv0, "cd") == 0 && argc == 1)
-		chdir(argv[0]);
+		if(chdir(argv[0]) == 0 && *argv[0] == '/')
+			cdroot = 1;
+	return cdroot;
 }
 
 static char *wocp = "sys: write on closed pipe";
