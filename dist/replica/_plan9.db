@@ -446,11 +446,11 @@
 386/bin/upas/pop3 - 775 sys sys 1085077114 259808
 386/bin/upas/qer - 775 sys sys 1085077114 97840
 386/bin/upas/ratfs - 775 sys sys 1089257539 109406
-386/bin/upas/runq - 775 sys sys 1085077115 110358
+386/bin/upas/runq - 775 sys sys 1098848045 111047
 386/bin/upas/scanmail - 775 sys sys 1085077115 126758
-386/bin/upas/send - 775 sys sys 1085077116 189534
-386/bin/upas/smtp - 775 sys sys 1098158515 270192
-386/bin/upas/smtpd - 775 sys sys 1091156988 324025
+386/bin/upas/send - 775 sys sys 1098848045 189497
+386/bin/upas/smtp - 775 sys sys 1098848046 270306
+386/bin/upas/smtpd - 775 sys sys 1098848047 326493
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1085077117 81626
 386/bin/upas/token - 775 sys sys 1085077117 75518
@@ -5365,7 +5365,7 @@ sys/src/9/pc/ether79c970.c - 664 sys sys 1071245466 14094
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1086987324 18362
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1055689887 32296
-sys/src/9/pc/ether82557.c - 664 sys sys 1086987325 29993
+sys/src/9/pc/ether82557.c - 664 sys sys 1098848151 30040
 sys/src/9/pc/ether83815.c - 664 sys sys 1081706477 23479
 sys/src/9/pc/ether8390.c - 664 sys sys 1071245462 17557
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -6505,7 +6505,7 @@ sys/src/boot/pc/ether589.c - 664 sys sys 1015007950 4628
 sys/src/boot/pc/ether79c970.c - 664 sys sys 1015007950 11717
 sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1015007950 14731
-sys/src/boot/pc/ether82557.c - 664 sys sys 1023942345 18864
+sys/src/boot/pc/ether82557.c - 664 sys sys 1098848150 18911
 sys/src/boot/pc/ether83815.c - 664 sys sys 1019537742 19576
 sys/src/boot/pc/ether8390.c - 664 sys sys 1015007951 16065
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
@@ -12390,7 +12390,8 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/upas/runq - 775 sys sys 1098846467 111047
-386/bin/upas/send - 775 sys sys 1098846467 189497
-386/bin/upas/smtp - 775 sys sys 1098846467 270306
-386/bin/upas/smtpd - 775 sys sys 1098846468 326493
+386/9loaddebug - 775 sys sys 1098933169 299545
+386/9pc - 775 sys sys 1098933173 1817363
+386/9pccpu - 775 sys sys 1098933176 1473492
+386/9pcdisk - 775 sys sys 1098933180 2019969
+386/9pcf - 775 sys sys 1098933185 2351612
