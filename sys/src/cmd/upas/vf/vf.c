@@ -381,6 +381,7 @@ problemchild(Part *p)
 	Bprint(&out, "Content-Type: text/plain; charset=\"US-ASCII\"\n");
 	Bprint(&out, "Content-Transfer-Encoding: 7bit\n");
 	Bprint(&out, "\n");
+	Bprint(&out, "from postmaster@%s:\n", sysname());
 	Bprint(&out, "The following attachment had content that we can't\n");
 	Bprint(&out, "prove to be harmless.  To avoid possible automatic\n");
 	Bprint(&out, "execution, we changed the content headers.\n");

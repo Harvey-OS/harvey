@@ -361,7 +361,7 @@ findkey(Key **ret, Fsstate *fss, char *who, int noconf, int skip, Attr *attr0, c
 			return RpcOk;
 		}
 	}
-	flog("%d: no key matches %A %A", fss->seqnum, attr0, attr1);
+	flog("%d: no key matches %A %A %A %A", fss->seqnum, attr0, attr1, attr2, attr3);
 	werrstr("no key matches %A %A", attr0, attr1);
 	s = RpcFailure;
 	if(askforkeys && who==nil && (hasqueries(attr0) || hasqueries(attr1))){

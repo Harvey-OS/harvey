@@ -9,6 +9,7 @@
 #include <bio.h>
 #include <mp.h>
 #include <libsec.h>
+#include <authsrv.h>
 
 int getpasswd(char*, char*, int);
 
@@ -44,11 +45,12 @@ void
 main(int argc, char **argv)
 {
 	int encrypt = 0;  /* 0=decrypt, 1=encrypt */
-	int n, nkey, pass_stdin = 0;
+	int n, nkey, pass_stdin = 0, pass_nvram = 0;
 	uchar key[AESmaxkey], key2[SHA1dlen];
 	uchar buf[BUF+SHA1dlen];    /* assumption: CHK <= SHA1dlen */
 	AESstate aes;
 	DigestState *dstate;
+	Nvrsafe nvr;
 
 	ARGBEGIN{
 	case 'e':
@@ -57,10 +59,13 @@ main(int argc, char **argv)
 	case 'i':
 		pass_stdin = 1;
 		break;
+	case 'n':
+		pass_nvram = 1;
+		break;
 	}ARGEND;
 	if(argc!=0){
-		fprint(2,"usage: %s -d < cipher.aes > clear.txt\n", argv[0]);
-		fprint(2,"   or: %s -e < clear.txt > cipher.aes\n", argv[0]);
+		fprint(2,"usage: %s -d < cipher.aes > clear.txt\n", argv0);
+		fprint(2,"   or: %s -e < clear.txt > cipher.aes\n", argv0);
 		exits("usage");
 	}
 	Binit(&bin, 0, OREAD);
@@ -73,6 +78,11 @@ main(int argc, char **argv)
 		buf[n] = 0;
 		while(buf[n-1] == '\n')
 			buf[--n] = 0;
+	}else if(pass_nvram){
+		if(readnvram(&nvr, 0) < 0)
+			exits("readnvram: %r");
+		strecpy((char*)buf, (char*)buf+sizeof buf, (char*)nvr.config);
+		n = strlen((char*)buf);
 	}else{
 		n = getpasswd("password:", (char*)buf, sizeof buf);
 	}

@@ -1,6 +1,6 @@
 .TH PUSHTLS 2
 .SH NAME
-pushtls, tlsClient, tlsServer, initThumbprints, freeThumbprints, okThumbprint, readcert \- attach TLS1 or SSL3 encryption to a communication channel
+pushtls, tlsClient, tlsServer, initThumbprints, freeThumbprints, okThumbprint, readcert, readcertchain \- attach TLS1 or SSL3 encryption to a communication channel
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -24,6 +24,9 @@ int			tlsServer(int fd, TLSconn *conn)
 .PP
 .B
 uchar		*readcert(char *filename, int *pcertlen)
+.PP
+.B
+PEMchain	*readcertchain(char *filename)
 .PP
 .B
 Thumbprint*	initThumbprints(char *ok, char *crl)
@@ -92,6 +95,7 @@ points to a (caller-allocated) struct
       uchar *sessionID; // IN/OUT sessionID
       int certlen, sessionIDlen;
       void (*trace)(char*fmt, ...);
+      PEMChain *chain;
    } TLSconn;
 .EE
 defined in
@@ -147,6 +151,13 @@ should have been previously loaded into factotum.
 (See
 .IR rsa (8)
 for more about key generation.)
+By setting
+.EX
+   conn->chain = readcertchain("intermediate-certs.pem");
+.EE
+the server can present extra certificate evidence
+to establish the chain of trust to a root authority
+known to the client.
 .PP
 .I Conn
 is not required for the ongoing conversation and may

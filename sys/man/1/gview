@@ -11,7 +11,7 @@ gview \- interactive graph viewer
 .B -m
 ]
 [
-.I file
+.I files
 ]
 .SH DESCRIPTION
 .I Gview
@@ -19,7 +19,8 @@ reads polygonal lines or a polygonal line drawing from an
 .B ASCII
 input file (which defaults to standard input), and views it interactively,
 with commands to zoom in and out, perform simple editing operations, and
-display information about points and polylines.  The editing commands can
+display information about points and polylines.  (Multiple input files are
+allowed if you want to overlay several line drawings.)  The editing commands can
 change the color and thickness of the polylines, delete (or undelete)
 some of them, and optionally rotate and move them.  It is also possible to
 generate an output file that reflects these changes and is in the same format
@@ -89,7 +90,7 @@ or
 command on button 2 changes the thickness of the selected polyline
 and there is also an undo command for such edits.
 .PP
-Finally, button 3 had commands to
+Finally, button 3 has commands to
 .I read
 a new input file and display it on top of everything else,
 .I restack
@@ -112,7 +113,7 @@ optional.   It is not legal to have two consecutive labels, since that
 would denote a zero-vertex polyline and each polyline must have at least
 one vertex. (One-vertex polylines are useful for scatter plots.)
 
-If the label after a polyline can contains the word
+If the label after a polyline contains the word
 .B "Thick"
 or a color name
 .BR (Red ,
