@@ -100,7 +100,7 @@ xdecl:
 		n = revertdcl();
 		if(n)
 			$6 = new(OLIST, n, $6);
-		if(!debug['a'] && !debug['P'])
+		if(!debug['a'] && !debug['Z'])
 			codgen($6, $2);
 	}
 

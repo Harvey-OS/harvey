@@ -201,6 +201,7 @@ cgen(Node *n, Node *nn)
 		if(l->op == OBIT)
 			goto asbitop;
 		if(r->op == OCONST)
+		if(!typefd[r->type->etype])
 		if(!typefd[n->type->etype]) {
 			if(l->addable < INDEXED)
 				reglcgen(&nod2, l, Z);
@@ -224,10 +225,10 @@ cgen(Node *n, Node *nn)
 				reglcgen(&nod2, l, Z);
 			else
 				nod2 = *l;
-			regalloc(&nod1, l, Z);	/* l used for type so shifts work */
+			regalloc(&nod1, r, Z);
 			cgen(r, &nod1);
 		} else {
-			regalloc(&nod1, l, Z);	/* l used for type so shifts work */
+			regalloc(&nod1, r, Z);
 			cgen(r, &nod1);
 			if(l->addable < INDEXED)
 				reglcgen(&nod2, l, Z);

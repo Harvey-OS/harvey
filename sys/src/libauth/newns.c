@@ -227,7 +227,7 @@ splitargs(char *p, char *argv[], char *argbuf, int nargv)
 	char *q;
 	int i, n;
 
-	n = getfields(p, argv, nargv, 1, " \t\r");
+	n = gettokens(p, argv, nargv, " \t'\r");
 	if(n == nargv)
 		return 0;
 	for(i = 0; i < n; i++){

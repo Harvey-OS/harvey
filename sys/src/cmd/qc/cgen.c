@@ -204,6 +204,7 @@ cgen(Node *n, Node *nn)
 		if(l->op == OBIT)
 			goto asbitop;
 		if(r->op == OCONST)
+		if(!typefd[r->type->etype])
 		if(!typefd[n->type->etype]) {
 			if(l->addable < INDEXED)
 				reglcgen(&nod2, l, Z);

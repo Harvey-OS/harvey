@@ -401,7 +401,7 @@ cgen(Node *n, Node *nn)
 	asand:
 		if(l->op == OBIT)
 			goto asbitop;
-		if(typefd[n->type->etype])
+		if(typefd[n->type->etype]||typefd[r->type->etype])
 			goto asfop;
 		if(l->complex >= r->complex) {
 			if(hardleft)
@@ -439,7 +439,7 @@ cgen(Node *n, Node *nn)
 	case OASMOD:
 		if(l->op == OBIT)
 			goto asbitop;
-		if(typefd[n->type->etype])
+		if(typefd[n->type->etype]||typefd[r->type->etype])
 			goto asfop;
 		if(o == OASMUL && r->op == OCONST) {
 			if(hardleft)
