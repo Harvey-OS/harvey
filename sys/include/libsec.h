@@ -150,6 +150,8 @@ DigestState* md5(uchar*, ulong, uchar*, DigestState*);
 DigestState* sha1(uchar*, ulong, uchar*, DigestState*);
 DigestState* hmac_md5(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
 DigestState* hmac_sha1(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
+char* md5pickle(MD5state*);
+MD5state* md5unpickle(char*);
 char* sha1pickle(SHA1state*);
 SHA1state* sha1unpickle(char*);
 
