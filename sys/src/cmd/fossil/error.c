@@ -29,6 +29,7 @@ char ENotEmpty[] = "directory not empty";
 char ENotFile[] = "not a file";
 char EReadOnly[] = "file is read only";
 char ERemoved[] = "file has been removed";
+char ENotArchived[] = "file is not archived";
 char EResize[] = "only support truncation to zero length";
 char ERoot[] = "cannot remove root";
 char ESnapOld[] = "snapshot has been deleted";

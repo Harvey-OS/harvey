@@ -205,7 +205,7 @@ rTwstat(Msg* m)
 		 */
 		if(dir.mode == ~0)
 			dir.mode = (dir.qid.type<<24)|(de.mode & 0777);
-		if(dir.mode & ~(DMDIR|DMAPPEND|DMEXCL|0777)){
+		if(dir.mode & ~(DMDIR|DMAPPEND|DMEXCL|DMTMP|0777)){
 			vtSetError("wstat -- unknown bits in qid.type/mode");
 			goto error;
 		}
@@ -220,14 +220,16 @@ rTwstat(Msg* m)
 			mode |= ModeAppend;
 		if(dir.mode & DMDIR)
 			mode |= ModeDir;
+		if(dir.mode & DMTMP)
+			mode |= ModeTemporary;
 
 		if((de.mode^mode) & ModeDir){
 			vtSetError("wstat -- attempt to change directory bit");
 			goto error;
 		}
 
-		if((de.mode & (ModeAppend|ModeExclusive|0777)) != mode){
-			de.mode &= ~(ModeAppend|ModeExclusive|0777);
+		if((de.mode & (ModeAppend|ModeExclusive|ModeTemporary|0777)) != mode){
+			de.mode &= ~(ModeAppend|ModeExclusive|ModeTemporary|0777);
 			de.mode |= mode;
 			op = 1;
 		}
@@ -630,6 +632,8 @@ rTcreate(Msg* m)
 		mode |= ModeAppend;
 	if(m->t.perm & DMEXCL)
 		mode |= ModeExclusive;
+	if(m->t.perm & DMTMP)
+		mode |= ModeTemporary;
 
 	if((file = fileCreate(fid->file, m->t.name, mode, fid->uid)) == nil){
 		fidPut(fid);

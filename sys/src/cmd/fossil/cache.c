@@ -52,6 +52,7 @@ struct Cache
 
 	VtRendez *flush;
 	VtRendez *flushwait;
+	VtRendez *heapwait;
 	BAddr *baddr;
 	int bw, br, be;
 	int nflush;
@@ -206,6 +207,7 @@ bwatchSetBlockSize(c->size);
 	c->unlink = vtRendezAlloc(c->lk);
 	c->flush = vtRendezAlloc(c->lk);
 	c->flushwait = vtRendezAlloc(c->lk);
+	c->heapwait = vtRendezAlloc(c->lk);
 	c->sync = periodicAlloc(cacheSync, c, 30*1000);
 
 	if(mode == OReadWrite){
@@ -273,9 +275,9 @@ cacheDump(Cache *c)
 
 	for(i = 0; i < c->nblocks; i++){
 		b = &c->blocks[i];
-		fprint(2, "p=%d a=%ud %V t=%d ref=%d state=%s io=%s\n",
-			b->part, b->addr, b->score, b->l.type, b->ref,
-			bsStr(b->l.state), bioStr(b->iostate));
+		fprint(2, "%d. p=%d a=%ud %V t=%d ref=%d state=%s io=%s pc=0x%lux\n",
+			i, b->part, b->addr, b->score, b->l.type, b->ref,
+			bsStr(b->l.state), bioStr(b->iostate), b->pc);
 	}
 }
 
@@ -343,8 +345,15 @@ cacheBumpBlock(Cache *c)
 	 * locate the block with the oldest second to last use.
 	 * remove it from the heap, and fix up the heap.
 	 */
-	if(c->nheap == 0)
-		vtFatal("cacheBumpBlock: no free blocks in cache");
+	if(c->nheap == 0){
+		while(c->nheap == 0){
+			fprint(2, "entire cache is busy, %d dirty -- waking flush thread\n", c->ndirty);
+			vtWakeup(c->flush);
+			vtSleep(c->heapwait);
+		}
+		fprint(2, "cache is okay again\n");
+	}
+
 	b = c->heap[0];
 	heapDel(b);
 
@@ -578,9 +587,8 @@ cacheLocalData(Cache *c, u32int addr, int type, u32int tag, int mode, u32int epo
 	if(b == nil)
 		return nil;
 	if(b->l.type != type || b->l.tag != tag){
-		fprint(2, "cacheLocalData: addr=%d type got %d exp %d: tag got %x exp %x\n",
+		fprint(2, "cacheLocalData: addr=%d type got %d exp %d: tag got %ux exp %ux\n",
 			addr, b->l.type, type, b->l.tag, tag);
-abort();
 		vtSetError(ELabelMismatch);
 		blockPut(b);
 		return nil;
@@ -1147,42 +1155,6 @@ cacheFlush(c, 0);
 }
 
 /*
- * Flush b or one of the blocks it depends on.
- */
-void
-blockFlush(Block *b)
-{
-	int first;
-	BList *p, **pp;
-	Block *bb;
-	Cache *c;
-
-//fprint(2, "blockFlush %p\n", b);
-
-	c = b->c;
-
-	first = 1;
-	pp = &b->prior;
-	for(p=*pp; p; p=*pp){
-		bb = cacheLocalLookup(c, p->part, p->addr, p->vers);
-		if(bb == nil){
-			*pp = p->next;
-			blistFree(c, p);
-			continue;
-		}
-		if(!first)
-			blockPut(b);
-		first = 0;
-		b = bb;
-		pp = &b->prior;
-	}
-
-	diskWriteAndWait(c->disk, b);
-	if(!first)
-		blockPut(b);
-}
-
-/*
  * Record that bb must be written out before b.
  * If index is given, we're about to overwrite the score/e
  * at that index in the block.  Save the old value so we
@@ -1242,19 +1214,17 @@ if(0)fprint(2, "%d:%x:%d depends on %d:%x:%d\n", b->part, b->addr, b->l.type, bb
 
 /*
  * Mark an in-memory block as dirty.  If there are too many
- * dirty blocks, start writing some out to disk.  If there are way
- * too many dirty blocks, write this one out too.
- *
- * Note that since we might call blockFlush, which walks
- * the prior list, we can't call blockDirty while holding a lock
- * on any of our priors.  This can be tested by recompiling
- * with flush always set to 1 below.
+ * dirty blocks, start writing some out to disk. 
+ * 
+ * If there were way too many dirty blocks, we used to
+ * try to do some flushing ourselves, but it's just too dangerous -- 
+ * it implies that the callers cannot have any of our priors locked,
+ * but this is hard to avoid in some cases.
  */
 int
 blockDirty(Block *b)
 {
 	Cache *c;
-	int flush;
 
 	c = b->c;
 
@@ -1269,11 +1239,7 @@ blockDirty(Block *b)
 	c->ndirty++;
 	if(c->ndirty > (c->maxdirty>>1))
 		vtWakeup(c->flush);
-	flush = c->ndirty > c->maxdirty;
 	vtUnlock(c->lk);
-
-	if(flush)
-		blockFlush(b);
 
 	return 1;
 }
@@ -1843,6 +1809,7 @@ heapIns(Block *b)
 {
 	assert(b->heap == BadHeap);
 	upHeap(b->c->nheap++, b);
+	vtWakeup(b->c->heapwait);
 }
 
 /*
@@ -2026,9 +1993,10 @@ cacheFlushBlock(Cache *c)
 			continue;
 
 		/* Failed to acquire lock; sleep if happens a lot. */
-		if(lockfail && ++nfail > 100)
+		if(lockfail && ++nfail > 100){
 			sleep(500);
-
+			nfail = 0;
+		}
 		/* Requeue block. */
 		if(c->bw < c->be)
 			c->baddr[c->bw++] = *p;

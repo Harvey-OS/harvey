@@ -98,9 +98,9 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 		}
 		superPack(&super, bs->data);
 		blockDependency(bs, b, 0, oscore, nil);
+		blockPut(b);
 		blockDirty(bs);
 		blockPut(bs);
-		blockPut(b);
 		fs->source = sourceRoot(fs, super.active, mode);
 		if(fs->source == nil){
 			vtSetError("sourceRoot: %R");

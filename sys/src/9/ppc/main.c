@@ -6,6 +6,7 @@
 #include	"io.h"
 #include	"init.h"
 #include	"pool.h"
+#include	"tos.h"
 
 #define	MAXCONF		64
 
@@ -26,7 +27,37 @@ Lock		testlock;
 
 static void	plan9iniinit(void);
 
-void (*_reboot)(void);
+char *
+cpuid(void)
+{
+	char *id;
+
+	id = "unknown PowerPC";
+	switch(m->cputype) {
+	case 8:
+		id = "PowerPC 750";
+		break;
+	case 9:
+		id = "PowerPC 604e";
+		break;
+	case 0x81:
+		id = "PowerPC 8260";
+		break;
+	case 0x8081:
+		id = "PowerPC 826xA";
+		break;
+	default:
+		break;
+	}
+	return id;
+}
+
+void
+cpuidprint(void)
+{
+	print("cpu0: %s, rev 0x%lux, cpu hz %lld, bus hz %ld\n", 
+		cpuid(), getpvr()&0xffff, m->cpuhz, m->bushz);
+}
 
 void
 main(void)
@@ -61,31 +92,6 @@ main(void)
 	schedinit();
 }
 
-void
-cpuidprint(void)
-{
-	char *id;
-
-	id = "unknown PowerPC";
-	switch(m->cputype) {
-	case 8:
-		id = "PowerPC 750";
-		break;
-	case 9:
-		id = "PowerPC 604e";
-		break;
-	case 0x81:
-		id = "PowerPC 8260";
-		break;
-	case 0x8081:
-		id = "PowerPC 826xA";
-		break;
-	default:
-		break;
-	}
-	print("cpu0: %s, rev 0x%lux\n", id, getpvr()&0xffff);
-}
-
 char*
 getconf(char *name)
 {
@@ -104,20 +110,11 @@ plan9iniinit(void)
 	int c;
 	char *cp, line[MAXCONF], *p, *q;
 
-	_reboot = (void (*)(void))0xff400000;
-
 	/*
 	 *  parse configuration args from dos file plan9.ini
 	 */
 
-	/* Plan9.ini location in flash is FLASHMEM+PLAN9INI
-	 * if PLAN9INI == ~0, it's not stored in flash or there is no flash
-	 * if *cp == 0xff, flash memory is not initialized
-	 */
-	if (PLAN9INI == ~0 || *(cp = (char*)(FLASHMEM+PLAN9INI)) == 0xff){
-		/* No plan9.ini in flash */
-		cp = plan9inistr;
-	}
+	cp = plan9inistr;
 	for(i = 0; i < MAXCONF; i++){
 		/*
 		 * Strip out '\r', change '\t' -> ' ', test for 0xff which is end of file
@@ -146,13 +143,6 @@ plan9iniinit(void)
 
 		cp = q + 1;
 	}
-}
-
-/* still to do */
-void
-reboot(void*, void*, ulong)
-{
-	_reboot();
 }
 
 void
@@ -194,7 +184,7 @@ init0(void)
 	}
 	kproc("alarm", alarmkproc, 0);
 	kproc("mmusweep", mmusweep, 0);
-	touser((void*)(USTKTOP-8));
+	touser((void*)(USTKTOP-sizeof(Tos)));
 }
 
 void
@@ -296,12 +286,27 @@ procsetup(Proc *p)
 	p->fpstate = FPinit;
 }
 
+void
+procrestore(Proc *p)
+{
+	uvlong t;
+
+	if(p->kp)
+		return;
+	cycles(&t);
+	p->pcycles -= t;
+}
+
 /*
  *  Save the mach dependent part of the process state.
  */
 void
 procsave(Proc *p)
 {
+	uvlong t;
+
+	cycles(&t);
+	p->pcycles += t;
 	if(p->fpstate == FPactive){
 		if(p->state != Moribund)
 			fpsave(&up->fpsave);

@@ -77,22 +77,22 @@ main(void)
 	ioinit();
 	i8250console();
 	quotefmtinstall();
+	screeninit();
 
 	print("\nPlan 9\n");
 
 	kbdinit();
 	i8253init();
 	cpuidentify();
-	screeninit();
 	meminit();
 	confinit();
-	archinit();	/* launches other processors on an mp */
+	archinit();
 	xinit();
 	trapinit();
 	printinit();
 	cpuidprint();
 	mmuinit();
-	if(arch->intrinit)
+	if(arch->intrinit)	/* launches other processors on an mp */
 		arch->intrinit();
 	timersinit();
 	mathinit();

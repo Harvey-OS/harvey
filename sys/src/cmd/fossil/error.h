@@ -24,6 +24,7 @@ extern char ENotEmpty[];
 extern char ENotFile[];
 extern char EReadOnly[];
 extern char ERemoved[];
+extern char ENotArchived[];
 extern char EResize[];
 extern char ERoot[];
 extern char ESnapOld[];

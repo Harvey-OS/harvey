@@ -270,6 +270,12 @@ diskSize(Disk *disk, int part)
 	return partEnd(disk, part) - partStart(disk, part);
 }
 
+static ulong
+mypc(int x)
+{
+	return getcallerpc(&x);
+}
+
 static void
 diskThread(void *a)
 {
@@ -319,8 +325,8 @@ diskThread(void *a)
 if(0)fprint(2, "diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 		bwatchLock(b);
 		vtLock(b->lk);
+		b->pc = mypc(0);
 		assert(b->nlock == 1);
-
 		switch(b->iostate){
 		default:
 			abort();

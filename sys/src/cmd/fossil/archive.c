@@ -210,8 +210,9 @@ archWalk(Param *p, u32int addr, uchar type, u32int tag)
 			if(e){
 				if(!(e->flags&VtEntryActive))
 					continue;
-				if(e->snap != 0 && e->archive == 0){
-				//	fprint(2, "snap; faking %#ux\n", b->addr);
+				if((e->snap && !e->archive)
+				|| (e->flags&VtEntryNoArchive)){
+					if(0) fprint(2, "snap; faking %#ux\n", b->addr);
 					if(data == b->data){
 						data = copyBlock(b, p->blockSize);
 						if(data == nil){
@@ -254,8 +255,18 @@ archWalk(Param *p, u32int addr, uchar type, u32int tag)
 				ret = ArchFailure;
 				goto Out;
 			case ArchFaked:
-if(0) fprint(2, "faked %#ux, faking %#ux (%V)\n", addr, b->addr, p->score);
+				/*
+				 * When we're writing the entry for an archive directory
+				 * (like /archive/2003/1215) then even if we've faked
+				 * any data, record the score unconditionally.
+				 * This way, we will always record the Venti score here.
+				 * Otherwise, temporary data or corrupted file system
+				 * would cause us to keep holding onto the on-disk
+				 * copy of the archive.
+				 */
+				if(e==nil || !e->archive)
 				if(data == b->data){
+if(0) fprint(2, "faked %#ux, faking %#ux (%V)\n", addr, b->addr, p->score);
 					data = copyBlock(b, p->blockSize);
 					if(data == nil){
 						ret = ArchFailure;

@@ -6,12 +6,14 @@ typedef struct PaqDir PaqDir;
 enum {
 	HeaderMagic = 0x529ab12b,
 	HeaderSize = 44,
+	BigHeaderMagic = 0x25a9,
 	BlockMagic = 0x198a1cbf,
 	BlockSize = 12,
+	BigBlockMagic = 0x91a8,
 	TrailerMagic = 0x6b46e688,
 	TrailerSize = 28,
 	Version = 1,
-	MaxBlockSize = 56*1024,
+	MaxBlockSize = 512*1024,
 	MinBlockSize = 512,
 	MinDirSize = 28,
 };
@@ -33,7 +35,7 @@ struct PaqHeader
 {
 	ulong	magic;
 	ushort	version;
-	ushort	blocksize;
+	ulong	blocksize;
 	ulong	time;
 	char	label[32];
 };
@@ -41,7 +43,7 @@ struct PaqHeader
 struct PaqBlock
 {
 	ulong	magic;
-	ushort	size;		/* data size - always <= blocksize */
+	ulong	size;		/* data size - always <= blocksize */
 	uchar	type;
 	uchar	encoding;
 	ulong	adler32;	/* applied to unencoded data */

@@ -1,6 +1,7 @@
 #include "stdinc.h"
 #include "dat.h"
 #include "fns.h"
+#include "flfmt9660.h"
 
 #define blockWrite _blockWrite	/* hack */
 
@@ -27,6 +28,8 @@ Fs *fs;
 uchar *buf;
 int bsize = 8*1024;
 u64int qid = 1;
+int iso9660off;
+char *iso9660file;
 
 int
 confirm(char *msg)
@@ -68,6 +71,10 @@ main(int argc, char *argv[])
 	case 'h':
 		host = EARGF(usage());
 		break;
+	case 'i':
+		iso9660file = EARGF(usage());
+		iso9660off = atoi(EARGF(usage()));
+		break;
 	case 'l':
 		label = EARGF(usage());
 		break;
@@ -88,6 +95,9 @@ main(int argc, char *argv[])
 
 	if(argc != 1)
 		usage();
+
+	if(iso9660file && score)
+		vtFatal("cannot use -i with -v");
 
 	vtAttach();
 
@@ -123,10 +133,16 @@ main(int argc, char *argv[])
 	if(disk == nil)
 		vtFatal("could not open disk: %r");
 
+	if(iso9660file)
+		iso9660init(fd, &h, iso9660file, iso9660off);
+
 	/* zero labels */
 	memset(buf, 0, bsize);
 	for(bn = 0; bn < diskSize(disk, PartLabel); bn++)
 		blockWrite(PartLabel, bn);
+
+	if(iso9660file)
+		iso9660labels(disk, buf, blockWrite);
 
 	if(score)
 		root = ventiRoot(host, score);
@@ -163,7 +179,7 @@ fdsize(int fd)
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-b blocksize] [-h host] [-l label] [-v score] [-y] file\n", argv0);
+	fprint(2, "usage: %s [-b blocksize] [-h host] [-i file offset] [-l label] [-v score] [-y] file\n", argv0);
 	exits("usage");
 }
 
@@ -324,8 +340,10 @@ blockAlloc(int type, u32int tag)
 	lpb = bsize/LabelSize;
 
 	blockRead(PartLabel, addr/lpb);
-	if(!labelUnpack(&l, buf, addr % lpb) || l.state != BsFree)
+	if(!labelUnpack(&l, buf, addr % lpb))
 		vtFatal("bad label: %r");
+	if(l.state != BsFree)
+		vtFatal("want to allocate block already in use");
 	l.epoch = 1;
 	l.epochClose = ~(u32int)0;
 	l.type = type;
@@ -424,6 +442,8 @@ topLevel(char *name)
 	addFile(root, "archive", 0555);
 	addFile(root, "snapshot", 0555);
 	fileDecRef(root);
+	if(iso9660file)
+		iso9660copy(fs);
 	vtRUnlock(fs->elk);
 	fsClose(fs);
 }

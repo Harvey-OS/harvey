@@ -79,6 +79,7 @@ enum {
 	VtEntryDepthShift = 2,		/* shift for pointer depth */
 	VtEntryDepthMask = (0x7<<2),	/* mask for pointer depth */
 	VtEntryLocal = (1<<5),		/* used for local storage: should not be set for Venti blocks */
+	VtEntryNoArchive = (1<<6),	/* used for local storage: should not be set for Venti blocks */
 };
 
 struct VtRoot {

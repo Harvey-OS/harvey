@@ -59,6 +59,10 @@ dirDe2M(DirEntry* de, uchar* p, int np)
 		dir.qid.type |= QTMOUNT;	/* just for debugging */
 		dir.mode |= DMMOUNT;
 	}
+	if(de->mode & ModeTemporary){
+		dir.qid.type |= QTTMP;
+		dir.mode |= DMTMP;
+	}
 
 	dir.atime = de->atime;
 	dir.mtime = de->mtime;

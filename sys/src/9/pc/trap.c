@@ -13,6 +13,8 @@ void	noted(Ureg*, ulong);
 static void debugbpt(Ureg*, void*);
 static void fault386(Ureg*, void*);
 static void doublefault(Ureg*, void*);
+static void unexpected(Ureg*, void*);
+static void _dumpstack(Ureg*);
 
 static Lock vctllock;
 static Vctl *vctl[256];
@@ -209,7 +211,7 @@ trapinit(void)
 	trapenable(VectorBPT, debugbpt, 0, "debugpt");
 	trapenable(VectorPF, fault386, 0, "fault386");
 	trapenable(Vector2F, doublefault, 0, "doublefault");
-
+	trapenable(Vector15, unexpected, 0, "unexpected");
 	nmienable();
 
 	addarchfile("irqalloc", 0444, irqallocread, nil);
@@ -400,6 +402,10 @@ trap(Ureg* ureg)
 			}
 		}
 		dumpregs(ureg);
+		if(!user){
+			ureg->sp = (ulong)&ureg->sp;
+			_dumpstack(ureg);
+		}
 		if(vno < nelem(excname))
 			panic("%s", excname[vno]);
 		panic("unknown trap/intr: %d\n", vno);
@@ -487,8 +493,11 @@ _dumpstack(Ureg *ureg)
 {
 	ulong l, v, i, estack;
 	extern ulong etext;
+	int x;
 
-	print("ktrace /kernel/path %.8lux %.8lux\n", ureg->pc, ureg->sp);
+	iprint("dumpstack\n");
+	x = 0;
+	x += print("ktrace /kernel/path %.8lux %.8lux\n", ureg->pc, ureg->sp);
 	i = 0;
 	if(up
 	&& (ulong)&l >= (ulong)up->kstack
@@ -499,23 +508,25 @@ _dumpstack(Ureg *ureg)
 		estack = (ulong)m+MACHSIZE;
 	else
 		return;
+	x += print("estackx %.8lux\n", estack);
 
 	for(l=(ulong)&l; l<estack; l+=4){
 		v = *(ulong*)l;
-		if(KTZERO < v && v < (ulong)&etext){
+		if((KTZERO < v && v < (ulong)&etext) || estack-l<256){
 			/*
 			 * we could Pick off general CALL (((uchar*)v)[-5] == 0xE8)
 			 * and CALL indirect through AX (((uchar*)v)[-2] == 0xFF && ((uchar*)v)[-2] == 0xD0),
 			 * but this is too clever and misses faulting address.
 			 */
-			print("%.8lux=%.8lux ", l, v);
+			x += print("%.8lux=%.8lux ", l, v);
 			i++;
 		}
 		if(i == 4){
 			i = 0;
-			print("\n");
+			x += print("\n");
 		}
 	}
+iprint("serialoq %d printed %d\n", qlen(serialoq), x);
 	if(i)
 		print("\n");
 }
@@ -545,6 +556,11 @@ doublefault(Ureg*, void*)
 	panic("double fault");
 }
 
+static void
+unexpected(Ureg* ureg, void*)
+{
+	print("unexpected trap %lud; ignoring\n", ureg->trap);
+}
 
 static void
 fault386(Ureg* ureg, void*)

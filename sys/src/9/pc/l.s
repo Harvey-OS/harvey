@@ -555,25 +555,6 @@ TEXT xchgw(SB), $0
 	XCHGW	AX, (BX)
 	RET
 
-/*
- * mul64fract(uvlong* r, uvlong a, uvlong b)
- *
- * multiply uvlong a by uvlong b and return a uvlong result.
- *
- * One of the input arguments is a uvlong integer,
- * the other represents a fractional number with
- * the integer portion in the most significant word and
- * the fractional portion in the least significant word.
- *
- * Example: mul64fract(&r, 2ULL, 3ULL << 31) returns 1ULL
- *
- * The uvlong integer result is returned through r
- *
- *	ignored		r0 = lo(a0*b0)
- *	lsw of result	r1 = hi(a0*b0) +lo(a0*b1) +lo(a1*b0)
- *	msw of result	r2 = 		hi(a0*b1) +hi(a1*b0) +lo(a1*b1)
- *	ignored		r3 = hi(a1*b1)
- */
 TEXT mul64fract(SB), $0
 	MOVL	r+0(FP), CX
 	XORL	BX, BX				/* BX = 0 */
