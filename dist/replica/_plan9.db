@@ -43,7 +43,7 @@
 386/bin/ascii - 775 sys sys 1085076975 62654
 386/bin/astro - 775 sys sys 1085076975 138775
 386/bin/auth - 20000000775 sys sys 1016920815 0
-386/bin/auth/aescbc - 775 sys sys 1087873349 131000
+386/bin/auth/aescbc - 775 sys sys 1101182919 131188
 386/bin/auth/asn12rsa - 775 sys sys 1085076976 119140
 386/bin/auth/authsrv - 775 sys sys 1089257526 163370
 386/bin/auth/changeuser - 775 sys sys 1085076977 94911
@@ -71,9 +71,9 @@
 386/bin/auth/rsafill - 775 sys sys 1085076984 142998
 386/bin/auth/rsagen - 775 sys sys 1085076985 152588
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
-386/bin/auth/secstore - 775 sys sys 1085076985 188566
-386/bin/auth/secstored - 775 sys sys 1089257528 194770
-386/bin/auth/secuser - 775 sys sys 1085076986 151623
+386/bin/auth/secstore - 775 sys sys 1101182919 187191
+386/bin/auth/secstored - 775 sys sys 1101182920 194586
+386/bin/auth/secuser - 775 sys sys 1101182920 150251
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1085076986 61081
 386/bin/auth/warning - 775 sys sys 1085076987 97534
@@ -268,7 +268,7 @@
 386/bin/ip/dhcpclient - 775 sys sys 1089257531 92091
 386/bin/ip/dhcpd - 775 sys sys 1089257532 147194
 386/bin/ip/dhcpleases - 775 sys sys 1089257532 84202
-386/bin/ip/ftpd - 775 sys sys 1095910154 166038
+386/bin/ip/ftpd - 775 sys sys 1101182921 166228
 386/bin/ip/gizzard - 775 sys sys 1081480408 101521
 386/bin/ip/gping - 775 sys sys 1098158507 179977
 386/bin/ip/hogports - 775 sys sys 1085077067 42855
@@ -433,7 +433,7 @@
 386/bin/upas/bayes - 775 sys sys 1064598344 70530
 386/bin/upas/deliver - 775 sys sys 1085077111 97777
 386/bin/upas/filter - 775 sys sys 1085077111 145300
-386/bin/upas/fs - 775 sys sys 1101154538 330331
+386/bin/upas/fs - 775 sys sys 1101182921 330315
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1085077112 80758
 386/bin/upas/marshal - 775 sys sys 1089397321 130452
@@ -7574,7 +7574,7 @@ sys/src/cmd/fossil/flproto - 664 sys sys 1042005508 210
 sys/src/cmd/fossil/fns.h - 664 sys sys 1087005596 3204
 sys/src/cmd/fossil/fossil-acid - 664 sys sys 1042005508 3965
 sys/src/cmd/fossil/fossil.c - 664 sys sys 1077896345 2435
-sys/src/cmd/fossil/fs.c - 664 sys sys 1087005595 21544
+sys/src/cmd/fossil/fs.c - 664 sys sys 1101213292 21545
 sys/src/cmd/fossil/fs.h - 664 sys sys 1091904424 1582
 sys/src/cmd/fossil/history - 664 sys sys 1055703793 1400
 sys/src/cmd/fossil/invariants - 664 sys sys 1042005509 4073
@@ -9733,7 +9733,7 @@ sys/src/cmd/mk/varsub.c - 664 sys sys 944961025 4438
 sys/src/cmd/mk/word.c - 664 sys sys 944961025 2595
 sys/src/cmd/mkdir.c - 664 sys sys 1082593106 1026
 sys/src/cmd/mkfile - 664 sys sys 1045534751 2205
-sys/src/cmd/mklib - 664 sys sys 1022112159 599
+sys/src/cmd/mklib - 664 sys sys 1101213349 618
 sys/src/cmd/mkmany - 664 sys sys 1022112160 1196
 sys/src/cmd/mkone - 664 sys sys 1022112160 792
 sys/src/cmd/mkstate.c - 664 sys sys 1014926695 2995
@@ -12394,9 +12394,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/auth/aescbc - 775 sys sys 1101182919 131188
-386/bin/auth/secstore - 775 sys sys 1101182919 187191
-386/bin/auth/secstored - 775 sys sys 1101182920 194586
-386/bin/auth/secuser - 775 sys sys 1101182920 150251
-386/bin/ip/ftpd - 775 sys sys 1101182921 166228
-386/bin/upas/fs - 775 sys sys 1101182921 330315
+386/bin/fossil/flchk - 775 sys sys 1101269451 235428
+386/bin/fossil/flfmt - 775 sys sys 1101269451 243577
+386/bin/fossil/fossil - 775 sys sys 1101269452 358243
