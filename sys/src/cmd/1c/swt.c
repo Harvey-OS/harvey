@@ -903,6 +903,8 @@ align(long i, Type *t, int op)
 
 	case Asu2:	/* padding at end of a struct */
 		w = SZ_LONG;
+		if(packflg)
+			w = packflg;
 		break;
 
 	case Ael1:	/* initial allign of struct element */
@@ -911,6 +913,8 @@ align(long i, Type *t, int op)
 		w = ewidth[v->etype];
 		if(w <= 0 || w >= SZ_SHORT)
 			w = SZ_SHORT;
+		if(packflg)
+			w = packflg;
 		break;
 
 	case Ael2:	/* width of a struct element */

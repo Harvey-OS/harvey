@@ -5395,7 +5395,7 @@ sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1071245460 13028
 sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
 sys/src/9/pc/mmu.c - 664 sys sys 1091110410 10043
-sys/src/9/pc/mouse.c - 664 sys sys 1065717607 6625
+sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1084475127 17013
 sys/src/9/pc/mp.h - 664 sys sys 1015014520 6575
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
@@ -6570,7 +6570,7 @@ sys/src/cmd/1c/mul.c - 664 sys sys 944961353 2599
 sys/src/cmd/1c/peep.c - 664 sys sys 1089299178 15578
 sys/src/cmd/1c/reg.c - 664 sys sys 1089299178 21252
 sys/src/cmd/1c/sgen.c - 664 sys sys 1089299179 10853
-sys/src/cmd/1c/swt.c - 664 sys sys 1089299179 15357
+sys/src/cmd/1c/swt.c - 664 sys sys 1098463320 15417
 sys/src/cmd/1c/txt.c - 664 sys sys 944961353 16943
 sys/src/cmd/1l - 20000000775 sys sys 954038577 0
 sys/src/cmd/1l/asm.c - 664 sys sys 1089299178 27888
@@ -6601,7 +6601,7 @@ sys/src/cmd/2c/mul.c - 664 sys sys 944960717 2599
 sys/src/cmd/2c/peep.c - 664 sys sys 1089299176 15926
 sys/src/cmd/2c/reg.c - 664 sys sys 1089299176 22310
 sys/src/cmd/2c/sgen.c - 664 sys sys 1089299177 12738
-sys/src/cmd/2c/swt.c - 664 sys sys 1089299177 17110
+sys/src/cmd/2c/swt.c - 664 sys sys 1098463320 17170
 sys/src/cmd/2c/txt.c - 664 sys sys 944960718 17625
 sys/src/cmd/2l - 20000000775 sys sys 954035020 0
 sys/src/cmd/2l/asm.c - 664 sys sys 1045503932 28491
@@ -6633,7 +6633,7 @@ sys/src/cmd/5c/mul.c - 664 sys sys 969500849 9271
 sys/src/cmd/5c/peep.c - 664 sys sys 1089299175 24469
 sys/src/cmd/5c/reg.c - 664 sys sys 1089299174 19492
 sys/src/cmd/5c/sgen.c - 664 sys sys 1089299174 9114
-sys/src/cmd/5c/swt.c - 664 sys sys 1089299174 12828
+sys/src/cmd/5c/swt.c - 664 sys sys 1098463320 12888
 sys/src/cmd/5c/txt.c - 664 sys sys 1089299173 19028
 sys/src/cmd/5i - 20000000775 sys sys 984756705 0
 sys/src/cmd/5i/5i.c - 664 sys sys 1091732882 4886
@@ -6678,7 +6678,7 @@ sys/src/cmd/7c/mul.c - 664 sys sys 944961627 9189
 sys/src/cmd/7c/peep.c - 664 sys sys 950104622 11473
 sys/src/cmd/7c/reg.c - 664 sys sys 1089299275 19737
 sys/src/cmd/7c/sgen.c - 664 sys sys 952627644 8781
-sys/src/cmd/7c/swt.c - 664 sys sys 944961627 11569
+sys/src/cmd/7c/swt.c - 664 sys sys 1098463320 11561
 sys/src/cmd/7c/txt.c - 664 sys sys 1089299172 20195
 sys/src/cmd/7l - 20000000775 sys sys 954267784 0
 sys/src/cmd/7l/asm.c - 774 sys sys 1045503943 27093
@@ -6714,7 +6714,7 @@ sys/src/cmd/8c/mul.c - 664 sys sys 1089382812 5535
 sys/src/cmd/8c/peep.c - 664 sys sys 1089299181 11182
 sys/src/cmd/8c/reg.c - 664 sys sys 1089299180 20556
 sys/src/cmd/8c/sgen.c - 664 sys sys 1089299181 12833
-sys/src/cmd/8c/swt.c - 664 sys sys 1089299180 10883
+sys/src/cmd/8c/swt.c - 664 sys sys 1098463321 10943
 sys/src/cmd/8c/txt.c - 664 sys sys 1089299180 24215
 sys/src/cmd/8l - 20000000775 sys sys 1017165863 0
 sys/src/cmd/8l/asm.c - 664 sys sys 1089299184 10256
@@ -6799,7 +6799,7 @@ sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
-sys/src/cmd/acme/text.c - 664 sys sys 1097972739 27552
+sys/src/cmd/acme/text.c - 664 sys sys 1098466676 27550
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
 sys/src/cmd/acme/wind.c - 664 sys sys 1096388102 11187
@@ -7218,19 +7218,19 @@ sys/src/cmd/cc - 20000000775 sys sys 1018556175 0
 sys/src/cmd/cc/acid.c - 664 sys sys 944960808 5314
 sys/src/cmd/cc/bits.c - 664 sys sys 944960873 850
 sys/src/cmd/cc/cc.a8 - 664 sys sys 1089383589 487648
-sys/src/cmd/cc/cc.h - 664 sys sys 1089299183 12053
+sys/src/cmd/cc/cc.h - 664 sys sys 1098463305 12048
 sys/src/cmd/cc/cc.y - 664 sys sys 1076969746 15801
 sys/src/cmd/cc/com.c - 664 sys sys 1089299183 18909
 sys/src/cmd/cc/com64.c - 664 sys sys 1089299182 9975
 sys/src/cmd/cc/compat - 664 sys sys 1014925177 684
 sys/src/cmd/cc/compat.c - 664 sys sys 1084472048 417
 sys/src/cmd/cc/dcl.c - 664 sys sys 1089299183 26723
-sys/src/cmd/cc/dpchk.c - 664 sys sys 1089299182 7089
+sys/src/cmd/cc/dpchk.c - 664 sys sys 1098463305 7033
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
 sys/src/cmd/cc/lex.c - 664 sys sys 1089299182 23826
-sys/src/cmd/cc/lexbody - 664 sys sys 1089299183 9017
+sys/src/cmd/cc/lexbody - 664 sys sys 1098499731 9014
 sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
-sys/src/cmd/cc/macbody - 664 sys sys 1089299183 11365
+sys/src/cmd/cc/macbody - 664 sys sys 1098463324 11358
 sys/src/cmd/cc/machcap.c - 664 sys sys 1084472048 78
 sys/src/cmd/cc/mkfile - 664 sys sys 1089299182 578
 sys/src/cmd/cc/pickle.c - 664 sys sys 1063855374 4829
@@ -9590,7 +9590,7 @@ sys/src/cmd/kc/mul.c - 664 sys sys 1089299171 9255
 sys/src/cmd/kc/peep.c - 664 sys sys 1089299171 10332
 sys/src/cmd/kc/reg.c - 664 sys sys 1089299171 18937
 sys/src/cmd/kc/sgen.c - 664 sys sys 952627586 8742
-sys/src/cmd/kc/swt.c - 664 sys sys 1089299171 11895
+sys/src/cmd/kc/swt.c - 664 sys sys 1098463321 11955
 sys/src/cmd/kc/txt.c - 664 sys sys 1089299171 19578
 sys/src/cmd/ki - 20000000775 sys sys 944961015 0
 sys/src/cmd/ki/bpt.c - 664 sys sys 944961014 2247
@@ -10137,7 +10137,7 @@ sys/src/cmd/qc/peep.c - 664 sys sys 1089299168 15241
 sys/src/cmd/qc/q.out.h - 664 sys sys 1089299169 5042
 sys/src/cmd/qc/reg.c - 664 sys sys 1089299169 19059
 sys/src/cmd/qc/sgen.c - 664 sys sys 1089299169 9499
-sys/src/cmd/qc/swt.c - 664 sys sys 1089299168 11985
+sys/src/cmd/qc/swt.c - 664 sys sys 1098463321 12045
 sys/src/cmd/qc/txt.c - 664 sys sys 1089299169 20223
 sys/src/cmd/qi - 20000000775 sys sys 1076688570 0
 sys/src/cmd/qi/bpt.c - 644 sys sys 1076688568 2247
@@ -10230,7 +10230,7 @@ sys/src/cmd/rio/data.c - 664 sys sys 1014926356 6169
 sys/src/cmd/rio/fns.h - 664 sys sys 1039133251 1065
 sys/src/cmd/rio/fsys.c - 664 sys sys 1019678647 13259
 sys/src/cmd/rio/mkfile - 664 sys sys 1039133251 454
-sys/src/cmd/rio/rio.c - 664 sys sys 1080159097 21977
+sys/src/cmd/rio/rio.c - 664 sys sys 1098468361 22140
 sys/src/cmd/rio/scrl.c - 664 sys sys 1014926357 3245
 sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
 sys/src/cmd/rio/util.c - 664 sys sys 1014926357 2061
@@ -10992,7 +10992,7 @@ sys/src/cmd/vc/mul.c - 664 sys sys 944961340 9189
 sys/src/cmd/vc/peep.c - 664 sys sys 1089299165 10302
 sys/src/cmd/vc/reg.c - 664 sys sys 1089299166 19378
 sys/src/cmd/vc/sgen.c - 664 sys sys 1089299165 8548
-sys/src/cmd/vc/swt.c - 664 sys sys 1089299165 12101
+sys/src/cmd/vc/swt.c - 664 sys sys 1098463321 12161
 sys/src/cmd/vc/txt.c - 664 sys sys 1089299165 22720
 sys/src/cmd/vc/v.out.h - 664 sys sys 1089299165 2630
 sys/src/cmd/venti - 20000000775 sys sys 947360466 0
@@ -12387,3 +12387,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/src/cmd/cc/y.tab.c - 664 sys sys 1098501521 53564
+sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
+sys/src/cmd/cc/cc.a8 xxx REMOVED xxx xxx 0 0

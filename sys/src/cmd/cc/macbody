@@ -654,8 +654,8 @@ macprag(void)
 
 	if(s && strcmp(s->name, "lib") == 0)
 		goto praglib;
-	if(s && strcmp(s->name, "hjdicks") == 0) {
-		praghjdicks();
+	if(s && strcmp(s->name, "pack") == 0) {
+		pragpack();
 		return;
 	}
 	if(s && strcmp(s->name, "fpround") == 0) {
@@ -674,7 +674,6 @@ macprag(void)
 		pragincomplete();
 		return;
 	}
-
 	while(getnsc() != '\n')
 		;
 	return;
