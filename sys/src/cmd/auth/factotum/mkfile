@@ -10,8 +10,8 @@ PROTO=\
 	p9cr.$O\
 	p9sk1.$O\
 	pass.$O\
-	sshrsa.$O\
 	rsa.$O\
+	sshrsa.$O\
 	wep.$O\
 
 FOFILES=\
