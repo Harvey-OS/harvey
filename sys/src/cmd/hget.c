@@ -631,6 +631,7 @@ hhmtime(char *p, URL *u, Range*)
 	/* default time */
 	now = *gmtime(time(0));
 	tm = now;
+	tm.yday = 0;
 
 	/* convert ascii month to a number twixt 1 and 12 */
 	if(*month >= '0' && *month <= '9'){
