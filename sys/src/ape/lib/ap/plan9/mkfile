@@ -11,6 +11,7 @@ OFILES=\
 	_getpw.$O\
 	_nap.$O\
 	9mallocz.$O\
+	9iounit.$O\
 	9read.$O\
 	9readn.$O\
 	9wait.$O\
