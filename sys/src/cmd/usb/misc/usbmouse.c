@@ -6,10 +6,10 @@
 int mousefd, ctlfd, mousein;
 
 char hbm[]		= "Enabled 0x020103\n";
-char *mouseinfile	= "#m/mousein";
-char *statfmt		= "#U/usb%d/%d/status";
-char *ctlfmt		= "#U/usb%d/%d/ctl";
-char *msefmt		= "#U/usb%d/%d/ep1data";
+char *mouseinfile	= "/dev/mousein";
+char *statfmt		= "/dev/usb%d/%d/status";
+char *ctlfmt		= "/dev/usb%d/%d/ctl";
+char *msefmt		= "/dev/usb%d/%d/ep1data";
 char *ctl3str		= "ep 1 bulk r 3 32";
 char *ctl5str		= "ep 1 bulk r 5 32";
 char ctlfile[32];
@@ -80,7 +80,7 @@ char maptab[] = {
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-vf] [-a accel] [ctlrno usbport]\n", argv0);
+	fprint(2, "usage: %s [-fsv] [-a accel] [ctlrno usbport]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -102,7 +102,7 @@ threadmain(int argc, char *argv[])
 		nofork=1;
 		break;
 	case 'a':
-		accel=strtol(ARGF(), nil, 0);
+		accel=strtol(EARGF(usage()), nil, 0);
 		break;
 	default:
 		usage();
