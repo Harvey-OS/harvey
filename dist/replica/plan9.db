@@ -77,7 +77,7 @@
 386/bin/auth/rsagen - 775 sys sys 1057955567 152977
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1062277697 188052
-386/bin/auth/secstored - 775 sys sys 1062277702 193922
+386/bin/auth/secstored - 775 sys sys 1062525364 193939
 386/bin/auth/secuser - 775 sys sys 1062277712 151114
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1056364188 61793
@@ -4521,6 +4521,7 @@ sys/man/1/ed - 664 sys sys 961259286 13916
 sys/man/1/emacs - 664 sys sys 944959673 199
 sys/man/1/eqn - 664 sys sys 944959675 5655
 sys/man/1/expect - 664 sys sys 1058791094 3023
+sys/man/1/face - 664 sys sys 1062505426 2278
 sys/man/1/faces - 664 sys sys 1045501346 2052
 sys/man/1/factor - 664 sys sys 957920005 1019
 sys/man/1/file - 664 sys sys 1015024739 1578
@@ -4871,7 +4872,7 @@ sys/man/6/a.out - 664 sys sys 1015024888 7155
 sys/man/6/ar - 664 sys sys 944959678 2092
 sys/man/6/authsrv - 664 sys sys 1035840090 10534
 sys/man/6/color - 664 sys sys 988225304 5181
-sys/man/6/face - 664 sys sys 958504753 2815
+sys/man/6/face - 664 sys sys 1062505426 2846
 sys/man/6/font - 664 sys sys 954089525 2528
 sys/man/6/image - 664 sys sys 988225304 6209
 sys/man/6/keyboard - 664 sys sys 984709638 4467
@@ -6725,7 +6726,7 @@ sys/src/cmd/auth/secstore/secacct.c - 644 sys sys 1015008431 755
 sys/src/cmd/auth/secstore/secchk.c - 664 sys sys 1055698993 560
 sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1062277640 12269
 sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1041890053 841
-sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1062277641 7952
+sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1062525349 7978
 sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1061842567 4914
 sys/src/cmd/auth/secstore/util.c - 664 sys sys 1021579985 1498
 sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1045504896 8973

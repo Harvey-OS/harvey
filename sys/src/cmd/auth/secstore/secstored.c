@@ -24,6 +24,7 @@ static int
 getdir(SConn *conn, char *id)
 {
 	char *ls, *s; 
+	uchar *msg;
 	int n, len;
 
 	s = emalloc(Maxmsg);
@@ -40,11 +41,12 @@ getdir(SConn *conn, char *id)
 
 	/* send directory listing in Maxmsg chunks */
 	n = Maxmsg;
+	msg = (uchar*)ls;
 	while(len > 0){
 		if(len < Maxmsg)
 			n = len;
-		conn->write(conn, (uchar*)ls, n);
-		ls += n;
+		conn->write(conn, msg, n);
+		msg += n;
 		len -= n;
 	}
 	free(s);

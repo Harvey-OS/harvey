@@ -2,10 +2,12 @@
 .SH NAME
 face \- face files
 .SH DESCRIPTION
-The directory
+The directories
+.B /usr/$user/lib/face
+and
 .B /lib/face
-contains a hierarchy of images of people.
-In that directory are subdirectories named by the sizes of
+contain a hierarchy of images of people.
+In those directories are subdirectories named by the sizes of
 the corresponding image files:
 .B 48x48x1
 (48 by 48 pixels, one bit per pixel);
@@ -46,7 +48,7 @@ This odd format is historical and the programs that read it
 are somewhat forgiving about blanks and the need for commas.
 .PP
 The files
-.BR /lib/face/*/.dict
+.BR  lib/face/*/.dict
 hold a correspondence between users at machines
 and face files.
 The format is

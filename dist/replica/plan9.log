@@ -13118,3 +13118,7 @@
 1062444690 1 a lib/face/48x48x8/m/matt.h.1 - 664 sys sys 1062443541 1161
 1062460902 0 c sys/src/cmd/faces/facedb.c - 664 sys sys 1062460263 9927
 1062460902 1 c sys/src/cmd/faces/mkfile - 664 sys sys 1062460262 355
+1062505863 0 a sys/man/1/face - 664 sys sys 1062505426 2278
+1062505863 1 c sys/man/6/face - 664 sys sys 1062505426 2846
+1062525684 0 c 386/bin/auth/secstored - 775 sys sys 1062525364 193939
+1062525684 1 c sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1062525349 7978
