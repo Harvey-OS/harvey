@@ -1525,6 +1525,11 @@ ipopen(PPP *ppp)
 		}
 		buf[n] = 0;
 
+		netlog("ppp: setting up IP interface local %I remote %I (valid %d)\n",
+			ppp->local, ppp->remote, validv4(ppp->remote));
+		if(!validv4(ppp->remote))
+			ipmove(ppp->remote, ppp->local);
+
 		snprint(path, sizeof path, "%s/ipifc/%s/data", ppp->net, buf);
 		fd = open(path, ORDWR);
 		if(fd < 0){

@@ -1,0 +1,20 @@
+</$objtype/mkfile
+BIN=/$objtype/bin/games
+
+TARG=sokoban
+OFILES=\
+	sokoban.$O\
+	move.$O\
+	graphics.$O\
+	level.$O\
+
+
+HFILES=sokoban.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	`{ls /sys/games/lib/sokoban/*}
+
+</sys/src/cmd/mkone
