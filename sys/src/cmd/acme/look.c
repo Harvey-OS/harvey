@@ -322,56 +322,14 @@ isfilec(Rune r)
 Runestr
 cleanrname(Runestr rs)
 {
-	int i, j, found;
-	Rune *b;
-	int n;
+	char *s;
+	int nb, nulls;
 
-	b = rs.r;
-	n = rs.nr;
-
-	/* compress multiple slashes */
-	for(i=0; i<n-1; i++)
-		if(b[i]=='/' && b[i+1]=='/'){
-			runemove(b+i, b+i+1, n-i-1);
-			--n;
-			--i;
-		}
-	/*  eliminate ./ */
-	for(i=0; i<n-1; i++)
-		if(b[i]=='.' && b[i+1]=='/' && (i==0 || b[i-1]=='/')){
-			runemove(b+i, b+i+2, n-i-2);
-			n -= 2;
-			--i;
-		}
-	/* eliminate trailing . */
-	if(n>=2 && b[n-2]=='/' && b[n-1]=='.')
-		--n;
-	do{
-		/* compress xx/.. */
-		found = FALSE;
-		for(i=1; i<=n-3; i++)
-			if(runeeq(b+i, 3, L"/..", 3)){
-				if(i==n-3 || b[i+3]=='/'){
-					found = TRUE;
-					break;
-				}
-			}
-		if(found)
-			for(j=i-1; j>=0; --j)
-				if(j==0 || b[j-1]=='/'){
-					i += 3;		/* character beyond .. */
-					if(i<n && b[i]=='/')
-						++i;
-					runemove(b+j, b+i, n-i);
-					n -= (i-j);
-					break;
-				}
-	}while(found);
-	if(n == 0){
-		*b = '.';
-		n = 1;
-	}
-	return (Runestr){b, n};
+	s = runetobyte(rs.r, rs.nr);
+	cleanname(s);
+	cvttorunes(s, strlen(s), rs.r, &nb, &rs.nr, &nulls);
+	free(s);
+	return rs;
 }
 
 Runestr

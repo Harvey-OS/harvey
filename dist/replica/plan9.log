@@ -13168,3 +13168,4 @@
 1071874914 2 c sys/src/cmd/init.c - 664 sys sys 1071873627 4452
 1071885716 0 a sys/src/cmd/rc/compiling.on.unix - 664 sys sys 1071884773 37638
 1071927122 0 c sys/lib/mimetype - 664 sys sys 1071926670 5633
+1072020615 0 c sys/src/cmd/acme/look.c - 664 sys sys 1072019591 14096
