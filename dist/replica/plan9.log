@@ -13843,3 +13843,6 @@
 1065281485 0 a sys/lib/webls.denied - 444 sys sys 1065280436 52
 1065398515 0 c 386/bin/aux/pcmcia - 775 sys sys 1065397226 46816
 1065398515 1 c sys/src/cmd/aux/pcmcia.c - 664 sys sys 1065397225 8366
+1065571217 0 c lib/ndb/common - 664 sys sys 1065569740 5261
+1065576622 0 c 386/lib/libip.a - 664 sys sys 1065576349 33976
+1065576622 1 c sys/src/libip/mkfile - 664 sys sys 1065576347 320

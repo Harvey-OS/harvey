@@ -1,8 +1,4 @@
 #
-#	The master for this file is /n/emelie/lib/ndb/common
-#
-
-#
 #  ip protocol numbers
 #
 protocol=reserved	ipv4proto=0
@@ -154,6 +150,7 @@ tcp=rexec port=512 restricted=
 tcp=login port=513 restricted=
 tcp=shell port=514 restricted=
 tcp=printer port=515
+tcp=ncp port=524
 tcp=courier port=530
 tcp=cscan port=531
 tcp=uucp port=540
@@ -172,6 +169,8 @@ tcp=nfs port=2049
 tcp=webster port=2627
 tcp=weather port=3000
 tcp=secstore port=5356
+tcp=vnc-http port=5800
+tcp=vnc port=5900
 tcp=Xdisplay port=6000
 tcp=styx port=6666
 tcp=mpeg port=6667
