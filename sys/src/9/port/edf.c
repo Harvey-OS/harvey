@@ -281,18 +281,18 @@ edfrun(Proc *p, int edfpri)
 			e->s = now;
 			return;
 		}
-		p->tns = now + e->S;
-		if (e->d < p->tns)
-			p->tns = e->d;
-		if(p->tt == nil || p->tf != deadlineintr){
+		e->tns = now + e->S;
+		if (e->d < e->tns)
+			e->tns = e->d;
+		if(e->tt == nil || e->tf != deadlineintr){
 			DPRINT("%t edfrun, deadline=%t\n", now, p->tns);
 		}else{
 			DPRINT("v");
 		}
-		p->tmode = Tabsolute;
-		p->tf = deadlineintr;
-		p->ta = p;
-		timeradd(p);
+		e->tmode = Tabsolute;
+		e->tf = deadlineintr;
+		e->ta = p;
+		timeradd(e);
 	}else{
 		DPRINT("<");
 	}
@@ -378,11 +378,11 @@ edfadmit(Proc *p)
 			DPRINT("%t edfadmit other %lud[%s], release at %t\n",
 				now, p->pid, statename[p->state], e->t);
 			if(p->tt == nil){
-				p->tf = releaseintr;
-				p->ta = p;
-				p->tns = e->t;
-				p->tmode = Tabsolute;
-				timeradd(p);
+				e->tf = releaseintr;
+				e->ta = p;
+				e->tns = e->t;
+				e->tmode = Tabsolute;
+				timeradd(e);
 			}
 		}
 	}
@@ -403,8 +403,8 @@ edfstop(Proc *p)
 		if(pt = proctrace)
 			pt(p, SExpel, now);
 		e->flags &= ~Admitted;
-		if (p->tt)
-			timerdel(p);
+		if (e->tt)
+			timerdel(e);
 		edfunlock();
 	}
 }
@@ -459,15 +459,15 @@ edfready(Proc *p)
 			/* Non sporadic processes stay true to their period, calculate next release time */
 			while(e->t < now)
 				e->t += e->T;
-		}
+		}	
 		if (now < e->t){
 			/* Next release is in the future, schedule it */
 			if (p->tt == nil || p->tf != releaseintr){
-				p->tns = e->t;
-				p->tmode = Tabsolute;
-				p->tf = releaseintr;
-				p->ta = p;
-				timeradd(p);
+				e->tns = e->t;
+				e->tmode = Tabsolute;
+				e->tf = releaseintr;
+				e->ta = p;
+				timeradd(e);
 				DPRINT("%t edfready %lud[%s], release=%t\n",
 					now, p->pid, statename[p->state], e->t);
 			}

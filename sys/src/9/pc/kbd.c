@@ -21,11 +21,11 @@ enum {
 
 	Cmd=		0x64,		/* command port (write only) */
 
-	Spec=		0x80,
+	Spec=		0xF800,		/* Unicode private space */
 
 	PF=		Spec|0x20,	/* num pad function key */
 	View=		Spec|0x00,	/* view (shift window up) */
-	KF=		0xF000,	/* function key (begin Unicode private space) */
+	KF=		0xF000,		/* function key (begin Unicode private space) */
 	Shift=		Spec|0x60,
 	Break=		Spec|0x61,
 	Ctrl=		Spec|0x62,
@@ -121,14 +121,14 @@ Rune kbtabaltgr[Nscan] =
 [0x00]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x08]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x10]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x18]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x18]	No,	No,	No,	No,	'\n',	Ctrl,	No,	No,
 [0x20]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x28]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x30]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x38]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x40]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x48]	No,	No,	No,	No,	No,	No,	No,	No,
-[0x50]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x28]	No,	No,	Shift,	No,	No,	No,	No,	No,
+[0x30]	No,	No,	No,	No,	No,	'/',	No,	Print,
+[0x38]	Altgr,	No,	No,	No,	No,	No,	No,	No,
+[0x40]	No,	No,	No,	No,	No,	No,	Break,	Home,
+[0x48]	Up,	Pgup,	No,	Left,	No,	Right,	No,	End,
+[0x50]	Down,	Pgdown,	Ins,	Del,	No,	No,	No,	No,
 [0x58]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x60]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x68]	No,	No,	No,	No,	No,	No,	No,	No,
@@ -380,6 +380,9 @@ i8042intr(Ureg*, void*)
 			break;
 		case Ctrl:
 			ctl = 0;
+			break;
+		case Altgr:
+			altgr = 0;
 			break;
 		}
 		return;
