@@ -13169,3 +13169,11 @@
 1071885716 0 a sys/src/cmd/rc/compiling.on.unix - 664 sys sys 1071884773 37638
 1071927122 0 c sys/lib/mimetype - 664 sys sys 1071926670 5633
 1072020615 0 c sys/src/cmd/acme/look.c - 664 sys sys 1072019591 14096
+1072107026 0 c sys/man/1/jpg - 664 sys sys 1072106983 4789
+1072107026 1 a sys/src/cmd/jpg/ico.c - 664 sys sys 1072107030 8799
+1072107026 2 c sys/src/cmd/jpg/mkfile - 664 sys sys 1072107030 1014
+1072107026 3 a sys/src/cmd/jpg/toico.c - 664 sys sys 1072107030 5638
+1072114227 0 c sys/src/cmd/cmp.c - 664 sys sys 1072114096 2379
+1072121428 0 c sys/lib/man/mkhtmlindex - 775 sys sys 1072120754 1313
+1072130430 0 c sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
+1072146632 0 c sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
