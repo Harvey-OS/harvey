@@ -13,7 +13,7 @@
  * again until after 5 PM.  Doh!
  */
 enum {
-	Nonspammax = 10*60*60,  /* must call back within this time if real */
+	Nonspammax = 14*60*60,  /* must call back within this time if real */
 };
 static char whitelist[] = "/mail/lib/whitelist";
 

@@ -147,6 +147,7 @@ struct Cmd {
 Biobuf out;
 int startedfs;
 int reverse;
+int longestfrom = 12;
 
 String*		file2string(String*, char*);
 int		dir2message(Message*, int);
@@ -443,10 +444,15 @@ dir2message(Message *parent, int reverse)
 	close(fd);
 	parent->child = first;
 
-	// renumber
+	// renumber and file longest from
 	i = 1;
-	for(m = first; m != nil; m = m->next)
+	longestfrom = 12;
+	for(m = first; m != nil; m = m->next){
 		m->id = natural ? m->fileno : i++;
+		n = strlen(m->from);
+		if(n > longestfrom)
+			longestfrom = n;
+	}
 
 	return newmsgs;
 }
@@ -701,6 +707,7 @@ snprintheader(char *buf, int len, Message *m)
 {
 	char timebuf[32];
 	String *id;
+	char *p, *q;;
 
 	// create id
 	id = s_new();
@@ -714,16 +721,32 @@ snprintheader(char *buf, int len, Message *m)
 			m->len,
 			m->filename);
 	} else if(*m->subject){
+		q = p = strdup(m->subject);
+		for(;;){
+			while(*p == ' ')
+				p++;
+			if(cistrncmp(p, "re:", 3) == 0)
+				p += 3;
+			else if(cistrncmp(p, "fwd:", 4) == 0)
+				p += 4;
+			else if(cistrncmp(p, "fw:", 4) == 0)
+				p += 3;
+			else
+				break;
+		}
+		if(strlen(p) > 50)
+			p[50] = 0;
 		cracktime(m->date, timebuf, sizeof(timebuf));
-		snprint(buf, len, "%-3s %c%c%c %6d  %11.11s %-32.32s %-32.32s",
+		snprint(buf, len, "%-3s %c%c%c %6d  %11.11s %-*.*s %s",
 			s_to_c(id),
 			m->child ? 'H' : ' ',
 			m->deleted ? 'd' : ' ',
 			m->stored ? 's' : ' ',
 			m->len,
 			timebuf,
-			m->from,
-			m->subject);
+			longestfrom, longestfrom, m->from,
+			p);
+		free(q);
 	} else {
 		cracktime(m->date, timebuf, sizeof(timebuf));
 		snprint(buf, len, "%-3s %c%c%c %6d  %11.11s %s",

@@ -68,7 +68,6 @@ static	void	initheaders(void);
 static void	parseattachments(Message*, Mailbox*);
 
 int		debug;
-char		stdmbox[Pathlen];
 
 char *Enotme = "path not served by this file server";
 
@@ -98,9 +97,6 @@ newmbox(char *path, char *name, int std)
 	int i;
 
 	initheaders();
-
-	if(stdmbox[0] == 0)
-		snprint(stdmbox, sizeof(stdmbox), "/mail/box/%s/mbox", user);
 
 	mb = emalloc(sizeof(*mb));
 	strncpy(mb->path, path, sizeof(mb->path)-1);
@@ -151,9 +147,8 @@ newmbox(char *path, char *name, int std)
 		}
 	}
 
-	// all mailboxes in /mail/box/$user are locked using /mail/box/$user/mbox
-	p = strrchr(stdmbox, '/');
-	mb->dolock = strncmp(mb->path, stdmbox, p - stdmbox) == 0;
+	// always try locking
+	mb->dolock = 1;
 
 	mb->refs = 1;
 	mb->next = nil;

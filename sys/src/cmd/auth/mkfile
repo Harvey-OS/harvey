@@ -11,11 +11,11 @@ TARG=\
 	cron\
 	debug\
 	guard.srv\
-	iam\
 	keyfs\
 	login\
 	netkey\
 	newns\
+	none\
 	passwd\
 	pemdecode\
 	pemencode\

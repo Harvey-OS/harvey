@@ -16,6 +16,8 @@ ipconfig, rip \- Internet configuration and routing
 .IR hostname ]
 .RB [ -x
 .IR netmtpt ]
+.RB [ -o
+.IR dhcpoption ]
 .I type
 .I device
 .RI [ verb ]
@@ -153,6 +155,39 @@ use the IP stack mounted at
 .I netmtpt
 instead of at
 .BR /net .
+.TP
+.B o
+adds
+.I dhcpoption
+to the list of paramters requested of the DHCP server.  The
+result will appear in
+.B /net/ndb
+should this be the first interface.  The known options are:
+
+  ipmask, timeoff, ipgw, time, name, dns, log, cookie,
+  lpr, impress, rl, sys, bflen, dumpfile, dom, swap,
+  rootpath, extpath, ipforward, nonlocal, policyfilter,
+  maxdatagram, ttl, pathtimeout, pathplateau, mtu,
+  subnetslocal, baddr, discovermask, supplymask,
+  discoverrouter, rs, staticroutes, trailerencap,
+  arptimeout, etherencap, tcpttl, tcpka, tcpkag,
+  nisdomain, ni, ntp, netbiosns, netbiosdds,
+  netbiostype, netbiosscope, xfont, xdispmanager,
+  nisplusdomain, nisplus, homeagent, smtp, pop3, nntp,
+  www, finger, irc, st, stdar, , ipaddr, lease,
+  overload, type, serverid, params, message, maxmsg,
+  renewaltime, rebindingtime, vendorclass, clientid,
+  tftp, bootfile
+
+.EE
+The options
+.BR ipmask ,
+.BR ipgw ,
+.BR dns ,
+.BR sys ,
+and
+.B ntp
+are always requested.
 .PD
 .PP
 If DHCP is requested, a process is forked

@@ -17,7 +17,7 @@
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
 386/9pcf - 775 sys sys 1068385833 2363147
 386/9pcf.gz - 664 sys sys 1064598456 862669
-386/9pxeload - 775 sys sys 1056364444 180364
+386/9pxeload - 775 sys sys 1071320501 188380
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/1c - 775 sys sys 1063639729 306762
@@ -502,7 +502,7 @@
 386/include/u.h - 664 sys sys 1042604326 1450
 386/include/ureg.h - 664 sys sys 944946012 523
 386/init - 775 sys sys 1064598407 98365
-386/ld.com - 775 sys sys 1057323610 64532
+386/ld.com - 775 sys sys 1071340494 65192
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
@@ -5024,7 +5024,7 @@ sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1045501600 8142
 sys/man/8/httpd - 664 sys sys 1065640802 6426
 sys/man/8/init - 664 sys sys 944959679 1430
-sys/man/8/ipconfig - 664 sys sys 1060189415 5050
+sys/man/8/ipconfig - 664 sys sys 1071340739 6037
 sys/man/8/ipserv - 664 sys sys 1063855796 4337
 sys/man/8/kfscmd - 664 sys sys 1068569797 4515
 sys/man/8/listen - 664 sys sys 1045501609 3740
@@ -5109,7 +5109,7 @@ sys/src/9/alphapc/main.c - 664 sys sys 1039753420 13626
 sys/src/9/alphapc/mem.h - 664 sys sys 1017166326 3132
 sys/src/9/alphapc/memmove.s - 664 sys sys 1015012786 2936
 sys/src/9/alphapc/memset.s - 664 sys sys 1015012786 844
-sys/src/9/alphapc/mkfile - 664 sys sys 1071245505 2014
+sys/src/9/alphapc/mkfile - 664 sys sys 1071320227 2030
 sys/src/9/alphapc/mmu.c - 664 sys sys 1015012786 4872
 sys/src/9/alphapc/mouse.c - 664 sys sys 1015012786 25
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
@@ -5226,7 +5226,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1022588099 491
 sys/src/9/ip/pktmedium.c - 664 sys sys 1045063516 1355
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1055700790 21415
-sys/src/9/ip/tcp.c - 664 sys sys 1070287819 65399
+sys/src/9/ip/tcp.c - 664 sys sys 1071335383 65391
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1055700791 13069
 sys/src/9/mkfile - 664 sys sys 1063857477 205
@@ -5267,7 +5267,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1067722683 2323
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1071245548 6177
-sys/src/9/pc/devarch.c - 664 sys sys 1068466702 17542
+sys/src/9/pc/devarch.c - 664 sys sys 1071320330 18127
 sys/src/9/pc/devether.c - 664 sys sys 1048644042 10178
 sys/src/9/pc/devfloppy.c - 664 sys sys 1055689885 20024
 sys/src/9/pc/devi82365.c - 664 sys sys 1020284820 19987
@@ -5438,6 +5438,7 @@ sys/src/9/port/mkroot - 775 sys sys 1039753334 235
 sys/src/9/port/mkrootall - 775 sys sys 1055954696 386
 sys/src/9/port/mkrootc - 775 sys sys 1055954695 717
 sys/src/9/port/mksystab - 664 sys sys 1014931176 783
+sys/src/9/port/mul64fract.c - 664 sys sys 1071320142 618
 sys/src/9/port/netif.c - 664 sys sys 1066514951 13421
 sys/src/9/port/netif.h - 664 sys sys 1066514947 2975
 sys/src/9/port/nulledf.c - 664 sys sys 1037669300 821
@@ -6877,9 +6878,10 @@ sys/src/cmd/auth/lib/readn.c - 664 sys sys 1015008430 247
 sys/src/cmd/auth/lib/readwrite.c - 664 sys sys 1015008430 1424
 sys/src/cmd/auth/lib/wrbio.c - 664 sys sys 1015008430 755
 sys/src/cmd/auth/login.c - 664 sys sys 1048614961 3963
-sys/src/cmd/auth/mkfile - 664 sys sys 1048644402 1978
+sys/src/cmd/auth/mkfile - 664 sys sys 1071334970 1979
 sys/src/cmd/auth/netkey.c - 664 sys sys 1015008431 741
 sys/src/cmd/auth/newns.c - 664 sys sys 1048614962 486
+sys/src/cmd/auth/none.c - 664 sys sys 1071334976 744
 sys/src/cmd/auth/passwd.c - 664 sys sys 1055699009 2761
 sys/src/cmd/auth/pemdecode.c - 664 sys sys 1048614962 942
 sys/src/cmd/auth/pemencode.c - 664 sys sys 1048614963 998
@@ -7055,7 +7057,7 @@ sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
 sys/src/cmd/aux/reboot.c - 664 sys sys 1014925091 1411
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
 sys/src/cmd/aux/stub.c - 664 sys sys 1032468954 2637
-sys/src/cmd/aux/timesync.c - 664 sys sys 1063897024 24500
+sys/src/cmd/aux/timesync.c - 664 sys sys 1071334828 24811
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1034780422 3571
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
@@ -7386,7 +7388,7 @@ sys/src/cmd/disk/kfs/portfns.h - 664 sys sys 1020313861 2804
 sys/src/cmd/disk/kfs/porttime.c - 664 sys sys 1015009190 3922
 sys/src/cmd/disk/kfs/print.c - 664 sys sys 944960882 3573
 sys/src/cmd/disk/kfs/sub.c - 664 sys sys 1022008488 10804
-sys/src/cmd/disk/kfs/uid.c - 664 sys sys 1022008489 6719
+sys/src/cmd/disk/kfs/uid.c - 664 sys sys 1071335904 6791
 sys/src/cmd/disk/kfscmd.c - 664 sys sys 1015009135 1109
 sys/src/cmd/disk/mbr.c - 664 sys sys 1063855285 4325
 sys/src/cmd/disk/mkext.c - 664 sys sys 1070377355 5716
@@ -10380,8 +10382,8 @@ sys/src/cmd/tapefs/fs.c - 664 sys sys 1032060630 9777
 sys/src/cmd/tapefs/mkfile - 664 sys sys 1032060649 258
 sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1014926384 1609
 sys/src/cmd/tapefs/tapfs.c - 664 sys sys 1063854819 1938
-sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1026672564 2597
-sys/src/cmd/tapefs/tpfs.c - 664 sys sys 953243008 1966
+sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1071322741 2621
+sys/src/cmd/tapefs/tpfs.c - 664 sys sys 1071322722 2012
 sys/src/cmd/tapefs/util.c - 664 sys sys 1014926385 2653
 sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1014926385 3971
@@ -10756,7 +10758,7 @@ sys/src/cmd/upas/common/aux.c - 664 sys sys 1019498851 2300
 sys/src/cmd/upas/common/become.c - 664 sys sys 1015009623 430
 sys/src/cmd/upas/common/common.h - 664 sys sys 1015009623 1921
 sys/src/cmd/upas/common/config.c - 664 sys sys 944961316 254
-sys/src/cmd/upas/common/libsys.c - 664 sys sys 1070287921 14107
+sys/src/cmd/upas/common/libsys.c - 664 sys sys 1071334866 14459
 sys/src/cmd/upas/common/mail.c - 664 sys sys 944961315 1346
 sys/src/cmd/upas/common/makefile - 664 sys sys 944961315 366
 sys/src/cmd/upas/common/mkfile - 664 sys sys 1031707285 251
@@ -10776,9 +10778,9 @@ sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1068350246 27381
 sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1061779754 18103
-sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1068350247 28726
+sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1071334860 28493
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
-sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1047490343 7464
+sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465
 sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1063854740 12408
 sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
@@ -10809,14 +10811,14 @@ sys/src/cmd/upas/ml/mlmgr.c - 664 sys sys 1045505888 2332
 sys/src/cmd/upas/ml/mlowner.c - 664 sys sys 1015096763 1142
 sys/src/cmd/upas/ned - 20000000775 sys sys 1015013194 0
 sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
-sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1067722837 42995
+sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1071335787 43442
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1015009816 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
 sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1063854524 14283
 sys/src/cmd/upas/q - 20000000775 sys sys 988250019 0
 sys/src/cmd/upas/q/mkfile - 664 sys sys 1064589601 262
 sys/src/cmd/upas/q/qer.c - 664 sys sys 1014926528 3179
-sys/src/cmd/upas/q/runq.c - 664 sys sys 1063858968 11982
+sys/src/cmd/upas/q/runq.c - 664 sys sys 1071335819 11904
 sys/src/cmd/upas/scanmail - 20000000775 sys sys 988250021 0
 sys/src/cmd/upas/scanmail/common.c - 664 sys sys 1015013177 12385
 sys/src/cmd/upas/scanmail/mkfile - 664 sys sys 1064589604 334
@@ -10845,7 +10847,7 @@ sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
 sys/src/cmd/upas/send/tryit - 664 sys sys 944961322 584
 sys/src/cmd/upas/smtp - 20000000775 sys sys 988250017 0
-sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1067741333 5588
+sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1071335923 5588
 sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1067722781 746
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1055703150 4887
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417

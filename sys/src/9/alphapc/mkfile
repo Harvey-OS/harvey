@@ -19,6 +19,7 @@ PORT=\
 	latin1.$O\
 	log.$O\
 	edf.$O\
+	mul64fract.$O\
 	page.$O\
 	parse.$O\
 	pgrp.$O\

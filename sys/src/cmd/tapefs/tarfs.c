@@ -58,6 +58,7 @@ populate(char *name)
 		/* the mode test is ugly but sometimes necessary */
 		if (dblock.dbuf.linkflag == '5' || (f.mode&0170000) == 040000)
 			f.mode |= DMDIR;
+		f.mode &= DMDIR|0777;
 		linkflg = dblock.dbuf.linkflag=='s' || dblock.dbuf.linkflag=='1';
 		isabs = dblock.dbuf.name[0]=='/';
 		if (chksum != checksum()){
