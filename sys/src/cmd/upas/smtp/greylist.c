@@ -4,6 +4,13 @@
 #include <ctype.h>
 #include <ip.h>
 
+typedef struct {
+	int	existed;	/* these two are distinct to cope with errors */
+	int	created;
+	int	noperm;
+	long	mtime;		/* mod time, iff it already existed */
+} Greysts;
+
 /*
  * There's a bit of a problem with yahoo; they apparently have a vast
  * pool of machines that all run the same queue(s), so a 451 retry can
@@ -73,18 +80,6 @@ onwhitelist(void)
 	return line != nil;
 }
 
-static int
-tryaddgrey(char *file)
-{
-	int fd = create(file, OWRITE|OEXCL, 0444);
-
-	if (fd >= 0) {
-		close(fd);
-		return 1;
-	}
-	return 0;
-}
-
 static int mkdirs(char *);
 
 /*
@@ -133,29 +128,61 @@ mkdirs(char *path)
 	return 0;
 }
 
-/* true if we added it and it wasn't already present */
-static int
-addgreylist(char *file)
+static long
+getmtime(char *file)
 {
-	if (tryaddgrey(file))
-		return 1;
+	long mtime = -1;
+	Dir *ds = dirstat(file);
 
-	/* make presumed-missing intermediate directories */
-	if (mkpdirs(file) < 0)
-		return 0;
+	if (ds != nil) {
+		mtime = ds->mtime;
+		free(ds);
+	}
+	return mtime;
+}
 
-	/* retry the greylist entry */
-	if (tryaddgrey(file))
-		return 1;
+static void
+tryaddgrey(char *file, Greysts *gsp)
+{
+	int fd = create(file, OWRITE|OEXCL, 0444|DMEXCL);
 
-	/* it's in the list now, we're a 2nd conn., so add to whitelist */
-	return 0;
+	gsp->created = (fd >= 0);
+	if (fd >= 0) {
+		close(fd);
+		gsp->existed = 0;  /* just created; couldn't have existed */
+	} else {
+		/*
+		 * why couldn't we create file? it must have existed
+		 * (or we were denied perm on parent dir.).
+		 * if it existed, fill in gsp->mtime; otherwise
+		 * make presumed-missing intermediate directories.
+		 */
+		gsp->existed = access(file, AEXIST) >= 0;
+		if (gsp->existed)
+			gsp->mtime = getmtime(file);
+		else if (mkpdirs(file) < 0)
+			gsp->noperm = 1;
+	}
+}
+
+static void
+addgreylist(char *file, Greysts *gsp)
+{
+	tryaddgrey(file, gsp);
+	if (!gsp->created && !gsp->existed && !gsp->noperm)
+		/* retry the greylist entry with parent dirs created */
+		tryaddgrey(file, gsp);
 }
 
 static int
-recentcall(long mtime)
+recentcall(Greysts *gsp)
 {
-	return time(0) - mtime <= Nonspammax;
+	long delay = time(0) - gsp->mtime;
+
+	if (!gsp->existed)
+		return 0;
+	/* reject immediate call-back; spammers are doing that now */
+	return delay >= 30 && delay <= Nonspammax;
 }
 
 /*
@@ -174,11 +201,10 @@ recentcall(long mtime)
 static int
 isrcptrecent(char *rcpt)
 {
-	int wasongrey;
-	long calltm = 0;
 	char *user;
 	char file[256];
-	Dir *ds;
+	Greysts gs;
+	Greysts *gsp = &gs;
 
 	if (rcpt[0] == '\0' || strchr(rcpt, '/') != nil ||
 	    strcmp(rcpt, ".") == 0 || strcmp(rcpt, "..") == 0)
@@ -191,31 +217,22 @@ isrcptrecent(char *rcpt)
 	else
 		user++;
 
+	/* check & try to update the grey list entry */
 	snprint(file, sizeof file, "/mail/grey/%s/%s/%s",
 		nci->lsys, nci->rsys, user);
-	ds = dirstat(file);
-	if (ds != nil)
-		wasongrey = 1;
-	else {
-		wasongrey = !addgreylist(file);
-		ds = dirstat(file);
-	}
-
-	if (ds != nil) {
-		calltm = ds->mtime;
-		free(ds);
-	}
+	memset(gsp, 0, sizeof *gsp);
+	addgreylist(file, gsp);
 
 	/* if on greylist already and prior call was recent, add to whitelist */
-	if (wasongrey && recentcall(calltm)) {
+	if (gsp->existed && recentcall(gsp)) {
 		syslog(0, "smtpd",
 			"%s/%s was grey; adding IP to white", nci->rsys, rcpt);
 		return 1;
-	} else if (wasongrey)
-		syslog(0, "smtpd", "call for %s/%s was too long ago",
+	} else if (gsp->existed)
+		syslog(0, "smtpd", "call for %s/%s was seconds ago or long ago",
 			nci->rsys, rcpt);
 	else
-		syslog(0, "smtpd", "no registered call for %s/%s",
+		syslog(0, "smtpd", "no call registered for %s/%s; registering",
 			nci->rsys, rcpt);
 	return 0;
 }
@@ -235,7 +252,7 @@ vfysenderhostok(void)
 
 	/* if on greylist already and prior call was recent, add to whitelist */
 	if (recent) {
-		int fd = create(whitelist, OWRITE, 0444|DMAPPEND);
+		int fd = create(whitelist, OWRITE, 0666|DMAPPEND);
 
 		if (fd >= 0) {
 			seek(fd, 0, 2);			/* paranoia */
