@@ -68,4 +68,9 @@ if(! test -s $d/readme){
 	exit oops
 }
 
+
+echo >[1=2] please run patch/email $1 your-email-address
+echo >[1=2] so that 9trouble can mail you if there are questions.  thanks.
+echo >[1=2] the email address will not be readable by other sources users.
+echo >[1=2]
 echo $d

@@ -1132,6 +1132,24 @@ convert(Message *m)
 			m->bend = x + len;
 			m->ballocd = 1;
 		}
+	} else if(cistrcmp(s_to_c(m->charset), "windows-1251") == 0){
+		len = xtoutf("cp1251", &x, m->body, m->bend);
+		if(len != 0){
+			if(m->ballocd)
+				free(m->body);
+			m->body = x;
+			m->bend = x + len;
+			m->ballocd = 1;
+		}
+	} else if(cistrcmp(s_to_c(m->charset), "koi8-r") == 0){
+		len = xtoutf("koi8", &x, m->body, m->bend);
+		if(len != 0){
+			if(m->ballocd)
+				free(m->body);
+			m->body = x;
+			m->bend = x + len;
+			m->ballocd = 1;
+		}
 	}
 
 	m->converted = 1;

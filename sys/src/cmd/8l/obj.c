@@ -176,7 +176,7 @@ main(int argc, char *argv[])
 	case 5:	/* elf executable */
 		HEADR = rnd(52L+3*32L, 16);
 		if(INITTEXT == -1)
-			INITTEXT = 0x80100000L+HEADR;
+			INITTEXT = 0x80100020L;
 		if(INITDAT == -1)
 			INITDAT = 0;
 		if(INITRND == -1)

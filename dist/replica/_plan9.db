@@ -16,7 +16,7 @@
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1104121953 114832
 386/bin/8c - 775 sys sys 1107405596 357746
-386/bin/8l - 775 sys sys 1107721554 115721
+386/bin/8l - 775 sys sys 1107756104 115728
 386/bin/9660srv - 775 sys sys 1104121955 103973
 386/bin/aan - 775 sys sys 1104121955 130710
 386/bin/acid - 775 sys sys 1107662683 355831
@@ -53,7 +53,7 @@
 386/bin/auth/debug - 775 sys sys 1104121962 101064
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1107706106 312283
+386/bin/auth/factotum - 775 sys sys 1107833921 312267
 386/bin/auth/fgui - 775 sys sys 1106799169 217787
 386/bin/auth/guard.srv - 775 sys sys 1104121964 142850
 386/bin/auth/iam - 775 sys sys 1085076981 50791
@@ -6732,12 +6732,12 @@ sys/src/cmd/8c/sgen.c - 664 sys sys 1089299181 12833
 sys/src/cmd/8c/swt.c - 664 sys sys 1098463321 10943
 sys/src/cmd/8c/txt.c - 664 sys sys 1089299180 24215
 sys/src/cmd/8l - 20000000775 sys sys 1017165863 0
-sys/src/cmd/8l/asm.c - 664 sys sys 1107721553 11897
+sys/src/cmd/8l/asm.c - 664 sys sys 1107755623 11882
 sys/src/cmd/8l/compat.c - 664 sys sys 944960733 445
 sys/src/cmd/8l/l.h - 664 sys sys 1107721553 5803
 sys/src/cmd/8l/list.c - 664 sys sys 1045503947 4185
 sys/src/cmd/8l/mkfile - 664 sys sys 1032102046 363
-sys/src/cmd/8l/obj.c - 664 sys sys 1107721553 26059
+sys/src/cmd/8l/obj.c - 664 sys sys 1107756104 26053
 sys/src/cmd/8l/optab.c - 664 sys sys 1071778472 16231
 sys/src/cmd/8l/pass.c - 664 sys sys 1095107668 13675
 sys/src/cmd/8l/span.c - 664 sys sys 1107721554 23294
@@ -6885,7 +6885,7 @@ sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1107633794 11167
 sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1107706104 3416
 sys/src/cmd/auth/factotum/secstore.c - 664 sys sys 1107633794 14935
 sys/src/cmd/auth/factotum/sshrsa.c - 664 sys sys 1107633793 3416
-sys/src/cmd/auth/factotum/util.c - 664 sys sys 1107706104 17877
+sys/src/cmd/auth/factotum/util.c - 664 sys sys 1107833785 17917
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1107706104 2140
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1032497638 2334
 sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
@@ -10858,9 +10858,9 @@ sys/src/cmd/upas/filterkit/readaddrs.c - 664 sys sys 1018549521 1381
 sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
-sys/src/cmd/upas/fs/fs.c - 664 sys sys 1089299189 27390
+sys/src/cmd/upas/fs/fs.c - 664 sys sys 1107835225 27456
 sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1075069146 16233
-sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1071334860 28493
+sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1107835226 28935
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465
 sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1107358653 12930
@@ -12465,5 +12465,9 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/8l - 775 sys sys 1107749127 115721
-386/bin/auth/factotum - 775 sys sys 1107749128 312283
+386/bin/8l - 775 sys sys 1107835553 115728
+rc/bin/dircp - 775 sys sys 1107836261 193
+rc/bin/patch/create - 775 sys sys 1107836219 1380
+rc/bin/patch/email - 775 sys sys 1107836219 401
+sys/man/4/factotum - 664 sys sys 1107836362 14708
+sys/src/cmd/auth/keyfs.c - 664 sys sys 1107835724 17624

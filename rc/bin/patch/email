@@ -1,0 +1,26 @@
+#!/bin/rc
+
+if(! ~ $#* 2){
+	echo 'usage: patch/email name email-address' >[1=2]
+	exit usage
+}
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+if(! test -d /n/sources/patch/$1){
+	echo 'no such patch' /n/sources/patch/$1 >[1=2]
+	exit nopatch
+}
+
+cd /n/sources/patch/$1 || exit nopatch
+if(! patch/okay .){
+	echo 'bad patch: '$status >[1=2]
+	exit badpatch
+}
+
+>email
+chmod 660 email
+echo $2 >email
