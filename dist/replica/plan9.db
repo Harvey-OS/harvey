@@ -36,7 +36,7 @@
 386/bin/ape/patch - 775 sys sys 1048745001 298475
 386/bin/ape/psh - 775 sys sys 1042220689 34
 386/bin/ape/sed - 775 sys sys 1048745002 157596
-386/bin/ape/sh - 775 sys sys 1048745004 474025
+386/bin/ape/sh - 775 sys sys 1052191981 476284
 386/bin/ape/stty - 775 sys sys 1039758529 41577
 386/bin/ape/tar - 775 sys sys 1039758529 60413
 386/bin/ape/uname - 775 sys sys 1048745005 132335
@@ -47,7 +47,7 @@
 386/bin/auth - 20000000775 sys sys 1016920815 0
 386/bin/auth/aescbc - 775 sys sys 1045537938 120957
 386/bin/auth/asn12rsa - 775 sys sys 1048622916 117753
-386/bin/auth/authsrv - 775 sys sys 1051128396 162707
+386/bin/auth/authsrv - 775 sys sys 1052191982 162705
 386/bin/auth/changeuser - 775 sys sys 1045537939 96090
 386/bin/auth/convkeys - 775 sys sys 1046656929 86221
 386/bin/auth/convkeys2 - 775 sys sys 1046656929 86237
@@ -247,8 +247,8 @@
 386/bin/import - 775 sys sys 1048745047 87897
 386/bin/iostats - 775 sys sys 1045538016 98803
 386/bin/ip - 20000000775 sys sys 1016920851 0
-386/bin/ip/dhcpclient - 775 sys sys 1050868850 92362
-386/bin/ip/dhcpd - 775 sys sys 1051204048 145019
+386/bin/ip/dhcpclient - 775 sys sys 1052191982 92362
+386/bin/ip/dhcpd - 775 sys sys 1052191983 145129
 386/bin/ip/dhcpleases - 775 sys sys 1045538017 84658
 386/bin/ip/ftpd - 775 sys sys 1048799692 167273
 386/bin/ip/gping - 775 sys sys 1045538018 179663
@@ -260,7 +260,7 @@
 386/bin/ip/httpd/save - 775 sys sys 1045538021 130989
 386/bin/ip/httpd/wikipost - 775 sys sys 1045538021 111347
 386/bin/ip/imap4d - 775 sys sys 1048799694 233020
-386/bin/ip/ipconfig - 775 sys sys 1051201637 102975
+386/bin/ip/ipconfig - 775 sys sys 1052191983 102973
 386/bin/ip/ping - 775 sys sys 1039758569 74005
 386/bin/ip/ppp - 775 sys sys 1050419687 215306
 386/bin/ip/pppoe - 775 sys sys 1050419688 75481
@@ -407,7 +407,7 @@
 386/bin/upas/aliasmail - 775 sys sys 1048745078 100889
 386/bin/upas/deliver - 775 sys sys 1048745079 96898
 386/bin/upas/filter - 775 sys sys 1048745080 145569
-386/bin/upas/fs - 775 sys sys 1048799699 329960
+386/bin/upas/fs - 775 sys sys 1052191984 330787
 386/bin/upas/list - 775 sys sys 1045538069 81422
 386/bin/upas/marshal - 775 sys sys 1048745082 128555
 386/bin/upas/ml - 775 sys sys 1048745083 118089
@@ -477,7 +477,7 @@
 386/lib/ape - 20000000775 sys sys 944969312 0
 386/lib/ape/lib9.a - 664 sys sys 1038237538 6378
 386/lib/ape/libap.a - 664 sys sys 1050868859 796804
-386/lib/ape/libbsd.a - 664 sys sys 1050868860 178354
+386/lib/ape/libbsd.a - 664 sys sys 1052191985 175782
 386/lib/ape/libl.a - 664 sys sys 1050868860 9214
 386/lib/ape/libnet.a - 664 sys sys 1050868860 16878
 386/lib/ape/libregexp.a - 664 sys sys 1050868861 47234
