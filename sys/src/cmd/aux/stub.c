@@ -152,7 +152,7 @@ Srv fs = {
 void
 usage(void)
 {
-	fprint(2, "usage: aux/stub file\n");
+	fprint(2, "usage: aux/stub [-Dd] path/name\n");
 	exits("usage");
 }
 
@@ -181,10 +181,14 @@ main(int argc, char **argv)
 	if((p = strrchr(argv[0], '/')) == 0){
 		mtpt = ".";
 		kidname = argv[0];
+	}else if(p == argv[0]){
+		mtpt = "/";
+		kidname = argv[0]+1;
 	}else{
 		mtpt = argv[0];
 		*p++ = '\0';
 		kidname = p;
 	}
 	postmountsrv(&fs, nil, mtpt, MBEFORE);
+	exits(nil);
 }
