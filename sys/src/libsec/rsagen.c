@@ -76,5 +76,7 @@ rsagen(int nlen, int elen, int rounds)
 	rsa->q = q;
 	rsa->c2 = c2;
 
+	mpfree(phi);
+
 	return rsa;
 }

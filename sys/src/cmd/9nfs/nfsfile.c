@@ -198,7 +198,7 @@ nfslookup(int n, Rpccall *cmd, Rpccall *reply)
 	xp = xf->xp;
 	if(!(xp->qidpath & CHDIR))
 		return error(reply, NFSERR_NOTDIR);
-	chat("%s -> \"%.*s\"...", xp->name, elem.n, elem.s);
+	chat("%s -> \"%.*s\"...", xp->name, utfnlen(elem.s, elem.n), elem.s);
 	if(xp->s->noauth == 0 && xp->parent == xp && elem.s[0] == '#')
 		newxf = xfauth(xp, &elem);
 	else
@@ -349,7 +349,7 @@ creat(int n, Rpccall *cmd, Rpccall *reply, int chdir)
 	xp = xf->xp;
 	if(!(xp->qidpath & CHDIR))
 		return error(reply, NFSERR_NOTDIR);
-	chat("%s/%.*s...", xp->name, elem.n, elem.s);
+	chat("%s/%.*s...", xp->name, utfnlen(elem.s, elem.n), elem.s);
 	trunced = 0;
 	if(xp->parent == xp && elem.s[0] == '#'){
 		newxf = xfauth(xp, &elem);
@@ -413,7 +413,7 @@ remov(int n, Rpccall *cmd, Rpccall *reply)
 	xp = xf->xp;
 	if(!(xp->qidpath & CHDIR))
 		return error(reply, NFSERR_NOTDIR);
-	chat("%s/%.*s...", xp->name, elem.n, elem.s);
+	chat("%s/%.*s...", xp->name, utfnlen(elem.s, elem.n), elem.s);
 	if(xp->s->noauth == 0 && xp->parent == xp && elem.s[0] == '#')
 		return error(reply, NFSERR_PERM);
 	newxf = xfwalkcr(Tclwalk, xf, &elem, 0);

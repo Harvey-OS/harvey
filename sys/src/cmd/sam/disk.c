@@ -9,7 +9,7 @@ tempdisk(void)
 	char buf[128];
 	int i, fd;
 
-	sprint(buf, "/tmp/X%d.%.4ssam", getpid(), getuser());
+	snprint(buf, sizeof buf, "/tmp/X%d.%.4ssam", getpid(), getuser());
 	for(i='A'; i<='Z'; i++){
 		buf[5] = i;
 		if(stat(buf, dir) == 0)

@@ -10,6 +10,9 @@ bc \- arbitrary-precision arithmetic language
 .B -l
 ]
 [
+.B -s
+]
+[
 .I file ...
 ]
 .SH DESCRIPTION
@@ -23,6 +26,13 @@ The
 .B -l
 argument stands for the name
 of an arbitrary precision math library.
+The
+.B -s
+argument suppresses the automatic display
+of calculation results; all output is via the
+.B print
+command.
+.PP
 The following syntax for 
 .I bc
 programs is like that of C;
@@ -198,14 +208,11 @@ Bessel function
 All function arguments are passed by value.
 .PD
 .PP
-The value of an expression or variable is printed
-using the
-.B print
-command.
-Text in quotes, which may include newlines, is printed;
-here, the
-.B print
-command is not required.
+The value of an expression at the top level is printed
+unless the main operator is an assignment or the
+.B -s
+command line argument is given.
+Text in quotes, which may include newlines, is always printed.
 Either semicolons or newlines may separate statements.
 Assignment to
 .B scale

@@ -876,16 +876,16 @@ asmins(Prog *p)
 	case 23:	/* word, long */
 		op = opa;
 		a = asmea(p, &p->to);
-		if(a == (7<<3)|4)
+		if(a == ((7<<3)|4))
 			return;
-		if(a == (7<<3)|1) {
+		if(a == ((7<<3)|1)) {
 			if(p->as == AWORD) {
 				op = opa;
 				*op++ = opa[1];
 			}
 			return;
 		}
-		if(a == (7<<3)|0) {
+		if(a == ((7<<3)|0)) {
 			if(p->as == ALONG) {
 				*op++ = opa[0];
 				opa[0] = 0;

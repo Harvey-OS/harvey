@@ -221,6 +221,7 @@ FAT file system for configuration.
 By convention, this partition is called
 .BR 9fat .
 There is no default partition or pathname.
+.PD
 .PP
 When
 .I 9load

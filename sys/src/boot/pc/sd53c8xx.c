@@ -323,6 +323,10 @@ static unsigned char cf2[] = { 6, 2, 3, 4, 6, 8, 12, 16 };
 
 typedef struct Controller {
 	Lock;
+	struct {
+		uchar scntl3;
+		uchar stest2;
+	} bios;
 	uchar synctab[NULTRA2SCF - 1][8];/* table of legal tpfs */
 	NegoState s[MAXTARGET];
 	uchar scntl3[MAXTARGET];
@@ -367,6 +371,7 @@ enum { DataOut, DataIn, Cmd, Status, ReservedOut, ReservedIn, MessageOut, Messag
 
 static void setmovedata(Movedata*, ulong, ulong);
 static void advancedata(Movedata*, long);
+static int bios_set_differential(Controller *c);
 
 static char *phase[] = {
 	"data out", "data in", "command", "status",
@@ -846,8 +851,8 @@ softreset(Controller *c)
 		n->dmode |= (1 << 1);	/* burst opcode fetch */
 	if (c->v->feature & Differential) {
 		/* chip capable */
-		if ((c->feature & Differential) || (n->gpreg & 0x8) == 0) {
-			/* user enabled, or bit 3 of GPREG clear (Symbios cards) */
+		if ((c->feature & Differential) || bios_set_differential(c)) {
+			/* user enabled, or some evidence bios set differential */
 			if (n->sstat2 & (1 << 2))
 				print("sd53c8xx: can't go differential; wrong cable\n");
 			else {
@@ -1805,6 +1810,25 @@ docheck:
 	return r->status = status;
 }
 
+static void
+cribbios(Controller *c)
+{
+	c->bios.scntl3 = c->n->scntl3;
+	c->bios.stest2 = c->n->stest2;
+	print("sd53c8xx: bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
+}
+
+static int
+bios_set_differential(Controller *c)
+{
+	/* Concept lifted from FreeBSD - thanks Gerard */
+	/* basically, if clock conversion factors are set, then there is
+ 	 * evidence the bios had a go at the chip, and if so, it would
+	 * have set the differential enable bit in stest2
+	 */
+	return (c->bios.scntl3 & 7) != 0 && (c->bios.stest2 & 0x20) != 0;
+}
+
 #define NCR_VID 	0x1000
 #define NCR_810_DID 	0x0001
 #define NCR_820_DID	0x0002	/* don't know enough about this one to support it */
@@ -1816,6 +1840,7 @@ docheck:
 #define SYM_895_DID	0x000c
 #define SYM_885_DID	0x000d	/* ditto */
 #define SYM_875_DID	0x000f	/* ditto */
+#define SYM_1010_DID	0x0020
 #define SYM_875J_DID	0x008f
 
 static Variant variant[] = {
@@ -1834,6 +1859,7 @@ static Variant variant[] = {
 { SYM_885_DID,   0xff, "SYM53C885",	Burst128, 16, 24, Prefetch|LocalRAM|BigFifo|Wide|Ultra|ClockDouble },
 { SYM_895_DID,   0xff, "SYM53C895",	Burst128, 16, 24, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 { SYM_896_DID,   0xff, "SYM53C896",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
+{ SYM_1010_DID,   0xff, "SYM53C1010",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 };
 
 #define offsetof(s, t) ((ulong)&((s *)0)->t)
@@ -2046,8 +2072,29 @@ symenable(SDev* sdev)
 
 	ilock(ctlr);
 	synctabinit(ctlr);
+	cribbios(ctlr);
 	reset(ctlr);
 	iunlock(ctlr);
+
+	return 1;
+}
+
+static int
+symdisable(SDev* sdev)
+{
+	Ncr *n;
+	Controller *ctlr;
+
+	ctlr = sdev->ctlr;
+	n = ctlr->n;
+
+	n->istat = Srst;		/* software reset */
+	microdelay(1);
+	n->istat = 0;
+
+	n->scntl1 |= (1 << 3);		/* bus reset */
+	delay(500);
+	n->scntl1 &= ~(1 << 3);
 
 	return 1;
 }
@@ -2059,7 +2106,7 @@ SDifc sd53c8xxifc = {
 	nil,				/* legacy */
 	symid,				/* id */
 	symenable,			/* enable */
-	nil,				/* disable */
+	symdisable,			/* disable */
 
 	scsiverify,			/* verify */
 	scsionline,			/* online */
@@ -2069,4 +2116,3 @@ SDifc sd53c8xxifc = {
 
 	scsibio,			/* bio */
 };
-

@@ -18,8 +18,8 @@
 %token	<lval>	LTYPE1 LTYPE2 LTYPE3 LTYPE4 LTYPE5
 %token	<lval>	LTYPE6 LTYPE7 LTYPE8 LTYPE9 LTYPEA
 %token	<lval>	LTYPEB LTYPEC LTYPED LTYPEE LTYPEF
-%token	<lval>	LTYPEG LTYPEH LTYPEI LTYPEJ LTYPEK LTYPEL
-%token	<lval>	LTYPEM
+%token	<lval>	LTYPEG LTYPEH LTYPEI LTYPEJ LTYPEK
+%token	<lval>	LTYPEL LTYPEM
 %token	<lval>	LCONST LSP LSB LFP LPC
 %token	<lval>	LTYPEX LR LREG LF LFREG LC LCREG LPSR LFCR
 %token	<lval>	LCOND LS LAT
@@ -28,8 +28,8 @@
 %token	<sym>	LNAME LLAB LVAR
 %type	<lval>	con expr oexpr pointer offset sreg spreg creg
 %type	<lval>	rcon cond reglist
-%type	<gen>	gen rel reg freg shift fcon frcon
-%type	<gen>	imm ximm name oreg ireg nireg imsr
+%type	<gen>	gen rel reg regreg freg shift fcon frcon
+%type	<gen>	imm ximm name oreg ireg nireg ioreg imsr
 %%
 prog:
 |	prog line
@@ -70,6 +70,10 @@ inst:
 	LTYPE1 cond imsr ',' spreg ',' reg
 	{
 		outcode($1, $2, &$3, $5, &$7);
+	}
+|	LTYPE1 cond imsr ',' spreg ','
+	{
+		outcode($1, $2, &$3, $5, &nullgen);
 	}
 |	LTYPE1 cond imsr ',' reg
 	{
@@ -124,7 +128,7 @@ inst:
 /*
  * MOVM
  */
-|	LTYPE8 cond ireg ',' '[' reglist ']'
+|	LTYPE8 cond ioreg ',' '[' reglist ']'
 	{
 		Gen g;
 
@@ -133,7 +137,7 @@ inst:
 		g.offset = $6;
 		outcode($1, $2, &$3, NREG, &g);
 	}
-|	LTYPE8 cond '[' reglist ']' ',' ireg
+|	LTYPE8 cond '[' reglist ']' ',' ioreg
 	{
 		Gen g;
 
@@ -160,9 +164,9 @@ inst:
 /*
  * RET
  */
-|	LTYPEA comma
+|	LTYPEA cond comma
 	{
-		outcode($1, Always, &nullgen, NREG, &nullgen);
+		outcode($1, $2, &nullgen, NREG, &nullgen);
 	}
 /*
  * TEXT/GLOBL
@@ -183,6 +187,13 @@ inst:
 		outcode($1, Always, &$2, $4, &$6);
 	}
 /*
+ * CASE
+ */
+|	LTYPED cond reg comma
+	{
+		outcode($1, $2, &$3, NREG, &nullgen);
+	}
+/*
  * word
  */
 |	LTYPEH comma ximm
@@ -192,15 +203,7 @@ inst:
 /*
  * floating-point coprocessor
  */
-|	LTYPEI cond ',' freg
-	{
-		outcode($1, $2, &nullgen, NREG, &$4);
-	}
-|	LTYPEJ cond gen ',' freg
-	{
-		outcode($1, $2, &$3, NREG, &$5);
-	}
-|	LTYPEJ cond freg ',' gen
+|	LTYPEI cond freg ',' freg
 	{
 		outcode($1, $2, &$3, NREG, &$5);
 	}
@@ -219,7 +222,7 @@ inst:
 /*
  * MCR MRC
  */
-|	LTYPEM cond con ',' expr ',' spreg ',' creg ',' creg oexpr
+|	LTYPEJ cond con ',' expr ',' spreg ',' creg ',' creg oexpr
 	{
 		Gen g;
 
@@ -238,6 +241,20 @@ inst:
 			(1<<4);			/* must be set */
 		outcode(AWORD, Always, &nullgen, NREG, &g);
 	}
+/*
+ * MULL hi,lo,r1,r2
+ */
+|	LTYPEM cond reg ',' reg ',' regreg
+	{
+		outcode($1, $2, &$3, $5.reg, &$7);
+	}
+/*
+ * END
+ */
+|	LTYPEE comma
+	{
+		outcode($1, Always, &nullgen, NREG, &nullgen);
+	}
 
 cond:
 	{
@@ -253,7 +270,7 @@ cond:
 	}
 
 comma:
-|	','
+|	',' comma
 
 rel:
 	con '(' LPC ')'
@@ -340,6 +357,11 @@ gen:
 	reg
 |	ximm
 |	shift
+|	shift '(' spreg ')'
+	{
+		$$ = $1;
+		$$.reg = $3;
+	}
 |	LPSR
 	{
 		$$ = nullgen;
@@ -379,14 +401,7 @@ ireg:
 		$$.offset = 0;
 	}
 
-oreg:
-	name
-|	name '(' sreg ')'
-	{
-		$$ = $1;
-		$$.type = D_OREG;
-		$$.reg = $3;
-	}
+ioreg:
 	ireg
 |	con '(' sreg ')'
 	{
@@ -395,13 +410,16 @@ oreg:
 		$$.reg = $3;
 		$$.offset = $1;
 	}
-|	'(' sreg ')'
+
+oreg:
+	name
+|	name '(' sreg ')'
 	{
-		$$ = nullgen;
+		$$ = $1;
 		$$.type = D_OREG;
-		$$.reg = $2;
-		$$.offset = 0;
+		$$.reg = $3;
 	}
+|	ioreg
 
 imsr:
 	reg
@@ -421,6 +439,15 @@ reg:
 		$$ = nullgen;
 		$$.type = D_REG;
 		$$.reg = $1;
+	}
+
+regreg:
+	'(' spreg ',' spreg ')'
+	{
+		$$ = nullgen;
+		$$.type = D_REGREG;
+		$$.reg = $2;
+		$$.offset = $4;
 	}
 
 shift:

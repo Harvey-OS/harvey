@@ -368,6 +368,15 @@ regused(Sch *s, Prog *realp)
 		else
 			s->set.ireg |= 1<<p->to.reg;
 		break;
+	case C_REGREG:
+		if(ar){
+			s->used.ireg |= 1<<p->to.reg;
+			s->used.ireg |= 1<<p->to.offset;
+		}else{
+			s->set.ireg |= 1<<p->to.reg;
+			s->set.ireg |= 1<<p->to.offset;
+		}
+		break;
 	case C_FREG:
 		/* do better -- determine double prec */
 		if(ar) {
@@ -461,6 +470,10 @@ regused(Sch *s, Prog *realp)
 		break;
 	case C_REG:
 		s->used.ireg |= 1<<p->from.reg;
+		break;
+	case C_REGREG:
+		s->used.ireg |= 1<<p->from.reg;
+		s->used.ireg |= 1<<p->from.offset;
 		break;
 	case C_FREG:
 		/* do better -- determine double prec */

@@ -1,6 +1,7 @@
 </$objtype/mkfile
 
 TARG=\
+	accupoint\
 	astarld\
 	clog\
 	consolefs\

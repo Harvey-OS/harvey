@@ -159,7 +159,7 @@
 .if \n(mo-9 .ds d) October
 .if \n(mo-10 .ds d) November
 .if \n(mo-11 .ds d) December
-.as d) " \n(dy, 19\n(yr
+.as d) " \n(dy, 20\n(yr
 .ds DY \*(d)
 '''			\" initialize strings
 .ds m!

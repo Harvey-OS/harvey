@@ -131,10 +131,14 @@ grap grap
 graph graph
 grep grep
 gs gs
+
+bunzip2 gzip
+bzip2 gzip
 gunzip gzip
 gzip gzip
 unzip gzip
 zip gzip
+hget hget
 history history
 hoc hoc
 join join
@@ -147,6 +151,7 @@ broke kill
 kill kill
 slay kill
 ktrace ktrace
+leak leak
 lens lens
 lex lex
 capture lml
@@ -200,6 +205,7 @@ passwd passwd
 pcc pcc
 pic pic
 tpic pic
+pipefile pipefile
 plot plot
 plumb plumb
 pr pr
@@ -283,8 +289,6 @@ nroff troff
 troff troff
 troff2html troff2html
 tweak tweak
-hget uget
-uget uget
 uniq uniq
 units units
 unmime unmime
@@ -294,6 +298,7 @@ unmime unmime
 ki vi
 vi vi
 xi vi
+vncviewer vncviewer
 vt vt
 wc wc
 who who

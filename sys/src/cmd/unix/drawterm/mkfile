@@ -1,6 +1,8 @@
-CONF=Windows
+#CONF=Windows
+DSRC=/n/emelie/sys/src/cmd/unix/drawterm
+BIN=$DSRC/bin
 
-<mkfile-$CONF
+<$DSRC/mkfile-$CONF
 
 DRAWTERM=\
 	_asgetticket.$O\
@@ -127,20 +129,24 @@ $TARG: $OFILES
 # don't combine with following %.$O rules
 %.$O:	$HFILES		
 
-$LIBMEMDRAW: libmemdraw/memdraw.h libdraw/draw.h
-$LIBDRAW: libdraw/draw.h
-$LIBMEMLAYER: libmemdraw/memdraw.h libdraw/draw.h libmemlayer/memlayer.h
-$XFILES: libmemdraw/xmem.h
+$LIBMEMDRAW: $DSRC/libmemdraw/memdraw.h $DSRC/libdraw/draw.h
+$LIBDRAW: $DSRC/libdraw/draw.h
+$LIBMEMLAYER: $DSRC/libmemdraw/memdraw.h $DSRC/libdraw/draw.h $DSRC/libmemlayer/memlayer.h
+$XFILES: $DSRC/libmemdraw/xmem.h
 
 
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
+%.$O:	$DSRC/%.c
+	$CC $CFLAGS $DSRC/$stem.c
 
-%.$O:	%.s
-	$AS $ASFLAGS -o $stem.$O $stem.s
+%.$O:	$DSRC/%.s
+	$AS $ASFLAGS -o $stem.$O $DSRC/$stem.s
 	
 install: $TARG
 	install $TARG $BIN/$TARG
 
 clean:V:
 	rm -f *.$O a.out y.tab.? y.debug y.output *.pch *.pdb *.map $TARG
+
+src.tar:V:
+	tar cf src.tar *.[ch] mkfile* */*.[ch]
+

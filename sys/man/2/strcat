@@ -1,6 +1,6 @@
 .TH STRCAT 2
 .SH NAME
-strcat, strncat, strcmp, strncmp, strcpy, strncpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr \- string operations
+strcat, strncat, strcmp, strncmp, strcpy, strncpy, strecpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr \- string operations
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -21,6 +21,9 @@ int	strncmp(char *s1, char *s2, long n)
 .PP
 .B
 char*	strcpy(char *s1, char *s2)
+.PP
+.B
+char*	strecpy(char *s1, char *es1, char *s2)
 .PP
 .B
 char*	strncpy(char *s1, char *s2, long n)
@@ -61,11 +64,14 @@ The functions
 .IR strcat ,
 .IR strncat ,
 .IR strcpy ,
+.IR strecpy ,
 and
 .I strncpy
 all alter
 .IR s1 .
-These functions do not check for overflow of
+Other than
+.IR strecpy ,
+these functions do not check for overflow of
 the array pointed to by
 .IR s1 .
 .PP
@@ -118,6 +124,16 @@ is
 or more.
 Each function returns
 .IR s1 .
+.PP
+.I Strecpy
+copies bytes until a null byte has been copied, but writes no bytes beyond
+.IR es1 .
+If any bytes are copied,
+.I s1
+is terminated by a null byte, and a pointer to that byte is returned.
+Otherwise, the original
+.I s1
+is returned.
 .PP
 .I Strlen
 returns the number of bytes in
@@ -217,7 +233,8 @@ implementations in
 .BR /sys/src/libc/$objtype .
 .SH SEE ALSO
 .IR memory (2),
-.IR rune (2)
+.IR rune (2),
+.IR runestrcat (2)
 .SH BUGS
 These routines know nothing about
 .SM UTF.

@@ -1,7 +1,6 @@
 #include	<u.h>
 #include	<libc.h>
 #include	<bio.h>
-int fdx;
 
 int
 Bflush(Biobufhdr *bp)

@@ -525,7 +525,7 @@ are taken as a program name.
 It will be invoked as
 .B "rc -c prog 'arg1' 'arg2'"
 and should return a null exit status
-if and only if arg1 is not out of date with respect to arg2.
+if and only if arg1 is up to date with respect to arg2.
 Date stamps are still propagated in the normal way.
 .TP
 .B Q

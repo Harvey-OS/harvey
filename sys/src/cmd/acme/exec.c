@@ -16,6 +16,7 @@ Buffer	snarfbuf;
 void	del(Text*, Text*, Text*, int, int, Rune*, int);
 void	delcol(Text*, Text*, Text*, int, int, Rune*, int);
 void	dump(Text*, Text*, Text*, int, int, Rune*, int);
+void	edit(Text*, Text*, Text*, int, int, Rune*, int);
 void	exit(Text*, Text*, Text*, int, int, Rune*, int);
 void	fontx(Text*, Text*, Text*, int, int, Rune*, int);
 void	get(Text*, Text*, Text*, int, int, Rune*, int);
@@ -31,7 +32,6 @@ void	putall(Text*, Text*, Text*, int, int, Rune*, int);
 void	sendx(Text*, Text*, Text*, int, int, Rune*, int);
 void	sort(Text*, Text*, Text*, int, int, Rune*, int);
 void	tab(Text*, Text*, Text*, int, int, Rune*, int);
-void	undo(Text*, Text*, Text*, int, int, Rune*, int);
 void	zeroxx(Text*, Text*, Text*, int, int, Rune*, int);
 
 typedef struct Exectab Exectab;
@@ -50,6 +50,7 @@ Exectab exectab[] = {
 	{ L"Delcol",	delcol,	FALSE,	XXX,		XXX		},
 	{ L"Delete",	del,		FALSE,	TRUE,	XXX		},
 	{ L"Dump",	dump,	FALSE,	TRUE,	XXX		},
+	{ L"Edit",		edit,		FALSE,	XXX,		XXX		},
 	{ L"Exit",		exit,		FALSE,	XXX,		XXX		},
 	{ L"Font",		fontx,	FALSE,	XXX,		XXX		},
 	{ L"Get",		get,		FALSE,	TRUE,	XXX		},
@@ -61,7 +62,7 @@ Exectab exectab[] = {
 	{ L"Look",		look,		FALSE,	XXX,		XXX		},
 	{ L"New",		new,		FALSE,	XXX,		XXX		},
 	{ L"Newcol",	newcol,	FALSE,	XXX,		XXX		},
-	{ L"Paste",		paste,	TRUE,	XXX,		XXX		},
+	{ L"Paste",		paste,	TRUE,	TRUE,	XXX		},
 	{ L"Put",		put,		FALSE,	XXX,		XXX		},
 	{ L"Putall",		putall,	FALSE,	XXX,		XXX		},
 	{ L"Redo",		undo,	FALSE,	FALSE,	XXX		},
@@ -199,7 +200,7 @@ execute(Text *t, uint aq0, uint aq1, int external, Text *argt)
 	aa = getbytearg(argt, TRUE, TRUE, &a);
 	if(t->w)
 		incref(t->w);
-	run(t->w, b, dir.r, dir.nr, TRUE, aa, a);
+	run(t->w, b, dir.r, dir.nr, TRUE, aa, a, FALSE);
 }
 
 char*
@@ -229,6 +230,7 @@ getarg(Text *argt, int doaddr, int dofile, Rune **rp, int *nrp)
 	if(argt == nil)
 		return nil;
 	a = nil;
+	textcommit(argt, TRUE);
 	if(expand(argt, argt->q0, argt->q1, &e)){
 		free(e.bname);
 		if(e.nname && dofile){
@@ -315,11 +317,35 @@ sort(Text *et, Text*, Text*, int, int, Rune*, int)
 		colsort(et->col);
 }
 
+uint
+seqof(Window *w, int isundo)
+{
+	/* if it's undo, see who changed with us */
+	if(isundo)
+		return w->body.file->seq;
+	/* if it's redo, see who we'll be sync'ed up with */
+	return fileredoseq(w->body.file);
+}
+
 void
 undo(Text *et, Text*, Text*, int flag1, int, Rune*, int)
 {
-	if(et && et->w)
-		winundo(et->w, flag1);
+	int i, j;
+	Column *c;
+	Window *w;
+	uint seq;
+
+	if(et==nil || et->w== nil)
+		return;
+	seq = seqof(et->w, flag1);
+	for(i=0; i<row.ncol; i++){
+		c = row.col[i];
+		for(j=0; j<c->nw; j++){
+			w = c->w[j];
+			if(seqof(w, flag1) == seq)
+				winundo(w, flag1);
+		}
+	}
 }
 
 char*
@@ -472,28 +498,17 @@ get(Text *et, Text *t, Text *argt, int flag1, int, Rune *arg, int narg)
 }
 
 void
-put(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
+putfile(File *f, int q0, int q1, Rune *namer, int nname)
 {
-	uint q0, q1, n, m;
-	int nname;
-	Rune *r, *namer;
+	uint n, m;
+	Rune *r;
 	char *s, *name;
-	Window *w;
-	int i, fd;
-	File *f;
+	int i, fd, q;
 	Dir d;
+	Window *w;
 
-	if(et==nil || et->w==nil || et->w->isdir)
-		return;
-	w = et->w;
-	t = &w->body;
-	f = t->file;
-	name = getname(t, argt, arg, narg, TRUE);
-	if(name == nil){
-		warning(nil, "no file name\n");
-		return;
-	}
-	namer = bytetorune(name, &nname);
+	w = f->curtext->w;
+	name = runetobyte(namer, nname);
 	if(runeeq(namer, nname, f->name, f->nname) && dirstat(name, &d)>=0){
 		if(f->dev!=d.dev || f->qidpath!=d.qid.path || f->mtime<d.mtime){
 			f->dev = d.dev;
@@ -517,37 +532,41 @@ put(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
 		warning(nil, "%s not written; file is append only\n", name);
 		goto Rescue2;
 	}
-	q0 = 0;
-	q1 = t->file->nc;
-	while(q0 < q1){
-		n = q1 - q0;
+
+	for(q=q0; q<q1; q+=n){
+		n = q1 - q;
 		if(n > BUFSIZE/UTFmax)
 			n = BUFSIZE/UTFmax;
-		bufread(t->file, q0, r, n);
+		bufread(f, q, r, n);
 		m = snprint(s, BUFSIZE+1, "%.*S", n, r);
 		if(write(fd, s, m) != m){
 			warning(nil, "can't write file %s: %r\n", name);
 			goto Rescue2;
 		}
-		q0 += n;
 	}
-	if(runeeq(namer, nname, t->file->name, t->file->nname)){
-		dirfstat(fd, &d);	/* ignore error; use old values if we failed */
-		f->qidpath = d.qid.path;
-		f->dev = d.dev;
-		f->mtime = d.mtime;
-		t->file->mod = FALSE;
-		w->dirty = FALSE;
-		t->file->unread = FALSE;
-		for(i=0; i<t->file->ntext; i++){
-			t->file->text[i]->w->putseq = t->file->seq;
-			t->file->text[i]->w->dirty = w->dirty;
+	if(runeeq(namer, nname, f->name, f->nname)){
+		if(q0!=0 || q1!=f->nc){
+			f->mod = TRUE;
+			w->dirty = TRUE;
+			f->unread = TRUE;
+		}else{
+			dirfstat(fd, &d);	/* ignore error; use old values if we failed */
+			f->qidpath = d.qid.path;
+			f->dev = d.dev;
+			f->mtime = d.mtime;
+			f->mod = FALSE;
+			w->dirty = FALSE;
+			f->unread = FALSE;
+		}
+		for(i=0; i<f->ntext; i++){
+			f->text[i]->w->putseq = f->seq;
+			f->text[i]->w->dirty = w->dirty;
 		}
 	}
 	fbuffree(s);
 	fbuffree(r);
-	free(name);
 	free(namer);
+	free(name);
 	close(fd);
 	winsettag(w);
 	return;
@@ -559,8 +578,31 @@ put(Text *et, Text *t, Text *argt, int, int, Rune *arg, int narg)
 	/* fall through */
 
     Rescue1:
-	free(name);
 	free(namer);
+	free(name);
+}
+
+void
+put(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+{
+	int nname;
+	Rune  *namer;
+	Window *w;
+	File *f;
+	char *name;
+
+	if(et==nil || et->w==nil || et->w->isdir)
+		return;
+	w = et->w;
+	f = w->body.file;
+	name = getname(&w->body, argt, arg, narg, TRUE);
+	if(name == nil){
+		warning(nil, "no file name\n");
+		return;
+	}
+	namer = bytetorune(name, &nname);
+	putfile(f, 0, f->nc, namer, nname);
+	free(name);
 }
 
 void
@@ -585,14 +627,17 @@ cut(Text *et, Text *t, Text*, int dosnarf, int docut, Rune*, int)
 	uint q0, q1, n, locked, c;
 	Rune *r;
 
-	if(t == nil)
-		return;
 	/* use current window if snarfing and its selection is non-null */
 	if(et!=t && dosnarf && et->w!=nil){
-		if(et->w->body.q1>et->w->body.q0)
+		if(et->w->body.q1>et->w->body.q0){
 			t = &et->w->body;
-		else if(et->w->tag.q1>et->w->tag.q0)
+			filemark(t->file);	/* seq has been incremented by execute */
+		}else if(et->w->tag.q1>et->w->tag.q0)
 			t = &et->w->tag;
+	}
+	if(t == nil){
+		/* can only happen if seltext == nil */
+		return;
 	}
 	locked = FALSE;
 	if(t->w!=nil && et->w!=t->w){
@@ -637,11 +682,19 @@ cut(Text *et, Text *t, Text*, int dosnarf, int docut, Rune*, int)
 }
 
 void
-paste(Text *et, Text *t, Text*, int flag1, int, Rune*, int)
+paste(Text *et, Text *t, Text*, int selectall, int tobody, Rune*, int)
 {
 	int c;
 	uint q, q0, q1, n;
 	Rune *r;
+
+	/* if(tobody), use body of executing window  (Paste or Send command) */
+	if(tobody && et!=nil && et->w!=nil){
+		t = &et->w->body;
+		filemark(t->file);	/* seq has been incremented by execute */
+	}
+	if(t == nil)
+		return;
 
 	getsnarf();
 	if(t==nil || snarfbuf.nc==0)
@@ -669,7 +722,7 @@ paste(Text *et, Text *t, Text*, int flag1, int, Rune*, int)
 		q0 += n;
 	}
 	fbuffree(r);
-	if(flag1)
+	if(selectall)
 		textsetselect(t, t->q0, q1);
 	else
 		textsetselect(t, q1, q1);
@@ -709,11 +762,28 @@ sendx(Text *et, Text *t, Text*, int, int, Rune*, int)
 	if(t->q0 != t->q1)
 		cut(t, t, nil, TRUE, FALSE, nil, 0);
 	textsetselect(t, t->file->nc, t->file->nc);
-	paste(t, t, nil, FALSE, XXX, nil, 0);
+	paste(t, t, nil, TRUE, TRUE, nil, 0);
 	if(textreadc(t, t->file->nc-1) != '\n'){
 		textinsert(t, t->file->nc, L"\n", 1, TRUE);
 		textsetselect(t, t->file->nc, t->file->nc);
 	}
+}
+
+void
+edit(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
+{
+	Rune *r;
+	int len;
+
+	if(et == nil)
+		return;
+	getarg(argt, FALSE, TRUE, &r, &len);
+	seq++;
+	if(r != nil){
+		editcmd(et, r, len);
+		free(r);
+	}else
+		editcmd(et, arg, narg);
 }
 
 void
@@ -777,7 +847,7 @@ local(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 		dir.r = nil;
 		dir.nr = 0;
 	}
-	run(nil, runetobyte(arg, narg), dir.r, dir.nr, FALSE, aa, a);
+	run(nil, runetobyte(arg, narg), dir.r, dir.nr, FALSE, aa, a, FALSE);
 }
 
 void
@@ -963,6 +1033,7 @@ runproc(void *argvp)
 		char *arg;
 		Command *c;
 		Channel *cpid;
+		int iseditcmd;
 	/* end of args */
 	char *e, *t, *name, *dir, **av, *news;
 	Rune r, **incl;
@@ -982,6 +1053,7 @@ runproc(void *argvp)
 	arg = argv[6];
 	c = argv[7];
 	cpid = argv[8];
+	iseditcmd = (int)argv[9];
 	free(argv);
 
 	t = s;
@@ -1002,6 +1074,7 @@ runproc(void *argvp)
 	pipechar = 0;
 	if(*t=='<' || *t=='|' || *t=='>')
 		pipechar = *t++;
+	c->iseditcmd = iseditcmd;
 	c->text = s;
 	if(rdir != nil){
 		dir = runetobyte(rdir, ndir);
@@ -1041,8 +1114,14 @@ runproc(void *argvp)
 		}else
 			open("/dev/null", OREAD);
 		close(1);
-		if(winid>0 && (pipechar=='|' || pipechar=='<')){
-			sprint(buf, "/mnt/acme/%d/wrsel", winid);
+		if((winid>0 || iseditcmd) && (pipechar=='|' || pipechar=='<')){
+			if(iseditcmd){
+				if(winid > 0)
+					sprint(buf, "/mnt/acme/%d/editout", winid);
+				else
+					sprint(buf, "/mnt/acme/editout");
+			}else
+				sprint(buf, "/mnt/acme/%d/wrsel", winid);
 			open(buf, OWRITE);
 			close(2);
 			open("/dev/cons", OWRITE);
@@ -1156,9 +1235,11 @@ runwaittask(void *v)
 	Channel *cpid;
 	void **a;
 
+	threadsetname("runwaittask");
 	a = v;
 	c = a[0];
 	cpid = a[1];
+	free(a);
 	do
 		c->pid = recvul(cpid);
 	while(c->pid == ~0);
@@ -1172,7 +1253,7 @@ runwaittask(void *v)
 }
 
 void
-run(Window *win, char *s, Rune *rdir, int ndir, int newns, char *argaddr, char *xarg)
+run(Window *win, char *s, Rune *rdir, int ndir, int newns, char *argaddr, char *xarg, int iseditcmd)
 {
 	void **arg;
 	Command *c;
@@ -1181,7 +1262,7 @@ run(Window *win, char *s, Rune *rdir, int ndir, int newns, char *argaddr, char *
 	if(s == nil)
 		return;
 
-	arg = emalloc(9*sizeof(void*));
+	arg = emalloc(10*sizeof(void*));
 	c = emalloc(sizeof *c);
 	cpid = chancreate(sizeof(ulong), 0);
 	arg[0] = win;
@@ -1193,6 +1274,7 @@ run(Window *win, char *s, Rune *rdir, int ndir, int newns, char *argaddr, char *
 	arg[6] = xarg;
 	arg[7] = c;
 	arg[8] = cpid;
+	arg[9] = (void*)iseditcmd;
 	proccreate(runproc, arg, STACK);
 	/* mustn't block here because must be ready to answer mount() call in run() */
 	arg = emalloc(2*sizeof(void*));

@@ -13,6 +13,8 @@ struct Binding
 	long	expoffer;	/* absolute time at which offer times out */
 	long	offer;		/* lease offered */
 	long	lasttouched;	/* time this entry last assigned/unassigned */
+	long	lastcomplained;	/* last time we complained about a used but not leased */
+	long	tried;		/* last time we tried this entry */
 
 	Qid	q;		/* qid at the last syncbinding */
 };

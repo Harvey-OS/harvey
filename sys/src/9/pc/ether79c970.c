@@ -450,7 +450,7 @@ amd79c970pci(void)
 	while(p = pcimatch(p, 0x1022, 0x2000)){
 		port = p->mem[0].bar & ~0x01;
 		if(ioalloc(port, p->mem[0].size, 0, "amd79c970") < 0){
-			print("amd79c970: port %d in use\n", port);
+			print("amd79c970: port 0x%uX in use\n", port);
 			continue;
 		}
 		amd79c970adapter(&adapter, port, p->intl, p->tbdf);

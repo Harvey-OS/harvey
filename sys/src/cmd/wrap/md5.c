@@ -25,6 +25,32 @@ md5file(char *file, uchar *digest)
 }
 
 int
+Bmd5sum(Biobuf *b, uchar *digest, vlong len)
+{
+	DigestState *s;
+	uchar buf[8192];
+	int n;
+
+	s = md5(nil, 0, nil, nil);
+	while(len > 0) {
+		if(len > sizeof buf)
+			n = sizeof(buf);
+		else
+			n = len;
+		if((n = Bread(b, buf, n)) < 0)
+			return -1;
+		if(n == 0) {
+			werrstr("premature end of file");
+			return -1;
+		}
+		md5(buf, n, nil, s);
+		len -= n;
+	}
+	md5(nil, 0, digest, s);
+	return 0;
+}
+
+int
 md5conv(va_list *va, Fconv *fp)
 {
 	char buf[MD5dlen*2+1];

@@ -256,19 +256,29 @@ testmod(mpint *x, mpint *y)
 void
 testinvert(mpint *x, mpint *y)
 {
-	mpint *r;
+	mpint *r, *d1, *d2;
 	vlong now;
 	int i;
 
 	r = mpnew(0);
+	d1 = mpnew(0);
+	d2 = mpnew(0);
 	now = nsec();
+	mpextendedgcd(x, y, r, d1, d2);
+	mpdiv(x, r, x, d1);
+	mpdiv(y, r, y, d1);
 	for(i = 0; i < loops; i++)
 		mpinvert(x, y, r);
 	if(loops > 1)
 		print("%lld µs for a %d in %d invert\n", (nsec()-now)/(1000*loops),
 			x->top*Dbits, y->top*Dbits);
 	print("%B**-1 mod %B = %B\n", x, y, r);
+	mpmul(r, x, d1);
+	mpmod(d1, y, d2);
+	print("%B*%B mod %B = %B\n", x, r, y, d2);
 	mpfree(r);
+	mpfree(d1);
+	mpfree(d2);
 }
 
 void
@@ -316,9 +326,9 @@ testexp(char *base, char *exp, char *mod)
 		print("%ulldµs for a %d to the %d bit exp\n", (nsec()-now)/(loops*1000),
 			b->top*Dbits, e->top*Dbits);
 	if(m != nil)
-		print("%B %B ^ %B mod p %B\n", b, e, m, res);
+		print("%B ^ %B mod %B == %B\n", b, e, m, res);
 	else
-		print("%B %B ^ p %B\n", b, e, res);
+		print("%B ^ %B == %B\n", b, e, res);
 	mpfree(b);
 	mpfree(e);
 	mpfree(res);
@@ -376,6 +386,8 @@ testgcd(void)
 	if(loops > 1)
 		print("binary %llud\n", etime);
 }
+
+extern int _unnormalizedwarning = 1;
 
 void
 main(int argc, char **argv)

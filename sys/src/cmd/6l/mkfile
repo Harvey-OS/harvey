@@ -18,9 +18,6 @@ HFILES=\
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 
-# -F disabled because %X uses two arguments; can't shut up warning with varargck
-CFLAGS=-Vw
-
 enam.$O:	../6c/enam.c
 	$CC $CFLAGS ../6c/enam.c
 

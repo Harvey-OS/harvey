@@ -344,6 +344,8 @@ enum {						/* Window 7 - bus master operations */
 };
 
 enum {						/* 3C90x extended register set */
+	Timer905		= 0x001A,	/* 8-bits */
+	TxStatus905		= 0x001B,	/* 8-bits */
 	PktStatus		= 0x0020,	/* 32-bits */
 	DnListPtr		= 0x0024,	/* 32-bits, 8-byte aligned */
 	FragAddr		= 0x0028,	/* 32-bits */
@@ -426,7 +428,7 @@ typedef struct {
 	int	dnq;
 
 	long	interrupts;			/* statistics */
-	long	timer;
+	long	timer[2];
 	long	stats[BytesRcvdOk+3];
 
 	int	upqmax;
@@ -950,7 +952,7 @@ static void
 interrupt(Ureg*, void* arg)
 {
 	Ether *ether;
-	int port, status, s, w, x;
+	int port, status, s, txstatus, w, x;
 	Ctlr *ctlr;
 
 	ether = arg;
@@ -958,12 +960,21 @@ interrupt(Ureg*, void* arg)
 	ctlr = ether->ctlr;
 
 	ilock(&ctlr->wlock);
-	w = (STATUS(port)>>13) & 0x07;
+	status = STATUS(port);
+	if(!(status & (interruptMask|interruptLatch))){
+		iunlock(&ctlr->wlock);
+		return;
+	}
+	w = (status>>13) & 0x07;
 	COMMAND(port, SelectRegisterWindow, Wop);
 
 	ctlr->interrupts++;
-	ctlr->timer += inb(port+Timer) & 0xFF;
-	while((status = STATUS(port)) & (interruptMask|interruptLatch)){
+	if(ctlr->busmaster == 2)
+		ctlr->timer[0] += inb(port+Timer905) & 0xFF;
+	else
+		ctlr->timer[0] += inb(port+Timer) & 0xFF;
+
+	do{
 		if(status & hostError){
 			/*
 			 * Adapter failure, try to find out why, reset if
@@ -1026,10 +1037,14 @@ interrupt(Ureg*, void* arg)
 			 * as a busmaster receive may be in progress.
 			 * For all conditions enable the transmitter.
 			 */
+			if(ctlr->busmaster == 2)
+				txstatus = port+TxStatus905;
+			else
+				txstatus = port+TxStatus;
 			s = 0;
 			do{
-				if(x = inb(port+TxStatus))
-					outb(port+TxStatus, 0);
+				if(x = inb(txstatus))
+					outb(txstatus, 0);
 				s |= x;
 			}while(STATUS(port) & txComplete);
 
@@ -1111,7 +1126,12 @@ interrupt(Ureg*, void* arg)
 			panic("#l%d: interrupt mask 0x%uX\n", ether->ctlrno, status);
 
 		COMMAND(port, AcknowledgeInterrupt, interruptLatch);
-	}
+	}while((status = STATUS(port)) & (interruptMask|interruptLatch));
+
+	if(ctlr->busmaster == 2)
+		ctlr->timer[1] += inb(port+Timer905) & 0xFF;
+	else
+		ctlr->timer[1] += inb(port+Timer) & 0xFF;
 
 	COMMAND(port, SelectRegisterWindow, w);
 	iunlock(&ctlr->wlock);
@@ -1135,18 +1155,30 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 
 	p = malloc(READSTR);
 	len = snprint(p, READSTR, "interrupts: %lud\n", ctlr->interrupts);
-	len += snprint(p+len, READSTR-len, "timer: %lud\n", ctlr->timer);
-	len += snprint(p+len, READSTR-len, "carrierlost: %lud\n", ctlr->stats[CarrierLost]);
-	len += snprint(p+len, READSTR-len, "sqeerrors: %lud\n", ctlr->stats[SqeErrors]);
-	len += snprint(p+len, READSTR-len, "multiplecolls: %lud\n", ctlr->stats[MultipleColls]);
-	len += snprint(p+len, READSTR-len, "singlecollframes: %lud\n", ctlr->stats[SingleCollFrames]);
-	len += snprint(p+len, READSTR-len, "latecollisions: %lud\n", ctlr->stats[LateCollisions]);
-	len += snprint(p+len, READSTR-len, "rxoverruns: %lud\n", ctlr->stats[RxOverruns]);
-	len += snprint(p+len, READSTR-len, "framesxmittedok: %lud\n", ctlr->stats[FramesXmittedOk]);
-	len += snprint(p+len, READSTR-len, "framesrcvdok: %lud\n", ctlr->stats[FramesRcvdOk]);
-	len += snprint(p+len, READSTR-len, "framesdeferred: %lud\n", ctlr->stats[FramesDeferred]);
-	len += snprint(p+len, READSTR-len, "bytesrcvdok: %lud\n", ctlr->stats[BytesRcvdOk]);
-	len += snprint(p+len, READSTR-len, "bytesxmittedok: %lud\n", ctlr->stats[BytesRcvdOk+1]);
+	len += snprint(p+len, READSTR-len, "timer: %lud %lud\n",
+		ctlr->timer[0], ctlr->timer[1]);
+	len += snprint(p+len, READSTR-len, "carrierlost: %lud\n",
+		ctlr->stats[CarrierLost]);
+	len += snprint(p+len, READSTR-len, "sqeerrors: %lud\n",
+		ctlr->stats[SqeErrors]);
+	len += snprint(p+len, READSTR-len, "multiplecolls: %lud\n",
+		ctlr->stats[MultipleColls]);
+	len += snprint(p+len, READSTR-len, "singlecollframes: %lud\n",
+		ctlr->stats[SingleCollFrames]);
+	len += snprint(p+len, READSTR-len, "latecollisions: %lud\n",
+		ctlr->stats[LateCollisions]);
+	len += snprint(p+len, READSTR-len, "rxoverruns: %lud\n",
+		ctlr->stats[RxOverruns]);
+	len += snprint(p+len, READSTR-len, "framesxmittedok: %lud\n",
+		ctlr->stats[FramesXmittedOk]);
+	len += snprint(p+len, READSTR-len, "framesrcvdok: %lud\n",
+		ctlr->stats[FramesRcvdOk]);
+	len += snprint(p+len, READSTR-len, "framesdeferred: %lud\n",
+		ctlr->stats[FramesDeferred]);
+	len += snprint(p+len, READSTR-len, "bytesrcvdok: %lud\n",
+		ctlr->stats[BytesRcvdOk]);
+	len += snprint(p+len, READSTR-len, "bytesxmittedok: %lud\n",
+		ctlr->stats[BytesRcvdOk+1]);
 
 	if(ctlr->upenabled){
 		if(ctlr->upqmax > ctlr->upqmaxhw)
@@ -1314,7 +1346,7 @@ tcm509isa(void)
 	 */
 	while(port = activate()){
 		if(ioalloc(port, 0x10, 0, "tcm509isa") < 0){
-			print("tcm509isa:port %d in use\n", port);
+			print("tcm509isa: port 0x%uX in use\n", port);
 			continue;
 		}
 
@@ -1376,7 +1408,7 @@ tcm5XXeisa(void)
 	for(slot = 1; slot < MaxEISA; slot++){
 		port = slot*0x1000;
 		if(ioalloc(port, 0x1000, 0, "tcm5XXeisa") < 0){
-			print("tcm5XXeisa: port %d in use\n", port);
+			print("tcm5XXeisa: port 0x%uX in use\n", port);
 			continue;
 		}
 		if(ins(port+0xC80+ManufacturerID) != 0x6D50){
@@ -1410,7 +1442,7 @@ tcm59Xpci(void)
 	while(p = pcimatch(p, 0x10B7, 0)){
 		port = p->mem[0].bar & ~0x01;
 		if(ioalloc(port, p->mem[0].size, 0, "tcm59Xpci") < 0){
-			print("tcm59Xpci: port %d in use\n", port);
+			print("tcm59Xpci: port 0x%uX in use\n", port);
 			continue;
 		}
 		irq = p->intl;
@@ -1811,9 +1843,9 @@ etherelnk3reset(Ether* ether)
 /*
  * forgive me, but i am weak
  */
-if(did == 0x9055 || did ==0x9200){
+if(did == 0x9055 || did == 0x9200){
    xcvr = xcvrMii;
-   XCVRDEBUG("9055 reset ops 0x%uX\n",
+   XCVRDEBUG("905[BC] reset ops 0x%uX\n",
 	ins(port+ResetOp905B));
 }
 else
@@ -1925,8 +1957,12 @@ XCVRDEBUG("\n");
 	 * Clear out any lingering Tx status.
 	 */
 	COMMAND(port, SelectRegisterWindow, Wop);
-	while(inb(port+TxStatus))
-		outb(port+TxStatus, 0);
+	if(busmaster == 2)
+		x = port+TxStatus905;
+	else
+		x = port+TxStatus;
+	while(inb(x))
+		outb(x, 0);
 
 	/*
 	 * Allocate a controller structure, clear out the

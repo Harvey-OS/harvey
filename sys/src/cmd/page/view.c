@@ -17,6 +17,7 @@ Document *doc;
 Image *im;
 int page;
 int upside = 0;
+int showbottom = 0;		/* on the next showpage, move the image so the bottom is visible. */
 
 Rectangle ulrange;	/* the upper left corner of the image must be in this rectangle */
 Point ul;			/* the upper left corner of the image is at this point on the screen */
@@ -133,7 +134,10 @@ showpage(int page, Menu *m)
 		rot180(im);
 
 	esetcursor(nil);
-	// ul = ulrange.min;
+	if(showbottom){
+		ul.y = screen->r.max.y - Dy(im->r);
+		showbottom = 0;
+	}
 
 	redraw(screen);
 	flushimage(display, 1);
@@ -322,7 +326,6 @@ viewer(Document *dd)
 				break;
 			case '-':
 			case '\b':
-			case Kup:	/* up arrow */
 			case Kleft:
 				if(page > 0 && !doc->fwdonly) {
 					--page;
@@ -337,13 +340,54 @@ viewer(Document *dd)
 					nxt = 0;
 					break;
 				}
-				/* fall through */
+				goto Gotonext;
 			case Kright:
-			case Kdown:
 			case ' ':
+			Gotonext:
 				if(doc->npage && ++page >= doc->npage && !doc->fwdonly)
 					wexits(0);
 				showpage(page, &menu);
+				break;
+
+			/*
+			 * The upper y coordinate of the image is at ul.y in screen->r.
+			 * Panning up means moving the upper left corner down.  If the
+			 * upper left corner is currently visible, we need to go back a page.
+			 */
+			case Kup:
+				if(screen->r.min.y <= ul.y && ul.y < screen->r.max.y){
+					if(page > 0 && !doc->fwdonly){
+						--page;
+						showbottom = 1;
+						showpage(page, &menu);
+					}
+				} else {
+					i = Dy(screen->r)/2;
+					if(i > 10)
+						i -= 10;
+					if(i+ul.y > screen->r.min.y)
+						i = screen->r.min.y - ul.y;
+					translate(Pt(0, i));
+				}
+				break;
+
+			/*
+			 * If the lower y coordinate is on the screen, we go to the next page.
+			 * The lower y coordinate is at ul.y + Dy(im->r).
+			 */
+			case Kdown:
+				i = ul.y + Dy(im->r);
+				if(screen->r.min.y <= i && i <= screen->r.max.y){
+					ul.y = screen->r.min.y;
+					goto Gotonext;
+				} else {
+					i = -Dy(screen->r)/2;
+					if(i < -10)
+						i += 10;
+					if(i+ul.y+Dy(im->r) <= screen->r.max.y)
+						i = screen->r.max.y - Dy(im->r) - ul.y - 1;
+					translate(Pt(0, i));
+				}
 				break;
 			default:
 				esetcursor(&query);

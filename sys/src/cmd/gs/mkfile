@@ -41,10 +41,6 @@ DRIVERS=\
 	bj10e\
 	bjc600\
 	bjc800\
-	cdj1600\
-	cdj670\
-	cdj850\
-	cdj890\
 	dfaxlow\
 	epswrite\
 	jpeg\
@@ -182,7 +178,7 @@ gs([0-9]+\.[0-9]+)/$O.out:R:	gs\1/src
 
 gs%/src:	ghostscript-%.tar.gz
 	rm -rf gs$stem
-	pub/gzip -d < ghostscript-$stem.tar.gz | tar x
+	gunzip < ghostscript-$stem.tar.gz | tar x
 	chmod g+w gs$stem/* gs$stem/*/*
 	# local drivers
 	cp src/gdevifno.c gs$stem/src/gdevifno.c
@@ -195,7 +191,7 @@ gs%/src:	ghostscript-%.tar.gz
 
 ghostscript-%.tar.gz:
 	outside
-	uget -o $target http://download.sourceforge.net/ghostscript/$target
+	hget -o $target http://download.sourceforge.net/ghostscript/$target
 #	ftpfs -a $user^'@' ftp.cs.wisc.edu
 #	cp /n/ftp/ghost/aladdin/*/ghostscript-$stem.tar.gz .
 

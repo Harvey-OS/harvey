@@ -3,7 +3,6 @@ OS=posix
 
 CC=cc
 CFLAGS=-g -c -DIRIX
-BIN=/home/rsc/bin/Irix
 TARG=drawterm
 O=o
 LD=cc
@@ -16,12 +15,12 @@ DEVFS=devunixfs
 OSFILES=lock-irix.$O md-iprint.$O
 LIBS=-lm -L/usr/X11R6/lib -lX11 -lpthread
 
-ml-%.$O:	./libmemlayer/%.c
-	$CC $CFLAGS -o ml-$stem.o ./libmemlayer/$stem.c
+ml-%.$O:	$DSRC/libmemlayer/%.c
+	$CC $CFLAGS -o ml-$stem.o $DSRC/libmemlayer/$stem.c
 
-md-%.$O:	./libmemdraw/%.c
-	$CC $CFLAGS -o md-$stem.o ./libmemdraw/$stem.c
+md-%.$O:	$DSRC/libmemdraw/%.c
+	$CC $CFLAGS -o md-$stem.o $DSRC/libmemdraw/$stem.c
 
-d-%.$O:	./libdraw/%.c
-	$CC $CFLAGS -o d-$stem.o ./libdraw/$stem.c
+d-%.$O:	$DSRC/libdraw/%.c
+	$CC $CFLAGS -o d-$stem.o $DSRC/libdraw/$stem.c
 

@@ -621,7 +621,7 @@ getresponse(void)
 
 	exitflag = "bad response";
 	if(!remote)
-		fprint(2, "%.*s\n", i, (char*)buf);
+		fprint(2, "%.*s\n", utfnlen((char*)buf, i), (char*)buf);
 
 	if (first == ERROR)
 		return -1;

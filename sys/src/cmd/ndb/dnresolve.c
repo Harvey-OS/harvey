@@ -336,7 +336,7 @@ readreply(int fd, DN *dp, int type, ushort req,
 			return -1;	/* timed out */
 
 		/* timed read */
-		alarm(1000);
+		alarm((endtime - now) * 1000);
 		len = read(fd, ibuf, Udphdrsize+Maxudpin);
 		alarm(0);
 		len -= Udphdrsize;
@@ -609,9 +609,8 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 				if(np->s == p->s)
 					p->nx = Maxtrans;
 
-			/* ignore any answer with bad delegations */
-			if((m.flags & Rmask) == Rserver
-			|| (m.ns && baddelegation(m.ns, nsrp, ibuf))){
+			/* ignore any error replies */
+			if((m.flags & Rmask) == Rserver){
 				rrfreelist(m.qd);
 				rrfreelist(m.an);
 				rrfreelist(m.ar);
@@ -620,6 +619,20 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 					p->code = Rserver;
 				continue;
 			}
+
+			/* ignore any bad delegations */
+			if(m.ns && baddelegation(m.ns, nsrp, ibuf)){
+				rrfreelist(m.ns);
+				m.ns = nil;
+				if(m.an == nil){
+					rrfreelist(m.qd);
+					rrfreelist(m.ar);
+					if(p != l)
+						p->code = Rserver;
+					continue;
+				}
+			}
+
 
 			/* remove any soa's from the authority section */
 			soarr = rrremtype(&m.ns, Tsoa);

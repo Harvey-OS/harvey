@@ -62,11 +62,10 @@ authcheck(Connect *c)
  * includes checks for conditional requests & ranges.
  */
 int
-sendfd(Connect *c, int fd, Dir *dir)
+sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc)
 {
 	Range *r;
 	Contents conts;
-	Content *type, *enc;
 	Hio *hout;
 	char *boundary, etag[32];
 	ulong tr;
@@ -81,20 +80,20 @@ sendfd(Connect *c, int fd, Dir *dir)
 	n = -1;
 	r = nil;
 	multir = 0;
-	type = nil;
-	enc = nil;
 	boundary = nil;
 	if(c->req.vermaj){
-		conts = uriclass(c->req.uri);
-		type = conts.type;
-		enc = conts.encoding;
 		if(type == nil && enc == nil){
-			n = read(fd, c->xferbuf, BufSize-1);
-			if(n > 0){
-				c->xferbuf[n] = '\0';
-				conts = dataclass(c->xferbuf, n);
-				type = conts.type;
-				enc = conts.encoding;
+			conts = uriclass(c->req.uri);
+			type = conts.type;
+			enc = conts.encoding;
+			if(type == nil && enc == nil){
+				n = read(fd, c->xferbuf, BufSize-1);
+				if(n > 0){
+					c->xferbuf[n] = '\0';
+					conts = dataclass(c->xferbuf, n);
+					type = conts.type;
+					enc = conts.encoding;
+				}
 			}
 		}
 		if(type == nil)

@@ -1,0 +1,37 @@
+#!/bin/rc
+
+rfork e
+
+usage=prog
+FLAGs=()
+eval `{aux/getflags s $*}
+
+if(~ $#* 0) {
+	echo 'usage: leak prog' >[1=2]
+	exit usage
+}
+
+if(! test -d /proc/$1) {
+	x=`{psu | awk '$NF=="'$1'" {print $2}'}
+	if(~ $#x 0) {
+		echo 'no processes named '$1 >[1=2]
+		exit usage
+	}
+	if(~ $#FLAGs 1)
+		sflag='-s '
+	if not
+		sflag=''
+	echo leak $sflag$"x
+	exit
+}
+
+x=`{echo $"* | tr ' ' ,}
+
+echo 'leakdump({'$x'})' | acid -lpool -lleak $1 | aux/acidleak |
+{
+	if(~ $#FLAGs 1)
+		awk '{print $4}' | sort | uniq -c | sort -nr |
+			sed 's! *(.*) (0x.*)!src(\2); // \1!'
+	if not
+		cat
+}

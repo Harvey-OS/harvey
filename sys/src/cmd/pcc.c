@@ -49,8 +49,9 @@ main(int argc, char *argv[])
 	Objtype *ot;
 	char *s, *suf, *ccpath;
 	char *oname;
-	int i, cppn, ccn;
+	int i, cppn, ccn, oflag;
 
+	oflag = 0;
 	ot = findoty();
 	oname = ot->oname;
 	append(&cpp, "cpp");
@@ -60,6 +61,9 @@ main(int argc, char *argv[])
 	append(&ld, ot->ld);
 	while(argc > 0) {
 		ARGBEGIN {
+		case '+':
+			append(&cpp, str("-%c", ARGC()));
+			break;
 		case 'c':
 			cflag = 1;
 			break;
@@ -67,6 +71,7 @@ main(int argc, char *argv[])
 			append(&objs, str("/%s/lib/ape/lib%s.a", ot->name, ARGF()));
 			break;
 		case 'o':
+			oflag = 1;
 			oname = ARGF();
 			if(!oname)
 				fatal("no -o argument");
@@ -110,6 +115,9 @@ main(int argc, char *argv[])
 				append(&cc, "-a");
 			cflag = 1;
 			break;
+		case 'F':
+			append(&cc, "-F");
+			break;
 		default:
 			fprint(2, "pcc: flag -%c ignored\n", ARGC());
 			break;
@@ -148,7 +156,10 @@ main(int argc, char *argv[])
 			doexec("/bin/cpp", &cpp);
 		else {
 			append(&cc, "-o");
-			append(&cc, objs.strings[i]);
+			if(oflag && cflag)
+				append(&cc, oname);
+			else
+				append(&cc, changeext(srcs.strings[i], ot->o));
 			dopipe("/bin/cpp", &cpp, ccpath, &cc);
 		}
 		cpp.n = cppn;

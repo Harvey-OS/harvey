@@ -1,5 +1,5 @@
 #define RBUFSIZE	(16*1024)	/* raw buffer size */
-#define	DSIZE		(79563-1)	/* worm size */
+#define	DSIZE		157933
 
 #include "../port/portdat.h"
 

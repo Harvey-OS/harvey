@@ -403,7 +403,8 @@ pcimatch(Pcidev* prev, int vid, int did)
 		prev = prev->list;
 
 	while(prev != nil){
-		if(prev->vid == vid && (did == 0 || prev->did == did))
+		if((vid == 0 || prev->vid == vid)
+		&& (did == 0 || prev->did == did))
 			break;
 		prev = prev->list;
 	}
@@ -468,4 +469,14 @@ pcireset(void)
 		pcr = pcicfgr16(p, PciPSR);
 		pcicfgw16(p, PciPSR, pcr & ~0x04);
 	}
+}
+
+void
+pcisetbme(Pcidev* p)
+{
+	int pcr;
+
+	pcr = pcicfgr16(p, PciPCR);
+	pcr |= 0x04;
+	pcicfgw16(p, PciPCR, pcr);
 }

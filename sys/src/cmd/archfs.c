@@ -9,7 +9,6 @@
 #include <fcall.h>
 #include <thread.h>
 #include <9p.h>
-#include <disk.h>	/* for emalloc; i am weak */
 
 Tree *archtree;
 Biobuf *b;
@@ -26,6 +25,27 @@ struct Arch {
 	vlong off;
 	vlong length;
 };
+
+static void*
+emalloc(long sz)
+{
+	void *v;
+
+	v = malloc(sz);
+	if(v == nil)
+		sysfatal("malloc %lud fails\n", sz);
+	memset(v, 0, sz);
+	return v;
+}
+
+static char*
+estrdup(char *s)
+{
+	s = strdup(s);
+	if(s == nil)
+		sysfatal("strdup (%.10s) fails\n", s);
+	return s;
+}
 
 static char*
 Bgetline(Biobuf *b)
@@ -102,7 +122,10 @@ fcreatewalk(File *f, char *name, char *u, char *g, ulong m)
 			continue;
 		/* this would be a race if we were multithreaded */
 		decref(&f->ref);
-		f = fwalk(f, elem);
+		nf = fwalk(f, elem);
+		if(nf == nil)
+			nf = fcreate(f, elem, u, g, CHDIR|0777);
+		f = nf;
 	}
 	if(f == nil)
 		return nil;

@@ -280,6 +280,7 @@ header(char *s)
 {
 	Bprint(&bout, "<HEAD>\n");
 	Bprint(&bout, "<TITLE>%s</TITLE>\n", s);
+	Bprint(&bout, "<META content=\"text/html; charset=utf-8\" http-equiv=Content-Type>\n");
 	Bprint(&bout, "</HEAD>\n");
 	Bprint(&bout, "<BODY BGCOLOR=WHITE>\n");
 }
@@ -488,8 +489,6 @@ emithtmlchar(int r)
 	i = lookup(r, htmlchars, nelem(htmlchars));
 	if(i >= 0)
 		emitstr(htmlchars[i].name);
-	else if(r > '~')
-		emitstr("&#191;");
 	else
 		emit(r);
 }

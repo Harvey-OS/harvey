@@ -87,6 +87,13 @@ X86type x86type[] =
 
 static X86type	*cputype;
 
+static void
+nop(void)
+{
+}
+
+void (*coherence)(void) = nop;
+
 /*
  *  delay for l milliseconds more or less.  delayloop is set by
  *  clockinit() to match the actual CPU speed.
@@ -144,6 +151,9 @@ clockinit(void)
 		|| (t->family == -1))
 			break;
 	cputype = t;
+
+	if(family >= 5)
+		coherence = wbflush;
 
 	/*
 	 *  set clock for 1/HZ seconds

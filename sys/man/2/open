@@ -98,9 +98,12 @@ for an extended period; see
 fails if the path up to the last element of
 .I file
 cannot be evaluated, if the user doesn't have write permission
-in the final directory, or if the file already exists and
+in the final directory, if the file already exists and
 does not permit the access defined by
-.IR omode .
+.IR omode ,
+of if there there are no free file descriptors.
+In the last case, the file may be created even when
+an error is returned.
 If the file is new and the directory in which it is created is
 a union directory (see
 .IR intro (2))

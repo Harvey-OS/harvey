@@ -87,6 +87,9 @@ mktree(char *uid, char *gid, ulong mode)
 
 	t = emalloc(sizeof *t);
 	f = allocfile();
+	if(f == nil)
+		return nil;
+
 	strcpy(f->name, "/");
 
 	if(uid == nil)
@@ -145,6 +148,8 @@ fcreate(File *dir, char *name, char *uid, char *gid, ulong mode)
 	}
 
 	f = allocfile();
+	if(f == nil)
+		return nil;
 
 	strcpy(f->name, name);
 	strcpy(f->uid, uid ? uid : dir->uid);
@@ -161,6 +166,7 @@ fcreate(File *dir, char *name, char *uid, char *gid, ulong mode)
 	f->length = 0;
 
 	f->parent = dir;
+	incref(&dir->ref);		/* because another child has a ref */
 	f->tree = dir->tree;
 
 	incref(&f->ref);		/* because we'll return it */

@@ -165,7 +165,7 @@ to stop after playing the sequence once.
 .TP
 .BI -d msec
 By default, the images are displayed as fast as they can be rendered.
-This option specifies the time, in milliseconds, to pause before
+This option specifies the time, in milliseconds, to pause while
 displaying the next named
 .IR file .
 .SH SOURCE

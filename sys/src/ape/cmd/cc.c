@@ -195,7 +195,7 @@ main(int argc, char *argv[])
 				if (haveoname && cflag)
 					append(&cc, oname);
 				else
-					append(&cc, changeext(objs.strings[i], "o"));
+					append(&cc, changeext(srcs.strings[i], "o"));
 			}
 			dopipe("/bin/cpp", &cpp, ccpath, &cc);
 		}

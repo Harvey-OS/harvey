@@ -305,7 +305,7 @@ rfdalloc(ulong link)
 	Msgbuf *mb;
 	Rfd *rfd;
 
-	if(mb = mballoc(sizeof(Rfd), 0, Mxxx)){
+	if(mb = mballoc(sizeof(Rfd), 0, Maeth2)){
 		rfd = (Rfd*)mb->data;
 		rfd->field = 0;
 		rfd->link = link;
@@ -504,7 +504,7 @@ receive(Ether* ether)
 		if(rfd->field & RfdOK){
 			pmb = nil;
 			count = rfd->count & 0x3FFF;
-			if((count < ETHERMAXTU/4) && (pmb = mballoc(count, 0, Mxxx))){
+			if((count < ETHERMAXTU/4) && (pmb = mballoc(count, 0, Maeth3))){
 				memmove(pmb->data, mb->data+sizeof(Rfd)-sizeof(rfd->data), count);
 				pmb->count = count;
 
@@ -786,7 +786,7 @@ i82557adapter(Msgbuf** mbb, int port, int irq, int tbdf)
 	Msgbuf *mb;
 	Adapter *ap;
 
-	mb = mballoc(sizeof(Adapter), 0, Mxxx);
+	mb = mballoc(sizeof(Adapter), 0, Maeth1);
 	ap = (Adapter*)mb->data;
 	ap->port = port;
 	ap->irq = irq;
@@ -809,6 +809,7 @@ i82557pci(void)
 		 * bar[2] is for the flash ROM (1MB).
 		 */
 		i82557adapter(&adapter, p->mem[1].bar & ~0x01, p->intl, p->tbdf);
+		pcisetbme(p);
 	}
 }
 

@@ -49,6 +49,7 @@ the data itself
 At the moment, only textual data
 .RB ( type=text )
 is supported.
+.PD
 .PP
 All fields are optional, but
 .B type

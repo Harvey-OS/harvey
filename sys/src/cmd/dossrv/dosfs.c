@@ -552,14 +552,14 @@ doremove(Xfs *xf, Dosptr *dp)
 
 	dp->p->iobuf[dp->offset] = DOSEMPTY;
 	dp->p->flags |= BMOD;
-	for(prevdo = dp->offset-32; prevdo >= 0; prevdo -= 32){
+	for(prevdo = dp->offset-DOSDIRSIZE; prevdo >= 0; prevdo -= DOSDIRSIZE){
 		if(dp->p->iobuf[prevdo+11] != 0xf)
 			break;
 		dp->p->iobuf[prevdo] = DOSEMPTY;
 	}
 	if(prevdo < 0 && dp->prevaddr != -1){
 		p = getsect(xf, dp->prevaddr);
-		for(prevdo = ((Dosbpb*)xf->ptr)->sectsize-32; prevdo >= 0; prevdo -= 32){
+		for(prevdo = ((Dosbpb*)xf->ptr)->sectsize-DOSDIRSIZE; prevdo >= 0; prevdo -= DOSDIRSIZE){
 			if(p->iobuf[prevdo+11] != 0xf)
 				break;
 			p->iobuf[prevdo] = DOSEMPTY;
@@ -661,14 +661,14 @@ dostat(Xfile *f, Dir *d)
 		sum = aliassum(dp->d);
 		islong = 0;
 		name = namebuf;
-		for(prevdo = dp->offset-32; prevdo >= 0; prevdo -= 32){
+		for(prevdo = dp->offset-DOSDIRSIZE; prevdo >= 0; prevdo -= DOSDIRSIZE){
 			if(dp->p->iobuf[prevdo+11] != 0xf)
 				break;
 			name = getnamesect(namebuf, name, &dp->p->iobuf[prevdo], &islong, &sum, -1);
 		}
 		if(prevdo < 0 && dp->prevaddr != -1){
 			p = getsect(f->xf, dp->prevaddr);
-			for(prevdo = ((Dosbpb*)f->xf->ptr)->sectsize-32; prevdo >= 0; prevdo -= 32){
+			for(prevdo = ((Dosbpb*)f->xf->ptr)->sectsize-DOSDIRSIZE; prevdo >= 0; prevdo -= DOSDIRSIZE){
 				if(p->iobuf[prevdo+11] != 0xf)
 					break;
 				name = getnamesect(namebuf, name, &p->iobuf[prevdo], &islong, &sum, -1);

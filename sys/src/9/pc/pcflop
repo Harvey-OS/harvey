@@ -1,0 +1,77 @@
+dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+
+	ether		netif
+	ip		arp dial inferno ip ipaux iproute kio netlog nullmedium pktmedium ptclbsum386
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+
+	sd
+
+	floppy		dma
+
+	i82365
+	ns16552
+
+link
+	ether2000	ether8390
+	ether2114x	pci
+	ether589	etherelnk3
+	ether79c970	pci
+	ether8003	ether8390
+	ether82557	pci
+	etherec2t	ether8390
+	etherelnk3	pci
+	ethermedium
+	pcmciamodem
+
+misc
+	archmp		mp apic
+
+	bzfs.root
+
+	sdata		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+
+	vga3dfx		+cur
+	vgaark2000pv	+cur
+	vgabt485	=cur
+	vgaclgd542x	+cur
+	vgaclgd546x	+cur
+	vgact65545	+cur
+	vgacyber938x	+cur
+	vgaet4000	+cur
+	vgahiqvideo	+cur
+	vgamach64xx	+cur
+	vgamga2164w	+cur
+	vganeomagic	+cur
+	vgargb524	=cur
+	vgas3		+cur vgasavage
+	vgat2r4		+cur
+	vgatvp3020	=cur
+	vgatvp3026	=cur
+
+ip
+	il
+	tcp
+	udp
+	ipifc
+	icmp
+
+port
+	int cpuserver = 0;	
+
+boot cpu boot #f/fd0disk
+	local

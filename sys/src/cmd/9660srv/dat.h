@@ -54,6 +54,9 @@ struct Xfs
 	Xdata*	d;		/* how to get the bits */
 	Xfsub*	s;		/* how to use them */
 	int	ref;
+	int	issusp;	/* follows system use sharing protocol */
+	long	suspoff;	/* if so, offset at which SUSP area begins */
+	int	isrock;	/* Rock Ridge format */
 	int	isplan9;	/* has Plan 9-specific directory info */
 	Qid	rootqid;
 	void*	ptr;		/* private data */
@@ -99,3 +102,4 @@ extern char	err_msg[];
 
 extern int nojoliet;
 extern int noplan9;
+extern int norock;

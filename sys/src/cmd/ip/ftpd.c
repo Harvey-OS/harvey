@@ -724,7 +724,7 @@ portcmd(char *arg)
 	n = getfields(arg, field, 7, 0, ", ");
 	if(n != 6)
 		return reply("501 Incorrect port specification");
-	sprint(data, "tcp!%.3s.%.3s.%.3s.%.3s!%d", field[0], field[1], field[2],
+	snprint(data, sizeof data, "tcp!%.3s.%.3s.%.3s.%.3s!%d", field[0], field[1], field[2],
 		field[3], atoi(field[4])*256 + atoi(field[5]));
 	return reply("200 Data port is %s", data);
 }

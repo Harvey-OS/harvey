@@ -162,6 +162,18 @@ regopt(Prog *p)
 				addrs.b[z] |= bit.b[z];
 			break;
 		}
+
+		if(p->as == AMOVM) {
+			if(p->from.type == D_CONST)
+				z = p->from.offset;
+			else
+				z = p->to.offset;
+			for(i=0; z; i++) {
+				if(z&1)
+					regbits |= RtoB(i);
+				z >>= 1;
+			}
+		}
 	}
 	if(firstr == R)
 		return;
@@ -769,13 +781,15 @@ loopmark(Reg **rpo2r, long head, Reg *r)
 void
 loopit(Reg *r, long nr)
 {
-	Reg *r1, **rpo2r;
-	long i, d, me, *idom;
+	Reg *r1;
+	long i, d, me;
 
-	rpo2r = malloc(nr * sizeof(Reg*));
-	idom = malloc(nr * sizeof(long));
-	if(rpo2r == nil)
-		sysfatal("out of memory");
+	if(nr > maxnr) {
+		rpo2r = alloc(nr * sizeof(Reg*));
+		idom = alloc(nr * sizeof(long));
+		maxnr = nr;
+	}
+
 	d = postorder(r, rpo2r, 0);
 	if(d > nr)
 		sysfatal("too many reg nodes");
@@ -807,9 +821,6 @@ loopit(Reg *r, long nr)
 		if(r1->p2 != R && loophead(idom, r1))
 			loopmark(rpo2r, i, r1);
 	}
-
-	free(rpo2r);
-	free(idom);
 }
 
 void
@@ -1123,16 +1134,16 @@ BtoR(long b)
 
 /*
  *	bit	reg
- *	22	F4
- *	23	F6
+ *	18	F2
+ *	19	F3
  *	...	...
- *	31	F22
+ *	23	F7
  */
 long
 FtoB(int f)
 {
 
-	if(f < 2 || f > 12)
+	if(f < 2 || f > NFREG-1)
 		return 0;
 	return 1L << (f + 16);
 }
@@ -1141,7 +1152,7 @@ int
 BtoF(long b)
 {
 
-	b &= 0xffc0000L;
+	b &= 0xfc0000L;
 	if(b == 0)
 		return 0;
 	return bitno(b) - 16;

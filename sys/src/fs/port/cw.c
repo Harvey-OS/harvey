@@ -959,7 +959,7 @@ cacheinit(Device *dev)
 	Iobuf *cb, *p;
 	Cache *h;
 	Device *cdev;
-	long long m;
+	long m;
 
 	print("cache init %D\n", dev);
 	cdev = CDEV(dev);
@@ -977,7 +977,7 @@ cacheinit(Device *dev)
 	 */
 	h->maddr = CACHE_ADDR + 1;
 	m = devsize(cdev) - h->maddr;
-	h->csize = ((m-1) * CEPERBK*BKPERBLK) / (CEPERBK*BKPERBLK+1);
+	h->csize = ((long long)(m-1) * CEPERBK*BKPERBLK) / (CEPERBK*BKPERBLK+1);
 	h->msize = h->csize/CEPERBK - 5;
 	while(!prime(h->msize))
 		h->msize--;
@@ -1071,7 +1071,7 @@ cwrecover(Device *dev)
 	h->sbaddr = baddr;
 	h->cwraddr = s->cwraddr;
 	h->roraddr = s->roraddr;
-	h->fsize = s->fsize;		/* this must be accurate */
+	h->fsize = s->fsize + 100;		/* this must be conservative */
 	if(conf.recovcw)
 		h->cwraddr = conf.recovcw;
 	if(conf.recovro)

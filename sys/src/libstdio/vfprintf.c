@@ -434,7 +434,6 @@ ocvt_g(FILE *f, va_list *args, int flags, int width, int precision)
 static int
 ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 {
-	extern char *_dtoa(double, int, int, int*, int*, char **);
 	int echr;
 	char *digits, *edigits;
 	int exponent;
@@ -452,23 +451,23 @@ ocvt_flt(FILE *f, va_list *args, int flags, int width, int precision, char afmt)
 	if(precision < 0) precision = 6;
 	switch(fmt){
 	case 'f':
-		digits = _dtoa(d, 3, precision, &exponent, &sign, &edigits);
+		digits = dtoa(d, 3, precision, &exponent, &sign, &edigits);
 		break;
 	case 'E':
 		echr = 'E';
 		fmt = 'e';
 		/* fall through */
 	case 'e':
-		digits = _dtoa(d, 2, 1+precision, &exponent, &sign, &edigits);
+		digits = dtoa(d, 2, 1+precision, &exponent, &sign, &edigits);
 		break;
 	case 'G':
 		echr = 'E';
 		/* fall through */
 	case 'g':
 		if (precision > 0)
-			digits = _dtoa(d, 2, precision, &exponent, &sign, &edigits);
+			digits = dtoa(d, 2, precision, &exponent, &sign, &edigits);
 		else {
-			digits = _dtoa(d, 0, precision, &exponent, &sign, &edigits);
+			digits = dtoa(d, 0, precision, &exponent, &sign, &edigits);
 			precision = edigits - digits;
 			if (exponent > precision && exponent <= precision + 4)
 				precision = exponent;

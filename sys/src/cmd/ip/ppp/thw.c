@@ -17,6 +17,7 @@ struct Uncstate
 {
 	QLock		ackl;			/* lock for acks sent back to compressor */
 	int		doack;			/* send an ack? */
+	int		badpacks;		/* bad packets seen in a row */
 	ulong		ackseq;			/* packets to ack */
 	int		ackmask;
 
@@ -27,9 +28,13 @@ struct Uncstate
 
 enum
 {
-	ThwCompressed	= 1UL << 23,
-	ThwAcked	= 1UL << 22,
+	ThwAcked	= 1UL << 23,
+	ThwCompMask	= 3UL << 21,
+	ThwCompressed	= 0UL << 21,
+	ThwUncomp	= 1UL << 21,
+	ThwUncompAdd	= 2UL << 21,		/* uncompressed, but add to decompression buffer */
 	ThwSeqMask	= 0x0fffff,
+	ThwSmallPack	= 96,
 };
 
 static	void		*compinit(PPP*);
@@ -77,14 +82,38 @@ compfini(void *as)
 	free(cs);
 }
 
+
+static Block *
+compresetreq(void *as, Block *b)
+{
+	Cstate *cs;
+	Lcpmsg *m;
+	int id;
+
+	cs = as;
+	m = (Lcpmsg*)b->rptr;
+	id = m->id;
+
+	thwackinit(&cs->th);
+
+	freeb(b);
+
+	netlog("thwack resetreq id=%d \n", id);
+
+	b = alloclcp(Lresetack, id, 4, &m);
+	hnputs(m->len, 4);
+
+	return b;
+}
+
 static Block*
 comp(PPP *ppp, ushort proto, Block *b, int *protop)
 {
 	Uncstate *uncs;
 	Cstate *cs;
 	Block *bb;
-	int n, nn;
 	ulong seq, acked;
+	int n, nn, mustadd;
 
 	cs = ppp->cstate;
 	*protop = 0;
@@ -118,11 +147,16 @@ comp(PPP *ppp, ushort proto, Block *b, int *protop)
 	}
 
 	bb = allocb(BLEN(b) + 3);
-	bb->wptr += 3;
 
 	seq = cs->seq;
-	nn = thwack(&cs->th, bb->wptr, b, seq, cs->stats);
-	if(nn < 0 || nn + 3 > n){
+	if(n <= 3){
+		mustadd = 0;
+		nn = -1;
+	}else{
+		mustadd = n < ThwSmallPack;
+		nn = thwack(&cs->th, mustadd, bb->wptr + 3, n - 3, b, seq, cs->stats);
+	}
+	if(nn < 0 && !mustadd){
 		if(!acked || BLEN(b) + 1 > ppp->mtu){
 			freeb(bb);
 			if(acked)
@@ -134,50 +168,30 @@ comp(PPP *ppp, ushort proto, Block *b, int *protop)
 			*protop = proto;
 			return b;
 		}
-		bb->wptr -= 2;
-		memmove(bb->wptr, b->rptr, BLEN(b));
-		bb->wptr += BLEN(b);
+		bb->wptr[0] = (ThwUncomp | ThwAcked) >> 16;
+
+		memmove(bb->wptr + 1, b->rptr, BLEN(b));
+
+		bb->wptr += BLEN(b) + 1;
 		freeb(b);
-		bb->rptr[0] = acked >> 16;
 	}else{
-		bb->wptr += nn;
-
 		cs->seq = (seq + 1) & ThwSeqMask;
+		if(nn < 0){
+			nn = BLEN(b);
+			memmove(bb->wptr + 3, b->rptr, nn);
+			seq |= ThwUncompAdd;
+		}else
+			seq |= ThwCompressed;
+		seq |= acked;
+		bb->wptr[0] = seq>>16;
+		bb->wptr[1] = seq>>8;
+		bb->wptr[2] = seq;
 
-		seq |= ThwCompressed | acked;
-		bb->rptr[0] = seq>>16;
-		bb->rptr[1] = seq>>8;
-		bb->rptr[2] = seq;
+		bb->wptr += nn + 3;
 	}
 
 	*protop = Pcdata;
 	return bb;
-}
-
-static Block *
-compresetreq(void *as, Block *b)
-{
-	Cstate *cs;
-	Lcpmsg *m;
-	int id;
-
-	cs = as;
-	m = (Lcpmsg*)b->rptr;
-	id = m->id;
-
-	thwackinit(&cs->th);
-
-	freeb(b);
-
-	netlog("thwack resetreq id=%d \n", id);
-
-	/*
-	 * should we send back the sequence number?
-	 */
-	b = alloclcp(Lresetack, id, 4, &m);
-	hnputs(m->len, 4);
-
-	return b;
 }
 
 static	void *
@@ -194,15 +208,42 @@ uncinit(PPP *)
 	return s;
 }
 
+static	void
+uncfini(void *as)
+{
+	free(as);
+}
+
+static	void
+uncresetack(void *as, Block *b)
+{
+	Uncstate *s;
+	Lcpmsg *m;
+
+	s = as;
+	m = (Lcpmsg*)b->rptr;
+
+	/*
+	 * rfc 1962 says we must reset every message
+	 * we don't since we may have acked some messages
+	 * which the compressor will use in the future.
+	 */
+	netlog("unthwack resetack id=%d resetid=%d active=%d\n", m->id, s->resetid, s->active);
+	if(m->id == (uchar)s->resetid && !s->active){
+		s->active = 1;
+		unthwackinit(&s->ut);
+	}
+}
+
 static	Block*
 uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 {
+	Lcpmsg *m;
 	Cstate *cs;
 	Uncstate *uncs;
 	Block *b, *r;
-	ushort proto;
 	ulong seq, mseq;
-	Lcpmsg *m;
+	ushort proto;
 	uchar mask;
 	int n;
 
@@ -226,29 +267,32 @@ uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 	}
 
 	seq = bb->rptr[0] << 16;
-	if(seq & ThwCompressed){
+	if((seq & ThwCompMask) == ThwUncomp){
+		bb->rptr++;
+		b = bb;
+	}else{
 		seq |= (bb->rptr[1]<<8) | bb->rptr[2];
 		bb->rptr += 3;
-		b = allocb(ThwMaxBlock);
-		n = unthwack(&uncs->ut, b->wptr, ThwMaxBlock, bb->rptr, BLEN(bb), seq & ThwSeqMask);
-		freeb(bb);
-		if(n < 2){
-			syslog(0, "ppp", ": unthwack: short or corrupted packet %d seq=%ld\n", n, seq);
-			netlog("unthwack: short or corrupted packet n=%d seq=%d: %s\n", n, seq, uncs->ut.err);
-			freeb(b);
+		if((seq & ThwCompMask) == ThwCompressed){
+			b = allocb(ThwMaxBlock);
+			n = unthwack(&uncs->ut, b->wptr, ThwMaxBlock, bb->rptr, BLEN(bb), seq & ThwSeqMask);
+			freeb(bb);
+			if(n < 2){
+				syslog(0, "ppp", ": unthwack: short or corrupted packet %d seq=%ld\n", n, seq);
+				netlog("unthwack: short or corrupted packet n=%d seq=%ld: %s\n", n, seq, uncs->ut.err);
+				freeb(b);
 
-			/*
-			 * send a reset unless we're just missing packets
-			 */
-			if(n != -2){
 				r = alloclcp(Lresetreq, ++uncs->resetid, 4, &m);
 				hnputs(m->len, 4);
 				*reply = r;
 				uncs->active = 0;
+				return nil;
 			}
-			return nil;
+			b->wptr += n;
+		}else{
+			unthwackadd(&uncs->ut, bb->rptr, BLEN(bb), seq & ThwSeqMask);
+			b = bb;
 		}
-		b->wptr += n;
 
 		/*
 		 * update ack state
@@ -259,9 +303,6 @@ uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 		uncs->ackmask = mask;
 		uncs->doack = 1;
 		qunlock(&uncs->ackl);
-	}else{
-		bb->rptr++;
-		b = bb;
 	}
 
 	/*
@@ -280,37 +321,9 @@ uncomp(PPP *ppp, Block *bb, int *protop, Block **reply)
 			cs = ppp->cstate;
 			mseq = (b->rptr[0]<<16) | (b->rptr[1]<<8) | b->rptr[2];
 			mask = b->rptr[3];
-			netlog("thwack ack: mask=%#x seq=%d\n", mask, mseq);
 			thwackack(&cs->th, mseq, mask);
 		}
 		b->rptr += 4;
 	}
 	return b;
-}
-
-static	void
-uncresetack(void *as, Block *b)
-{
-	Uncstate *s;
-	Lcpmsg *m;
-
-	s = as;
-	m = (Lcpmsg*)b->rptr;
-
-	/*
-	 * rfc 1962 says we must reset every message
-	 * we don't since we may have acked some messages
-	 * which the compressor will use in the future.
-	 */
-	netlog("unthwack resetack id=%d resetid=%d active=%d\n", m->id, s->resetid, s->active);
-	if(m->id == s->resetid && !s->active){
-		s->active = 1;
-		unthwackinit(&s->ut);
-	}
-}
-
-static	void
-uncfini(void *as)
-{
-	free(as);
 }

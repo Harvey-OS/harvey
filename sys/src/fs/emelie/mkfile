@@ -36,7 +36,7 @@ PORT=\
 
 ETHER=\
 	etherif.$O\
-	ether21140.$O\
+	ether2114x.$O\
 	etherelnk3.$O\
 	ether82557.$O\
 
@@ -51,7 +51,6 @@ OBJ=\
 	8253.$O\
 	cga.$O\
 	devata.$O\
-	dma.$O\
 	dosfs.$O\
 	floppy.$O\
 	kbd.$O\

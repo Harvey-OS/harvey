@@ -1,6 +1,8 @@
 #include <u.h>
 #include <libc.h>
+#include <ctype.h>
 #include <bio.h>
+#include <ip.h>
 
 typedef struct URL URL;
 struct URL
@@ -11,6 +13,7 @@ struct URL
 	char	*page;
 	char	*etag;
 	char	*redirect;
+	char	*postbody;
 	long	mtime;
 };
 
@@ -53,7 +56,10 @@ int	readline(int, char*, int);
 int	readibuf(int, char*, int);
 int	dfprint(int, char*, ...);
 void	unreadline(char*);
+
 int	verbose;
+char	*net;
+char	tcpdir[64];
 
 struct {
 	char	*name;
@@ -67,7 +73,7 @@ struct {
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-v] [-o outfile] url\n", argv0);
+	fprint(2, "usage: %s [-v] [-o outfile] [-p body] [-x netmtpt] url\n", argv0);
 	exits("usage");
 }
 
@@ -78,11 +84,15 @@ main(int argc, char **argv)
 	Range r;
 	int fd, errs, n;
 	Dir d;
+	char postbody[4096], *p, *e, *t;
 
 	ofile = nil;
+	p = postbody;
+	e = p + sizeof(postbody);
 	r.start = 0;
 	r.end = -1;
 	d.mtime = 0;
+	memset(&u, 0, sizeof(u));
 
 	ARGBEGIN {
 	case 'o':
@@ -94,9 +104,32 @@ main(int argc, char **argv)
 	case 'v':
 		verbose = 1;
 		break;
+	case 'x':
+		net = ARGF();
+		if(net == nil)
+			usage();
+		break;
+	case 'p':
+		t = ARGF();
+		if(t == nil)
+			usage();
+		if(p != postbody)
+			p = seprint(p, e, "&%s", t);
+		else
+			p = seprint(p, e, "%s", t);
+		u.postbody = postbody;
+		
+		break;
 	default:
 		usage();
 	} ARGEND;
+
+	if(net != nil){
+		if(strlen(net) > sizeof(tcpdir)-5)
+			sysfatal("network mount point too long");
+		snprint(tcpdir, sizeof(tcpdir), "%s/tcp", net);
+	} else
+		snprint(tcpdir, sizeof(tcpdir), "tcp");
 
 	if(argc != 1)
 		usage();
@@ -112,10 +145,6 @@ main(int argc, char **argv)
 			if(fd < 0)
 				sysfatal("can't open %s: %r", ofile);
 			r.start = d.length;
-
-			/* always move back to a previous 512 byte bound */
-			if(r.start)
-				r.start = ((r.start-1)/512)*512;
 		}
 	}
 
@@ -127,6 +156,7 @@ main(int argc, char **argv)
 	for(;;){
 		/* transfer data */
 		werrstr("");
+		seek(fd, 0, 0);
 		n = (*method[u.method].f)(&u, &r, fd, d.mtime);
 
 		switch(n){
@@ -211,7 +241,7 @@ crackurl(URL *u, char *s)
 		*p++ = 0;
 		u->port = p;
 	} else 
-		u->port = "80";
+		u->port = method[u->method].name;
 
 	if(*(u->host) == 0){
 		werrstr("bad url, null host");
@@ -219,13 +249,6 @@ crackurl(URL *u, char *s)
 	}
 
 	return 0;
-}
-
-int
-doftp(URL*, Range*, int, long)
-{
-	sysfatal("ftp not yet implemented");
-	return -1;
 }
 
 char *day[] = {
@@ -266,16 +289,37 @@ dohttp(URL *u, Range *r, int out, long mtime)
 	char buf[1024];
 	char err[ERRLEN];
 
+
+	/*  always move back to a previous 512 byte bound because some
+	 *  servers can't seem to deal with requests that start at the
+	 *  end of the file
+	 */
+	if(r->start)
+		r->start = ((r->start-1)/512)*512;
+
 	/* loop for redirects, requires reading both response code and headers */
 	fd = -1;
 	for(loop = 0; loop < 32; loop++){
-		fd = dial(netmkaddr(u->host, "tcp", u->port), 0, 0, 0);
+		fd = dial(netmkaddr(u->host, tcpdir, u->port), 0, 0, 0);
 		if(fd < 0)
 			return Error;
 
 		/* write request, use range if not start of file */
-		dfprint(fd, "GET %s HTTP/1.0\n", u->page);
-		dfprint(fd, "Host: %s\n", u->host);
+		if(u->postbody == nil){
+			dfprint(fd,	"GET %s HTTP/1.0\r\n"
+					"Host: %s\r\n"
+					"User-agent: Plan9/hget\r\n",
+					u->page, u->host);
+		} else {
+			dfprint(fd,	"POST %s HTTP/1.0\r\n"
+					"Host: %s\r\n"
+					"Content-type: application/x-www-form-urlencoded\r\n"
+					"Content-length: %d\r\n"
+					"User-agent: Plan9/hget\r\n"
+					"\r\n",
+					u->page, u->host, strlen(u->postbody));
+			dfprint(fd,	"%s", u->postbody);
+		}
 		if(r->start != 0){
 			dfprint(fd, "Range: bytes=%d-\n", r->start);
 			if(u->etag != nil){
@@ -295,6 +339,7 @@ dohttp(URL *u, Range *r, int out, long mtime)
 		switch(code){
 		case Error:	/* connection timed out */
 		case Eof:
+			close(fd);
 			return code;
 
 		case 200:	/* OK */
@@ -354,8 +399,10 @@ dohttp(URL *u, Range *r, int out, long mtime)
 		}
 
 		rv = httpheaders(fd, u, r);
-		if(rv != 0)
+		if(rv != 0){
+			close(fd);
 			return rv;
+		}
 
 		if(!redirect)
 			break;
@@ -388,6 +435,7 @@ dohttp(URL *u, Range *r, int out, long mtime)
 		}
 	}
 	notify(nil);
+	close(fd);
 
 	errstr(err);
 	if(ofile != nil && u->mtime != 0){
@@ -629,6 +677,417 @@ hhlocation(char *p, URL *u, Range*)
 	u->redirect = strdup(p);
 }
 
+enum
+{
+	/* ftp return codes */
+	Extra=		1,
+	Success=	2,
+	Incomplete=	3,
+	TempFail=	4,
+	PermFail=	5,
+
+	Nnetdir=	64,	/* max length of network directory paths */
+	Ndialstr=	64,		/* max length of dial strings */
+};
+
+int ftpcmd(int, char*, ...);
+int ftprcode(int, char*, int);
+int hello(int);
+int logon(int);
+int xfertype(int, char*);
+int passive(int, URL*);
+int active(int, URL*);
+int ftpxfer(int, int, Range*);
+int terminateftp(int, int);
+int getaddrport(char*, uchar*, uchar*);
+int ftprestart(int, int, URL*, Range*, long);
+
+int
+doftp(URL *u, Range *r, int out, long mtime)
+{
+	int pid, ctl, data, rv, wrv;
+	Waitmsg w;
+	char msg[64];
+	char conndir[NETPATHLEN];
+	char *p;
+
+	ctl = dial(netmkaddr(u->host, tcpdir, u->port), 0, conndir, 0);
+	if(ctl < 0)
+		return Error;
+	if(net == nil){
+		p = strrchr(conndir, '/');
+		*p = 0;
+		snprint(tcpdir, sizeof(tcpdir), conndir);
+	}
+
+	initibuf();
+
+	rv = hello(ctl);
+	if(rv < 0)
+		return terminateftp(ctl, rv);
+
+	rv = logon(ctl);
+	if(rv < 0)
+		return terminateftp(ctl, rv);
+
+	rv = xfertype(ctl, "I");
+	if(rv < 0)
+		return terminateftp(ctl, rv);
+
+	/* if file is up to date and the right size, stop */
+	if(ftprestart(ctl, out, u, r, mtime) > 0){
+		close(ctl);
+		return Eof;
+	}
+		
+	/* first try passive mode, then active */
+	data = passive(ctl, u);
+	if(data < 0){
+		data = active(ctl, u);
+		if(data < 0)
+			return Error;
+	}
+
+	/* fork */
+	switch(pid = rfork(RFPROC|RFFDG|RFMEM)){
+	case -1:
+		close(data);
+		return terminateftp(ctl, Error);
+	case 0:
+		ftpxfer(data, out, r);
+		close(data);
+		_exits(0);
+	default:
+		close(data);
+		break;
+	}
+
+	/* wait for reply message */
+	rv = ftprcode(ctl, msg, sizeof(msg));
+	close(ctl);
+
+	/* wait for process to terminate */
+	for(;;){
+		wrv = wait(&w);
+		if(wrv < 0)
+			return Error;
+		if(wrv == pid){
+			if(w.msg[0] == 0)
+				break;
+			werrstr("xfer: %s", w.msg);
+			return Error;
+		}
+	}
+
+	switch(rv){
+	case Success:
+		return Eof;
+	case TempFail:
+		return Server;
+	default:
+		return Error;
+	}
+}
+
+int
+ftpcmd(int ctl, char *fmt, ...)
+{
+	va_list arg;
+	char buf[2*1024], *s;
+
+	va_start(arg, fmt);
+	s = doprint(buf, buf + (sizeof(buf)-4) / sizeof(*buf), fmt, arg);
+	va_end(arg);
+	if(debug)
+		fprint(2, "%d -> %s\n", ctl, buf);
+	*s++ = '\r';
+	*s++ = '\n';
+	if(write(ctl, buf, s - buf) != s - buf)
+		return -1;
+	return 0;
+}
+
+int
+ftprcode(int ctl, char *msg, int len)
+{
+	int rv;
+	int i;
+
+	len--;	/* room for terminating null */
+	for(;;){
+		*msg = 0;
+		i = readline(ctl, msg, len);
+		if(i < 0)
+			break;
+		if(debug)
+			fprint(2, "%d <- %s\n", ctl, msg);
+
+		/* stop if not a continuation */
+		rv = atoi(msg);
+		if(rv >= 100 && rv < 600 && (i > 3 && msg[3] == ' '))
+			return rv/100;
+	}
+	*msg = 0;
+
+	return -1;
+}
+
+int
+hello(int ctl)
+{
+	char msg[1024];
+
+	/* wait for hello from other side */
+	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
+		werrstr("HELLO: %s", msg);
+		return Server;
+	}
+	return 0;
+}
+
+int
+getdec(char *p, int n)
+{
+	int x = 0;
+	int i;
+
+	for(i = 0; i < n; i++)
+		x = x*10 + (*p++ - '0');
+	return x;
+}
+
+int
+ftprestart(int ctl, int out, URL *u, Range *r, long mtime)
+{
+	Tm tm;
+	char msg[1024];
+	long x, rmtime;
+
+	ftpcmd(ctl, "MDTM %s", u->page);
+	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
+		r->start = 0;
+		return 0;		/* need to do something */
+	}
+
+	/* decode modification time */
+	if(strlen(msg) < 4 + 4 + 2 + 2 + 2 + 2 + 2){
+		r->start = 0;
+		return 0;		/* need to do something */
+	}
+	memset(&tm, 0, sizeof(tm));
+	tm.year = getdec(msg+4, 4) - 1900;
+	tm.mon = getdec(msg+4+4, 2) - 1;
+	tm.mday = getdec(msg+4+4+2, 2);
+	tm.hour = getdec(msg+4+4+2+2, 2);
+	tm.min = getdec(msg+4+4+2+2+2, 2);
+	tm.sec = getdec(msg+4+4+2+2+2+2, 2);
+	strcpy(tm.zone, "GMT");
+	rmtime = tm2sec(&tm);
+	if(rmtime > mtime)
+		r->start = 0;
+
+	/* get size */
+	ftpcmd(ctl, "SIZE %s", u->page);
+	if(ftprcode(ctl, msg, sizeof(msg)) == Success){
+		x = atol(msg+4);
+		if(r->start == x)
+			return 1;	/* we're up to date */
+		r->end = x;
+	}
+
+	/* seek to restart point */
+	if(r->start > 0){
+		ftpcmd(ctl, "REST %lud", r->start);
+		if(ftprcode(ctl, msg, sizeof(msg)) == Incomplete)
+			seek(out, r->start, 0);
+		else
+			r->start = 0;
+	}
+
+	return 0;	/* need to do something */
+}
+
+int
+logon(int ctl)
+{
+	char msg[1024];
+
+	/* login anonymous */
+	ftpcmd(ctl, "USER anonymous");
+	switch(ftprcode(ctl, msg, sizeof(msg))){
+	case Success:
+		return 0;
+	case Incomplete:
+		break;	/* need password */
+	default:
+		werrstr("USER: %s", msg);
+		return Server;
+	}
+
+	/* send user id as password */
+	sprint(msg, "%s@closedmind.org", getuser());
+	ftpcmd(ctl, "PASS %s", msg);
+	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
+		werrstr("PASS: %s", msg);
+		return Server;
+	}
+
+	return 0;
+}
+
+int
+xfertype(int ctl, char *t)
+{
+	char msg[1024];
+
+	ftpcmd(ctl, "TYPE %s", t);
+	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
+		werrstr("TYPE %s: %s", t, msg);
+		return Server;
+	}
+
+	return 0;
+}
+
+int
+passive(int ctl, URL *u)
+{
+	char msg[1024];
+	char ipaddr[32];
+	char *f[6];
+	char *p;
+	int fd;
+	int port;
+	char aport[12];
+
+	ftpcmd(ctl, "PASV");
+	if(ftprcode(ctl, msg, sizeof(msg)) != Success)
+		return Error;
+
+	/* get address and port number from reply, this is AI */
+	p = strchr(msg, '(');
+	if(p == nil){
+		for(p = msg+3; *p; p++)
+			if(isdigit(*p))
+				break;
+	} else
+		p++;
+	if(getfields(p, f, 6, 0, ",)") < 6){
+		werrstr("ftp protocol botch");
+		return Server;
+	}
+	snprint(ipaddr, sizeof(ipaddr), "%s.%s.%s.%s",
+		f[0], f[1], f[2], f[3]);
+	port = ((atoi(f[4])&0xff)<<8) + (atoi(f[5])&0xff);
+	sprint(aport, "%d", port);
+
+	/* open data connection */
+	fd = dial(netmkaddr(ipaddr, tcpdir, aport), 0, 0, 0);
+	if(fd < 0){
+		werrstr("passive mode failed: %r");
+		return Error;
+	}
+
+	/* tell remote to send a file */
+	ftpcmd(ctl, "RETR %s", u->page);
+	if(ftprcode(ctl, msg, sizeof(msg)) != Extra){
+		werrstr("RETR %s: %s", u->page, msg);
+		return Error;
+	}
+	return fd;
+}
+
+int
+active(int ctl, URL *u)
+{
+	char msg[1024];
+	char dir[40], ldir[40];
+	uchar ipaddr[4];
+	uchar port[2];
+	int lcfd, dfd, afd;
+
+	/* announce a port for the call back */
+	snprint(msg, sizeof(msg), "%s!*!0", tcpdir);
+	afd = announce(msg, dir);
+	if(afd < 0)
+		return Error;
+
+	/* get a local address/port of the annoucement */
+	if(getaddrport(dir, ipaddr, port) < 0){
+		close(afd);
+		return Error;
+	}
+
+	/* tell remote side address and port*/
+	ftpcmd(ctl, "PORT %d,%d,%d,%d,%d,%d", ipaddr[0], ipaddr[1], ipaddr[2],
+		ipaddr[3], port[0], port[1]);
+	if(ftprcode(ctl, msg, sizeof(msg)) != Success){
+		close(afd);
+		werrstr("active: %s", msg);
+		return Error;
+	}
+
+	/* tell remote to send a file */
+	ftpcmd(ctl, "RETR %s", u->page);
+	if(ftprcode(ctl, msg, sizeof(msg)) != Extra){
+		close(afd);
+		werrstr("RETR: %s", msg);
+		return Server;
+	}
+
+	/* wait for a connection */
+	lcfd = listen(dir, ldir);
+	if(lcfd < 0){
+		close(afd);
+		return Error;
+	}
+	dfd = accept(lcfd, ldir);
+	if(dfd < 0){
+		close(afd);
+		close(lcfd);
+		return Error;
+	}
+	close(afd);
+	close(lcfd);
+	
+	return dfd;
+}
+
+int
+ftpxfer(int in, int out, Range *r)
+{
+	char buf[1024];
+	long vtime;
+	int i, n;
+
+	vtime = 0;
+	for(n = 0;;n += i){
+		i = read(in, buf, sizeof(buf));
+		if(i == 0)
+			break;
+		if(i < 0)
+			return Error;
+		if(write(out, buf, i) != i)
+			return Error;
+		r->start += i;
+		if(verbose && vtime != time(0)) {
+			vtime = time(0);
+			fprint(2, "%ld %ld\n", r->start, r->end);
+		}
+	}
+	return n;
+}
+
+int
+terminateftp(int ctl, int rv)
+{
+	close(ctl);
+	return rv;
+}
+
+/*
+ * case insensitive strcmp (why aren't these in libc?)
+ */
 int
 cistrncmp(char *a, char *b, int n)
 {
@@ -665,11 +1124,15 @@ initibuf(void)
 	b.rp = b.wp = b.buf;
 }
 
+/*
+ *  read a possibly buffered line, strip off trailing while
+ */
 int
 readline(int fd, char *buf, int len)
 {
 	int n;
 	char *p;
+	int eof = 0;
 
 	len--;
 
@@ -678,8 +1141,10 @@ readline(int fd, char *buf, int len)
 			n = read(fd, b.wp, sizeof(b.buf)/2);
 			if(n < 0)
 				return -1;
-			if(n == 0)
+			if(n == 0){
+				eof = 1;
 				break;
+			}
 			b.wp += n;
 		}
 		n = *b.rp++;
@@ -700,8 +1165,11 @@ readline(int fd, char *buf, int len)
 			break;
 		p--;
 	}
-
 	*p = 0;
+
+	if(eof && p == buf)
+		return -1;
+
 	return p-buf;
 }
 
@@ -747,4 +1215,30 @@ dfprint(int fd, char *fmt, ...)
 	if(debug)
 		fprint(2, "%d -> %s", fd, buf);
 	return fprint(fd, "%s", buf);
+}
+
+int
+getaddrport(char *dir, uchar *ipaddr, uchar *port)
+{
+	char buf[256];
+	int fd, i;
+	char *p;
+
+	snprint(buf, sizeof(buf), "%s/local", dir);
+	fd = open(buf, OREAD);
+	if(fd < 0)
+		return -1;
+	i = read(fd, buf, sizeof(buf)-1);
+	close(fd);
+	if(i <= 0)
+		return -1;
+	buf[i] = 0;
+	p = strchr(buf, '!');
+	if(p != nil)
+		*p++ = 0;
+	v4parseip(ipaddr, buf);
+	i = atoi(p);
+	port[0] = i>>8;
+	port[1] = i;
+	return 0;
 }

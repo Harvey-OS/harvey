@@ -60,8 +60,14 @@ swit1(C1 *q, int nc, long def, Node *n, Node *tn)
 {
 	C1 *r;
 	int i;
+	long v;
 	Prog *sp;
 
+	if(nc >= 3) {
+		i = (q+nc-1)->val - (q+0)->val;
+		if(i > 0 && i < nc*2)
+			goto direct;
+	}
 	if(nc < 5) {
 		for(i=0; i<nc; i++) {
 			if(debug['W'])
@@ -89,6 +95,31 @@ swit1(C1 *q, int nc, long def, Node *n, Node *tn)
 		print("case < %.8lux\n", r->val);
 	patch(sp, pc);
 	swit1(r+1, nc-i-1, def, n, tn);
+	return;
+
+direct:
+	v = q->val;
+	if(v != 0)
+		gopcode(OSUB, nodconst(v), Z, n);
+	gopcode(OCASE, nodconst((q+nc-1)->val - v), n, Z);
+	patch(p, def);
+	for(i=0; i<nc; i++) {
+		if(debug['W'])
+			print("case = %.8lux\n", q->val);
+		while(q->val != v) {
+			nextpc();
+			p->as = ABCASE;
+			patch(p, def);
+			v++;
+		}
+		nextpc();
+		p->as = ABCASE;
+		patch(p, q->label);
+		q++;
+		v++;
+	}
+	gbranch(OGOTO);		/* so that regopt() won't be confused */
+	patch(p, def);
 }
 
 void
@@ -554,6 +585,7 @@ zaddr(char *bp, Adr *a, int s)
 	case D_OREG:
 	case D_CONST:
 	case D_BRANCH:
+	case D_SHIFT:
 		l = a->offset;
 		bp[0] = l;
 		bp[1] = l>>8;
@@ -667,8 +699,9 @@ align(long i, Type *t, int op)
 		break;
 
 	case Aaut3:	/* total allign of automatic */
-		o = align(o, t, Ael1);
 		o = align(o, t, Ael2);
+		o = align(o, t, Ael1);
+		w = SZ_LONG;	/* because of a pun in cc/dcl.c:contig() */
 		break;
 	}
 	o = round(o, w);
@@ -680,8 +713,8 @@ align(long i, Type *t, int op)
 long
 maxround(long max, long v)
 {
-	v += SZ_LONG-1;
+	v = round(v, SZ_LONG);
 	if(v > max)
-		max = round(v, SZ_LONG);
+		return v;
 	return max;
 }

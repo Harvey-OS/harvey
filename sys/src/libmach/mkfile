@@ -12,11 +12,11 @@ OFILES=executable.$O\
 	v.$O\
 	k.$O\
 	q.$O\
+	0.$O\
 	2.$O\
 	6.$O\
 	8.$O\
 	x.$O\
-	4.$O\
 	9.$O\
 	5.$O\
 	7.$O\

@@ -19,12 +19,12 @@ static char Ebotch[] = "9P protocol botch";
 static char Ebadattach[] = "unknown specifier in attach";
 
 int lib9p_chatty;
-
+void (*endsrv)(void*);
 static void
 setfcallerror(Fcall *f, char *err)
 {
 	strncpy(f->ename, err, sizeof f->ename);
-	f->ename[sizeof f->name - 1] = 0;
+	f->ename[sizeof f->ename - 1] = '\0';
 	f->type = Rerror;
 }
 
@@ -168,7 +168,6 @@ srv(Srv *srv, int fd)
 {
 	int o, p;
 	Req *r;
-	char buf[MAXFDATA];
 	File *f, *of;
 
 	fmtinstall('D', dirconv);
@@ -320,7 +319,8 @@ srv(Srv *srv, int fd)
 			break;
 
 		case Tread:
-			r->fcall.data = buf;
+			r->rbuf = emalloc(MAXFDATA);
+			r->fcall.data = r->rbuf;
 			o = r->fid->omode & OMASK;
 			if(r->fcall.count > MAXFDATA)
 				r->fcall.count = MAXFDATA;
@@ -332,10 +332,10 @@ srv(Srv *srv, int fd)
 				|| ((r->fid->qid.path&CHDIR) && r->fcall.offset%DIRLEN))
 				r->error = Ebadoffset;
 			else if((r->fid->qid.path&CHDIR) && r->fid->file){
-				r->error = fdirread(r->fid->file, buf, 
+				r->error = fdirread(r->fid->file, r->rbuf, 
 							&r->fcall.count, r->fcall.offset);
 			}else{
-				srv->read(r, r->fid, buf, &r->fcall.count, r->fcall.offset);
+				srv->read(r, r->fid, r->rbuf, &r->fcall.count, r->fcall.offset);
 				break;
 			}
 			respond(r, r->error);
@@ -623,11 +623,10 @@ _postfd(char *name, int pfd)
 
 	snprint(buf, sizeof buf, "/srv/%s", name);
 
-	fd = create(buf, OWRITE, 0666);
+	fd = create(buf, OWRITE|ORCLOSE|OCEXEC, 0600);
 	if(fd == -1)
-		sysfatal("postsrv");
+		sysfatal("post %s: %r", name);
 	fprint(fd, "%d", pfd);
-	close(fd);
 }
 
 void
@@ -638,16 +637,19 @@ postmountsrv(Srv *s, char *name, char *mtpt, int flag)
 		sysfatal("pipe");
 	if(name)
 		_postfd(name, fd[0]);
-	switch(rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG)){
+	switch(rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG|RFMEM)){
 	case -1:
 		sysfatal("fork");
 	case 0:
 		close(fd[0]);
 		srv(s, fd[1]);
+		if(endsrv)
+			endsrv(nil);
 		_exits(0);
 	default:
 		if(mtpt)
-			mount(fd[0], mtpt, flag, "");
+			if(mount(fd[0], mtpt, flag, "") == -1)
+				fprint(2, "mount %s: %r\n", mtpt);
 	}
 }
 

@@ -67,6 +67,8 @@ azimuth (degrees),
 elevation (degrees),
 and semidiameter (arc seconds).
 For the sun and moon, the magnitude is also printed.
+The first line of output presents the date and time,
+sidereal time, and the latitude, longitude, and elevation.
 .TP
 .B s
 Print output in English words suitable for speech synthesizers.

@@ -244,19 +244,37 @@ tlocked(Iobuf *p, Dentry *d)
 	tim = toytime();
 	qpath = d->qid.path;
 	dev = p->dev;
+
+again:
 	t1 = 0;
 	for(t=tlocks+NTLOCK-1; t>=tlocks; t--) {
 		if(t->qpath == qpath)
 		if(t->time >= tim)
 		if(t->dev == dev)
-			return 0;		/* its locked */
-		if(!t1 && t->time == 0)
-			t1 = t;			/* take last free lock */
+			return nil;		/* its locked */
+		if(t1 != nil && t->time == 0)
+			t1 = t;			/* remember free lock */
+	}
+	if(t1 == 0) {
+		// reclaim old locks
+		lock(&tlocklock);
+		for(t=tlocks+NTLOCK-1; t>=tlocks; t--)
+			if(t->time < tim) {
+				t->time = 0;
+				t1 = t;
+			}
+		unlock(&tlocklock);
 	}
 	if(t1) {
+		lock(&tlocklock);
+		if(t1->time != 0) {
+			unlock(&tlocklock);
+			goto again;
+		}
 		t1->dev = dev;
 		t1->qpath = qpath;
 		t1->time = tim + TLOCK;
+		unlock(&tlocklock);
 	}
 	/* botch
 	 * out of tlock nodes simulates

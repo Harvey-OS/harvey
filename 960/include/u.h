@@ -9,12 +9,23 @@ typedef	signed char	schar;
 typedef	long		vlong;
 typedef	unsigned long	uvlong;
 typedef	ushort		Rune;
+typedef 	union FPdbleword FPdbleword;
 typedef	union
 {
 	vlong	length;
 } Length;
 typedef long	jmp_buf[2];
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
+typedef unsigned int	u32int;
+
+union FPdbleword
+{
+	double	x;
+	struct {	/* little endian */
+		long lo;
+		long hi;
+	};
+};
 
 typedef	char*	va_list;
 #define va_start(list, start) list =\

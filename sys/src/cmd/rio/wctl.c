@@ -62,6 +62,9 @@ static char *params[] = {
 	nil
 };
 
+/*
+ * Check that newly created window will be of manageable size
+ */
 int
 goodrect(Rectangle r)
 {
@@ -69,9 +72,13 @@ goodrect(Rectangle r)
 		return 0;
 	if(Dx(r)<100 || Dy(r)<3*font->height)
 		return 0;
-	if(Dx(r) > Dx(screen->r))
+	/* must have some screen and border visible so we can move it out of the way */
+	if(Dx(r) >= Dx(screen->r) && Dy(r) >= Dy(screen->r))
 		return 0;
-	if(Dy(r) > Dy(screen->r))
+	/* reasonable sizes only please */
+	if(Dx(r) > BIG*Dx(screen->r))
+		return 0;
+	if(Dy(r) > BIG*Dx(screen->r))
 		return 0;
 	return 1;
 }

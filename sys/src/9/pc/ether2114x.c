@@ -19,13 +19,15 @@
 
 #include "etherif.h"
 
-#define DEBUG		0
+#define DEBUG		(0)
 #define debug		if(DEBUG)print
 
 enum {
 	Nrde		= 64,
 	Ntde		= 64,
 };
+
+#define Rbsz		ROUNDUP(sizeof(Etherpkt)+4, 4)
 
 enum {					/* CRS0 - Bus Mode */
 	Swr		= 0x00000001,	/* Software Reset */
@@ -181,12 +183,20 @@ enum {					/* PHY registers */
 	Aner		= 6,		/* Auto-Negotiation Expansion */
 };
 
+enum {					/* Variants */
+	Tulip0		= (0x0009<<16)|0x1011,
+	Tulip3		= (0x0019<<16)|0x1011,
+	Pnic		= (0x0002<<16)|0x11AD,
+	Pnic2		= (0xC115<<16)|0x11AD,
+};
+
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
 	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
+	int	id;			/* (pcidev->did<<16)|pcidev->vid */
 
 	uchar	srom[128];
 	uchar*	sromea;			/* MAC address */
@@ -455,7 +465,7 @@ interrupt(Ureg*, void* arg)
 					if(des->status & De)
 						ctlr->de++;
 				}
-				else if(bp = iallocb(sizeof(Etherpkt)+4)){
+				else if(bp = iallocb(Rbsz)){
 					len = ((des->status & Fl)>>16)-4;
 					des->bp->wp = des->bp->rp+len;
 					etheriq(ether, des->bp, 1);
@@ -464,7 +474,7 @@ interrupt(Ureg*, void* arg)
 				}
 
 				des->control &= Er;
-				des->control |= ROUNDUP(sizeof(Etherpkt)+4, 4);
+				des->control |= Rbsz;
 				coherence();
 				des->status = Own;
 
@@ -566,9 +576,9 @@ ctlrinit(Ether* ether)
 	 */
 	ctlr->rdr = malloc(ctlr->nrdr*sizeof(Des));
 	for(des = ctlr->rdr; des < &ctlr->rdr[ctlr->nrdr]; des++){
-		des->bp = allocb(ROUNDUP(sizeof(Etherpkt)+4, 4));
+		des->bp = allocb(Rbsz);
 		des->status = Own;
-		des->control = ROUNDUP(sizeof(Etherpkt)+4, 4);
+		des->control = Rbsz;
 		des->addr = PADDR(des->bp->rp);
 	}
 	ctlr->rdr[ctlr->nrdr-1].control |= Er;
@@ -581,7 +591,12 @@ ctlrinit(Ether* ether)
 	ctlr->tdri = 0;
 	csr32w(ctlr, 4, PADDR(ctlr->tdr));
 
+	/*
+	 * Clear any bits in the Status Register (CSR5) as
+	 * the PNIC has a different reset value from a true 2114x.
+	 */
 	ctlr->mask = Nis|Ais|Fbe|Rwt|Rps|Ru|Ri|Unf|Tjt|Tps|Ti;
+	csr32w(ctlr, 5, ctlr->mask);
 	csr32w(ctlr, 7, ctlr->mask);
 	ctlr->csr6 |= St;
 	csr32w(ctlr, 6, ctlr->csr6);
@@ -652,7 +667,20 @@ miimdo(Ctlr* ctlr, int bits, int n)
 static int
 miir(Ctlr* ctlr, int phyad, int regad)
 {
-	int data;
+	int data, i;
+
+	if(ctlr->id == Pnic){
+		i = 1000;
+		csr32w(ctlr, 20, 0x60020000|(phyad<<23)|(regad<<18));
+		do{
+			microdelay(1);
+			data = csr32r(ctlr, 20);
+		}while((data & 0x80000000) && --i);
+
+		if(i == 0)
+			return -1;
+		return data & 0xFFFF;
+	}
 
 	/*
 	 * Preamble;
@@ -689,6 +717,17 @@ static int
 sromr(Ctlr* ctlr, int r)
 {
 	int i, op, data;
+
+	if(ctlr->id == Pnic){
+		i = 1000;
+		csr32w(ctlr, 19, 0x600|r);
+		do{
+			microdelay(1);
+			data = csr32r(ctlr, 19);
+		}while((data & 0x80000000) && --i);
+
+		return csr32r(ctlr, 9) & 0xFFFF;
+	}
 
 	/*
 	 * This sequence for reading a 16-bit register 'r'
@@ -760,7 +799,7 @@ type5block(Ctlr* ctlr, uchar* block)
 	 * sequence.
 	 */
 	len = *block++;
-	if(ctlr->pcidev->did == 0x0009){
+	if(ctlr->id != Tulip3){
 		for(i = 0; i < len; i++){
 			csr32w(ctlr, 12, *block);
 			block++;
@@ -1139,6 +1178,30 @@ static uchar* leaf21140[] = {
 	nil,
 };
 
+/*
+ * Copied to ctlr->srom at offset 20.
+ */
+static uchar leafpnic[] = {
+	0x00, 0x00, 0x00, 0x00,		/* MAC address */
+	0x00, 0x00,
+	0x00,				/* controller 0 device number */
+	0x1E, 0x00,			/* controller 0 info leaf offset */
+	0x00,				/* reserved */
+	0x00, 0x08,			/* selected connection type */
+	0x00,				/* general purpose control */
+	0x01,				/* block count */
+
+	0x8C,				/* format indicator and count */
+	0x01,				/* block type */
+	0x00,				/* PHY number */
+	0x00,				/* GPR sequence length */
+	0x00,				/* reset sequence length */
+	0x00, 0x78,			/* media capabilities */
+	0xE0, 0x01,			/* Nway advertisment */
+	0x00, 0x50,			/* FDX bitmap */
+	0x00, 0x18,			/* TTM bitmap */
+};
+
 static int
 srom(Ctlr* ctlr)
 {
@@ -1180,6 +1243,19 @@ srom(Ctlr* ctlr)
 	}
 
 	/*
+	 * Fake up the SROM for the PNIC.
+	 * It looks like a 21140 with a PHY.
+	 * The MAC address is byte-swapped in the orginal SROM data.
+	 */
+	if(ctlr->id == Pnic){
+		memmove(&ctlr->srom[20], leafpnic, sizeof(leafpnic));
+		for(i = 0; i < Eaddrlen; i += 2){
+			ctlr->srom[20+i] = ctlr->srom[i+1];
+			ctlr->srom[20+i+1] = ctlr->srom[i];
+		}
+	}
+
+	/*
 	 * Next, try to find the info leaf in the SROM for media detection.
 	 * If it's a non-conforming card try to match the vendor ethernet code
 	 * and point p at a fake info leaf with compact 21140 entries.
@@ -1212,7 +1288,7 @@ srom(Ctlr* ctlr)
 	ctlr->leaf = p;
 	ctlr->sct = *p++;
 	ctlr->sct |= *p++<<8;
-	if(ctlr->pcidev->did == 0x0009){
+	if(ctlr->id != Tulip3){
 		csr32w(ctlr, 12, Gpc|*p++);
 		delay(200);
 	}
@@ -1227,7 +1303,7 @@ srom(Ctlr* ctlr)
 		 * The RAMIX PMC665 has a badly-coded SROM,
 		 * hence the test for 21143 and type 3.
 		 */
-		if((*p & 0x80) || (ctlr->pcidev->did == 0x0019 && *(p+1) == 3)){
+		if((*p & 0x80) || (ctlr->id == Tulip3 && *(p+1) == 3)){
 			*p |= 0x80;
 			if(*(p+1) == 1 || *(p+1) == 3)
 				phy = 1;
@@ -1278,12 +1354,14 @@ dec2114xpci(void)
 	int x;
 
 	p = nil;
-	while(p = pcimatch(p, 0x1011, 0)){
-		switch(p->did){
+	while(p = pcimatch(p, 0, 0)){
+		if(p->ccrb != 0x02 || p->ccru != 0)
+			continue;
+		switch((p->did<<16)|p->vid){
 		default:
 			continue;
 
-		case 0x0019:		/* 21143 */
+		case Tulip3:			/* 21143 */
 			/*
 			 * Exit sleep mode.
 			 */
@@ -1292,7 +1370,9 @@ dec2114xpci(void)
 			pcicfgw32(p, 0x40, x);
 			/*FALLTHROUGH*/
 
-		case 0x0009:		/* 21140 */
+		case Pnic:			/* PNIC */
+		case Pnic2:			/* PNIC-II */
+		case Tulip0:			/* 21140 */
 			break;
 		}
 
@@ -1303,9 +1383,10 @@ dec2114xpci(void)
 		ctlr = malloc(sizeof(Ctlr));
 		ctlr->port = p->mem[0].bar & ~0x01;
 		ctlr->pcidev = p;
+		ctlr->id = (p->did<<16)|p->vid;
 
 		if(ioalloc(ctlr->port, p->mem[0].size, 0, "dec2114x") < 0){
-			print("dec2114x: port %d in use\n", ctlr->port);
+			print("dec2114x: port 0x%uX in use\n", ctlr->port);
 			free(ctlr);
 			continue;
 		}
@@ -1319,7 +1400,20 @@ dec2114xpci(void)
 		softreset(ctlr);
 
 		if(srom(ctlr)){
+			iofree(ctlr->port);
 			free(ctlr);
+			continue;
+		}
+
+		switch(ctlr->id){
+		default:
+			break;
+
+		case Pnic:			/* PNIC */
+			/*
+			 * Turn off the jabber timer.
+			 */
+			csr32w(ctlr, 15, 0x00000001);
 			break;
 		}
 

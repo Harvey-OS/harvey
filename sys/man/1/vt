@@ -4,7 +4,7 @@ vt \- emulate a VT-100 or VT-220 terminal
 .SH SYNOPSIS
 .B vt
 [
-.B -2
+.B -2s
 ]
 .SH DESCRIPTION
 .I Vt
@@ -16,6 +16,10 @@ The
 option configures
 .I vt
 to emulate a VT-220 instead.
+The
+.B -s
+options forces a saner color scheme, i.e, black text on white
+background.
 .PP
 The right button has a menu with the following entries to provide
 the sort of character processing expected by non-Plan 9 systems:

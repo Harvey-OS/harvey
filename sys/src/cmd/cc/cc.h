@@ -496,7 +496,6 @@ void*	mysbrk(ulong);
  *	parser
  */
 int	yyparse(void);
-int	mpatof(char*, double*);
 int	mpatov(char*, vlong*);
 
 /*

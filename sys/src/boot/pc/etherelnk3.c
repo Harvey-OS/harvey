@@ -1363,6 +1363,7 @@ elnk3reset(Ether* ether)
 	case 0x9050:
 	case 0x9051:
 	case 0x9055:
+	case 0x9200:
 		if(BUSTYPE(ether->tbdf) != BusPCI)
 			goto buggery;
 		busmaster = 2;
@@ -1423,8 +1424,9 @@ if(debug) print("copy eaddr from eeprom...");
 /*
  * forgive me, but i am weak
  */
-if(did == 0x9055)
-    xcvr = xcvrMii;
+if(did == 0x9055 || did == 0x9200){
+   xcvr = xcvrMii;
+}
 else
 	if(xcvr & autoSelect)
 		xcvr = autoselect(port, rxstatus9);

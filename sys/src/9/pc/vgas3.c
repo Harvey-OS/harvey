@@ -12,6 +12,28 @@
 #include <cursor.h>
 #include "screen.h"
 
+enum {
+	PCIS3		= 0x5333,		/* PCI VID */
+
+	SAVAGE3D	= 0x8A20,	/* PCI DID */
+	SAVAGE3DMV	= 0x8A21,
+	SAVAGE4		= 0x8A22,
+	SAVAGEMXMV	= 0x8C10,
+	SAVAGEMX	= 0x8C11,
+	SAVAGEIXMV	= 0x8C12,
+	SAVAGEIX	= 0x8C13,
+	SAVAGE2000	= 0x9102,
+
+	VIRGE		= 0x5631,
+	VIRGEGX2	= 0x8A10,
+	VIRGEDXGX	= 0x8A01,
+	VIRGEVX		= 0x883D,
+	VIRGEMX		= 0x8C01,
+	VIRGEMXP	= 0x8C03,
+
+	AURORA64VPLUS	= 0x8812,
+};
+
 static int
 s3pageset(VGAscr* scr, int page)
 {
@@ -47,10 +69,10 @@ s3page(VGAscr* scr, int page)
 {
 	int id;
 
-	id = (vgaxi(Crtx, 0x30)<<8)|vgaxi(Crtx, 0x2E);
+	id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
 	switch(id){
 
-	case 0xE110:				/* ViRGE/GX2 */
+	case VIRGEGX2:
 		break;
 
 	default:
@@ -78,7 +100,7 @@ s3linear(VGAscr* scr, int* size, int* align)
 	mmiosize = 0;
 	mmiobase = 0;
 	mmioname = nil;
-	if(p = pcimatch(nil, 0x5333, 0)){
+	if(p = pcimatch(nil, PCIS3, 0)){
 		for(i=0; i<nelem(p->mem); i++){
 			if(p->mem[i].size >= *size
 			&& ((p->mem[i].bar & ~0x0F) & (*align-1)) == 0)
@@ -91,8 +113,8 @@ s3linear(VGAscr* scr, int* size, int* align)
 		aperture = p->mem[i].bar & ~0x0F;
 		*size = p->mem[i].size;
 
-		id = (vgaxi(Crtx, 0x30)<<8)|vgaxi(Crtx, 0x2E);
-		if(id == 0xE122){		/* find Savage4 mmio */
+		id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
+		if(id == SAVAGE4){		/* find Savage4 mmio */
 			/*
 			 * We could assume that the MMIO registers
 			 * will be in the screen segment and just use
@@ -108,6 +130,7 @@ s3linear(VGAscr* scr, int* size, int* align)
 				if(p->mem[j].size==512*1024 || p->mem[j].size==16*1024*1024){
 					mmiobase = p->mem[j].bar & ~0x0F;
 					mmiosize = 512*1024;
+					scr->mmio = (ulong*)upamalloc(mmiobase, mmiosize, 16*1024*1024);
 					mmioname = "savage4mmio";
 					break;
 				}
@@ -180,46 +203,6 @@ s3disable(VGAscr*)
 }
 
 static void
-s3enable(VGAscr* scr)
-{
-	int i;
-	ulong storage;
-
-	s3disable(scr);
-
-	/*
-	 * Cursor colours. Set both the CR0[EF] and the colour
-	 * stack in case we are using a 16-bit RAMDAC.
-	 */
-	vgaxo(Crtx, 0x0E, Pwhite);
-	vgaxo(Crtx, 0x0F, Pblack);
-	vgaxi(Crtx, 0x45);
-
-	for(i = 0; i < 3; i++)
-		vgaxo(Crtx, 0x4A, Pblack);
-	vgaxi(Crtx, 0x45);
-	for(i = 0; i < 3; i++)
-		vgaxo(Crtx, 0x4B, Pwhite);
-
-	/*
-	 * Find a place for the cursor data in display memory.
-	 * Must be on a 1024-byte boundary.
-	 */
-	storage = (scr->gscreen->width*BY2WD*scr->gscreen->r.max.y+1023)/1024;
-	vgaxo(Crtx, 0x4C, storage>>8);
-	vgaxo(Crtx, 0x4D, storage & 0xFF);
-	storage *= 1024;
-	scr->storage = storage;
-
-	/*
-	 * Enable the cursor in Microsoft Windows format.
-	 */
-	vgaxo(Crtx, 0x55, vgaxi(Crtx, 0x55) & ~0x10);
-	s3vsyncactive();
-	vgaxo(Crtx, 0x45, 0x01);
-}
-
-static void
 s3load(VGAscr* scr, Cursor* curs)
 {
 	uchar *p;
@@ -233,14 +216,15 @@ s3load(VGAscr* scr, Cursor* curs)
 
 	opage = 0;
 	p = KADDR(scr->aperture);
-	id = (vgaxi(Crtx, 0x30)<<8)|vgaxi(Crtx, 0x2E);
+	id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
 	switch(id){
 
-	case 0xE131:				/* ViRGE */
-	case 0xE18A:				/* ViRGE/[DG]X */
-	case 0xE110:				/* ViRGE/GX2 */
-	case 0xE13D:				/* ViRGE/VX */
-	case 0xE122:				/* Savage4 */
+	case VIRGE:
+	case VIRGEDXGX:
+	case VIRGEGX2:
+	case VIRGEVX:	
+	case SAVAGEIXMV:
+	case SAVAGE4:
 		p += scr->storage;
 		break;
 
@@ -252,8 +236,8 @@ s3load(VGAscr* scr, Cursor* curs)
 	}
 
 	/*
-	 * The cursor is set in Microsoft Windows format (the ViRGE/GX2 no
-	 * longer supports the X11 format) which gives the following truth table:
+	 * The cursor is set in Microsoft Windows format (the ViRGE/GX2 doesn't
+	 * support the X11 format) which gives the following truth table:
 	 *	and xor	colour
 	 *	 0   0	background colour
 	 *	 0   1	foreground colour
@@ -283,11 +267,12 @@ s3load(VGAscr* scr, Cursor* curs)
 
 	switch(id){
 
-	case 0xE131:				/* ViRGE */
-	case 0xE18A:				/* ViRGE/[DG]X */
-	case 0xE110:				/* ViRGE/GX2 */
-	case 0xE13D:				/* ViRGE/VX */
-	case 0xE122:				/* Savage4 */
+	case VIRGE:
+	case VIRGEDXGX:
+	case VIRGEGX2:
+	case VIRGEVX:	
+	case SAVAGEIXMV:
+	case SAVAGE4:
 		break;
 
 	default:
@@ -341,6 +326,49 @@ s3move(VGAscr* scr, Point p)
 	return 0;
 }
 
+static void
+s3enable(VGAscr* scr)
+{
+	int i;
+	ulong storage;
+
+	s3disable(scr);
+
+	/*
+	 * Cursor colours. Set both the CR0[EF] and the colour
+	 * stack in case we are using a 16-bit RAMDAC.
+	 */
+	vgaxo(Crtx, 0x0E, Pwhite);
+	vgaxo(Crtx, 0x0F, Pblack);
+	vgaxi(Crtx, 0x45);
+
+	for(i = 0; i < 3; i++)
+		vgaxo(Crtx, 0x4A, Pblack);
+	vgaxi(Crtx, 0x45);
+	for(i = 0; i < 3; i++)
+		vgaxo(Crtx, 0x4B, Pwhite);
+
+	/*
+	 * Find a place for the cursor data in display memory.
+	 * Must be on a 1024-byte boundary.
+	 */
+	storage = (scr->gscreen->width*BY2WD*scr->gscreen->r.max.y+1023)/1024;
+	vgaxo(Crtx, 0x4C, storage>>8);
+	vgaxo(Crtx, 0x4D, storage & 0xFF);
+	storage *= 1024;
+	scr->storage = storage;
+
+	/*
+	 * Load, locate and enable the cursor
+	 * in Microsoft Windows format.
+	 */
+	s3load(scr, &arrow);
+	s3move(scr, ZP);
+	vgaxo(Crtx, 0x55, vgaxi(Crtx, 0x55) & ~0x10);
+	s3vsyncactive();
+	vgaxo(Crtx, 0x45, 0x01);
+}
+
 /*
  * The manual gives byte offsets, but we want ulong offsets, hence /4.
  */
@@ -381,12 +409,12 @@ waitforlinearfifo(VGAscr *scr)
 	switch(scr->id){
 	default:
 		panic("unknown scr->id in s3 waitforlinearfifo");
-	case 0xE131:	/* ViRGE */
-	case 0xE13D:	/* ViRGE/VX */
+	case 0x5631:	/* ViRGE */
+	case 0x883D:	/* ViRGE/VX */
 		mask = 0x0F<<6;
 		val = 0x08<<6;
 		break;
-	case 0xE110:	/* ViRGE/GX2 */
+	case 0x8A10:	/* ViRGE/GX2 */
 		mask = 0x1F<<6;
 		val = 0x10<<6;
 		break;
@@ -521,12 +549,14 @@ s3blank(int blank)
 	vgaxo(Seqx, CursorSyncCtl, x);
 }
 
+
 static void
 s3drawinit(VGAscr *scr)
 {
+	extern void savageinit(VGAscr*);	/* vgasavage.c */
 	ulong id;
 
-	id = (vgaxi(Crtx, 0x30)<<8)|vgaxi(Crtx, 0x2E);
+	id = (vgaxi(Crtx, 0x2D)<<8)|vgaxi(Crtx, 0x2E);
 	scr->id = id;
 
 	/*
@@ -537,13 +567,22 @@ s3drawinit(VGAscr *scr)
 	 * above.
 	 */
 	switch(id){
-	case 0xE131:				/* ViRGE */
-	case 0xE13D:				/* ViRGE/VX */
-	case 0xE110:				/* ViRGE/GX2 */
+	case VIRGE:
+	case VIRGEVX:
+	case VIRGEGX2:
 		scr->mmio = (ulong*)(scr->aperture+0x1000000);
 		scr->fill = hwfill;
 		scr->scroll = hwscroll;
 		/* scr->blank = hwblank; */
+		break;
+	case SAVAGEIXMV:
+		scr->mmio = (ulong*)(scr->aperture+0x1000000);
+		savageinit(scr);	
+		break;
+	case SAVAGE4:
+		/* scr->mmio is set by s3linear */
+		savageinit(scr);
+		break;
 	}
 }
 

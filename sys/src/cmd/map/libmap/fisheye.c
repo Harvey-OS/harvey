@@ -1,3 +1,5 @@
+#include <u.h>
+#include <libc.h>
 #include "map.h"
 /* refractive fisheye, not logarithmic */
 

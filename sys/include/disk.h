@@ -64,7 +64,3 @@ typedef void Protowarn(char *msg, void *a);
 
 int	rdproto(char*, char*, Protoenum*, Protowarn*, void*);
 
-/* memory help */
-void	*emalloc(long);
-char *estrdup(char*);
-void *erealloc(void*, long);

@@ -1,6 +1,6 @@
 .TH RUNE 2
 .SH NAME
-runetochar, chartorune, runelen, runenlen, fullrune, utflen, utfrune, utfrrune, utfutf \- rune/UTF conversion
+runetochar, chartorune, runelen, runenlen, fullrune, utflen, utfnlen, utfrune, utfrrune, utfutf \- rune/UTF conversion
 .SH SYNOPSIS
 .ta \w'\fLchar*xx'u
 .B #include <u.h>
@@ -24,6 +24,9 @@ int	fullrune(char *s, int n)
 .PP
 .B
 int	utflen(char *s)
+.PP
+.B
+int	utfnlen(char *s, long n)
 .PP
 .B
 char*	utfrune(char *s, long c)
@@ -110,6 +113,20 @@ are represented by the
 .SM UTF
 string
 .IR s .
+.PP
+.I Utfnlen
+returns the number of complete runes that
+are represented by the first
+.I n
+bytes of
+.SM UTF
+string
+.IR s .
+If the last few bytes of the string contain an incompletely coded rune,
+.I utfnlen
+will not count them; in this way, it differs from
+.IR utflen ,
+which includes every byte of the string.
 .PP
 .I Utfrune
 .RI ( utfrrune )

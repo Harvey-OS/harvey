@@ -283,10 +283,36 @@ End:
 	return -1;
 }
 
+static int
+dowinchange(void)
+{
+	int pid;
+
+	if ((pid = rfork(RFMEM|RFPROC|RFNOWAIT)) < 0)
+		error("fork: %r");
+	if (pid)
+		return pid;
+
+	debug(DBG_PROC, "dowinchange started\n");
+	/* Child */
+
+	/* report changes */
+	for(;;){
+		if(readgeom() < 0)
+			break;
+		window_change();
+	}
+	_exits(0);
+	return -1;	/* for compiler */
+}
+
 void
 kill(int pid) {
 	int fd;
 	char proc[64];
+
+	if(pid < 0)
+		return;
 
 	sprint(proc, "/proc/%d/ctl", pid);
 	fd = open(proc, OWRITE);
@@ -301,12 +327,17 @@ run_shell(char *argv[]) {
 	char *buf;
 	uchar *p;
 	int nbuf;
-	int n, pid;
+	int n, winchangepid, inputpid;
+
+	winchangepid = -1;
 
 	rfork(RFNOTEG);
 	nbuf = 8192+2;
 	buf = mmalloc(8192+2);
-	if (*argv == 0 || alwaysrequestpty) request_pty();
+	if (*argv == 0)
+		requestpty = 1;
+	if (requestpty)
+		request_pty();
 	packet = (Packet*)mmalloc(nbuf+64);
 	packet->length = 0;
 	packet->pos = packet->data;
@@ -332,7 +363,14 @@ run_shell(char *argv[]) {
 	if (putpacket(packet, c2s))
 		exits("connection");
 
-	pid = doinput();
+	inputpid = doinput();
+
+	/*
+	 * Only dowinchange() if requesting a pty, otherwise
+	 * we don't know cheight, cwidth, and don't care.
+	 */
+	if (requestpty) 
+		winchangepid = dowinchange();
 	while(1) {
 		packet = getpacket(s2c);
 		if (packet == 0) break;
@@ -352,7 +390,9 @@ run_shell(char *argv[]) {
 		switch (packet->type) {
 		case SSH_SMSG_EXITSTATUS:
 			debug(DBG, "Exits(0)\n");
-			kill(pid);
+			kill(inputpid);
+			if (requestpty)
+				kill(winchangepid);
 			if (verbose)
 				fprint(2, "Remote process exited\n");
 			exits(0);
@@ -361,7 +401,9 @@ run_shell(char *argv[]) {
 			debug(DBG, "Exits(%s)\n", buf);
 			if (verbose)
 				fprint(2, "Remote side disconnected\n");
-			kill(pid);
+			kill(inputpid);
+			if (requestpty)
+				kill(winchangepid);
 			exits(buf);
 		case SSH_SMSG_STDOUT_DATA:
 			p = packet->data;

@@ -1,22 +1,26 @@
 typedef struct Ureg {
-	uint	r0;
-	uint	r1;
-	uint	r2;
-	uint	r3;
-	uint	r4;
-	uint	r5;
-	uint	r6;
-	uint	r7;
-	uint	r8;
-	uint	r9;
-	uint	r10;
-	uint	r11;
-	uint	r12;
-	uint	r13;
-	uint	r14;
-	uint	link;
-	uint	type;
-	uint	psr;
-//	uint	sp;
-	uint	pc;
+	ulong	r0;
+	ulong	r1;
+	ulong	r2;
+	ulong	r3;
+	ulong	r4;
+	ulong	r5;
+	ulong	r6;
+	ulong	r7;
+	ulong	r8;
+	ulong	r9;
+	ulong	r10;
+	ulong	r11;
+	ulong	r12;	/* sb */
+	union {
+		ulong	r13;
+		ulong	sp;
+	};
+	union {
+		ulong	r14;
+		ulong	link;
+	};
+	ulong	type;	/* of exception */
+	ulong	psr;
+	ulong	pc;	/* interrupted addr */
 } Ureg;

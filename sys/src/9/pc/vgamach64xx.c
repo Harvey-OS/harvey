@@ -13,7 +13,7 @@
 #include "screen.h"
 
 /*
- * ATI Mach64(CT|ET|G*|VT|VU|L*).
+ * ATI Mach64(CT|ET|G*|V*|L*).
  */
 static ushort mach64xxdid[] = {
 	('C'<<8)|'T',
@@ -21,6 +21,7 @@ static ushort mach64xxdid[] = {
 	('G'<<8)|'B',
 	('G'<<8)|'D',
 	('G'<<8)|'I',
+	('G'<<8)|'M',
 	('G'<<8)|'P',
 	('G'<<8)|'Q',
 	('G'<<8)|'T',
@@ -29,6 +30,7 @@ static ushort mach64xxdid[] = {
 	('G'<<8)|'Z',
 	('V'<<8)|'T',
 	('V'<<8)|'U',
+	('V'<<8)|'V',
 	('L'<<8)|'B',
 	('L'<<8)|'I',
 	('L'<<8)|'M',
@@ -77,7 +79,7 @@ mach64xxenable(VGAscr* scr)
 		 */
 		scr->io = p->mem[1].bar & ~0x03;
 
-		if(scr->io == 0 && p->did == ('C'<<8)|'T')
+		if(scr->io == 0)
 			scr->io = 0x2EC;
 	}
 }
@@ -798,3 +800,4 @@ VGAcur vgamach64xxcur = {
 
 	1					/* doespanning */
 };
+

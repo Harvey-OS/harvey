@@ -26,6 +26,7 @@ mpmagadd(mpint *b1, mpint *b2, mpint *sum)
 		return;
 	}
 	mpbits(sum, (n+1)*Dbits);
+	sum->top = n+1;
 
 	mpvecadd(b1->p, n, b2->p, m, sum->p);
 	sum->sign = 1;

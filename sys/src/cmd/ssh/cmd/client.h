@@ -4,7 +4,6 @@ extern RSApub		*server_host_key;
 extern uchar		 server_cookie[8];
 
 extern RSApriv		*client_session_key;
-extern RSApriv		*client_host_key;
 
 extern ulong		 protocol_flags;
 extern ulong		 supported_cipher_mask;
@@ -14,11 +13,10 @@ extern char		*user;
 extern char		*localuser;
 extern char		server_host_name[];
 
-extern int		 no_secret_key;
 extern int		 verbose;
 extern int		 crstrip;
 extern int		interactive;
-extern int		alwaysrequestpty;
+extern int		requestpty;
 extern int		cooked;
 extern int		usemenu;
 
@@ -29,3 +27,6 @@ void			put_ssh_cmsg_user(void);
 void			user_auth(void);
 void			run_shell(char *argv[]);
 void			request_pty(void);
+void			window_change(void);
+int			readgeom(void);
+

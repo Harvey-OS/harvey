@@ -145,7 +145,7 @@ translatedomain(char *dom)
 			ep = p+strlen(p);
 			q += strspn(q, " \t");
 			if(ep-q+2 > sizeof buf) {
-				fprint(2, "huge replacement in machinelist: %.*s\n", (int)(ep-q), q);
+				fprint(2, "huge replacement in machinelist: %.*s\n", utfnlen(q, ep-q), q);
 				exits("bad big replacement");
 			}
 			strncpy(buf, q, ep-q);

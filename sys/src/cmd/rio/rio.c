@@ -309,6 +309,7 @@ keyboardthread(void*)
 	Rune buf[2][20], *rp;
 	int n, i;
 
+	threadsetname("keyboardthread");
 	n = 0;
 	for(;;){
 		if(nelem(buf[0])!=20)threadprint(2, "NO");
@@ -361,6 +362,7 @@ winclosethread(void*)
 {
 	Window *w;
 
+	threadsetname("winclosethread");
 	for(;;){
 		w = recvp(winclosechan);
 		wclose(w);
@@ -374,6 +376,7 @@ deletethread(void*)
 	char *s;
 	Image *i;
 
+	threadsetname("deletethread");
 	for(;;){
 		s = recvp(deletechan);
 		i = namedimage(display, s);
@@ -412,6 +415,7 @@ mousethread(void*)
 	};
 	static Alt alts[NALT+1];
 
+	threadsetname("mousethread");
 	sending = FALSE;
 	scrolling = FALSE;
 	moving = FALSE;
@@ -530,6 +534,7 @@ resized(void)
 
 	if(getwindow(display, Refnone) < 0)
 		error("failed to re-attach window");
+	freescrtemps();
 	view = screen;
 	freescreen(wscreen);
 	wscreen = allocscreen(screen, background, 0);
@@ -644,11 +649,11 @@ button2menu(Window *w)
 			break;
 		if(w->rawing){
 			waddraw(w, snarf, nsnarf);
-			if(snarf[nsnarf-1] != '\n')
+			if(snarf[nsnarf-1]!='\n' && snarf[nsnarf-1]!='\004')
 				waddraw(w, L"\n", 1);
 		}else{
 			winsert(w, snarf, nsnarf, w->nr);
-			if(snarf[nsnarf-1] != '\n')
+			if(snarf[nsnarf-1]!='\n' && snarf[nsnarf-1]!='\004')
 				winsert(w, L"\n", 1, w->nr);
 		}
 		wsetselect(w, w->nr, w->nr);
@@ -683,6 +688,7 @@ sweep(void)
 	Point p0, p;
 
 	i = nil;
+	menuing = TRUE;
 	riosetcursor(&crosscursor, 1);
 	while(mouse->buttons == 0)
 		readmouse(mousectl);
@@ -720,14 +726,19 @@ sweep(void)
 		goto Rescue;
 	border(i, r, Selborder, red, ZP);
 	cornercursor(input, mouse->xy, 1);
-	return i;
+	goto Return;
 
  Rescue:
 	freeimage(i);
+	i = nil;
 	cornercursor(input, mouse->xy, 1);
 	while(mouse->buttons)
 		readmouse(mousectl);
-	return nil;
+
+ Return:
+	moveto(mousectl, mouse->xy);	/* force cursor update; ugly */
+	menuing = FALSE;
+	return i;
 }
 
 /*
@@ -742,6 +753,7 @@ drag(Window *w, Rectangle *rp)
 	Rectangle r;
 
 	i = w->i;
+	menuing = TRUE;
 	om = mouse->xy;
 	riosetcursor(&boxcursor, 1);
 	dm = subpt(mouse->xy, w->screenr.min);
@@ -762,6 +774,8 @@ drag(Window *w, Rectangle *rp)
 	r = Rect(op.x, op.y, op.x+d.x, op.y+d.y);
 	drawgetrect(r, 0);
 	cornercursor(input, mouse->xy, 1);
+	moveto(mousectl, mouse->xy);	/* force cursor update; ugly */
+	menuing = FALSE;
 	flushimage(display, 1);
 	if(mouse->buttons!=0 || (ni=allocwindow(wscreen, r, Refbackup, DWhite))==nil){
 		moveto(mousectl, om);
@@ -825,15 +839,11 @@ bandsize(Window *w)
 	while(mouse->buttons == but){
 		p = onscreen(mouse->xy);
 		r = whichrect(w->screenr, p, which);
-		if(!eqrect(r, or)){
-			/* not too big, not too small, just right */
-			if(Dx(r)<=Dx(viewr) && Dy(r)<=Dy(viewr)
-			  && Dx(r)>=100 && Dy(r)>=3*font->height){
-				drawgetrect(or, 0);
-				drawgetrect(r, 1);
-				flushimage(display, 1);
-				or = r;
-			}
+		if(!eqrect(r, or) && goodrect(r)){
+			drawgetrect(or, 0);
+			drawgetrect(r, 1);
+			flushimage(display, 1);
+			or = r;
 		}
 		readmouse(mousectl);
 	}
@@ -860,6 +870,7 @@ pointto(int wait)
 {
 	Window *w;
 
+	menuing = TRUE;
 	riosetcursor(&sightcursor, 1);
 	while(mouse->buttons == 0)
 		readmouse(mousectl);
@@ -876,6 +887,8 @@ pointto(int wait)
 			readmouse(mousectl);
 		}
 	cornercursor(input, mouse->xy, 0);
+	moveto(mousectl, mouse->xy);	/* force cursor update; ugly */
+	menuing = FALSE;
 	return w;
 }
 
@@ -976,6 +989,7 @@ new(Image *i, int pid, char *dir, char *cmd, char **argv)
 	mc->image = i;
 	mc->c = cm;
 	w = wmk(i, mc, ck, cctl);
+	free(mc);	/* wmk copies *mc */
 	window = erealloc(window, ++nwindow*sizeof(Window*));
 	window[nwindow-1] = w;
 	threadcreate(winctl, w, 8192);
@@ -997,6 +1011,6 @@ new(Image *i, int pid, char *dir, char *cmd, char **argv)
 	}
 	wsetpid(w, pid);
 	wsetname(w);
-	free(cpid);
+	chanfree(cpid);
 	return w;
 }

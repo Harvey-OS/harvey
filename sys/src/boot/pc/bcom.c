@@ -32,7 +32,7 @@ extern SDifc sdmylexifc;
 extern SDifc sd53c8xxifc;
 SDifc* sdifc[] = {
 	&sdataifc,
-	&sdmylexifc,
+//	&sdmylexifc,
 //	&sd53c8xxifc,
 	nil,
 };
@@ -415,6 +415,7 @@ nvramread(int offset)
 }
 
 void (*etherdetach)(void);
+void (*sddetach)(void);
 
 void
 warp9(ulong entry)

@@ -18,7 +18,7 @@ enum {
 	DbgPROBE	= 0x08,		/* trace device probing */
 	DbgDEBUG	= 0x80,		/* the current problem... */
 };
-#define DEBUG		0
+#define DEBUG		(DbgDEBUG/*|DbgPROBE*/|DbgCONFIG)
 
 enum {					/* I/O ports */
 	Data		= 0,
@@ -270,12 +270,46 @@ pc87415ienable(Ctlr* ctlr)
 }
 
 static int
+atadebug(int cmdport, int ctlport, char* fmt, ...)
+{
+	int i, n;
+	va_list arg;
+	char buf[PRINTSIZE];
+
+	if(!(DEBUG & DbgPROBE)){
+		USED(cmdport, ctlport, fmt);
+		return 0;
+	}
+
+	va_start(arg, fmt);
+	n = doprint(buf, buf+sizeof(buf), fmt, arg) - buf;
+	va_end(arg);
+
+	if(cmdport){
+		if(buf[n-1] == '\n')
+			n--;
+		n += snprint(buf+n, PRINTSIZE-n, " ataregs 0x%uX:",
+			cmdport);
+		for(i = Features; i < Command; i++)
+			n += snprint(buf+n, PRINTSIZE-n, " 0x%2.2uX",
+				inb(cmdport+i));
+		if(ctlport)
+			n += snprint(buf+n, PRINTSIZE-n, " 0x%2.2uX",
+				inb(ctlport+As));
+		n += snprint(buf+n, PRINTSIZE-n, "\n");
+	}
+	putstrn(buf, n);
+
+	return n;
+}
+
+static int
 ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 {
 	int as;
 
-//	atadebug(cmdport, ctlport, "ataready: dev %uX reset %uX ready %uX",
-//		dev, reset, ready);
+	atadebug(cmdport, ctlport, "ataready: dev %uX reset %uX ready %uX",
+		dev, reset, ready);
 
 	for(;;){
 		/*
@@ -294,17 +328,17 @@ ataready(int cmdport, int ctlport, int dev, int reset, int ready, int micro)
 			dev = 0;
 		}
 		else if(ready == 0 || (as & ready)){
-		//	atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
+			atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
 			return as;
 		}
 
 		if(micro-- <= 0){
-		//	atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
+			atadebug(0, 0, "ataready: %d 0x%2.2uX\n", micro, as);
 			break;
 		}
 		microdelay(1);
 	}
-//	atadebug(cmdport, ctlport, "ataready: timeout");
+	atadebug(cmdport, ctlport, "ataready: timeout");
 
 	return -1;
 }
@@ -364,7 +398,7 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 	outb(cmdport+Command, command);
 	microdelay(1);
 
-	as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 104*1000);
+	as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 400*1000);
 	if(as < 0)
 		return -1;
 	if(as & Err)
@@ -399,7 +433,7 @@ atadrive(int cmdport, int ctlport, int dev)
 	int as, i, pkt;
 	uchar buf[512], *p;
 
-//	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
+	atadebug(0, 0, "identify: port 0x%uX dev 0x%2.2uX\n", cmdport, dev);
 	pkt = 1;
 retry:
 	as = ataidentify(cmdport, ctlport, dev, pkt, buf);
@@ -459,8 +493,9 @@ retry:
 //	atadmamode(drive);	
 
 	if(DEBUG & DbgCONFIG){
-		print("dev %2.2uX config %4.4uX capabilities %4.4uX",
-			dev, drive->info[Iconfig], drive->info[Icapabilities]);
+		print("dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
+			dev, cmdport,
+			drive->info[Iconfig], drive->info[Icapabilities]);
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
@@ -520,7 +555,7 @@ ataprobe(int cmdport, int ctlport, int irq)
 		outb(cmdport+Dh, dev);
 		microdelay(1);
 trydev1:
-//		atadebug(cmdport, ctlport, "ataprobe bsy");
+		atadebug(cmdport, ctlport, "ataprobe bsy");
 		outb(cmdport+Cyllo, 0xAA);
 		outb(cmdport+Cylhi, 0x55);
 		outb(cmdport+Sector, 0xFF);
@@ -576,7 +611,7 @@ tryedd1:
 	 * exist and the EDD won't take, so try again with Dev1.
 	 */
 	error = inb(cmdport+Error);
-//	atadebug(cmdport, ctlport, "ataprobe: dev %uX", dev);
+	atadebug(cmdport, ctlport, "ataprobe: dev %uX", dev);
 	if((error & ~0x80) != 0x01){
 		if(dev == Dev1)
 			goto release;
@@ -1328,6 +1363,7 @@ atapnp(void)
 			break;
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
+		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */

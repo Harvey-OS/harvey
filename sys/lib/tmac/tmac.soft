@@ -62,12 +62,12 @@
 .dt \\n(.du+4u \\*(DT
 .sp\}
 ..
-.ds Co \s12\v'.2m'\(co\v'-.2m'\s0 19\\n(yr by John Wiley & Sons, Ltd.
+.ds Co \s12\v'.2m'\(co\v'-.2m'\s0 20\\n(yr by John Wiley & Sons, Ltd.
 .de CO
 .ps 8
 .vs 9p
 .nf
-SOFTWARE\(emPRACTICE AND EXPERIENCE, VOL. \\*(VN(\\*(NU), \\n(P<-\\n(P> (\\*(MO 19\\n(yr)
+SOFTWARE\(emPRACTICE AND EXPERIENCE, VOL. \\*(VN(\\*(NU), \\n(P<-\\n(P> (\\*(MO 20\\n(yr)
 .fi
 .ft 1
 .lt \\n(LLu
@@ -447,7 +447,6 @@ REFERENCES
 .nr Ss \\n(.s
 .nr Sf \\n(.f
 .ps 9
-.nr yr \\n(yr%1900
 .af NU 01
 .af VN 01
 .af P< 0001

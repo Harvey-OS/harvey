@@ -9,8 +9,12 @@ pushssl(int fd, char *alg, char *secin, char *secout, int *cfd)
 	int n, data, ctl;
 
 	ctl = open("/net/ssl/clone", ORDWR);
-	if(ctl < 0)
-		return -1;
+	if(ctl < 0 && access("/net/ssl", 0) < 0){
+		bind("#D", "/net", MAFTER);
+		ctl = open("/net/ssl/clone", ORDWR);
+		if(ctl < 0)
+			return -1;
+	}
 	n = read(ctl, buf, sizeof(buf)-1);
 	if(n < 0)
 		goto error;

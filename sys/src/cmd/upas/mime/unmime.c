@@ -176,6 +176,7 @@ initquoted(void)
 	for(c = '>'; c <= '~'; c++)
 		tableqp[c] = Self;
 	tableqp['='] = Hex;
+	tableqp['\t'] = Self;
 }
 
 int
@@ -527,6 +528,14 @@ cencoding(Header *h, char *p)
 	}
 }
 
+static long maptab[] = 
+{
+0x2022, 0x2022,	0x2022,	0x201a,	0x0192,	0x201e,	0x2026,	0x2020,	0x2021,
+0x02c6,	0x2030,	0x0160,	0x2039,	0x0152,	0x2022,	0x2022,	0x2022,
+0x2022, 0x2018,	0x2019,	0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
+0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x2022, 0x2022, 0x0178,
+};
+
 /*
  *  write out buffer, converting characters if necessary
  */
@@ -554,6 +563,9 @@ output(char *p, int n)
 				ap = arena;
 			}
 			r = (*p) & 0xff;
+				/* map the microsoft 'extensions' to iso 8859 */
+			if (charset == ISO8859_1 && 0x7f <= r && r <= 0x9f)
+				r = maptab[r-0x7f];
 			ap += runetochar(ap, &r);
 		}
 		if(ap > arena)
@@ -741,7 +753,6 @@ main(int argc, char *argv[])
 		if(*p == '/')
 			*p = 0;
 	}
-
 	while(p = Brdline(&b, '\n')){
 		n = Blinelen(&b)-1;
 		p[n] = 0;
@@ -749,7 +760,6 @@ main(int argc, char *argv[])
 			p[n-1] = 0;
 
 		if(*boundary && strstr(p, boundary)){
-if(debug)fprint(2, "found boundary %s\n", p);
 			if(Bfildes(&bout) != 1){
 				memset(currentfile, 0, sizeof(currentfile));
 				Bterm(&bout);

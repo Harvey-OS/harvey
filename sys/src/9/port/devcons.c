@@ -139,6 +139,18 @@ sprint(char *s, char *fmt, ...)
 	return n;
 }
 
+char*
+seprint(char *buf, char *e, char *fmt, ...)
+{
+	char *out;
+	va_list arg;
+
+	va_start(arg, fmt);
+	out = doprint(buf, e, fmt, arg);
+	va_end(arg);
+	return out;
+}
+
 int noprint;
 
 int
@@ -1001,8 +1013,7 @@ readtime(ulong off, char *buf, int n)
 {
 	vlong	nsec, ticks;
 	long sec;
-	char str[7*NUMSIZE+4];	// extra 4 bytes are null plus doprint
-				// reserving space for a frigging UTF
+	char str[7*NUMSIZE];
 				// char
 
 	nsec = todget(&ticks);

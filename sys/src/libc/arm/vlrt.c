@@ -54,7 +54,6 @@ _subv(Vlong *r, Vlong a, Vlong b)
 	r->hi = hi;
 }
 
-#ifdef nofloat
 
 void
 _d2v(Vlong *y, double d)
@@ -137,7 +136,7 @@ _v2f(Vlong x)
 {
 	return _v2d(x);
 }
-#endif
+
 
 static void
 dodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)

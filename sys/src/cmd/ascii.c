@@ -75,7 +75,7 @@ main(int argc, char **argv)
 	case 'd':
 		base=10; break;
 	case 'b':
-		base=strtoul(ARGF(), 0, 0);
+		base=strtoul(EARGF(usage()), 0, 0);
 		if(base<2||base>MAXBASE)
 			usage();
 		break;

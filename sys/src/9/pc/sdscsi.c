@@ -223,7 +223,7 @@ scsionline(SDunit* unit)
 			 * Since we don't read audio via this interface
 			 * it's okay to always fudge this.
 			 */
-			if((unit->inquiry[0] & 0x1F) == 0x05 && unit->secsize == 2352)
+			if(unit->secsize == 2352)
 				unit->secsize = 2048;
 			ok = 1;
 			break;

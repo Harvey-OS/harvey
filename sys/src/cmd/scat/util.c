@@ -6,7 +6,7 @@
 double	PI_180	= 0.0174532925199432957692369;
 double	TWOPI	= 6.2831853071795864769252867665590057683943387987502;
 double	LN2	= 0.69314718055994530941723212145817656807550013436025;
-static double angledangle=(180./PI)*60.*60.*1000.;
+static double angledangle=(180./PI)*MILLIARCSEC;
 
 int
 rint(char *p, int n)
@@ -161,6 +161,24 @@ hm(Angle a)
 }
 
 char*
+hm5(Angle a)
+{
+	static char buf[20];
+	double x;
+	int h, m;
+
+	x = DEG(a)/15;
+	x += 2.5/60.;	/* round up 2.5m */
+	h = floor(x);
+	x -= h;
+	x *= 60;
+	m = floor(x);
+	m -= m % 5;
+	sprint(buf, "%dh%.2dm", h, m);
+	return buf;
+}
+
+char*
 dm(Angle a)
 {
 	static char buf[20];
@@ -182,6 +200,25 @@ dm(Angle a)
 	x *= 10;
 	n = floor(x);
 	sprint(buf, "%c%d°%.2d.%.1d'", sign, d, m, n);
+	return buf;
+}
+
+char*
+deg(Angle a)
+{
+	static char buf[20];
+	double x;
+	int sign, d;
+
+	x = DEG(a);
+	sign='+';
+	if(a<0){
+		sign='-';
+		x=-x;
+	}
+	x += 0.5;	/* round up half degree */
+	d = floor(x);
+	sprint(buf, "%c%d°", sign, d);
 	return buf;
 }
 
@@ -240,10 +277,14 @@ getra(char *p)
 	while(*p == ' ')
 		p++;
 	for(;;) {
-		if(*p == ' ')
+		if(*p == ' ' || *p=='\0')
 			goto Return;
 		if(*p == '-') {
 			neg = 1;
+			p++;
+		}
+		if(*p == '+') {
+			neg = 0;
 			p++;
 		}
 		q = p;

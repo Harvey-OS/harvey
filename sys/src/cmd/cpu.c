@@ -10,6 +10,7 @@
 #include <bio.h>
 #include <auth.h>
 #include <fcall.h>
+#include <libsec.h>
 
 void	remoteside(void);
 void	fatal(int, char*, ...);
@@ -21,6 +22,7 @@ void	writestr(int, char*, char*, int);
 int	readstr(int, char*, int);
 char	*rexcall(int*, char*, char*);
 int	filter(int);
+int	setamalg(char*);
 
 int 	notechan;
 char	system[32];
@@ -31,10 +33,13 @@ int	dbg;
 
 char	*srvname = "cpu";
 char	*exportfs = "/bin/exportfs";
+char	*ealgs = "rc4_256 sha1";
 
 /* authentication mechanisms */
 static int	netkeyauth(int);
 static int	netkeysrvauth(int, char*);
+static int	p9auth(int);
+static int	srvp9auth(int, char*);
 
 typedef struct AuthMethod AuthMethod;
 struct AuthMethod {
@@ -43,7 +48,7 @@ struct AuthMethod {
 	int	(*sf)(int, char*);	/* server side authentication */
 } authmethod[] =
 {
-	{ "p9",		auth,		srvauth},
+	{ "p9",		p9auth,		srvp9auth},
 	{ "netkey",	netkeyauth,	netkeysrvauth},
 	{ nil,	nil}
 };
@@ -54,7 +59,7 @@ int setam(char*);
 void
 usage(void)
 {
-	fprint(2, "usage: cpu [-h system] [-a authmethod] [-c cmd args ...]\n");
+	fprint(2, "usage: cpu [-h system] [-a authmethod] [-e 'crypt hash'] [-c cmd args ...]\n");
 	exits("usage");
 }
 int fdd;
@@ -72,6 +77,13 @@ main(int argc, char **argv)
 			usage();
 		if(setam(p) < 0)
 			fatal(0, "unknown auth method %s\n", p);
+		break;
+	case 'e':
+		ealgs = ARGF();
+		if(ealgs == nil)
+			usage();
+		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
+			ealgs = nil;
 		break;
 	case 'd':
 		dbg++;
@@ -98,6 +110,8 @@ main(int argc, char **argv)
 			strcat(cmd, p);
 		}
 		break;
+	default:
+		usage();
 	}ARGEND;
 
 	if(argv);
@@ -125,8 +139,10 @@ main(int argc, char **argv)
 	/* start up a process to pass along notes */
 	lclnoteproc(data);
 
-	/* Wait for the other end to execute and start our file service
-	 * of /mnt/term */
+	/* 
+	 *  Wait for the other end to execute and start our file service
+	 *  of /mnt/term
+	 */
 	if(readstr(data, buf, sizeof(buf)) < 0)
 		fatal(1, "waiting for FS");
 	if(strncmp("FS", buf, 2) != 0) {
@@ -173,17 +189,20 @@ remoteside(void)
 	char user[NAMELEN], home[128], buf[128], xdir[128], cmd[128];
 	int i, n, fd, badchdir, gotcmd;
 
+	fd = 0;
+
 	/* negotiate authentication mechanism */
-	n = readstr(0, cmd, sizeof(cmd));
+	n = readstr(fd, cmd, sizeof(cmd));
 	if(n < 0)
 		fatal(1, "authenticating");
-	if(setam(cmd) < 0){
-		writestr(1, "unsupported auth method", nil, 0);
+	if(setamalg(cmd) < 0){
+		writestr(fd, "unsupported auth method", nil, 0);
 		fatal(1, "bad auth method %s", cmd);
 	} else
-		writestr(1, "", "", 1);
+		writestr(fd, "", "", 1);
 
-	if((*am->sf)(0, user) < 0)
+	fd = (*am->sf)(fd, user);
+	if(fd < 0)
 		fatal(1, "srvauth");
 	if(newns(user, 0) < 0)
 		fatal(1, "newns");
@@ -195,15 +214,14 @@ remoteside(void)
 
 	/* Now collect invoking cpus current directory or possibly a command */
 	gotcmd = 0;
-	if(readstr(0, xdir, sizeof(xdir)) < 0)
+	if(readstr(fd, xdir, sizeof(xdir)) < 0)
 		fatal(1, "dir/cmd");
 	if(xdir[0] == '!') {
 		strcpy(cmd, &xdir[1]);
 		gotcmd = 1;
-		if(readstr(0, xdir, sizeof(xdir)) < 0)
+		if(readstr(fd, xdir, sizeof(xdir)) < 0)
 			fatal(1, "dir");
 	}
-
 
 	/* Establish the new process at the current working directory of the
 	 * gnot */
@@ -216,14 +234,14 @@ remoteside(void)
 	}
 
 	/* Start the gnot serving its namespace */
-	writestr(1, "FS", "FS", 0);
-	writestr(1, "/", "exportfs dir", 0);
+	writestr(fd, "FS", "FS", 0);
+	writestr(fd, "/", "exportfs dir", 0);
 
-	n = read(1, buf, sizeof(buf));
+	n = read(fd, buf, sizeof(buf));
 	if(n != 2 || buf[0] != 'O' || buf[1] != 'K')
 		exits("remote tree");
 
-	fd = dup(1, -1);
+	fd = dup(fd, -1);
 
 	/* push fcall and note proc */
 	if(fflag)
@@ -262,6 +280,7 @@ rexcall(int *fd, char *host, char *service)
 	char *na;
 	char dir[4*NAMELEN];
 	char err[ERRLEN];
+	char msg[128];
 	int n;
 
 	na = netmkaddr(host, 0, service);
@@ -269,7 +288,11 @@ rexcall(int *fd, char *host, char *service)
 		return "can't dial";
 
 	/* negotiate authentication mechanism */
-	writestr(*fd, am->name, negstr, 0);
+	if(ealgs != nil)
+		snprint(msg, sizeof(msg), "%s %s", am->name, ealgs);
+	else
+		snprint(msg, sizeof(msg), "%s", am->name);
+	writestr(*fd, msg, negstr, 0);
 	n = readstr(*fd, err, ERRLEN);
 	if(n < 0)
 		return negstr;
@@ -279,7 +302,8 @@ rexcall(int *fd, char *host, char *service)
 	}
 
 	/* authenticate */
-	if((*am->cf)(*fd) < 0)
+	*fd = (*am->cf)(*fd);
+	if(*fd < 0)
 		return "can't authenticate";
 	if(strstr(dir, "tcp"))
 		fflag = 1;
@@ -333,6 +357,9 @@ readln(char *buf, int n)
 	return p-buf;
 }
 
+/*
+ *  user level challenge/response
+ */
 static int
 netkeyauth(int fd)
 {
@@ -351,7 +378,7 @@ netkeyauth(int fd)
 		if(readstr(fd, chall, sizeof chall) < 0)
 			break;
 		if(*chall == 0)
-			return 0;
+			return fd;
 		print("challenge: %s\nresponse: ", chall);
 		if(readln(resp, sizeof(resp)) < 0)
 			break;
@@ -382,7 +409,82 @@ netkeysrvauth(int fd, char *user)
 	if(tries >= 10)
 		return -1;
 	writestr(fd, "", "challenge", 1);
-	return 0;
+	return fd;
+}
+
+static void
+mksecret(char *t, uchar *f)
+{
+	sprint(t, "%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
+		f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8], f[9]);
+}
+
+/*
+ *  plan9 authentication followed by rc4 encryption
+ */
+static int
+p9auth(int fd)
+{
+	uchar key[16];
+	uchar digest[SHA1dlen];
+	char fromclientsecret[21];
+	char fromserversecret[21];
+	int i;
+
+	if(authnonce(fd, key+4) < 0)
+		return -1;
+	if(ealgs == nil)
+		return fd;
+
+	/* exchange random numbers */
+	srand(truerand());
+	for(i = 0; i < 4; i++)
+		key[i] = rand();
+	if(write(fd, key, 4) != 4)
+		return -1;
+	if(readn(fd, key+12, 4) != 4)
+		return -1;
+
+	/* scramble into two secrets */
+	sha1(key, sizeof(key), digest, nil);
+	mksecret(fromclientsecret, digest);
+	mksecret(fromserversecret, digest+10);
+
+	/* set up encryption */
+	return pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
+}
+
+static int
+srvp9auth(int fd, char *user)
+{
+	uchar key[16];
+	uchar digest[SHA1dlen];
+	char fromclientsecret[21];
+	char fromserversecret[21];
+	int i;
+
+	if(srvauthnonce(fd, user, key+4) < 0)
+		return -1;
+
+	if(ealgs == nil)
+		return fd;
+
+	/* exchange random numbers */
+	srand(truerand());
+	for(i = 0; i < 4; i++)
+		key[i+12] = rand();
+	if(readn(fd, key, 4) != 4)
+		return -1;
+	if(write(fd, key+12, 4) != 4)
+		return -1;
+
+	/* scramble into two secrets */
+	sha1(key, sizeof(key), digest, nil);
+	mksecret(fromclientsecret, digest);
+	mksecret(fromserversecret, digest+10);
+
+	/* set up encryption */
+	return pushssl(fd, ealgs, fromserversecret, fromclientsecret, nil);
 }
 
 /* Network on fd1, mount driver on fd0 */
@@ -412,6 +514,9 @@ filter(int fd)
 	return p[1];	
 }
 
+/*
+ *  set authentication mechanism
+ */
 int
 setam(char *name)
 {
@@ -420,6 +525,18 @@ setam(char *name)
 			return 0;
 	am = authmethod;
 	return -1;
+}
+
+/*
+ *  set authentication mechanism and encryption/hash algs
+ */
+int
+setamalg(char *s)
+{
+	ealgs = strchr(s, ' ');
+	if(ealgs != nil)
+		*ealgs++ = 0;
+	return setam(s);
 }
 
 char *rmtnotefile = "/mnt/term/dev/cpunote";
@@ -531,8 +648,6 @@ fsreply(int fd, Fcall *f)
 	char buf[ERRLEN+MAXMSG];
 	int n;
 
-	if(f->type == Rerror)
-		f->count = strlen(f->data);
 	if(dbg)
 		fprint(2, "<-%F\n", f);
 	n = convS2M(f, buf);
@@ -699,14 +814,14 @@ notefs(int fd)
 		if(fid == nil){
 nofids:
 			f.type = Rerror;
-			f.data = Enofile;
+			strcpy(f.ename, Enofile);
 			fsreply(fd, &f);
 			continue;
 		}
 		switch(f.type++){
 		default:
 			f.type = Rerror;
-			f.data = "unknown type";
+			strcpy(f.ename, "unknown type");
 			break;
 		case Tflush:
 			flushreq(f.oldtag);
@@ -738,24 +853,24 @@ nofids:
 		case Twalk:
 			if(fid->file != Qdir){
 				f.type = Rerror;
-				f.data = Enotdir;
+				strcpy(f.ename, Enotdir);
 			} else if(strcmp(f.name, "cpunote") == 0){
 				fid->file = Qcpunote;
 				f.qid = fstab[Qcpunote].qid;
 			} else {
 				f.type = Rerror;
-				f.data = Enotexist;
+				strcpy(f.ename, Enotexist);
 			}
 			break;
 		case Topen:
 			if(f.mode != OREAD){
 				f.type = Rerror;
-				f.data = Eperm;
+				strcpy(f.ename, Eperm);
 			}
 			break;
 		case Tcreate:
 			f.type = Rerror;
-			f.data = Eperm;
+			strcpy(f.ename, Eperm);
 			break;
 		case Tread:
 			if(fsread(fd, fid, &f) < 0)
@@ -764,14 +879,14 @@ nofids:
 			break;
 		case Twrite:
 			f.type = Rerror;
-			f.data = Eperm;
+			strcpy(f.ename, Eperm);
 			break;
 		case Tclunk:
 			fid->file = -1;
 			break;
 		case Tremove:
 			f.type = Rerror;
-			f.data = Eperm;
+			strcpy(f.ename, Eperm);
 			break;
 		case Tstat:
 			if(fsstat(fd, fid, &f) < 0)
@@ -780,7 +895,7 @@ nofids:
 			break;
 		case Twstat:
 			f.type = Rerror;
-			f.data = Eperm;
+			strcpy(f.ename, Eperm);
 			break;
 		}
 		if(doreply)

@@ -23,17 +23,14 @@ static Gd542x family[] = {
 	{ 0x90,  80000000, },		/* CL-GD5426 */
 	{ 0x98,  80000000, },		/* CL-GD5428 */
 	{ 0x9C,  86000000, },		/* CL-GD5429 */
-
 	{ 0xA0,  86000000, },		/* CL-GD5430 */
-
-/*
- * This was 110MHz, but empirically doesn't
- * work higher than 90. 
- */
-	{ 0xA8, 90000000, },		/* CL-GD5434 */
+	{ 0xA8,  86000000, },		/* CL-GD5434 */
 
 	{ 0xAC, 135000000, },		/* CL-GD5436 */
 	{ 0xB8, 135000000, },		/* CL-GD5446 */
+
+	{ 0x30,  80000000, },		/* CL-GD7543 */
+
 	{ 0x00, },
 };
 
@@ -111,6 +108,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 	case 0xA8:				/* CL-GD5434 */
 	case 0xAC:				/* CL-GD5436 */
 	case 0xB8:				/* CL-GD5446 */
+	case 0x30:				/* CL-GD7543 */
 		/*
 		 * Attempt to intuit the memory size from the DRAM control
 		 * register. Minimum is 512KB.

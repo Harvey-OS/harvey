@@ -277,7 +277,7 @@ void			redirectinit(void);
 void			reqcleanup(Connect *c);
 HFields*		revhfields(HFields *hf);
 SPairs*			revspairs(SPairs *sp);
-int			sendfd(Connect *c, int fd, Dir *dir);
+int			sendfd(Connect *c, int fd, Dir *dir, Content *type, Content *enc);
 void			statsinit(void);
 int			unallowed(Connect *, char *allowed);
 int			updateQid(int, Qid*);

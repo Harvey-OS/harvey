@@ -182,6 +182,9 @@ EXTERN	Reg*	lastr;
 EXTERN	Reg	zreg;
 EXTERN	Reg*	freer;
 EXTERN	Var	var[NVAR];
+EXTERN	long*	idom;
+EXTERN	Reg**	rpo2r;
+EXTERN	long	maxnr;
 
 extern	char*	anames[];
 

@@ -994,6 +994,7 @@ tcm59Xpci(Ether* ether)
 		ap->tbdf = p->tbdf;
 		ap->next = adapter;
 		adapter = ap;
+		pcisetbme(p);
 	}
 
 	return 0;

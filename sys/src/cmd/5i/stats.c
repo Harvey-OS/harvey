@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#define Extern extern
 #include "arm.h"
 
 #define Percent(num, max)	(((num)*100)/(max))

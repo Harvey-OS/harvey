@@ -22,7 +22,7 @@ setupuser(void)
 		bye("can't initialize mail system");
 		break;
 	case 0:
-		execl("/bin/upas/fs", "upas/fs", "-p", nil);
+		execl("/bin/upas/fs", "upas/fs", "-np", nil);
 		_exits(0);
 		break;
 	default:

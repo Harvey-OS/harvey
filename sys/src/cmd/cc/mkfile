@@ -4,7 +4,6 @@ LIB=cc.a$O
 OFILES=\
 	y.tab.$O\
 	lex.$O\
-	mpatof.$O\
 	mac.$O\
 	dcl.$O\
 	acid.$O\

@@ -8,7 +8,11 @@ scat \- sky catalogue and Digitized Sky Survey
 looks up items in catalogues of objects
 outside the solar system
 and implements database-like manipulations
-on sets of such objects.  It also displays images from the
+on sets of such objects.
+It also provides an interface to
+.IR astro (7)
+to plot the locations of solar system objects.
+Finally, it displays images from the
 Space Telescope Science Institute's
 Digitized Sky Survey, keyed to the catalogues.
 .PP
@@ -107,6 +111,23 @@ to different precisions; any output format is understood as input.
 .TP
 .B umi
 All the patches in the named constellation.
+.TP
+.B mars
+The planets are identified by their names.
+The names
+.B shadow
+and
+.B comet
+refer to the earth's penumbra at lunar distance and the comet installed in the current
+.IR astro (7).
+The output is the planet's name, right ascension and declination, azimuth and altitude, and phase
+for the moon and sun, as shown by
+.BR astro .
+The positions are current at the start of
+.I scat 's
+execution; see the
+.B astro
+command in the next section for more information.
 .PP
 The commands are:
 .TF print
@@ -159,13 +180,51 @@ is zero,
 .I expand
 collects all objects in the patches that cover the current set.
 .TP
+.BI astro " option"
+Run
+.IR astro (7)
+with the specified
+.I options
+(to which will be appended
+.BR -p ),
+to discover the positions of the planets.
+.BR Astro 's
+.B -d
+and
+.B -l
+options can be used to set the time and place; by default, it's right now at the coordinates in
+.BR /lib/sky/here .
+Running
+.B astro
+does not change the positions of planets already in the display set,
+so
+.B astro
+may be run multiple times, executing e.g.
+.B "add mars"
+each time, to plot a series of planetary positions.
+.TP
 .BI plot " option"
 Expand and plot the set in a new window on the screen.
-Symbols for NGC objects are as in Sky Atlas 2000.0.
+Symbols for NGC objects are as in Sky Atlas 2000.0, except that open clusters
+are shown as stippled disks rather than circles.
 Abell clusters are plotted as a triangle of ellipses.
+The planets are drawn as disks of representative color with the first letter of the name
+in the disk (lower case for inferior planets; upper case for superior);
+the sun, moon, and earth's shadow are unlabeled disks.
+Objects larger than a few pixels are plotted to scale; however,
+.I scat
+does not have the information necessary to show the correct orientation for galaxies.
+.IP
 The option
 .B nogrid
 suppresses the lines of declination and right ascension.
+By default,
+.I scat
+labels NGC objects, Abell clusters, and bright stars; option
+.B nolabel
+suppresses these while
+.B alllabel
+labels stars with their SAO number as well.
 The default size is 512×512; options
 .B dx
 .I n
@@ -177,6 +236,20 @@ set the
 and
 .I y
 extent.
+The option
+.B zenithup
+orients the map so it appears as it would in the sky at the time and
+location used by the
+.B astro
+command
+.RI ( q.v. ).
+.IP
+The output is designed to look best on an LCD display.
+CRTs have trouble with the thin, grey lines and dim stars.
+The option
+.B nogrey
+uses white instead of grey for these details, improving visibility
+at the cost of legibility when plotting on CRTs.
 .TP
 .B "plate \f1[[\f2ra dec\f1] \f2rasize\f1 [\f2decsize\f1]]"
 Display the section of the Digitized Sky Survey (plate scale
@@ -215,6 +288,23 @@ Plot the Messier objects and naked-eye stars in Orion.
 	ori
 	keep m <6
 	plot nogrid
+.EE
+.PP
+Draw a finder chart for Uranus:
+.EX
+	uranus
+	expand 5
+	plot
+.EE
+.PP
+Show a partial lunar eclipse:
+.EX
+	astro -d
+	2000 07 16 12 45
+	moon
+	add shadow
+	expand 2
+	plot
 .EE
 .PP
 Draw a map of the Pleiades.

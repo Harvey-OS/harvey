@@ -4,7 +4,7 @@ ppp, pptpd \- point to point protocol
 .SH SYNOPSIS
 .B ip/ppp
 [
-.B -cCdufS
+.B -cCdufSP
 ][
 .B -b
 .I baud
@@ -88,6 +88,12 @@ PPP over a serial line or a TCP connection
 .TP
 .B m
 set the maximum transfer unit (default 1450)
+.TP
+.B P
+use this as the primary IP interface; set the default
+route through this interface and write it's configuration
+to
+.B /net/ndb
 .TP
 .B s
 supplies the user name and secret

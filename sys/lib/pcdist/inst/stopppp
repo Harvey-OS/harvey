@@ -1,0 +1,19 @@
+#!/bin/rc
+
+# desc: shut down the ppp connection
+# prereq:
+
+switch($1) {
+case checkready
+	if(! ~ $#pppdev 1 || ! isipdevup '^pkt[0-9]') {
+		stopppp=notdone
+		export stopppp
+	}
+
+case go
+	kill ppp | rc
+
+case checkdone
+	stopppp=notdone
+	export stopppp
+}

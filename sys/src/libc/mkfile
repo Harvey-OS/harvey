@@ -27,7 +27,7 @@ installall:V:
 
 everything:V:
 	rm -f */*.[012456789kvx]
-	for(objtype in 29000 386 68000 68020 alpha arm mips sparc)@{
+	for(objtype in 29000 3210 386 68000 68020 alpha arm mips mips2 sparc spim)@{
 		echo $objtype
 		mk $MKFLAGS install
 	}

@@ -509,7 +509,7 @@ ataidentify(int cmdport, int ctlport, int dev, int pkt, void* info)
 	outb(cmdport+Command, command);
 	microdelay(1);
 
-	as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 104*1000);
+	as = ataready(cmdport, ctlport, 0, Bsy, Drq|Err, 400*1000);
 	if(as < 0)
 		return -1;
 	if(as & Err)
@@ -604,8 +604,9 @@ retry:
 	atadmamode(drive);	
 
 	if(DEBUG & DbgCONFIG){
-		print("dev %2.2uX config %4.4uX capabilities %4.4uX",
-			dev, drive->info[Iconfig], drive->info[Icapabilities]);
+		print("dev %2.2uX port %uX config %4.4uX capabilities %4.4uX",
+			dev, cmdport,
+			drive->info[Iconfig], drive->info[Icapabilities]);
 		print(" mwdma %4.4uX", drive->info[Imwdma]);
 		if(drive->info[Ivalid] & 0x04)
 			print(" udma %4.4uX", drive->info[Iudma]);
@@ -1631,6 +1632,7 @@ atapnp(void)
 			break;
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
+		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */

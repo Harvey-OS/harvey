@@ -1,6 +1,6 @@
 .TH ARG 2
 .SH NAME
-ARGBEGIN, ARGEND, ARGC, ARGF, arginit, argopt \- process option letters from argv
+ARGBEGIN, ARGEND, ARGC, ARGF, EARGF, arginit, argopt \- process option letters from argv
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -9,6 +9,7 @@ ARGBEGIN, ARGEND, ARGC, ARGF, arginit, argopt \- process option letters from arg
 .nf
 .B ARGBEGIN {
 .B char *ARGF();
+.B char *EARGF(code);
 .B Rune ARGC();
 .B } ARGEND
 .PP
@@ -49,6 +50,19 @@ if any, or 0.
 .I ARGF
 must be called just once for each option
 that takes an argument.
+The macro
+.I EARGF
+is like
+.I ARGF
+but instead of returning zero
+runs
+.I code
+and, if that returns, calls
+.IR abort (2).
+A typical value for
+.I code
+is 
+.BR usage() .
 .PP
 After
 .IR ARGBEGIN ,

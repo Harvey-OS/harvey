@@ -1,6 +1,8 @@
 WIN=win
 OS=windows
 OSFILES=
+BIN=$9pm/bin
+DSRC=.
 
 CC=cl
 LD=link
@@ -21,7 +23,6 @@ CFLAGS=-c -nologo -W3 -YX -Zi -MT -Zl -DWINDOWS
 
 LDFLAGS=-entry:mainCRTStartup -debug -nologo -incremental:no
 #-nodefaultlib:libcmt.lib -nodefaultlib:oldnames.lib 
-BIN=$9pm/bin
 TARG=drawterm.exe
 LDFLAGS=-nologo -incremental:no -debug -subsystem:windows -out:drawterm.exe
 
@@ -36,12 +37,12 @@ LIBS=\
 DEVIP=devip-win
 DEVFS=devntfs
 
-ml-%.$O:	./libmemlayer/%.c
-	$CC $CFLAGS -Foml-$stem ./libmemlayer/$stem.c
+ml-%.$O:	$DSRC/libmemlayer/%.c
+	$CC $CFLAGS -Foml-$stem $DSRC/libmemlayer/$stem.c
 
-md-%.$O:	./libmemdraw/%.c
-	$CC $CFLAGS -Fomd-$stem ./libmemdraw/$stem.c
+md-%.$O:	$DSRC/libmemdraw/%.c
+	$CC $CFLAGS -Fomd-$stem $DSRC/libmemdraw/$stem.c
 
-d-%.$O:	./libdraw/%.c
-	$CC $CFLAGS -Fod-$stem ./libdraw/$stem.c
+d-%.$O:	$DSRC/libdraw/%.c
+	$CC $CFLAGS -Fod-$stem $DSRC/libdraw/$stem.c
 

@@ -110,12 +110,12 @@ etherrtrace(Netfile* f, Etherpkt* pkt, int len)
 
 	if(qwindow(f->in) <= 0)
 		return;
-	if(len > 64)
-		n = 64;
+	if(len > 58)
+		n = 58;
 	else
 		n = len;
-	bp = iallocb(n);
-	if(bp == 0)
+	bp = iallocb(64);
+	if(bp == nil)
 		return;
 	memmove(bp->wp, pkt->d, n);
 	i = TK2MS(MACHP(0)->ticks);
@@ -244,24 +244,28 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 {
 	Ether *ether;
 	Block *bp;
+	int nn;
 
 	ether = etherxx[chan->dev];
-	if(NETTYPE(chan->qid.path) != Ndataqid)
-		return netifwrite(ether, chan, buf, n);
+	if(NETTYPE(chan->qid.path) != Ndataqid) {
+		nn = netifwrite(ether, chan, buf, n);
+		if(nn >= 0)
+			return nn;
 
-	if(n > ETHERMAXTU)
+		if(ether->ctl!=nil)
+			return ether->ctl(ether,buf,n);
+			
+		error(Ebadctl);
+	}
+
+	if(n > ether->maxmtu)
 		error(Etoobig);
-	if(n < ETHERMINTU)
+	if(n < ether->minmtu)
 		error(Etoosmall);
 
 	bp = allocb(n);
-	if(waserror()){
-		freeb(bp);
-		nexterror();
-	}
 	memmove(bp->rp, buf, n);
 	memmove(bp->rp+Eaddrlen, ether->ea, Eaddrlen);
-	poperror();
 	bp->wp += n;
 
 	return etheroq(ether, bp);
@@ -274,18 +278,23 @@ etherbwrite(Chan* chan, Block* bp, ulong)
 	long n;
 
 	n = BLEN(bp);
-	ether = etherxx[chan->dev];
 	if(NETTYPE(chan->qid.path) != Ndataqid){
-		n = netifwrite(ether, chan, bp->rp, n);
+		if(waserror()) {
+			freeb(bp);
+			nexterror();
+		}
+		n = etherwrite(chan, bp->rp, n, 0);
+		poperror();
 		freeb(bp);
 		return n;
 	}
+	ether = etherxx[chan->dev];
 
-	if(n > ETHERMAXTU){
+	if(n > ether->maxmtu){
 		freeb(bp);
-		error(Ebadarg);
+		error(Etoobig);
 	}
-	if(n < ETHERMINTU){
+	if(n < ether->minmtu){
 		freeb(bp);
 		error(Etoosmall);
 	}
@@ -347,6 +356,8 @@ etherreset(void)
 		ether->ctlrno = ctlrno;
 		ether->tbdf = BUSUNKNOWN;
 		ether->mbps = 10;
+		ether->minmtu = ETHERMINTU;
+		ether->maxmtu = ETHERMAXTU;
 		if(isaconfig("ether", ctlrno, ether) == 0)
 			continue;
 		for(n = 0; cards[n].type; n++){
@@ -369,7 +380,12 @@ etherreset(void)
 			if(ether->irq == 2)
 				ether->irq = 9;
 			snprint(name, sizeof(name), "ether%d", ctlrno);
-			intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
+
+			/* If ether->irq is less than 0, it is a hack to indicate no interrupt
+			 * used for the seocnd logical ethernet for the wavelan card
+			 */
+			if(ether->irq >= 0)
+				intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 
 			i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %lud",
 				ctlrno, ether->type, ether->mbps, ether->port, ether->irq);
@@ -383,7 +399,7 @@ etherreset(void)
 			sprint(buf+i, "\n");
 			print(buf);
 
-			if(ether->mbps == 100){
+			if(ether->mbps >= 100){
 				netifinit(ether, name, Ntypes, 256*1024);
 				if(ether->oq == 0)
 					ether->oq = qopen(256*1024, 1, 0, 0);

@@ -1,0 +1,20 @@
+#!/bin/rc
+
+# desc: shut down the ethernet connection
+# prereq:
+
+
+switch($1) {
+case checkready
+	if(! isipdevup /net/ether0) {
+		stopether=notdone
+		export stopether
+	}
+
+case go
+	ip/ipconfig ether /net/ether0 unbind
+
+case checkdone
+	stopether=notdone
+	export stopether
+}

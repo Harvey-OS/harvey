@@ -42,5 +42,7 @@ Bread(Biobufhdr *bp, void *ap, long count)
 		p += n;
 	}
 	bp->icount = ic;
+	if(count == c && bp->state == Binactive)
+		return -1;
 	return count-c;
 }

@@ -15,6 +15,8 @@ char	*thestring 	= "arm";
  *	-H1 -T0x10005000 -R4		is aif for risc os
  *	-H2 -T4128 -R4096		is plan9 format
  *	-H3 -T0xF0000020 -R4		is NetBSD format
+ *	-H4				is IXP1200 (raw)
+ *	-H5 -T0xC0008010 -R1024		is ipaq
  */
 
 void
@@ -92,6 +94,15 @@ main(int argc, char *argv[])
 	default:
 		diag("unknown -H option");
 		errorexit();
+	case 0:	/* no header */
+		HEADR = 0L;
+		if(INITTEXT == -1)
+			INITTEXT = 0;
+		if(INITDAT == -1)
+			INITDAT = 0;
+		if(INITRND == -1)
+			INITRND = 4;
+		break;
 	case 1:	/* aif for risc os */
 		HEADR = 128L;
 		if(INITTEXT == -1)
@@ -118,6 +129,24 @@ main(int argc, char *argv[])
 			INITDAT = 0;
 		if(INITRND == -1)
 			INITRND = 4096;
+		break;
+	case 4: /* boot for IXP1200 */
+		HEADR = 0L;
+		if(INITTEXT == -1)
+			INITTEXT = 0x0;
+		if(INITDAT == -1)
+			INITDAT = 0;
+		if(INITRND == -1)
+			INITRND = 4;
+		break;
+	case 5: /* boot for ipaq */
+		HEADR = 16L;
+		if(INITTEXT == -1)
+			INITTEXT = 0xC0008010;
+		if(INITDAT == -1)
+			INITDAT = 0;
+		if(INITRND == -1)
+			INITRND = 1024;
 		break;
 	}
 	if(INITDAT != 0 && INITRND != 0)
@@ -167,7 +196,7 @@ main(int argc, char *argv[])
 	while(*argv)
 		objfile(*argv++);
 	if(!debug['l'])
-		loadlib(0, libraryp);
+		loadlib();
 	firstp = firstp->link;
 	if(firstp == P)
 		goto out;
@@ -198,18 +227,24 @@ out:
 }
 
 void
-loadlib(int beg, int end)
+loadlib(void)
 {
-	int i, t;
+	int i;
+	long h;
+	Sym *s;
 
-	for(i=end-1; i>=beg; i--) {
-		t = libraryp;
+loop:
+	xrefresolv = 0;
+	for(i=0; i<libraryp; i++) {
 		if(debug['v'])
 			Bprint(&bso, "%5.2f autolib: %s\n", cputime(), library[i]);
 		objfile(library[i]);
-		if(t != libraryp)
-			loadlib(t, libraryp);
 	}
+	if(xrefresolv)
+	for(h=0; h<nelem(hash); h++)
+	for(s = hash[h]; s != S; s = s->link)
+		if(s->type == SXREF)
+			goto loop;
 }
 
 void
@@ -322,6 +357,7 @@ objfile(char *file)
 				errorexit();
 			}
 			work = 1;
+			xrefresolv = 1;
 		}
 	}
 	return;
@@ -369,6 +405,11 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 	case D_FREG:
 	case D_PSR:
 	case D_FPCR:
+		break;
+
+	case D_REGREG:
+		a->offset = p[4];
+		c++;
 		break;
 
 	case D_BRANCH:
@@ -1113,6 +1154,10 @@ doprof2(void)
 	Bflush(&bso);
 	s2 = lookup("_profin", 0);
 	s4 = lookup("_profout", 0);
+	if(s2->type != STEXT || s4->type != STEXT) {
+		diag("_profin/_profout not defined\n");
+		return;
+	}
 	ps2 = P;
 	ps4 = P;
 	for(p = firstp; p != P; p = p->link) {

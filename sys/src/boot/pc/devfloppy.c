@@ -90,7 +90,7 @@ static int	floppyresult(void);
 static void	floppyrevive(void);
 static long	pcfloppyseek(FDrive*, long);
 static int	floppysense(void);
-static void	floppywait(void);
+static void	floppywait(int);
 static long	floppyxfer(FDrive*, int, void*, long, long);
 
 static void
@@ -244,24 +244,40 @@ changed(FDrive *dp)
 		fldump();
 		dp->vers++;
 		floppysetdef(dp);
+		dp->maxtries = 3;
 		start = dp->t;
+
+		/* flopppyon fails if there's no drive */
 		dp->confused = 1;	/* make floppyon recal */
-		floppyon(dp);
+		if(floppyon(dp) < 0)
+			return -1;
+
 		pcfloppyseek(dp, dp->t->heads*dp->t->tsize);
 
 		while(floppyxfer(dp, Fread, dp->cache, 0, dp->t->tsize) <= 0){
+
+			/*
+			 *  if the xfer attempt doesn't clear the changed bit,
+			 *  there's no floppy in the drive
+			 */
+			if(inb(Pdir)&Fchange)
+				return -1;
+
 			while(++dp->t){
 				if(dp->t == &floppytype[nelem(floppytype)])
 					dp->t = floppytype;
 				if(dp->dt == dp->t->dt)
 					break;
 			}
-			floppyon(dp);
+
+			/* flopppyon fails if there's no drive */
+			if(floppyon(dp) < 0)
+				return -1;
+
 			DPRINT("changed: trying %s\n", dp->t->name);
 			fldump();
-			if(dp->t == start){
+			if(dp->t == start)
 				return -1;
-			}
 		}
 	}
 
@@ -367,7 +383,7 @@ timedsleep(int (*f)(void*), void* arg, int ms)
 /*
  *  start a floppy drive's motor.
  */
-static void
+static int
 floppyon(FDrive *dp)
 {
 	int alreadyon;
@@ -402,6 +418,9 @@ floppyon(FDrive *dp)
 				break;
 	dp->lasttouched = m->ticks;
 	fl.selected = dp;
+	if(dp->confused)
+		return -1;
+	return 0;
 }
 
 /*
@@ -541,9 +560,9 @@ cmddone(void *a)
  *  routine to try to clear any conditions.
  */
 static void
-floppywait(void)
+floppywait(int slow)
 {
-	timedsleep(cmddone, 0, 5000);
+	timedsleep(cmddone, 0, slow ? 5000 : 1000);
 	if(!cmddone(0)){
 		floppyintr(0);
 		fl.confused = 1;
@@ -564,7 +583,7 @@ floppyrecal(FDrive *dp)
 	fl.cmd[fl.ncmd++] = dp->dev;
 	if(floppycmd() < 0)
 		return -1;
-	floppywait();
+	floppywait(1);
 	if(fl.nstat < 2){
 		DPRINT("recalibrate: confused %ux\n", inb(Pmsr));
 		fl.confused = 1;
@@ -614,7 +633,7 @@ floppyrevive(void)
 		spllo();
 		fl.motor = 0;
 		fl.confused = 0;
-		floppywait();
+		floppywait(0);
 
 		/* mark all drives in an unknown state */
 		for(dp = fl.d; dp < &fl.d[fl.ndrive]; dp++)
@@ -650,7 +669,7 @@ pcfloppyseek(FDrive *dp, long off)
 	fl.cmd[fl.ncmd++] = dp->tcyl * dp->t->steps;
 	if(floppycmd() < 0)
 		return -1;
-	floppywait();
+	floppywait(1);
 	if(fl.nstat < 2){
 		DPRINT("seek: confused\n");
 		fl.confused = 1;
@@ -722,7 +741,7 @@ floppyxfer(FDrive *dp, int cmd, void *a, long off, long n)
 		/*
 		 *  give bus to DMA, floppyintr() will read result
 		 */
-		floppywait();
+		floppywait(0);
 		dmaend(DMAchan);
 
 		/*

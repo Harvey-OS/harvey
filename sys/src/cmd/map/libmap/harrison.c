@@ -1,3 +1,5 @@
+#include <u.h>
+#include <libc.h>
 #include "map.h"
 
 static double v3,u2,u3,a,b; /*v=view,p=obj,u=unit.y*/

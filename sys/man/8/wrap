@@ -4,7 +4,7 @@ wrap, create, info, inst, wdiff \- software package preparation
 .SH SYNOPSIS
 .B wrap/create
 [
-.B -uUv
+.B -luUv
 ]
 [
 .B -d
@@ -226,6 +226,14 @@ If
 is given the
 .B -U
 flag, it creates an update package.
+.PP
+The 
+.B -l
+flag to
+.I create
+causes it to write a list of the files it
+would have included in an archive, rather
+than preparing the archive itself.
 .PP
 .I Inst
 unpacks a package or update created by 

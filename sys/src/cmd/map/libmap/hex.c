@@ -1,3 +1,5 @@
+#include <u.h>
+#include <libc.h>
 #include "map.h"
 
 #define BIG 1.e15

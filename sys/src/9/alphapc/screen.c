@@ -469,6 +469,7 @@ int hwblank = 1;
 int
 hwdraw(Memdrawparam *par)
 {
+	int m;
 	VGAscr *scr;
 	Memimage *dst, *src;
 
@@ -497,7 +498,8 @@ hwdraw(Memdrawparam *par)
 	 * pixel we can convert to the destination format and just
 	 * replicate with memset.
 	 */
-	if(scr->fill && (par->state&(Simplemask|Simplesrc|Fullmask))==(Simplemask|Simplesrc|Fullmask))
+	m = Simplesrc|Simplemask|Fullmask;
+	if(scr->fill && (par->state&m)==m && ((par->srgba&0xFF) == 0xFF))
 		return scr->fill(scr, par->r, par->sdval);
 
 	/*

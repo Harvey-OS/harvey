@@ -29,12 +29,16 @@ f_session(Chan *cp, Fcall *in, Fcall *ou)
 {
 
 	USED(in);
-	USED(ou);
 	if(CHAT(cp))
 		print("c_session %d\n", cp->chan);
-	memset(ou->authid, 0, sizeof(ou->authid));
-	memset(ou->authdom, 0, sizeof(ou->authdom));
-	memset(ou->chal, 0, sizeof(ou->chal));
+	memmove(cp->rchal, in->chal, sizeof(cp->rchal));
+	mkchallenge(cp);
+	memmove(ou->chal, cp->chal, sizeof(ou->chal));
+	if(noauth || wstatallow || cp == cons.srvchan)
+		memset(ou->authid, 0, sizeof(ou->authid));
+	else
+		memmove(ou->authid, nvr.authid, sizeof(ou->authid));
+	sprint(ou->authdom, "%s.%s", service, nvr.authdom);
 	fileinit(cp);
 }
 
@@ -65,9 +69,19 @@ f_attach(Chan *cp, Fcall *in, Fcall *ou)
 		ou->err = Efid;
 		goto out;
 	}
-	u = strtouid(in->uname);
-	if(cp == cons.chan)
-		u = -1;
+	u = -1;
+	if(cp != cons.chan){
+		if(authorize(cp, in, ou) == 0 || strcmp(in->uname, "adm") == 0){
+			ou->err = Eauth;
+			goto out;
+		}
+		u = strtouid(in->uname);
+		if(u < 0){
+			ou->err = Ebadu;
+			goto out;
+		}
+	}
+
 	fs = fsstr(in->aname);
 	if(fs == 0) {
 		ou->err = Ebadspc;

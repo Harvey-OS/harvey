@@ -1,3 +1,5 @@
+#include <u.h>
+#include <libc.h>
 #include "map.h"
 
 /* For Albers formulas see Deetz and Adams "Elements of Map Projection", */

@@ -204,10 +204,14 @@ setpalette(int p, int r, int g, int b)
 static long
 doreadbios(char* buf, long len, long offset)
 {
+	char file[2*NAMELEN];
+
 	if(biosfd == -1)
 		biosfd = open("#v/vgabios", OREAD);
-	if(biosfd == -1)
-		biosfd = devopen("#p/1/mem", OREAD);
+	if(biosfd == -1) {
+		sprint(file, "#p/%d/mem", getpid());
+		biosfd = devopen(file, OREAD);
+	}
 
 	seek(biosfd, 0x80000000|offset, 0);
 	return read(biosfd, buf, len);
@@ -216,7 +220,7 @@ doreadbios(char* buf, long len, long offset)
 char*
 readbios(long len, long offset)
 {
-	static char bios[0x1000];
+	static char bios[0x10000];
 	static long biosoffset;
 	static long bioslen;
 	int n;

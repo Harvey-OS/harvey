@@ -13,8 +13,7 @@ OFILES=\
 	memchr.$O\
 	memcmp.$O\
 	memmove.$O\
-	muldiv.$O\
-	nan.$O\
+	muldivrt.$O\
 	notejmp.$O\
 	scale.$O\
 	setjmp.$O\

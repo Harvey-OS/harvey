@@ -74,6 +74,7 @@ Devgen		devgen;
 void		devinit(void);
 int		devno(int, int);
 Chan*		devopen(Chan*, int, Dirtab*, int, Devgen*);
+void		devpermcheck(char*, ulong, int);
 void		devremove(Chan*);
 void		devreset(void);
 void		devstat(Chan*, char*, Dirtab*, int, Devgen*);

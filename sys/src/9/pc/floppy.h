@@ -3,7 +3,7 @@ typedef	struct FDrive FDrive;
 typedef struct FType FType;
 
 static void floppyintr(Ureg*);
-static void floppyon(FDrive*);
+static int floppyon(FDrive*);
 static void floppyoff(FDrive*);
 static void floppysetdef(FDrive*);
 
@@ -20,6 +20,7 @@ struct FDrive
 	int	cyl;		/* current arm position */
 	int	confused;	/* needs to be recalibrated */
 	int	vers;
+	int	maxtries;	/* max read attempts before Eio */
 
 	int	tcyl;		/* target cylinder */
 	int	thead;		/* target head */

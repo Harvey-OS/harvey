@@ -44,6 +44,7 @@ enum
 	Unselborder	= 1,		/* border of unselected window */
 	Scrollwid 		= 12,		/* width of scroll bar */
 	Scrollgap 		= 4,		/* gap right of scroll bar */
+	BIG			= 3,		/* factor by which window dimension can exceed screen */
 	TRUE		= 1,
 	FALSE		= 0,
 };
@@ -129,39 +130,42 @@ struct Window
 	Channel		*conswrite;	/* chan(Conswritemesg) */
 	Channel		*consread;	/* chan(Consreadmesg) */
 	Channel		*mouseread;	/* chan(Mousereadmesg) */
-	uint				nr;		/* number of runes in window */
-	uint				maxr;	/* number of runes allocated in r */
-	Rune				*r;
-	uint				nraw;
-	Rune				*raw;
-	uint				org;
-	uint				q0;
-	uint				q1;
-	uint				qh;
-	int				id;
-	char				name[32];
-	uint				namecount;
-	Rectangle			scrollr;
+	Channel		*wctlread;		/* chan(Consreadmesg) */
+	uint			nr;			/* number of runes in window */
+	uint			maxr;		/* number of runes allocated in r */
+	Rune			*r;
+	uint			nraw;
+	Rune			*raw;
+	uint			org;
+	uint			q0;
+	uint			q1;
+	uint			qh;
+	int			id;
+	char			name[32];
+	uint			namecount;
+	Rectangle		scrollr;
 	/*
 	 * Rio once used originwindow, so screenr could be different from i->r.
 	 * Now they're always the same but the code doesn't assume so.
 	*/
-	Rectangle			screenr;	/* screen coordinates of window */
-	int				resized;
-	Rectangle			lastsr;
-	int				topped;
-	int				notefd;
-	uchar			scrolling;
-	Cursor			cursor;
-	Cursor			*cursorp;
-	uchar			holding;
-	uchar			rawing;
-	uchar			ctlopen;
-	uchar			deleted;
-	uchar			mouseopen;
-	char				label[NAMELEN];
-	int				pid;
-	char				*dir;
+	Rectangle		screenr;	/* screen coordinates of window */
+	int			resized;
+	int			wctlready;
+	Rectangle		lastsr;
+	int			topped;
+	int			notefd;
+	uchar		scrolling;
+	Cursor		cursor;
+	Cursor		*cursorp;
+	uchar		holding;
+	uchar		rawing;
+	uchar		ctlopen;
+	uchar		wctlopen;
+	uchar		deleted;
+	uchar		mouseopen;
+	char			label[NAMELEN];
+	int			pid;
+	char			*dir;
 };
 
 int		winborder(Window*, Point);
@@ -238,6 +242,7 @@ enum	/* Xfid.flushtype */
 	Fconsread,
 	Fconswrite,
 	Fmouseread,
+	Fwctlread,
 	NFlush
 };
 
@@ -337,3 +342,4 @@ int		wctlfd;
 char		srvpipe[];
 char		srvwctl[];
 int		errorshouldabort;
+int		menuing;		/* menu action is pending; waiting for window to be indicated */

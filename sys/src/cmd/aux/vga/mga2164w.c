@@ -404,6 +404,33 @@ init(Vga* vga, Ctlr* ctlr)
 	mga->tvp[0x3A] = 0;
 	mga->tvp[0x06] = 0;
 
+	// From: "Bruce G. Stewart" <bruce.g.stewart@worldnet.att.net>
+	// 05-Jul-00 - Fix vertical blanking setup
+	// This should probably be corrected in vga.c too.
+	{
+		// Start vertical blanking after the last displayed line
+		// End vertical blanking after the total line count
+		int svb = mode->y;
+		int evb = mode->vt;
+
+		// A field is 1/2 of the lines in interlaced mode
+		if(mode->interlace == 'v'){
+			svb /= 2;
+			evb /= 2;
+		}
+		--svb;
+		--evb;			// line counter counts from 0
+
+		vga->crt[0x15] = svb;
+		vga->crt[0x07] = (vga->crt[0x07] & ~0x08) | ((svb & 0x100)>>5);
+		vga->crt[0x09] = (vga->crt[0x09] & ~0x20) | ((svb & 0x200)>>4);
+		// MGA specific: bits 10 and 11
+		mga->crtcext[0x02] &=  ~0x18;
+		mga->crtcext[0x02] |= ((svb & 0xC00)>>7);
+
+		vga->crt[0x16]     = evb;
+	}
+
 	clockcalc(vga, ctlr, mode->z);
 
 

@@ -65,7 +65,7 @@ sproc(int pid)
 	nocore();
 	cormap = attachproc(pid, kernel, fcor, &fhdr);
 	if (cormap == 0)
-		error("setproc: cant make coremap");
+		error("setproc: can't make coremap: %r");
 	i = findseg(cormap, "text");
 	if (i > 0)
 		cormap->seg[i].name = "*text";

@@ -80,7 +80,7 @@ parsesuffix(char *line, Suffix *suffix)
 		*p = '\0';
 	nf = tokenize(line, fields, 5);
 	for(i = 0; i < 4; i++)
-		if(i > nf || fields[i][0] == '-')
+		if(i >= nf || fields[i][0] == '-')
 			fields[i] = nil;
 
 	if(fields[2] == nil)

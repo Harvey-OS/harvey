@@ -51,6 +51,7 @@ char *objects[] =
 	"plumb",
 	"src",
 	"type",
+	"wdir",
 	nil
 };
 
@@ -352,6 +353,7 @@ parserule(Rule *r)
 	case OData:
 	case ODst:
 	case OType:
+	case OWdir:
 	case OSrc:
 		if(r->verb==VClient || r->verb==VStart || r->verb==VTo)
 			parseerror("%s not valid verb for object %s", verbs[r->verb], objects[r->obj]);
@@ -553,6 +555,7 @@ readruleset(void)
 		case OData:
 		case ODst:
 		case OType:
+		case OWdir:
 		case OSrc:
 			rs->npat++;
 			rs->pat = erealloc(rs->pat, (rs->npat+1)*sizeof(Rule*));
@@ -586,7 +589,6 @@ readruleset(void)
 		return nil;
 	}
 	if(rs->nact==0 || rs->port==nil){
-threadprint(2, "nact %d port %s\n", rs->nact, rs->port? rs->port : nil);
 		freeruleset(rs);
 		parseerror("ruleset must have patterns and actions");
 		return nil;

@@ -171,9 +171,9 @@ tweakdate(char *d)
 
 	/* d, date = "Mon Aug  2 23:46:55 EDT 1999" */
 	if(strncmp(date, d, 4+4+3) == 0)
-		sprint(e, "%.5s", d+4+4+3);	/* 23:46 */
+		snprint(e, sizeof e, "%.5s", d+4+4+3);	/* 23:46 */
 	else
-		sprint(e, "%.6s", d+4);	/* Aug  2 */
+		snprint(e, sizeof e, "%.6s", d+4);	/* Aug  2 */
 	return estrdup(e);
 }
 

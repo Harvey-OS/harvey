@@ -16,5 +16,5 @@ case *
 	if(test -r /srv/kfs.cmd)
 		dosync
 	for(i in $kfs)
-		dosync -n `{echo $i|sed 's%/srv/kfs.\(.*\).cmd%\1%'}
+		dosync -n `{echo $i|sed 's%/srv/kfs.(.*).cmd%\1%'}
 }

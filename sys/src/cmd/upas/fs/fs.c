@@ -128,6 +128,7 @@ Hash	*htab[Hsize];
 
 int	debug;
 int	fflag;
+int	logging;
 
 void
 usage(void)
@@ -148,7 +149,7 @@ notifyf(void *a, char *s)
 void
 main(int argc, char *argv[])
 {
-	int p[2], std;
+	int p[2], std, nodflt;
 	char maildir[128];
 	char mbox[128];
 	char *mboxfile, *err;
@@ -157,6 +158,7 @@ main(int argc, char *argv[])
 	fflag = 0;
 	mboxfile = nil;
 	std = 0;
+	nodflt = 0;
 
 	ARGBEGIN{
 	case 'b':
@@ -175,6 +177,12 @@ main(int argc, char *argv[])
 	case 'p':
 		plumbing = 0;
 		break;
+	case 'l':
+		logging = 1;
+		break;
+	case 'n':
+		nodflt = 1;
+		break;
 	default:
 		usage();
 	}ARGEND
@@ -190,7 +198,7 @@ main(int argc, char *argv[])
 		snprint(maildir, sizeof(maildir), "/mail/fs");
 		mntpt = maildir;
 	}
-	if(mboxfile == nil){
+	if(mboxfile == nil && !nodflt){
 		snprint(mbox, sizeof(mbox), "/mail/box/%s/mbox", user);
 		mboxfile = mbox;
 		std = 1;
@@ -199,11 +207,13 @@ main(int argc, char *argv[])
 	if(debug)
 		fmtinstall('F', fcallconv);
 
-	err = newmbox(mboxfile, "mbox", std);
-	if(err != nil)
-		sysfatal("opening mailbox: %s", err);
+	if(mboxfile != nil){
+		err = newmbox(mboxfile, "mbox", std);
+		if(err != nil)
+			sysfatal("opening mailbox: %s", err);
+	}
 
-	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG)){
+	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG|RFREND)){
 	case -1:
 		error("fork");
 	case 0:
@@ -1046,15 +1056,17 @@ io(void)
 	int n;
 
 	// start a process to watch the mailboxes
-	switch(rfork(RFPROC|RFMEM)){
-	case -1:
-		/* oh well */
-		break;
-	case 0:
-		reader();
-		exits(nil);
-	default:
-		break;
+	if(plumbing){
+		switch(rfork(RFPROC|RFMEM)){
+		case -1:
+			/* oh well */
+			break;
+		case 0:
+			reader();
+			exits(nil);
+		default:
+			break;
+		}
 	}
 
 	for(;;){

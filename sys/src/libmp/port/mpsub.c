@@ -28,6 +28,7 @@ mpmagsub(mpint *b1, mpint *b2, mpint *diff)
 
 	mpvecsub(b1->p, n, b2->p, m, diff->p);
 	diff->sign = sign;
+	diff->top = n;
 	mpnorm(diff);
 }
 

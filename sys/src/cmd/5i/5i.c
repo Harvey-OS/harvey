@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#define Extern
 #include "arm.h"
 
 char*	file = "5.out";
@@ -244,7 +243,7 @@ itrace(char *fmt, ...)
 	va_start(arg, fmt);
 	doprint(buf, buf+sizeof(buf), fmt, arg);
 	va_end(arg);
-	Bprint(bioout, "%8lux %.8lux %s\n", reg.ar, reg.ir, buf);	
+	Bprint(bioout, "%8lux %.8lux %2d %s\n", reg.ar, reg.ir, reg.class, buf);	
 }
 
 void

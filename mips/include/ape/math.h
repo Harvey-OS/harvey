@@ -32,6 +32,10 @@ extern double ceil(double);
 extern double fabs(double);
 extern double floor(double);
 extern double fmod(double, double);
+extern double NaN(void);
+extern int isNaN(double);
+extern double Inf(int);
+extern int isInf(double, int);
 
 #ifdef __cplusplus
 }

@@ -60,7 +60,6 @@ BCOM=\
 	pci.$O\
 	sdata.$O\
 	sdscsi.$O\
-	sdmylex.$O\
 
 HFILES=\
 	lib.h\
@@ -78,8 +77,10 @@ all:V:	$TARG
 	ls -l $target
 
 9loaddebug:	l.$O $CORE $LOAD
-	$LD -o $target -T0x00010000 -l $prereq -lc
+	$LD -o $target -T0x80010000 -l $prereq -lc
 	ls -l $target
+	# acid $target
+	# map({"text", 0x80010000, 0x80090000, 0x00000020})
 
 ld.com:	ld.$O $CORE $BCOM
 	$LD -o $target -H3 -T0x80080100 -l $prereq -lc
@@ -110,11 +111,7 @@ mbr:	mbr.$O
 	$LD -o $target -H3 -T0x0600 -l $prereq
 	ls -l $target
 
-pbs:	pbs.$O
-	$LD -o $target -H3 -T0x7C00 -l $prereq
-	ls -l $target
-
-pbslba:	pbslba.$O
+pbs%:	pbs%.$O
 	$LD -o $target -H3 -T0x7C00 -l $prereq
 	ls -l $target
 

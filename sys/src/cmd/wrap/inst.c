@@ -92,8 +92,10 @@ extract(Arch *arch, Ahdr *a, char *to)
 			problems = 1;
 			return;
 		} else {
-			if(donothing)
-				return;
+			/*
+			 * the directory already existed, don't wstat it.
+			 */
+			return;
 		}
 	} else {
 		if(verbose || donothing)
@@ -118,6 +120,9 @@ extract(Arch *arch, Ahdr *a, char *to)
 		Bterm(&b);
 		close(fd);
 	}
+
+	if(verbose)
+		print("wstat %s\n", to);
 
 	if(dirstat(to, &d) < 0) {
 		fprint(2, "stat created file failed! %r\n");
@@ -182,13 +187,12 @@ main(int argc, char **argv)
 
 	oldw = openwrap(w->name, root);
 
-	if(w->u->utime && (oldw == nil || oldw->u->time < w->u->utime)) {
+	if(w->u->utime && (oldw == nil || oldw->time < w->u->utime)) {
 		tm = asctime(localtime(w->u->utime));
 		if(q = strchr(tm, '\n'))
 			*q = '\0';
 		sysfatal("need %s version of %s already installed", tm, w->name);
 	}
-
 	while(a = gethdr(arch)) {
 		if(match(a->name, argv+1, argc-1) == 0)
 			continue;
@@ -201,7 +205,13 @@ main(int argc, char **argv)
 						if(debug)
 							fprint(2, "file %s expect %M got %M\n",
 								a->name, digest, digest0);
-						skipfile(a->name, "locally updated", 1);
+						/*
+						 * Don't complain if it's the file we were
+						 * going to install.
+						 */
+						Bmd5sum(arch->b, digest, a->length);
+						if(memcmp(digest, digest0, MD5dlen) != 0)
+							skipfile(a->name, "locally updated", 1);
 						free(p);
 						continue;
 					}
@@ -215,7 +225,13 @@ main(int argc, char **argv)
 				}
 			} else {
 				if(access(p, 0) >= 0) {
-					skipfile(a->name, "locally created", 1);
+					/*
+					 * Don't complain if it's the file we were
+					 * going to install.
+					 */
+					Bmd5sum(arch->b, digest, a->length);
+					if(md5file(p, digest0) >= 0 && memcmp(digest, digest0, MD5dlen) != 0)
+						skipfile(a->name, "locally created", 1);
 					free(p);
 					continue;
 				}

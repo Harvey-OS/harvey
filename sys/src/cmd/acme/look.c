@@ -82,7 +82,7 @@ look3(Text *t, uint q0, uint q1, int external)
 	if(plumbsendfd >= 0){
 		/* send whitespace-delimited word to plumber */
 		m = emalloc(sizeof(Plumbmsg));
-		m->src = strdup("acme");
+		m->src = estrdup("acme");
 		m->dst = nil;
 		dir = dirname(t, nil, 0);
 		if(dir.nr==1 && dir.r[0]=='.'){	/* sigh */
@@ -91,11 +91,11 @@ look3(Text *t, uint q0, uint q1, int external)
 			dir.nr = 0;
 		}
 		if(dir.nr == 0)
-			m->wdir = strdup(wdir);
+			m->wdir = estrdup(wdir);
 		else
 			m->wdir = runetobyte(dir.r, dir.nr);
 		free(dir.r);
-		m->type = strdup("text");
+		m->type = estrdup("text");
 		m->attr = nil;
 		buf[0] = '\0';
 		if(q1 == q0){
@@ -263,7 +263,7 @@ search(Text *ct, Rune *r, uint n)
 			b[nb] = 0;
 		}
 		if(nb > 0){
-			c = strrune(b, r[0]);
+			c = runestrchr(b, r[0]);
 			if(c == nil){
 				q += nb;
 				nb = 0;
@@ -313,7 +313,7 @@ isfilec(Rune r)
 {
 	if(isalnum(r))
 		return TRUE;
-	if(strrune(L".-+/:", r))
+	if(runestrchr(L".-+/:", r))
 		return TRUE;
 	return FALSE;
 }
@@ -443,7 +443,7 @@ dirname(Text *t, Rune *r, int n)
 	Runestr tmp;
 
 	b = nil;
-	if(t->w == nil)
+	if(t==nil || t->w==nil)
 		goto Rescue;
 	nt = t->w->tag.file->nc;
 	if(nt == 0)
@@ -580,7 +580,7 @@ expandfile(Text *t, uint q0, uint q1, Expand *e)
 	e->at = t;
 	e->a0 = amin+1;
 	eval = FALSE;
-	address(nil, (Range){-1,-1}, (Range){0, 0}, t, e->a0, amax, tgetc, &eval, (uint*)&e->a1);
+	address(nil, nil, (Range){-1,-1}, (Range){0, 0}, t, e->a0, amax, tgetc, &eval, (uint*)&e->a1);
 	return TRUE;
 
    Isntfile:
@@ -709,7 +709,7 @@ openfile(Text *t, Expand *e)
 		eval = FALSE;
 	else{
 		eval = TRUE;
-		r = address(t, (Range){-1, -1}, (Range){t->q0, t->q1}, e->at, e->a0, e->a1, e->agetc, &eval, &dummy);
+		r = address(nil, t, (Range){-1, -1}, (Range){t->q0, t->q1}, e->at, e->a0, e->a1, e->agetc, &eval, &dummy);
 	}
 	if(eval == FALSE){
 		r.q0 = t->q0;

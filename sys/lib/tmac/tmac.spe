@@ -51,7 +51,7 @@ J. Author...
 .
 .de TL		\" TL -- title
 .ps 7
-SOFTWARE\(emPRACTICE AND EXPERIENCE, VOL. \\n(VN(\\n(NU), \\n(P<-\\n(P> (\\*(MO 19\\n(yr)
+SOFTWARE\(emPRACTICE AND EXPERIENCE, VOL. \\n(VN(\\n(NU), \\n(P<-\\n(P> (\\*(MO 20\\n(yr)
 .sp 6P-2v
 .ps 18
 .vs 21p
@@ -110,7 +110,7 @@ SUMMARY
 .nr x \\n(P>-\\n(P<+1
 .af P< 0000
 .if \\n(BT=0 .tl "0038-0644/\\n(yr/\\n(NU\\n(P<-\\nx$05.00""\f2Received \\*(DY\f1"
-.if \\n(BT=0 .tl '\(CO 19\\n(yr by John Wiley & Sons, Ltd.''\f2Revised \\*(DR\fP'
+.if \\n(BT=0 .tl '\(CO 20\\n(yr by John Wiley & Sons, Ltd.''\f2Revised \\*(DR\fP'
 .KE
 ..
 .am SH		\" SH -- unnumbered sub-heading

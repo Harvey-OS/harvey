@@ -32,7 +32,7 @@ qtree_decode(Biobuf *infile, Pix *a, int n, int nqx, int nqy, int nbitplanes)
 	nqx2 = (nqx+1)/2;
 	nqy2 = (nqy+1)/2;
 	scratch = (uchar*)malloc(nqx2*nqy2);
-	if(scratch == (uchar*) NULL) {
+	if(scratch == nil) {
 		fprint(2, "qtree_decode: insufficient memory\n");
 		exits("memory");
 	}

@@ -3,9 +3,9 @@
 
 extern	ulong	du(char*, Dir*, int);
 extern	ulong	k(ulong);
-extern	void	err(char *);
-extern	int	warn(char *);
-extern	int	seen(Dir *);
+extern	void	err(char*);
+extern	int	warn(char*);
+extern	int	seen(Dir*);
 
 int	aflag;
 int	fflag;
@@ -13,6 +13,7 @@ int	nflag;
 int	sflag;
 int	tflag;
 int	uflag;
+int	qflag;
 char	fmt[] = "%lud\t%s\n";
 ulong	blocksize = 1024;
 
@@ -41,6 +42,9 @@ main(int argc, char *argv[])
 		break;
 	case 'u':	/* accessed time */
 		uflag = 1;
+		break;
+	case 'q':	/* qid */
+		qflag = 1;
 		break;
 	case 'b':	/* block size */
 		s = ARGF();
@@ -80,6 +84,8 @@ du(char *name, Dir *dir, int top)
 					return dir->atime;
 				return dir->mtime;
 			}
+			if(qflag)
+				return dir->qid.path;
 			return k(dir->length);
 		}
 		mtime = dir->mtime;
@@ -102,6 +108,8 @@ du(char *name, Dir *dir, int top)
 						if(uflag)
 							t = dir->atime;
 					}
+					if(qflag)
+						t = dir->qid.path;
 					print(fmt, t, file);
 				}
 				continue;
@@ -118,6 +126,8 @@ du(char *name, Dir *dir, int top)
 				if(uflag)
 					t = dir->atime;
 			}
+			if(qflag)
+				t = dir->qid.path;
 			if(!sflag || top)
 				print(fmt, t, file);
 		}
@@ -130,6 +140,8 @@ du(char *name, Dir *dir, int top)
 			return dir->atime;
 		return mtime;
 	}
+	if(qflag)
+		return dir->qid.path;
 	return nk;
 }
 

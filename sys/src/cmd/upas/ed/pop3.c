@@ -18,6 +18,7 @@ int reverse = 1;	/* opposite what edmail does */
 char user[NAMELEN];
 int loggedin;
 String *mailfile;
+int passwordinclear;
 
 typedef struct Command Command;
 struct Command
@@ -73,6 +74,9 @@ main(int argc, char *argv[])
 			dup(fd, 2);
 			close(fd);
 		}
+		break;
+	case 'p':
+		passwordinclear = 1;
 		break;
 	}ARGEND;
 

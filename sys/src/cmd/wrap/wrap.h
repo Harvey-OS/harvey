@@ -2,6 +2,7 @@
 typedef struct Ahdr Ahdr;
 struct Ahdr {
 	char *name;
+	char *modestr;
 	Dir;
 };
 
@@ -73,9 +74,13 @@ int opentemp(char*);
 int fsort(int fd, char *fil);	/* write sorted file to fd */
 vlong filelength(char*);
 int match(char*, char**, int);
+void *emalloc(ulong);
+void *erealloc(void*, ulong);
+char *estrdup(char*);
 
 /* md5 */
 int md5file(char*, uchar*);
 int md5conv(va_list*, Fconv*);
+int Bmd5sum(Biobuf*, uchar*, vlong);
 #pragma	varargck	type	"M"	uchar*
 

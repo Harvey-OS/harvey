@@ -43,6 +43,7 @@ enum {
 	ConfigChipId,
 	ConfigStat0,	/* Configuration status 0 */
 	ConfigStat1,	/* Configuration status 1 */
+	ConfigStat2,
 	DspConfig,	/* Rage */
 	DspOnOff,	/* Rage */
 
@@ -75,12 +76,112 @@ enum {
 	Nlcd,
 };
 
+static char* iorname[Nreg] = {
+	"HTotalDisp",
+	"HSyncStrtWid",
+	"VTotalDisp",
+	"VSyncStrtWid",
+	"VlineCrntVline",
+	"OffPitch",
+	"IntCntl",
+	"CrtcGenCntl",
 
+	"OvrClr",
+	"OvrWidLR",
+	"OvrWidTB",
+
+	"CurClr0",
+	"CurClr1",
+	"CurOffset",
+	"CurHVposn",
+	"CurHVoff",
+
+	"ScratchReg0",
+	"ScratchReg1",
+	"ClockCntl",
+	"BusCntl",
+	"MemCntl",
+	"ExtMemCntl",
+	"MemVgaWpSel",
+	"MemVgaRpSel",
+	"DacRegs",
+	"DacCntl",
+	"GenTestCntl",
+	"ConfigCntl",
+	"ConfigChipId",
+	"ConfigStat0",
+	"ConfigStat1",
+	"ConfigStat2",
+	"DspConfig",
+	"DspOnOff",
+
+	"DpBkgdClr",
+	"DpChainMsk",
+	"DpFrgdClr",
+	"DpMix",
+	"DpPixWidth",
+	"DpSrc",
+	"DpWriteMsk",
+
+	"LcdIndex",
+	"LcdData",	
+};
+
+static char* lcdname[Nlcd] = {
+	"LCD ConfigPanel",
+	"LCD GenCntl",
+	"LCD DstnCntl",
+	"LCD HfbPitchAddr",
+	"LCD HorzStretch",
+	"LCD VertStretch",
+	"LCD ExtVertStretch",
+	"LCD LtGio",
+	"LCD PowerMngmnt",
+	"LCD ZvgPio"
+};
+
+/*
+ * Crummy hack: all io register offsets
+ * here get IOREG or'ed in, so that we can
+ * tell the difference between an uninitialized
+ * array entry and HTotalDisp.
+ */
+enum {
+	IOREG = 0x10000,
+};
 static ushort ioregs[Nreg] = {
- 0x0000, 0x0100, 0x0200, 0x0300, 0x0400, 0x0500, 0x0600, 0x0700,
- 0x0800, 0x0900, 0x0a00, 0x0b00, 0x0c00, 0x0d00, 0x0e00, 0x0f00,
- 0x1000, 0x1100, 0x1200, 0x1300, 0x1400, 0x1500, 0x1600, 0x1700,
- 0x1800, 0x1900, 0x1a00, 0x1b00, 0x1c00, 0x1d00, 0x1e00, 0x1f00,
+ [HTotalDisp]		IOREG|0x0000,
+ [HSyncStrtWid]	IOREG|0x0100,
+ [VTotalDisp]		IOREG|0x0200,
+ [VSyncStrtWid]		IOREG|0x0300,
+ [VlineCrntVline]	IOREG|0x0400,
+ [OffPitch]			IOREG|0x0500,
+ [IntCntl]			IOREG|0x0600,
+ [CrtcGenCntl]		IOREG|0x0700,
+ [OvrClr]			IOREG|0x0800,
+ [OvrWidLR]		IOREG|0x0900,
+ [OvrWidTB]		IOREG|0x0A00,
+ [CurClr0]			IOREG|0x0B00,
+ [CurClr1]			IOREG|0x0C00,
+ [CurOffset]		IOREG|0x0D00,
+ [CurHVposn]		IOREG|0x0E00,
+ [CurHVoff]		IOREG|0x0F00,
+ [ScratchReg0]		IOREG|0x1000,
+ [ScratchReg1]		IOREG|0x1100,
+ [ClockCntl]		IOREG|0x1200,
+ [BusCntl]			IOREG|0x1300,
+ [MemCntl]		IOREG|0x1400,
+ [MemVgaWpSel]	IOREG|0x1500,
+ [MemVgaRpSel]	IOREG|0x1600,
+ [DacRegs]		IOREG|0x1700,
+ [DacCntl]			IOREG|0x1800,
+ [GenTestCntl]		IOREG|0x1900,
+ [ConfigCntl]		IOREG|0x1A00,
+ [ConfigChipId]		IOREG|0x1B00,
+ [ConfigStat0]		IOREG|0x1C00,
+ [ConfigStat1]		IOREG|0x1D00,
+/* [GpIo]				IOREG|0x1E00, */
+/* [HTotalDisp]			IOREG|0x1F00, 	duplicate, says XFree86 */
 };
 
 static ushort pciregs[Nreg] = {
@@ -118,7 +219,8 @@ static ushort pciregs[Nreg] = {
   [ConfigCntl]		0x37,
   [ConfigChipId]	0x38,
   [ConfigStat0]		0x39,
-  [ConfigStat1]		0x3A,
+  [ConfigStat1]		0x25,	/* rsc: was 0x3A, but that's not what the LT manual says */
+  [ConfigStat2]		0x26,
   [DpBkgdClr]		0xB0,
   [DpChainMsk]		0xB3,
   [DpFrgdClr]		0xB1,
@@ -144,11 +246,10 @@ enum {
 typedef struct Mach64xx	Mach64xx;
 struct Mach64xx {
 	ulong	io;
-	ulong	mmregbase;
-	ushort* regtable;
 	Pcidev*	pci;
 	int	bigmem;
 	int	lcdon;
+	int	lcdpanelid;
 
 	ulong	reg[Nreg];
 	ulong	lcd[Nlcd];
@@ -159,12 +260,46 @@ struct Mach64xx {
 	void	(*iow32)(Mach64xx*, int, ulong);
 };
 
+static ulong
+portior32(Mach64xx* mp, int r)
+{
+	if((ioregs[r] & IOREG) == 0)
+		return ~0;
+
+	return inportl(((ioregs[r] & ~IOREG)<<2)+mp->io);
+}
+
+static void
+portiow32(Mach64xx* mp, int r, ulong l)
+{
+	if((ioregs[r] & IOREG) == 0)
+		return;
+
+	outportl(((ioregs[r] & ~IOREG)<<2)+mp->io, l);
+}
+
+static ulong
+pciior32(Mach64xx* mp, int r)
+{
+	return inportl((pciregs[r]<<2)+mp->io);
+}
+
+static void
+pciiow32(Mach64xx* mp, int r, ulong l)
+{
+	outportl((pciregs[r]<<2)+mp->io, l);
+}
+
 static uchar
 pllr(Mach64xx* mp, int r)
 {
 	int io;
 
-	io = (mp->regtable[ClockCntl]<<2)+mp->io;
+	if(mp->ior32 == portior32)
+		io = ((ioregs[ClockCntl]&~IOREG)<<2)+mp->io;
+	else
+		io = (pciregs[ClockCntl]<<2)+mp->io;
+
 	outportb(io+1, r<<2);
 	return inportb(io+2);
 }
@@ -174,33 +309,13 @@ pllw(Mach64xx* mp, int r, uchar b)
 {
 	int io;
 
-	io = (mp->regtable[ClockCntl]<<2)+mp->io;
+	if(mp->ior32 == portior32)
+		io = ((ioregs[ClockCntl]&~IOREG)<<2)+mp->io;
+	else
+		io = (pciregs[ClockCntl]<<2)+mp->io;
+
 	outportb(io+1, (r<<2)|0x02);
 	outportb(io+2, b);
-}
-
-static ulong
-portior32(Mach64xx* mp, int r)
-{
-	return inportl((mp->regtable[r]<<2)+mp->io);
-}
-
-static void
-portiow32(Mach64xx* mp, int r, ulong l)
-{
-	outportl((mp->regtable[r]<<2)+mp->io, l);
-}
-
-static ulong
-mmior32(Mach64xx* mp, int r)
-{
-	return *(ulong*)(mp->mmregbase+(mp->regtable[r]<<2));
-}
-
-static void
-mmiow32(Mach64xx* mp, int r, ulong l)
-{
-	*(ulong*)(mp->mmregbase+(mp->regtable[r]<<2)) = l;
 }
 
 static ulong
@@ -262,12 +377,12 @@ snarf(Vga* vga, Ctlr* ctlr)
 		mp->io = 0x2EC;
 		mp->ior32 = portior32;
 		mp->iow32 = portiow32;
-		mp->regtable = ioregs;
 		mp->pci = pcimatch(0, 0x1002, 0);
 		if (mp->pci) {
 			if(v = mp->pci->mem[1].bar & ~0x3) {
 				mp->io = v;
-				mp->regtable = pciregs;
+				mp->ior32 = pciior32;
+				mp->iow32 = pciiow32;
 			}
 		}
 	}
@@ -281,6 +396,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 	switch(mp->reg[ConfigChipId] & 0xFFFF){
 	default:
+		mp->lcdpanelid = 0;
 		break;
 	case ('L'<<8)|'B':		/* 4C42: Rage LTPro AGP */
 	case ('L'<<8)|'I':		/* 4C49: Rage 3D LTPro */
@@ -290,6 +406,7 @@ snarf(Vga* vga, Ctlr* ctlr)
 			mp->lcd[i] = lcdr32(mp, i);
 		if(mp->lcd[LCD_GenCtrl] & 0x02)
 			mp->lcdon = 1;
+		mp->lcdpanelid = ((mp->reg[ConfigStat2]>>14) & 0x1F);
 		break;
 	}
 
@@ -301,12 +418,14 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case ('G'<<8)|'B':	/* 4742: 264GT PRO */
 		case ('G'<<8)|'D':	/* 4744: 264GT PRO */
 		case ('G'<<8)|'I':	/* 4749: 264GT PRO */
+		case ('G'<<8)|'M':	/* 474D: Rage XL */
 		case ('G'<<8)|'P':	/* 4750: 264GT PRO */
 		case ('G'<<8)|'Q':	/* 4751: 264GT PRO */
 		case ('G'<<8)|'U':	/* 4755: 264GT DVD */
 		case ('G'<<8)|'V':	/* 4756: Rage2C */
 		case ('G'<<8)|'Z':	/* 475A: Rage2C */
 		case ('V'<<8)|'U':	/* 5655: 264VT3 */
+		case ('V'<<8)|'V':	/* 5656: 264VT4 */
 		case ('L'<<8)|'B':	/* 4C42: Rage LTPro AGP */
 		case ('L'<<8)|'I':	/* 4C49: Rage 3D LTPro */
 		case ('L'<<8)|'M':	/* 4C4D: Rage Mobility */
@@ -346,8 +465,8 @@ snarf(Vga* vga, Ctlr* ctlr)
 		vga->apz = 8*1024*1024;
 		break;
 	case 3:
-		werrstr("%s: undocumented linear aperture size", ctlr->name);
-		ctlr->flag |= Ferror;
+		vga->apz = 2*1024*1024;	/* empirical: mach64GX -rsc */
+		break;
 	}
 
 	ctlr->flag |= Fsnarf;
@@ -639,7 +758,7 @@ setdsp(Vga* vga, Ctlr*)
 	if(afifosz > 32)
 		afifosz = 32;
 
-	fifooff = (int)(x*(afifosz-1) - 0.99999);
+	fifooff = ceil(x*(afifosz-1));
 
 	/*
 	 * I am suspicious of this table, lifted from ATI docs,
@@ -669,7 +788,8 @@ setdsp(Vga* vga, Ctlr*)
 		rcc = pfc+ncycle;
 	trace("rcc %d...", rcc);
 
-	fifoon = 3.0 * rcc + (int)(x+0.99999 + 2.0);
+	fifoon = (rcc > floor(x)) ? rcc : floor(x);
+	fifoon += (3.0 * rcc) - 1 + pfc + ncycle;
 	trace("fifoon %f...\n", fifoon);
 	/*
 	 * Now finally put the bits together.
@@ -710,12 +830,14 @@ init(Vga* vga, Ctlr* ctlr)
 		case ('G'<<8)|'B':	/* 4742: 264GT PRO */
 		case ('G'<<8)|'D':	/* 4744: 264GT PRO */
 		case ('G'<<8)|'I':	/* 4749: 264GT PRO */
+		case ('G'<<8)|'M':	/* 474D: Rage XL */
 		case ('G'<<8)|'P':	/* 4750: 264GT PRO */
 		case ('G'<<8)|'Q':	/* 4751: 264GT PRO */
 		case ('G'<<8)|'U':	/* 4755: 264GT DVD */
 		case ('G'<<8)|'V':	/* 4756: Rage2C */
 		case ('G'<<8)|'Z':	/* 475A: Rage2C */
 		case ('V'<<8)|'U':	/* 5655: 264VT3 */
+		case ('V'<<8)|'V':	/* 5656: 264VT4 */
 		case ('G'<<8)|'T':	/* 4754: 264GT[B] */
 		case ('V'<<8)|'T':	/* 5654: 264VT/GT/VTB */
 		case ('L'<<8)|'B':	/* 4C42: Rage LTPro AGP */
@@ -962,69 +1084,6 @@ load(Vga* vga, Ctlr* ctlr)
 	ctlr->flag |= Fload;
 }
 
-static char* iorname[Nreg] = {
-	"HTotalDisp",
-	"HSyncStrtWid",
-	"VTotalDisp",
-	"VSyncStrtWid",
-	"VlineCrntVline",
-	"OffPitch",
-	"IntCntl",
-	"CrtcGenCntl",
-
-	"OvrClr",
-	"OvrWidLR",
-	"OvrWidTB",
-
-	"CurClr0",
-	"CurClr1",
-	"CurOffset",
-	"CurHVposn",
-	"CurHVoff",
-
-	"ScratchReg0",
-	"ScratchReg1",
-	"ClockCntl",
-	"BusCntl",
-	"MemCntl",
-	"ExtMemCntl",
-	"MemVgaWpSel",
-	"MemVgaRpSel",
-	"DacRegs",
-	"DacCntl",
-	"GenTestCntl",
-	"ConfigCntl",
-	"ConfigChipId",
-	"ConfigStat0",
-	"ConfigStat1",
-	"DspConfig",
-	"DspOnOff",
-
-	"DpBkgdClr",
-	"DpChainMsk",
-	"DpFrgdClr",
-	"DpMix",
-	"DpPixWidth",
-	"DpSrc",
-	"DpWriteMsk",
-
-	"LcdIndex",
-	"LcdData",	
-};
-
-static char* lcdname[Nlcd] = {
-	"LCD ConfigPanel",
-	"LCD GenCntl",
-	"LCD DstnCntl",
-	"LCD HfbPitchAddr",
-	"LCD HorzStretch",
-	"LCD VertStretch",
-	"LCD ExtVertStretch",
-	"LCD LtGio",
-	"LCD PowerMngmnt",
-	"LCD ZvgPio"
-};
-
 static void
 pixelclock(Vga* vga, Ctlr* ctlr)
 {
@@ -1116,19 +1175,21 @@ pixelclock(Vga* vga, Ctlr* ctlr)
 	Bprint(&stdout, "%s pixel clock = %ud\n", ctlr->name, clock);
 }
 
+static void dumpmach64bios(Mach64xx*);
+
 static void
 dump(Vga* vga, Ctlr* ctlr)
 {
 	Mach64xx *mp;
 	int i, m, n, p;
 	double f;
+	static int first = 1;
 
 	if((mp = vga->private) == 0)
 		return;
 
-	Bprint(&stdout, "%s pci %p regtable %s io %lux %s\n", ctlr->name,
-		mp->pci, mp->regtable == pciregs ? "pciregs" : "ioregs",
-		mp->io, mp->ior32 == mmior32 ? "mmio" : "portio");
+	Bprint(&stdout, "%s pci %p io %lux %s\n", ctlr->name,
+		mp->pci, mp->io, mp->ior32 == pciior32 ? "pciregs" : "ioregs");
 	if(mp->pci)
 		Bprint(&stdout, "%s ccru %ux\n", ctlr->name, mp->pci->ccru);
 	for(i = 0; i < Nreg; i++)
@@ -1185,11 +1246,133 @@ dump(Vga* vga, Ctlr* ctlr)
 			p = -1;
 			break;
 		}
-		f = (2.0*RefFreq*n)/(m*p) + 0.5;
-		Bprint(&stdout, "%s VCLK%d\t%ud\n", ctlr->name, i, (int)f);
+		if(m*p == 0)
+			Bprint(&stdout, "unknown VCLK%d\n", i);
+		else {
+			f = (2.0*RefFreq*n)/(m*p) + 0.5;
+			Bprint(&stdout, "%s VCLK%d\t%ud\n", ctlr->name, i, (int)f);
+		}
 	}
 
 	pixelclock(vga, ctlr);
+
+	if(first) {
+		first = 0;
+		dumpmach64bios(mp);
+	}
+}
+
+enum {
+	ClockFixed=0,
+	ClockIcs2595,
+	ClockStg1703,
+	ClockCh8398,
+	ClockInternal,
+	ClockAtt20c408,
+	ClockIbmrgb514
+};
+
+/*
+ * mostly derived from the xfree86 probe routines.
+ */
+static void 
+dumpmach64bios(Mach64xx *mp)
+{
+	int i, romtable, clocktable, freqtable, lcdtable, lcdpanel;
+	uchar bios[0x1000];
+
+	memmove(bios, readbios(sizeof bios, 0xC0000), sizeof bios);
+
+	/* find magic string */
+	for(i=0; i<1024; i++)
+		if(strncmp((char*)bios+i, " 761295520", 10) == 0)
+			break;
+
+	if(i==1024) {
+		Bprint(&stdout, "no ATI bios found\n");
+		return;
+	}
+
+	/* this is horribly endian dependent.  sorry. */
+	romtable = *(ushort*)(bios+0x48);
+	if(romtable+0x12 > sizeof(bios)) {
+		Bprint(&stdout, "couldn't find ATI rom table\n");
+		return;
+	}
+
+	clocktable = *(ushort*)(bios+romtable+0x10);
+	if(clocktable+0x0C > sizeof(bios)) {
+		Bprint(&stdout, "couldn't find ATI clock table\n");
+		return;
+	}
+
+	freqtable = *(ushort*)(bios-2);
+	if(freqtable+0x20 > sizeof(bios)) {
+		Bprint(&stdout, "couldn't find ATI frequency table\n");
+		return;
+	}
+
+	Bprint(&stdout, "ATI BIOS rom 0x%x freq 0x%x clock 0x%x\n", romtable, freqtable, clocktable);
+	Bprint(&stdout, "clocks:");
+	for(i=0; i<16; i++)
+		Bprint(&stdout, " %d", *(ushort*)(bios+freqtable+2*i));
+	Bprint(&stdout, "\n");
+
+	Bprint(&stdout, "programmable clock: %d\n", bios[clocktable]);
+	Bprint(&stdout, "clock to program: %d\n", bios[clocktable+6]);
+
+	if(*(ushort*)(bios+clocktable+8) != 1430) {
+		Bprint(&stdout, "reference numerator: %d\n", *(ushort*)(bios+clocktable+8)*10);
+		Bprint(&stdout, "reference denominator: 1\n");
+	} else {
+		Bprint(&stdout, "default reference numerator: 157500\n");
+		Bprint(&stdout, "default reference denominator: 11\n");
+	}
+
+	switch(bios[clocktable]) {
+	case ClockIcs2595:
+		Bprint(&stdout, "ics2595\n");
+		Bprint(&stdout, "reference divider: %d\n", *(ushort*)(bios+clocktable+0x0A));
+		break;
+	case ClockStg1703:
+		Bprint(&stdout, "stg1703\n");
+		break;
+	case ClockCh8398:
+		Bprint(&stdout, "ch8398\n");
+		break;
+	case ClockInternal:
+		Bprint(&stdout, "internal clock\n");
+		Bprint(&stdout, "reference divider in plls\n");
+		break;
+	case ClockAtt20c408:
+		Bprint(&stdout, "att 20c408\n");
+		break;
+	case ClockIbmrgb514:
+		Bprint(&stdout, "ibm rgb514\n");
+		Bprint(&stdout, "clock to program = 7\n");
+		break;
+	default:
+		Bprint(&stdout, "unknown clock\n");
+		break;
+	}
+
+	USED(mp);
+	if(1 || mp->lcdpanelid) {
+		lcdtable = *(ushort*)(bios+0x78);
+		if(lcdtable+5 > sizeof bios || lcdtable+bios[lcdtable+5] > sizeof bios) {
+			Bprint(&stdout, "can't find lcd bios table\n");
+			goto NoLcd;
+		}
+
+		lcdpanel = *(ushort*)(bios+lcdtable+0x0A);
+		if(lcdpanel+0x1D > sizeof bios /*|| bios[lcdpanel] != mp->lcdpanelid*/) {
+			Bprint(&stdout, "can't find lcd bios table0\n");
+			goto NoLcd;
+		}
+
+		Bprint(&stdout, "panelid %d x %d y %d\n", bios[lcdpanel], *(ushort*)(bios+lcdpanel+0x19), *(ushort*)(bios+lcdpanel+0x1B));
+	}
+NoLcd:;
 }
 
 Ctlr mach64xx = {
@@ -1209,4 +1392,5 @@ Ctlr mach64xxhwgc = {
 	0,				/* load */
 	0,				/* dump */
 };
+
 

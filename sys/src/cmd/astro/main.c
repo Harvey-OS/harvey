@@ -9,7 +9,7 @@ main(int argc, char *argv[])
 	double d;
 
 	pi = atan(1.0)*4;
-	pipi = 2*pi;
+	pipi = pi*2;
 	radian = pi/180;
 	radsec = radian/3600;
 	converge = 1.0e-14;
@@ -28,6 +28,7 @@ loop:
 	if(flags['p'] || flags['e']) {
 		print(" ");
 		ptime(d);
+		pstime(d);
 	}
 	print("\n");
 	for(i=0; i<=NPTS+1; i++) {
@@ -143,11 +144,13 @@ args(int argc, char *argv[])
 	if(flags['d'])
 		day = readate();
 	deltat = day * .001704;
+	if(deltat > 32.184)		// assume date is utc1
+		deltat = 32.184;	// correct by leap sec
 	if(flags['t'])
 		deltat = readdt();
 
 	if(flags['l']) {
-		print("nlat wlong elev\n");
+		fprint(2, "nlat wlong elev\n");
 		readlat(0);
 	} else {
 		f = open(herefile, OREAD);
@@ -170,7 +173,7 @@ readate(void)
 	int i;
 	Tim t;
 
-	print("year mo da hr min\n");
+	fprint(2, "year mo da hr min\n");
 	rline(0);
 	for(i=0; i<5; i++)
 		t.ifa[i] = atof(skip(i));
@@ -181,7 +184,7 @@ double
 readdt(void)
 {
 
-	print("ΔT (sec)\n");
+	fprint(2, "ΔT (sec) (%.3f)\n", deltat);
 	rline(0);
 	return atof(skip(0));
 }

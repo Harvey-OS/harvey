@@ -10,13 +10,13 @@ OFILES=\
 	div.$O\
 	vlrt.$O\
 	vlop.$O\
-	nan.$O\
 	frexp.$O\
 	memmove.$O\
 	memset.$O\
 	strchr.$O\
 	strcmp.$O\
 	strcpy.$O\
+	tas.$O\
 
 HFILES=/sys/include/libc.h
 

@@ -176,8 +176,6 @@ plumbline(char **linep, char *buf, int i, int n, int *bad)
 	int starti;
 	char *p;
 
-	if(*bad)
-		return i;
 	starti = i;
 	while(i<n && buf[i]!='\n')
 		i++;
@@ -346,9 +344,13 @@ plumbunpackpartial(char *buf, int n, int *morep)
 	i = plumbline(&m->wdir, buf, i, n, &bad);
 	i = plumbline(&m->type, buf, i, n, &bad);
 	i = plumbline(&attr, buf, i, n, &bad);
+	i = plumbline(&ntext, buf, i, n, &bad);
+	if(bad){
+		plumbfree(m);
+		return nil;
+	}
 	m->attr = plumbunpackattr(attr);
 	free(attr);
-	i = plumbline(&ntext, buf, i, n, &bad);
 	m->ndata = atoi(ntext);
 	if(m->ndata != n-i){
 		bad = 1;

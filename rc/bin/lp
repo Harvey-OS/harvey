@@ -48,8 +48,12 @@ USAGE='usage:	lp [-d printer] [-p process] [options] [files]
 # umask 000	# this doesn't work in plan 9
 if (~ $#sysname 0)
 	THIS_HOST=plan9
-if not
+if not {
 	THIS_HOST=`{ndb/query sys $sysname dom}
+	if(~ $#THIS_HOST 0)
+		THIS_HOST=$sysname
+}
+
 LPMACHID=$THIS_HOST
 THIS_USERID=$user
 LPUSERID=$THIS_USERID

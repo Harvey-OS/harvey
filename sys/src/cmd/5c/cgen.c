@@ -6,7 +6,7 @@ cgen(Node *n, Node *nn)
 	Node *l, *r;
 	Prog *p1;
 	Node nod, nod1, nod2, nod3, nod4;
-	int o;
+	int o, t;
 	long v, curs;
 
 	if(debug['g']) {
@@ -134,8 +134,41 @@ cgen(Node *n, Node *nn)
 		regfree(&nod);
 		break;
 
-	case OADD:
+	case ODIV:
+	case OMOD:
+		if(nn != Z)
+		if((t = vlog(r)) >= 0) {
+			/* signed div/mod by constant power of 2 */
+			cgen(l, nn);
+			gopcode(OGE, nodconst(0), nn, Z);
+			p1 = p;
+			if(o == ODIV) {
+				gopcode(OADD, nodconst((1<<t)-1), Z, nn);
+				patch(p1, pc);
+				gopcode(OASHR, nodconst(t), Z, nn);
+			} else {
+				gopcode(OSUB, nn, nodconst(0), nn);
+				gopcode(OAND, nodconst((1<<t)-1), Z, nn);
+				gopcode(OSUB, nn, nodconst(0), nn);
+				gbranch(OGOTO);
+				patch(p1, pc);
+				p1 = p;
+				gopcode(OAND, nodconst((1<<t)-1), Z, nn);
+				patch(p1, pc);
+			}
+			break;
+		}
+		goto muldiv;
+
 	case OSUB:
+		if(nn != Z)
+		if(l->op == OCONST)
+		if(!typefd[n->type->etype]) {
+			cgen(r, nn);
+			gopcode(o, Z, l, nn);
+			break;
+		}
+	case OADD:
 	case OAND:
 	case OOR:
 	case OXOR:
@@ -161,8 +194,7 @@ cgen(Node *n, Node *nn)
 	case OLDIV:
 	case OLMOD:
 	case OMUL:
-	case ODIV:
-	case OMOD:
+	muldiv:
 		if(nn == Z) {
 			nullwarn(l, r);
 			break;
@@ -327,7 +359,7 @@ cgen(Node *n, Node *nn)
 		r = l;
 		while(r->op == OADD)
 			r = r->right;
-		if(sconst(r)) {
+		if(sconst(r) && (v = r->vconst+nod.xoffset) > -4096 && v < 4096) {
 			v = r->vconst;
 			r->vconst = 0;
 			cgen(l, &nod);
@@ -517,6 +549,7 @@ cgen(Node *n, Node *nn)
 		break;
 	}
 	cursafe = curs;
+	return;
 }
 
 void
@@ -530,7 +563,7 @@ reglcgen(Node *t, Node *n, Node *nn)
 		r = n->left;
 		while(r->op == OADD)
 			r = r->right;
-		if(sconst(r)) {
+		if(sconst(r) && (v = r->vconst+t->xoffset) > -4096 && v < 4096) {
 			v = r->vconst;
 			r->vconst = 0;
 			lcgen(n, t);
@@ -539,9 +572,35 @@ reglcgen(Node *t, Node *n, Node *nn)
 			regind(t, n);
 			return;
 		}
+	} else if(n->op == OINDREG) {
+		if((v = n->xoffset) > -4096 && v < 4096) {
+			n->op = OREGISTER;
+			cgen(n, t);
+			t->xoffset += v;
+			n->op = OINDREG;
+			regind(t, n);
+			return;
+		}
 	}
 	lcgen(n, t);
 	regind(t, n);
+}
+
+void
+reglpcgen(Node *n, Node *nn, int f)
+{
+	Type *t;
+
+	t = nn->type;
+	nn->type = types[TLONG];
+	if(f)
+		reglcgen(n, nn, Z);
+	else {
+		regialloc(n, nn, Z);
+		lcgen(nn, n);
+		regind(n, nn);
+	}
+	nn->type = t;
 }
 
 void
@@ -983,110 +1042,105 @@ copy:
 		return;
 	}
 
-	if(n->complex > nn->complex) {
-		t = n->type;
-		n->type = types[TLONG];
-		reglcgen(&nod1, n, Z);
-		n->type = t;
-
-		t = nn->type;
-		nn->type = types[TLONG];
-		reglcgen(&nod2, nn, Z);
-		nn->type = t;
-	} else {
-		t = nn->type;
-		nn->type = types[TLONG];
-		reglcgen(&nod2, nn, Z);
-		nn->type = t;
-
-		t = n->type;
-		n->type = types[TLONG];
-		reglcgen(&nod1, n, Z);
-		n->type = t;
+	w /= SZ_LONG;
+	if(w <= 2) {
+		if(n->complex > nn->complex) {
+			reglpcgen(&nod1, n, 1);
+			reglpcgen(&nod2, nn, 1);
+		} else {
+			reglpcgen(&nod2, nn, 1);
+			reglpcgen(&nod1, n, 1);
+		}
+		regalloc(&nod3, &regnode, Z);
+		regalloc(&nod4, &regnode, Z);
+		nod0 = *nodconst((1<<nod3.reg)|(1<<nod4.reg));
+		if(w == 2 && nod1.xoffset == 0)
+			gmovm(&nod1, &nod0, 0);
+		else {
+			gmove(&nod1, &nod3);
+			if(w == 2) {
+				nod1.xoffset += SZ_LONG;
+				gmove(&nod1, &nod4);
+			}
+		}
+		if(w == 2 && nod2.xoffset == 0)
+			gmovm(&nod0, &nod2, 0);
+		else {
+			gmove(&nod3, &nod2);
+			if(w == 2) {
+				nod2.xoffset += SZ_LONG;
+				gmove(&nod4, &nod2);
+			}
+		}
+		regfree(&nod1);
+		regfree(&nod2);
+		regfree(&nod3);
+		regfree(&nod4);
+		return;
 	}
 
-	w /= SZ_LONG;
-	if(w <= 5) {
-		layout(&nod1, &nod2, w, 0, Z);
+	if(n->complex > nn->complex) {
+		reglpcgen(&nod1, n, 0);
+		reglpcgen(&nod2, nn, 0);
+	} else {
+		reglpcgen(&nod2, nn, 0);
+		reglpcgen(&nod1, n, 0);
+	}
+
+	m = 0;
+	for(c = 0; c < w && c < 4; c++) {
+		i = tmpreg();
+		if (i == 0)
+			break;
+		reg[i]++;
+		m |= 1<<i;
+	}
+	nod4 = *(nodconst(m));
+	if(w < 3*c) {
+		for (; w>c; w-=c) {
+			gmovm(&nod1, &nod4, 1);
+			gmovm(&nod4, &nod2, 1);
+		}
 		goto out;
 	}
 
-	/*
-	 * minimize space for unrolling loop
-	 * 3,4,5 times. (6 or more is never minimum)
-	 * if small structure, try 2 also.
-	 */
-	c = 0; /* set */
-	m = 100;
-	i = 3;
-	if(w <= 15)
-		i = 2;
-	for(; i<=5; i++)
-		if(i + w%i <= m) {
-			c = i;
-			m = c + w%c;
-		}
-
 	regalloc(&nod3, &regnode, Z);
-	layout(&nod1, &nod2, w%c, w/c, &nod3);
+	gopcode(OAS, nodconst(w/c), Z, &nod3);
+	w %= c;
 	
 	pc1 = pc;
-	layout(&nod1, &nod2, c, 0, Z);
+	gmovm(&nod1, &nod4, 1);
+	gmovm(&nod4, &nod2, 1);
 
 	gopcode(OSUB, nodconst(1), Z, &nod3);
-	nod1.op = OREGISTER;
-	gopcode(OADD, nodconst(c*SZ_LONG), Z, &nod1);
-	nod2.op = OREGISTER;
-	gopcode(OADD, nodconst(c*SZ_LONG), Z, &nod2);
-	
 	gopcode(OEQ, nodconst(0), &nod3, Z);
 	p->as = ABGT;
 	patch(p, pc1);
-
 	regfree(&nod3);
+
 out:
+	if (w) {
+		i = 0;
+		while (c>w) {
+			while ((m&(1<<i)) == 0)
+				i++;
+			m &= ~(1<<i);
+			reg[i] = 0;
+			c--;
+			i++;
+		}
+		nod4.vconst = m;
+		gmovm(&nod1, &nod4, 0);
+		gmovm(&nod4, &nod2, 0);
+	}
+	i = 0;
+	do {
+		while ((m&(1<<i)) == 0)
+			i++;
+		reg[i] = 0;
+		c--;
+		i++;
+	} while (c>0);
 	regfree(&nod1);
 	regfree(&nod2);
-}
-
-void
-layout(Node *f, Node *t, int c, int cv, Node *cn)
-{
-	Node t1, t2;
-
-	while(c > 3) {
-		layout(f, t, 2, 0, Z);
-		c -= 2;
-	}
-
-	regalloc(&t1, &regnode, Z);
-	regalloc(&t2, &regnode, Z);
-	if(c > 0) {
-		gopcode(OAS, f, Z, &t1);
-		f->xoffset += SZ_LONG;
-	}
-	if(cn != Z)
-		gopcode(OAS, nodconst(cv), Z, cn);
-	if(c > 1) {
-		gopcode(OAS, f, Z, &t2);
-		f->xoffset += SZ_LONG;
-	}
-	if(c > 0) {
-		gopcode(OAS, &t1, Z, t);
-		t->xoffset += SZ_LONG;
-	}
-	if(c > 2) {
-		gopcode(OAS, f, Z, &t1);
-		f->xoffset += SZ_LONG;
-	}
-	if(c > 1) {
-		gopcode(OAS, &t2, Z, t);
-		t->xoffset += SZ_LONG;
-	}
-	if(c > 2) {
-		gopcode(OAS, &t1, Z, t);
-		t->xoffset += SZ_LONG;
-	}
-	regfree(&t1);
-	regfree(&t2);
 }

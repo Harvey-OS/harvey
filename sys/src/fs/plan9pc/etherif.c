@@ -15,6 +15,7 @@ static struct
 } etherctlr[] =
 {
 	{ "21140", ether21140reset, },
+	{ "2114x", ether21140reset, },
 	{ "3C509", etherelnk3reset, },
 	{ "elnk3", etherelnk3reset, },
 	{ "i82557", etheri82557reset, },
@@ -32,6 +33,7 @@ etheriq(Ether* ether, Msgbuf* mb)
 	else
 		ether->rqhead = mb;
 	ether->rqtail = mb;
+	mb->next = 0;
 	iunlock(&ether->rqlock);
 
 	wakeup(&ether->rqr);
@@ -56,12 +58,12 @@ etheri(void)
 	print("ether%di: %E %I\n", ether->ctlrno, ether->ifc.ea, ether->ifc.ipa);	
 	(*ether->attach)(ether);
 
-	for(;;){
+	for(;;) {
 		while(!isinput(ether))
 			sleep(&ether->rqr, isinput, ether);
 
 		ilock(&ether->rqlock);
-		if(ether->rqhead == 0){
+		if(ether->rqhead == 0) {
 			iunlock(&ether->rqlock);
 			continue;
 		}
@@ -101,16 +103,28 @@ ethero(void)
 	ifc = &ether->ifc;
 	print("ether%do: %E %I\n", ether->ctlrno, ifc->ea, ifc->ipa);	
 
-	for(;;){
-		while(!(mb = recv(ifc->reply, 0)))
-			;
+	for(;;) {
+		for(;;) {
+			mb = recv(ifc->reply, 0);
+			if(mb != nil)
+				break;
+		}
 
-		if((len = mb->count) > ETHERMAXTU){
+		if(mb->data == 0) {
+			print("ether%do: pkt nil cat=%d free=%d\n",
+				ether->ctlrno, mb->category, mb->flags&FREE);
+			if(!(mb->flags & FREE))
+				mbfree(mb);
+			continue;
+		}
+
+		len = mb->count;
+		if(len > ETHERMAXTU) {
 			print("ether%do: pkt too big - %d\n", ether->ctlrno, len);
 			mbfree(mb);
 			continue;
 		}
-		if(len < ETHERMINTU){
+		if(len < ETHERMINTU) {
 			memset(mb->data+len, 0, ETHERMINTU-len);
 			len = ETHERMINTU;
 		}

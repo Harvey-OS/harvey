@@ -10,6 +10,25 @@ typedef struct Alt	Alt;
 typedef struct Channel	Channel;
 typedef struct Ref	Ref;
 
+/* Channel structure.  S is the size of the buffer.  For unbuffered channels
+ * s is zero.  v is an array of s values.  If s is zero, v is unused.
+ * f and n represent the state of the queue pointed to by v.
+ * rcvrs and sndrs must be initialized to nil and should not be touched
+ * by code outside channel.c
+ */
+
+struct Channel {
+	int		s;			// Size of the channel (may be zero)
+	uint	f;			// Extraction point (insertion pt: (f + n) % s)
+	uint	n;			// Number of values in the channel
+	int		e;			// Element size
+	int		freed;		// Set when channel is being deleted
+	ulong	qused;		// Bitmap of used entries in rcvrs
+	Alt	*	qentry[32];	// Receivers/senders waiting
+	uchar	v[1];		// Array of max(1, s) values in the channel
+};
+
+
 /* Channel operations for alt: */
 #define CHANEND		0
 #define CHANSND		1
@@ -38,6 +57,7 @@ extern	int		threadhack;
 
 int		alt(Alt alts[]);
 Channel*	chancreate(int elemsize, int bufsize);
+int		chaninit(Channel *c, int elemsize, int elemcnt);
 void		chanfree(Channel *c);
 long		decref(Ref *r);		/* returns 0 iff value is now zero */
 void		incref(Ref *r);
@@ -63,6 +83,7 @@ void		threadexits(char *);
 void		threadexitsall(char *);
 int		threadgetgrp(void);	/* return thread group of current thread */
 char*		threadgetname(void);
+void		threadkill(int);	/* kill thread */
 void		threadkillgrp(int);	/* kill threads in group */
 void		threadmain(int argc, char *argv[]);
 int		threadprint(int, char*, ...);

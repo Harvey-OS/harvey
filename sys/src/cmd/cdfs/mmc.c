@@ -538,6 +538,19 @@ mmcread(Buf *buf, void *v, long nblock, long off)
 		return -1;
 	}
 
+	/* truncate nblock modulo size of track */
+	if(off > o->track->end - 2) {
+		werrstr("read past end of track");
+		if(vflag)
+			fprint(2, "end of track (%ld->%ld off %ld)", o->track->beg, o->track->end-2, off);
+		return -1;
+	}
+	if(off == o->track->end - 2)
+		return 0;
+
+	if(off+nblock > o->track->end - 2)
+		nblock = o->track->end - 2 - off;
+
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = 0xBE;
 	cmd[2] = off>>24;
@@ -576,7 +589,6 @@ mmcread(Buf *buf, void *v, long nblock, long off)
 		return -1;
 	}
 
-	fprint(2, "nblock = %ld\n", nblock);
 	return nblock;
 }
 
@@ -611,13 +623,11 @@ mmcopenrd(Drive *drive, int trackno)
 }
 
 static long
-mmcwrite(Buf *buf, void *v, long nblk, long)
+mmcxwrite(Otrack *o, void *v, long nblk)
 {
 	uchar cmd[10];
 	Mmcaux *aux;
-	Otrack *o;
 
-	o = buf->otrack;
 	assert(o->omode == OWRITE);
 
 	aux = o->drive->aux;
@@ -635,6 +645,12 @@ mmcwrite(Buf *buf, void *v, long nblk, long)
 		print("%lld: write %ld at 0x%lux\n", nsec(), nblk, aux->mmcnwa);
 	aux->mmcnwa += nblk;
 	return scsi(o->drive, cmd, sizeof(cmd), v, nblk*o->track->bs, Swrite);
+}
+
+static long
+mmcwrite(Buf *buf, void *v, long nblk, long)
+{
+	return mmcxwrite(buf->otrack, v, nblk);
 }
 
 static Otrack*
@@ -725,12 +741,14 @@ static void
 mmcclose(Otrack *o)
 {
 	Mmcaux *aux;
+	static uchar zero[2*BSmax];
 
 	aux = o->drive->aux;
 	if(o->omode == OREAD)
 		aux->nropen--;
 	else if(o->omode == OWRITE) {
 		aux->nwopen--;
+		mmcxwrite(o, zero, 2);	/* write lead out */
 		mmcsynccache(o->drive);
 		o->drive->nchange = -1;	/* force reread toc */
 	}

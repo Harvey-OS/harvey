@@ -179,7 +179,7 @@ init(Vga* vga, Ctlr* ctlr)
 		vga->sequencer[0x07] |= 0x40;
 
 	vga->attribute[0x10] &= ~0x40;
-	vga->attribute[0x11] = Pwhite;
+	vga->attribute[0x11] = Pblack;
 	vga->attribute[0x16] = 0x80;
 
 	if(ctlr->flag & Upclk2x8)

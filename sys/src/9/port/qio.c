@@ -896,23 +896,22 @@ qbwrite(Queue *q, Block *b)
 	n = BLEN(b);
 	qlock(&q->wlock);
 	if(waserror()){
+		if(b != nil)
+			freeb(b);
 		qunlock(&q->wlock);
 		nexterror();
 	}
 
-	/* flow control */
-	for(;;){
-		ilock(q);
+	ilock(q);
 
-		if(q->state & Qclosed){
-			iunlock(q);
-			freeb(b);
-			error(q->err);
-		}
+	/* give up if the queue is closed */
+	if(q->state & Qclosed){
+		iunlock(q);
+		error(q->err);
+	}
 
-		if(q->len < q->limit)
-			break;
-
+	/* if nonblocking, don't queue over the limit */
+	if(q->len >= q->limit){
 		if(q->noblock){
 			iunlock(q);
 			freeb(b);
@@ -920,12 +919,9 @@ qbwrite(Queue *q, Block *b)
 			poperror();
 			return n;
 		}
-
-		q->state |= Qflow;
-		iunlock(q);
-		sleep(&q->wr, qnotfull, q);
 	}
 
+	/* queue the block */
 	if(q->bfirst)
 		q->blast->next = b;
 	else
@@ -935,12 +931,13 @@ qbwrite(Queue *q, Block *b)
 	q->len += BALLOC(b);
 	q->dlen += n;
 	QDEBUG checkb(b, "qbwrite");
+	b = nil;
 
+	/* make sure other end gets awakened */
 	if(q->state & Qstarve){
 		q->state &= ~Qstarve;
 		dowakeup = 1;
 	}
-
 	iunlock(q);
 
 	if(dowakeup){
@@ -948,6 +945,29 @@ qbwrite(Queue *q, Block *b)
 			q->kick(q->arg);
 		wakeup(&q->rr);
 	}
+
+	/*
+	 *  flow control, wait for queue to get below the limit
+	 *  before allowing the process to continue and queue
+	 *  more.  We do this here so that postnote can only
+	 *  interrupt us after the data has been quued.  This
+	 *  means that things like 9p flushes and ssl messages
+	 *  will not be disrupted by software interrupts.
+	 *
+	 *  Note - this is moderately dangerous since a process
+	 *  that keeps getting interrupted and rewriting will
+	 *  queue infinite crud.
+	 */
+	for(;;){
+		if(q->noblock || qnotfull(q))
+			break;
+
+		ilock(q);
+		q->state |= Qflow;
+		iunlock(q);
+		sleep(&q->wr, qnotfull, q);
+	}
+	USED(b);
 
 	qunlock(&q->wlock);
 	poperror();

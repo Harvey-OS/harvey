@@ -69,8 +69,8 @@ except that the names of subdirectories have a slash appended.
 The
 .B -f
 .RB ( -F )
-option sets the default variable-pitch (fixed-pitch)
-font; the default is
+option sets the main font, usually variable-pitch (alternate, usually fixed-pitch);
+the default is
 .B /lib/font/bit/lucidasans/euro.8.font
 .RB ( \&.../lucm/unicode.9.font ).
 Tab intervals are set to the width of 4 (or the value of
@@ -268,6 +268,27 @@ Write the state of
 to the file name, if specified, or
 .B $home/acme.dump
 by default.
+.TP
+.B Edit
+Treat the argument as a text editing command in the style of
+.IR sam (1).
+The full
+.B Sam
+language is implemented except for the commands
+.BR k ,
+.BR n ,
+.BR q ,
+and
+.BR ! .
+The `current window' for the command is the body of the window in which the
+.B Edit
+command is executed.
+Usually the
+.B Edit
+command would be typed in a tag; longer commands may be prepared in a
+scratch window and executed, with
+.B Edit
+itself in the current window, using the 2-1 chord described below.
 .TP
 .B Exit
 Exit

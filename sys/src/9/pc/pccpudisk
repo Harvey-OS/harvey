@@ -43,7 +43,7 @@ misc
 
 	vgaclgd542x	+cur
 	vgahiqvideo	+cur
-	vgas3		+cur
+	vgas3		+cur vgasavage
 
 ip
 	il

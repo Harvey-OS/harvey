@@ -1,0 +1,21 @@
+#!/bin/rc
+
+# desc: create a plan 9 partition
+# prereq: pickdisk
+
+switch($1){
+case go
+	echo
+	echo 'This is disk/fdisk; use it to create a Plan 9 partition.'
+	echo 'A Plan 9 partition will be suggested; you can probably just'
+	echo 'type ''w'' and then ''q''.'
+	echo
+	disk/fdisk -a /dev/$disk/data
+	disk/fdisk -p /dev/$disk/data >/dev/$disk/ctl
+
+case checkdone
+	if(! test -f /dev/$disk/plan9) {
+		partdisk=notdone
+		export partdisk
+	}
+}

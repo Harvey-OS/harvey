@@ -58,3 +58,7 @@ stdout	-			-				-					-		post+nohead			generic		nospool		-			-			-			-
 
 # 600dpi postscript printer named vogon via BSD LPD printer queue on alice
 vogon printer-room	alice	vogon - post+600dpi		generic		lpdspool	lpd		-			-		FIFO
+
+# HP DeskJet and Canon BJC-240
+hpdeskjet		-		-				/dev/lpt1data					-	pcl+hpdeskjet+nohead					generic		pcpcl		-		-			-		-
+canonbjc240l		-		-				/dev/lpt1data					-	gs!bjc600+nohead					generic		nospool		-		-			-		-

@@ -40,3 +40,21 @@ estrdup(char *s)
 	}
 	return t;
 }
+
+
+void
+readbuf(vlong off, void *dst, long *dlen, void *src, long slen)
+{
+	if(off >= slen) {
+		*dlen = 0;
+		return;
+	}
+	if(off+*dlen > slen)
+		*dlen = slen-off;
+	memmove(dst, (char*)src+off, *dlen);
+}
+void
+readstr(vlong off, void *dst, long *dlen, char *src)
+{
+	readbuf(off, dst, dlen, src, strlen(src));
+}

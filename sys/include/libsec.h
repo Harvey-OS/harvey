@@ -11,7 +11,7 @@ typedef struct mpint mpint;
 
 enum
 {
-	DESbsize=	8,
+	DESbsize=	8
 };
 
 // single des
@@ -44,7 +44,7 @@ enum {
 	DES3EEE=	0,
 	DES3EDE=	2,
 	DES3DED=	5,
-	DES3DDD=	7,
+	DES3DDD=	7
 };
 
 typedef struct DES3state DES3state;
@@ -84,7 +84,8 @@ struct DigestState
 	char malloced;
 	char seeded;
 };
-typedef struct DigestState SHAstate;
+typedef struct DigestState SHAstate;	/* obsolete name */
+typedef struct DigestState SHA1state;
 typedef struct DigestState MD5state;
 typedef struct DigestState MD4state;
 

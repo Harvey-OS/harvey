@@ -74,5 +74,5 @@ void	trapinit(void);
 void	uartspecial(int, void (*)(int), int (*)(void), int);
 int	uartgetc(void);
 void	uartputc(int);
-int	x86cpuid(int*, int*);
+int	cpuid(char*, int*, int*);
 #define PADDR(a)	((ulong)(a)&~KZERO)

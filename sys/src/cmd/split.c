@@ -33,16 +33,16 @@ main(int argc, char *argv[])
 
 	ARGBEGIN {
 	case 'n':
-		n=atoi(ARGF());
+		n=atoi(EARGF(usage()));
 		break;
 	case 'e':
-		pattern = strdup(ARGF());
+		pattern = strdup(EARGF(usage()));
 		break;
 	case 'f':
-		stem = strdup(ARGF());
+		stem = strdup(EARGF(usage()));
 		break;
 	case 's':
-		suffix = strdup(ARGF());
+		suffix = strdup(EARGF(usage()));
 		break;
 	case 'x':
 		xflag++;

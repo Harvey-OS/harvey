@@ -249,7 +249,9 @@ iptobinding(uchar *ip, int mk)
 static void
 lognolease(Binding *b)
 {
-	syslog(1, blog, "dhcp: lease for %I to %s ended at %ld but still in use\n",
+	if(now - b->lastcomplained < 5*60)
+		return;
+	syslog(0, blog, "dhcp: lease for %I to %s ended at %ld but still in use\n",
 		b->ip, b->boundto != nil ? b->boundto : "?", b->lease);
 }
 
@@ -285,6 +287,7 @@ idtobinding(char *id, Info *iip, int ping)
 		oldest = nil;
 		oldesttime = 0;
 		for(b = bcache; b; b = b->next){
+			if(b->tried != now)
 			if(b->lease < now && b->expoffer < now && samenet(b->ip, iip))
 			if(oldest == nil || b->lasttouched < oldesttime){
 				/* sync and check again */
@@ -300,16 +303,19 @@ idtobinding(char *id, Info *iip, int ping)
 			break;
 
 		/* make sure noone is still using it */
+		oldest->tried = now;
 		if(ping == 0 || icmpecho(oldest->ip) == 0)
 			return oldest;
 		else
-			lognolease(oldest);
+			lognolease(oldest);	/* sets lastcomplained */
 	}
 
 	/* try all bindings */
 	for(b = bcache; b; b = b->next){
 		syncbinding(b, 0);
+		if(b->tried != now)
 		if(b->lease < now && b->expoffer < now && samenet(b->ip, iip)){
+			b->tried = now;
 			if(ping == 0 || icmpecho(oldest->ip) == 0)
 				return b;
 			else

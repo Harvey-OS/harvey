@@ -662,7 +662,7 @@ ipifcinit(Fs *f)
 {
 	Proto *ipifc;
 
-	ipifc = smalloc(sizeof(Ipifc));
+	ipifc = smalloc(sizeof(Proto));
 	ipifc->name = "ipifc";
 	ipifc->kick = ipifckick;
 	ipifc->connect = ipifcconnect;

@@ -29,7 +29,7 @@ atimeof(int force, char *name)
 		symlook(strdup(archive), S_AGG, "")->value = (void *)t;
 	}
 		/* truncate long member name to sizeof of name field in archive header */
-	snprint(buf, sizeof(buf), "%s(%.*s)", archive, SARNAME, member);
+	snprint(buf, sizeof(buf), "%s(%.*s)", archive, utfnlen(member, SARNAME), member);
 	sym = symlook(buf, S_TIME, 0);
 	if (sym)
 		return (long)sym->value;	/* uggh */

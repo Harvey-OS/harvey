@@ -385,7 +385,7 @@ floppysend(int data)
 			outb(Pdata, data);
 			return 0;
 		}
-		microdelay(1);
+		microdelay(8);
 	}
 	return -1;
 }
@@ -399,7 +399,7 @@ floppyrcv(void)
 	for(tries = 0; tries < 1000; tries++){
 		if((inb(Pmsr)&(Ffrom|Fready)) == (Ffrom|Fready))
 			return inb(Pdata)&0xff;
-		microdelay(1);
+		microdelay(8);
 	}
 	DPRINT("floppyrcv returns -1 status = %ux\n", c);
 	return -1;

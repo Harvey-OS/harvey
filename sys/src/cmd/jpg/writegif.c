@@ -32,6 +32,7 @@ struct IO
 	int		sreg;		/* shift register */
 };
 
+static Rectangle	mainrect;
 static Entry	tbl[4096];
 static uchar	*colormap[5];	/* one for each ldepth: GREY1 GREY2 GREY4 CMAP8=rgbv plus GREY8 */
 #define	GREYMAP	4
@@ -66,6 +67,7 @@ startgif0(Biobuf *fd, ulong chan, Rectangle r, int depth, int loopcount)
 		return "WriteGIF: can't handle channel type";
 	}
 
+	mainrect = r;
 	writeheader(fd, r, depth, chan, loopcount);
 	return nil;
 }
@@ -307,8 +309,8 @@ writedescriptor(Biobuf *fd, Rectangle r)
 	Bputc(fd, 0x2C);
 
 	/* Left, top, width, height */
-	put2(fd, 0);
-	put2(fd, 0);
+	put2(fd, r.min.x-mainrect.min.x);
+	put2(fd, r.min.y-mainrect.min.y);
 	put2(fd, Dx(r));
 	put2(fd, Dy(r));
 	/* no special processing */
@@ -523,8 +525,10 @@ Next:
 		early = 0; /* peculiar tiff feature here for reference */
 		if(nentry == maxentry-early){
 			if(csize == 12){
-				nbits += codesize;	/* unget pixel */
+				nbits += bitsperpixel;	/* unget pixel */
 				x--;
+				if(ld != 3 && x == r.min.x)
+					datai--;
 				output(io, CTM, csize);
 				goto Init;
 			}

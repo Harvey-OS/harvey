@@ -75,7 +75,7 @@ etc., which
 does not handle at all; on the other hand,
 .B ms2html
 understands only
-.IR ms(6)
+.IR ms (6)
 documents and is easily confused by complex
 .B troff
 constructions.

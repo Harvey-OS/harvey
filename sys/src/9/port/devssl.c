@@ -72,7 +72,7 @@ struct Dstate
 
 Lock	dslock;
 int	dshiwat;
-int	maxdstate = 20;
+int	maxdstate = 128;
 Dstate** dstate;
 char	*encalgs;
 char	*hashalgs;
@@ -431,6 +431,29 @@ consume(Block **l, uchar *p, int n)
 }
 
 /*
+ *  give back n bytes
+ */
+static void
+regurgitate(Dstate *s, uchar *p, int n)
+{
+	Block *b;
+
+	if(n <= 0)
+		return;
+	b = s->unprocessed;
+	if(s->unprocessed == nil || b->rp - b->base < n) {
+		b = allocb(n);
+		memmove(b->wp, p, n);
+		b->wp += n;
+		b->next = s->unprocessed;
+		s->unprocessed = b;
+	} else {
+		b->rp -= n;
+		memmove(b->rp, p, n);
+	}
+}
+
+/*
  *  remove at most n bytes from the queue, if discard is set
  *  dump the remainder
  */
@@ -478,12 +501,20 @@ qremove(Block **l, int n, int discard)
 	return first;
 }
 
+/*
+ *  We can't let Eintr's lose data since the program
+ *  doing the read may be able to handle it.  The only
+ *  places Eintr is possible is during the read's in consume.
+ *  Therefore, we make sure we can always put back the bytes
+ *  consumed before the last ensure.
+ */
 static Block*
 sslbread(Chan *c, long n, ulong)
 {
 	volatile struct { Dstate *s; } s;
 	Block *b;
-	uchar count[2];
+	uchar consumed[3];
+	int nconsumed;
 	int len, pad;
 
 	s.s = dstate[CONV(c->qid)];
@@ -492,9 +523,11 @@ sslbread(Chan *c, long n, ulong)
 	if(s.s->state == Sincomplete)
 		error(Ebadusefd);
 
+	nconsumed = 0;
 	if(waserror()){
+		if(strcmp(up->error, Eintr) != 0)
+			regurgitate(s.s, consumed, nconsumed);
 		qunlock(&s.s->in.q);
-		sslhangup(s.s);
 		nexterror();
 	}
 	qlock(&s.s->in.q);
@@ -502,58 +535,72 @@ sslbread(Chan *c, long n, ulong)
 	if(s.s->processed == 0){
 		/* read in the whole message */
 		ensure(s.s, &s.s->unprocessed, 2);
-		consume(&s.s->unprocessed, count, 2);
-		if(count[0] & 0x80){
-			len = ((count[0] & 0x7f)<<8) | count[1];
+		consume(&s.s->unprocessed, consumed, 2);
+		nconsumed = 2;
+		if(consumed[0] & 0x80){
+			len = ((consumed[0] & 0x7f)<<8) | consumed[1];
 			ensure(s.s, &s.s->unprocessed, len);
 			pad = 0;
 		} else {
-			len = ((count[0] & 0x3f)<<8) | count[1];
+			len = ((consumed[0] & 0x3f)<<8) | consumed[1];
 			ensure(s.s, &s.s->unprocessed, len+1);
-			consume(&s.s->unprocessed, count, 1);
-			pad = count[0];
+			consume(&s.s->unprocessed, &consumed[2], 1);
+			pad = consumed[2];
 			if(pad > len){
 				print("pad %d buf len %d\n", pad, len);
 				error("bad pad in ssl message");
 			}
 		}
+		USED(nconsumed);
+		nconsumed = 0;
 
-		/* put extra on unprocessed queue */
-		s.s->processed = qremove(&s.s->unprocessed, len, 0);
+		/*  if an Eintr happens after this, we're screwed.  Make
+		 *  sure nothing we call can sleep.  Luckily, allocb
+		 *  won't sleep, it'll just error out.
+		 */
+
+		/* grab the next message and decode/decrypt it */
+		b = qremove(&s.s->unprocessed, len, 0);
 
 		if(waserror()){
 			qunlock(&s.s->in.ctlq);
+			if(b != nil)
+				freeb(b);
 			nexterror();
 		}
 		qlock(&s.s->in.ctlq);
 		switch(s.s->state){
 		case Sencrypting:
-			s.s->processed = decryptb(s.s, s.s->processed);
+			b = decryptb(s.s, b);
 			break;
 		case Sdigesting:
-			s.s->processed = pullupblock(s.s->processed, s.s->diglen);
-			if(s.s->processed == 0)
+			b = pullupblock(b, s.s->diglen);
+			if(b == nil)
 				error("ssl message too short");
-			checkdigestb(s.s, s.s->processed);
-			s.s->processed->rp += s.s->diglen;
+			checkdigestb(s.s, b);
+			b->rp += s.s->diglen;
 			break;
 		case Sdigenc:
-			s.s->processed = decryptb(s.s, s.s->processed);
-			s.s->processed = pullupblock(s.s->processed, s.s->diglen);
-			if(s.s->processed == 0)
+			b = decryptb(s.s, b);
+			b = pullupblock(b, s.s->diglen);
+			if(b == nil)
 				error("ssl message too short");
-			checkdigestb(s.s, s.s->processed);
-			s.s->processed->rp += s.s->diglen;
+			checkdigestb(s.s, b);
+			b->rp += s.s->diglen;
 			len -= s.s->diglen;
 			break;
 		}
-		s.s->in.mid++;
-		qunlock(&s.s->in.ctlq);
-		poperror();
 
 		/* remove pad */
 		if(pad)
-			s.s->processed = qremove(&s.s->processed, len - pad, 1);
+			s.s->processed = qremove(&b, len - pad, 1);
+		else
+			s.s->processed = b;
+		b = nil;
+		s.s->in.mid++;
+		qunlock(&s.s->in.ctlq);
+		poperror();
+		USED(nconsumed);
 	}
 
 	/* return at most what was asked for */
@@ -626,7 +673,10 @@ randfill(uchar *buf, int len)
 }
 
 /*
- *  use SSL record format, add in count and digest or encrypt
+ *  use SSL record format, add in count, digest and/or encrypt.
+ *  the write is interruptable.  if it is interrupted, we'll
+ *  get out of sync with the far side.  not much we can do about
+ *  it since we don't know if any bytes have been written.
  */
 static long
 sslbwrite(Chan *c, Block *b, ulong offset)
@@ -648,9 +698,8 @@ sslbwrite(Chan *c, Block *b, ulong offset)
 
 	if(waserror()){
 		qunlock(&s.s->out.q);
-		if(bb.b)
+		if(bb.b != nil)
 			freeb(bb.b);
-		sslhangup(s.s);
 		nexterror();
 	}
 	qlock(&s.s->out.q);

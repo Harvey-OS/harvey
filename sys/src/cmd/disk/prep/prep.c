@@ -22,6 +22,7 @@ static char	*secbuf;
 static int		rdonly;
 static int		dowrite;
 static int		docache;
+static int		donvram;
 
 static void		autopart(Edit*);
 static vlong	memsize(void);
@@ -72,6 +73,9 @@ main(int argc, char **argv)
 		break;
 	case 'f':
 		file++;
+		break;
+	case 'n':
+		donvram++;
 		break;
 	case 'p':
 		printflag++;
@@ -330,7 +334,7 @@ min(vlong a, vlong b)
 static void
 autopart(Edit *edit)
 {
-	vlong fat, fs, swap, secs, secsize, cache;
+	vlong fat, fs, swap, secs, secsize, cache, nvram;
 	char *err;
 
 	if(edit->npart > 0) {
@@ -353,6 +357,11 @@ autopart(Edit *edit)
 		fs -= cache;
 	} else
 		cache = 0;
+	if(donvram) {
+		nvram = 1;
+		fs -= nvram;
+	} else
+		nvram = 0;
 
 	if(err = addpart(edit, mkpart("9fat", 0, fat, 1)))
 		fprint(2, "autopart: %s\n", err);
@@ -360,7 +369,9 @@ autopart(Edit *edit)
 		fprint(2, "autopart: %s\n", err);
 	if(cache && (err = addpart(edit, mkpart("cache", fat+fs, fat+fs+cache, 1))))
 		fprint(2, "autopart: %s\n", err);
-	if(err = addpart(edit, mkpart("swap", fat+fs+cache, fat+fs+cache+swap, 1)))
+	if(nvram && (err = addpart(edit, mkpart("nvram", fat+fs+cache, fat+fs+cache+nvram, 1))))
+		fprint(2, "autopart: %s\n", err);
+	if(err = addpart(edit, mkpart("swap", fat+fs+cache+nvram, fat+fs+cache+nvram+swap, 1)))
 		fprint(2, "autopart: %s\n", err);
 }
 

@@ -15,7 +15,7 @@ enum
 {
 	IPHDR		= 20,		/* sizeof(Iphdr) */
 	IP_VER		= 0x40,		/* Using IP version 4 */
-	IP_HLEN		= 0x05,		/* Header length in characters */
+	IP_HLEN		= 0x05,		/* Header length in words */
 	IP_DF		= 0x4000,	/* Don't fragment */
 	IP_MF		= 0x2000,	/* More fragments */
 	IP_MAX		= (32*1024),	/* Maximum Internet packet size */
@@ -52,34 +52,58 @@ struct Ipfrag
 };
 
 /* MIB II counters */
-typedef struct Ipstats Ipstats;
-struct Ipstats
+enum
 {
-	ulong	ipForwarding;
-	ulong	ipDefaultTTL;
-	ulong	ipInReceives;
-	ulong	ipInHdrErrors;
-	ulong	ipInAddrErrors;
-	ulong	ipForwDatagrams;
-	ulong	ipInUnknownProtos;
-	ulong	ipInDiscards;
-	ulong	ipInDelivers;
-	ulong	ipOutRequests;
-	ulong	ipOutDiscards;
-	ulong	ipOutNoRoutes;
-	ulong	ipReasmTimeout;
-	ulong	ipReasmReqds;
-	ulong	ipReasmOKs;
-	ulong	ipReasmFails;
-	ulong	ipFragOKs;
-	ulong	ipFragFails;
-	ulong	ipFragCreates;
+	Forwarding,
+	DefaultTTL,
+	InReceives,
+	InHdrErrors,
+	InAddrErrors,
+	ForwDatagrams,
+	InUnknownProtos,
+	InDiscards,
+	InDelivers,
+	OutRequests,
+	OutDiscards,
+	OutNoRoutes,
+	ReasmTimeout,
+	ReasmReqds,
+	ReasmOKs,
+	ReasmFails,
+	FragOKs,
+	FragFails,
+	FragCreates,
+
+	Nstats,
+};
+
+static char *statnames[] =
+{
+[Forwarding]	"Forwarding",
+[DefaultTTL]	"DefaultTTL",
+[InReceives]	"InReceives",
+[InHdrErrors]	"InHdrErrors",
+[InAddrErrors]	"InAddrErrors",
+[ForwDatagrams]	"ForwDatagrams",
+[InUnknownProtos]	"InUnknownProtos",
+[InDiscards]	"InDiscards",
+[InDelivers]	"InDelivers",
+[OutRequests]	"OutRequests",
+[OutDiscards]	"OutDiscards",
+[OutNoRoutes]	"OutNoRoutes",
+[ReasmTimeout]	"ReasmTimeout",
+[ReasmReqds]	"ReasmReqds",
+[ReasmOKs]	"ReasmOKs",
+[ReasmFails]	"ReasmFails",
+[FragOKs]	"FragOKs",
+[FragFails]	"FragFails",
+[FragCreates]	"FragCreates",
 };
 
 /* an instance of IP */
 struct IP
 {
-	Ipstats		istats;
+	ulong		stats[Nstats];
 
 	QLock		fraglock;
 	Fragment*	flisthead;
@@ -116,9 +140,9 @@ iprouting(Fs *f, int on)
 {
 	f->ip->iprouting = on;
 	if(f->ip->iprouting==0)
-		f->ip->istats.ipForwarding = 2;
+		f->ip->stats[Forwarding] = 2;
 	else
-		f->ip->istats.ipForwarding = 1;	
+		f->ip->stats[Forwarding] = 1;	
 }
 
 void
@@ -138,7 +162,7 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 	/* Fill out the ip header */
 	eh = (Iphdr*)(bp->rp);
 
-	ip->istats.ipOutRequests++;
+	ip->stats[OutRequests]++;
 
 	/* Number of uchars in data and ip header to write */
 	len = blocklen(bp);
@@ -146,7 +170,7 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 	if(gating){
 		chunk = nhgets(eh->length);
 		if(chunk > len){
-			ip->istats.ipOutDiscards++;
+			ip->stats[OutDiscards]++;
 			netlog(f, Logip, "short gated packet\n");
 			goto free;
 		}
@@ -154,14 +178,14 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 			len = chunk;
 	}
 	if(len >= IP_MAX){
-		ip->istats.ipOutDiscards++;
+		ip->stats[OutDiscards]++;
 		netlog(f, Logip, "exceeded ip max size %V\n", eh->dst);
 		goto free;
 	}
 
 	r = v4lookup(f, eh->dst);
 	if(r == nil){
-		ip->istats.ipOutNoRoutes++;
+		ip->stats[OutNoRoutes]++;
 		netlog(f, Logip, "no interface %V\n", eh->dst);
 		goto free;
 	}
@@ -194,7 +218,7 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 		goto raise;
 
 	/* If we dont need to fragment just send it */
-	medialen = ifc->m->maxmtu - ifc->m->hsize;
+	medialen = ifc->maxmtu - ifc->m->hsize;
 	if(len <= medialen) {
 		if(!gating)
 			hnputs(eh->id, incref(&ip->id));
@@ -213,16 +237,16 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 	}
 
 	if(eh->frag[0] & (IP_DF>>8)){
-		ip->istats.ipFragFails++;
-		ip->istats.ipOutDiscards++;
+		ip->stats[FragFails]++;
+		ip->stats[OutDiscards]++;
 		netlog(f, Logip, "%V: eh->frag[0] & (IP_DF>>8)\n", eh->dst);
 		goto raise;
 	}
 
 	seglen = (medialen - IPHDR) & ~7;
 	if(seglen < 8){
-		ip->istats.ipFragFails++;
-		ip->istats.ipOutDiscards++;
+		ip->stats[FragFails]++;
+		ip->stats[OutDiscards]++;
 		netlog(f, Logip, "%V seglen < 8\n", eh->dst);
 		goto raise;
 	}
@@ -262,8 +286,8 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 		chunk = seglen;
 		while(chunk) {
 			if(!xp) {
-				ip->istats.ipOutDiscards++;
-				ip->istats.ipFragFails++;
+				ip->stats[OutDiscards]++;
+				ip->stats[FragFails]++;
 				freeblist(nb);
 				netlog(f, Logip, "!xp: chunk %d\n", chunk);
 				goto raise;
@@ -283,9 +307,9 @@ ipoput(Fs *f, Block *bp, int gating, int ttl, int tos)
 		feh->cksum[1] = 0;
 		hnputs(feh->cksum, ipcsum(&feh->vihl));
 		ifc->m->bwrite(ifc, nb, V4, gate);
-		ip->istats.ipFragCreates++;
+		ip->stats[FragCreates]++;
 	}
-	ip->istats.ipFragOKs++;
+	ip->stats[FragOKs]++;
 raise:
 	runlock(ifc);
 	poperror();
@@ -324,7 +348,7 @@ ipiput(Fs *f, uchar *ia, Block *bp)
 	Route *r, *sr;
 
 	ip = f->ip;
-	ip->istats.ipInReceives++;
+	ip->stats[InReceives]++;
 
 //	h = (Iphdr *)(bp->rp);
 //	DBG(nhgetl(h->src))(Logipmsg, "ipiput %V %V len %d proto %d\n",
@@ -349,7 +373,7 @@ ipiput(Fs *f, uchar *ia, Block *bp)
 
 	/* dump anything that whose header doesn't checksum */
 	if(ipcsum(&h->vihl)) {
-		ip->istats.ipInHdrErrors++;
+		ip->stats[InHdrErrors]++;
 		netlog(f, Logip, "ip: checksum error %V\n", h->src);
 		freeblist(bp);
 		return;
@@ -362,7 +386,7 @@ ipiput(Fs *f, uchar *ia, Block *bp)
 	if(h->vihl != (IP_VER|IP_HLEN)) {
 		hl = (h->vihl&0xF)<<2;
 		if((h->vihl&0xF0) != IP_VER || hl < (IP_HLEN<<2)) {
-			ip->istats.ipInHdrErrors++;
+			ip->stats[InHdrErrors]++;
 			netlog(f, Logip, "ip: %V bad hivl %ux\n", h->src, h->vihl);
 			freeblist(bp);
 			return;
@@ -388,20 +412,20 @@ ipiput(Fs *f, uchar *ia, Block *bp)
 		sr = v4lookup(f, h->src);
 		r = v4lookup(f, h->dst);
 		if(r == nil || sr == r){
-			ip->istats.ipOutDiscards++;
+			ip->stats[OutDiscards]++;
 			freeblist(bp);
 			return;
 		}
 
 		/* don't forward if packet has timed out */
 		if(h->ttl <= 1){
-			ip->istats.ipInHdrErrors++;
+			ip->stats[InHdrErrors]++;
 			icmpttlexceeded(f, ia, bp);
 			freeblist(bp);
 			return;
 		}
 
-		ip->istats.ipForwDatagrams++;
+		ip->stats[ForwDatagrams]++;
 		ipoput(f, bp, 1, h->ttl - 1, h->tos);
 
 		return;
@@ -422,12 +446,12 @@ ipiput(Fs *f, uchar *ia, Block *bp)
 
 	p = Fsrcvpcol(f, h->proto);
 	if(p != nil && p->rcv != nil) {
-		ip->istats.ipInDelivers++;
+		ip->stats[InDelivers]++;
 		(*p->rcv)(p, ia, bp);
 		return;
 	}
-	ip->istats.ipInDiscards++;
-	ip->istats.ipInUnknownProtos++;
+	ip->stats[InDiscards]++;
+	ip->stats[InUnknownProtos]++;
 	freeblist(bp);
 }
 
@@ -435,21 +459,17 @@ int
 ipstats(Fs *f, char *buf, int len)
 {
 	IP *ip;
+	char *p, *e;
+	int i;
 
 	ip = f->ip;
-	ip->istats.ipDefaultTTL = MAXTTL;
-	return snprint(buf, len, "%lud %lud %lud %lud %lud %lud %lud %lud %lud %lud "
-				 "%lud %lud %lud %lud %lud %lud %lud %lud %lud",
-		ip->istats.ipForwarding, ip->istats.ipDefaultTTL,
-		ip->istats.ipInReceives, ip->istats.ipInHdrErrors,
-		ip->istats.ipInAddrErrors, ip->istats.ipForwDatagrams,
-		ip->istats.ipInUnknownProtos, ip->istats.ipInDiscards,
-		ip->istats.ipInDelivers, ip->istats.ipOutRequests,
-		ip->istats.ipOutDiscards, ip->istats.ipOutNoRoutes,
-		ip->istats.ipReasmTimeout, ip->istats.ipReasmReqds,
-		ip->istats.ipReasmOKs, ip->istats.ipReasmFails,
-		ip->istats.ipFragOKs, ip->istats.ipFragFails,
-		ip->istats.ipFragCreates);
+	ip->stats[DefaultTTL] = MAXTTL;
+
+	p = buf;
+	e = p+len;
+	for(i = 0; i < Nstats; i++)
+		p = seprint(p, e, "%s: %lud\n", statnames[i], ip->stats[i]);
+	return p - buf;
 }
 
 Block*
@@ -484,7 +504,7 @@ ipreassemble(IP *ip, int offset, Block *bp, Iphdr *ih)
 		if(f->src == src && f->dst == dst && f->id == id)
 			break;
 		if(f->age < msec){
-			ip->istats.ipReasmTimeout++;
+			ip->stats[ReasmTimeout]++;
 			ipfragfree(ip, f);
 		}
 	}
@@ -497,7 +517,7 @@ ipreassemble(IP *ip, int offset, Block *bp, Iphdr *ih)
 	if(!ih->tos && (offset & ~(IP_MF|IP_DF)) == 0) {
 		if(f != nil) {
 			ipfragfree(ip, f);
-			ip->istats.ipReasmFails++;
+			ip->stats[ReasmFails]++;
 		}
 		qunlock(&ip->fraglock);
 		return bp;
@@ -521,7 +541,7 @@ ipreassemble(IP *ip, int offset, Block *bp, Iphdr *ih)
 		f->blist = bp;
 
 		qunlock(&ip->fraglock);
-		ip->istats.ipReasmReqds++;
+		ip->stats[ReasmReqds]++;
 		return nil;
 	}
 
@@ -607,7 +627,7 @@ ipreassemble(IP *ip, int offset, Block *bp, Iphdr *ih)
 			ih = BLKIP(bl);
 			hnputs(ih->length, len);
 			qunlock(&ip->fraglock);
-			ip->istats.ipReasmOKs++;
+			ip->stats[ReasmOKs]++;
 			return bl;		
 		}
 		pktposn += BKFG(bl)->flen;

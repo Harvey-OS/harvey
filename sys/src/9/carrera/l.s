@@ -28,6 +28,8 @@ TEXT	start(SB), $-4
 	MOVW	$TLBROFF, R1
 	MOVW	R1, M(WIRED)
 
+	/* setfcr(FPPDBL|FPRNR|FPINVAL|FPZDIV|FPOVFL) */
+	/* bit 24 is R4000-specific; underflow goes to zero */
 	MOVW	$((0x1C<<7)|(1<<24)), R1
 	MOVW	R1, FCR31	/* permit only inexact and underflow */
 	NOOP

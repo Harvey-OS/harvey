@@ -95,7 +95,7 @@ To enable
 .I tprof
 profiling for a given process,
 .EX
-    echo profile > /proc/\f2pid\f1/profile
+    echo profile > /proc/\f2pid\f1/ctl
 .EE
 and then, after the program has run for a while, execute
 .EX

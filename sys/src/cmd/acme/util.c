@@ -47,18 +47,6 @@ cvttorunes(char *p, int n, Rune *r, int *nb, int *nr, int *nulls)
 	*nr = s-r;
 }
 
-void*
-fbufalloc(void)
-{
-	return emalloc(BUFSIZE);
-}
-
-void
-fbuffree(void *f)
-{
-	free(f);
-}
-
 void
 error(char *s)
 {
@@ -155,34 +143,6 @@ runeeq(Rune *s1, uint n1, Rune *s2, uint n2)
 	return memcmp(s1, s2, n1*sizeof(Rune)) == 0;
 }
 
-int
-runestrlen(Rune *s)
-{
-	int i;
-
-	i = 0;
-	while(*s++)
-		i++;
-	return i;
-}
-
-Rune*
-strrune(Rune *s, Rune c)
-{
-	Rune c1;
-
-	if(c == 0) {
-		while(*s++)
-			;
-		return s-1;
-	}
-
-	while(c1 = *s++)
-		if(c1 == c)
-			return s-1;
-	return nil;
-}
-
 uint
 min(uint a, uint b)
 {
@@ -207,6 +167,7 @@ runetobyte(Rune *r, int n)
 	if(n == 0)
 		return nil;
 	s = emalloc(n*UTFmax+1);
+	setmalloctag(s, getcallerpc(&r));
 	snprint(s, n*UTFmax+1, "%.*S", n, r);
 	return s;
 }
@@ -302,6 +263,18 @@ clearmouse()
 	mousew = nil;
 }
 
+char*
+estrdup(char *s)
+{
+	char *t;
+
+	t = strdup(s);
+	if(t == nil)
+		error("strdup failed");
+	setmalloctag(t, getcallerpc(&s));
+	return t;
+}
+
 void*
 emalloc(uint n)
 {
@@ -310,7 +283,18 @@ emalloc(uint n)
 	p = malloc(n);
 	if(p == nil)
 		error("malloc failed");
+	setmalloctag(p, getcallerpc(&n));
 	memset(p, 0, n);
+	return p;
+}
+
+void*
+erealloc(void *p, uint n)
+{
+	p = realloc(p, n);
+	if(p == nil)
+		error("realloc failed");
+	setmalloctag(p, getcallerpc(&n));
 	return p;
 }
 

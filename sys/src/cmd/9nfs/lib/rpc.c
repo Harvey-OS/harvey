@@ -269,7 +269,7 @@ showauth(Auth *ap)
 			chat(" %.2ux", ((uchar *)ap->data)[i]);
 	}else{
 		chat("auth: %d %.*s u=%d g=%d",
-			au.stamp, au.mach.n, au.mach.s, au.uid, au.gid);
+			au.stamp, utfnlen(au.mach.s, au.mach.n), au.mach.s, au.uid, au.gid);
 		for(i=0; i<au.gidlen; i++)
 			chat(", %d", au.gids[i]);
 	}

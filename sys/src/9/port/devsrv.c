@@ -122,6 +122,7 @@ srvopen(Chan *c, int omode)
 		error("srv file already exists");
 	if(openmode(omode)!=sp->chan->mode && sp->chan->mode!=ORDWR)
 		error(Eperm);
+	devpermcheck(sp->owner, sp->perm, omode);
 
 	cclose(c);
 	incref(sp->chan);

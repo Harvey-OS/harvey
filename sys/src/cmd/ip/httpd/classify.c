@@ -27,10 +27,40 @@ Country badc[] =
 
 Country goodc[] =
 {
+	// the original, us and canada
 	{"us", "united states of america"},
 	{"ca", "canada"},
 	{"gov", "gov"},
 	{"mil", "mil"},
+
+	// the european union
+	{ "eu",	"european union" },
+	{ "be",	"belgium" },
+	{ "de",	"germany" },
+	{ "fr",	"france" },
+	{ "it",	"italy" },
+	{ "lu",	"luxembourg" },
+	{ "nl",	"netherlands" },
+	{ "dk",	"denmark" },
+	{ "ie",	"ireland" },
+	{ "gb",	"great britain" },
+	{ "uk",	"united kingdom" },
+	{ "gr",	"greece" },
+	{ "es",	"spain" },
+	{ "pt",	"portugal" },
+	{ "au",	"australia" },
+	{ "fi",	"finland" },
+	{ "se",	"sweden" },
+
+	// the rest
+	{"au", "australia"},
+	{"no", "norway"},
+	{"cz", "czech republic"},
+	{"hu", "hungary"},
+	{"pl", "poland"},
+	{"jp", "japan"},
+	{"ch", "switzerland"},
+	{"nz", "new zealand"},
 	{ 0, 0 }
 };
 

@@ -9,12 +9,34 @@ case *
 	opt=-r
 }
 
-# change to console server
-# may want to use a switch on the 
-# machine name to support multiple
-# console servers
-
-server=$sysname
+switch($1){
+case \
+	alice\
+	astrohub\
+	bell-labs-gw\
+	bopp\
+	cadence\
+	doria\
+	edmund\
+	filthy\
+	hati\
+	khan\
+	lutece\
+	mmacplus\
+	nalice\
+	nslocum\
+	nvex\
+	reboot\
+	rohna\
+	trauma\
+	util\
+	vasa\
+	verifiler\
+	vex
+	server=bones
+case *
+	server=dinar
+}
 
 if(! test -e /mnt/consoles/$1){
 	switch($sysname){
@@ -34,3 +56,4 @@ if(! test -e /mnt/consoles/$1){
 }
 
 con -l $opt /mnt/consoles/$1
+

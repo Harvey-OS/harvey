@@ -878,7 +878,7 @@ Computing Science Technical Report No. \\*(MN
 .if \\n(dw-4 .ds DW Thursday
 .if \\n(dw-5 .ds DW Friday
 .if \\n(dw-6 .ds DW Saturday
-.nr yP (\\n(yr+1900)/100)
+.nr yP (\\n(yr+2000)/100)
 .nr yD (\\n(yr%100
 .af yD 01
 .if "\\*(DY"" .ds DY \\*(MO \\n(dy, \\n(yP\\n(yD

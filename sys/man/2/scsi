@@ -1,4 +1,5 @@
 .TH SCSI 2
+.SH NAME
 openscsi, scsiready, scsi, scsicmd, scsierror \- SCSI device operations
 .SH SYNOPSIS
 .nf

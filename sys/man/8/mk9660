@@ -21,13 +21,17 @@ src
 .B -v
 volume
 ]
+[
 .I proto
+]
 .SH DESCRIPTION
 .I Mk9660
 writes to standard output
 an ISO-9660 CD image containing the
 files named in
 .I proto
+(default
+.BR /sys/lib/sysconfig/proto/allproto )
 from the file tree
 .I src
 (default
@@ -145,9 +149,3 @@ disk/mk9660 -9cj -s /n/bootes -n notice plan9proto >cdimage
 .IR dossrv (4)),
 .IR cdfs (4),
 .IR mkfs (8)
-.SH BUGS
-Joliet file systems created by
-.I mk9660
-are legible under 
-.I 9660srv
-but not under Windows.

@@ -15,7 +15,7 @@ OFILES=\
 	memcpy.$O\
 	memmove.$O\
 	memset.$O\
-	nan.$O\
+	muldiv.$O\
 	notejmp.$O\
 	setjmp.$O\
 	strcat.$O\

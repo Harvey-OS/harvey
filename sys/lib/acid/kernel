@@ -1,3 +1,4 @@
+// print system calls
 defn printstring(s)
 {
 	print("\"", s, "\"");
@@ -95,6 +96,7 @@ defn syscall() {
 	}
 }
 
+// print various /proc files
 defn fd() {
 	rc("cat /proc/"+itoa(pid)+"/fd");
 }
@@ -106,4 +108,150 @@ defn segment() {
 defn ns() {
 	rc("cat /proc/"+itoa(pid)+"/ns");
 }
+
+defn qid(qid) {
+	complex Qid qid;
+	return itoa(qid.path\X)+"."+itoa(qid.vers\X);
+}
+
+defn cname(c) {
+	complex Cname c;
+	if c != 0 then {
+		return c.s;
+	} else
+		return "<null>";
+}
+
+// print Image cache contents
+// requires include("/sys/src/9/xxx/segment.acid")
+IHASHSIZE = 64;
+defn imagecacheline(h) {
+	while h != 0 do {
+		complex Image h;
+		print (h\X, " ", qid(h.qid), " type ", h.type\D, " ref ", h.ref, " next ", h.next\X, " ", cname(h.c.name), "\n");
+		h = h.hash;
+	}
+}
+
+defn imagecache() {
+	local i;
+
+	i=0; loop 1,IHASHSIZE do {
+		imagecacheline(imagealloc.free[i]);
+		i = i+1;
+	}
+}
+
+// manipulate processes
+defn proctab(x) {
+	return procalloc.arena+sizeofProc*x;
+}
+
+defn proc(p) {
+	complex Proc p;
+	local s, i;
+
+	if p.state != 0 then {	// 0 is Dead
+		s = p.psstate;
+		if s == 0 then {
+			s = "kproc";
+		} else {
+			s = *(s\s);
+		}
+		print(p\X, " ", p.pid, ": ", *(p.text\s), " ", *(p.user\s), " pc ", p.pc\X, " ", s, " (", *(statename[p.state]\s), ") ut ", p.time[0]\D, " st ", p.time[1]\D, " qpc ", p.qpc\X, "\n");
+	}
+}
+
+defn procs() {
+	local i;
+
+	i=0; loop 1,conf.nproc do {
+		proc(proctab(i));
+		i = i+1;
+	}
+}
+
+// segment-related
+defn procsegs(p) {
+	complex Proc p;
+	local i;
+
+	i=0; loop 1,NSEG do {
+		segment(p.seg[i]);
+		i = i+1;
+	}
+}
+
+segtypes = { "text", "data", "bss", "stack", "shared", "physical", "shdata", "map" };
+defn segment(s) {
+	complex Segment s;
+
+	if s != 0 then {
+		print(s\X, " ", segtypes[s.type&SG_TYPE], " ", s.base\X, "-", s.top\X, " image ", s.image\X, "\n");
+	}
+}
+
+// find physical address for an address in a given process
+defn procaddr(p, a) {
+	complex Proc p;
+	local i, s, r;
+
+	r = 0;
+	i=0; loop 1,NSEG do {
+		s = p.seg[i];
+		if s != 0 then {
+			complex Segment s;
+			if s.base <= a && a < s.top then {
+				r = segaddr(s, a);
+			}
+		}
+		i = i+1;
+	}
+	return r;
+}
+
+// find an address in a given segment
+defn segaddr(s, a) {
+	complex Segment s;
+	local pte, pg;
+
+	a = a - s.base;
+	if s.map == 0 || s.mapsize < a/PTEMAPMEM then {
+		return 0;
+	}
+
+	pte = s.map[a/PTEMAPMEM];
+	if pte == 0 then {
+		return 0;
+	}
+
+	complex Pte pte;
+	pg = pte.pages[(a%PTEMAPMEM)/BY2PG];
+	if pg == 0 then {
+		return 0;
+	}
+
+	if pg & 1 then {	// swapped out, return disk address
+		return pg&~1;
+	}
+
+	complex Page pg;
+	return (0x80000000|(pg.pa+(a%BY2PG)))\X;
+}
+
+// PC only
+MACHADDR = 0x80004000;
+PTEMAPMEM = (1024*1024);
+BY2PG = 4096;
+PTEPERTAB = (PTEMAPMEM/BY2PG);
+defn up() {
+	local mach;
+
+	mach = MACHADDR;
+	complex Mach mach;
+	return mach.externup;
+}
+
+
+
 print("/sys/lib/acid/kernel");

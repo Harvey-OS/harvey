@@ -194,6 +194,19 @@ struct Mach
 	int	stack[1];
 };
 
+typedef struct Cycintr	Cycintr;
+
+/*
+ * fasttick timer interrupts
+ */
+struct Cycintr
+{
+	vlong	when;			/* fastticks when f should be called */
+	void	(*f)(Ureg*, Cycintr*);
+	void	*a;
+	Cycintr	*next;
+};
+
 /*
  * Fake kmap
  */

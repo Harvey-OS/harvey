@@ -14,10 +14,10 @@ lock(Lock *l)
 	 * Try the fast grab first
 	 */
 loop:
-    	if (tas(l) == 0)
+    	if(tas(l) == 0)
 		return;
-	for (i = 0; i < 1000000; i++) {
-    		if (tas(l) == 0)
+	for(i = 0; i < 1000000; i++) {
+    		if(tas(l) == 0)
 			return;
 		/* If we are spl low resched */
 		if(getstatus() & IFLAG)

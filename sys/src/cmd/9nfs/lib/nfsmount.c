@@ -213,7 +213,7 @@ mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 	if(argptr != &((uchar *)cmd->args)[n])
 		return garbage(reply, "bad count");
 	clog("host=%I, port=%d, root=\"%.*s\"...", 
-		cmd->host, cmd->port, root.n, root.s);
+		cmd->host, cmd->port, utfnlen(root.s, root.n), root.s);
 	if(auth2unix(&cmd->cred, &au) != 0){
 		chat("auth flavor=%d, count=%d\n",
 			cmd->cred.flavor, cmd->cred.count);
@@ -224,7 +224,7 @@ mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 		return error(reply, 1);
 	}
 	clog("auth: %d %.*s u=%d g=%d",
-		au.stamp, au.mach.n, au.mach.s, au.uid, au.gid);
+		au.stamp, utfnlen(au.mach.s, au.mach.n), au.mach.s, au.uid, au.gid);
 	for(i=0; i<au.gidlen; i++)
 		chat(", %d", au.gids[i]);
 	chat("...");
@@ -294,7 +294,7 @@ mntexport(int n, Rpccall *cmd, Rpccall *reply)
 		chat("...");
 		au.mach.n = 0;
 	}else
-		chat("%d@%.*s...", au.uid, au.mach.n, au.mach.s);
+		chat("%d@%.*s...", au.uid, utfnlen(au.mach.s, au.mach.n), au.mach.s);
 	PLONG(TRUE);
 	PLONG(1);
 	PPTR("/", 1);
@@ -317,7 +317,7 @@ xfroot(char *name, int n)
 
 	if(n <= 0)
 		n = strlen(name);
-	chat("xfroot: %.*s...", n, name);
+	chat("xfroot: %.*s...", utfnlen(name, n), name);
 	if(n == 1 && name[0] == '/')
 		return head->root;
 	for(s=head; s; s=s->next){

@@ -18,10 +18,5 @@ HFILES=\
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 
-# can't turn on -F because X format takes two arguments and cannot be represented
-# in #pragma varargck
-
-CFLAGS=-Vw
-
 enam.$O:	../2c/enam.c
 	$CC $CFLAGS ../2c/enam.c

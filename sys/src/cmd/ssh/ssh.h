@@ -1,6 +1,7 @@
 #include <mp.h>
 #include <libsec.h>
 #include <stdio.h>
+#pragma	varargck	argpos	error	1
 
 /* File names */
 #define HOSTKEYPRIV	"/sys/lib/ssh/hostkey.secret"

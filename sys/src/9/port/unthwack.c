@@ -169,7 +169,7 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 				}
 			}
 			*d++ = lit;
-			lithist = (lithist << 1) | lit < 32 | lit > 127;
+			lithist = (lithist << 1) | (lit < 32) | (lit > 127);
 			blocks->maxoff++;
 			continue;
 		}
@@ -190,6 +190,8 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 				code -= use;
 				code <<= 1;
 				utnbits--;
+				if(utnbits < 0)
+					return -1;
 				code |= (utbits >> utnbits) & 1;
 				use <<= bits;
 				bits ^= 1;

@@ -144,11 +144,22 @@ mpconv(va_list *arg, Fconv *f)
 	return sizeof(mpint*);
 }
 
+#ifdef TESTING
+// this exists for testing and should normally be disabled
+extern int _unnormalizedwarning;
+#endif TESTING
+
 char*
 mptoa(mpint *b, int base, char *buf, int len)
 {
 	char *out;
 	int rv, alloced;
+
+#ifdef TESTING
+	// this exists for testing and should normally be disabled
+	if(_unnormalizedwarning && b->top && b->p[b->top-1] == 0)
+		fprint(2, "unnormalized\n");
+#endif TESTING
 
 	alloced = 0;
 	if(buf == nil){

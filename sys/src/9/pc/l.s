@@ -390,8 +390,10 @@ TEXT fpinit(SB), $0				/* enable and init */
 	FPON
 	FINIT
 	WAIT
-	PUSHW	$0x033E
-	FLDCW	0(SP)				/* ignore underflow/precision, signal others */
+	/* setfcr(FPPDBL|FPRNR|FPINVAL|FPZDIV|FPOVFL) */
+	/* note that low 6 bits are masks, not enables, on this chip */
+	PUSHW	$0x0232
+	FLDCW	0(SP)
 	POPW	AX
 	WAIT
 	RET

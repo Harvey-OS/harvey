@@ -1117,7 +1117,7 @@ dict(char* bp, char* ep)
 loop:
 	if(bp >= ep) {
 		if(xflag) 
-			fprint(2, "=%.*s\n", n, w);
+			fprint(2, "=%.*s\n", utfnlen(w, n), w);
 		return 0;
 	}
 	/*
@@ -1162,7 +1162,7 @@ found:
 	f = ((cp[0] & 0x7) << 8) |
 		(cp[1] & 0xff);
 	if(xflag) {
-		fprint(2, "=%.*s ", n, w);
+		fprint(2, "=%.*s ", utfnlen(w, n), w);
 		typeprint(encode[f]);
 	}
 	return encode[f];

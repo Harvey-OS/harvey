@@ -211,6 +211,9 @@ EXTERN	char	string[NSNAME];
 EXTERN	Sym*	symrathole;
 EXTERN	Sym*	symstatic;
 EXTERN	Var	var[NVAR];
+EXTERN	long*	idom;
+EXTERN	Reg**	rpo2r;
+EXTERN	long	maxnr;
 EXTERN	Prog	zprog;
 
 EXTERN	uchar	regused[NREG];

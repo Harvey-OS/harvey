@@ -182,16 +182,17 @@ filsysproc(void *arg)
 	char *buf;
 	Filsys *fs;
 
+	threadsetname("FILSYSPROC");
 	fs = arg;
 	fs->pid = getpid();
 	x = nil;
 	for(;;){
 		buf = malloc(MAXFDATA+MAXMSG);
 		n = read(fs->sfd, buf, MAXFDATA+MAXMSG);
-		if(n < 0)
-			error("i/o error on server channel");
-		if(n == 0)
-			error("eof on server channel");
+		if(n <= 0){
+			errorshouldabort = 0;
+			error("eof or i/o error on server channel");
+		}
 		if(x == nil){
 			send(fs->cxfidalloc, nil);
 			recv(fs->cxfidalloc, &x);

@@ -19,6 +19,16 @@ case troff;
 					case UTF; $LPLIB/process/tr2post < $TMPFILE
 					}
 
+	case *pcl*;	$LPLIB/process/tr2pcl < $TMPFILE
+
+	case *gs!*;	switch ($FILETYPE(5)) {
+					# Latin1 is for compatibility with old research UNIX systems, doesn't work on Plan 9
+					case Latin1 post; tcs -s -f utf -t latin1 < $TMPFILE |$LPLIB/process/dpost |$LPLIB/process/gspipe
+
+					case UTF; $LPLIB/process/tr2post < $TMPFILE |$LPLIB/process/gspipe
+					}
+
+
 	# for Linotronics compatibility, does not work outside Bell Labs	
 	case *lino*;	switch ($FILETYPE(5)) {
 			case *Latin1* *post*;	$LPLIB/process/dpost < $TMPFILE|$LPLIB/process/daps
@@ -32,27 +42,39 @@ case troff;
 	}
 case special;
 	switch ($FILETYPE(4)) {
-	case '#b';	$LPLIB/process/p9bitpost < $TMPFILE
+	case '#b';		switch ($LPCLASS) {
+				case *post*;	$LPLIB/process/p9bitpost < $TMPFILE
+				case *gs!*;	$LPLIB/process/p9bitpost < $TMPFILE |$LPLIB/process/gspipe
+				case *pcl*;	$LPLIB/process/p9bitpcl < $TMPFILE
+				}
+
 	case *;		echo $FILETYPE file is improper for $LPDEST >[1=2]
 	}
 case Compressed plan old;	# type is really 'Compressed image' or 'plan 9 image' 
 				# or 'old plan 9 image'
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/p9bitpost < $TMPFILE
+	case *gs!*;	$LPLIB/process/p9bitpost < $TMPFILE |$LPLIB/process/gspipe
+	case *pcl*;	$LPLIB/process/p9bitpcl < $TMPFILE
 	}
 case jpeg;
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/jpgpost < $TMPFILE
+	case *gs!*;	$LPLIB/process/jpgpost < $TMPFILE |$LPLIB/process/gspipe
+	case *pcl*;	$LPLIB/process/jpgpcl < $TMPFILE
 	}
 
 case GIF;
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/gifpost < $TMPFILE
+	case *gs!*;	$LPLIB/process/gifpost < $TMPFILE |$LPLIB/process/gspipe
+	case *pcl*;	$LPLIB/process/gifpcl < $TMPFILE
 	}
 
 case ccitt-g31;
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/g3post < $TMPFILE
+	case *gs!*;	$LPLIB/process/g3post < $TMPFILE |$LPLIB/process/gspipe
 	}
 
 # bitmap for research UNIX compatibility, does not work on Plan 9.
@@ -69,6 +91,8 @@ case tex;
 	switch ($LPCLASS) {
 	case *lino*;	$LPLIB/process/dvipost -Tlino $TMPFILE | $LPLIB/process/daps
 	case *post*;	$LPLIB/process/dvipost $TMPFILE
+	case *gs!*;	$LPLIB/process/dvipost $TMPFILE |$LPLIB/process/gspipe
+	case *pcl*;	$LPLIB/process/dvipcl $TMPFILE
 	case *202*;	dvit -T202 $TMPFILE | $LPLIB/process/d202
 	case *mhcc*;	$LPLIB/process/dvipost $TMPFILE | $LPLIB/process/mhcc
 	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
@@ -76,6 +100,7 @@ case tex;
 case postscript;
 	switch ($LPCLASS) {
 	case *post*;		$LPLIB/process/post < $TMPFILE
+	case *gs!*;		$LPLIB/process/post < $TMPFILE |$LPLIB/process/gspipe
 	case *aps* *lino*;	$LPLIB/process/daps < $TMPFILE
 	case *mhcc*;		$LPLIB/process/mhcc < $TMPFILE
 	case *;			echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
@@ -92,6 +117,8 @@ case daisy;
 case English short extended alef limbo [Aa]scii assembler c latin rc sh as;
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/ppost < $TMPFILE
+	case *gs!*;	$LPLIB/process/ppost < $TMPFILE |$LPLIB/process/gspipe
+	case *pcl*;	$LPLIB/process/ppcl < $TMPFILE
 	case *canon*;	$LPLIB/process/can $* < $TMPFILE
 	case *lino* *mhcc*; echo you want to send text to $LPDEST^'?' >[1=2]
 	case *;		echo Unrecognized class of line printer for $LPDEST >[1=2]
@@ -99,6 +126,8 @@ case English short extended alef limbo [Aa]scii assembler c latin rc sh as;
 case PDF;
 	switch ($LPCLASS) {
 	case *post*;	$LPLIB/process/pdfpost $TMPFILE
+	case *gs!*;	$LPLIB/process/pdfgs $TMPFILE
+	case *pcl*;	$LPLIB/process/pdfpcl $TMPFILE
 	case *;		echo Unrecognized class of line printer for $LPDEST >[1=2]
 	}
 case empty;

@@ -321,7 +321,7 @@ filetype(int fd)
 	else if (cfreq[Ceascii])
 		guess = Feascii;
 	else if (cfreq[Cnull] == n) {
-		print(mime ? OCTET : "all null bytes\n");
+		print(mime ? OCTET : "first block all null bytes\n");
 		return;
 	}
 	else guess = Fascii;
@@ -568,7 +568,7 @@ struct	FILE_STRING
 	"x T aps",		"troff output for aps",		7,	"application/troff",
 	"GIF",			"GIF image", 			3,	"image/gif",
 	"\0PC Research, Inc\0",	"ghostscript fax file",		18,	"application/ghostscript",
-	"%PDF",			"PDF",				4,	"image/pdf",
+	"%PDF",			"PDF",				4,	"application/pdf",
 	"<html>\n",		"HTML file",			7,	"text/html",
 	"<HTML>\n",		"HTML file",			7,	"text/html",
 	"compressed\n",		"Compressed image or subfont",	11,	"application/octet-stream",
@@ -604,7 +604,7 @@ istring(void)
 		if(mime)
 			print(OCTET);
 		else
-			print("%.*s picture\n", i-5, (char*)buf+5);
+			print("%.*s picture\n", utfnlen((char*)buf+5, i-5), (char*)buf+5);
 		return 1;
 	}
 	return 0;

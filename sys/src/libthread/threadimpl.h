@@ -27,18 +27,19 @@ struct Tqueue {		// Thread queue
 
 struct Thread {
 	Lock		lock;		// protects thread data structure
-	int		id;		// thread id
+	int			id;		// thread id
 	int 		grp;		// thread group
 	State		state;		// state of thread
-	int		exiting;	// shouls it die?
+	int			exiting;	// should it die?
 	Callstate	call;		// which `system call' is current
 	char		*cmdname;	// ptr to name of thread
 	Thread		*next;		// next on queue (run, rendezvous)
 	Thread		*nextt;		// next on list of all theads
 	Proc		*proc;		// proc of this thread
 	ulong		tag;		// rendez-vous tag
-	Alt		*alt;		// pointer to alt structure
+	Alt			*alt;		// pointer to alt structure
 	ulong		value;		// rendez-vous value
+	Thread		*garbage;	// ptr to thread to clean up
 	jmp_buf		env;		// jump buf for launching or switching threads
 	uchar		*stk;		// top of stack (lowest address of stack)
 	uint		stksize;	// stack size
@@ -60,6 +61,7 @@ struct Proc {
 	Proc	*next;			// linked list of Procs
 
 	void	*arg;			// passed between shared and unshared stk
+	char	str[ERRLEN];	// used by threadexits to avoid malloc
 
 	ulong	udata;			// User per-proc data pointer
 };
@@ -73,8 +75,10 @@ typedef struct Newproc {
 } Newproc;
 
 typedef struct Execproc {
-	char *file;
-	void **arg;
+	Proc	*procp;
+	char	*file;
+	char	**arg;
+	char	data[4096];
 } Execproc;
 
 struct Pqueue {		// Proc queue
@@ -89,8 +93,7 @@ extern Proc **procp;		// Pointer to pointer to proc's Proc structure
 int		tas(int*);
 int		inc(int*, int);
 int		cas(Lock *lock, Lock old, Lock new);
-ulong	threadrendezvous(ulong, ulong);
+ulong	_threadrendezvous(ulong, ulong);
 void	*_threadmalloc(long size);
-
-void _xinc(long *);
-long _xdec(long *);
+void	_xinc(long*);
+long	_xdec(long*);

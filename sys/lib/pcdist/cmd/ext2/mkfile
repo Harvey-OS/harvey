@@ -1,0 +1,19 @@
+</$objtype/mkfile
+CPUS=386
+
+TARG=ext2srv
+OFILES=\
+	xfssrv.$O\
+	xfile.$O\
+	ext2fs.$O\
+	ext2subs.$O\
+	chat.$O\
+	iobuf.$O\
+
+HFILES=dat.h\
+	fns.h\
+
+BIN=/sys/lib/pcdist/bin/$objtype
+</sys/src/cmd/mkone
+
+xfssrv.$O:	errstr.h

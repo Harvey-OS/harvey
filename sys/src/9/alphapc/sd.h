@@ -4,15 +4,20 @@
 typedef struct SDev SDev;
 typedef struct SDifc SDifc;
 typedef struct SDpart SDpart;
+typedef struct SDperm SDperm;
 typedef struct SDreq SDreq;
 typedef struct SDunit SDunit;
+
+typedef struct SDperm {
+	char	name[NAMELEN];
+	char	user[NAMELEN];
+	ulong	perm;
+} SDperm;
 
 typedef struct SDpart {
 	ulong	start;
 	ulong	end;
-	char	name[NAMELEN];
-	char	user[NAMELEN];
-	ulong	perm;
+	SDperm;
 	int	valid;
 	ulong	vers;
 } SDpart;
@@ -21,18 +26,21 @@ typedef struct SDunit {
 	SDev*	dev;
 	int	subno;
 	uchar	inquiry[256];		/* format follows SCSI spec */
-	char	name[NAMELEN];
+	SDperm;
 	Rendez	rendez;
 
 	QLock	ctl;
 	ulong	sectors;
 	ulong	secsize;
-	SDpart*	part;		/* either nil or points at array of size SDnpart */
+	SDpart*	part;			/* nil or array of size npart */
+	int	npart;
 	ulong	vers;
+	SDperm	ctlperm;
 
 	Lock	rawinuse;		/* really just a test-and-set */
 	int	state;
 	SDreq*	req;
+	SDperm	rawperm;
 } SDunit;
 
 typedef struct SDev {

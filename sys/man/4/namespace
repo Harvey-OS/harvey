@@ -198,6 +198,9 @@ Directory of
 .IR acid (1)
 load modules.
 .TP
+.B /sys/lib/pcdist
+Software used to assemble the distribution's installation floppy.
+.TP
 .B /sys/lib/troff
 Directory of
 .IR troff (1)

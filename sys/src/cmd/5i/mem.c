@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#define Extern extern
 #include "arm.h"
 
 extern ulong	textbase;
@@ -74,6 +73,29 @@ getmem_w(ulong addr)
 	return va[3]<<24 | va[2]<<16 | va[1]<<8 | va[0];
 }
 
+ushort
+getmem_h(ulong addr)
+{
+	uchar *va;
+	ulong w;
+
+	if(addr&1) {
+		w = getmem_h(addr & ~1);
+		while(addr & 1) {
+			w = (w>>8) | (w<<8);
+			addr--;
+		}
+		return w;
+	}
+	if(membpt)
+		brkchk(addr, Read);
+
+	va = vaddr(addr);
+	va += addr&(BY2PG-1);
+
+	return va[1]<<8 | va[0];
+}
+
 uchar
 getmem_b(ulong addr)
 {
@@ -85,6 +107,25 @@ getmem_b(ulong addr)
 	va = vaddr(addr);
 	va += addr&(BY2PG-1);
 	return va[0];
+}
+
+void
+putmem_h(ulong addr, ushort data)
+{
+	uchar *va;
+
+	if(addr&1) {
+		Bprint(bioout, "Address error (Store) vaddr %.8lux\n", addr);
+		longjmp(errjmp, 0);
+	}
+
+	va = vaddr(addr);
+	va += addr&(BY2PG-1);
+
+	va[1] = data>>8;
+	va[0] = data;
+	if(membpt)
+		brkchk(addr, Write);
 }
 
 void
@@ -107,6 +148,7 @@ putmem_w(ulong addr, ulong data)
 	if(membpt)
 		brkchk(addr, Write);
 }
+
 void
 putmem_b(ulong addr, uchar data)
 {

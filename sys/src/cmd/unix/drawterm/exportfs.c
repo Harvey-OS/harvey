@@ -270,7 +270,7 @@ exflush(Export *fs, int flushtag, int tag)
 	}
 	unlock(&fs->r.l);
 
-iprint("exflush: did not find rpc: %d\n", tag);
+if(exdebug) iprint("exflush: did not find rpc: %d\n", tag);
 
 Respond:
 	fc.type = Rflush;

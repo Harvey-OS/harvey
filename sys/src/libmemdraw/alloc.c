@@ -147,32 +147,6 @@ byteaddr(Memimage *i, Point p)
 		return a+p.x*(i->depth/8);
 }
 
-void
-memfillcolor(Memimage *i, ulong val)
-{
-	static Memimage *paint;
-	uchar *data;
-
-	if(val == DNofill)
-		return;
-
-	if(paint == nil){
-		paint = allocmemimage(Rect(0,0,1,1), ARGB32);
-		if(paint == nil)
-			return;
-		paint->clipr = Rect(-0x3FFFFFF,-0x3FFFFFF,0x3FFFFFF,0x3FFFFFF);
-		paint->flags |= Frepl;
-	}
-
-	data = byteaddr(paint, Pt(0,0));
-	data[0] = val>>8;	/* blue */
-	data[1] = val>>16;	/* green */
-	data[2] = val>>24;	/* red */
-	data[3] = val;		/* alpha */
-
-	memimagedraw(i, i->r, paint, ZP, nil, ZP);
-}
-
 int
 memsetchan(Memimage *i, ulong chan)
 {

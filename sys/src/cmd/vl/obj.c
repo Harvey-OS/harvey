@@ -1147,6 +1147,11 @@ doprof2(void)
 	Bflush(&bso);
 	s2 = lookup("_profin", 0);
 	s4 = lookup("_profout", 0);
+	if(s2->type != STEXT || s4->type != STEXT) {
+		diag("_profin/_profout not defined\n");
+		return;
+	}
+
 	ps2 = P;
 	ps4 = P;
 	for(p = firstp; p != P; p = p->link) {

@@ -27,6 +27,8 @@ verbis(int obj, Plumbmsg *m, Rule *r)
 		return strcmp(m->dst, r->qarg) == 0;
 	case OType:
 		return strcmp(m->type, r->qarg) == 0;
+	case OWdir:
+		return strcmp(m->wdir, r->qarg) == 0;
 	case OSrc:
 		return strcmp(m->src, r->qarg) == 0;
 	}
@@ -75,9 +77,10 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 {
 	Resub rs[10];
 	char *clickval, *alltext;
-	int p0, p1;
+	int p0, p1, ntext;
 
 	memset(rs, 0, sizeof rs);
+	ntext = -1;
 	switch(obj){
 	default:
 		fprint(2, "unimplemented 'matches' object %d\n", obj);
@@ -86,6 +89,7 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 		clickval = plumblookup(m->attr, "click");
 		if(clickval == nil){
 			alltext = m->data;
+			ntext = m->ndata;
 			goto caseAlltext;
 		}
 		if(!clickmatch(r->regex, m->data, rs, atoi(clickval)))
@@ -100,16 +104,23 @@ verbmatches(int obj, Plumbmsg *m, Rule *r, Exec *e)
 		e->p1 = p1;
 		setvar(rs, e->match);
 		return 1;
-	case OArg:
-	case OAttr:
 	case ODst:
+		alltext = m->dst;
+		goto caseAlltext;
 	case OType:
-	case OSrc:
 		alltext = m->type;
+		goto caseAlltext;
+	case OWdir:
+		alltext = m->wdir;
+		goto caseAlltext;
+	case OSrc:
+		alltext = m->src;
 		/* fall through */
 	caseAlltext:
 		/* must match full text */
-		if(!regexec(r->regex, alltext, rs, 10) || rs[0].sp!=m->data || rs[0].ep!=m->data+m->ndata)
+		if(ntext < 0)
+			ntext = strlen(alltext);
+		if(!regexec(r->regex, alltext, rs, 10) || rs[0].sp!=alltext || rs[0].ep!=alltext+ntext)
 			break;
 		setvar(rs, e->match);
 		return 1;
@@ -161,7 +172,8 @@ verbisfile(int obj, Plumbmsg *m, Rule *r, Exec *e, ulong maskon, ulong maskoff, 
 		free(file);
 		break;
 	case OData:
-		file = absolute(m->wdir, m->data);
+	case OWdir:
+		file = absolute(m->wdir, obj==OData? m->data : m->wdir);
 		if(isfile(file, maskon, maskoff)){
 			*var = file;
 			return 1;
@@ -199,6 +211,11 @@ verbset(int obj, Plumbmsg *m, Rule *r, Exec *e)
 		new = estrdup(expand(e, r->arg, nil));
 		free(m->type);
 		m->type = new;
+		return 1;
+	case OWdir:
+		new = estrdup(expand(e, r->arg, nil));
+		free(m->wdir);
+		m->wdir = new;
 		return 1;
 	case OSrc:
 		new = estrdup(expand(e, r->arg, nil));

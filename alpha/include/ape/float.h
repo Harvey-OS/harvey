@@ -34,30 +34,43 @@
 #define LDBL_MAX	DBL_MAX
 #define LDBL_MAX_10_EXP	DBL_MAX_10_EXP
 
+typedef 	union FPdbleword FPdbleword;
+union FPdbleword
+{
+	double	x;
+	struct {	/* little endian */
+		long lo;
+		long hi;
+	};
+};
+
 #ifdef _RESEARCH_SOURCE
 /* define stuff needed for floating conversion */
 #define IEEE_8087	1
 #define Sudden_Underflow 1
 #endif
 #ifdef _PLAN9_SOURCE
-/* FCR */
-#define	FPINEX	(1<<7)
-#define	FPOVFL	(1<<9)
-#define	FPUNFL	(1<<8)
-#define	FPZDIV	(1<<10)
-#define	FPRNR	(0<<0)
-#define	FPRZ	(1<<0)
-#define	FPRPINF	(2<<0)
-#define	FPRNINF	(3<<0)
-#define	FPRMASK	(3<<0)
+#define	FPINEX	(1<<30)
+#define	FPOVFL	(1<<19)
+#define	FPUNFL	((1<<29)|(1<<28))
+#define	FPZDIV	(1<<18)
+#define	FPINVAL	(1<<17)
+
+#define	FPRNR	(2<<26)
+#define	FPRZ		(0<<26)
+#define	FPRPINF	(3<<26)
+#define	FPRNINF	(1<<26)
+#define	FPRMASK	(3<<26)
+
 #define	FPPEXT	0
 #define	FPPSGL	0
 #define	FPPDBL	0
 #define	FPPMASK	0
 /* FSR */
-#define	FPAINEX	(1<<2)
-#define	FPAOVFL	(1<<4)
-#define	FPAUNFL	(1<<3)
-#define	FPAZDIV	(1<<5)
+#define	FPAINEX	(1<<24)
+#define	FPAUNFL	(1<<23)
+#define	FPAOVFL	(1<<22)
+#define	FPAZDIV	(1<<21)
+#define	FPAINVAL	(1<<20)
 #endif
 #endif /* __FLOAT */

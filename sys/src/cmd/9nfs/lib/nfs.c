@@ -45,13 +45,13 @@ rpc2xfid(Rpccall *cmd, Dir *dp)
 		return 0;
 	}else{
 /*		chat("auth: %d %.*s u=%d g=%d",
- *			au.stamp, au.mach.n, au.mach.s, au.uid, au.gid);
+ *			au.stamp, utfnlen(au.mach.s, au.mach.n), au.mach.s, au.uid, au.gid);
  *		for(i=0; i<au.gidlen; i++)
  *			chat(", %d", au.gids[i]);
  *		chat("...");
  */
 		char *p = memchr(au.mach.s, '.', au.mach.n);
-		chat("%d@%.*s...", au.uid, (p ? p-au.mach.s : au.mach.n), au.mach.s);
+		chat("%d@%.*s...", au.uid, utfnlen(au.mach.s, (p ? p-au.mach.s : au.mach.n)), au.mach.s);
 	}
 	if(au.mach.n >= sizeof client){
 		chat("client name too long...");

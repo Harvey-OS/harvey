@@ -1,0 +1,2 @@
+#!/bin/rc
+/bin/auth/auth.srv -d $3

@@ -49,7 +49,7 @@
 '''\"	Marking Type:  COPYRIGHT
 '''\"	Invocation:  .PM 5  or  .PM CR
 '''\"	Strings: ]i ]j
-.ds ]i \f1Copyright \(co 19\\n(;V Lucent\fP
+.ds ]i \f1Copyright \(co 20\\n(;V Lucent\fP
 .ds ]j \f1All Rights Reserved.\fP
 '''\"
 '''\"	Marking Type:  UNPUBLISHED WORK

@@ -38,7 +38,7 @@ dtsetup(double d, Tim *t)
 {
 	double v;
 
-	t->ifa[0] = floor(1900 + d/365.2425);
+	t->ifa[0] = floor(1900 + d/365.24220);
 	t->ifa[1] = 1;
 	t->ifa[2] = 1;
 	t->ifa[3] = 0;
@@ -68,6 +68,7 @@ pdate(double d)
 		print("...");
 		return;
 	}
+
 	/* year month day */
 	print("%4d %2d %2d",
 		(int)t.ifa[0],
@@ -112,7 +113,7 @@ ptime(double d)
 	h = t.ifa[3];
 	m = floor(t.ifa[4]);
 	s = floor((t.ifa[4]-m) * 60);
-	print("%.2d:%.2d:%.2d %.3s", h, m, s, t.tz);
+	print("%.2d:%.2d:%.2d %.*s", h, m, s, utfnlen(t.tz, 3), t.tz);
 }
 
 char*	unit[] =
@@ -149,6 +150,31 @@ char*	decade[] =
 	"eighty",
 	"ninety"
 };
+
+void
+pstime(double d)
+{
+
+	setime(d);
+
+	semi = 0;
+	motion = 0;
+	rad = 1.e9;
+	lambda = 0;
+	beta = 0;
+
+// uses lambda, beta, rad, motion
+// sets alpha, delta, rp
+
+	helio();
+
+// uses alpha, delta, rp
+// sets ra, decl, lha, decl2, az, el
+
+	geo();
+
+	print(" %R %D %D %4.0f", lha, nlat, awlong, elev/3.28084);
+}
 
 void
 numb(int n)
@@ -273,7 +299,7 @@ convdate(Tim *t)
 	 * gregorian change
 	 */
 	if(y > 2361232)
-		y -= floor((y-1794167)/36525) -
+		y -= floor((y-1794167)/36524.220) -
 			floor((y-1721117)/146100);
 	y += t->ifa[3]/24 + t->ifa[4]/1440 - 2415020.5;
 

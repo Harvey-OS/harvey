@@ -29,7 +29,7 @@ stars(void)
 		return;
 	}
 	epoch = 1950.0;
-	epoch = (epoch-1900.0) * 365.2422 + 0.313;
+	epoch = (epoch-1900.0) * 365.24220 + 0.313;
 	saop = saoa;
 
 /*

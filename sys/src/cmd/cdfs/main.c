@@ -33,6 +33,18 @@ geterrstr(void)
 	return errbuf;
 }
 
+void*
+emalloc(ulong sz)
+{
+	void *v;
+
+	v = malloc(sz);
+	if(v == nil)
+		sysfatal("malloc %lud fails\n", sz);
+	memset(v, 0, sz);
+	return v;
+}
+
 static void
 cdattach(Req *r, Fid*, char *spec, Qid *qid)
 {

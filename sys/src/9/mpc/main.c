@@ -39,6 +39,7 @@ main(void)
 	cpminit();
 	uartinstall();
 print("hello world from kernel %ux %ux %ux\n", m->iomem->pddat, m->iomem->pddir, m->iomem->pdpar);
+	spiinit();
 	mmuinit();
 	pageinit();
 	procinit0();

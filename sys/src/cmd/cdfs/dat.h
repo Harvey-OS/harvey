@@ -5,6 +5,7 @@ enum {
 	BScdrom		= 2048,
 	BScdda		= 2352,
 	BScdxa		= 2336,
+	BSmax		= 2352,
 	Nalloc		= 12*BScdda,
 	DictBlock	= 1,
 

@@ -575,7 +575,7 @@ addarea(DN *dp, RR *rp, Ndbtuple *t)
 	 *  The owner of the the soa rr should stick around as long
 	 *  as the area does.
 	 */
-	s = mallocz(sizeof(Area), 1);
+	s = mallocz(sizeof(*s), 1);
 	if(s == 0)
 		abort(); /* "out of memory" */;
 	s->len = strlen(dp->name);
@@ -607,7 +607,8 @@ dbfile2area(Ndb *db)
 {
 	Ndbtuple *t;
 
-	syslog(0, logfile, "rereading %s", db->file);
+	if(debug)
+		syslog(0, logfile, "rereading %s", db->file);
 	Bseek(&db->b, 0, 0);
 	while(t = ndbparse(db)){
 		ndbfree(t);
@@ -678,7 +679,8 @@ dbfile2cache(Ndb *db)
 {
 	Ndbtuple *t;
 
-	syslog(0, logfile, "rereading %s", db->file);
+	if(debug)
+		syslog(0, logfile, "rereading %s", db->file);
 	Bseek(&db->b, 0, 0);
 	while(t = ndbparse(db)){
 		dbtuple2cache(t);
@@ -817,6 +819,9 @@ lookupinfo(char *attr)
 	return t;
 }
 
+char *localservers = "local#dns#servers";
+char *localserverprefix = "local#dns#server";
+
 /*
  *  return non-zero is this is a bad delegation
  */
@@ -838,7 +843,8 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 		/* see if delegation is looping */
 		if(nsrp)
 		if(rp->owner != nsrp->owner)
-		if(subsume(rp->owner->name, nsrp->owner->name)){
+		if(subsume(rp->owner->name, nsrp->owner->name) &&
+		   strcmp(nsrp->owner->name, localservers) != 0){
 			syslog(0, logfile, "delegation loop %R -> %R from %I", nsrp, rp, addr);
 			return 1;
 		}
@@ -865,7 +871,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 
 	/* ns record for name server, make up an impossible name */
 	rp = rralloc(Tns);
-	snprint(buf, sizeof(buf), "local#dns#server%d", i);
+	snprint(buf, sizeof(buf), "%s%d", localserverprefix, i);
 	nsdp = dnlookup(buf, class, 1);
 	rp->host = nsdp;
 	rp->owner = dp;
@@ -898,7 +904,7 @@ dnsservers(int class)
 	int i, n;
 	char *buf, *args[5];
 
-	dp = dnlookup("local#dns#servers", class, 1);
+	dp = dnlookup(localservers, class, 1);
 	nsrp = rrlookup(dp, Tns, NOneg);
 	if(nsrp != nil)
 		return nsrp;

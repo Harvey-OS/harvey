@@ -8,7 +8,7 @@
 Ref	pidalloc;
 Ref	noteidalloc;
 
-struct
+struct Procalloc
 {
 	Lock;
 	Proc*	arena;
@@ -399,56 +399,13 @@ procinit0(void)		/* bad planning - clashes with devproc.c */
 	p->qnext = 0;
 }
 
-
 /*
- *  Sleep, postnote, and wakeup are complicated by the
- *  fact that at least one of them must indirect
- *  through an unlocked structure to find the synchronizing
- *  lock structure.  This is because sleep()
- *  and wakeup() share direct knowledge only of r while
- *  sleep() and postnote() share knowledge only of p.  We've
- *  chosen to put the synchronization lock in p, i.e.,
- *  p->rlock.  Therefore the interaction between sleep()
- *  and postnote() is completely synchronized by keeping
- *  p->rlock locked in sleep until the process has
- *  saved all the information it needs to become dormant.
+ *  sleep if a condition is not true.  Another process will
+ *  awaken us after it sets the condition.  When we awaken
+ *  the condition may no longer be true.
  *
- *  However, wakeup() can only find what process is sleeping
- *  by looking at r->p.  A wakeup looks like:
- *
- *	1) set condition that sleep checks with (*f)()
- *	2) is p = r->p non zero
- *	3) lock(p->rlock)
- *	4) check r->p == p
- *	5) ...
- *
- *  A sleep looks like
- *
- *	a) lock(p->rlock)
- *	b) r->p = up
- *	c) check condition
- *	d) ...
- *
- *  On a multiprocessor, two processors
- *  may not see writes occur in the same order.  The coherence()
- *  instruction ensures that a processor has flushed all its
- *  writes to memory so that those writes will be seen by other
- *  processors and that the processor will see all writes flushed
- *  by other processors.
- *
- *  To make the above sequence work on a multiprocessor, we need
- *  to put a coherence() call between (1) and (2) and between
- *  (b) and (c).  That way we're guaranteed that if (1) and
- *  (2) occur after (c), the wakeup process will know
- *  which process is about to sleep and will enter its
- *  critical section.  If it doesn't, the sleep could proceed
- *  while the waker returns without doing anything.
- *  Similarly, if (b) and (c) occur after (2),
- *  the sleeper needs coherence to see that the condition was
- *  set.  Otherwise it could sleep even though the wakeup
- *  had already decided there was nothing to do.
- *
- *	jmk & presotto
+ *  we lock both the process and the rendezvous to keep r->p
+ *  and p->r synchronized.
  */
 void
 sleep(Rendez *r, int (*f)(void*), void *arg)
@@ -457,6 +414,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 
 	s = splhi();
 
+	lock(r);
 	lock(&up->rlock);
 	if(r->p){
 		print("double sleep %lud %lud\n", r->p->pid, up->pid);
@@ -470,7 +428,6 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	 *  committed.
 	 */
 	r->p = up;
-	coherence();
 
 	if((*f)(arg) || up->notepending){
 		/*
@@ -479,6 +436,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 		 */
 		r->p = nil;
 		unlock(&up->rlock);
+		unlock(r);
 	} else {
 		/*
 		 *  now we are committed to
@@ -502,6 +460,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 			 *  here to go to sleep (i.e. stop Running)
 			 */
 			unlock(&up->rlock);
+			unlock(r);
 			gotolabel(&m->sched);
 		}
 	}
@@ -570,7 +529,10 @@ tsleep(Rendez *r, int (*fn)(void*), void *arg, int ms)
 }
 
 /*
- * Expects that only one process can call wakeup for any given Rendez
+ *  Expects that only one process can call wakeup for any given Rendez.
+ *  We hold both locks to ensure that r->p and p->r remain consistent.
+ *  Richard Miller has a better solution that doesn't require both to
+ *  be held simultaneously, but I'm a paranoid - presotto.
  */
 int
 wakeup(Rendez *r)
@@ -578,35 +540,37 @@ wakeup(Rendez *r)
 	Proc *p;
 	int s, rv;
 
-	/*
-	 *  this makes sure that the condition sleep checks
-	 *  with its (*f)(void) is visible to it
-	 */
-	coherence();
-
 	rv = 0;
-	p = r->p;
-	if(p == 0)
-		return rv;
-
 	s = splhi();
-	lock(&p->rlock);
 
-	if(r->p == p && p->r == r){
-		r->p = 0;
-		if(p->state != Wakeme)
+	lock(r);
+	p = r->p;
+
+	if(p != nil){
+		lock(&p->rlock);
+		if(p->state != Wakeme || p->r != r)
 			panic("wakeup: state");
-		p->r = 0;
+		r->p = nil;
+		p->r = nil;
 		ready(p);
 		rv = 1;
+		unlock(&p->rlock);
 	}
 
-	unlock(&p->rlock);
+	unlock(r);
+
 	splx(s);
 
 	return rv;
 }
 
+/*
+ *  if waking a sleeping process, this routine must hold both
+ *  p->rlock and r->lock.  However, it can't know them in
+ *  the same order as wakeup causing a possible lock ordering
+ *  deadlock.  We break the deadlock by giving up the p->rlock
+ *  lock if we can't get the r->lock and retrying.
+ */
 int
 postnote(Proc *p, int dolock, char *n, int flag)
 {
@@ -616,9 +580,6 @@ postnote(Proc *p, int dolock, char *n, int flag)
 
 	if(dolock)
 		qlock(&p->debug);
-
-//	if(p->kp)
-//		print("sending %s to kproc %lud %s\n", n, p->pid, p->text);
 
 	if(flag != NUser && (p->notify == 0 || p->notified))
 		p->nnote = 0;
@@ -633,15 +594,31 @@ postnote(Proc *p, int dolock, char *n, int flag)
 	if(dolock)
 		qunlock(&p->debug);
 
-	s = splhi();
-	lock(&p->rlock);
-	r = p->r;
-	if(r){
-		if(r->p != p || p->r != r || p->state != Wakeme)
-			panic("postnote: state %d %d %d", r->p != p, p->r != r, p->state);
-		r->p = 0;
-		p->r = 0;
-		ready(p);
+	/* this loop is to avoid lock ordering problems. */
+	for(;;){
+		s = splhi();
+		lock(&p->rlock);
+		r = p->r;
+
+		/* waiting for a wakeup? */
+		if(r == nil)
+			break;	/* no */
+
+		/* try for the second lock */
+		if(canlock(r)){
+			if(p->state != Wakeme || r->p != p)
+				panic("postnote: state %d %d %d", r->p != p, p->r != r, p->state);
+			p->r = nil;
+			r->p = nil;
+			ready(p);
+			unlock(r);
+			break;
+		}
+
+		/* give other process time to get out of critical section and try again */
+		unlock(&p->rlock);
+		splx(s);
+		sched();
 	}
 	unlock(&p->rlock);
 	splx(s);

@@ -57,6 +57,8 @@ Ctlr* ctlrs[] = {
 	&stg1702,				/* ramdac */
 	&t2r4,					/* ctlr */
 	&t2r4hwgc,				/* hwgc */
+	&tdfx,					/* ctlr */
+	&tdfxhwgc,				/* hwgc */
 	&trio64,				/* ctlr */
 	&tvp3020,				/* ramdac */
 	&tvp3020hwgc,				/* hwgc */

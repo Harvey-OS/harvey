@@ -94,6 +94,6 @@ if (! ~ $NPAG '' -n*) NPAG=-n^$NPAG;
 if (! ~ $XOFF '' -x*) XOFF=-x`{echo $XOFF + .4|hoc};
 if not XOFF=-x.4
 if (! ~ $YOFF '' -y*) YOFF=-y^$YOFF;
-eval /$cputype/bin/aux/text2post $FONT $XOFF $YOFF $COPIES $LINES $MAG $NPAG $POINT $LAND $OLIST $PATCH | $LPLIB/process/hpost
+eval  /$cputype/bin/aux/text2post $FONT $XOFF $YOFF $COPIES $LINES $MAG $NPAG $POINT $LAND $OLIST $PATCH | $LPLIB/process/hpost
 # eval /$cputype/bin/aux/postprint -EUTF $FONT $XOFF $YOFF $COPIES $LINES $MAG $NPAG $POINT $LAND $OLIST $PATCH | $LPLIB/process/hpost
 exit

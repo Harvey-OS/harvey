@@ -20,6 +20,8 @@ ipconfig, rip \- Internet configuration and routing
 .RI [ local-addr ]
 .RI [ mask ]
 .RI [ remote-addr ]
+.RI [ file-server-addr ]
+.RI [ auth-server-addr ]
 .PP
 .B ip/rip
 .RB [ -bdr ]

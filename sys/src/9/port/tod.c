@@ -22,12 +22,16 @@
 //
 //  each time f is set.  f is normally set by a user level
 //  program writing to /dev/fastclock.
+//
+//  We assume that the cpu's of a multiprocessor are synchronized.
+//  This assumption needs to be questioned with each new architecture.
 
 
 // frequency of the tod clock
 #define TODFREQ	1000000000LL
 
 struct {
+	ulong	cnt;
 	Lock;
 	vlong	multiplier;	// t = off + (multiplier*ticks)>>31
 	vlong	hz;		// frequency of fast clock
@@ -102,37 +106,32 @@ todget(vlong *ticksp)
 		ticks = fastticks((uvlong*)&tod.hz);
 	else
 		ticks = fastticks(nil);
-	diff = ticks - tod.last;
+
+	// since 64 bit loads are not atomic, we have to lock around them
+	ilock(&tod);
+	tod.cnt++;
+
+	// add in correction
+	if(tod.sstart != tod.send){
+		t = MACHP(0)->ticks;
+		if(t >= tod.send)
+			t = tod.send;
+		tod.off = tod.off + tod.delta*(t - tod.sstart);
+		tod.sstart = t;
+	}
 
 	// convert to epoch
+	diff = ticks - tod.last;
 	x = (diff * tod.multiplier) >> 31;
 	x = x + tod.off;
-
-	if(m->machno == 0){
-		ilock(&tod);
-
-		// add in correction
-		if(tod.sstart != tod.send){
-			t = MACHP(0)->ticks;
-			if(t >= tod.send)
-				t = tod.send;
-			tod.off = tod.off + tod.delta*(t - tod.sstart);
-			tod.sstart = t;
-		}
-
-		// protect against overflows
-		if(diff > tod.hz){
-			tod.last = ticks;
-			tod.off = x;
-		}
-		iunlock(&tod);
-	}
 
 	// time can't go backwards
 	if(x < tod.lasttime)
 		x = tod.lasttime;
 	else
 		tod.lasttime = x;
+
+	iunlock(&tod);
 
 	if(ticksp != nil)
 		*ticksp = ticks;
@@ -141,17 +140,30 @@ todget(vlong *ticksp)
 }
 
 //
-//  called every clock tick
+//  called every clock tick to avoid calculation overflows
 //
 void
 todfix(void)
 {
-	static ulong last;
+	vlong ticks, diff;
+	uvlong x;
 
-	// once a second, make sure we don't overflow
-	if(MACHP(0)->ticks - last >= HZ){
-		last = MACHP(0)->ticks;
-		todget(nil);
+	ticks = fastticks(nil);
+
+	diff = ticks - tod.last;
+	if(diff > tod.hz){
+		ilock(&tod);
+	
+		// convert to epoch
+		diff = ticks - tod.last;
+		x = (diff * tod.multiplier) >> 31;
+		x = x + tod.off;
+	
+		// protect against overflows
+		tod.last = ticks;
+		tod.off = x;
+	
+		iunlock(&tod);
 	}
 }
 

@@ -53,9 +53,9 @@ static void	freefile(File*);
 static File*	getfile(Mkaux*, File*);
 static char*	getmode(Mkaux*, char*, ulong*);
 static char*	getname(Mkaux*, char*, char*, int);
-static char*	getpath(char*);
+static char*	getpath(Mkaux*, char*);
 static int	mkfile(Mkaux*, File*);
-static char*	mkpath(char*, char*);
+static char*	mkpath(Mkaux*, char*, char*);
 static void	mktree(Mkaux*, File*, int);
 static void	setnames(Mkaux*, File*);
 static void	skipdir(Mkaux*);
@@ -67,12 +67,12 @@ static void	warn(Mkaux*, char *, ...);
 //	print("%s %s %D\n", new, old, d);
 //}
 
-
 int
 rdproto(char *proto, char *root, Mkfsenum *mkenum, Mkfserr *mkerr, void *a)
 {
 	Mkaux mx, *m;
 	File file;
+	int rv;
 
 	m = &mx;
 	memset(&mx, 0, sizeof mx);
@@ -94,10 +94,36 @@ rdproto(char *proto, char *root, Mkfsenum *mkenum, Mkfserr *mkerr, void *a)
 	memset(&file, 0, sizeof file);
 	file.new = "";
 	file.old = nil;
-	domkfs(m, &file, -1);
+
+	rv = 0;
+	if(setjmp(m->jmp) == 0)
+		domkfs(m, &file, -1);
+	else
+		rv = -1;
 	free(m->oldfile.s);
 	free(m->fullname.s);
-	return 0;
+	return rv;
+}
+
+static void*
+emalloc(Mkaux *mkaux, ulong n)
+{
+	void *v;
+
+	v = malloc(n);
+	if(v == nil)
+		longjmp(mkaux->jmp, 1);	/* memory leak */
+	memset(v, 0, n);
+	return v;
+}
+
+static char*
+estrdup(Mkaux *mkaux, char *s)
+{
+	s = strdup(s);
+	if(s == nil)
+		longjmp(mkaux->jmp, 1);	/* memory leak */
+	return s;
 }
 
 static void
@@ -112,7 +138,7 @@ domkfs(Mkaux *mkaux, File *me, int level)
 	if((child->elem[0] == '+' || child->elem[0] == '*') && child->elem[1] == '\0'){
 		rec = child->elem[0] == '+';
 		free(child->new);
-		child->new = estrdup(me->new);
+		child->new = estrdup(mkaux, me->new);
 		setnames(mkaux, child);
 		mktree(mkaux, child, rec);
 		freefile(child);
@@ -148,9 +174,9 @@ mktree(Mkaux *mkaux, File *me, int rec)
 	while((n = dirread(fd, d, sizeof d)) > 0){
 		n /= DIRLEN;
 		for(i = 0; i < n; i++){
-			child.new = mkpath(me->new, d[i].name);
+			child.new = mkpath(mkaux, me->new, d[i].name);
 			if(me->old)
-				child.old = mkpath(me->old, d[i].name);
+				child.old = mkpath(mkaux, me->old, d[i].name);
 			child.elem = d[i].name;
 			setnames(mkaux, &child);
 			if(copyfile(mkaux, &child, &d[i], 1) && rec)
@@ -181,14 +207,14 @@ enum {
 };
 
 static void
-setname(Name *name, char *s1, char *s2)
+setname(Mkaux *mkaux, Name *name, char *s1, char *s2)
 {
 	int l;
 
 	l = strlen(s1)+strlen(s2)+1;
 	if(name->n < l) {
 		free(name->s);
-		name->s = emalloc(l+SLOP);
+		name->s = emalloc(mkaux, l+SLOP);
 		name->n = l+SLOP;
 	}
 	snprint(name->s, name->n, "%s%s", s1, s2);
@@ -220,7 +246,7 @@ copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 			d->mode = f->mode;
 	}
 
-	setname(&mkaux->fullname, mkaux->root, f->old ? f->old : f->new);
+	setname(mkaux, &mkaux->fullname, mkaux->root, f->old ? f->old : f->new);
 	if(p = strrchr(f->new, '/'))
 		strcpy(d->name, p+1);
 	else
@@ -231,13 +257,13 @@ copyfile(Mkaux *mkaux, File *f, Dir *d, int permonly)
 }
 
 static char *
-mkpath(char *prefix, char *elem)
+mkpath(Mkaux *mkaux, char *prefix, char *elem)
 {
 	char *p;
 	int n;
 
 	n = strlen(prefix) + strlen(elem) + 2;
-	p = emalloc(n);
+	p = emalloc(mkaux, n);
 	sprint(p, "%s/%s", prefix, elem);
 	return p;
 }
@@ -248,11 +274,11 @@ setnames(Mkaux *mkaux, File *f)
 	
 	if(f->old){
 		if(f->old[0] == '/')
-			setname(&mkaux->oldfile, mkaux->root, f->old);
+			setname(mkaux, &mkaux->oldfile, mkaux->root, f->old);
 		else
-			setname(&mkaux->oldfile, f->old, "");
+			setname(mkaux, &mkaux->oldfile, f->old, "");
 	} else
-		setname(&mkaux->oldfile, mkaux->root, f->new);
+		setname(mkaux, &mkaux->oldfile, mkaux->root, f->new);
 }
 
 static void
@@ -329,12 +355,12 @@ loop:
 	if(c == '\n' || c == '#')
 		goto loop;
 	p--;
-	f = emalloc(sizeof *f);
+	f = emalloc(mkaux, sizeof *f);
 	p = getname(mkaux, p, elem, sizeof elem);
 	if(p == nil)
 		return nil;
 
-	f->new = mkpath(old->new, elem);
+	f->new = mkpath(mkaux, old->new, elem);
 	f->elem = utfrrune(f->new, L'/') + 1;
 	p = getmode(mkaux, p, &f->mode);
 	p = getname(mkaux, p, f->uid, sizeof f->uid);
@@ -349,7 +375,7 @@ loop:
 
 	if(!*f->gid)
 		strcpy(f->gid, "-");
-	f->old = getpath(p);
+	f->old = getpath(mkaux, p);
 	if(f->old && strcmp(f->old, "-") == 0){
 		free(f->old);
 		f->old = 0;
@@ -360,7 +386,7 @@ loop:
 }
 
 static char*
-getpath(char *p)
+getpath(Mkaux *mkaux, char *p)
 {
 	char *q, *new;
 	int c, n;
@@ -373,7 +399,7 @@ getpath(char *p)
 	if(q == p)
 		return 0;
 	n = q - p;
-	new = emalloc(n + 1);
+	new = emalloc(mkaux, n + 1);
 	memcpy(new, p, n);
 	new[n] = 0;
 	return new;

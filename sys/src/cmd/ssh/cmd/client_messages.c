@@ -153,11 +153,8 @@ put_ssh_cmsg_user(void) {
 
 int authorder[] = {
 	(1 << SSH_AUTH_RSA),
-	(1 << SSH_AUTH_USER_RSA),
 	(1 << SSH_AUTH_TIS),
 	(1 << SSH_AUTH_PASSWORD),
-	(1 << SSH_AUTH_RHOSTS_RSA),
-	(1 << SSH_AUTH_RHOSTS),
 	0
 };
 
@@ -167,7 +164,7 @@ user_auth(void) {
 	uint i, auth_tricks;
 	int consctl, cons, n;
 	char passwd[20];
-	mpint *challenge;
+	mpint *challenge, *mptmp;
 	uchar chalbuf[48], response[16];
 	int method;
 	FILE *userkeys;
@@ -175,23 +172,21 @@ user_auth(void) {
 	RSApriv *userkey;
 
 	auth_tricks = 
-		(1 << SSH_AUTH_RHOSTS) |
-		(1 << SSH_AUTH_RSA) |
 		(1 << SSH_AUTH_PASSWORD) |
-		(1 << SSH_AUTH_TIS) |
-		(no_secret_key?0:(1 << SSH_AUTH_RHOSTS_RSA));
+		(1 << SSH_AUTH_TIS);
 
 	snprint(userkeyfile, sizeof userkeyfile,
 		"/usr/%s/lib/userkeyring", localuser);
+	userkeys = fopen(userkeyfile, "r");
+	if(userkeys != nil)
+		auth_tricks |= (1 << SSH_AUTH_RSA);
+
 	auth_tricks &= supported_authentications_mask;
-	if ((userkeys = fopen(userkeyfile, "r")))
-		auth_tricks |= (1 << SSH_AUTH_USER_RSA);
 	if (interactive == 0)
 		auth_tricks &= ~((1 << SSH_AUTH_PASSWORD)|(1 << SSH_AUTH_TIS));
 
 	method = 0;
 
-	/* Can't do RSA host authentication without the secret key */
 	while(1) {
 		packet = getpacket(s2c);
 		if (packet == 0)
@@ -225,20 +220,49 @@ user_auth(void) {
 			packet->pos = packet->data;
 		
 			switch(i) {
-			case (1<<SSH_AUTH_RHOSTS):
-				packet->type = SSH_CMSG_AUTH_RHOSTS;
-				debug(DBG_AUTH, "Sending SSH_CMSG_AUTH_RHOSTS\n");
-				putstring(packet, user, strlen(user));
-				method++;
-				break;
 			case (1<<SSH_AUTH_RSA):
+				userkey = rsaprivalloc();
+				if (readsecretkey(userkeys, userkey) == 0) {
+					rsaprivfree(userkey);
+					fclose(userkeys);
+					userkeys = nil;
+					method++;
+					goto fail;
+				}
 				if (verbose)
-					fprint(2, "Authenticating client host\n");
+					fprint(2, "Authenticating user by responding to RSA challenge\n");
 				packet->type = SSH_CMSG_AUTH_RSA;
+				putBigInt(packet, userkey->pub.n);
 				debug(DBG_AUTH, "Sending SSH_CMSG_AUTH_RSA\n");
-				putBigInt(packet,
-					client_host_key->pub.n);
-				method++;
+				debug(DBG_AUTH, "Asking server about modulus %B\n", userkey->pub.n);
+				putpacket(packet, c2s);
+
+				packet = getpacket(s2c);
+				if (packet == 0)
+					error("Connection lost");
+				if (packet->type == SSH_SMSG_FAILURE) {
+					debug(DBG_AUTH, "Recievd SSH_SMSG_FAILURE\n");
+					rsaprivfree(userkey);
+					goto fail;
+				}
+				if (packet->type != SSH_SMSG_AUTH_RSA_CHALLENGE)
+					error("Expected Challenge, got %d\n", packet->type);
+				challenge = getBigInt(packet);
+				mfree(packet);
+				challenge = RSADecrypt(challenge, userkey);
+				rsaprivfree(userkey);
+				mptobuf(mptmp=RSAunpad(challenge, 32), chalbuf, 32);
+				mpfree(mptmp);
+				mpfree(challenge);
+				memcpy(chalbuf+32, session_id, 16);
+				md5(chalbuf, 32+16, response, 0);
+
+				packet = (Packet *)mmalloc(1024);
+				packet->type = SSH_CMSG_AUTH_RSA_RESPONSE;
+				packet->length = 0;
+				packet->pos = packet->data;
+				putbytes(packet, response, 16);
+				debug(DBG_AUTH, "Sending SSH_CMSG_AUTH_RSA_RESPONSE\n");
 				break;
 			case (1<<SSH_AUTH_PASSWORD):
 				assert(interactive);
@@ -267,80 +291,6 @@ user_auth(void) {
 				if (verbose)
 					fprint(2, "Sending (encrypted) password\n");
 				method++;
-				break;
-			case (1<<SSH_AUTH_RHOSTS_RSA):
-				if (verbose)
-					fprint(2, "Authenticating host by responding to RSA challenge\n");
-				packet->type = SSH_CMSG_AUTH_RHOSTS_RSA;
-				debug(DBG_AUTH, "Sending SSH_CMSG_AUTH_RHOSTS_RSA\n");
-				putstring(packet, user, strlen(user));
-				putRSApublic(packet, &client_host_key->pub);
-				putpacket(packet, c2s);
-
-				packet = getpacket(s2c);
-				if (packet == 0)
-					error("Connection lost");
-				if (packet->type == SSH_SMSG_FAILURE){
-					method++;
-					goto fail;
-				}
-				if (packet->type != SSH_SMSG_AUTH_RSA_CHALLENGE)
-					error("Expected Challenge, got %d\n",
-						packet->type);
-				challenge = getBigInt(packet);
-				mfree(packet);
-				challenge = RSADecrypt(challenge,
-					client_host_key);
-				mptobuf(RSAunpad(challenge, 32), chalbuf, 32);
-				memcpy(chalbuf+32, session_id, 16);
-				md5(chalbuf, 32+16, response, 0);
-								
-				packet = (Packet *)mmalloc(1024);
-				packet->type = SSH_CMSG_AUTH_RSA_RESPONSE;
-				packet->length = 0;
-				packet->pos = packet->data;
-				putbytes(packet, response, 16);
-				method++;
-				break;
-			case (1<<SSH_AUTH_USER_RSA):
-				userkey = rsaprivalloc();
-				if (readsecretkey(userkeys, userkey) == 0) {
-					rsaprivfree(userkey);
-					fclose(userkeys);
-					userkeys = nil;
-					method++;
-					goto fail;
-				}
-				if (verbose)
-					fprint(2, "Authenticating user by responding to RSA challenge\n");
-				packet->type = SSH_CMSG_AUTH_RSA;
-				putBigInt(packet, userkey->pub.n);
-				debug(DBG_AUTH, "Sending SSH_CMSG_AUTH_RSA\n");
-				debug(DBG_AUTH, "Asking server about modulus %B\n", userkey->pub.n);
-				putpacket(packet, c2s);
-
-				packet = getpacket(s2c);
-				if (packet == 0)
-					error("Connection lost");
-				if (packet->type == SSH_SMSG_FAILURE) {
-					debug(DBG_AUTH, "Recievd SSH_SMSG_FAILURE\n");
-					goto fail;
-				}
-				if (packet->type != SSH_SMSG_AUTH_RSA_CHALLENGE)
-					error("Expected Challenge, got %d\n", packet->type);
-				challenge = getBigInt(packet);
-				mfree(packet);
-				challenge = RSADecrypt(challenge, userkey);
-				mptobuf(RSAunpad(challenge, 32), chalbuf, 32);
-				memcpy(chalbuf+32, session_id, 16);
-				md5(chalbuf, 32+16, response, 0);
-
-				packet = (Packet *)mmalloc(1024);
-				packet->type = SSH_CMSG_AUTH_RSA_RESPONSE;
-				packet->length = 0;
-				packet->pos = packet->data;
-				putbytes(packet, response, 16);
-				debug(DBG_AUTH, "Sending SSH_CMSG_AUTH_RSA_RESPONSE\n");
 				break;
 			case (1<<SSH_AUTH_TIS):
 				assert(interactive);
@@ -403,6 +353,55 @@ int_env(char *key, int dflt)
 	return dflt;
 }
 
+long	cols;
+long	lines;
+long	width;
+long	height;
+int	cwidth;
+int	cheight;
+
+static void
+setdim(void)
+{
+	lines = int_env("LINES", 24);
+	cols = int_env("COLS", 80);
+	if(cwidth == 0){
+		cwidth = width/cols;
+		cheight = height/lines;
+	}
+}
+
+int
+readgeom(void)
+{
+	static int fd = -1;
+	char buf[64];
+	int n;
+
+	/* defaults */
+	width = 640;
+	height = 480;
+	setdim();
+
+	if(fd < 0){
+		fd = open("/dev/wctl", OREAD);
+		if(fd < 0)
+			return -1;
+	}
+
+	n = read(fd, buf, sizeof(buf));
+	if(n < 48){
+		close(fd);
+		fd = -1;
+		return -1;
+	}
+
+	width = atol(&buf[2*12]) - atol(&buf[0*12]);
+	height = atol(&buf[3*12]) - atol(&buf[1*12]);
+	setdim();
+	return 0;
+}
+
 void
 request_pty(void) {
 	Packet *packet;
@@ -419,11 +418,12 @@ request_pty(void) {
 	if(term == nil)
 		term = "9term";
 
+	readgeom();
 	putstring(packet, term, strlen(term));
-	putlong(packet, int_env("LINES", 24));	/* rows */
-	putlong(packet, int_env("COLS", 80));	/* columns */
-	putlong(packet, 0);	/* width in pixels; 0 ≡ not supported */
-	putlong(packet, 0);	/* height in pixels; 0 ≡ not supported */
+	putlong(packet, lines);		/* rows */
+	putlong(packet, cols);		/* columns */
+	putlong(packet, width);		/* width in pixels */
+	putlong(packet, height);	/* height in pixels */
 
 	/*
 	 * In each option line, the first byte is the option number
@@ -444,12 +444,34 @@ request_pty(void) {
 	packet = getpacket(s2c);
 	if (packet == 0)
 		error("Connection lost");
-	if (packet->type != SSH_SMSG_SUCCESS)
+	switch(packet->type) {
+	case SSH_SMSG_SUCCESS:
 		debug(DBG_IO, "PTY allocated\n");
-	if (packet->type != SSH_SMSG_FAILURE)
+		break;
+	case SSH_SMSG_FAILURE:
 		debug(DBG_IO, "PTY allocation failed\n");
-	if (packet->type != SSH_SMSG_SUCCESS &&
-		packet->type != SSH_SMSG_FAILURE)
+		break;
+	default:
 		error("Unexpected message %d\n", packet->type);
+	}
 	mfree(packet);
+}
+
+void
+window_change(void) {
+	Packet *packet;
+
+	if (verbose)
+		fprint(2, "Announcing window changed\n");
+	packet = (Packet *)mmalloc(1024);
+	packet->type = SSH_CMSG_WINDOW_SIZE;
+	packet->length = 0;
+	packet->pos = packet->data;
+
+	putlong(packet, height/cheight);	/* rows */
+	putlong(packet, width/cwidth);	/* columns */
+	putlong(packet, width);		/* width in pixels */
+	putlong(packet, height);	/* height in pixels */
+
+	putpacket(packet, c2s);
 }

@@ -10,6 +10,7 @@
  *	sub	r0,r1,r2
  */
 
+static  int	maxmulops = 3;	/* max # of ops to replace mul with */
 static	int	multabp;
 static	long	mulval;
 static	char*	mulcp;
@@ -92,8 +93,8 @@ no:
 	 * try to search
 	 */
 	hint[0] = 0;
-	for(g=1; g<=6; g++) {
-		if(g >= 6 && v >= 65535)
+	for(g=1; g<=maxmulops; g++) {
+		if(g >= maxmulops && v >= 65535)
 			break;
 		mulcp = hint+g;
 		*mulcp = 0;

@@ -331,37 +331,45 @@ cmd_who(int argc, char *argv[])
 {
 	Chan *cp;
 	ulong t;
-	int i;
+	int i, c;
 
-	for(cp = chans; cp; cp = cp->next)
-		if(cp->whotime != 0) {
-			if(argc > 1) {
-				for(i=1; i<argc; i++)
-					if(strcmp(argv[i], cp->whoname) == 0)
-						goto brk;
+	c = 0;
+	for(cp = chans; cp; cp = cp->next) {
+		if(cp->whotime == 0) {
+			c++;
+			continue;
+		}
+		if(argc > 1) {
+			for(i=1; i<argc; i++)
+				if(strcmp(argv[i], cp->whoname) == 0)
+					break;
+			if(i >= argc) {
+				c++;
 				continue;
 			}
-		brk:
-			print("%3d: %10s %24s%7F%7F",
-				cp->chan,
-				cp->whoname,
-				cp->whochan,
-				&cp->work,
-				&cp->rate);
-			switch(cp->type) {
-			case Devil:
-				t = MACHP(0)->ticks * (1000/HZ);
-				print(" (%d,%d)", cp->ilp.alloc, cp->ilp.state);
-				print(" (%ld,%ld,%ld)",
-					cp->ilp.timeout-t, cp->ilp.querytime-t,
-					cp->ilp.lastrecv-t);
-				print(" (%ld,%ld,%ld,%ld)", cp->ilp.rate, cp->ilp.delay,
-					cp->ilp.mdev, cp->ilp.unackedbytes);
-				break;
-			}
-			print("\n");
-			prflush();
 		}
+		print("%3d: %10s %24s%7F%7F",
+			cp->chan,
+			cp->whoname,
+			cp->whochan,
+			&cp->work,
+			&cp->rate);
+		switch(cp->type) {
+		case Devil:
+			t = MACHP(0)->ticks * (1000/HZ);
+			print(" (%d,%d)", cp->ilp.alloc, cp->ilp.state);
+			print(" (%ld,%ld,%ld)",
+				cp->ilp.timeout-t, cp->ilp.querytime-t,
+				cp->ilp.lastrecv-t);
+			print(" (%ld,%ld,%ld,%ld)", cp->ilp.rate, cp->ilp.delay,
+				cp->ilp.mdev, cp->ilp.unackedbytes);
+			break;
+		}
+		print("\n");
+		prflush();
+	}
+	if(c > 0)
+		print("%d chans not listed\n", c);
 }
 
 static

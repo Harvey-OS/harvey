@@ -18,6 +18,7 @@ OFILES=\
 	console.$O\
 	chk.$O\
 	uid.$O\
+	auth.$O\
 
 HFILES=\
 	all.h\

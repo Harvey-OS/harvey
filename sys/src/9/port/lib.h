@@ -62,6 +62,7 @@ extern	int	numbconv(va_list*, Fconv*);
 extern	char	*doprint(char*, char*, char*, va_list);
 extern	int	fmtinstall(int, int (*)(va_list*, Fconv*));
 extern	int	sprint(char*, char*, ...);
+extern	char*	seprint(char*, char*, char*, ...);
 extern	int	snprint(char*, int, char*, ...);
 extern	int	print(char*, ...);
 

@@ -15,15 +15,6 @@ atomic increment and decrement
 #include <libc.h>
 .PP
 .B
-typedef struct Ref {
-.br
-.B
-	long ref;
-.br
-.B
-} Ref;
-.PP
-.B
 void	lock(Lock*)
 .PP
 .B
@@ -52,6 +43,19 @@ void	wlock(RWLock*)
 .PP
 .B
 void	wunlock(RWLock*)
+.PP
+.PP
+.B
+#include <thread.h>
+.PP
+.B
+typedef struct Ref {
+.br
+.B
+	long ref;
+.br
+.B
+} Ref;
 .PP
 .B
 void incref(Ref*)
@@ -135,6 +139,9 @@ but only one writer.  Moreover,
 if write access is granted no one may have
 read access until write access is released.
 .PP
+All types of lock should be initialized to all zeros before use; this
+puts them in the unlocked state.
+.PP
 A
 .B Ref
 contains a
@@ -152,6 +159,8 @@ and returns zero if the resulting value is zero, non-zero otherwise.
 .B /sys/src/libc/port/lock.c
 .br
 .B /sys/src/libc/9sys/qlock.c
+.br
+.B /sys/src/libthread/ref.c
 .SH SEE ALSO
 .I rfork
 in

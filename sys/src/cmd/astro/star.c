@@ -21,7 +21,7 @@ star(void)
  *	correct for proper motion
  */
 
-	tau = (eday - epoch)/365.25;
+	tau = (eday - epoch)/365.24220;
 	alpha += tau*da/3600.;
 	delta += tau*dd/3600.;
 	alpha *= 15.*radian;

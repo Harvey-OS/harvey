@@ -112,6 +112,27 @@ int chatty;
 
 Direc root, jroot;
 
+void*
+emalloc(ulong sz)
+{
+	void *v;
+
+	v = malloc(sz);
+	if(v == nil)
+		sysfatal("malloc %lud fails\n", sz);
+	memset(v, 0, sz);
+	return v;
+}
+
+void*
+erealloc(void *v, ulong sz)
+{
+	v = realloc(v, sz);
+	if(v == nil)
+		sysfatal("realloc %lud fails\n", sz);
+	return v;
+}
+
 int
 Pconv(va_list *arg, Fconv *f)
 {
@@ -382,9 +403,12 @@ _setpath(Direc *d, Direc **pathp, int ndown)
 	int i;
 
 	if(ndown == 0) {
-		d->pathid = pathid++;
-		*pathp = d;
-		return &d->path;
+		if(d->mode & CHDIR) {
+			d->pathid = pathid++;
+			*pathp = d;
+			return &d->path;
+		}
+		return pathp;
 	}
 
 	for(i=0; i<d->nchild; i++)
@@ -799,16 +823,6 @@ bputs(Imgbuf *b, char *s, int size)
 /* 
  * Unicode writing as big endian 16-bit Runes
  */
-static int
-runestrlen(Rune *s)
-{
-	int n;
-
-	for(n=0; *s; s++)
-		n++;
-	return n;
-}
-
 void
 bputr(Imgbuf *b, Rune r)
 {
@@ -1140,7 +1154,8 @@ bputvalidationentry(Imgbuf *b)
 	bputc(b, 1);	/* header id */
 	bputc(b, 0);	/* 0 = 386, 1 = PowerPC, 2 = Mac */
 	brepeat(b, 0, 2);	/* unused */
-	bputs(b, "PLAN9", 24);
+	bputs(b, "PLAN9", 5);
+	brepeat(b, 0, 24-5);
 
 	/* little endian sum of buffer */
 	sum = 0x0001	/* header id */
@@ -1163,7 +1178,7 @@ bputbootentry(Imgbuf *b)
 	bputnl(b, 0, 2);		/* load segment: 0 means default 7C0 */
 	bputc(b, 0);		/* fdisk partition type; ignored for floppy */
 	bputc(b, 0);		/* unused */
-	bputnl(b, 2880, 2);	/* no. of virtual/emulated sectors */
+	bputnl(b, 1, 2);	/* no. of virtual/emulated sectors loaded */
 	bputnl(b, bootimgloc, 4);
 	brepeat(b, 0, 20);
 }
@@ -1176,7 +1191,8 @@ bputbootcat(Imgbuf *b)
 {
 	phaseoff(b, &bootcatloc, "boot catalog");
 	bputvalidationentry(b);
-	bputbootentry(b);
+	bputbootentry(b);	/* initial/default only */
+	bpadblock(b);
 }
 
 /*
@@ -1256,9 +1272,7 @@ bputpath(Imgbuf *b, Direc *c, int bigendian, int runes)
 		bputnl(b, bno, 4);
 		bputnl(b, c->parent->pathid, 2);
 	}
-	if(n == 1)
-		bputc(b, 0);
-	else if(runes)
+	if(runes)
 		bputrscvt(b, c->name, n);
 	else
 		bputs(b, c->name, n);
@@ -1278,7 +1292,8 @@ bputpathtable(Imgbuf *b, Direc *root, int bigendian, int runes)
 
 	n = b->offset;
 	for(d=root; d; d=d->path)
-		bputpath(b, d, bigendian, runes);
+		if(d->mode & CHDIR)
+			bputpath(b, d, bigendian, runes);
 	n = b->offset - n;
 	bpadblock(b);
 	return n;
@@ -1357,8 +1372,8 @@ if(chatty) fprint(2, "dir %s block %ld\n", d->src, blockno[d->blockind]);
 	(*put)(b, d->parent, DTdotdot);
 	for(i=0; i<d->nchild; i++)
 		(*put)(b, &d->child[i], DTiden);
-	phaseset(b, &d->length, b->offset - n, "dir length", d->src);
 	bpadblock(b);
+	phaseset(b, &d->length, b->offset - n, "dir length", d->src);
 
 	for(i=0; i<d->nchild; i++)
 		bputdirs(b, &d->child[i], put);
@@ -1383,8 +1398,10 @@ if(chatty) fprint(2, "%ld joliet\n", b->offset);
 if(chatty) fprint(2, "%ld end\n", b->offset);
 	bputendvol(b);
 
-	if(bootimage)
+	if(bootimage) {
+		bputbootcat(b);
 		bputbootimage(b);
+	}
 
 	if(conform || joliet) {
 		if(chatty) fprint(2, "%ld _conform.map\n", b->offset);
@@ -1433,7 +1450,7 @@ if(chatty) fprint(2, "%ld volume\n", b->offset);
 void
 usage(void)
 {
-	fprint(2, "usage: disk/mk9660 [-9cj] [-a abstract] [-b biblio] [-n notice] [-s src] [-v volume] proto\n");
+	fprint(2, "usage: disk/mk9660 [-9cj] [-a abstract] [-b biblio] [-n notice] [-s src] [-v volume] [proto]\n");
 	exits("usage");
 }
 
@@ -1484,12 +1501,19 @@ main(int argc, char **argv)
 		usage();
 	}ARGEND
 
-	if(argc != 1)
-		usage();
-
 	now = time(0);
 
-	proto = argv[0];
+	switch(argc){
+	case 0:
+		proto = "/sys/lib/sysconfig/proto/allproto";
+		break;
+	case 1:
+		proto = argv[0];
+		break;
+	default:
+		usage();
+	}
+
 	if(volume == nil)
 		volume = proto;
 

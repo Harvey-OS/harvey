@@ -238,7 +238,7 @@ routines
 .TP
 .B /sys/src/libc/9sys
 for the routines prefixed
-.B dir
+.L dir
 .SH SEE ALSO
 .IR intro (2),
 .IR fcall (2),

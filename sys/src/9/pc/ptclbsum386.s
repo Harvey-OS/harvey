@@ -84,23 +84,12 @@ _2loop:
 	CMPL	CX, $0x02
 	JLT	_1dreg
 
-_2fold:
-	MOVL	AX, BX
-	SHRL	$16, BX
-	JEQ	_2foldx
-
-	ANDL	$0xFFFF, AX
-	ADDL	BX, AX
-	JMP	_2fold
-
-_2foldx:
 	MOVL	CX, BP
 	SHRL	$1, BP
 	ANDL	$0x01, CX
 
 _2loopx:
-	XORL	BX, BX			/* in the loop for PPro */
-	MOVW	0x00(SI), BX
+	MOVWLZX	0x00(SI), BX
 	ADCL	BX, AX
 
 	LEAL	0x02(SI), SI

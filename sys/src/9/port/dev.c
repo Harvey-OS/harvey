@@ -160,7 +160,7 @@ devstat(Chan *c, char *db, Dirtab *tab, int ntab, Devgen *gen)
 					for(elem=p=c->name->s; *p; p++)
 						if(*p == '/')
 							elem = p+1;
-				devdir(c, c->qid, elem, i*DIRLEN, eve, CHDIR|0555, &dir);
+				devdir(c, c->qid, elem, 0, eve, CHDIR|0555, &dir);
 				convD2M(&dir, db);
 				return;
 			}
@@ -209,13 +209,33 @@ devdirread(Chan *c, char *d, long n, Dirtab *tab, int ntab, Devgen *gen)
 	return m;
 }
 
+/*
+ * error(Eperm) if open permission not granted for up->user.
+ */
+void
+devpermcheck(char *fileuid, ulong perm, int omode)
+{
+	ulong t;
+	static int access[] = { 0400, 0200, 0600, 0100 };
+
+	if(strcmp(up->user, fileuid) == 0)
+		perm <<= 0;
+	else
+	if(strcmp(up->user, eve) == 0)
+		perm <<= 3;
+	else
+		perm <<= 6;
+
+	t = access[omode&3];
+	if((t&perm) != t)
+		error(Eperm);
+}
+
 Chan*
 devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 {
 	int i;
 	Dir dir;
-	ulong t, mode;
-	static int access[] = { 0400, 0200, 0600, 0100 };
 
 	for(i=0;; i++) {
 		switch((*gen)(c, tab, ntab, i, &dir)){
@@ -225,18 +245,8 @@ devopen(Chan *c, int omode, Dirtab *tab, int ntab, Devgen *gen)
 			break;
 		case 1:
 			if(c->qid.path == dir.qid.path) {
-				if(strcmp(up->user, dir.uid) == 0)
-					mode = dir.mode;
-				else
-				if(strcmp(up->user, eve) == 0)
-					mode = dir.mode<<3;
-				else
-					mode = dir.mode<<6;
-
-				t = access[omode&3];
-				if((t & mode) == t)
-					goto Return;
-				error(Eperm);
+				devpermcheck(dir.uid, dir.mode, omode);
+				goto Return;
 			}
 			break;
 		}
@@ -278,7 +288,12 @@ devbwrite(Chan *c, Block *bp, ulong offset)
 {
 	long n;
 
+	if(waserror()) {
+		freeb(bp);
+		nexterror();
+	}
 	n = devtab[c->type]->write(c, bp->rp, BLEN(bp), offset);
+	poperror();
 	freeb(bp);
 
 	return n;

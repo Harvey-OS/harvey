@@ -61,7 +61,7 @@ enum
 static Lock pcicfglock;
 static Lock pcicfginitlock;
 static int pcicfgmode = -1;
-static int pcimaxbno = 255;
+static int pcimaxbno = 7;
 static int pcimaxdno;
 static Pcidev* pciroot;
 static Pcidev* pcilist;

@@ -84,6 +84,9 @@ mail, marshal, nedmail, send, aliasmail, smtp, smtpd, vwhois, fs, biff, pop3 \- 
 .B -b
 ]
 [
+.B -n
+]
+[
 .B -p
 ]
 .PP
@@ -749,6 +752,9 @@ is received, a message is printed to standard
 output containing the sender address, subject,
 and number of bytes.  It is intended for
 people telnetting in who want mail announcements.
+.TP
+.B -n
+Don't open a mailbox initially.  Overridden by -f.
 .TP
 .B -p
 turn off plumbing.  Unless this is specified,

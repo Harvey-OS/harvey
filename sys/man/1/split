@@ -71,6 +71,6 @@ to lower case.
 .B /sys/src/cmd/split.c
 .SH SEE ALSO
 .IR sed (1), 
-.IR awk (1)
+.IR awk (1),
 .IR grep (1),
 .IR regexp (6)

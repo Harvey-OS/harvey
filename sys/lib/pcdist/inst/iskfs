@@ -1,0 +1,9 @@
+#!/bin/rc
+
+if(! ~ $#* 1) {
+	echo 'usage: iskfs /dev/sdC0/part' >[1=2]
+	exit usage
+}
+
+cmp -s <{dd -if $1 -bs 16 -count 1 -skip 16 >[2]/dev/null} <{echo 'kfs wren device'}
+exit $status

@@ -179,7 +179,7 @@ thwmatch(ThwBlock *b, ThwBlock *eblocks, uchar **ss, uchar *esrc, ulong h)
  * lz77 compression with single lookup in a hash table for each block
  */
 int
-thwack(Thwack *tw, uchar *dst, Block *bsrc, ulong seq, ulong stats[ThwStats])
+thwack(Thwack *tw, int mustadd, uchar *dst, int ndst, Block *bsrc, ulong seq, ulong stats[ThwStats])
 {
 	ThwBlock *eblocks, *b, blocks[CompBlocks];
 	uchar *s, *ss, *sss, *esrc, *half, *twdst, *twdmax;
@@ -191,7 +191,7 @@ thwack(Thwack *tw, uchar *dst, Block *bsrc, ulong seq, ulong stats[ThwStats])
 		return -1;
 
 	twdst = dst;
-	twdmax = dst + n;
+	twdmax = dst + ndst;
 
 	/*
 	 * add source to the coding window
@@ -269,9 +269,10 @@ thwack(Thwack *tw, uchar *dst, Block *bsrc, ulong seq, ulong stats[ThwStats])
 
 		len = ss - s;
 		for(; twnbits >= 8; twnbits -= 8){
-			if(twdst >= twdmax)
+			if(twdst < twdmax)
+				*twdst++ = twbits >> (twnbits - 8);
+			else if(!mustadd)
 				return -1;
-			*twdst++ = twbits >> (twnbits - 8);
 		}
 		if(len < MinMatch){
 			toff = *s;
@@ -300,7 +301,7 @@ thwack(Thwack *tw, uchar *dst, Block *bsrc, ulong seq, ulong stats[ThwStats])
 			 * check for compression progress, bail if none achieved
 			 */
 			if(s > half){
-				if(4 * blocks->maxoff < 5 * lits)
+				if(!mustadd && 4 * blocks->maxoff < 5 * lits)
 					return -1;
 				half = esrc;
 			}
@@ -343,9 +344,10 @@ thwack(Thwack *tw, uchar *dst, Block *bsrc, ulong seq, ulong stats[ThwStats])
 			lenbits += bits;
 
 			for(; twnbits >= 8; twnbits -= 8){
-				if(twdst >= twdmax)
+				if(twdst < twdmax)
+					*twdst++ = twbits >> (twnbits - 8);
+				else if(!mustadd)
 					return -1;
-				*twdst++ = twbits >> (twnbits - 8);
 			}
 		}
 
@@ -385,17 +387,21 @@ thwack(Thwack *tw, uchar *dst, Block *bsrc, ulong seq, ulong stats[ThwStats])
 		twnbits += 8 - (twnbits & 7);
 	}
 	for(; twnbits >= 8; twnbits -= 8){
-		if(twdst >= twdmax)
+		if(twdst < twdmax)
+			*twdst++ = twbits >> (twnbits - 8);
+		else if(!mustadd)
 			return -1;
-		*twdst++ = twbits >> (twnbits - 8);
 	}
 
 	qlock(&tw->acklock);
+	tw->data[tw->slot] = bsrc;
 	tw->slot++;
 	if(tw->slot >= EWinBlocks)
 		tw->slot = 0;
-	tw->data[slot] = bsrc;
 	qunlock(&tw->acklock);
+
+	if(twdst >= twdmax)
+		return -1;
 
 	stats[StatBytes] += blocks->maxoff;
 	stats[StatLits] += lits;

@@ -10,6 +10,8 @@ char	*myname;
 int	cmdfd;
 int	writeallow;	/* never on; for compatibility with fs */
 int	wstatallow;
+int	noauth;
+Nvrsafe	nvr;
 int	srvfd(char*, int, int);
 void	usage(void);
 void	confinit(void);
@@ -131,7 +133,7 @@ main(int argc, char *argv[])
 }
 
 Chan *
-getmsg(char *buf, Fcall *f, int *n)
+getmsg(Chan *chan, char *buf, Fcall *f, int *n)
 {
 	int fd;
 
@@ -141,6 +143,8 @@ getmsg(char *buf, Fcall *f, int *n)
 		if(chat)
 			print("read msg %d\n", *n);
 		if(*n == 0){
+			if(chan != cons.srvchan)
+				return 0;
 			continue;
 		}
 		if(*n < 0)
@@ -173,7 +177,7 @@ send(Chan *c, char *buf, int n)
  * then process them.
  */
 void
-serve(void)
+doserve(Chan* chan)
 {
 	Chan *cp;
 	Fcall fi, fo;
@@ -181,9 +185,12 @@ serve(void)
 	int t, n;
 
 loop:
-	cp = getmsg(msgbuf, &fi, &n);
-	if(!cp)
-		panic("input channel read error");
+	cp = getmsg(chan, msgbuf, &fi, &n);
+	if(!cp){
+		if(chan == cons.chan || chan == cons.srvchan)
+			panic("input channel read error");
+		return;
+	}
 
 	if(chat)
 		print("%A\n", &fi);
@@ -255,6 +262,12 @@ reply:
 		cons.rate.count += n;
 	}
 	goto loop;
+}
+
+void
+serve(void)
+{
+	doserve(chan);
 }
 
 static
@@ -375,12 +388,40 @@ startproc(void (*f)(void), char *name)
 void
 confinit(void)
 {
+	int fd;
+
 	conf.niobuf = 0;
 	conf.nuid = 600;
 	conf.nserve = 2;
 	conf.uidspace = conf.nuid*6;
 	conf.gidspace = conf.nuid*3;
 	cons.flags = 0;
+
+	if ((fd = open("#c/hostowner", OREAD)) > 0) {
+		read(fd, nvr.authid, sizeof(nvr.authid));
+		close(fd);
+	}
+	if ((fd = open("#c/hostdomain", OREAD)) > 0) {
+		read(fd, nvr.authdom, sizeof(nvr.authdom));
+		close(fd);
+	}
+	if ((fd = open("#c/key", OREAD)) > 0) {
+		read(fd, nvr.authkey, sizeof(nvr.authkey));
+		close(fd);
+	}
+
+}
+
+static void
+dochaninit(Chan *cp, int fd)
+{
+	cp->chan = fd;
+	strncpy(cp->whoname, "<none>", sizeof(cp->whoname));
+	fileinit(cp);
+	wlock(&cp->reflock);
+	wunlock(&cp->reflock);
+	lock(&cp->flock);
+	unlock(&cp->flock);
 }
 
 Chan*
@@ -400,14 +441,61 @@ chaninit(char *server)
 	srvfd(buf, 0666, sfd);
 	close(sfd);
 	cp = ialloc(sizeof *cp);
-	cp->chan = rfd;
-	strncpy(cp->whoname, "<none>", sizeof(cp->whoname));
-	fileinit(cp);
-	wlock(&cp->reflock);
-	wunlock(&cp->reflock);
-	lock(&cp->flock);
-	unlock(&cp->flock);
+	cons.srvchan = cp;
+	dochaninit(cp, rfd);
 	return cp;
+}
+
+int
+netserve(char *netaddr)
+{
+	int afd, lfd, fd;
+	char adir[2*NAMELEN], ldir[2*NAMELEN];
+	Chan netchan;
+
+	if(access("/net/il/clone", 0) < 0)
+		bind("#I", "/net", MAFTER);
+	if(access("/net.alt/il/clone", 0) < 0)
+		bind("#I1", "/net.alt", MAFTER);
+
+	afd = announce(netaddr, adir);
+	if (afd < 0)
+		return -1;
+	switch (rfork(RFMEM|RFFDG|RFPROC)) {
+	case -1:
+		return -1;
+	case 0:
+		break;
+	default:
+		return 0;
+	}
+	for (;;) {
+		lfd = listen(adir, ldir);
+		if (lfd < 0)
+			continue;
+		fd = accept(lfd, ldir);
+		if (fd < 0) {
+			close(lfd);
+			continue;
+		}
+		memset(&netchan, 0, sizeof(netchan));
+		dochaninit(&netchan, fd);
+		switch (rfork(RFMEM|RFFDG|RFPROC)) {
+		case -1:
+			panic("can't fork");
+		case 0:
+			close(afd);
+			close(lfd);
+			doserve(&netchan);
+			fileinit(&netchan);
+			exits(0);
+		default:
+			close(fd);
+			close(lfd);
+			continue;
+		}
+	}
+	return 0;
 }
 
 int

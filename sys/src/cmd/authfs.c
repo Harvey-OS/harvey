@@ -227,25 +227,6 @@ authclunkaux(Fid *fid)
 	}
 }
 
-char*
-readstr(char *str, char *buf, long *n, vlong voff)
-{
-	int size;
-	ulong off;
-
-	off = voff;
-
-	size = strlen(str);
-	if(off >= size){
-		*n = 0;
-		return nil;
-	}
-	if(off+*n > size)
-		*n = size-off;
-	memmove(buf, str+off, *n);
-	return nil;
-}
-
 void
 authread(Req *r, Fid *fid, void *buf, long *count, vlong offset)
 {
@@ -258,7 +239,8 @@ authread(Req *r, Fid *fid, void *buf, long *count, vlong offset)
 		respond(r, authentread(fid, buf, count, offset));
 		break;
 	case Qauthserver:
-		respond(r, readstr(authserver, buf, count, offset));
+		readstr(offset, buf, count, authserver);
+		respond(r, nil);
 		break;
 	case Qcs:
 		if(offset != 0){
@@ -276,13 +258,15 @@ authread(Req *r, Fid *fid, void *buf, long *count, vlong offset)
 		}
 		break;
 	case Qhostowner:
-		respond(r, readstr(hostowner, buf, count, offset));
+		readstr(offset, buf, count, hostowner);
+		respond(r, nil);
 		break;
 	case Qkey:
 		respond(r, keyread(fid, buf, count, offset));
 		break;
 	case Quser:
-		respond(r, readstr(user, buf, count, offset));
+		readstr(offset, buf, count, user);
+		respond(r, nil);
 		break;
 	default:
 		abort();
@@ -337,7 +321,7 @@ authwrite(Req *r, Fid *fid, void *buf, long *count, vlong offset)
 		memmove(s, buf, *count);
 		s[*count] = 0;
 		if(p = strstr(s, "$auth"))
-			snprint(t, sizeof t, "%.*s%s%s", (int)(p-s), s, authserver, p+strlen("$auth"));
+			snprint(t, sizeof t, "%.*s%s%s", utfnlen(s, p-s), s, authserver, p+strlen("$auth"));
 		else
 			strcpy(t, s);
 
@@ -455,17 +439,17 @@ main(int argc, char **argv)
 
 	ARGBEGIN{
 	case 'a':
-		u = ARGF();
+		u = EARGF(usage());
 		l = strlen(u);
 		namewrite(authserver, u, &l, 0);
 		break;
 	case 'u':
-		u = ARGF();
+		u = EARGF(usage());
 		l = strlen(u);
 		namewrite(user, u, &l, 0);
 		break;
 	case 'h':
-		u = ARGF();
+		u = EARGF(usage());
 		l = strlen(u);
 		namewrite(hostowner, u, &l, 0);
 		break;

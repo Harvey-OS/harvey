@@ -2,7 +2,9 @@
 .SH NAME
 Fid, File, Req, Srv, Tree,
 fcreate, fremove, fwalk, mktree,
-fdirread, srv, postmountsrv, _lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup \- 9P file server functions
+fdirread, srv, postmountsrv, 
+readbuf, readstr,
+_lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup \- 9P file server functions
 .SH SYNOPSIS
 .PP
 .ft L
@@ -107,6 +109,8 @@ void	srv(Srv *s, int fd)
 void	postmountsrv(Srv *s, char *srvname, char *mtpt, int flag)
 void	threadpostmountsrv(Srv *s, char *srvname, char *mtpt, int flag)
 void	respond(Req *req, char *error)
+void	readstr(vlong offset, void *dst, long *ndst, char *src)
+void	readbuf(vlong offset, void *dst, long *ndst, void *src, long nsrc)
 .fi
 .PP
 .nf
@@ -490,26 +494,6 @@ increment a reference count in the structure
 pointed at by
 .BR aux .
 .PP
-When not nil, the
-.B clunk
-function is called whenever a fid is clunked.
-Typically it takes care of freeing up the resource
-pointed at by
-.BR aux .
-Note that as per
-.IR clunk (5),
-the 
-.B Fid
-will be freed regardless of whether
-.B respond
-is called with an error, so 
-the 
-.B clunk
-function should 
-.I always
-perform the necessary cleanup of
-.BR aux .
-.PP
 If file trees are being used, 
 the 9P server will react to a walk message by
 attempting to walk the 
@@ -616,6 +600,10 @@ If using file trees, the library will handle reads of
 directories:
 .B read
 will only be called for requests on files.
+.I Readstr
+and
+.I readbuf
+are useful for satisfying read requests on a string or buffer.
 .PP
 The
 .B write

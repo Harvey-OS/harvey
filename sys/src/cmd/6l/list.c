@@ -7,7 +7,6 @@ listinit(void)
 	fmtinstall('R', Rconv);
 	fmtinstall('A', Aconv);
 	fmtinstall('D', Dconv);
-	fmtinstall('X', Xconv);
 	fmtinstall('S', Sconv);
 	fmtinstall('P', Pconv);
 }
@@ -149,7 +148,7 @@ Dconv(va_list *arg, Fconv *fp)
 	}
 brk:
 	if(a->index != D_NONE) {
-		sprint(s, "%X", a->index, a->scale);
+		sprint(s, "(%R*%d)", a->index, a->scale);
 		strcat(str, s);
 	}
 conv:

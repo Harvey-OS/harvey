@@ -30,7 +30,7 @@ hinv(Pix *a, int nx, int ny)
 	 * get temporary storage for shuffling elements
 	 */
 	tmp = (Pix*)malloc(((nmax+1)/2) * sizeof(*tmp));
-	if(tmp == NULL) {
+	if(tmp == nil) {
 		fprint(2, "hinv: insufficient memory\n");
 		exits("memory");
 	}

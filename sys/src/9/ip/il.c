@@ -149,12 +149,39 @@ struct Ilhdr
 	uchar	ilack[4];	/* Acked sequence */
 };
 
+enum
+{
+	InMsgs,
+	OutMsgs,
+	CsumErrs,		/* checksum errors */
+	HlenErrs,		/* header length error */
+	LenErrs,		/* short packet */
+	OutOfOrder,		/* out of order */
+	Retrans,		/* retransmissions */
+	DupMsg,
+	DupBytes,
+
+	Nstats,
+};
+
+static char *statnames[] =
+{
+[InMsgs]	"InMsgs",
+[OutMsgs]	"OutMsgs",
+[CsumErrs]	"CsumErrs",
+[HlenErrs]	"HlenErr",
+[LenErrs]	"LenErrs",
+[OutOfOrder]	"OutOfOrder",
+[Retrans]	"Retrans",
+[DupMsg]	"DupMsg",
+[DupBytes]	"DupBytes",
+};
 
 typedef struct Ilpriv Ilpriv;
 struct Ilpriv
 {
+	ulong	stats[Nstats];
 
-	/* non-MIB stats */
 	ulong		csumerr;		/* checksum errors */
 	ulong		hlenerr;		/* header length error */
 	ulong		lenerr;			/* short packet */
@@ -289,10 +316,13 @@ ilkick(Conv *c, int l)
 	ulong id, ack;
 	Block *bp;
 	Fs *f;
+	Ilpriv *priv;
+
 
 	USED(l);
 
 	f = c->p->f;
+	priv = c->p->priv;
 	ic = (Ilcb*)c->ptcl;
 
 	bp = qget(c->wq);
@@ -355,6 +385,7 @@ ilkick(Conv *c, int l)
 	if(later(msec, ic->timeout, nil))
 		ilsettimeout(ic);
 	ipoput(f, bp, 0, c->ttl, c->tos);
+	priv->stats[OutMsgs]++;
 }
 
 static void
@@ -367,17 +398,16 @@ ilcreate(Conv *c)
 int
 ilxstats(Proto *il, char *buf, int len)
 {
-	int n;
-	Ilpriv *ipriv;
+	Ilpriv *priv;
+	char *p, *e;
+	int i;
 
-	ipriv = il->priv;
-
-	n = snprint(buf, len,
-		"il: csum %lud hlen %lud len %lud order %lud rexmit %lud",
-		ipriv->csumerr, ipriv->hlenerr, ipriv->lenerr, ipriv->order, ipriv->rexmit);
-	n += snprint(buf+n, len-n, " dupp %lud dupb %lud\n",
-		ipriv->dup, ipriv->dupb);
-	return n;
+	priv = il->priv;
+	p = buf;
+	e = p+len;
+	for(i = 0; i < Nstats; i++)
+		p = seprint(p, e, "%s: %lud\n", statnames[i], priv->stats[i]);
+	return p - buf;
 }
 
 void
@@ -492,14 +522,14 @@ iliput(Proto *il, uchar*, Block *bp)
 	plen = blocklen(bp);
 	if(plen < IL_IPSIZE+IL_HDRSIZE){
 		netlog(il->f, Logil, "il: hlenerr\n");
-		ipriv->hlenerr++;
+		ipriv->stats[HlenErrs]++;
 		goto raise;
 	}
 
 	illen = nhgets(ih->illen);
 	if(illen+IL_IPSIZE > plen){
 		netlog(il->f, Logil, "il: lenerr\n");
-		ipriv->lenerr++;
+		ipriv->stats[LenErrs]++;
 		goto raise;
 	}
 
@@ -512,7 +542,7 @@ iliput(Proto *il, uchar*, Block *bp)
 			st = "?";
 		else
 			st = iltype[ih->iltype];
-		ipriv->csumerr++;
+		ipriv->stats[CsumErrs]++;
 		netlog(il->f, Logil, "il: cksum %ux %ux, pkt(%s id %lud ack %lud %I/%d->%d)\n",
 			csum, st, nhgetl(ih->ilid), nhgetl(ih->ilack), raddr, sp, dp);
 		goto raise;
@@ -616,6 +646,7 @@ _ilprocess(Conv *s, Ilhdr *h, Block *bp)
 {
 	Ilcb *ic;
 	ulong id, ack;
+	Ilpriv *priv;
 
 	id = nhgetl(h->ilid);
 	ack = nhgetl(h->ilack);
@@ -624,6 +655,8 @@ _ilprocess(Conv *s, Ilhdr *h, Block *bp)
 
 	ic->lastrecv = msec;
 	ic->querytime = msec + QueryTime;
+	priv = s->p->priv;
+	priv->stats[InMsgs]++;
 
 	switch(ic->state) {
 	default:
@@ -865,7 +898,7 @@ ilpullup(Conv *s)
 		}
 		if(oid != ic->recvd+1){
 			ipriv = s->p->priv;
-			ipriv->order++;
+			ipriv->stats[OutOfOrder]++;
 			break;
 		}
 
@@ -923,8 +956,8 @@ iloutoforder(Conv *s, Ilhdr *h, Block *bp)
 			newid = nhgetl(lid);
 			if(id <= newid) {
 				if(id == newid) {
-					ipriv->dup++;
-					ipriv->dupb += blocklen(bp);
+					ipriv->stats[DupMsg]++;
+					ipriv->stats[DupBytes] += blocklen(bp);
 					qunlock(&ic->outo);
 					freeblist(bp);
 					return;

@@ -9,19 +9,19 @@ int vflag, Vflag;
 void
 error(char* format, ...)
 {
-	char buf[512];
+	char buf[512], *out;
 	va_list arg;
 	int n;
 
 	sequencer(0, 1);
 	n = sprint(buf, "%s: ", argv0);
 	va_start(arg, format);
-	doprint(buf+n, buf+sizeof(buf)-n, format, arg);
+	out = doprint(buf+n, buf+sizeof(buf)-n, format, arg);
 	va_end(arg);
 	if(vflag)
 		Bprint(&stdout, buf+n);
 	Bflush(&stdout);
-	fprint(2, buf);
+	write(2, buf, out-buf);
 	exits("error");
 }
 

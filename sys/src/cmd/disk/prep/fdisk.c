@@ -415,7 +415,7 @@ rdpart(Edit *edit)
 		if(tp->type == TypeEMPTY)
 			continue;
 		if(err = addpart(edit, p))
-			sysfatal("reading mbr: %s\n", err);
+			fprint(2, "reading mbr: %s\n", err);
 		if(tp->type == TypeEXTENDED || tp->type == TypeEXTHUGE)
 			rdextend(edit->disk, p, p->lba, p->lba);
 	}

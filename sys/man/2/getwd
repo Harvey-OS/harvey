@@ -26,9 +26,7 @@ bytes in the buffer provided.
 .IR pwd (1),
 .IR fd2path (2)
 .SH DIAGNOSTICS
-On error, zero is returned and
-.I buf
-is filled with a diagnostic message.
+On error, zero is returned.
 .IR Errstr (2)
 may be consulted for more information.
 .SH BUGS

@@ -2782,7 +2782,7 @@ SUBJECT:  \\*(}m \}
 .if\n(mo-9 .ds DT October
 .if\n(mo-10 .ds DT November
 .if\n(mo-11 .ds DT December
-.asDT " \n(dy, 19\n(yr
+.asDT " \n(dy, 20\n(yr
 .S D D
 'ev0
 .)R

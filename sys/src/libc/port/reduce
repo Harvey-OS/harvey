@@ -3,7 +3,7 @@ shift
 objtype=$1
 shift
 
-ls -p ../$objtype/*.[cs] >[2]/dev/null | sed 's/..$//' > /tmp/reduce.$pid
+ls -p ../$objtype/*.[cs] >[2]/dev/null | sed 's/..$//;s/^/^/' > /tmp/reduce.$pid
 #
 #	if empty directory, just return the input files
 #

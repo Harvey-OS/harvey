@@ -335,6 +335,14 @@ dosinit(Dos *dos)
 	if(chatty)
 		bootdump(b);
 
+	if(b->clustsize == 0) {
+		print("dos file system has incorrect cluster size\n");
+		for(i=0; i<3+8+2+1; i++)
+			print(" %.2ux", p->iobuf[i]);
+		print("\n");
+		return -1;
+	}
+
 	/*
 	 *  determine the systems' wondersous properties
 	 */
@@ -535,6 +543,10 @@ setname(Dosfile *fp, char *from)
 	while(to - fp->name < 8)
 		*to++ = ' ';
 	
+	/* from might be 12345678.123: don't save the '.' in ext */
+	if(*from == '.')
+		from++;
+
 	to = fp->ext;
 	for(; *from && to-fp->ext < 3; from++, to++){
 		if(*from >= 'a' && *from <= 'z')
@@ -545,5 +557,5 @@ setname(Dosfile *fp, char *from)
 	while(to-fp->ext < 3)
 		*to++ = ' ';
 
-	chat("name is %8.8s %3.3s\n", fp->name, fp->ext);
+	chat("name is %8.8s.%3.3s\n", fp->name, fp->ext);
 }

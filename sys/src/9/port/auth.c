@@ -600,7 +600,7 @@ userwrite(char *a, int n)
 {
 	if(n >= NAMELEN)
 		error(Ebadarg);
-	if(strcmp(a, "none") != 0)
+	if(!iseve() || strcmp(a, "none") != 0)
 		error(Eperm);
 	memset(up->user, 0, NAMELEN);
 	strcpy(up->user, "none");

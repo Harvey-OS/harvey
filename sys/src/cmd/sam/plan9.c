@@ -125,7 +125,7 @@ newtmp(int num)
 
 	i = getpid();
 	do
-		sprint(tempnam, "%s/%d%.4s%dsam", TMPDIR, num, getuser(), i++);
+		snprint(tempnam, sizeof tempnam, "%s/%d%.4s%dsam", TMPDIR, num, getuser(), i++);
 	while(access(tempnam, 0) == 0);
 	fd = create(tempnam, ORDWR|OCEXEC|ORCLOSE, 0000);
 	if(fd < 0){

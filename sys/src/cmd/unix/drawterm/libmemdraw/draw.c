@@ -1097,7 +1097,7 @@ readbyte(Param *p, uchar *buf, int y)
 	convgrey = p->convgrey;	/* convert rgb to grey */
 	isgrey = img->flags&Fgrey;
 	alphaonly = p->alphaonly;
-	copyalpha = convgrey==0 && (img->flags&Falpha);
+	copyalpha = (img->flags&Falpha) ? 1 : 0;
 
 	/* if we can, avoid processing everything */
 	if(!(img->flags&Frepl) && !convgrey && (img->flags&Fbytes)){
@@ -1605,11 +1605,11 @@ _rgbatoimg(Memimage *img, ulong rgba)
 		case CMap:
 			p = img->cmap->rgb2cmap;
 			m = p[(r>>4)*256+(g>>4)*16+(b>>4)];
-			v |= m<<d;
+			v |= (m>>(8-nb))<<d;
 			break;
 		case CGrey:
 			m = RGB2K(r,g,b);
-			v |= m<<d;
+			v |= (m>>(8-nb))<<d;
 			break;
 		}
 		d += nb;
@@ -1636,9 +1636,9 @@ memoptdraw(Memdrawparam *par)
 	 * destination format and just replicate with memset.
 	 */
 	m = Simplesrc|Simplemask|Fullmask;
-	if((par->state&m)==m){
+	if((par->state&m)==m && ((par->srgba&0xFF) == 0xFF)){
 		uchar *dp, p[4];
-		int dwid, ppb, np, nb;
+		int d, dwid, ppb, np, nb;
 		uchar lm, rm;
 
 		dwid = dst->width*sizeof(ulong);
@@ -1648,6 +1648,8 @@ memoptdraw(Memdrawparam *par)
 		case 1:
 		case 2:
 		case 4:
+			for(d=dst->depth; d<8; d*=2)
+				v |= (v<<d);
 			ppb = 8/dst->depth;	/* pixels per byte */
 			m = ppb-1;
 			/* left edge */
@@ -1983,3 +1985,25 @@ DBG print("\n");
 }
 #undef DBG
 
+void
+_memfillcolor(Memimage *i, ulong val)
+{
+	ulong bits;
+	int d, y;
+
+	if(val == DNofill)
+		return;
+
+	bits = _rgbatoimg(i, val);
+	switch(i->depth){
+	case 24:	/* 24-bit images suck */
+		for(y=i->r.min.y; y<i->r.max.y; y++)
+			memset24(byteaddr(i, Pt(i->r.min.x, y)), bits, Dx(i->r));
+		break;
+	default:	/* 1, 2, 4, 8, 16, 32 */
+		for(d=i->depth; d<32; d*=2)
+			bits = (bits << d) | bits;
+		memsetl(wordaddr(i, i->r.min), bits, i->width*Dy(i->r));
+		break;
+	}
+}

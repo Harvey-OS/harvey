@@ -440,7 +440,7 @@ readstr(char *dir, char *info, char *s, int len)
 	int n, fd;
 	char buf[3*NAMELEN+4];
 
-	sprint(buf, "%.*s/%.*s", 2*NAMELEN, dir, NAMELEN, info);
+	snprint(buf, sizeof buf, "%s/%s", dir, info);
 	fd = open(buf, OREAD);
 	if(fd<0)
 		return 0;

@@ -41,6 +41,21 @@ to a value suitable for parallel compilation in
 .PP
 These files should be edited by local installations
 to reflect the configuration of their systems.
+If an executable file
+.B /sys/lib/sysconfig/termrc/$sysname
+exists for the machine named
+.BR $sysname ,
+.I termrc
+will execute it as its last act.
+This action is suppressed, as is automatic initialization of the mouse and
+VGA on a PC, if the user is
+.BR none .
+.SH FILES
+.TF /sys/lib/sysconfig/termrc
+.TP
+.B /sys/lib/sysconfig/termrc
+machine-specific configuration scripts for
+.IR termrc .
 .SH SOURCE
 .B /rc/bin/cpurc
 .br

@@ -18,12 +18,21 @@ entryvalue(void)
 		diag("entry not text: %s", s->name);
 	return s->value;
 }
+void
+cput(int c)
+{
+	*cbp = c;
+	cbp++;
+	cbc--;
+	if(cbc <= 0)
+		cflush();
+}
 
 void
 wput(ushort w)
 {
-	CPUT(w);
-	CPUT(w>>8);
+	cput(w);
+	cput(w>>8);
 }
 
 void
@@ -270,21 +279,19 @@ asmb(void)
 void
 lput(long l)
 {
-
-	CPUT(l>>24)
-	CPUT(l>>16)
-	CPUT(l>>8)
-	CPUT(l)
+	cput(l>>24);
+	cput(l>>16);
+	cput(l>>8);
+	cput(l);
 }
 
 void
 lputl(long l)
 {
-
-	CPUT(l)
-	CPUT(l>>8)
-	CPUT(l>>16)
-	CPUT(l>>24)
+	cput(l);
+	cput(l>>8);
+	cput(l>>16);
+	cput(l>>24);
 }
 
 void
@@ -295,7 +302,7 @@ s8put(char *n)
 
 	strncpy(name, n, sizeof(name));
 	for(i=0; i<sizeof(name); i++)
-		CPUT(name[i])
+		cput(name[i]);
 }
 
 void

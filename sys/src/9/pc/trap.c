@@ -19,7 +19,7 @@ void
 intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 {
 	int vno;
-	Vctl *v, *p;
+	Vctl *v;
 
 	v = xalloc(sizeof(Vctl));
 	v->isintr = 1;
@@ -36,12 +36,6 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 		iunlock(&vctllock);
 		print("intrenable: couldn't enable irq %d, tbdf 0x%uX for %s\n",
 			irq, tbdf, v->name);
-		if(p=vctl[vno]){
-			print("intrenable: irq %d is already used by", irq);
-			for(; p; p=p->next)
-				print(" %s", p->name);
-			print("\n");
-		}
 		xfree(v);
 		return;
 	}
@@ -718,6 +712,9 @@ execregs(ulong entry, ulong ssize, ulong nargs)
 	return USTKTOP-BY2WD;		/* address of user-level clock */
 }
 
+/*
+ *  return the userpc the last exception happened at
+ */
 ulong
 userpc(void)
 {

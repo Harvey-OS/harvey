@@ -17,6 +17,7 @@
 char Einuse[] =		"file in use";
 char Edeleted[] =	"window deleted";
 char Ebadreq[] =	"bad graphics request";
+char Etooshort[] =	"buffer too small";
 char Ebadtile[] =	"unknown tile";
 char Eshort[] =		"short i/o request";
 char Elong[] = 		"snarf buffer too long";
@@ -64,10 +65,22 @@ xfidallocthread(void*)
 				xfid = x;
 				threadcreate(xfidctl, x, 16384);
 			}
+			if(x->ref != 0){
+				threadprint(2, "%p incref %ld\n", x, x->ref);
+				error("incref");
+			}
+			if(x->flushtag != -1)
+				error("flushtag in allocate");
 			incref(x);
 			sendp(cxfidalloc, x);
 			break;
 		case Free:
+			if(x->ref != 0){
+				threadprint(2, "%p decref %ld\n", x, x->ref);
+				error("decref");
+			}
+			if(x->flushtag != -1)
+				error("flushtag in free");
 			x->free = xfidfree;
 			xfidfree = x;
 			break;
@@ -89,8 +102,11 @@ xfidctl(void *arg)
 {
 	Xfid *x;
 	void (*f)(Xfid*);
+	char buf[64];
 
 	x = arg;
+	snprint(buf, sizeof buf, "xfid.%p", x);
+	threadsetname(buf);
 	for(;;){
 		f = recvp(x->c);
 		(*f)(x);
@@ -113,6 +129,8 @@ xfidflush(Xfid *x)
 			xf->flushtag = -1;
 			xf->flushing = TRUE;
 			incref(xf);	/* to hold data structures up at tail of synchronization */
+			if(xf->ref == 1)
+				error("ref 1 in flush");
 			if(canqlock(&xf->active)){
 				qunlock(&xf->active);
 				switch(xf->flushtype){
@@ -122,7 +140,7 @@ xfidflush(Xfid *x)
 					mrm.cm = chancreate(sizeof(Mouse), 0);
 					mrm.isflush = TRUE;
 					send(xf->flushw->mouseread, &mrm);
-					free(mrm.cm);
+					chanfree(mrm.cm);
 					break;
 
 				case Fconsread:
@@ -130,14 +148,26 @@ xfidflush(Xfid *x)
 					crm.c2 = chancreate(sizeof(Stringpair), 0);
 					crm.isflush = TRUE;
 					send(xf->flushw->consread, &crm);
-					free(crm.c1);
-					free(crm.c2);
+					chanfree(crm.c1);
+					chanfree(crm.c2);
 					break;
+
 				case Fconswrite:
 					cwm.cw = chancreate(sizeof(Stringpair), 0);
+					cwm.isflush = TRUE;
 					send(xf->flushw->conswrite, &cwm);
-					free(cwm.cw);
+					chanfree(cwm.cw);
 					break;
+
+				case Fwctlread:
+					crm.c1 = chancreate(sizeof(Stringpair), 0);
+					crm.c2 = chancreate(sizeof(Stringpair), 0);
+					crm.isflush = TRUE;
+					send(xf->flushw->wctlread, &crm);
+					chanfree(crm.c1);
+					chanfree(crm.c2);
+					break;
+
 				}
 			}else{
 				qlock(&xf->active);	/* wait for him to finish */
@@ -183,10 +213,10 @@ xfidattach(Xfid *x)
 		if(*n == ',')
 			n++;
 		r.max.y = strtoul(n, &n, 0);
-		if(!rectclip(&r, screen->clipr) || Dx(r)<100 || Dy(r)<3*font->height)
+  Allocate:
+		if(!goodrect(r))
 			err = Ebadrect;
 		else{
-  Allocate:
 			i = allocwindow(wscreen, r, Refbackup, DWhite);
 			if(i){
 				border(i, r, Selborder, display->black, ZP);
@@ -264,6 +294,25 @@ xfidopen(Xfid *x)
 			tsnarf = malloc(1);
 		}
 		break;
+	case Qwctl:
+		if(x->mode==OREAD || x->mode==ORDWR){
+			/*
+			 * It would be much nicer to implement fan-out for wctl reads,
+			 * so multiple people can see the resizings, but rio just isn't
+			 * structured for that.  It's structured for /dev/cons, which gives
+			 * alternate data to alternate readers.  So to keep things sane for
+			 * wctl, we compromise and give an error if two people try to
+			 * open it.  Apologies.
+			 */
+			if(w->wctlopen){
+				filsysrespond(x->fs, x, &t, Einuse);
+				return;
+			}
+			w->wctlopen = TRUE;
+			w->wctlready = 1;
+			wsendctlmesg(w, Wakeup, ZR, nil);
+		}
+		break;
 	}
 	t.qid = x->f->qid;
 	x->f->open = TRUE;
@@ -306,6 +355,10 @@ xfidclose(Xfid *x)
 			tsnarf = nil;
 			ntsnarf = 0;
 		}
+		break;
+	case Qwctl:
+		if(x->mode==OREAD || x->mode==ORDWR)
+			w->wctlopen = FALSE;
 		break;
 	}
 	wclose(w);
@@ -360,9 +413,11 @@ xfidwrite(Xfid *x)
 		x->flushw = w;
 		recv(w->conswrite, &cwm);
 		if(cwm.isflush){
+if(x->flushtag != -1) error("flushtag in conswrite");
 			filsyscancel(x);
 			return;
 		}
+		x->flushtag = -1;
 		if(x->flushing){
 			recv(w->conswrite, nil);	/* wake up flushing xfid */
 			pair.s = runemalloc(1);
@@ -371,7 +426,6 @@ xfidwrite(Xfid *x)
 			filsyscancel(x);
 			return;
 		}
-		x->flushtag = -1;
 		qlock(&x->active);
 		pair.s = r;
 		pair.ns = nr;
@@ -470,7 +524,7 @@ xfidwrite(Xfid *x)
 			memmove(w->dir, x->data, cnt);
 		}else{
 			p = emalloc(strlen(w->dir) + 1 + cnt + 1);
-			sprint(p, "%s/%.*s", w->dir, cnt, x->data);
+			sprint(p, "%s/%.*s", w->dir, utfnlen(x->data, cnt), x->data);
 			free(w->dir);
 			w->dir = cleanname(p);
 		}
@@ -527,6 +581,7 @@ xfidread(Xfid *x)
 	Channel *cm;		/* chan(Mouse) */
 	Consreadmesg crm;
 	Mousereadmesg mrm;
+	Consreadmesg cwrm;
 	Stringpair pair;
 
 	w = x->f->w;
@@ -547,6 +602,7 @@ xfidread(Xfid *x)
 		c2 = crm.c2;
 		isflush = crm.isflush;
 		if(isflush){
+if(x->flushtag != -1) error("flushtag in consread");
 			filsyscancel(x);
 			return;
 		}
@@ -554,6 +610,7 @@ xfidread(Xfid *x)
 		pair.s = t;
 		pair.ns = cnt;
 		send(c1, &pair);
+		x->flushtag = -1;
 		if(x->flushing){
 			recv(w->consread, nil);	/* wake up flushing xfid */
 			recv(c2, nil);			/* wake up window and toss data */
@@ -561,7 +618,6 @@ xfidread(Xfid *x)
 			filsyscancel(x);
 			return;
 		}
-		x->flushtag = -1;
 		qlock(&x->active);
 		recv(c2, &pair);
 		fc.data = pair.s;
@@ -590,16 +646,17 @@ xfidread(Xfid *x)
 		cm = mrm.cm;
 		isflush = mrm.isflush;
 		if(isflush){
+if(x->flushtag != -1) error("flushtag in mouseread");
 			filsyscancel(x);
 			return;
 		}
+		x->flushtag = -1;
 		if(x->flushing){
 			recv(w->mouseread, nil);	/* wake up flushing xfid */
 			recv(cm, nil);			/* wake up window and toss data */
 			filsyscancel(x);
 			return;
 		}
-		x->flushtag = -1;
 		qlock(&x->active);
 		recv(cm, &ms);
 		c = 'm';
@@ -698,8 +755,46 @@ xfidread(Xfid *x)
 		free(t);
 		return;
 
+	case Qwctl:	/* read returns rectangle, hangs if not resized */
+		if(cnt < 4*12){
+			filsysrespond(x->fs, x, &fc, Etooshort);
+			break;
+		}
+		x->flushtype = Fwctlread;
+		x->flushtag = x->tag;
+		x->flushw = w;
+		recv(w->wctlread, &cwrm);
+		c1 = cwrm.c1;
+		c2 = cwrm.c2;
+		isflush = cwrm.isflush;
+		if(isflush){
+if(x->flushtag != -1) error("flushtag in wctlwrite");
+			filsyscancel(x);
+			return;
+		}
+		t = malloc(cnt);
+		pair.s = t;
+		pair.ns = cnt;
+		send(c1, &pair);
+		x->flushtag = -1;
+		if(x->flushing){
+			recv(w->wctlread, nil);	/* wake up flushing xfid */
+			recv(c2, nil);			/* wake up window and toss data */
+			free(t);
+			filsyscancel(x);
+			return;
+		}
+		qlock(&x->active);
+		recv(c2, &pair);
+		fc.data = pair.s;
+		fc.count = pair.ns;
+		filsysrespond(x->fs, x, &fc, nil);
+		free(t);
+		qunlock(&x->active);
+		break;
+
 	default:
-		threadprint(2, buf, "unknown qid %d in read\n", qid);
+		threadprint(2, "unknown qid %d in read\n", qid);
 		sprint(buf, "unknown qid in read");
 		filsysrespond(x->fs, x, &fc, buf);
 		break;

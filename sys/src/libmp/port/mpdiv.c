@@ -56,6 +56,7 @@ mpdiv(mpint *dividend, mpint *divisor, mpint *quotient, mpint *remainder)
 	qp = nil;
 	if(quotient != nil){
 		mpbits(quotient, (u->top - v->top)*Dbits);
+		quotient->top = u->top - v->top;
 		qp = quotient->p+quotient->top-1;
 	}
 

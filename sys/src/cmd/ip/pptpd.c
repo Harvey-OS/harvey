@@ -243,7 +243,7 @@ main(int argc, char *argv[])
 void
 usage(void)
 {
-	fprint(2, "usage: pptpd [-dD] [-p ppp-net] [-w window] -i tcpdir\n");
+	fprint(2, "usage: pptpd [-dD] [-p ppp-net] [-w window] tcpdir\n");
 	exits("usage");
 }
 
@@ -662,7 +662,7 @@ callalloc(int id)
 		*p++ = "/bin/ip/ppp";
 	else
 		*p++ = "/sys/src/cmd/ip/ppp/8.out";
-	*p++ = "-S";
+	*p++ = "-SC";
 	*p++ = "-x";
 	*p++ = srv.pppdir;
 	if(debug)

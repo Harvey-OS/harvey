@@ -32,6 +32,7 @@ ctlr
 	ctlr=s3805 link=ibm8514
 ctlr
 	0xC0067="#9GXE"					# #9GXE Level-1[12]
+	0xC0045="Stealth 64 Vers. 1.05"
 	link=vga
 	ramdac=bt485-135
 	hwgc=bt485hwgc
@@ -105,6 +106,8 @@ ctlr
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.00-06"
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.2-07"
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.5-07"
+	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. PCI Version 1.1"	# ishwar@pali.cps.umich.edu
+	0xC0048="S3 86C775/86C785 Video BIOS."	# marcello.magnifico@rccr.cremona.it
 	0xC0044="Phoenix S3 TRIO64V+ Enhanced VGA BIOS. Version 1."
 	0xC0044="S3 86C325 Video BIOS. Version 1.00-05"
 	0xC0094="#9-764 BIOS Version 1.02.00u"
@@ -121,6 +124,7 @@ ctlr
 	ctlr=trio64
 	link=ibm8514
 ctlr
+	0xC0048="Stealth 3D 2000 Vers. 1.03"
 	0xC0043="Stealth 3D 2000 Vers. 1.04"
 	0xC0048="Stealth 3D 2000 Vers. 2.03"
 	0xC0047="Stealth 3D 2000 Pro Vers. 3.04"
@@ -132,6 +136,8 @@ ctlr
 	0xC0044="STB Velocity 3D BIOS. Version 1.10"	# STB Velocity 3D
 	0xC00D8="#9-325 BIOS Version 2.18.08"		# #9FX Reality 332
 	0xC001A="PNTNIBM VGA Compatible BIOS" 	# Hercules Terminator
+	0xCBCBC="TOSHIBA Savage\MX BIOS Ver. 4.00.20 - 21" # Portégé 3440CT
+	0xC0044="S3 86CM65 Video BIOS"		# Compaq Presario 3060 (Aurora64V+)
 	link=vga
 	hwgc=s3hwgc
 	ctlr=virge linear=1
@@ -164,7 +170,7 @@ ctlr							# CL-GD542x
 ctlr
 	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.10" # CP5000M SBC
 	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.25" # Ziatech ZT 5512 SBC
-	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.20k"
+	0xC0039="CL-GD5436/46 PCI VGA BIOS Version 1.20"
 	0xC0039="CL-GD5446 PCI VGA BIOS Version 1.33"	 # CPV5000 SBC
 	link=vga
 	ctlr=clgd542x linear=1
@@ -194,13 +200,15 @@ ctlr
 	0xC0000-0xC0200="MACH64CT"			# generic entries
 	0xC0000-0xC0200="MACH64GP"
 	0xC0000-0xC0200="MACH64GB"
+	0xC0000-0xC0200="MACH64GM"
 	0xC0000-0xC0200="MACH64GZ"
 	0xC0000-0xC0200="MACH64GV"
+	0xC0000-0xC0200="MACH64LB"
 	0xC0000-0xC0200="MACH64LP"
 	0xC0000-0xC0200="MACH64LI"
 	0xC0000-0xC0200="MACH64LM"
 	0xC0000-0xC0200="MACH64VT"
-	0xC0000-0xC0200="RAGE128"
+	0xC0000-0xC0200="MACH64VV"
 	link=vga
 	ctlr=mach64xx linear=1
 	hwgc=mach64xxhwgc
@@ -228,16 +236,20 @@ ctlr
 	0xC7345="TVGA BIOS  Z6.1I (0.02)"			# IBM Thinkpad 760ED (U9A)
 	0xC7367="TVGA BIOS  Z6.1I (0.05) "		# IBM Thinkpad 560E
 	0xC7845="TVGA BIOS WEN 6.1 (31)   "		# NEC Versa SX
+	0xC7A95="TVGA BIOS WEN 6.1 (35)   "		# NEC Versa SX
+	0xC7A97="TVGA BIOS WEN 6.1 (36)   "		# NEC Versa SX
 	link=vga
 	ctlr=cyber938x linear=1
 	hwgc=cyber938xhwgc
 ctlr
 	0xC0090="CHIPS 65550 PCI & VL Accelerated VGA BIOS"	# NEC Versa 6030X/6200MX
+	0xC0090="CHIPS 6X554 PCI Accelerated VGA BIOS"	# Digital HiNote Ultra 2000
 	0xC0090="CHIPS 69000 PCI Accelerated VGA BIOS"	# Rackmount
 	link=vga
 	ctlr=hiqvideo linear=1
 	hwgc=hiqvideohwgc
 ctlr
+	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V1.9 )"	# Millennium
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V3.0 )"	# Millennium
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V2.5 )"	# Millennium
 	0xC002D="MATROX/MISTRAL  VGA/VBE BIOS (V1."		# Millennium II
@@ -245,11 +257,41 @@ ctlr
 	ctlr=mga2164w linear=1
 	hwgc=mga2164whwgc
 ctlr
-	0xC0048="MagicGraph 128XD 40K"			# IBM Thinkpad 560X
-	0xC0048="MagicGraph 256 AV 48K"			# IBM Thinkpad 570, 600E
-	0xC0048="MagicMedia 256ZX  48K"			# IBM Thinkpad 600X
+	0xC0048="MagicGraph 128XD"			# IBM Thinkpad 560X
+	0xC0048="MagicMedia 256AV"			# IBM Thinkpad 600E
+	0xC0048="MagicGraph 256 AV"			# IBM Thinkpad 570, 600E
+	0xC0048="MagicMedia 256ZX"			# IBM Thinkpad 600X
 	ctlr=neomagic linear=1
 	hwgc=neomagichwgc
+ctlr
+	0xC0189="Hercules ISA Bus Dynamite(tm) BIOS. Ver. 8.00N-A2b(04/29/94)"
+	link=vga
+	clock=ics2494-304
+	ramdac=att20c491-90				# really MUSIC MU9C4910
+	ctlr=et4000-w32i
+	hwgc=et4000hwgc
+ctlr
+	0xC0189="Hercules PCI Bus Dynamite(tm) BIOS. Ver. 8.00N-B1a(03/30/94)"
+	link=vga
+	clock=ics2494-324
+	ramdac=stg1702-135
+	ctlr=et4000-w32p
+	hwgc=et4000hwgc
+ctlr
+	0xC0189="Hercules PCI Bus Dynamite(tm) BIOS. Ver. 8.00N-D2g(11/28/94)"
+	0xC01AD="Ver. 8.00N-D2h(05/31/95)"
+	0xC0076="Tseng Laboratories, Inc. 06/28/94 V1.0CN"# Cardex Challenger
+	link=vga
+	ramdac=ics534x-135
+	ctlr=et4000-w32p
+	hwgc=et4000hwgc
+ctlr
+	0xC0056="Voodoo3 1000 16MB BIOS"		# Voodoo3 1000
+	0xC0056="Voodoo3 2000 BIOS"			# Voodoo3 2000
+	0xC0056="Voodoo3 3000 BIOS"			# Voodoo3 3000
+	link=vga
+	ctlr=3dfx linear=1
+	hwgc=3dfxhwgc
 
 #
 # mode:
@@ -323,6 +365,11 @@ include = 1280x1024i					# 87Hz, 48KHz
 	vrs=1028 vre=1034 vt=1105
 	interlace=v
 
+include = 1280x1024@60Hz				# 60Hz, 63.9KHz
+	defaultclock=110
+	shb=1312 ehb=1496 ht=1720			# All from xvidtune
+	vrs=1025 vre=1028 vt=1074
+
 include = 1280x1024					# 74Hz, 79.6KHz
 	defaultclock=135
 	shb=1376 ehb=1544 ht=1712
@@ -333,6 +380,12 @@ include = 1376x1024					# 70Hz, 75.3KHz
 	defaultclock=135
 	shb=1440 ehb=1616 ht=1792
 	vrs=1032 vre=1040 vt=1075
+
+include = 1152x900@70Hz						# 72Hz, 67.9KHz
+	clock=100
+	shb=1184 ehb=1376 ht=1472
+	vrs=900 vre=902 vt=940
+	#hsync=- vsync=-
 
 #
 # VGA.
@@ -363,7 +416,7 @@ xga
 # Just a convenience, really.
 #
 lcd
-	alias=svga
+	alias=xga
 
 #
 # Multisync monitors with video bandwidth up to 65MHz.
@@ -382,6 +435,15 @@ multisync75
 	alias=multisync
 
 #
+# Multisync monitors with video bandwidth up to 110MHz.
+#
+multisync110
+	videobw=110
+	alias=multisync
+multisync110 = 1280x1024
+	include=1280x1024@60Hz
+
+#
 # Multisync monitors with video bandwidth up to 135MHz.
 #
 multisync135
@@ -398,6 +460,8 @@ multisync = 1024x768
 	include=1024x768
 multisync = 1024x768i
 	include=1024x768i
+multisync = 1152x900
+	include=1152x900@70Hz
 multisync = 1280x1024
 	include=1280x1024
 multisync = 1280x1024i
@@ -518,8 +582,27 @@ mf8221e = 1376x1024					# ??Hz, ??.?KHz
 	shb=1456 ehb=1616 ht=1864
 	shs=1424
 	vrs=1028 vre=1034 vt=1064
+
+#
+# Iiyama Vision Master 502
+# horizontal sync: 27-110kHz, vertical: 50-160Hz
+#
 pro502
-	alias=mf8221e
+ 	videobw=240
+ 	alias=multisync
+pro502 = 1800x1350					# 60Hz, 89.4KHz
+	defaultclock=220				# 219.5MHz @ 1800x1440
+	shb=1872 ehb=2128 ht=2248
+	shs=1824 ehs=1896
+	vrs=1356 vre=1368 vt=1394
+pro502 = 1600x1200					# 72Hz, 90.0KHz
+	defaultclock=200				# 195.9MHz
+	shb=1664 ehb=2088 ht=2144
+	shs=1648
+	vrs=1202 vre=1208 vt=1240
+pro502 = 1024x768
+	clock=79
+	include=1024x768
 
 #
 # Micron 17FGx
@@ -653,6 +736,19 @@ versalx = 1024x768
 	shb=664 ehb=760 ht=800
 	vrs=491 vre=493 vt=525
 
+# 
+# Panasonic E70i 17" monitor
+# from aam396@mail.usask.ca
+#
+e70i
+	videobw=135
+	alias=multisync
+e70i = 1280x1024
+	defaultclock=110
+	shb=1328 ehb=1520 ht=1712
+	vrs=1025 vre=1028 vt=1054
+
+#
 #
 # Sampo KDM-1788
 # Horizontal timing: 
@@ -809,3 +905,15 @@ e500 = 800x600
 e500 = 640x480
 	clock=40
 	include=640x480
+
+raptop = 1024x768
+	clock=65
+	include=1024x768
+
+#
+# Viglen VL700
+#
+vl700 = 1280x1024
+	defaultclock=110
+	shb=1328 ehb=1520 ht=1712
+	vrs=1025 vre=1028 vt=1054

@@ -161,6 +161,8 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 		if(c == '%' || c == '*'){
 			if(mdir == nil){
 				fd = cdOpen(mboxDir, ".", OREAD);
+				if(fd < 0)
+					return 0;
 				mbox = "";
 				nmdir = 0;
 			}else{
@@ -168,9 +170,11 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 				fd = cdOpen(mboxDir, mbox, OREAD);
 				*mdir = '/';
 				nmdir = mdir - mbox + 1;
+				if(fd < 0 || dirfstat(fd, &dir) < 0)
+					return 0;
+				if(!(dir.mode & CHDIR))
+					break;
 			}
-			if(fd < 0)
-				return 0;
 			wc = m;
 			for(; c = *m; m++)
 				if(c == '/')

@@ -19,7 +19,7 @@ STDIO=S__IO_getc.$O S__IO_putc.$O S__dtoa.$O S__fconv.$O S_clearerr.$O\
 MATH= M_asin.$O M_atan.$O M_atan2.$O M_erf.$O M_exp.$O M_fabs.$O\
 	M_floor.$O M_fmod.$O M_gamma.$O M_hypot.$O M_j0.$O M_j1.$O\
 	M_jn.$O M_log.$O M_pow.$O M_sin.$O M_sinh.$O 9_sqrt.$O M_tan.$O\
-	M_tanh.$O 9_frexp.$O
+	M_tanh.$O 9_frexp.$O 9_nan.$O
 
 #		machine specific string/mem stuff from extraobjs:
 #	strcat strchr strcmp strcpy strlen strncmp strrchr

@@ -127,8 +127,21 @@ init(Vga* vga, Ctlr* ctlr)
 		error("unknown Cyber revision 0x%uX\n", vga->sequencer[0x09]);
 		break;
 
+	case 0x42:				/* Cyber9382 */
+		/*
+		 * Try a little magic for DSTN displays.
+		 * May work on other chips too, who knows.
+		 */
+		if(!(vga->graphics[0x42] & 0x80)	/* !TFT */
+		&& (vga->graphics[0x43] & 0x20)){	/* DSTN */
+			if(vga->mode->x == 640)
+				vga->graphics[0x30] |= 0x81;
+			else
+				vga->graphics[0x30] &= ~0x81;
+		}
+		/*FALLTHROUGH*/
 	case 0x33:				/* Cyber9385 */
-	case 0x42:				/* Cyber9385 */
+	case 0x35:				/* Cyber9385 */
 		vga->graphics[0x0F] |= 0x07;
 		break;
 

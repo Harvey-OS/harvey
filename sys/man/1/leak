@@ -1,0 +1,85 @@
+.TH LEAK 1
+.SH NAME
+leak \- examine family of processes for memory leaks
+.SH SYNOPSIS
+.B leak
+[
+.I -s
+]
+.I progname
+.br
+.B leak
+[
+.I -s
+]
+.I pid ...
+.SH DESCRIPTION
+.I Leak
+examines the named processes, which
+should be sharing their data and bss segments,
+for memory leaks.
+It uses a mark and sweep-style algorithm to 
+determine which allocated blocks are no longer
+reachable from the set of root pointers.
+The set of root pointers is created by looking through
+the shared bss segment as well as each process's registers.
+.PP
+For each leaked block, 
+.I leak
+prints a line with five space-separated fields:
+the string
+.BR block ,
+the address of the block,
+the size of the block, 
+and the first two words of the block.
+Usually, the first two words of the block
+contain the malloc and realloc tags
+(see
+.IR debugmalloc (2)),
+useful for finding who allocated the leaked blocks.
+.PP
+If the
+.B -s
+option is given,
+.I leak 
+will instead present a sequence of
+.IR acid (1)
+commands that show each leaky allocation site.
+A comment appears next to each command to 
+indicate how many lost blocks were allocated
+at that point in the program.
+.PP
+If given a name rather than a list of process ids,
+.I leak
+prints a command-line with the corresponding process ids.
+.SH EXAMPLE
+List lost blocks in 
+.IR 8.out .
+This depends on the fact that there is only
+once instance of 
+.I 8.out
+running; if there were more, the output of
+.B "leak -s 8.out
+would need editing before sending to the shell.
+.IP
+.EX
+g% leak -s 8.out
+leak -s 229 230
+g% leak -s 8.out | rc
+src(0x0000bf1b); // 64
+src(0x000016f5); // 7
+src(0x0000a988); // 7
+g%
+.EE
+.SH SOURCE
+.B /sys/lib/acid/leak
+.br
+.B /sys/src/cmd/aux/acidleak.c
+.br
+.B /rc/bin/leak
+.SH BUGS
+Leak depends on the internal structure of the
+libc pool memory allocator (see 
+.IR pool (2)).
+Since the ANSI/POSIX environment uses a different
+allocator, leak will not work on APE programs.

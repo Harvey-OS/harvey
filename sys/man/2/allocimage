@@ -56,7 +56,7 @@ enum
 .ta +4n +20
 {
 	DOpaque		= 0xFFFFFFFF,
-	DTransparent	= 0x000000FF,
+	DTransparent	= 0x00000000,
 	DBlack		= 0x000000FF,
 	DWhite		= 0xFFFFFFFF,
 	DRed		= 0xFF0000FF,

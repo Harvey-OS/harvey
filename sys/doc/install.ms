@@ -172,7 +172,7 @@ For the purposes of the install process,
 you need not interact with the window system proper,
 so \f4simply do not touch the mouse.\fP
 On systems with very small screens, you
-may find it necessary to use the arrow
+may find it necessary to use the keyboard's arrow
 keys to scroll the window up and down.
 .PP
 Installation is short.

@@ -29,7 +29,7 @@ HFILES=/sys/include/memdraw.h /sys/include/draw.h
 $O.drawtime: drawtime.$O $LIB
 	$LD -o $target $prereq
 
-$O.drawtest: drawtest.$O ndraw.8 $LIB
+$O.drawtest: drawtest.$O $LIB
 	$LD -o $target $prereq
  
 $O.arctest: arctest.$O ndraw.$O arc.$O $LIB

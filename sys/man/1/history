@@ -43,11 +43,12 @@ The
 .B -D
 option causes
 .IR diff (1)
+.B -n
 to be run for each adjacent pair of files, while
 .B -b
 runs
 .IR diff
-.BR -b .
+.BR -nb .
 .PP
 The
 .B -u

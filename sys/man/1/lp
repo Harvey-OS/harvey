@@ -35,7 +35,29 @@ Destination
 .L safari
 is
 .L /dev/lpt1data
-line printer port on a 386 machine.
+line printer port on a 386 machine, assumed
+to be connected to a PostScript printer.
+Destinations 
+.L hpdeskjet
+and
+.L bjc240l
+are also
+.L /dev/lpt1data
+but assumed to be connected to an HP Deskjet 670 or
+Canon BJC-240.
+.I Lp
+can print to any printer supported by
+Ghostscript using syntax
+.BI gs!device
+where
+.I device
+is a Ghostscript output device.
+See
+.IR gs (1)
+and the 
+.L canonbjc240l 
+entry in
+.LR /sys/lib/lp/devices .
 .TP
 .BI -p " proc"
 The given processor is invoked.

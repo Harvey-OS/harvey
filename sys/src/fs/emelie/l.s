@@ -2,6 +2,7 @@
 
 #define OP16	BYTE	$0x66
 #define NOP	XCHGL	AX,AX
+#define CPUID	BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
 
 TEXT	origin(SB),$0
 
@@ -245,6 +246,10 @@ TEXT	tas(SB),$0
 	MOVL	$0xdeadead,AX
 	MOVL	l+0(FP),BX
 	XCHGL	AX,(BX)
+	RET
+
+TEXT wbflush(SB), $0
+	CPUID
 	RET
 
 /*
@@ -581,9 +586,7 @@ TEXT	x86cpuid(SB),$0
 	ANDL	$0x200000,AX	/* if we can't change this, there's no CPUID */
 	JZ	is486
 	MOVL	$1,AX
-	/* CPUID */
-	 BYTE $0x0F
-	 BYTE $0xA2
+	CPUID
 	JMP	done
 is486:
 	MOVL	$(4<<8),AX

@@ -55,7 +55,7 @@ comet(void)
 		130.2102,
 		188.0430,
 	};	/* C/1996 B2 (Hyakutake) */
-	elem=(struct elem)
+/*	elem=(struct elem)
 	{
 		etdate(1997, 4, 1.13413),
 		0.9141047,
@@ -63,9 +63,16 @@ comet(void)
 		89.42932,
 		130.59066,
 		282.47069,
-		
 	};	/*C/1995 O1 (Hale-Bopp) */
-		
+	elem=(struct elem)
+	{
+		etdate(2000, 7, 26.1754),
+		0.765126,
+		0.999356,
+		149.3904,
+		151.0510,
+		83.1909,
+	};	/*C/1999 S4 (Linear) */
 
 	ecc = elem.e;
 	if(ecc > MAXE)

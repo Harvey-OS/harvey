@@ -240,6 +240,7 @@ Compute the plane passing through three points.
 .TP
 .B fff2p3
 Compute the intersection point of three planes.
+.PD
 .PP
 The names of the following routines end in
 .B 4

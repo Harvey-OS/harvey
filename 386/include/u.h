@@ -7,6 +7,7 @@ typedef   signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 typedef	ushort		Rune;
+typedef 	union FPdbleword FPdbleword;
 typedef union
 {
 	vlong	length;
@@ -16,7 +17,7 @@ typedef long	jmp_buf[2];
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	0
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
-typedef unsigned int	u32int;		/* for /sys/include/libsec.h */
+typedef unsigned int	u32int;
 
 /* FCR */
 #define	FPINEX	(1<<5)
@@ -39,6 +40,14 @@ typedef unsigned int	u32int;		/* for /sys/include/libsec.h */
 #define	FPAUNFL	FPUNFL
 #define	FPAZDIV	FPZDIV
 #define	FPAINVAL	FPINVAL
+union FPdbleword
+{
+	double	x;
+	struct {	/* little endian */
+		long lo;
+		long hi;
+	};
+};
 
 typedef	char*	va_list;
 #define va_start(list, start) list =\

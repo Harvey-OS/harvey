@@ -360,7 +360,7 @@ winsettag1(Window *w)
 	}
 	runemove(new+i, L" |", 2);
 	i += 2;
-	r = strrune(old, '|');
+	r = runestrchr(old, '|');
 	if(r)
 		k = r-old+1;
 	else{
@@ -382,11 +382,11 @@ winsettag1(Window *w)
 		textdelete(&w->tag, j, k, TRUE);
 		textinsert(&w->tag, j, new+j, i-j, TRUE);
 		/* try to preserve user selection */
-		r = strrune(old, '|');
+		r = runestrchr(old, '|');
 		if(r){
 			bar = r-old;
 			if(q0 > bar){
-				bar = (strrune(new, '|')-new)-bar;
+				bar = (runestrchr(new, '|')-new)-bar;
 				w->tag.q0 = q0+bar;
 				w->tag.q1 = q1+bar;
 			}

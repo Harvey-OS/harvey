@@ -732,13 +732,15 @@ loopmark(Reg **rpo2r, long head, Reg *r)
 void
 loopit(Reg *r, long nr)
 {
-	Reg *r1, **rpo2r;
-	long i, d, me, *idom;
+	Reg *r1;
+	long i, d, me;
 
-	rpo2r = malloc(nr * sizeof(Reg*));
-	idom = malloc(nr * sizeof(long));
-	if(rpo2r == nil)
-		sysfatal("out of memory");
+	if(nr > maxnr) {
+		rpo2r = alloc(nr * sizeof(Reg*));
+		idom = alloc(nr * sizeof(long));
+		maxnr = nr;
+	}
+
 	d = postorder(r, rpo2r, 0);
 	if(d > nr)
 		sysfatal("too many reg nodes");
@@ -770,9 +772,6 @@ loopit(Reg *r, long nr)
 		if(r1->p2 != R && loophead(idom, r1))
 			loopmark(rpo2r, i, r1);
 	}
-
-	free(rpo2r);
-	free(idom);
 }
 
 void

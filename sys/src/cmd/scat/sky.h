@@ -33,7 +33,7 @@
 
 typedef enum
 {
-	List_deprecated,
+	Planet,
 	Patch,
 	SAO,
 	NGC,
@@ -132,6 +132,7 @@ enum
 };
 
 #define	UNKNOWNMAG	32767
+#define	NPlanet			20
 
 typedef float	Angle;	/* in radians */
 typedef long	DAngle;	/* on disk: in units of milliarcsec */
@@ -171,6 +172,17 @@ struct Abellrec{
 	char	richgrp;
 	char	flag;
 	char	pad;
+};
+
+typedef struct Planetrec Planetrec;
+struct Planetrec{
+	DAngle	ra;
+	DAngle	dec;
+	DAngle	az;
+	DAngle	alt;
+	DAngle	semidiam;
+	double	phase;
+	char		name[16];
 };
 
 /*
@@ -244,6 +256,7 @@ struct Record{
 		Abellrec	abell;
 		Namedrec	named;
 		Patchrec	patch;
+		Planetrec	planet;
 		/* PatchCrec is empty */
 	};
 };
@@ -287,7 +300,7 @@ struct	Img
 #define	RAD(x)	((x)*PI_180)
 #define	DEG(x)	((x)/PI_180)
 #define	ARCSECONDS_PER_RADIAN	(DEG(1)*3600)
-#define	NULL	0
+#define	MILLIARCSEC	(1000*60*60)
 
 int	nplate;
 Plate	plate[2000];		/* needs to go to 2000 when the north comes */
@@ -324,6 +337,16 @@ extern	double	TWOPI;
 extern	char	*progname;
 extern	char	*desctab[][2];
 extern	Name	names[];
+extern	Record	*rec;
+extern	long		nrec;
+extern	Planetrec	*planet;
+/* for bbox: */
+extern	int		folded;
+extern	DAngle	ramin;
+extern	DAngle	ramax;
+extern	DAngle	decmin;
+extern	DAngle	decmax;
+extern	Biobuf	bout;
 
 extern void saoopen(void);
 extern void ngcopen(void);
@@ -347,6 +370,8 @@ extern char*dms(Angle);
 extern char*ms(Angle);
 extern char*hm(Angle);
 extern char*dm(Angle);
+extern char*deg(Angle);
+extern char*hm5(Angle);
 extern long dangle(Angle);
 extern Angle angle(DAngle);
 extern void prdesc(char*, char*(*)[2], short*);
@@ -372,7 +397,15 @@ extern void	start_inputing_bits(void);
 extern Picture*	image(Angle, Angle, Angle, Angle);
 extern char*	dssmount(int);
 extern int	dogamma(Pix);
-extern void displaypic(Picture*);
-extern void displayimage(Image*);
+extern void	displaypic(Picture*);
+extern void	displayimage(Image*);
+extern void	plot(char*);
+extern void	astro(char*, int);
+extern char*	alpha(char*, char*);
+extern char*	skipbl(char*);
+extern void	flatten(void);
+extern int		bbox(long, long, int);
+extern int		inbbox(DAngle, DAngle);
+extern char*	nameof(Record*);
 
 #define	NINDEX	400

@@ -536,7 +536,7 @@
 22E6  <!~         ⋦	less than but not equivalent to
 22E7  >!~         ⋧	greater than but not equivalent to
 22EF  el          ⋯	midline horizontal ellipsis
-2423              ␣	open box
+2423              ␣	open box, visible space
 263A  :)          ☺ smiley face
 2654  wk          ♔	white chess king
 2655  wq          ♕	white chess queen
@@ -550,3 +550,6 @@
 265D  bb          ♝	black chess bishop
 265E  bn          ♞	black chess knight
 265F  bp          ♟	black chess pawn
+F015  ZA          	raw alt (plan 9 specific)
+F016  ZS          	raw shift (plan 9 specific)
+F017  ZC          	raw ctl (plan 9 specific)

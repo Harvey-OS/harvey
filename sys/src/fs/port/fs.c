@@ -488,7 +488,7 @@ f_open(Chan *cp, Fcall *in, Fcall *ou)
 	t = 0;
 	if(d->mode & DLOCK) {
 		t = tlocked(p, d);
-		if(t == 0) {
+		if(t == nil) {
 			ou->err = Elocked;
 			goto out;
 		}
@@ -679,7 +679,7 @@ f_create(Chan *cp, Fcall *in, Fcall *ou)
 	if(in->perm & PLOCK) {
 		d1->mode |= DLOCK;
 		t = tlocked(p1, d1);
-		/* if 0, out of tlock structures */
+		/* if nil, out of tlock structures */
 	}
 	accessdir(p1, d1, FWRITE, f->uid);
 	qid = d1->qid;

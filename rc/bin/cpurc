@@ -15,6 +15,7 @@ unmount /n/termrc.tmp
 
 # name translation, cs sets /dev/sysname
 ndb/cs
+sysname=`{cat /dev/sysname}
 ndb/dns -r
 
 # parallelism for mk

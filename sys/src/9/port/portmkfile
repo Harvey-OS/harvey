@@ -32,7 +32,10 @@ all:V:
 clean:V:
 	rm -f *.[$OS] *.root.s cfs.h fs.h init.h conf.h *.out
 	for(i in $CONFLIST)
-		rm -f $i.c [9bz]$i [9bz]$i.gz boot$i.*
+		mk $i.clean
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.*
 
 %.$O:	/$objtype/include/u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
 
@@ -96,6 +99,11 @@ vdfs.root.s: /sys/lib/pcdist/bin/$objtype/vdfs
 	cp $prereq vdfs.out
 	strip vdfs.out
 	../port/mkroot vdfs kfs
+
+bzfs.root.s: /sys/lib/pcdist/bin/$objtype/bzfs
+	cp $prereq bzfs.out
+	strip bzfs.out
+	../port/mkroot bzfs kfs
 
 boot$CONF.root.s: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c

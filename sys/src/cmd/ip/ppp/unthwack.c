@@ -87,6 +87,38 @@ unthwackstate(Unthwack *ut, uchar *mask)
 }
 
 int
+unthwackadd(Unthwack *ut, uchar *src, int nsrc, ulong seq)
+{
+	uchar *d;
+	int slot, tslot;
+
+	if(nsrc > ThwMaxBlock)
+		return -1;
+
+	tslot = ut->slot;
+	for(;;){
+		slot = tslot - 1;
+		if(slot < 0)
+			slot += DWinBlocks;
+		if(ut->blocks[slot].seq <= seq)
+			break;
+		d = ut->blocks[tslot].data;
+		ut->blocks[tslot] = ut->blocks[slot];
+		ut->blocks[slot].data = d;
+		tslot = slot;
+	}
+	ut->blocks[tslot].seq = seq;
+	ut->blocks[tslot].maxoff = nsrc;
+	memmove(ut->blocks[tslot].data, src, nsrc);
+
+	ut->slot++;
+	if(ut->slot >= DWinBlocks)
+		ut->slot = 0;
+
+	return nsrc;
+}
+
+int
 unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 {
 	UnthwBlock blocks[CompBlocks], *b, *eblocks;
@@ -219,6 +251,10 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 				code -= use;
 				code <<= 1;
 				utnbits--;
+				if(utnbits < 0){
+					snprint(ut->err, ThwErrLen, "len out of range");
+					return -1;
+				}
 				code |= (utbits >> utnbits) & 1;
 				use <<= bits;
 				bits ^= 1;

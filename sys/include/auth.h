@@ -8,6 +8,7 @@ typedef struct	Passwordreq	Passwordreq;
 typedef struct	Chalstate	Chalstate;
 typedef struct	Apopchalstate	Apopchalstate;
 typedef struct	Apopchalstate	Cramchalstate;
+typedef struct	VNCchalstate	VNCchalstate;
 typedef struct	Chapreply	Chapreply;
 typedef struct	MSchapreply	MSchapreply;
 
@@ -20,6 +21,7 @@ enum
 	CONFIGLEN=	14,
 	SECRETLEN=	32,		/* max length of a secret */
 	APOPCHLEN=	256,
+	VNCCHLEN=	256,		/* max possible vnc challenge */
 	MD5LEN=		16,
 
 	KEYDBOFF=	8,		/* length of random data at the start of key file */
@@ -42,6 +44,7 @@ enum
 	AuthMSchap=11,	/* MS chap authentication for ppp */
 	AuthCram=12,	/* CRAM verification for IMAP (RFC2195 & rfc2104) */
 	AuthHttp=13,	/* http domain login */
+	AuthVNC=14,	/* http domain login */
 
 
 	AuthTs=64,	/* ticket encrypted with server's key */
@@ -133,6 +136,14 @@ struct	MSchapreply
 	char	NTresp[24];		/* NT response */
 };
 
+struct VNCchalstate
+{
+	int	afd;			/* /dev/authenticate */
+	int	asfd;			/* authdial() */
+	uchar	chal[VNCCHLEN];		/* challenge/response */
+	int	challen;
+};
+
 extern	int	convT2M(Ticket*, char*, char*);
 extern	void	convM2T(char*, Ticket*, char*);
 extern	void	convM2Tnoenc(char*, Ticket*);
@@ -150,14 +161,16 @@ extern	int	newns(char*, char*);
 extern	int	addns(char*, char*);
 extern	int	authdial(void);
 extern	int	auth(int);
+extern	int	authnonce(int, uchar*);
 extern	int	srvauth(int, char*);
-extern	int	nauth(int, Ticket*);
-extern	int	nsrvauth(int, char*, Ticket*);
+extern	int	srvauthnonce(int, char*, uchar*);
 extern	int	getchal(Chalstate*, char*);
 extern	int	chalreply(Chalstate*, char*);
 extern	int	amount(int, char*, int, char*);
 extern	int	apopchal(Apopchalstate*);
 extern	int	apopreply(Apopchalstate*, char*, char*);
+extern	int	vncchal(VNCchalstate*, char*);
+extern	int	vncreply(VNCchalstate*, uchar*);
 extern	int	cramchal(Cramchalstate*);
 extern	int	cramreply(Cramchalstate*, char*, char*);
 extern	int	login(char*, char*, char*);

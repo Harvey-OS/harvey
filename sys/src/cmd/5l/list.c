@@ -150,6 +150,8 @@ Dconv(va_list *arg, Fconv *fp)
 			sprint(str, "R%ld%c%cR%ld", v&15, op[0], op[1], (v>>8)&15);
 		else
 			sprint(str, "R%ld%c%c%ld", v&15, op[0], op[1], (v>>7)&31);
+		if(a->reg != NREG)
+			sprint(str+strlen(str), "(R%d)", a->reg);
 		break;
 
 	case D_OCONST:
@@ -167,6 +169,12 @@ Dconv(va_list *arg, Fconv *fp)
 
 	case D_REG:
 		sprint(str, "R%d", a->reg);
+		if(a->name != D_NONE || a->sym != S)
+			sprint(str, "%N(R%d)(REG)", a, a->reg);
+		break;
+
+	case D_REGREG:
+		sprint(str, "(R%d,R%d)", a->reg, (int)a->offset);
 		if(a->name != D_NONE || a->sym != S)
 			sprint(str, "%N(R%d)(REG)", a, a->reg);
 		break;
@@ -282,7 +290,6 @@ Nconv(va_list *arg, Fconv *fp)
 			sprint(str, "%s+%ld(FP)", s->name, a->offset);
 		break;
 	}
-
 	strconv(str, fp);
 	return 0;
 }

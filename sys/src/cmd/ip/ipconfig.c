@@ -115,7 +115,6 @@ main(int argc, char **argv)
 	char *p;
 	int retry, verb;
 
-print("argc %d %s %s\n", argc, argv[0], argv[1]);
 	srand(truerand());
 	fmtinstall('E', eipconv);
 	fmtinstall('I', eipconv);
@@ -405,7 +404,6 @@ void
 binddevice(void)
 {
 	char buf[256];
-	char *p;
 	int ac, pid, rv;
 	char *av[12];
 	Waitmsg w;
@@ -519,6 +517,7 @@ ipunconfig(void)
 
 	if(!validip(conf.laddr))
 		return;
+	DEBUG("couldn't renew IP lease, releasing %I\n", conf.laddr);
 	n = sprint(buf, "remove");
 	n += snprint(buf+n, sizeof(buf)-n, " %I", conf.laddr);
 
@@ -598,7 +597,7 @@ dhcpwatch(int needconfig)
 	int secs, s;
 	ulong t;
 
-	switch(rfork(RFPROC|RFFDG|RFNOWAIT)){
+	switch(rfork(RFPROC|RFFDG|RFNOWAIT|RFNOTEG)){
 	default:
 		return;
 	case 0:

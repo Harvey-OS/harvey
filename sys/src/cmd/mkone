@@ -35,7 +35,7 @@ nuke:V:
 clean:V:
 	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG
 
-safeinstall: $O.out
+safeinstall:V: $O.out
 	test -e $BIN/$TARG && mv $BIN/$TARG $BIN/_$TARG
 	cp $prereq $BIN/$TARG
 

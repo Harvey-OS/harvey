@@ -45,25 +45,35 @@ struct Udphdr
 	uchar	udpcksum[2];	/* Checksum */
 };
 
-/* MIB II counters */
-typedef struct Udpstats Udpstats;
-struct Udpstats
+enum
 {
-	ulong	udpInDatagrams;
-	ulong	udpNoPorts;
-	ulong	udpInErrors;
-	ulong	udpOutDatagrams;
+	/* MIB II counters */
+	InDatagrams,
+	NoPorts,
+	InErrors,
+	OutDatagrams,
+
+	/* non-MIB counters */
+	CsumErrs,
+	LenErrs,
+
+	Nstats,
 };
+
+static char *statnames[] = {
+[InDatagrams]	"InDatagrams",
+[NoPorts]	"NoPorts",
+[InErrors]	"InErrors",
+[OutDatagrams]	"OutDatagrams",
+[CsumErrs]	"CsumErrs",
+[LenErrs]	"LenErrs",
+};
+
 
 typedef struct Udppriv Udppriv;
 struct Udppriv
 {
-	/* MIB counters */
-	Udpstats	ustats;
-
-	/* non-MIB stats */
-	ulong		csumerr;		/* checksum errors */
-	ulong		lenerr;			/* short packet */
+	ulong	stats[Nstats];
 };
 
 /*
@@ -226,7 +236,7 @@ udpkick(Conv *c, int)
 
 	hnputs(uh->udpcksum, ptclcsum(bp, UDP_IPHDR, dlen+UDP_HDRSIZE));
 
-	upriv->ustats.udpOutDatagrams++;
+	upriv->stats[OutDatagrams]++;
 	ipoput(f, bp, 0, c->ttl, c->tos);
 }
 
@@ -245,7 +255,7 @@ udpiput(Proto *udp, uchar *ia, Block *bp)
 	upriv = udp->priv;
 	f = udp->f;
 
-	upriv->ustats.udpInDatagrams++;
+	upriv->stats[InDatagrams]++;
 
 	uh = (Udphdr*)(bp->rp);
 
@@ -263,7 +273,8 @@ udpiput(Proto *udp, uchar *ia, Block *bp)
 
 	if(nhgets(uh->udpcksum)) {
 		if(ptclcsum(bp, UDP_IPHDR, len+UDP_PHDRSIZE)) {
-			upriv->ustats.udpInErrors++;
+			upriv->stats[InErrors]++;
+			upriv->stats[CsumErrs]++;
 			netlog(f, Logudp, "udp: checksum error %I\n", raddr);
 			DPRINT("udp: checksum error %I\n", raddr);
 			freeblist(bp);
@@ -319,7 +330,7 @@ found:
 			}
 			c->state = Connected;
 		} else {
-			upriv->ustats.udpNoPorts++;
+			upriv->stats[NoPorts]++;
 			qunlock(udp);
 			netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
 				laddr, lport);
@@ -344,7 +355,8 @@ found:
 		qunlock(c);
 		netlog(f, Logudp, "udp: len err %I.%d -> %I.%d\n", raddr, rport,
 			laddr, lport);
-		upriv->lenerr++;
+		upriv->stats[LenErrs]++;
+		upriv->stats[InErrors]++;
 		return;
 	}
 
@@ -469,14 +481,16 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 int
 udpstats(Proto *udp, char *buf, int len)
 {
-	Udppriv *upriv;
+	Udppriv *priv;
+	char *p, *e;
+	int i;
 
-	upriv = udp->priv;
-	return snprint(buf, len, "%lud %lud %lud %lud",
-		upriv->ustats.udpInDatagrams,
-		upriv->ustats.udpNoPorts,
-		upriv->ustats.udpInErrors,
-		upriv->ustats.udpOutDatagrams);
+	priv = udp->priv;
+	p = buf;
+	e = p+len;
+	for(i = 0; i < Nstats; i++)
+		p = seprint(p, e, "%s: %lud\n", statnames[i], priv->stats[i]);
+	return p - buf;
 }
 
 void

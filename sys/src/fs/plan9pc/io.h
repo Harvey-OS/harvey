@@ -57,7 +57,7 @@ enum {
 	EISAconfig	= 0xC80,
 
 	MaxScsi		= 4,
-	NTarget		= 8,
+	NTarget		= 16,
 
 	MaxEther	= 4,
 };

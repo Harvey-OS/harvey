@@ -75,6 +75,7 @@ number of translation lookaside buffer misses per second.
 number of valid pages on the swap device.
 The swap is displayed as a
 fraction of the number of swap pages configured by the machine.
+.PD
 .PP
 The graphs are plotted with time on the horizontal axis.
 The vertical axes range from 0 to 1000 times the number of processors on the machine.

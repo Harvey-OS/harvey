@@ -1378,7 +1378,6 @@ gline(Rune *addr)
 		for (c = (peekc ? peekc : Bgetrune(f)); c >= 0; c = Bgetrune(f)) {
 			if (c == '\n') {
 				if ((peekc = Bgetrune(f)) < 0) {
-					Bterm(f);
 					if (fhead == 0)
 						dolflag = 1;
 				}
@@ -1388,7 +1387,16 @@ gline(Rune *addr)
 			if (c && p < lbend)
 				*p++ = c;
 		}
+		/* return partial final line, adding implicit newline */
+		if(p != addr) {
+			*p = '\0';
+			peekc = -1;
+			if (fhead == 0)
+				dolflag = 1;
+			return p;
+		}
 		peekc = 0;
+		Bterm(f);
 	} while (opendata() > 0);	/* Switch to next stream */
 	f = 0;
 	return 0;

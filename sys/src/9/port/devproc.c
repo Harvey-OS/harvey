@@ -36,7 +36,7 @@ Dirtab procdir[] =
 	"kregs",	{Qkregs},	sizeof(Ureg),		0440,
 	"mem",		{Qmem},		0,			0000,
 	"note",		{Qnote},	0,			0000,
-	"noteid",	{Qnoteid},	0,			0666,
+	"noteid",	{Qnoteid},	0,			0664,
 	"notepg",	{Qnotepg},	0,			0000,
 	"ns",		{Qns},		0,			0444,
 	"proc",		{Qproc},	0,			0400,
@@ -112,6 +112,8 @@ procgen(Chan *c, Dirtab *tab, int, int s, Dir *dp)
 	perm = tab->perm;
 	if(perm == 0)
 		perm = p->procmode;
+	else	/* just copy read bits */
+		perm |= p->procmode & 0444;
 
 	len = tab->length;
 	switch(QID(c->qid)) {

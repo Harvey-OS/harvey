@@ -486,7 +486,7 @@ very least, unguessable numbers.
 .PP
 .I Genrandom
 fills a buffer with bytes from the X9.17 pseudo-random
-number generator.  The X9.17 generator is seeded by 4
+number generator.  The X9.17 generator is seeded by 24
 truly random bytes read from
 .BR /dev/random .
 .PP

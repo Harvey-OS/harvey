@@ -104,7 +104,7 @@ ns16552default(char *name, int port, int irq)
 void
 ns16552install(void)
 {
-	int i, j, port, nscard;
+	int i, j, port, nscard, baud;
 	char *p, *q;
 	Scard *sc;
 	char name[NAMELEN];
@@ -123,8 +123,14 @@ ns16552install(void)
 	/* set up a serial console */
 	if(p = getconf("console")){
 		port = strtol(p, &q, 0);
-		if(p != q && (port == 0 || port == 1))
-			ns16552special(port, 9600, &kbdq, &printq, kbdcr2nl);
+		if(p != q && (port == 0 || port == 1)) {
+			baud = 0;
+			if(p = getconf("baud"))
+				baud = strtoul(p, 0, 0);
+			if(baud == 0)
+				baud = 9600;
+			ns16552special(port, baud, &kbdq, &printq, kbdcr2nl);
+		}
 	}
 
 	/* the rest come out of plan9.ini */

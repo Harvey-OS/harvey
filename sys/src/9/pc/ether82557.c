@@ -908,7 +908,7 @@ i82557pci(void)
 		 */
 		port = p->mem[1].bar & ~0x01;
 		if(ioalloc(port, p->mem[1].size, 0, "i82557pci") < 0){
-			print("i82557pci: port %d in use\n", port);
+			print("i82557pci: port 0x%uX in use\n", port);
 			continue;
 		}
 		i82557adapter(&adapter, port, p->intl, p->tbdf);

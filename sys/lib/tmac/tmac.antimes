@@ -488,8 +488,8 @@
 .el.ds ]W (printed \n(mo/\n(dy/\n(yr)
 ..\}
 .if\n()s .ds ]W
-.if\n()t \{.ie \nd .ds ]W \*(]m \nd, 19\ny
-.el.ds ]W \*(]m \n(dy, 19\n(yr
+.if\n()t \{.ie \nd .ds ]W \*(]m \nd, 20\ny
+.el.ds ]W \*(]m \n(dy, 20\n(yr
 ..\}
 .pl\n()Lu
 .ll\n(LLu

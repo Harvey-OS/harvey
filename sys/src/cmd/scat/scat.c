@@ -54,12 +54,6 @@ long	noreca;
 Biobuf	bin;
 Biobuf	bout;
 
-Image	*grey;
-Image	*green;
-Image	*lightblue;
-Image	*lightgrey;
-Image	*stipple;
-
 main(int argc, char *argv[])
 {
 	char *line;
@@ -68,6 +62,7 @@ main(int argc, char *argv[])
 	Binit(&bout, 1, OWRITE);
 	if(argc != 1)
 		dir = argv[1];
+	astro("", 1);
 	while(line = Brdline(&bin, '\n')){
 		line[Blinelen(&bin)-1] = 0;
 		lookup(line, 1);
@@ -303,26 +298,6 @@ constelopen(void)
 	}
 }
 
-int
-plotopen(void)
-{
-	if(display != nil)
-		return 1;
-	display = initdisplay(nil, nil, drawerror);
-	if(display == nil){
-		fprint(2, "initdisplay failed: %r\n");
-		return -1;
-	}
-	grey = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0x777777FF);
-	lightgrey = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0xAAAAAAFF);
-	green = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0x00AA00FF);
-	lightblue = allocimage(display, Rect(0, 0, 1, 1), CMAP8, 1, 0x009EEEFF);
-	stipple = allocimage(display, Rect(0, 0, 2, 2), CMAP8, 1, DWhite);
-	draw(stipple, Rect(0, 0, 1, 1), display->black, nil, ZP);
-	draw(stipple, Rect(1, 1, 2, 2), display->black, nil, ZP);
-	return 1;
-}
-
 void
 lowercase(char *s)
 {
@@ -415,6 +390,22 @@ loadsao(int index)
 }
 
 int
+loadplanet(int index, Record *r)
+{
+	if(index<0 || index>NPlanet || planet[index].name[0]=='\0')
+		return 0;
+	grow();
+	cur->type = Planet;
+	cur->index = index;
+	/* check whether to take new or existing record */
+	if(r == nil)
+		memmove(&cur->planet, &planet[index], sizeof(Planetrec));
+	else
+		memmove(&cur->planet, &r->planet, sizeof(Planetrec));
+	return 1;
+}
+
+int
 loadpatch(long index)
 {
 	int i;
@@ -468,6 +459,7 @@ flatten(void)
 		case NONGC:
 			break;
 
+		case Planet:
 		case Abell:
 		case NGC:
 		case SAO:
@@ -553,7 +545,7 @@ text(char *s, char *t)
 }
 
 int
-cull(char *s, int keep)
+cull(char *s, int keep, int dobbox)
 {
 	int i, j, nobj, keepthis;
 	Record *or;
@@ -571,6 +563,8 @@ cull(char *s, int keep)
 	dosao = 0;
 	doabell = 0;
 	mgrtr = mless= 0;
+	if(dobbox)
+		goto Cull;
 	for(;;){
 		if(s[0] == '>'){
 			dogrtr = 1;
@@ -630,6 +624,7 @@ cull(char *s, int keep)
 		return 0;
 	}
 
+    Cull:
 	flatten();
 	copy();
 	reset();
@@ -643,6 +638,8 @@ cull(char *s, int keep)
 		abellopen();
 	for(i=0,or=orec; i<norec; i++,or++){
 		keepthis = !keep;
+		if(dobbox && inbbox(or->ngc.ra, or->ngc.dec))
+			keepthis = keep;
 		if(doless && or->ngc.mag <= mless)
 			keepthis = keep;
 		if(dogrtr && or->ngc.mag >= mgrtr)
@@ -688,7 +685,8 @@ sort(void)
 	r = rec+1;
 	s = rec;
 	for(i=1; i<nrec; i++,r++){
-		if(r->type==s->type && r->index==s->index)
+		/* may have multiple instances of a planet in the scene */
+		if(r->type==s->type && r->index==s->index && r->type!=Planet)
 			continue;
 		memmove(++s, r, sizeof(Record));
 	}
@@ -749,6 +747,10 @@ fromgreek(char *s)
 	return greekbuf;
 }
 
+#ifdef OLD
+/*
+ * Old version
+ */
 int
 coords(int deg)
 {
@@ -763,8 +765,10 @@ coords(int deg)
 	reset();
 	deg *= 2;
 	for(i=0,or=orec; i<norec; i++,or++){
-		dec = or->ngc.dec/(1000*60*60);
-		ra = or->ngc.ra/(1000*60*60);
+		if(or->type == Planet)	/* must keep it here */
+			loadplanet(or->index, or);
+		dec = or->ngc.dec/MILLIARCSEC;
+		ra = or->ngc.ra/MILLIARCSEC;
 		rdeg = deg/cos((dec*PI)/180);
 		for(y=-deg; y<=+deg; y++){
 			ndec = dec*2+y;
@@ -782,7 +786,7 @@ coords(int deg)
 				if(nra/2 >= 360)
 					nra -= 360*2;
 				/* fp errors hurt here, so we round up 1' */
-				nra = nra/2*1000*60*60 + 60000;
+				nra = nra/2*MILLIARCSEC + 60000;
 				loadpatch(patcha(angle(nra), angle(ndec)));
 			}
 		}
@@ -790,266 +794,57 @@ coords(int deg)
 	sort();
 	return 1;
 }
+#endif
 
-long	mapx0, mapy0;
-long	mapra, mapdec, mapddec;
-double	maps;
-double	mapks0, mapks1;	/* keystoning */
-
-void
-setmap(long ramin, long ramax, long decmin, long decmax, Rectangle r)
-{
-	int c;
-	c = 1000*60*60;
-	mapra = ramax/2+ramin/2;
-	mapdec = decmax/2+decmin/2;
-	mapddec = decmax/2-decmin/2;
-	mapx0 = (r.max.x+r.min.x)/2;
-	mapy0 = (r.max.y+r.min.y)/2;
-	maps = ((double)Dy(r))/(double)(decmax-decmin);
-	mapks1 = cos(((double)decmin)/c * PI/180);
-	mapks0 = cos(((double)decmax)/c * PI/180);
-	if(mapks0 > mapks1)
-		mapks1 = mapks0;
-	mapks1 = ((double)Dx(r))/(double)(ramax-ramin) / mapks1;
-	if(mapks1 < maps)
-		maps = mapks1;
-	mapks1 = cos(((double)decmin)/c * PI/180);
-	mapks0 = cos(((double)decmax)/c * PI/180);
-	mapks0 = (mapks1+mapks0)/2;
-}
-
-Point
-map(long ra, long dec)
-{
-	Point p;
-
-	p.y = mapy0 - (dec-mapdec)*maps;
-	p.x = mapx0 - (ra-mapra)*maps*(mapks0+(mapks1-mapks0)*(mapdec-dec)/mapddec);
-	return p;
-}
-
+/*
+ * New version attempts to match the boundaries of the plot better.
+ */
 int
-dsize(int mag)	/* mag is 10*magnitude; return disc size */
-{
-	double d;
-
-	mag += 25;	/* make mags all positive; sirius is -1.6m */
-	d = (130-mag)/10;
-	/* if plate scale is huge, adjust */
-	if(maps < 100.0/(1000*60*60))
-		d *= .7;
-	if(maps < 50.0/(1000*60*60))
-		d *= .7;
-	return d;
-}
-
-void
-plot(char *flags)
+coords(int deg)
 {
 	int i;
-	char *t;
-	long x, y, c;
-	int rah, ram, d1, d2;
-	double r0;
-	int ra, dec;
-	int m;
-	Point p;
-	long ramin, ramax, decmin, decmax;	/* all in degrees */
-	Record *r;
-	Rectangle rect, r1;
-	int folded;
-	int dx, dy, nogrid;
-	Image *scr;
+	int x, y, xx;
+	Record *or;
+	long min, circle;
+	double factor;
 
-	nogrid = 0;
-	dx = 512;
-	dy = 512;
-	for(;;){
-		if(t = alpha(flags, "nogrid")){
-			nogrid = 1;
-			flags = t;
-			continue;
-		}
-		if(t = alpha(flags, "dx")){
-			dx = strtol(t, &t, 0);
-			if(dx < 100){
-				fprint(2, "dx %d too small (min 100) in plot\n", dx);
-				return;
-			}
-			flags = skipbl(t);
-			continue;
-		}
-		if(t = alpha(flags, "dy")){
-			dy = strtol(t, &t, 0);
-			if(dy < 100){
-				fprint(2, "dy %d too small (min 100) in plot\n", dy);
-				return;
-			}
-			flags = skipbl(t);
-			continue;
-		}
-		if(*flags){
-			fprint(2, "syntax error in plot\n");
-			return;
-		}
-		break;
-	}
 	flatten();
+	circle = 360*MILLIARCSEC;
+	deg *= MILLIARCSEC;
+
+	/* find center */
 	folded = 0;
-	/* convert to milliarcsec */
-	c = 1000*60*60;
-    Again:
-	ramin = 0x7FFFFFFF;
-	ramax = -0x7FFFFFFF;
-	decmin = 0x7FFFFFFF;
-	decmax = -0x7FFFFFFF;
-	for(r=rec,i=0; i<nrec; i++,r++){
-		if(r->type == Patch){
-			radec(r->index, &rah, &ram, &dec);
-			ra = 15*rah+ram/4;
-			r0 = c/cos(dec*PI/180);
-			ra *= c;
-			dec *= c;
-			if(dec == 0)
-				d1 = c, d2 = c;
-			else if(dec < 0)
-				d1 = c, d2 = 0;
-			else
-				d1 = 0, d2 = c;
-		}else if(r->type==SAO || r->type==NGC){
-			ra = r->ngc.ra;
-			dec = r->ngc.dec;
-			d1 = 0, d2 = 0, r0 = 0;
-		}else
-			continue;
-		if(dec+d2 > decmax)
-			decmax = dec+d2;
-		if(dec-d1 < decmin)
-			decmin = dec-d1;
-		if(folded){
-			ra -= 180*c;
-			if(ra < 0)
-				ra += 360*c;
-		}
-		if(ra+r0 > ramax)
-			ramax = ra+r0;
-		if(ra < ramin)
-			ramin = ra;
+	bbox(0, 0, 0);
+	/* now expand */
+	factor = cos(angle((decmax+decmin)/2));
+	if(factor < .2)
+		factor = .2;
+	factor = floor(1/factor);
+	folded = 0;
+	bbox(factor*deg, deg, 1);
+	Bprint(&bout, "%s to ", hms(angle(ramin)));
+	Bprint(&bout, "%s\n", hms(angle(ramax)));
+	Bprint(&bout, "%s to ", dms(angle(decmin)));
+	Bprint(&bout, "%s\n", dms(angle(decmax)));
+	copy();
+	reset();
+	for(i=0,or=orec; i<norec; i++,or++)
+		if(or->type == Planet)	/* must keep it here */
+			loadplanet(or->index, or);
+	min = ramin;
+	if(ramin > ramax)
+		min -= circle;
+	for(x=min; x<=ramax; x+=250*60*60){
+		xx = x;
+		if(xx < 0)
+			xx += circle;
+		for(y=decmin; y<=decmax; y+=250*60*60)
+			if(-circle/4 < y && y < circle/4)
+				loadpatch(patcha(angle(xx), angle(y)));
 	}
-	if(folded){
-		if(ramax-ramin > 270*c){
-			fprint(2, "ra range too wide %ld°\n", (ramax-ramin)/c);
-			return;
-		}
-	}else if(ramax-ramin > 270*c){
-		folded = 1;
-		goto Again;
-	}
-	if(ramax-ramin<100 || decmax-decmin<100){
-		fprint(2, "plot too small\n");
-		return;
-	}
-	if(plotopen() < 0)
-		return;
-	scr = allocimage(display, Rect(0, 0, dx, dy), display->chan, 0, DBlack);
-	if(scr == nil){
-		fprint(2, "can't allocate image: %r\n");
-		return;
-	}
-	rect = scr->r;
-	rect.min.x += 16;
-	rect = insetrect(rect, 20);
-	setmap(ramin, ramax, decmin, decmax, rect);
-	if(!nogrid){
-		for(x=ramin; x<=ramax; x+=c)
-			line(scr, map(x, decmin), map(x, decmax),
-				Endsquare, Endsquare, 0, grey, ZP);
-		for(y=decmin; y<=decmax; y+=c)
-			line(scr, map(ramin, y), map(ramax, y),
-				Endsquare, Endsquare, 0, grey, ZP);
-	}
-	for(i=0,r=rec; i<nrec; i++,r++){
-		dec = r->ngc.dec;
-		ra = r->ngc.ra;
-		if(folded){
-			ra -= 180*c;
-			if(ra < 0)
-				ra += 360*c;
-		}
-		/* xor lines and stars, clear the rest */
-		if(r->type == SAO){
-			m = r->sao.mag;
-			if(m == UNKNOWNMAG)
-				m = r->sao.mpg;
-			if(m == UNKNOWNMAG)
-				continue;
-			m = dsize(m);
-			if(m < 3)
-				fillellipse(scr, map(ra, dec), m, m, display->white, ZP);
-			else{
-				ellipse(scr, map(ra, dec), m+1, m+1, 0, display->black, ZP);
-				fillellipse(scr, map(ra, dec), m, m, display->white, ZP);
-			}
-			continue;
-		}
-		if(r->type == Abell){
-			ellipse(scr, addpt(map(ra, dec), Pt(-3, 2)), 2, 1, 0, lightgrey, ZP);
-			ellipse(scr, addpt(map(ra, dec), Pt(3, 2)), 2, 1, 0, lightgrey, ZP);
-			ellipse(scr, addpt(map(ra, dec), Pt(0, -2)), 1, 2, 0, lightgrey, ZP);
-			continue;
-		}
-		switch(r->ngc.type){
-		case Galaxy:
-			ellipse(scr, map(ra, dec), 4, 3, 0, lightblue, ZP);
-			break;
-
-		case PlanetaryN:
-			p = map(ra, dec);
-			ellipse(scr, p, 3, 3, 0, green, ZP);
-			line(scr, Pt(p.x, p.y+4), Pt(p.x, p.y+7),
-				Endsquare, Endsquare, 0, green, ZP);
-			line(scr, Pt(p.x, p.y-4), Pt(p.x, p.y-7),
-				Endsquare, Endsquare, 0, green, ZP);
-			line(scr, Pt(p.x+4, p.y), Pt(p.x+7, p.y),
-				Endsquare, Endsquare, 0, green, ZP);
-			line(scr, Pt(p.x-4, p.y), Pt(p.x-7, p.y),
-				Endsquare, Endsquare, 0, green, ZP);
-			break;
-
-		case OpenCl:
-		case DiffuseN:
-		case NebularCl:
-			p = map(ra, dec);
-			r1.min = Pt(p.x-4, p.y-4);
-			r1.max = Pt(p.x+4, p.y+4);
-			if(r->ngc.type != DiffuseN)
-				draw(scr, r1, lightgrey, stipple, ZP);
-			if(r->ngc.type != OpenCl){
-				line(scr, Pt(p.x-4, p.y-4), Pt(p.x+4, p.y-4),
-					Endsquare, Endsquare, 0, green, ZP);
-				line(scr, Pt(p.x-4, p.y+4), Pt(p.x+4, p.y+4),
-					Endsquare, Endsquare, 0, green, ZP);
-				line(scr, Pt(p.x-4, p.y-4), Pt(p.x-4, p.y+4),
-					Endsquare, Endsquare, 0, green, ZP);
-				line(scr, Pt(p.x+4, p.y-4), Pt(p.x+4, p.y+4),
-					Endsquare, Endsquare, 0, green, ZP);
-			}
-			break;
-
-		case GlobularCl:
-			p = map(ra, dec);
-			ellipse(scr, p, 4, 4, 0, lightgrey, ZP);
-			line(scr, Pt(p.x-3, p.y), Pt(p.x+4, p.y),
-				Endsquare, Endsquare, 0, lightgrey, ZP);
-			line(scr, Pt(p.x, p.y-3), Pt(p.x, p.y+4),
-				Endsquare, Endsquare, 0, lightgrey, ZP);
-			break;
-
-		}
-	}
-	flushimage(display, 1);
-	displayimage(scr);
+	sort();
+	cull(nil, 1, 1);
+	return 1;
 }
 
 void
@@ -1371,6 +1166,11 @@ lookup(char *s, int doreset)
 		return;
 	}
 
+	if(t = alpha(s, "astro")){
+		astro(t, 0);
+		return;
+	}
+
 	if(t = alpha(s, "plate")){
 		pplate(t);
 		return;
@@ -1383,20 +1183,29 @@ lookup(char *s, int doreset)
 		x = strtod(t, &u);
 		if(u > t)
 			gam.gamma = x;
-		print("%.2f\n", gam.gamma);
+		Bprint(&bout, "%.2f\n", gam.gamma);
 		return;
 	}
 
 	if(t = alpha(s, "keep")){
-		if(!cull(t, 1))
+		if(!cull(t, 1, 0))
 			return;
 		goto Print;
 	}
 
 	if(t = alpha(s, "drop")){
-		if(!cull(t, 0))
+		if(!cull(t, 0, 0))
 			return;
 		goto Print;
+	}
+
+	for(i=0; planet[i].name[0]; i++){
+		if(t = alpha(s, planet[i].name)){
+			if(doreset)
+				reset();
+			loadplanet(i, nil);
+			goto Print;
+		}
 	}
 
 	for(i=0; names[i].name; i++){
@@ -1664,12 +1473,54 @@ rich_grp(int dg)
 	}
 }
 
+char*
+nameof(Record *r)
+{
+	NGCrec *n;
+	SAOrec *s;
+	Abellrec *a;
+	static char buf[128];
+	int i;
+
+	switch(r->type){
+	default:
+		return nil;
+	case SAO:
+		s = &r->sao;
+		if(s->name[0] == 0)
+			return nil;
+		if(s->name[0] >= 100){
+			i = snprint(buf, sizeof buf, "%C", greeklet[s->name[0]-100]);
+			if(s->name[1])
+				i += snprint(buf+i, sizeof buf-i, "%d", s->name[1]);
+		}else
+			i = snprint(buf, sizeof buf, " %d", s->name[0]);
+		snprint(buf+i, sizeof buf-i, " %s", constel[s->name[2]]);
+		break;
+	case NGC:
+		n = &r->ngc;
+		if(n->type >= Uncertain)
+			return nil;
+		if(n->ngc <= NNGC)
+			snprint(buf, sizeof buf, "NGC%4d ", n->ngc);
+		else
+			snprint(buf, sizeof buf, "IC%4d ", n->ngc-NNGC);
+		break;
+	case Abell:
+		a = &r->abell;
+		snprint(buf, sizeof buf, "Abell%4d", a->abell);
+		break;
+	}
+	return buf;
+}
+
 void
 prrec(Record *r)
 {
 	NGCrec *n;
 	SAOrec *s;
 	Abellrec *a;
+	Planetrec *p;
 	int i, rah, ram, dec, nn;
 	long key;
 
@@ -1677,6 +1528,21 @@ prrec(Record *r)
 	default:
 		fprint(2, "can't prrec type %d\n", r->type);
 		exits("type");
+
+	case Planet:
+		p = &r->planet;
+		Bprint(&bout, "%s", p->name);
+		Bprint(&bout, "\t%s %s",
+			hms(angle(p->ra)),
+			dms(angle(p->dec)));
+		Bprint(&bout, " %3.2f° %3.2f°",
+			p->az/(double)MILLIARCSEC, p->alt/(double)MILLIARCSEC);
+		Bprint(&bout, " %s",
+			ms(angle(p->semidiam)));
+		if(r->index <= 1)
+			Bprint(&bout, " %g", p->phase);
+		Bprint(&bout, "\n");
+		break;
 
 	case NGC:
 		n = &r->ngc;
@@ -1732,15 +1598,8 @@ prrec(Record *r)
 			DEG(angle(s->ddec))*(60*60));
 		Bprint(&bout, "  %.3s %c %.2s %ld %d",
 			s->spec, s->code, s->compid, s->hd, s->hdcode);
-		if(s->name[0]){
-			if(s->name[0] >= 100){
-				Bprint(&bout, " \"%C", greeklet[s->name[0]-100]);
-				if(s->name[1])
-					Bprint(&bout, "%d", s->name[1]);
-			}else
-				Bprint(&bout, " %d", s->name[0]);
-			Bprint(&bout, " %s\"", constel[s->name[2]]);
-		}
+		if(s->name[0])
+			Bprint(&bout, " \"%s\"", nameof(r));
 		Bprint(&bout, "\n");
 		printnames(r);
 		break;

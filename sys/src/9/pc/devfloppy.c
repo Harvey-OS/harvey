@@ -100,7 +100,7 @@ static int	floppyresult(void);
 static void	floppyrevive(void);
 static long	floppyseek(FDrive*, long);
 static int	floppysense(void);
-static void	floppywait(void);
+static void	floppywait(int);
 static long	floppyxfer(FDrive*, int, void*, long, long);
 
 Dirtab floppydir[]={
@@ -272,12 +272,24 @@ changed(Chan *c, FDrive *dp)
 		DPRINT("changed\n");
 		fldump();
 		dp->vers++;
-		floppysetdef(dp);
 		start = dp->t;
+		dp->maxtries = 3;	/* limit it when we're probing */
+
+		/* floppyon will fail if there's a controller but no drive */
 		dp->confused = 1;	/* make floppyon recal */
-		floppyon(dp);
+		if(floppyon(dp) < 0)
+			error(Eio);
+
+		/* seek to the first track */
 		floppyseek(dp, dp->t->heads*dp->t->tsize);
 		while(waserror()){
+			/*
+			 *  if first attempt doesn't reset changed bit, there's
+			 *  no floppy there
+			 */
+			if(inb(Pdir)&Fchange)
+				nexterror();
+
 			while(++dp->t){
 				if(dp->t == &floppytype[nelem(floppytype)])
 					dp->t = floppytype;
@@ -285,14 +297,21 @@ changed(Chan *c, FDrive *dp)
 					break;
 			}
 			floppydir[NFDIR*dp->dev].length = dp->t->cap;
-			floppyon(dp);
+
+			/* floppyon will fail if there's a controller but no drive */
+			if(floppyon(dp) < 0)
+				error(Eio);
+
 			DPRINT("changed: trying %s\n", dp->t->name);
 			fldump();
 			if(dp->t == start)
 				nexterror();
 		}
+
+		/* if the read succeeds, we've got the density right */
 		floppyxfer(dp, Fread, dp->cache, 0, dp->t->tsize);
 		poperror();
+		dp->maxtries = 20;
 	}
 
 	old = c->qid.vers;
@@ -467,7 +486,7 @@ floppykproc(void *)
 /*
  *  start a floppy drive's motor.
  */
-static void
+static int
 floppyon(FDrive *dp)
 {
 	int alreadyon;
@@ -501,6 +520,11 @@ floppyon(FDrive *dp)
 				break;
 	dp->lasttouched = m->ticks;
 	fl.selected = dp;
+
+	/* return -1 if this didn't work */
+	if(dp->confused)
+		return -1;
+	return 0;
 }
 
 /*
@@ -639,9 +663,9 @@ cmddone(void *)
  *  routine to try to clear any conditions.
  */
 static void
-floppywait(void)
+floppywait(int slow)
 {
-	tsleep(&fl.r, cmddone, 0, 5000);
+	tsleep(&fl.r, cmddone, 0, slow ? 5000 : 1000);
 	if(!cmddone(0)){
 		floppyintr(0);
 		fl.confused = 1;
@@ -662,7 +686,7 @@ floppyrecal(FDrive *dp)
 	fl.cmd[fl.ncmd++] = dp->dev;
 	if(floppycmd() < 0)
 		return -1;
-	floppywait();
+	floppywait(1);
 	if(fl.nstat < 2){
 		DPRINT("recalibrate: confused %ux\n", inb(Pmsr));
 		fl.confused = 1;
@@ -712,7 +736,7 @@ floppyrevive(void)
 		spllo();
 		fl.motor = 0;
 		fl.confused = 0;
-		floppywait();
+		floppywait(0);
 
 		/* mark all drives in an unknown state */
 		for(dp = fl.d; dp < &fl.d[fl.ndrive]; dp++)
@@ -746,7 +770,7 @@ floppyseek(FDrive *dp, long off)
 	fl.cmd[fl.ncmd++] = dp->tcyl * dp->t->steps;
 	if(floppycmd() < 0)
 		return -1;
-	floppywait();
+	floppywait(1);
 	if(fl.nstat < 2){
 		DPRINT("seek: confused\n");
 		fl.confused = 1;
@@ -779,10 +803,9 @@ floppyxfer(FDrive *dp, int cmd, void *a, long off, long n)
 	/* retry on error (until it gets ridiculous) */
 	tries = 0;
 	while(waserror()){
-		if(tries++ > 20)
+		if(tries++ >= dp->maxtries)
 			nexterror();
 		DPRINT("floppyxfer: retrying\n");
-		/*floppyon(dp);*/
 	}
 
 	dp->len = n;
@@ -825,7 +848,7 @@ floppyxfer(FDrive *dp, int cmd, void *a, long off, long n)
 	/*
 	 *  give bus to DMA, floppyintr() will read result
 	 */
-	floppywait();
+	floppywait(0);
 	dmaend(DMAchan);
 	poperror();
 
@@ -961,7 +984,7 @@ floppyformat(FDrive *dp, char *params)
 		/*
 		 *  give bus to DMA, floppyintr() will read result
 		 */
-		floppywait();
+		floppywait(1);
 		dmaend(DMAchan);
 		poperror();
 

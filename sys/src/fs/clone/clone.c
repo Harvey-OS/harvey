@@ -126,11 +126,6 @@ touser(void)
 	etherstart();
 
 	/*
-	 * planet/fil
-	ifinit(0);
-	 */
-
-	/*
 	 * read ahead processes
 	 */
 	userinit(rahead, 0, "rah");

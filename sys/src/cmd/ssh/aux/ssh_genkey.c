@@ -42,7 +42,7 @@ main(int argc, char **argv)
 
 	do {
 		host_key = rsagen(1024, 6, 0);
-	} while (mpsignif(host_key->pub.n) < 1024);
+	} while (mpsignif(host_key->pub.n) != 1024);
 
 	snprint(name, sizeof name, "%s.secret", base);
 	if ((fd = create(name, OWRITE, 0600)) < 0)

@@ -35,13 +35,6 @@ ignores constructs of
 and its standard preprocessors.
 It understands these options:
 .TP
-.B -a
-Label each line of output with its
-address in the input, in the notation of
-.IR acme (1)
-and
-.IR sam (1).
-.TP
 .B -b
 Check British spelling.
 .TP

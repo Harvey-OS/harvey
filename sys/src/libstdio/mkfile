@@ -4,9 +4,8 @@ LIB=/$objtype/lib/libstdio.a
 OFILES=\
 	_IO_getc.$O\
 	_IO_putc.$O\
-	_dtoa.$O\
-	_fconv.$O\
 	clearerr.$O\
+	dtoa.$O\
 	fclose.$O\
 	fdopen.$O\
 	feof.$O\
@@ -41,7 +40,6 @@ OFILES=\
 	sopenw.$O\
 	sprintf.$O\
 	sscanf.$O\
-	strtod.$O\
 	tmpfile.$O\
 	tmpnam.$O\
 	ungetc.$O\

@@ -145,6 +145,7 @@ mpmul(mpint *b1, mpint *b2, mpint *prod)
 	prod->top = 0;
 	mpbits(prod, (b1->top+b2->top+1)*Dbits);
 	mpvecmul(b1->p, b1->top, b2->p, b2->top, prod->p);
+	prod->top = b1->top+b2->top+1;
 	prod->sign = b1->sign*b2->sign;
 	mpnorm(prod);
 

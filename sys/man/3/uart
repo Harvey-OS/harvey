@@ -1,6 +1,6 @@
 .TH UART 3 
 .SH NAME
-duart, uart \- serial communication control
+duart, uart, eia, astar \- serial communication control
 .SH SYNOPSIS
 .nf
 .B bind -a #t /dev
@@ -71,6 +71,12 @@ Obey modem CTS signal if
 .I n
 is non-zero;
 else clear it.
+.TP
+.BI i n
+Enable input FIFO if
+.I n
+is non-zero;
+else disable.
 .TP
 .BI p c
 Set parity to odd if

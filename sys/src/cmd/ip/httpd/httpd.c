@@ -502,7 +502,7 @@ send(Connect *c)
 	if(verbose)
 		logit(c, "%s %s %lld", c->req.meth, c->req.uri, dir.length);
 
-	return sendfd(c, fd, &dir);
+	return sendfd(c, fd, &dir, nil, nil);
 }
 
 static Strings

@@ -40,7 +40,7 @@ get_ssh_cmsg_session_key(void) {
 	Packet *packet;
 	uchar cookie[8];
 	int prot_flags;
-	mpint *b;
+	mpint *b, *ob;
 	int i, s, session_key_len, host_key_len;
 
 	packet = getpacket(c2s);
@@ -72,11 +72,15 @@ get_ssh_cmsg_session_key(void) {
 	b = RSADecrypt(b, kbig);
 	s = (mpsignif(ksmall->pub.n)+7)/8;
 	debug(DBG_CRYPTO, "decrypted %B, unpadding %d\n", b, s);
-	b = RSAunpad(b, s);
+	ob = b;
+	b = RSAunpad(ob, s);
+	mpfree(ob);
 	debug(DBG_CRYPTO, "unpadded %B\n", b);
 	b = RSADecrypt(b, ksmall);
 	debug(DBG_CRYPTO, "decrypted %B, unpadding %d\n", b, SESSION_KEY_LENGTH);
+	ob = b;
 	b = RSAunpad(b, SESSION_KEY_LENGTH);
+	mpfree(ob);
 	debug(DBG_CRYPTO, "unpadded %B\n", b);
 	mptobe(b, session_key, SESSION_KEY_LENGTH, nil);
 
@@ -203,6 +207,7 @@ ssh_smsg_auth_tis(void) {
 			packet->type);
 	}
 	getstring(packet, response, 256);
+	mfree(packet);
 	debug(DBG_AUTH, "Response: %s\n", response);
 	if (chalreply(&c, response) < 0)
 		return 0;
@@ -304,6 +309,7 @@ void
 start_work(void) {
 	Packet *packet;
 	char cmd[1024];
+	ulong max;
 
 	while(1) {
 		packet = getpacket(c2s);
@@ -327,6 +333,11 @@ start_work(void) {
 			debug(DBG, "Command is %s\n", cmd);
 			run_cmd(cmd);
 			mfree(packet);
+			break;
+		case SSH_CMSG_MAX_PACKET_SIZE:
+			max = getlong(packet);
+			put_ssh_smsg_success();
+			syslog(0, syslogfile, "Max packet size %uld", max);
 			break;
 		case SSH_CMSG_REQUEST_COMPRESSION:
 			put_ssh_smsg_failure();

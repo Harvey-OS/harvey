@@ -12,6 +12,9 @@ cpu \- connection to cpu server
 .B -a
 .I auth-method
 ] [
+.B -e
+.I encryption-hash-algs
+] [
 .B -c
 .I cmd args ...
 ]
@@ -63,7 +66,8 @@ on the server, and then
 .I cpu
 exits.
 .PP
-The -a
+The
+.B -a
 command allows the user to specify the authentication mechanism used
 when connecting to the remote system.  The two possibilities for
 .I auth-method
@@ -90,6 +94,24 @@ This is used if the local host is in a different protection domain than
 the server or if the user wants to log into the server as a different
 user.
 .PD
+.PP
+The
+.B -e
+option specifies an encrytion and/or hash algorithm to
+use for the connection.  If both are specified, they must
+be space separated and comprise a single argument, so they
+must be quoted if in a shell command.  The default is
+.L rc4_256
+encryption and
+.L sha1
+hashing.  See
+.IR ssl (3)
+for details on possible algorithms.  The argument
+.L clear
+specifies no encryption algorithm and can be used to talk
+to older versions of the
+.B cpu
+service.
 .PP
 The
 .B -f

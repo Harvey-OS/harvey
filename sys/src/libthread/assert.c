@@ -4,7 +4,7 @@
 #include "threadimpl.h"
 
 
-int _threaddebuglevel;
+int _threaddebuglevel = 0;
 
 void
 _threaddebug(ulong l, char *fmt, ...)
@@ -14,8 +14,8 @@ _threaddebug(ulong l, char *fmt, ...)
 	int n;
 	char buf[256];
 
-	if ((l & _threaddebuglevel) == 0) return;
 	p = *procp;
+	if ((l & _threaddebuglevel) == 0) return;
 	if(p->curthread)
 		n = sprint(buf, "%d.%d ", p->pid, p->curthread->id);
 	else

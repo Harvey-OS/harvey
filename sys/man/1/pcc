@@ -25,6 +25,10 @@ The object files are then loaded using one of the loaders described in
 .IR 2l (1).
 The options are:
 .TP \w'\fL-D\ \fIname=def\ 'u
+.Bi -+
+Accept C++
+.B //
+comments.
 .BI -o " out"
 Place loader output in file
 .I out
@@ -125,6 +129,13 @@ Like
 .B -a
 except that functions for structures declared in included header files
 are omitted.
+.TP
+.B -F
+Enable vararg type checking as described in 
+.IR 2c (1).
+This is of limited use without the appropriate 
+.B #pragma 
+definitions.
 .PP
 The APE environment contains all of the include
 files and library routines specified in the ANSI C standard

@@ -1,3 +1,24 @@
 #!/bin/rc
 
-dosmnt 1 /n/c:
+rfork e
+
+if(test -f /dev/sd*/dos*){
+	dosmnt 1 /n/c:
+	exit
+}
+
+disk=''
+if(test -f /dev/hd0disk)
+	disk=/dev/hd0
+if not if(test -f /dev/sd0disk)
+	disk=/dev/sd0
+
+if(! ~ $disk '') {
+	if(test -f $disk^dos)
+		mount -c /srv/dos /n/c: $disk^dos
+	if not {
+		offset=`{disk/fdisk -p $disk^disk | awk '/^part dos / {print $3}'}
+		if(~ $#offset 1)
+			mount -c /srv/dos /n/c: $disk^disk^:^$offset
+	}
+}

@@ -66,6 +66,9 @@ Reverse: print lines that do not match the pattern.
 .B -f
 The pattern argument is the name of a file containing regular
 expressions one per line.
+.TP
+.B -b
+Don't buffer the output: write each output line as soon as it is discovered.
 .PD
 .PP
 Output lines are tagged by file name when there is more than one

@@ -1,0 +1,143 @@
+nl='
+'
+tab='	'
+fn log {
+	echo $* >>/srv/log
+}
+
+fn sigint {
+	# nothing happens
+}
+
+fn prompt {
+	def=()
+	what=()
+	if(~ $1 -d && ! ~ $#* 1){
+		def=$2
+		shift
+		shift
+	}
+
+	optstr=()
+	if(~ $1 -w && ! ~ $#* 1){
+		optstr=$2
+		shift
+		shift
+	}
+
+	pr=$1
+	shift
+
+	opts=($*)
+	if(~ $#opts 0) {
+		suf=' '
+	}
+	if not if(! ~ $#optstr 0) {
+		if(~ $optstr '') 
+			suf=' '
+		if not {
+			pr=$pr^' ('^$"optstr^')'
+			suf=''
+		}
+	}
+	if not {
+		pr=$pr^' ('^$1
+		shift
+		for(i)
+			pr=$pr^', '^$i
+		pr=$pr^')'
+		suf=''
+	}
+
+	if(~ $#def 1)
+		pr=$pr^$suf^'['^$def^']'
+	pr=$pr^': '
+
+
+	okay=no
+	while(~ $okay no) {
+# whatis opts
+		echo -n current >/dev/wctl
+		echo -n top >/dev/wctl
+		echo -n $pr >[1=2]
+		ifs='' {rd=`{read}}
+		if(~ $#rd 0)
+			exit notdone
+		rd=`{echo $rd}
+		if(~ $#rd 0 || ~ $rd '')
+			rd=$def
+
+		switch($#opts){
+		case 0
+			if(! ~ $rd '')
+				okay=yes
+		case *
+			if(~ $rd $opts)
+				okay=yes
+		}
+	}
+	echo -n $rd >/env/rd	# just in case
+}
+
+fn desc {
+	echo -n '	'^$1^'	- '
+	grep '^# desc: ' $1 | sed 's/# desc: //'
+}
+
+fn prereq {
+	grep '^# prereq:' $1 | sed 's/# prereq://'
+}
+
+fn mustdo {
+	echo You must `{grep '^# mustdo:' $1 | sed 's/# mustdo://'}
+}
+
+# there's no easy way to pass shell variables
+# up from children to parents; the parents have
+# to be coerced into noticing that the environment
+# changed, even when in the same environment group.
+#
+# instead, we explicitly export the variables we want
+# to percolate, and the parent calls coherence to reread
+# the variables.
+#
+# we just append to the vars file, so that later exports
+# override earlier ones; when we call coherence, 
+# the duplicates are thrown out.
+
+fn export {
+	{
+		for(i) {
+			if(! test -s /env/$i)
+				echo $i'=()'
+			if not
+				@{cd /tmp; path=() whatis $i}
+		}
+	} >> /tmp/vars
+}
+
+fn coherence {
+	if(test -f /tmp/vars) {
+		v=`{cat /tmp/vars | grep '^[a-z]*=' | sed 's/^([a-z]*)=.*/\1/' | sort -u}
+		. /tmp/vars
+		rm /tmp/vars
+		export $v
+	}
+}
+
+# ip device stats
+
+fn isipdevup {
+	grep -s $1 /net/ipifc/*/status >[2]/dev/null 
+}
+
+# make sure the kfs server for /dev/$1/fs is running.
+# we use /srv/kfs.$1
+#
+
+fn runkfs {
+	if(! test -f /srv/kfs.$1 || ! mount /srv/kfs.$1 /n/kremvax) {
+		rm -f /srv/kfs.$1 /srv/kfs.$1.cmd
+		disk/kfs -n$1 -f /dev/$1/fs
+	}
+}

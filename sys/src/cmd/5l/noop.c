@@ -155,20 +155,7 @@ noops(void)
 				autosize = 0;
 			}
 
-			q = p;
-			if(autosize) {
-				q = prg();
-				q->as = ASUB;
-				q->line = p->line;
-				q->from.type = D_CONST;
-				q->from.offset = autosize;
-				q->to.type = D_REG;
-				q->to.reg = REGSP;
-
-				q->link = p->link;
-				p->link = q;
-			} else
-			if(!(curtext->mark & LEAF)) {
+			if(!autosize && !(curtext->mark & LEAF)) {
 				if(debug['v'])
 					Bprint(&bso, "save suppressed in: %s\n",
 						curtext->from.sym->name);
@@ -179,20 +166,38 @@ noops(void)
 			if(curtext->mark & LEAF) {
 				if(curtext->from.sym)
 					curtext->from.sym->type = SLEAF;
+#ifdef optimise_time
+				if(autosize) {
+					q = prg();
+					q->as = ASUB;
+					q->line = p->line;
+					q->from.type = D_CONST;
+					q->from.offset = autosize;
+					q->to.type = D_REG;
+					q->to.reg = REGSP;
+
+					q->link = p->link;
+					p->link = q;
+				}
 				break;
+#else
+				if(!autosize)
+					break;
+#endif
 			}
 
 			q1 = prg();
 			q1->as = AMOVW;
+			q1->scond |= C_WBIT;
 			q1->line = p->line;
 			q1->from.type = D_REG;
 			q1->from.reg = REGLINK;
 			q1->to.type = D_OREG;
-			q1->from.offset = 0;
+			q1->to.offset = -autosize;
 			q1->to.reg = REGSP;
 
-			q1->link = q->link;
-			q->link = q1;
+			q1->link = p->link;
+			p->link = q1;
 			break;
 
 		case ARET:
@@ -209,6 +214,7 @@ noops(void)
 					break;
 				}
 
+#ifdef optimise_time
 				p->as = AADD;
 				p->from.type = D_CONST;
 				p->from.offset = autosize;
@@ -217,6 +223,7 @@ noops(void)
 
 				q = prg();
 				q->as = AB;
+				q->scond = p->scond;
 				q->line = p->line;
 				q->to.type = D_OREG;
 				q->to.offset = 0;
@@ -224,44 +231,31 @@ noops(void)
 
 				q->link = p->link;
 				p->link = q;
+
 				break;
+#endif
 			}
 			p->as = AMOVW;
+			p->scond |= C_PBIT;
 			p->from.type = D_OREG;
-			p->from.offset = 0;
+			p->from.offset = autosize;
 			p->from.reg = REGSP;
 			p->to.type = D_REG;
-			p->to.reg = 2;
-
-			q = p;
-			if(autosize) {
-				q = prg();
-				q->as = AADD;
-				q->line = p->line;
-				q->from.type = D_CONST;
-				q->from.offset = autosize;
-				q->to.type = D_REG;
-				q->to.reg = REGSP;
-
-				q->link = p->link;
-				p->link = q;
-			}
-
-			q1 = prg();
-			q1->as = AB;
-			q1->line = p->line;
-			q1->to.type = D_OREG;
-			q1->to.offset = 0;
-			q1->to.reg = 2;
-
-			q1->link = q->link;
-			q->link = q1;
+			p->to.reg = REGPC;
 			break;
 
 		become:
 			if(curtext->mark & LEAF) {
 
+				if(!autosize) {
+					p->as = AB;
+					p->from = zprg.from;
+					break;
+				}
+
+#ifdef optimise_time
 				q = prg();
+				q->scond = p->scond;
 				q->line = p->line;
 				q->as = AB;
 				q->from = zprg.from;
@@ -279,8 +273,10 @@ noops(void)
 				p->to.reg = REGSP;
 
 				break;
+#endif
 			}
 			q = prg();
+			q->scond = p->scond;
 			q->line = p->line;
 			q->as = AB;
 			q->from = zprg.from;
@@ -289,20 +285,11 @@ noops(void)
 			q->link = p->link;
 			p->link = q;
 
-			q = prg();
-			q->line = p->line;
-			q->as = AADD;
-			q->from.type = D_CONST;
-			q->from.offset = autosize;
-			q->to.type = D_REG;
-			q->to.reg = REGSP;
-			q->link = p->link;
-			p->link = q;
-
 			p->as = AMOVW;
+			p->scond |= C_PBIT;
 			p->from = zprg.from;
 			p->from.type = D_OREG;
-			p->from.offset = 0;
+			p->from.offset = autosize;
 			p->from.reg = REGSP;
 			p->to = zprg.to;
 			p->to.type = D_REG;

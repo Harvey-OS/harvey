@@ -162,8 +162,6 @@ strtomp(char *a, char **pp, int base, mpint *b)
 	sign = 1;
 	for(;; a++){
 		switch(*a){
-		case '+':
-			continue;
 		case '-':
 			sign *= -1;
 			continue;

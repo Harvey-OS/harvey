@@ -8,10 +8,8 @@ draw1(Image *dst, Rectangle *r, Image *src, Point *p0, Image *mask, Point *p1)
 	uchar *a;
 
 	a = bufimage(dst->display, 1+4+4+4+4*4+2*4+2*4);
-	if(a == 0){
-		_drawprint(2, "image draw: %r\n");
+	if(a == 0)
 		return;
-	}
 	if(src == nil)
 		src = dst->display->black;
 	if(mask == nil)

@@ -35,7 +35,7 @@ devread(Xfs *xf, long addr, void *buf, long n)
  */
 	if(xf->dev < 0)
 		return -1;
-	seek(xf->dev, xf->offset+addr*Sectorsize, 0);
+	seek(xf->dev, xf->offset+(vlong)addr*Sectorsize, 0);
 	nread = read(xf->dev, buf, n);
 	if (nread == n)
 		return 0;
@@ -54,7 +54,7 @@ devwrite(Xfs *xf, long addr, void *buf, long n)
 
 	if(xf->dev < 0)
 		return -1;
-	seek(xf->dev, xf->offset+addr*Sectorsize, 0);
+	seek(xf->dev, xf->offset+(vlong)addr*Sectorsize, 0);
 	nwrite = write(xf->dev, buf, n);
 	if (nwrite == n)
 		return 0;

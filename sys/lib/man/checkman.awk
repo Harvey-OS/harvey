@@ -92,6 +92,8 @@ $1 == ".SH" {
 				NF = 2
 			}
 		}
+		if(Sh == 0 && $2 != "NAME")
+			print FILENAME, "has no .SH NAME"
 		w = Weight[$2]
 		if (w) {
 			if (w < Sh)
@@ -110,6 +112,28 @@ $1 == ".EE" {
 		if(!inex)
 			print "Bad .EE in", FILENAME, ":", $0
 		inex = 0;
+}
+
+$1 == ".TF" {
+		smallspace = 1
+}
+
+$1 == ".PD" || $1 == ".SH" || $1 == ".SS" || $1 == ".TH" {
+		smallspace = 0
+}
+
+$1 == ".RE" {
+		lastre = 1
+}
+
+$1 == ".PP" {
+		if(smallspace && !lastre)
+			print "Possible missing .PD at " FILENAME ":" FNR
+		smallspace = 0
+}
+
+$1 != ".RE" {
+		lastre = 0
 }
 
 $0 ~ /^\.[A-Z].*\([1-9]\)/ {

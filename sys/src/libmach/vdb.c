@@ -36,7 +36,7 @@ Machdata mipsmach =
 };
 
 /*
- *	Debugger interface for little-endian mips
+ *	mips r4k little-endian
  */
 Machdata mipsmach2le =
 {
@@ -57,6 +57,30 @@ Machdata mipsmach2le =
 	mipsdas,		/* dissembler */
 	mipsinstlen,		/* instruction size */
 };
+
+/*
+ *	mips r4k big-endian
+ */
+Machdata mipsmach2be =
+{
+	{0, 0, 0, 0xD},		/* break point */
+	4,			/* break point size */
+
+	beswab,			/* short to local byte order */
+	beswal,			/* long to local byte order */
+	beswav,			/* vlong to local byte order */
+	risctrace,		/* C traceback */
+	riscframe,		/* Frame finder */
+	mipsexcep,		/* print exception */
+	0,			/* breakpoint fixup */
+	beieeesftos,		/* single precision float printer */
+	beieeedftos,		/* double precisioin float printer */
+	mipsfoll,		/* following addresses */
+	mipsinst,		/* print instruction */
+	mipsdas,		/* dissembler */
+	mipsinstlen,		/* instruction size */
+};
+
 
 static char *excname[] =
 {

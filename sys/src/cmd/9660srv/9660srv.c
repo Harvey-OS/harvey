@@ -23,6 +23,7 @@ static void	iwstat(Xfile*, Dir*);
 
 static char*	nstr(uchar*, int);
 static char*	rdate(uchar*, int);
+static int	getcontin(Xdata*, uchar*, uchar**);
 static int	getdrec(Xfile*, void*);
 static int	opendotdot(Xfile*, Xfile*);
 static int	showdrec(int, int, void*);
@@ -30,7 +31,7 @@ static long	gtime(uchar*);
 static long	l16(void*);
 static long	l32(void*);
 static void	newdrec(Xfile*, Drec*);
-static int	rzdir(int, Dir*, int, Drec*);
+static int	rzdir(Xfs*, Dir*, int, Drec*);
 
 Xfsub	isosub =
 {
@@ -47,9 +48,11 @@ iattach(Xfile *root)
 {
 	Xfs *cd = root->xf;
 	Iobuf *p; Voldesc *v; Isofile *fp; Drec *dp;
-	int fmt, blksize, i, haveplan9;
+	int fmt, blksize, i, n, l, haveplan9;
 	Iobuf *dirp;
-	uchar *q;
+	uchar dbuf[256];
+	Drec *rd = (Drec *)dbuf;
+	uchar *q, *s;
 
 	dirp = nil;
 	blksize = 0;
@@ -70,12 +73,14 @@ iattach(Xfile *root)
 
 			v = (Voldesc*)(dirp->iobuf);
 			haveplan9 = (strncmp((char*)v->z.boot.sysid, "PLAN 9", 6)==0);
-			if(noplan9) {
-				chat("ignoring plan9...");
-				haveplan9 = 0;
-			} else {
-				fmt = '9';
-				chat("plan9 iso...");
+			if(haveplan9){
+				if(noplan9) {
+					chat("ignoring plan9");
+					haveplan9 = 0;
+				} else {
+					fmt = '9';
+					chat("plan9 iso...");
+				}
 			}
 			continue;
 		}
@@ -149,6 +154,41 @@ chat("%d %d\n", haveplan9, nojoliet);
 	root->qid.path = CHDIR|l32(dp->addr);
 	putbuf(dirp);
 	poperror();
+	if(getdrec(root, rd) >= 0){
+		n = rd->reclen-(34+rd->namelen);
+		s = (uchar*)rd->name + rd->namelen;
+		if((ulong)s & 1){
+			s++;
+			n--;
+		}
+		if(n >= 7 && s[0] == 'S' && s[1] == 'P' && s[2] == 7 &&
+		   s[3] == 1 && s[4] == 0xBE && s[5] == 0xEF){
+			root->xf->issusp = 1;
+			root->xf->suspoff = s[6];
+			n -= root->xf->suspoff;
+			s += root->xf->suspoff;
+			for(; n >= 4; s += l, n -= l){
+				l = s[2];
+				if(s[0] == 'E' && s[1] == 'R'){
+					if(!norock && s[4] == 10 && memcmp(s+8, "RRIP_1991A", 10) == 0)
+						root->xf->isrock = 1;
+					break;
+				} else if(s[0] == 'C' && s[1] == 'E' && s[2] >= 28){
+					n = getcontin(root->xf->d, s, &s);
+					continue;
+				} else if(s[0] == 'R' && s[1] == 'R'){
+					if(!norock)
+						root->xf->isrock = 1;
+					break;
+				} else if(s[0] == 'S' && s[1] == 'T')
+					break;
+			}
+		}
+	}
+	if(root->xf->isrock)
+		chat("Rock Ridge...");
+	fp->offset = 0;
+	fp->doffset = 0;
 	return 0;
 }
 
@@ -240,8 +280,8 @@ iwalk(Xfile *f, char *name)
 	chat("%d \"%s\"...", len, name);
 	ip->offset = 0;
 	while(getdrec(f, d) >= 0) {
-		dvers = rzdir(f->xf->isplan9, &dir, ip->fmt, d);
-		if(casestrcmp(f->xf->isplan9, name, dir.name) != 0)
+		dvers = rzdir(f->xf, &dir, ip->fmt, d);
+		if(casestrcmp(f->xf->isplan9||f->xf->isrock, name, dir.name) != 0)
 			continue;
 		newdrec(f, d);
 		f->qid.path = dir.qid.path;
@@ -293,7 +333,7 @@ ireaddir(Xfile *f, char *buf, long offset, long count)
 			ip->doffset += DIRLEN;
 			continue;
 		}
-		rzdir(f->xf->isplan9, &d, ip->fmt, drec);
+		rzdir(f->xf, &d, ip->fmt, drec);
 		d.qid.vers = f->qid.vers;
 		rcnt += convD2M(&d, &buf[rcnt]);
 	}
@@ -361,7 +401,7 @@ istat(Xfile *f, Dir *d)
 {
 	Isofile *ip = f->ptr;
 
-	rzdir(f->xf->isplan9, d, ip->fmt, &ip->d);
+	rzdir(f->xf, d, ip->fmt, &ip->d);
 	d->qid.vers = f->qid.vers;
 	if(d->qid.path==f->xf->rootqid.path)
 		d->qid.path = CHDIR;
@@ -492,16 +532,22 @@ opendotdot(Xfile *f, Xfile *pf)
 	return 0;
 }
 
+enum {
+	Hname = 1,
+	Hmode = 2,
+};
+
 static int
-rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
+rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 {
-	int n, flags, i, j, lj, nl, vers;
+	int n, flags, i, j, lj, nl, vers, sysl, mode, l, have;
 	uchar *s;
 	char *p;
 	char buf[NAMELEN+UTFmax+1];
 	uchar *q;
 	Rune r;
 
+	have = 0;
 	flags = 0;
 	vers = -1;
 	d->qid.path = l32(dp->addr);
@@ -515,6 +561,7 @@ rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
 			/* fall through */
 		case 0:
 			d->name[0] = '.';
+			have = Hname;
 			break;
 		default:
 			d->name[0] = tolower(dp->name[0]);
@@ -538,14 +585,17 @@ rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
 		}
 	}
 
-	if(isplan9 && dp->reclen>34+dp->namelen) {
+	sysl = dp->reclen-(34+dp->namelen);
+	s = (uchar*)dp->name + dp->namelen;
+	if(((ulong)s) & 1) {
+		s++;
+		sysl--;
+	}
+	if(fs->isplan9 && sysl > 0) {
 		/*
 		 * get gid, uid, mode and possibly name
 		 * from plan9 directory extension
 		 */
-		s = (uchar*)dp->name + dp->namelen;
-		if(((ulong)s) & 1)
-			s++;
 		nl = *s;
 		if(nl >= NAMELEN)
 			nl = NAMELEN-1;
@@ -575,7 +625,10 @@ rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
 		d->mode = 0444;
 		switch(fmt) {
 		case 'z':
-			strcpy(d->gid, "iso9660");
+			if(fs->isrock)
+				strcpy(d->gid, "ridge");
+			else
+				strcpy(d->gid, "iso9660");
 			flags = dp->flags;
 			break;
 		case 'r':
@@ -601,6 +654,41 @@ rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
 			vers = strtoul(p+1, 0, 10);
 			memset(p, 0, NAMELEN-(p-d->name));
 		}
+		if(fs->issusp){
+			nl = 0;
+			s += fs->suspoff;
+			sysl -= fs->suspoff;
+			for(; sysl >= 4 && have != (Hname|Hmode); sysl -= l, s += l){
+				l = s[2];
+				if(s[0] == 'P' && s[1] == 'X' && s[3] == 1){
+					/* posix file attributes */
+					mode = l32(s+4);
+					d->mode = mode & 0777;
+					if((mode & 0170000) == 040000){
+						d->mode |= CHDIR;
+						d->qid.path |= CHDIR;
+					}
+					have |= Hmode;
+				} else if(s[0] == 'N' && s[1] == 'M' && s[3] == 1){
+					/* alternative name */
+					if((s[4] & ~1) == 0){
+						i = nl+l-5;
+						if(i >= NAMELEN)
+							i = NAMELEN-1;
+						if((i -= nl) > 0){
+							memmove(d->name+nl, s+5, i);
+							nl += i;
+						}
+						if(s[4] == 0)
+							have |= Hname;
+					}
+				} else if(s[0] == 'C' && s[1] == 'E' && s[2] >= 28){
+					sysl = getcontin(fs->d, s, &s);
+					continue;
+				} else if(s[0] == 'S' && s[1] == 'T')
+					break;
+			}
+		}
 	}
 	d->length = 0;
 	if((d->mode & CHDIR) == 0)
@@ -610,6 +698,26 @@ rzdir(int isplan9, Dir *d, int fmt, Drec *dp)
 	d->atime = gtime(dp->date);
 	d->mtime = d->atime;
 	return vers;
+}
+
+static int
+getcontin(Xdata *dev, uchar *p, uchar **s)
+{
+	long bn, off, len;
+	Iobuf *b;
+
+	bn = l32(p+4);
+	off = l32(p+12);
+	len = l32(p+20);
+	chat("getcontin %d...", bn);
+	b = getbuf(dev, bn);
+	if(b == 0){
+		*s = 0;
+		return 0;
+	}
+	*s = b->iobuf+off;
+	putbuf(b);
+	return len;
 }
 
 static char *

@@ -141,7 +141,8 @@ receive(int fd, uchar seqno)
 			if(debug){
 				fprint(dfd, "resync %c %d %d %ux %ux\n", buf[0],
 					buf[1], buf[2], sum, buf[131]);
-				fprint(dfd, "%*.*s\n", 128, 128, (char*)buf+3);
+				write(dfd, (char*)buf+3, 128);
+				fprint(dfd, "\n");
 			}
 			p = memchr(buf+1, Soh, 131);
 			if(p){

@@ -66,6 +66,7 @@ wmk(Image *i, Mousectl *mc, Channel *ck, Channel *cctl)
 	w->conswrite = chancreate(sizeof(Conswritemesg), 0);
 	w->consread =  chancreate(sizeof(Consreadmesg), 0);
 	w->mouseread =  chancreate(sizeof(Mousereadmesg), 0);
+	w->wctlread =  chancreate(sizeof(Consreadmesg), 0);
 	w->scrollr = r;
 	w->scrollr.max.x = r.min.x+Scrollwid;
 	w->lastsr = ZR;
@@ -188,17 +189,18 @@ winctl(void *arg)
 	char *t, part[3];
 	Window *w;
 	Mousestate *mp, m;
-	enum { WKey, WMouse, WMouseread, WCtl, WCwrite, WCread, NWALT };
+	enum { WKey, WMouse, WMouseread, WCtl, WCwrite, WCread, WWread, NWALT };
 	Alt alts[NWALT+1];
 	Mousereadmesg mrm;
 	Conswritemesg cwm;
 	Consreadmesg crm;
+	Consreadmesg cwrm;
 	Stringpair pair;
 	Wctlmesg wcm;
-	char buf[32];
+	char buf[4*12+1];
 
 	w = arg;
-	sprint(buf, "winctl id=%d", w->id);
+	snprint(buf, sizeof buf, "winctl-id%d", w->id);
 	threadsetname(buf);
 
 	mrm.cm = chancreate(sizeof(Mouse), 0);
@@ -208,6 +210,9 @@ winctl(void *arg)
 	crm.c1 = chancreate(sizeof(Stringpair), 0);
 	crm.c2 = chancreate(sizeof(Stringpair), 0);
 	crm.isflush = FALSE;
+	cwrm.c1 = chancreate(sizeof(Stringpair), 0);
+	cwrm.c2 = chancreate(sizeof(Stringpair), 0);
+	cwrm.isflush = FALSE;
 	
 
 	alts[WKey].c = w->ck;
@@ -228,6 +233,9 @@ winctl(void *arg)
 	alts[WCread].c = w->consread;
 	alts[WCread].v = &crm;
 	alts[WCread].op = CHANSND;
+	alts[WWread].c = w->wctlread;
+	alts[WWread].v = &cwrm;
+	alts[WWread].op = CHANSND;
 	alts[NWALT].op = CHANEND;
 
 	npart = 0;
@@ -241,6 +249,10 @@ winctl(void *arg)
 			alts[WCwrite].op = CHANNOP;
 		else
 			alts[WCwrite].op = CHANSND;
+		if(w->deleted || !w->wctlready)
+			alts[WWread].op = CHANNOP;
+		else
+			alts[WWread].op = CHANSND;
 		/* this code depends on NL and EOT fitting in a single byte */
 		/* kind of expensive for each loop; worth precomputing? */
 		if(w->holding)
@@ -300,10 +312,12 @@ winctl(void *arg)
 			continue;
 		case WCtl:
 			if(wctlmesg(w, wcm.type, wcm.r, wcm.image) == Exited){
-				free(crm.c1);
-				free(crm.c2);
-				free(mrm.cm);
-				free(cwm.cw);
+				chanfree(crm.c1);
+				chanfree(crm.c2);
+				chanfree(mrm.cm);
+				chanfree(cwm.cw);
+				chanfree(cwrm.c1);
+				chanfree(cwrm.c2);
 				threadexits(nil);
 			}
 			continue;
@@ -383,6 +397,18 @@ winctl(void *arg)
 			pair.ns = i;
 			send(crm.c2, &pair);
 			continue;
+		case WWread:
+			w->wctlready = 0;
+			recv(cwrm.c1, &pair);
+			if(w->deleted || w->i==nil)
+				pair.ns = sprint(pair.s, "");
+			else{
+				pair.ns = snprint(buf, sizeof buf, "%11d %11d %11d %11d ",
+					w->i->r.min.x, w->i->r.min.y, w->i->r.max.x, w->i->r.max.y);
+				memmove(pair.s, buf, 4*12);	/* avoid copying the NUL */
+			}
+			send(cwrm.c2, &pair);
+			continue;
 		}
 		if(!w->deleted)
 			flushimage(display, 1);
@@ -397,11 +423,26 @@ waddraw(Window *w, Rune *r, int nr)
 	w->nraw += nr;
 }
 
+/*
+ * Need to do this in a separate proc because if process we're interrupting
+ * is dying and trying to print tombstone, kernel is blocked holding p->debug lock.
+ */
+void
+interruptproc(void *v)
+{
+	int *notefd;
+
+	notefd = v;
+	write(*notefd, "interrupt", 9);
+	free(notefd);
+}
+
 void
 wkeyctl(Window *w, Rune r)
 {
 	uint q0 ,q1;
 	int nb;
+	int *notefd;
 
 	if(r == 0)
 		return;
@@ -439,7 +480,9 @@ wkeyctl(Window *w, Rune r)
 	case 0x7F:		/* send interrupt */
 		w->qh = w->nr;
 		wshow(w, w->qh);
-		write(w->notefd, "interrupt", 9);
+		notefd = emalloc(sizeof(int));
+		*notefd = w->notefd;
+		proccreate(interruptproc, notefd, 4096);
 		return;
 	case 0x08:	/* ^H: erase character */
 	case 0x15:	/* ^U: erase line */
@@ -576,7 +619,7 @@ wplumb(Window *w)
 	m->src = estrdup("rio");
 	m->dst = nil;
 	m->wdir = estrdup(w->dir);
-	m->type = strdup("text");
+	m->type = estrdup("text");
 	p0 = w->q0;
 	p1 = w->q1;
 	if(w->q1 > w->q0)
@@ -826,6 +869,7 @@ wctlmesg(Window *w, int m, Rectangle r, Image *i)
 			freeimage(i);
 			break;
 		}
+		w->wctlready = 1;
 		w->screenr = r;
 		strcpy(buf, w->name);
 		wresize(w, i, m==Moved);
@@ -874,16 +918,18 @@ wctlmesg(Window *w, int m, Rectangle r, Image *i)
 		wclosewin(w);
 		break;
 	case Exited:
-		frclear(w, FALSE);
+		frclear(w, TRUE);
 		close(w->notefd);
-		free(w->mc.c);
-		free(w->ck);
-		free(w->cctl);
-		free(w->conswrite);
-		free(w->consread);
-		free(w->mouseread);
+		chanfree(w->mc.c);
+		chanfree(w->ck);
+		chanfree(w->cctl);
+		chanfree(w->conswrite);
+		chanfree(w->consread);
+		chanfree(w->mouseread);
+		chanfree(w->wctlread);
 		free(w->raw);
 		free(w->r);
+		free(w->dir);
 		free(w);
 		break;
 	}
@@ -968,7 +1014,8 @@ wsetcursor(Window *w, int force)
 			p = &whitearrow;
 	}else
 		p = nil;
-	riosetcursor(p, force);
+	if(!menuing)
+		riosetcursor(p, force && !menuing);
 }
 
 void

@@ -218,7 +218,14 @@ blocking is enabled on all
 sessions, including those from trusted networks.
 .PP
 The command line format and address specifications
-conform to the notation described above.  Most
+conform to the notation described above.  If the parameters
+of the verb is sender addresses in UUCP format, the line
+must begin with an
+.B *
+character; if the parameters are one or more IP addresses,
+the
+.B *
+must precede the verb.  Most
 verbs cause messages to be rejected; verbs
 of this class generally select different error
 messages.  The remaining verbs specify addresses that

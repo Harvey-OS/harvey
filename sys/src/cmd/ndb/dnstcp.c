@@ -14,7 +14,7 @@ int	debug;
 int	cachedb = 1;
 int	testing;
 int	needrefresh;
-int resolver;
+int 	resolver;
 char	mntpt[Maxpath];
 char	*caller = "";
 ulong	now;
@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 
 	ARGBEGIN{
 	case 'd':
-		debug = 1;
+		debug++;
 		break;
 	case 'f':
 		dbfile = ARGF();
@@ -55,17 +55,20 @@ main(int argc, char *argv[])
 		break;
 	}ARGEND
 
+	if(debug < 2)
+		debug = 0;
+
 	if(argc > 0)
 		getcaller(argv[0]);
 
-	/* start syslog before we fork */
-	syslog(0, logfile, 0);
+	dninit();
 
 	snprint(mntpt, sizeof(mntpt), "/net%s", ext);
-	dninit();
 	snprint((char*)buf, sizeof(buf), "/net%s/ipifc", ext);
 	if(myipaddr(ipaddr, (char*)buf) < 0)
 		sysfatal("can't read my ip address");
+	syslog(0, logfile, "dnstcp call from %s to %I", caller, ipaddr);
+
 	db2cache(1);
 
 	setjmp(req.mret);

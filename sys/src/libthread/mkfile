@@ -8,7 +8,7 @@ OFILES=\
 	channel.$O\
 	assert.$O\
 	ref.$O\
-	${objtype}xadd.$O\
+	xinc$objtype.$O\
 
 HFILES=\
 	/sys/include/thread.h\
@@ -24,3 +24,7 @@ CFLAGS = $CFLAGS -DM$objtype
 syms: threadimpl.h
 	$CC -a thread.c	>syms
 	$CC -a channel.c >>syms
+
+assert.$O: assert.h threadimpl.h
+channel.$O: assert.h threadimpl.h
+thread.$O: assert.h threadimpl.h

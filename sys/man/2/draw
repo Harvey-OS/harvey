@@ -2,7 +2,7 @@
 .SH NAME
 Image, draw, gendraw, drawreplxy, drawrepl,
 replclipr, line, poly, fillpoly, bezier, bezspline, fillbezier, fillbezspline, ellipse,
-fillellipse, arc, fillarc, icossin, icossin2, border, string, greystring, stringn,
+fillellipse, arc, fillarc, icossin, icossin2, border, string, stringn,
 runestring, runestringn, stringbg, stringnbg, runestringbg,
 runestringnbg, _string, ARROW, drawsetdebug \- graphics functions
 .SH SYNOPSIS
@@ -48,7 +48,7 @@ void gendraw(Image *dst, Rectangle r,
 int  drawreplxy(int min, int max, int x)
 .PP
 .B
-int  drawrepl(Rectangle r, Point p)
+Point drawrepl(Rectangle r, Point p)
 .PP
 .B
 void replclipr(Image *i, int repl, Rectangle clipr)
@@ -131,12 +131,6 @@ void border(Image *dst, Rectangle r, int i, Image *color, Point sp)
 .PP
 .B
 Point string(Image *dst, Point p, Image *src, Point sp,
-.br
-.B
-		   Font *f, char *s)
-.PP
-.B
-Point greystring(Image *dst, Point p, Image *src, Point sp,
 .br
 .B
 		   Font *f, char *s)

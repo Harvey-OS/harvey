@@ -23,93 +23,78 @@ setenv(char *var, char *val)
 }
 
 static void
-dopackets(int fdin) {
+dopackets(int fdin)
+{
 	char buf[1024];
 	ulong hdr[2];
-	int m, n, pid;
+	int m, n;
 	Packet *packet;
 
-	if ((pid = rfork(RFFDG|RFPROC|RFNOWAIT)) < 0)
-		syserror("dopackets: fork: %r");
-	if (pid == 0) {
-		/* Child */
-		if (dup(fdin, 0) < 0) syserror("dopackets: dup: %r");
-		for (;;) {
-			if ((n = read(0, hdr, 8)) == 0) {
-				debug(DBG_PROC, "Dopackets exiting\n");
-				exits(0);
-			}
-			if (n != 8) {
-				if (n < 0)
-					syserror("dopackets: read: %r");
-				else
-					syserror("dopackets: programming bug #13");
-			}
-			n = hdr[0];
-			m = readn(0, &buf[hdr[0]-n], n);
-			if(m != n)
-				syserror("dopackets: read: %r");
-			packet = (Packet *)mmalloc(sizeof(*packet)
-					+4		/* crc size */
-					+4+hdr[0]);	/* string length */
-			packet->type = hdr[1];
-			packet->length = 0;
-			packet->pos = packet->data;
-			switch(packet->type) {
-			case SSH_SMSG_EXITSTATUS:
-				debug(DBG_PROTO, "Sending exit status, dopackets exiting\n");
-				putlong(packet, 0);
-				debug(DBG_PROC, "Exit status = 0\n");
-				break;
-			case SSH_MSG_DISCONNECT:
-				debug(DBG_PROC|DBG_PROTO,
-				    "Sending disconnect, dopackets exiting\n");
-				putstring(packet, buf, hdr[0]);
-				putpacket(packet, s2c);
-				exits(0);
-			default:
-				debug(DBG_IO, "Sending %d bytes of data\n",
-					hdr[0]);
-				putstring(packet, buf, hdr[0]);
-			}
-			putpacket(packet, s2c);
+	for (;;) {
+		if ((n = read(fdin, hdr, 8)) == 0) {
+			debug(DBG_PROC, "Dopackets exiting\n");
+			exits(0);
 		}
+		if (n != 8) {
+			if (n < 0)
+				syserror("dopackets: read: %r");
+			else
+				syserror("dopackets: programming bug #13");
+		}
+		n = hdr[0];
+		m = readn(fdin, &buf[hdr[0]-n], n);
+		if(m != n)
+			syserror("dopackets: read: %r");
+		packet = (Packet *)mmalloc(sizeof(*packet)
+				+4		/* crc size */
+				+4+hdr[0]);	/* string length */
+		packet->type = hdr[1];
+		packet->length = 0;
+		packet->pos = packet->data;
+		switch(packet->type) {
+		case SSH_SMSG_EXITSTATUS:
+			debug(DBG_PROTO, "Sending exit status, dopackets exiting\n");
+			putlong(packet, 0);
+			debug(DBG_PROC, "Exit status = 0\n");
+			break;
+		case SSH_MSG_DISCONNECT:
+			debug(DBG_PROC|DBG_PROTO,
+			    "Sending disconnect, dopackets exiting\n");
+			putstring(packet, buf, hdr[0]);
+			putpacket(packet, s2c);
+			exits(0);
+		default:
+			debug(DBG_IO, "Sending %d bytes of data\n",
+				hdr[0]);
+			putstring(packet, buf, hdr[0]);
+		}
+		putpacket(packet, s2c);
 	}
 }
 
 static void
-dooutput(int msgtype, int fdin, int fdout) {
+dooutput(int msgtype, int fdin, int fdout)
+{
 	uchar buf[1024+8];
 	ulong *hdr;
-	int n, pid;
+	int n;
 
-	if ((pid = rfork(RFFDG|RFPROC|RFNOWAIT)) < 0)
-		syserror("dooutput: fork: %r");
-	if (pid == 0) {
-		/* Child */
-		if (dup(fdin, 0) < 0 ||
-		    dup(fdout, 1) < 0) syserror("dooutput: dup: %r");
-		while ((n = read(0, &buf[8], 1024)) > 0) {
-			hdr = (ulong *)buf;
-			hdr[0] = n;
-			hdr[1] = msgtype;
-			write(1, buf, n + 8);
-		}
-		debug(DBG_PROC, "Dooutput exiting\n");
-		exits("0");
+	while ((n = read(fdin, &buf[8], 1024)) > 0) {
+		hdr = (ulong *)buf;
+		hdr[0] = n;
+		hdr[1] = msgtype;
+		write(fdout, buf, n + 8);
 	}
+	debug(DBG_PROC, "Dooutput exiting\n");
+	exits("0");
 }
 
 static void
-doinput(int fdout) {
+doinput(int fdout)
+{
 	Packet *packet;
 	ulong n;
-	int pid;
 
-	if ((pid = rfork(RFFDG|RFPROC|RFNOWAIT)) < 0)
-		syserror("doinput: fork: %r");
-	if (pid) return;
-	/* Child */
 	while(1) {
 		packet = getpacket(c2s);
 		if (packet == 0) {
@@ -211,16 +196,64 @@ run_cmd(char *cmd) {
 	close(pipestderr[1]);
 	close(pipestdout[1]);
 
-	dopackets(pipestdall[0]);
-	dooutput(SSH_SMSG_STDOUT_DATA, pipestdout[0], pipestdall[1]);
-	dooutput(SSH_SMSG_STDERR_DATA, pipestderr[0], pipestdall[1]);
+	switch(rfork(RFFDG|RFPROC|RFNOWAIT)){
+	case -1:
+		syserror("dopackets: fork: %r");
+		break;
+	case 0:
+		close(0);
+		close(pipestdin[1]);
+		close(pipestdout[0]);
+		close(pipestderr[0]);
+		close(pipestdall[1]);
+		dopackets(pipestdall[0]);
+		exits(0);
+	}
+
+	switch(rfork(RFFDG|RFPROC|RFNOWAIT)){
+	case -1:
+		syserror("dooutput: fork: %r");
+		break;
+	case 0:
+		close(0);
+		close(1);
+		close(pipestdin[1]);
+		close(pipestderr[0]);
+		close(pipestdall[0]);
+		dooutput(SSH_SMSG_STDOUT_DATA, pipestdout[0], pipestdall[1]);
+		exits(0);
+	}
+
+	switch(rfork(RFFDG|RFPROC|RFNOWAIT)){
+	case -1:
+		syserror("dooutput: fork: %r");
+		break;
+	case 0:
+		close(0);
+		close(1);
+		close(pipestdin[1]);
+		close(pipestdout[0]);
+		close(pipestdall[0]);
+		dooutput(SSH_SMSG_STDERR_DATA, pipestderr[0], pipestdall[1]);
+		exits(0);
+	}
 	debug(DBG_PROC, "Starting %s\n", cmd);
 
 	close(pipestdall[0]);
 	close(pipestderr[0]);
 	close(pipestdout[0]);
 
-	doinput(pipestdin[1]);
+	switch(rfork(RFFDG|RFPROC|RFNOWAIT)){
+	case -1:
+		syserror("doinput: fork: %r");
+		break;
+	case 0:
+		close(pipestdall[1]);
+		doinput(pipestdin[1]);
+		exits(0);
+	}
+
+	close(pipestdin[1]);
 
 	debug(DBG_PROC, "Waiting for exit status\n");
 	do {

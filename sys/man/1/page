@@ -156,10 +156,11 @@ Typing a
 removes an image from the working set.
 .PP
 To go to a specific page, one can type its number followed by enter.
-Typing an up arrow, backspace, or minus goes back to the previous page.
-Typing any other character or clicking button 2 advances to the next
-page.
-Button 3 has a menu of the
+Typing left arrow, backspace, or minus displays the previous page.
+Clicking button 2 or typing right arrow, space, or enter displays the next page.
+The up and down arrow pan up and down one half screen height,
+changing pages when panning off the top or bottom of the page.
+Button 3 raises a menu of the
 pages
 to be selected for viewing in any order.
 .PP

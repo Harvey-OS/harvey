@@ -6,7 +6,7 @@
 
 /*
  * Hacked version for writing from Rawimage to file.
- * Assumes ldepth 3, single channel.
+ * Assumes 8 bits per component.
  */
 
 #define	HSHIFT	3	/* HSHIFT==5 runs slightly faster, but hash table is 64x bigger */
@@ -59,13 +59,25 @@ writerawimage(int fd, Rawimage *i)
 		bpl = Dx(r);
 		desc = GREY8;
 		break;
+	case CYA16:
+		bpl = 2*Dx(r);
+		desc = CHAN2(CGrey, 8, CAlpha, 8);
+		break;
 	case CRGBV:
 		bpl = Dx(r);
 		desc = CMAP8;
 		break;
+	case CRGBVA16:
+		bpl = 2*Dx(r);
+		desc = CHAN2(CMap, 8, CAlpha, 8);
+		break;
 	case CRGB24:
 		bpl = 3*Dx(r);
 		desc = RGB24;
+		break;
+	case CRGBA32:
+		bpl = 4*Dx(r);
+		desc = RGBA32;
 		break;
 	}
 	n = Dy(r)*bpl;

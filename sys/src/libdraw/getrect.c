@@ -105,7 +105,7 @@ drawgetrect(Rectangle rc, int up)
 	 * to complain, but we silently make a mess.
 	 */
 	if(up && tmp[0]!=nil)
-		if(Dx(tmp[0]->r)<Dx(rc) || Dy(tmp[0]->r)<Dy(rc))
+		if(Dx(tmp[0]->r)<Dx(rc) || Dy(tmp[2]->r)<Dy(rc))
 			freetmp();
 	if(tmp[0] == 0){
 		r = Rect(0, 0, max(Dx(display->image->r), Dx(rc)), W);

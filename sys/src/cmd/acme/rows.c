@@ -489,7 +489,7 @@ rowload(Row *row, char *file, int initing)
 			goto Rescue2;
 		l[Blinelen(b)-1] = 0;
 		if(*l && strcmp(l, fontnames[i])!=0)
-			rfget(i, TRUE, i==0 && initing, strdup(l));
+			rfget(i, TRUE, i==0 && initing, estrdup(l));
 	}
 	if(initing && row->ncol==0)
 		rowinit(row, screen->clipr);
@@ -557,7 +557,7 @@ rowload(Row *row, char *file, int initing)
 				goto Rescue2;
 			t = emalloc(Blinelen(b)+1);
 			memmove(t, l, Blinelen(b));
-			run(nil, t, r, nr, TRUE, nil, nil);
+			run(nil, t, r, nr, TRUE, nil, nil, FALSE);
 			/* r is freed in run() */
 			continue;
 		case 'f':
@@ -678,4 +678,17 @@ Rescue2:
 	warning(nil, "bad load file %s:%d\n", file, line);
 	Bterm(b);
 	goto Rescue1;
+}
+
+void
+allwindows(void (*f)(Window*, void*), void *arg)
+{
+	int i, j;
+	Column *c;
+
+	for(i=0; i<row.ncol; i++){
+		c = row.col[i];
+		for(j=0; j<c->nw; j++)
+			(*f)(c->w[j], arg);
+	}
 }

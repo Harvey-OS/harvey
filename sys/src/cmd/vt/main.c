@@ -102,6 +102,8 @@ main(int argc, char **argv)
 void
 initialize(int argc, char **argv)
 {
+	int dayglo = 1;
+
 	rfork(RFENVG|RFNAMEG|RFNOTEG);
 
 	term = "vt100";
@@ -110,6 +112,9 @@ initialize(int argc, char **argv)
 	case '2':
 		term = "vt220";
 		fk = vt220fk;
+		break;
+	case 's': /* for sape */
+		dayglo = 0;
 		break;
 	}ARGEND;
 
@@ -130,8 +135,8 @@ initialize(int argc, char **argv)
 	blocked = 0;
 	NS = font->height ;
 	CW = stringwidth(font, "m");
-	text = allocimage(display, Rect(0,0,1,1), screen->chan, 1, 0x00F0F0F0);
-	background = allocimage(display, Rect(0,0,1,1), screen->chan, 1, 0x33333333);
+	text = allocimage(display, Rect(0,0,1,1), screen->chan, 1, dayglo?0x00F0F0F0:0);
+	background = allocimage(display, Rect(0,0,1,1), screen->chan, 1, dayglo?0x33333333:-1);
 	bordercol = allocimage(display, Rect(0,0,1,1), screen->chan, 1, 0xCCCCCCCC);
 	cursback = allocimage(display, Rect(0, 0, CW+1, NS+1), screen->chan, 0, DNofill);
 	red =  allocimage(display, Rect(0, 0, CW+1, NS+1), screen->chan, 1, DRed);

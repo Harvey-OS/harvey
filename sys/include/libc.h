@@ -22,6 +22,7 @@ extern	char*	strcat(char*, char*);
 extern	char*	strchr(char*, int);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
+extern	char*	strecpy(char*, char*, char*);
 extern	char*	strdup(char*);
 extern	char*	strncat(char*, char*, long);
 extern	char*	strncpy(char*, char*, long);
@@ -52,9 +53,24 @@ extern	int	runelen(long);
 extern	int	runenlen(Rune*, int);
 extern	int	fullrune(char*, int);
 extern	int	utflen(char*);
+extern	int	utfnlen(char*, long);
 extern	char*	utfrune(char*, long);
 extern	char*	utfrrune(char*, long);
 extern	char*	utfutf(char*, char*);
+
+extern	Rune*	runestrcat(Rune*, Rune*);
+extern	Rune*	runestrchr(Rune*, Rune);
+extern	int	runestrcmp(Rune*, Rune*);
+extern	Rune*	runestrcpy(Rune*, Rune*);
+extern	Rune*	runestrncpy(Rune*, Rune*, long);
+extern	Rune*	runestrecpy(Rune*, Rune*, Rune*);
+extern	Rune*	runestrdup(Rune*);
+extern	Rune*	runestrncat(Rune*, Rune*, long);
+extern	int	runestrncmp(Rune*, Rune*, long);
+extern	Rune*	runestrrchr(Rune*, Rune);
+extern	long	runestrlen(Rune*);
+extern	Rune*	runestrstr(Rune*, Rune*);
+
 extern	Rune	tolowerrune(Rune);
 extern	Rune	totitlerune(Rune);
 extern	Rune	toupperrune(Rune);
@@ -136,6 +152,8 @@ extern	int	numbconv(va_list*, Fconv*);
 extern	void	strconv(char*, Fconv*);
 extern	void	Strconv(Rune*, Fconv*);
 extern	int	fltconv(va_list*, Fconv*);
+extern	char	*dtoa(double, int, int, int*, int*, char**);
+extern	void	freedtoa(char*);
 /*
  * random number
  */
@@ -160,6 +178,8 @@ extern	double	NaN(void);
 extern	double	Inf(int);
 extern	int	isNaN(double);
 extern	int	isInf(double, int);
+extern	ulong	umuldiv(ulong, ulong, ulong);
+extern	long	muldiv(long, long, long);
 
 extern	double	pow(double, double);
 extern	double	atan2(double, double);
@@ -503,6 +523,9 @@ extern char *argv0;
 #define	ARGEND		SET(_argt);USED(_argt,_argc,_args);}USED(argv, argc);
 #define	ARGF()		(_argt=_args, _args="",\
 				(*_argt? _argt: argv[1]? (argc--, *++argv): 0))
+#define	EARGF(x)		(_argt=_args, _args="",\
+				(*_argt? _argt: argv[1]? (argc--, *++argv): ((x), abort(), (char*)0)))
+
 #define	ARGC()		_argc
 
 /* this is used by sbrk and brk,  it's a really bad idea to redefine it */

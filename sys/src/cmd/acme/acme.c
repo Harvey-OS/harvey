@@ -11,6 +11,9 @@
 #include <plumb.h>
 #include "dat.h"
 #include "fns.h"
+	/* for generating syms in mkfile only: */
+	#include <bio.h>
+	#include "edit.h"
 
 void	mousethread(void*);
 void	keyboardthread(void*);
@@ -102,8 +105,10 @@ threadmain(int argc, char *argv[])
 	objtype = getenv("objtype");
 	home = getenv("home");
 	p = getenv("tabstop");
-	if(p != nil)
+	if(p != nil){
 		maxtab = strtoul(p, nil, 0);
+		free(p);
+	}
 	if(maxtab == 0)
 		maxtab = 4; 
 	putenv("font", fontnames[0]);
@@ -140,6 +145,7 @@ threadmain(int argc, char *argv[])
 	cxfidalloc = chancreate(sizeof(Xfid*), 0);
 	cxfidfree = chancreate(sizeof(Xfid*), 0);
 	cerr = chancreate(sizeof(char*), 0);
+	cedit = chancreate(sizeof(int), 0);
 	cexit = chancreate(sizeof(int), 0);
 	if(cwait==nil || ccommand==nil || ckill==nil || cxfidalloc==nil || cxfidfree==nil || cerr==nil || cexit==nil){
 		fprint(2, "acme: can't create initial channels: %r\n");
@@ -297,7 +303,7 @@ acmeerrorproc(void *)
 	buf = emalloc(8192+1);
 	while((n=read(errorfd, buf, 8192)) >= 0){
 		buf[n] = '\0';
-		sendp(cerr, strdup(buf));
+		sendp(cerr, estrdup(buf));
 	}
 }
 
@@ -312,7 +318,7 @@ acmeerrorinit(void)
 	sprint(acmeerrorfile, "/srv/acme.%s.%d", getuser(), mainpid);
 	fd = create(acmeerrorfile, OWRITE, 0666);
 	if(fd < 0){
-		remove(buf);
+		remove(acmeerrorfile);
   		fd = create(acmeerrorfile, OWRITE, 0666);
 		if(fd < 0)
 			error("can't create acmeerror file");
@@ -638,6 +644,8 @@ waitthread(void *)
 			qunlock(&row);
     Freecmd:
 			if(c){
+				if(c->iseditcmd)
+					sendul(cedit, 0);
 				free(c->text);
 				free(c->av);
 				free(c->name);
@@ -732,7 +740,7 @@ rfget(int fix, int save, int setfont, char *name)
 				r = fontcache[i];
 				goto Found;
 			}
-		f = openfont(display, name);	/* BUG: should use maxldepth */
+		f = openfont(display, name);
 		if(f == nil){
 			warning(nil, "can't open font file %s: %r\n", name);
 			return nil;

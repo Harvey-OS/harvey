@@ -1,0 +1,37 @@
+#!/bin/rc
+
+# desc: initialize the plan 9 file system
+# prereq: prepdisk
+
+switch($1) {
+case go
+	doinit=yes
+	if(iskfs /dev/$disk/fs) {
+		echo 'A kfs file system already exists on /dev/'^$disk^'/fs.'
+		echo 'Reinitializing it will lose all data.'
+		echo
+
+		prompt 'Really reinitialize the disk' y n
+		switch($rd){
+		case n
+			doinit=no
+		}
+	}
+
+	if(~ $doinit yes) {
+		log Initializing file system /dev/$disk/fs
+		unmount /n/kfs >[2]/dev/null
+		rm -f /srv/kfs.$disk /srv/kfs.$disk.cmd
+		disk/kfs -n$disk -rb4096 -f /dev/$disk/fs >>[2]/srv/log
+	}
+
+case checkdone
+	if(test -f /dev/$disk/fs && ! test -f /srv/kfs.$disk) {
+		log Starting kfs file server for /dev/$disk/fs
+		disk/kfs -n$disk -f /dev/$disk/fs >>[2]/srv/log
+	}
+	if(! iskfs /dev/$disk/fs || ! test -f /srv/kfs.$disk) {
+		reamfs=notdone
+		export reamfs
+	}
+}

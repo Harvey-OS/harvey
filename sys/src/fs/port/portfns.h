@@ -305,14 +305,6 @@ void	igmprecv(Msgbuf*, Ifc*);
 void	tcprecv(Msgbuf*, Ifc*);
 void	iprouteinit(void);
 
-void	filrecv(Msgbuf*, Ifc*);
-void	filoput(Msgbuf*);
-void*	ifroute(ulong);
-ulong	ifaddr(void*);
-void	ifwrite(void*, Msgbuf*, int);
-void	ifinit(int);
-void*	ifroute(ulong);
-
 void	getipa(Ifc*, int);
 int	ipforme(uchar*, Ifc*);
 int	ipcsum(uchar*);

@@ -2,7 +2,6 @@
 #define	DEG(x)	((x)/PI_180)
 #define ARCSECONDS_PER_RADIAN	(DEG(1)*3600)
 #define input_nybble(infile)    input_nbits(infile,4)
-#define	NULL	0
 
 typedef float	Angle;	/* in radians */
 

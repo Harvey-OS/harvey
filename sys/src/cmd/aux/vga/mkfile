@@ -10,6 +10,7 @@ DIST=
 TARG=vga
 
 OFILES=\
+	3dfx.$O\
 	ark2000pv.$O\
 	att20c49x.$O\
 	att21c498.$O\

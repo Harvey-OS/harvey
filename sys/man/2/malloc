@@ -139,6 +139,7 @@ routines.
 .SH SOURCE
 .B /sys/src/libc/port/malloc.c
 .SH SEE ALSO
+.IR leak (1),
 .IR brk (2),
 .IR debugmalloc (2),
 .IR getcallerpc (2),

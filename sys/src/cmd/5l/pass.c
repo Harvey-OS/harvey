@@ -109,6 +109,44 @@ undef(void)
 			diag("%s: not defined\n", s->name);
 }
 
+Prog*
+brchain(Prog *p)
+{
+	int i;
+
+	for(i=0; i<20; i++) {
+		if(p == P || p->as != AB)
+			return p;
+		p = p->cond;
+	}
+	return P;
+}
+
+int
+relinv(int a)
+{
+	switch(a) {
+	case ABEQ:	return ABNE;
+	case ABNE:	return ABEQ;
+	case ABCS:	return ABCC;
+	case ABHS:	return ABLO;
+	case ABCC:	return ABCS;
+	case ABLO:	return ABHS;
+	case ABMI:	return ABPL;
+	case ABPL:	return ABMI;
+	case ABVS:	return ABVC;
+	case ABVC:	return ABVS;
+	case ABHI:	return ABLS;
+	case ABLS:	return ABHI;
+	case ABGE:	return ABLT;
+	case ABLT:	return ABGE;
+	case ABGT:	return ABLE;
+	case ABLE:	return ABGT;
+	}
+	diag("unknown relation: %s\n", anames[a]);
+	return a;
+}
+
 void
 follow(void)
 {
@@ -154,7 +192,7 @@ loop:
 				i--;
 				continue;
 			}
-			if(a == AB || a == ARET || a == ARFE)
+			if(a == AB || (a == ARET && q->scond == 14) || a == ARFE)
 				goto copy;
 			if(!q->cond || (q->cond->mark&FOLL))
 				continue;
@@ -175,7 +213,7 @@ loop:
 				}
 				lastp->link = r;
 				lastp = r;
-				if(a == AB || a == ARET || a == ARFE)
+				if(a == AB || (a == ARET && q->scond == 14) || a == ARFE)
 					return;
 				r->as = ABNE;
 				if(a == ABNE)
@@ -201,15 +239,27 @@ loop:
 	p->mark |= FOLL;
 	lastp->link = p;
 	lastp = p;
-	if(a == AB || a == ARET || a == ARFE){
+	if(a == AB || (a == ARET && p->scond == 14) || a == ARFE){
 		return;
 	}
 	if(p->cond != P)
 	if(a != ABL && p->link != P) {
+		q = brchain(p->link);
+		if(a != ATEXT && a != ABCASE)
+		if(q != P && (q->mark&FOLL)) {
+			p->as = relinv(a);
+			p->link = p->cond;
+			p->cond = q;
+		}
 		xfol(p->link);
-		p = p->cond;
-		if(p == P || (p->mark&FOLL))
+		q = brchain(p->cond);
+		if(q == P)
+			q = p->cond;
+		if(q->mark&FOLL) {
+			p->cond = q;
 			return;
+		}
+		p = q;
 		goto loop;
 	}
 	p = p->link;

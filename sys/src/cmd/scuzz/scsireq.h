@@ -108,6 +108,10 @@ enum {					/* SCSI command codes */
 	ScmdEStatus	= 0xB8,		/* read element status */
 	ScmdMExchange	= 0xA6,		/* exchange medium */
 	ScmdEposition	= 0x2B,		/* position to element */
+
+	ScmdReadDVD	= 0xAD,		/* read dvd structure */
+	ScmdReportKey	= 0xA4,		/* read dvd key */
+	ScmdSendKey	= 0xA3,		/* write dvd key */
 };
 
 extern long SRready(ScsiReq*);
@@ -152,10 +156,14 @@ extern long SReinitialise(ScsiReq*);		/* CHANGER commands */
 extern long SRestatus(ScsiReq*, uchar, uchar*, int);
 extern long SRmmove(ScsiReq*, int, int, int, int);
 
+extern long SRdvdread(ScsiReq*, uchar*, int, ulong, int);	/* DVD commands */
+extern long SRdvdreportkey(ScsiReq*, uchar*, int, ulong, int);
+extern long SRdvdsendkey(ScsiReq*, uchar*, int, int);
+
 extern long SRrequest(ScsiReq*);
-extern int SRclose(ScsiReq*);
-extern int SRopenraw(ScsiReq*, char*);
-extern int SRopen(ScsiReq*, char*);
+extern int  SRclose(ScsiReq*);
+extern int  SRopenraw(ScsiReq*, char*);
+extern int  SRopen(ScsiReq*, char*);
 
 extern void makesense(ScsiReq*);
 

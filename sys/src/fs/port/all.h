@@ -53,6 +53,7 @@ Rabuf*	rabuffree;
 QLock	reflock;
 Lock	rabuflock;
 Tlock	tlocks[NTLOCK];
+Lock	tlocklock;
 Device*	devnone;
 Startsb	startsb[5];
 int	predawn;		/* set in early boot, causes polling ttyout */

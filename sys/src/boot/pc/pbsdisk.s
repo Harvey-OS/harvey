@@ -1,15 +1,13 @@
 /*
- * FAT Partition Boot Sector. Loaded at 0x7C00:
- *	8a pbs.s; 8l -o pbs -l -H3 -T0x7C00 pbs.8
- * Will load the target at LOADSEG*16+LOADOFF, so the target
- * should be probably be loaded with LOADOFF added to the
- * -Taddress.
- * If LOADSEG is a multiple of 64KB and LOADOFF is 0 then
- * targets larger than 64KB can be loaded.
+ * Debugging boot sector.  Reads the first directory
+ * sector from disk and displays it.
+ *
+ * It relies on the _volid field in the FAT header containing
+ * the LBA of the root directory.
  */
 #include "x16.h"
 
-#define RDIRBUF		0x00200		/* where to read the root directory (offset) */
+#define DIROFF		0x00200		/* where to read the root directory (offset) */
 #define LOADSEG		(0x10000/16)	/* where to load code (64KB) */
 #define LOADOFF		0
 
@@ -35,6 +33,7 @@
 #define Xroothi		0x04
 #define Xrootsz		0x06		/* file data area */
 #define Xtotal		0x08		/* sum of allocated data above */
+#define Xdap		0x00		/* disc address packet */
 
 TEXT _magic(SB), $0
 	BYTE $0xEB; BYTE $0x3C;		/* jmp .+ 0x3C  (_start0x3E) */
@@ -86,52 +85,31 @@ TEXT _type(SB), $0
 
 _start0x3E:
 	CLI
-	MFSR(rCS, rAX)			/* set the data and stack segments */
-	MTSR(rAX, rDS)
-	MTSR(rAX, rSS)
+	CLR(rAX)
+	MTSR(rAX, rSS)			/* 0000 -> rSS */
+	MTSR(rAX, rDS)			/* 0000 -> rDS, source segment */
 	MTSR(rAX, rES)
 	LWI(_magic-Xtotal(SB), rSP)
 	MW(rSP, rBP)			/* set the indexed-data pointer */
 
-/*	LB(_driveno(SB), rDL) */
 	SBPB(rDL, Xdrive)		/* save the boot drive */
 
 	STI
 
-	CLR(rAX)			/* rAH == 0 == reset disc system */
-	PUSHW(rBP)			/* may be trashed by SYSCALL */
-	SYSCALL(0x13)			/* rDL == boot drive */
-	POPW(rBP)
-	ORB(rAH, rAH)			/* status (0 == successful completion) */
-	JEQ _jmp00			/* can't rely on 8l doing other than short jumps */
-	CALL(buggery(SB))
+	LWI(confidence(SB), rSI)	/* for that warm, fuzzy feeling */
+	CALL(BIOSputs(SB))
+
+	CALL(dreset(SB))
 
 _jmp00:
-	CLR(rAX)
+	LW(_volid(SB), rAX)		/* Xrootlo */
+	LW(_volid+2(SB), rDX)		/* Xroothi */
 
-	LB(_nfats(SB), rAL)		/* calculate root directory offset */
-	LW(_fatsize(SB), rCX)
-	MUL(rCX)
-	LW(_nhiddenlo(SB), rCX)
-	ADD(rCX, rAX)
-	LW(_nhiddenhi(SB), rCX)
-	ADC(rCX, rDX)
-	LW(_nresrv(SB), rCX)
-	ADD(rCX, rAX)
-	LWI(0x0000, rCX)		/* don't set flags */
-	ADC(rCX, rDX)
-
-	SBPW(rAX, Xrootlo)		/* save */
-	SBPW(rDX, Xroothi)
-
-	ADDI(32, rAX)	/* bug - go to b.com */
-	ADC(rCX, rDX)
-
-	LWI(_magic+RDIRBUF(SB), rBX)
+	LWI(_magic+DIROFF(SB), rBX)
 	CALL(BIOSread(SB))		/* read the root directory */
 
 	CALL(printnl(SB))
-	LWI(_magic+RDIRBUF(SB), rBX)
+	LWI(_magic+DIROFF(SB), rBX)
 	LWI((512/2), rCX)
 	CALL(printbuf(SB))
 
@@ -146,7 +124,6 @@ TEXT buggery(SB), $0
 TEXT quietbuggery(SB), $0
 xbuggery:
 	JMP xbuggery
-
 
 /*
  * Read a sector from a disc. On entry:
@@ -165,72 +142,65 @@ TEXT BIOSread(SB), $0
 	LWI(5, rDI)			/* retry count (ATAPI ZIPs suck) */
 _retry:
 	PUSHA				/* may be trashed by SYSCALL */
-	PUSHW(rBX)
+	PUSHR(rBX)
 
 	LW(_trksize(SB), rBX)
 	LW(_nheads(SB), rDI)
 	IMUL(rDI, rBX)
+	OR(rBX, rBX)
+	JZ _ioerror
 
 _okay:
-	CALL(printsharp(SB))
-	CALL(printBX(SB))
-	CALL(printDXAX(SB))
-
 	DIV(rBX)			/* cylinder -> rAX, track,sector -> rDX */
-	CALL(printDXAX(SB))
 
-	MW(rAX, rCX)		/* save cylinder */
-	ROLI(0x08, rCX)	/* swap rA[HL] */
-	SHLBI(0x06, rCL)	/* move high bits up */
+	MW(rAX, rCX)			/* save cylinder */
+	ROLI(0x08, rCX)			/* swap rC[HL] */
+	SHLBI(0x06, rCL)		/* move high bits up */
 
 	MW(rDX, rAX)
 	CLR(rDX)
 	LW(_trksize(SB), rBX)
 
-	CALL(printsharp(SB))
-	CALL(printBX(SB))
-	CALL(printDXAX(SB))
-
 	DIV(rBX)			/* head -> rAX, sector -> rDX */
 
-	CALL(printDXAX(SB))
-
 	INC(rDX)			/* sector numbers are 1-based */
-	ANDI(0x003F, rDX)	/* should not be necessary */
+	ANDI(0x003F, rDX)		/* should not be necessary */
 	OR(rDX, rCX)
 
 	MW(rAX, rDX)
 	SHLI(0x08, rDX)			/* form head */
 	LBPB(Xdrive, rDL)		/* form drive */
 
-	CALL(printsharp(SB))
-	MW(rCX, rAX)
-	CALL(printDXAX(SB))
-
-	POPW(rBX)
+	POPR(rBX)
 	LWI(0x0201, rAX)		/* form command and sectors */
 	SYSCALL(0x13)			/* CF set on failure */
 	JCC _BIOSreadret
 
 	POPA
 	DEC(rDI)			/* too many retries? */
-	JEQ _failure
+	JEQ _ioerror
 
-	PUSHA
-	CLR(rAX)			/* rAH == 0 == reset disc system */
-	LBPB(Xdrive, rDL)
-	SYSCALL(0x13)
-	POPA
+	CALL(dreset(SB))
 	JMP _retry
+
+_ioerror:
+	LWI(ioerror(SB), rSI)
+	CALL(BIOSputs(SB))
+	JMP xbuggery
 
 _BIOSreadret:
 	POPA
 	RET
 
-_failure:
-	LWI(ioerror(SB), rSI)
-	CALL(BIOSputs(SB))
-	CALL(quietbuggery(SB))
+TEXT dreset(SB), $0
+	PUSHA
+	CLR(rAX)			/* rAH == 0 == reset disc system */
+	LBPB(Xdrive, rDL)
+	SYSCALL(0x13)
+	ORB(rAH, rAH)			/* status (0 == success) */
+	POPA
+	JNE _ioerror
+	RET
 
 TEXT printsharp(SB), $0
 	LWI(sharp(SB), rSI)

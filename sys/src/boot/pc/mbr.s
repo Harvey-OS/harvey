@@ -45,7 +45,13 @@ TEXT _start(SB), $0
 TEXT _start0600(SB), $0
 #ifdef FLOPPY
 	LBI(0x80, rDL)
+#else
+	CLRB(rAL)			/* some systems pass 0 */
+	CMPB(rAL, rDL)
+	JNE _save
+	LBI(0x80, rDL)
 #endif /* FLOPPY */
+_save:
 	SXB(rDL, Xdrive, xBP)		/* save disc */
 
 	LWI(confidence(SB), rSI)	/* for that warm, fuzzy feeling */

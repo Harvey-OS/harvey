@@ -298,11 +298,15 @@ quoted(char **s, char **to, char *end)	/* handle escaped sequence */
 int
 countposn(char *s, int n)
 {
-	int i;
+	int i, j;
 	char *end;
 
-	for (i = 0, end = s+n; *s && s < end; i++)
-		s += mblen(s, n); 
+	for (i = 0, end = s+n; *s && s < end; i++){
+		j = mblen(s, n);
+		if(j <= 0)
+			j = 1;
+		s += j;
+	}
 	return(i);
 }
 

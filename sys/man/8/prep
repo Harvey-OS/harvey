@@ -4,7 +4,7 @@ prep, fdisk, format, mbr \- prepare hard and floppy diskettes
 .SH SYNOPSIS
 .B disk/prep
 [
-.B -abcfprw
+.B -abcfnprw
 ]
 [
 .B -s 
@@ -116,6 +116,7 @@ file system.
 A 
 .IR swap (8)
 swap partition.
+.PD
 .PP
 .I Fdisk
 edits the PC partition table and is usually
@@ -155,6 +156,13 @@ option is present,
 .I prep
 will also create a 
 .B cache
+partition.
+If the
+.B -n
+option is present,
+.I prep
+will create a one-sector
+.B nvram
 partition.
 .TP
 .B -b
@@ -393,6 +401,7 @@ when booting a PC from disk.
 .B e
 Print the names of empty slots in the partition table, i.e., the
 valid names to use when creating a new partition.
+.PD
 .PP
 .I Format
 prepares for use the floppy diskette or hard disk partition in the file named
@@ -431,6 +440,7 @@ are:
 .TP
 .B hard
 fixed disk
+.PD
 .PP
 The default when
 .I disk
@@ -456,6 +466,7 @@ use the contents of
 .I bootblock
 as a bootstrap block
 to be installed in sector 0.
+.PD
 .PP
 The remaining options have effect only when
 .B -d
@@ -486,6 +497,7 @@ partition,
 .B -r
 .B 2
 should be used to jump over the partition table sector.
+.PD
 .PP
 Again under
 .BR -d ,
@@ -601,9 +613,9 @@ Initialize the blank hard disk
 .BR /dev/sdC0/data .
 .IP
 .EX
-disk/mbr -m mbr
+disk/mbr -m /386/mbr /dev/sdC0/data
 disk/fdisk -baw /dev/sdC0/data
-disk/prep -baw /dev/sdC0/data
+disk/prep -baw /dev/sdC0/plan9
 disk/format -b /386/pbs -d -r 2 /dev/sdC0/9fat 9load 9pcdisk plan9.ini
 .EE
 .PP

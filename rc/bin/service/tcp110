@@ -1,2 +1,2 @@
 #!/bin/rc
-/$objtype/bin/upas/pop3 >>[2] /sys/log/pop3
+exec /$cputype/bin/upas/pop3 >>[2] /sys/log/pop3

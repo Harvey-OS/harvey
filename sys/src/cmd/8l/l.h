@@ -10,10 +10,6 @@
 #define	P		((Prog*)0)
 #define	S		((Sym*)0)
 #define	TNAME		(curtext?curtext->from.sym->name:noname)
-#define	CPUT(c)\
-	{ *cbp++ = c;\
-	if(--cbc <= 0)\
-		cflush(); }
 
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
@@ -260,7 +256,6 @@ int	Dconv(va_list*, Fconv*);
 int	Pconv(va_list*, Fconv*);
 int	Rconv(va_list*, Fconv*);
 int	Sconv(va_list*, Fconv*);
-int	Xconv(va_list*, Fconv*);
 void	addhist(long, int);
 Prog*	appendp(Prog*);
 void	asmb(void);
@@ -295,6 +290,7 @@ void	loadlib(void);
 void	listinit(void);
 Sym*	lookup(char*, int);
 void	lput(long);
+void	cput(int);
 void	lputl(long);
 void	main(int, char*[]);
 void	mkfwd(void);

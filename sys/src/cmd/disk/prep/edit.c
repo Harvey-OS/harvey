@@ -487,3 +487,25 @@ ctldiff(Edit *edit, int ctlfd)
 	}
 	return waserr;
 }
+
+void*
+emalloc(ulong sz)
+{
+	void *v;
+
+	v = malloc(sz);
+	if(v == nil)
+		sysfatal("malloc %lud fails\n", sz);
+	memset(v, 0, sz);
+	return v;
+}
+
+char*
+estrdup(char *s)
+{
+	s = strdup(s);
+	if(s == nil)
+		sysfatal("strdup (%.10s) fails\n", s);
+	return s;
+}
+

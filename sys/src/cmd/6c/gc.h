@@ -133,33 +133,33 @@ struct	Rgn
 	short	regno;
 };
 
-long	breakpc;
-Case*	cases;
-Node	constnode;
-Node	fconstnode;
-long	continpc;
-long	curarg;
-long	cursafe;
-Prog*	firstp;
-Prog*	lastp;
-long	maxargsafe;
-int	mnstring;
-int	retok;
-Node*	nodrat;
-Node*	nodret;
-Node*	nodsafe;
-long	nrathole;
-long	nstring;
-Prog*	p;
-long	pc;
-Node	regnode;
-char	string[NSNAME];
-Sym*	symrathole;
-Node	znode;
-Prog	zprog;
-char	reg[D_NONE];
-long	exregoffset;
-long	exfregoffset;
+EXTERN	long	breakpc;
+EXTERN	Case*	cases;
+EXTERN	Node	constnode;
+EXTERN	Node	fconstnode;
+EXTERN	long	continpc;
+EXTERN	long	curarg;
+EXTERN	long	cursafe;
+EXTERN	Prog*	firstp;
+EXTERN	Prog*	lastp;
+EXTERN	long	maxargsafe;
+EXTERN	int	mnstring;
+EXTERN	int	retok;
+EXTERN	Node*	nodrat;
+EXTERN	Node*	nodret;
+EXTERN	Node*	nodsafe;
+EXTERN	long	nrathole;
+EXTERN	long	nstring;
+EXTERN	Prog*	p;
+EXTERN	long	pc;
+EXTERN	Node	regnode;
+EXTERN	char	string[NSNAME];
+EXTERN	Sym*	symrathole;
+EXTERN	Node	znode;
+EXTERN	Prog	zprog;
+EXTERN	char	reg[D_NONE];
+EXTERN	long	exregoffset;
+EXTERN	long	exfregoffset;
 
 #define	BLOAD(r)	band(bnot(r->refbehind), r->refahead)
 #define	BSTORE(r)	band(bnot(r->calbehind), r->calahead)
@@ -173,27 +173,29 @@ long	exfregoffset;
 #define	CINF	1000
 #define	LOOP	3
 
-Rgn	region[NRGN];
-Rgn*	rgp;
-int	nregion;
-int	nvar;
+EXTERN	Rgn	region[NRGN];
+EXTERN	Rgn*	rgp;
+EXTERN	int	nregion;
+EXTERN	int	nvar;
 
-Bits	externs;
-Bits	params;
-Bits	consts;
-Bits	addrs;
+EXTERN	Bits	externs;
+EXTERN	Bits	params;
+EXTERN	Bits	consts;
+EXTERN	Bits	addrs;
 
-long	regbits;
-long	exregbits;
+EXTERN	long	regbits;
+EXTERN	long	exregbits;
 
-int	change;
+EXTERN	int	change;
 
-Reg*	firstr;
-Reg*	lastr;
-Reg	zreg;
-Reg*	freer;
-Var	var[NVAR];
-
+EXTERN	Reg*	firstr;
+EXTERN	Reg*	lastr;
+EXTERN	Reg	zreg;
+EXTERN	Reg*	freer;
+EXTERN	Var	var[NVAR];
+EXTERN	long*	idom;
+EXTERN	Reg**	rpo2r;
+EXTERN	long	maxnr;
 
 extern	char*	anames[];
 

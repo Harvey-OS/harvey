@@ -20,6 +20,7 @@ betomp(uchar *p, uint n, mpint *b)
 
 	// get the space
 	mpbits(b, n*8);
+	b->top = DIGITS(n*8);
 	m = b->top-1;
 
 	// first digit might not be Dbytes long

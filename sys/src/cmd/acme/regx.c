@@ -157,6 +157,7 @@ realcompile(void *arg)
 	int token;
 	Rune *s;
 
+	threadsetname("regcomp");
 	s = arg;
 	startlex(s);
 	atorp = atorstack;
@@ -181,6 +182,7 @@ realcompile(void *arg)
 		regerror("unmatched `('");
 	--andp;	/* points to first and only operand */
 	sendp(rechan, andp->first);
+	threadexits(nil);
 }
 
 /* r is null terminated */
@@ -545,15 +547,16 @@ rxnull(void)
 	return startinst==nil || bstartinst==nil;
 }
 
+/* either t!=nil or r!=nil, and we match the string in the appropriate place */
 int
-rxexecute(Text *t, uint startp, uint eof, Rangeset *rp)
+rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 {
 	int flag;
 	Inst *inst;
 	Ilist *tlp;
 	uint p;
 	int nnl, ntl;
-	int c;
+	int nc, c;
 	int wrapped;
 	int startchar;
 
@@ -566,10 +569,14 @@ rxexecute(Text *t, uint startp, uint eof, Rangeset *rp)
 		startchar = startinst->type;
 	list[0][0].inst = list[1][0].inst = nil;
 	sel.r[0].q0 = -1;
+	if(t != nil)
+		nc = t->file->nc;
+	else
+		nc = runestrlen(r);
 	/* Execute machine once for each character */
 	for(;;p++){
 	doloop:
-		if(p>=eof || p>=t->file->nc){
+		if(p>=eof || p>=nc){
 			switch(wrapped++){
 			case 0:		/* let loop run one more click */
 			case 2:
@@ -587,7 +594,10 @@ rxexecute(Text *t, uint startp, uint eof, Rangeset *rp)
 		}else{
 			if(((wrapped && p>=startp) || sel.r[0].q0>0) && nnl==0)
 				break;
-			c = textreadc(t, p);
+			if(t != nil)
+				c = textreadc(t, p);
+			else
+				c = r[p];
 		}
 		/* fast check for first char */
 		if(startchar && nnl==0 && c!=startchar)
@@ -635,7 +645,7 @@ rxexecute(Text *t, uint startp, uint eof, Rangeset *rp)
 					goto Addinst;
 				break;
 			case BOL:
-				if(p==0 || textreadc(t, p-1)=='\n'){
+				if(p==0 || (t!=nil && textreadc(t, p-1)=='\n') || (r!=nil && r[p-1]=='\n')){
 	Step:
 					inst = inst->next;
 					goto Switchstmt;

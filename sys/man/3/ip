@@ -115,6 +115,13 @@ This is used by programs such as
 to mediate IP packet transfer between the kernel and
 a PPP encoded device.
 .TP
+.BI "bind netdev " path
+Treat this interface as a packet interface.
+The kernel will open
+.I path
+and read and write the resulting file descriptor
+to receive and transmit IP packets.
+.TP
 .B "unbind
 Disassociate the physical device from an IP interface.
 .TP
@@ -794,7 +801,7 @@ monitoring.
 .PP
 Reading
 .B /net/ipifc/stats
-returns a space separated-list of 19 numbers representing:
+returns a space-separated list of 19 numbers representing:
 .EX
 .ft 1
 	forwarding status (0 and 2 mean forwarding off, 1 means on)

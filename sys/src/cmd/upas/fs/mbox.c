@@ -53,6 +53,8 @@ Header head[] =
 	{ 0, },
 };
 
+static	char	stdmbox[4*NAMELEN];
+
 static	void	fatal(char *fmt, ...);
 static	void	initquoted(void);
 static	void	startheader(Message*);
@@ -102,9 +104,9 @@ newmbox(char *path, char *name, int std)
 
 	// make sure name isn't taken
 	qlock(&mbllock);
-	for(l = &mbl; *l != nil; l = &(*l)->next)
+	for(l = &mbl; *l != nil; l = &(*l)->next){
 		if(strcmp((*l)->name, mb->name) == 0){
-			if(strcmp(path, mb->path) == 0)
+			if(strcmp(path, (*l)->path) == 0)
 				rv = nil;
 			else
 				rv = "mbox name in use";
@@ -112,6 +114,14 @@ newmbox(char *path, char *name, int std)
 			qunlock(&mbllock);
 			return rv;
 		}
+	}
+
+	// all mailboxes in /mail/box/$user are locked using /mail/box/$user/mbox
+	if(stdmbox[0] == 0)
+		snprint(stdmbox, sizeof(stdmbox), "/mail/box/%s/mbox", user);
+	p = strrchr(stdmbox, '/');
+	mb->dolock = strncmp(mb->path, stdmbox, p - stdmbox) == 0;
+
 	mb->refs = 1;
 	mb->next = nil;
 	mb->id = newid();
@@ -205,8 +215,10 @@ readmessage(Message *m, Inbuf *inb)
 			inb->rptr = inb->data;
 			inb->wptr = inb->rptr + n;
 			i = read(inb->fd, inb->wptr, Buffersize);
-			if(i < 0)
+			if(i < 0){
+				fprint(2, "error reading mbox: %r");
 				return -1;
+			}
 			if(i == 0){
 				if(n != 0)
 					addtomessage(m, inb->rptr, n, 1);
@@ -353,6 +365,7 @@ retry:
 	inb->fd = fd;
 
 	//  read new messages
+	logmsg("reading mbox", nil);
 	for(;;){
 		if(lk != nil)
 			syslockrefresh(lk);
@@ -364,11 +377,12 @@ retry:
 			mb->root->subname--;
 			break;
 		}
-		
+
 		// merge mailbox versions
 		while(*l != nil){
 			if(memcmp((*l)->digest, m->digest, SHA1dlen) == 0){
 				// matches mail we already read, discard
+				logmsg("duplicate", *l);
 				delmessage(mb, m);
 				mb->root->subname--;
 				m = nil;
@@ -376,6 +390,7 @@ retry:
 				break;
 			} else {
 				// old mail no longer in box, mark deleted
+				logmsg("disappeared", *l);
 				if(doplumb)
 					mailplumb(mb, *l, 1);
 				(*l)->inmbox = 0;
@@ -394,6 +409,7 @@ retry:
 		m->mheader = m->mhend = m->header;
 		parseunix(m);
 		parse(m, 0, mb);
+		logmsg("new", m);
 
 		/* chain in */
 		*l = m;
@@ -402,6 +418,7 @@ retry:
 			mailplumb(mb, m, 0);
 
 	}
+	logmsg("mbox read", nil);
 
 	// whatever is left has been removed from the mbox, mark deleted
 	while(*l != nil){
@@ -440,21 +457,24 @@ _writembox(Mailbox *mb, Mlock *lk)
 	sysremove(s_to_c(tmp));
 	b = sysopen(s_to_c(tmp), "alc", mode);
 	if(b == 0){
-		fprint(2, "can't write temporary mailbox\n");
+		fprint(2, "can't write temporary mailbox %s: %r\n", s_to_c(tmp));
 		return;
 	}
 
+	logmsg("writing new mbox", nil);
 	errs = 0;
 	for(m = mb->root->part; m != nil; m = m->next){
 		if(lk != nil)
 			syslockrefresh(lk);
 		if(m->deleted)
 			continue;
+		logmsg("writing", m);
 		if(Bwrite(b, m->start, m->end - m->start) < 0)
 			errs = 1;
 		if(Bwrite(b, "\n", 1) < 0)
 			errs = 1;
 	}
+	logmsg("wrote new mbox", nil);
 
 	if(sysclose(b) < 0)
 		errs = 1;
@@ -480,8 +500,8 @@ syncmbox(Mailbox *mb, int doplumb)
 	char *rv;
 
 	lk = nil;
-	if(mb->std){
-		lk = syslock(mb->path);
+	if(mb->dolock){
+		lk = syslock(stdmbox);
 		if(lk == nil)
 			return "can't lock mailbox";
 	}
@@ -1050,15 +1070,16 @@ delmessage(Mailbox *mb, Message *m)
 	s_free(m->from822);
 	s_free(m->sender822);
 	s_free(m->to822);
-	s_free(m->cc822);
 	s_free(m->bcc822);
+	s_free(m->cc822);
 	s_free(m->replyto822);
 	s_free(m->date822);
-	s_free(m->subject822);
 	s_free(m->inreplyto822);
+	s_free(m->subject822);
 	s_free(m->messageid822);
 	s_free(m->addrs);
 	s_free(m->mimeversion);
+	s_free(m->sdigest);
 	s_free(m->boundary);
 	s_free(m->type);
 	s_free(m->charset);
@@ -1093,6 +1114,7 @@ delmessages(int ac, char **av)
 					mailplumb(mb, m, 1);
 					needwrite = 1;
 					m->deleted = 1;
+					logmsg("deleting", m);
 				}
 				break;
 			}
@@ -1680,4 +1702,23 @@ countlines(Message *m)
 	for(p = strchr(m->rbody, '\n'); p != nil && p < m->rbend; p = strchr(p+1, '\n'))
 		i++;
 	sprint(m->lines, "%d", i);
+}
+
+char *LOG = "fs";
+
+void
+logmsg(char *s, Message *m)
+{
+	int pid;
+
+	if(!logging)
+		return;
+	pid = getpid();
+	if(m == nil)
+		syslog(0, LOG, "%s.%d: %s", user, pid, s);
+	else
+		syslog(0, LOG, "%s.%d: %s msg from %s digest %s",
+			user, pid, s,
+			m->from822 ? s_to_c(m->from822) : "?",
+			s_to_c(m->sdigest));
 }

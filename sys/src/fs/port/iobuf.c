@@ -217,23 +217,23 @@ checktag(Iobuf *p, int tag, long qpath)
 	t = (Tag*)(p->iobuf+BUFSIZE);
 	if(t->tag != tag) {
 		if(p->flags & Bmod) {
-			print("	tag = %d/%lux; expected %d -- not flushed\n",
-				t->tag, t->path, tag);
+			print("	tag = %d/%lud; expected %ld/%d -- not flushed\n",
+				t->tag, t->path, qpath, tag);
 			return 2;
 		}
 		if(p->dev->type == Devcw)
 			cwfree(p->dev, p->addr);
+		print("	tag = %d/%lud; expected %d/%ld -- flushed (%ld)\n",
+			t->tag, t->path, tag, qpath, p->addr);
 		p->dev = devnone;
 		p->addr = -1;
 		p->flags = 0;
-		print("	tag = %d/%lux; expected %d -- flushed\n",
-			t->tag, t->path, tag);
 		return 2;
 	}
 	if(qpath != QPNONE) {
 		if((qpath ^ t->path) & ~QPDIR) {
 			if(1 || CHAT(0))
-				print("	tag/path = %lux; expected %d/%lux\n",
+				print("	tag/path = %lud; expected %d/%lux\n",
 					t->path, tag, qpath);
 			return 0;
 		}

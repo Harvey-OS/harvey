@@ -22,6 +22,7 @@ static char* ec2tpcmcia[] = {
 	"EC2T",				/* Linksys Combo PCMCIA EthernetCard */
 	"PCMPC100",			/* EtherFast 10/100 PC Card */
 	"EN2216",			/* Accton EtherPair-PCMCIA */
+	"FA410TX",			/* Netgear FA410TX */
 	nil,
 };
 
@@ -115,7 +116,7 @@ reset(Ether* ether)
 	 */
 	dp8390reset(ether);
 	sum = 0;
-	if(cistrcmp(type, "PCMPC100") == 0){
+	if(cistrcmp(type, "PCMPC100") == 0 || cistrcmp(type, "FA410TX") == 0){
 		/*
 		 * The PCMPC100 has the ethernet address in I/O space.
 		 * There's a checksum over 8 bytes which sums to 0xFF.

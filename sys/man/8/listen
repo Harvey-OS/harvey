@@ -137,7 +137,7 @@ Inferno (Styx) port.
 .TP
 .B tcp567
 Plan 9 ticket service.
-
+.PD
 .PP
 The following services are available in
 .BR /bin/service.auth .

@@ -52,6 +52,7 @@ misc
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
 
+	vga3dfx		+cur
 	vgaark2000pv	+cur
 	vgabt485	=cur
 	vgaclgd542x	+cur
@@ -63,7 +64,7 @@ misc
 	vgamga2164w	+cur
 	vganeomagic	+cur
 	vgargb524	=cur
-	vgas3		+cur
+	vgas3		+cur vgasavage
 	vgat2r4		+cur
 	vgatvp3020	=cur
 	vgatvp3026	=cur

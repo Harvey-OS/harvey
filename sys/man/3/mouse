@@ -188,6 +188,9 @@ rather than
 see
 .IR rio (4)
 for details.
+.PP
+To cope with pointing devices with only two buttons, when the
+shift key is pressed, the right mouse button generates middle-button events.
 .SH SOURCE
 .B /sys/src/9/port/devmouse.c
 .SH "SEE ALSO

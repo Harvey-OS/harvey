@@ -95,6 +95,7 @@ Eject the CD in the drive.
 .TP
 .B ingest
 Ingest a CD into the drive.
+.PD
 .PP
 Only MMC-compliant CD readers and writers
 are supported, but it would be easy to add
@@ -112,7 +113,7 @@ Copy the tracks onto a blank CD inserted in the drive,
 and then fixate the disk as an audio CD.
 .IP
 .EX
-cp /tmp/songs /mnt/cd/wa
+cp /tmp/songs/* /mnt/cd/wa
 rm /mnt/cd/wa
 .EE
 .PP

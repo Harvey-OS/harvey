@@ -3,27 +3,7 @@
 #include "assert.h"
 #include "threadimpl.h"
 
-/* Channel structure.  S is the size of the buffer.  For unbuffered channels
- * s is zero.  v is an array of s values.  If s is zero, v is unused.
- * f and n represent the state of the queue pointed to by v.
- * rcvrs and sndrs must be initialized to nil and should not be touched
- * by code outside channel.c
- */
-
-struct Channel {
-	int	s;		// Size of the channel (may be zero)
-	uint	f;		// Extraction point (insertion pt: (f + n) % s)
-	uint	n;		// Number of values in the channel
-	int	e;		// Element size
-	int	freed;		// Set when channel is being deleted
-	ulong	qused;		// Bitmap of used entries in rcvrs
-	Alt	*qentry[32];	// Receivers/senders waiting
-	uchar	v[1];		// Array of max(1, s) values in the channel
-};
-
 static Lock chanlock;		// Central channel access lock
-
-ulong rendezvouses;
 
 void
 chanfree(Channel *c) {
@@ -35,6 +15,20 @@ chanfree(Channel *c) {
 		c->freed = 1;
 	}
 	unlock(&chanlock);
+}
+
+int
+chaninit(Channel *c, int elemsize, int elemcnt) {
+	if(elemcnt < 0 || elemsize <= 0 || c == nil)
+		return -1;
+	c->f = 0;
+	c->n = 0;
+	c->freed = 0;
+	c->qused = 0;
+	c->s = elemcnt;
+	c->e = elemsize;
+	_threaddebug(DBGCHAN, "chaninit %lux", c);
+	return 1;
 }
 
 Channel *
@@ -83,7 +77,7 @@ repeat:
 				unlock(&chanlock);
 				return xa - alts;
 			} else
-				continue;
+				break;
 		}
 
 		c = xa->c;
@@ -137,9 +131,8 @@ repeat:
 		}
 
 		// And wait for the rendez vous
-		rendezvouses++;
 		unlock(&chanlock);
-		if (threadrendezvous((ulong)&c, 0) == ~0) {
+		if (_threadrendezvous((ulong)&c, 0) == ~0) {
 			(*procp)->curthread->call = Callnil;
 			return -1;
 		}
@@ -211,9 +204,8 @@ repeat:
 				xa = c->qentry[i];
 				*xa->tag = c;
 
-				rendezvouses++;
 				unlock(&chanlock);
-				if (threadrendezvous((ulong)xa->tag, 0) == ~0) {
+				if (_threadrendezvous((ulong)xa->tag, 0) == ~0) {
 					(*procp)->curthread->call = Callnil;
 					return -1;
 				}
@@ -240,9 +232,8 @@ repeat:
 		}
 		*xa->tag = c;
 
-		rendezvouses++;
 		unlock(&chanlock);
-		if (threadrendezvous((ulong)xa->tag, 0) == ~0) {
+		if (_threadrendezvous((ulong)xa->tag, 0) == ~0) {
 			(*procp)->curthread->call = Callnil;
 			return -1;
 		}
@@ -285,9 +276,8 @@ nbrecv(Channel *c, void *v) {
 					}
 				}
 
-				rendezvouses++;
 				unlock(&chanlock);
-				if (threadrendezvous((ulong)a->tag, 0) == ~0)
+				if (_threadrendezvous((ulong)a->tag, 0) == ~0)
 					return -1;
 				return 1;
 			}
@@ -341,9 +331,8 @@ retry:
 					}
 				}
 
-				rendezvouses++;
 				unlock(&chanlock);
-				if (threadrendezvous((ulong)xa->tag, 0) == ~0)
+				if (_threadrendezvous((ulong)xa->tag, 0) == ~0)
 					return -1;
 				return 1;
 			}
@@ -377,9 +366,8 @@ retry:
 			break;
 		}
 
-	rendezvouses++;
 	unlock(&chanlock);
-	if (threadrendezvous((ulong)&tag, 0) == ~0) {
+	if (_threadrendezvous((ulong)&tag, 0) == ~0) {
 		t->call = Callnil;
 		return -1;
 	}
@@ -427,9 +415,8 @@ nbsend(Channel *c, void *v) {
 					}
 				}
 
-				rendezvouses++;
 				unlock(&chanlock);
-				if (threadrendezvous((ulong)a->tag, 0) == ~0)
+				if (_threadrendezvous((ulong)a->tag, 0) == ~0)
 					return -1;
 				return 1;
 			}
@@ -485,9 +472,8 @@ retry:
 					}
 				}
 
-				rendezvouses++;
 				unlock(&chanlock);
-				if (threadrendezvous((ulong)xa->tag, 0) == ~0)
+				if (_threadrendezvous((ulong)xa->tag, 0) == ~0)
 					return -1;
 				return 1;
 			}
@@ -520,9 +506,8 @@ retry:
 			c->qused |= a.q = 1 << i;
 			break;
 		}
-	rendezvouses++;
 	unlock(&chanlock);
-	if (threadrendezvous((ulong)&tag, 0) == ~0) {
+	if (_threadrendezvous((ulong)&tag, 0) == ~0) {
 		t->call = Callnil;
 		return -1;
 	}

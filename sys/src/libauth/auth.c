@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
+#include <libsec.h>
 #include "authlocal.h"
 
 static char *badreq = "bad ticket request";
@@ -9,13 +10,14 @@ static char *srmsg = "server refused authentication";
 static char *sgmsg = "server gave up";
 
 int
-auth(int fd)
+authnonce(int fd, uchar *nonce)
 {
 	int n, afd;
 	int rv;
 	char trbuf[TICKREQLEN];
-	char tbuf[2*TICKETLEN+AUTHENTLEN];
+	char tbuf[2*TICKETLEN+AUTHENTLEN+TICKETLEN];
 	Ticketreq tr;
+	Ticket *tp;
 
 	/* add uid and local hostid to ticket request */
 	if(_asreadn(fd, trbuf, TICKREQLEN) < 0){
@@ -81,8 +83,8 @@ auth(int fd)
 		return -1;
 	}
 	n = write(afd, tbuf, TICKETLEN+AUTHENTLEN);
-	close(afd);
 	if(n < 0){
+		close(afd);
 		memset(tbuf, 0, AUTHENTLEN);
 		if(memcmp(tbuf, tbuf+TICKETLEN, AUTHENTLEN) == 0)
 			werrstr("refused by server");
@@ -90,5 +92,19 @@ auth(int fd)
 			werrstr("server lies");
 		return -1;
 	}
+
+	if(nonce != nil){
+		read(afd, tbuf, TICKETLEN);
+		tp = (Ticket*)tbuf;
+		des56to64((uchar*)tp->key, nonce);
+	}
+	close(afd);
+
 	return 0;
+}
+
+int
+auth(int fd)
+{
+	return authnonce(fd, nil);
 }

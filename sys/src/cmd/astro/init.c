@@ -10,6 +10,9 @@ Obj2*	objlst[] =
 	&omars,
 	&ojup,
 	&osat,
+	&ouran,
+	&onept,
+	&oplut,
 	&ocomet,
 	0,
 };
@@ -29,6 +32,9 @@ struct	idata
 	"Mars",		"mars",		mars,
 	"Jupiter",	"jupiter",	jup,
 	"Saturn",	"saturn",	sat,
+	"Uranus",	"uranus",	uran,
+	"Neptune",	"neptune",	nept,
+	"Pluto",	"pluto",	plut,
 	"Comet",	"comet",	comet,
 };
 
@@ -62,7 +68,7 @@ setime(double d)
 	eday = d + deltat/86400.;
 	wlong = awlong + 15.*deltat*radsec;
 
-	capt = eday/36525.e0;
+	capt = eday/36524.220e0;
 	capt2 = capt*capt;
 	capt3 = capt*capt2;
 	nutate();

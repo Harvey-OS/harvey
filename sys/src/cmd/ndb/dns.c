@@ -322,7 +322,7 @@ newjob(void)
 {
 	Job *job;
 
-	job = mallocz(sizeof(Job), 1);
+	job = mallocz(sizeof(*job), 1);
 	lock(&joblock);
 	job->next = joblist;
 	joblist = job;

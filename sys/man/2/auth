@@ -1,6 +1,6 @@
 .TH AUTH 2
 .SH NAME
-auth, amount, srvauth, authenticate, getchal, chalreply, apopchal, apopreply, cramchal, cramreply,  newns, addns, authdial, passtokey, nvcsum, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, login, httpauth, noworld \- network authentication
+auth, amount, srvauth, authnonce, srvauthnonce, authenticate, getchal, chalreply, vncchal, vncreply, apopchal, apopreply, cramchal, cramreply,  newns, addns, authdial, passtokey, nvcsum, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, login, httpauth, noworld \- network authentication
 .SH SYNOPSIS
 .nf
 .PP
@@ -18,10 +18,22 @@ int	auth(int fd)
 int	srvauth(int fd, char *user)
 .PP
 .B
+int	authnonce(int fd, uchar nonce[8])
+.PP
+.B
+int	srvauthnonce(int fd, char *user, uchar nonce[8])
+.PP
+.B
 int	getchal(Chalstate *c, char *user)
 .PP
 .B
 int	chalreply(Chalstate *c, char *response)
+.PP
+.B
+int	vncchal(VNCchalstate *c, char *user)
+.PP
+.B
+int	vncreply(VNCchalstate *c, uchar *response)
 .PP
 .B
 int	apopchal(Apopchalstate *c, char *user)
@@ -121,6 +133,17 @@ which must be at least
 .B NAMELEN
 bytes long.
 .PP
+.I Authnonce
+and
+.I srvauthnonce
+are versions of
+.I auth
+and
+.I srvauth
+that return an 8 byte nonce key.
+The key is a DES key and hence has only 56 bits
+of random data, the other 8 being parity bits.
+.PP
 .I Getchal
 and
 .I chalreply
@@ -149,28 +172,41 @@ should be called with the user's response, which is also a null-terminated text 
 It returns 0 if it succeeds,
 or \-1 if the user was not authenticated.
 .PP
-.IR Apopchal ,
+.IR Vncchal ,
+.IR vncreply ,
+.IR apopchal ,
 .IR apopreply ,
 .IR cramchal ,
 and
 .I cramreply
-are like
+are similar to
 .I getchal
 and
 .I chalreply
-and are used the same way.
-They negotiate the challenge/reply protocols for APOP (RFC1939) and CRAM (RFC2195)
+and are used much the same way.
+The only differences are when the user name is known (before
+or after the challenge) and the format of the challenges and
+replies.
+They negotiate the challenge/reply protocols for VNC, APOP (RFC1939), and CRAM (RFC2195)
 authentication.
 They use the user's APOP secret which is different than his Plan 9
 password or SecureNet Key.
 .PP
 .IR Srvauth ,
 .IR chalreply ,
+.IR vncreply ,
 .IR apopreply ,
 and
 .I cramreply
 set the process's user name (see
 .IR cons (3)).
+.PP
+.I Vncchal
+and
+.I vncreply
+depend on changes currently being requested for the VNC
+authentication protocol.  Thus, they may be subject to
+change once the protocol is tied down.
 .PP
 .I Newns
 builds a name space for

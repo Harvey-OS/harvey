@@ -824,10 +824,16 @@ is_restricted(name)
 {
 	char *p;
 
+	/* this silly function prevents you running a command called runconf.sh. */
+	/* we don't care about restricted shells, which aren't very restricted anyway */
+	/* and introduce a false sense of security */
+	return 0;
+#ifdef dumbidea
 	if ((p = ksh_strrchr_dirsep(name)))
 		name = p;
 	/* accepts rsh, rksh, rpdksh, pdrksh, etc. */
 	return (p = strchr(name, 'r')) && strstr(p, "sh");
+#endif
 }
 
 void

@@ -15,6 +15,8 @@ fremove 9p
 fwalk 9p
 mktree 9p
 postmountsrv 9p
+readbuf 9p
+readstr 9p
 srv 9p
 abort abort
 abs abs
@@ -55,6 +57,7 @@ ARGBEGIN arg
 ARGC arg
 ARGEND arg
 ARGF arg
+EARGF arg
 arg arg
 arginit arg
 argopt arg
@@ -102,6 +105,7 @@ apopreply auth
 auth auth
 authdial auth
 authenticate auth
+authnonce auth
 chalreply auth
 convA2M auth
 convM2A auth
@@ -121,6 +125,9 @@ noworld auth
 nvcsum auth
 passtokey auth
 srvauth auth
+srvauthnonce auth
+vncchal auth
+vncreply auth
 bind bind
 mount bind
 unmount bind
@@ -237,7 +244,9 @@ netmkaddr dial
 reject dial
 setnetmtpt dial
 dirread dirread
+biosfake disk
 disk disk
+opendisk disk
 ARROW draw
 Image draw
 _string draw
@@ -256,7 +265,6 @@ fillbezspline draw
 fillellipse draw
 fillpoly draw
 gendraw draw
-greystring draw
 icossin draw
 icossin2 draw
 line draw
@@ -678,7 +686,6 @@ memmove memory
 memory memory
 memset memory
 mktemp mktemp
-atomouse mouse
 closemouse mouse
 cursorswitch mouse
 drawgetrect mouse
@@ -738,6 +745,8 @@ mpvecmul mp
 mpvecsub mp
 strtomp mp
 uitomp mp
+muldiv muldiv
+umuldiv muldiv
 Inf nan
 NaN nan
 isInf nan
@@ -814,6 +823,7 @@ snprint print
 sprint print
 strconv print
 proto proto
+rdproto proto
 pushssl pushssl
 qball qball
 qsort qsort
@@ -866,10 +876,27 @@ runelen rune
 runenlen rune
 runetochar rune
 utflen rune
+utfnlen rune
 utfrrune rune
 utfrune rune
 utfutf rune
+runestrcat runestrcat
+runestrchr runestrcat
+runestrcmp runestrcat
+runestrcpy runestrcat
+runestrdup runestrcat
+runestrecpy runestrcat
+runestrlen runestrcat
+runestrncat runestrcat
+runestrncmp runestrcat
+runestrncpy runestrcat
+runestrrchr runestrcat
+runestrstr runestrcat
+openscsi scsi
 scsi scsi
+scsicmd scsi
+scsierror scsi
+scsiready scsi
 seek seek
 segattach segattach
 segdetach segattach
@@ -905,6 +932,7 @@ strcmp strcat
 strcpy strcat
 strcspn strcat
 strdup strcat
+strecpy strcat
 strlen strcat
 strncat strcat
 strncmp strcat
@@ -956,6 +984,7 @@ textsym symbol
 alt thread
 chancreate thread
 chanfree thread
+chaninit thread
 nbrecv thread
 nbrecvp thread
 nbrecvul thread
@@ -983,7 +1012,6 @@ threadkill thread
 threadkillgrp thread
 threadmain thread
 threadprint thread
-threadrendezvous thread
 threadsetgrp thread
 threadsetname thread
 threadwaitchan thread
@@ -1004,3 +1032,9 @@ publicscreen window
 topnwindows window
 topwindow window
 window window
+drawpoly worldmap
+drawtile worldmap
+freetile worldmap
+mapinit worldmap
+readtile worldmap
+worldmap worldmap

@@ -38,6 +38,7 @@ long	ndata;
 int	dflag;
 int	rflag;
 Biobuf	bout;
+int	tabstop = 4;
 
 void	syms(char*);
 void	datas(char*);
@@ -50,7 +51,11 @@ char*	defaout(void);
 void
 main(int argc, char *argv[])
 {
+	char *s;
 
+	s = getenv("tabstop");
+	if(s!=nil && atoi(s)>0)
+		tabstop = atoi(s);
 	ARGBEGIN{
 	case 'd':
 		dflag = 1;
@@ -294,12 +299,12 @@ indent(int ind)
 	int j;
 
 	j = 2*ind;
-	while(j >= 8){
+	while(j >= tabstop){
 		Bwrite(&bout, ".\t", 2);
-		j -= 8;
+		j -= tabstop;
 	}
 	if(j)
-		Bwrite(&bout, ".       ", j);
+		Bwrite(&bout, ".                            ", j);
 }
 
 char*	trans[] =

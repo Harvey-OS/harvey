@@ -7,7 +7,6 @@ listinit(void)
 	fmtinstall('R', Rconv);
 	fmtinstall('A', Aconv);
 	fmtinstall('D', Dconv);
-	fmtinstall('X', Xconv);
 	fmtinstall('S', Sconv);
 	fmtinstall('P', Pconv);
 }
@@ -52,21 +51,6 @@ Aconv(va_list *arg, Fconv *fp)
 
 	i = va_arg(*arg, int);
 	strconv(anames[i], fp);
-	return 0;
-}
-
-int
-Xconv(va_list *arg, Fconv *fp)
-{
-	char str[20];
-	int i0, i1;
-
-	str[0] = 0;
-	i0 = va_arg(*arg, int);
-	i1 = va_arg(*arg, int);
-	if(i0 != D_NONE)
-		sprint(str, "(%R*%d)", i0, i1);
-	strconv(str, fp);
 	return 0;
 }
 
@@ -149,7 +133,7 @@ Dconv(va_list *arg, Fconv *fp)
 	}
 brk:
 	if(a->index != D_NONE) {
-		sprint(s, "%X", a->index, a->scale);
+		sprint(s, "(%R*%d)", a->index, a->scale);
 		strcat(str, s);
 	}
 conv:

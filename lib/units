@@ -207,65 +207,65 @@ lumen			cd sr
 lux			cd sr/m²
 
 / MONEY DATE
-/ Wed May 17 13:18:04 EDT 2000
+/ Sun Sep 17 23:01:50 EDT 2000
 
 / MONEY START
 argentpeso		1 | .9998 $
-australiadollar		1 | 1.7310 $
-austriaschilling	1 | 15.092 $
-belgiumfranc		1 | 44.49 $
-brazilreal		1 | 1.8200 $
-britainpound		1 | .6699 $
-canadadollar		1 | 1.4863 $
-chilepeso		1 | 517.85 $
+australiadollar		1 | 1.8169 $
+austriaschilling	1 | 16.016 $
+belgiumfranc		1 | 46.68 $
+brazilreal		1 | 1.8285 $
+britainpound		1 | .7108 $
+canadadollar		1 | 1.4879 $
+chilepeso		1 | 563.45 $
 chinayuan		1 | 8.2777 $
-colombiapeso		1 | 2041.00 $
-czechrepkoruna		1 | 40.53 $
-denmarkkrone		1 | 8.2199 $
-dominicanpeso		1 | 15.90 $
+colombiapeso		1 | 2207.00 $
+czechrepkoruna		1 | 41.29 $
+denmarkkrone		1 | 8.5895 $
+dominicanpeso		1 | 16.00 $
 ecudrsucre		1 | 25000.00 $
-egyptpound		1 | 3.4390 $
-euro			1 | 1.1095 $
-finlandmark		1 | 6.5212 $
-francefranc		1 | 7.2771 $
-germanymark		1 | 2.1698 $
-greecedrachma		1 | 371.08 $
-hongkongdollar		1 | 7.7900 $
-hungaryforint		1 | 284.12 $
-indiarupee		1 | 43.940 $
-indnsiarupiah		1 | 8605.00 $
-irelandpunt		1 | .8638 $
-israelshekel		1 | 4.1483 $
-italylira		1 | 2148.07 $
-japanyen		1 | 109.44 $
-jordandinar		1 | .70998 $
-lebanonpound		1 | 1514.25 $
-malaysiaringgit		1 | 3.7994 $
-mexicopeso		1 | 9.5100 $
-nethrlndsguilder	1 | 2.4306 $
-newzealanddollar	1 | 2.1079 $
-norwaykrone		1 | 9.0100 $
-pakistanrupee		1 | 51.87 $
-perunewsol		1 | 3.503 $
-philpinspeso		1 | 41.54 $
-polandzloty		1 | 4.37 $
-portugalescudo		1 | 219.89 $
-russiaruble		1 | 28.2700 $
-sdr			1 | .7643 $
+egyptpound		1 | 3.5175 $
+euro			1 | 1.1573 $
+finlandmark		1 | 6.9205 $
+francefranc		1 | 7.5921 $
+germanymark		1 | 2.2637 $
+greecedrachma		1 | 391.90 $
+hongkongdollar		1 | 7.7985 $
+hungaryforint		1 | 304.36 $
+indiarupee		1 | 45.660 $
+indnsiarupiah		1 | 8595.00 $
+irelandpunt		1 | .9167 $
+israelshekel		1 | 4.0440 $
+italylira		1 | 2241.05 $
+japanyen		1 | 107.65 $
+jordandinar		1 | .71098 $
+lebanonpound		1 | 1513.50 $
+malaysiaringgit		1 | 3.7996 $
+mexicopeso		1 | 9.2930 $
+nethrlndsguilder	1 | 2.5503 $
+newzealanddollar	1 | 2.3753 $
+norwaykrone		1 | 9.2510 $
+pakistanrupee		1 | 54.63 $
+perunewsol		1 | 3.472 $
+philpinspeso		1 | 45.75 $
+polandzloty		1 | 4.49 $
+portugalescudo		1 | 233.35 $
+russiaruble		1 | 27.7800 $
+sdr			1 | .7751 $
 saudiarabriyal		1 | 3.7506 $
-singaporedollar		1 | 1.7320 $
-slovakrepkoruna		1 | 47.05 $
-southafricarand		1 | 7.0455 $
-southkoreawon		1 | 1114.50 $
-spainpeseta		1 | 182.00 $
-swedenkrona		1 | 9.0721 $
-switzerlndfranc		1 | 1.7224 $
-taiwandollar		1 | 30.77 $
-thailandbaht		1 | 39.32 $
-turkeylira		1 | 614940 $
+singaporedollar		1 | 1.7400 $
+slovakrepkoruna		1 | 49.96 $
+southafricarand		1 | 7.1350 $
+southkoreawon		1 | 1115.10 $
+spainpeseta		1 | 192.54 $
+swedenkrona		1 | 9.7149 $
+switzerlndfranc		1 | 1.7727 $
+taiwandollar		1 | 31.13 $
+thailandbaht		1 | 41.80 $
+turkeylira		1 | 665970 $
 uaedirham		1 | 3.6728 $
-uruguaynewpeso		1 | 11.9450 $
-venezuelabolivar	1 | 679.2500 $
+uruguaynewpeso		1 | 12.3950 $
+venezuelabolivar	1 | 689.5000 $
 / MONEY END
 
 baht			thailandbaht

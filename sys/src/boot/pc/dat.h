@@ -145,7 +145,7 @@ typedef struct Type {
 	int	flag;
 	int	(*init)(void);
 	void	(*initdev)(int, char*);
-	void* (*getdospart)(int, char*);	/* actually returns Dos* */
+	void*	(*getdospart)(int, char*);	/* actually returns Dos* */
 	void	(*addconf)(int);
 	int	(*boot)(int, char*, Boot*);
 
@@ -154,6 +154,7 @@ typedef struct Type {
 } Type;
 
 extern void (*etherdetach)(void);
+extern void (*sddetach)(void);
 
 typedef struct Lock {	/* for ilock, iunlock */
 	int locked;

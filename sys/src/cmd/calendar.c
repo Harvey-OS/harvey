@@ -113,11 +113,11 @@ dates(Date **last, Tm *tm)
 	Date *nd;
 	char mo[128], buf[128];
 
-	if(strlen(months[tm->mon]) > 3)
-		sprint(mo, "%3.3s(%s)?",
+	if(utflen(months[tm->mon]) > 3)
+		snprint(mo, sizeof mo, "%3.3s(%s)?",
 			months[tm->mon], months[tm->mon]+3);
 	else
-		sprint(mo, "%3.3s", months[tm->mon]);
+		snprint(mo, sizeof mo, "%3.3s", months[tm->mon]);
 	snprint(buf, sizeof buf,
 		"(^| |\t)((%s( |\t)+)|(%d/))%d( |\t|$)",
 		mo, tm->mon+1, tm->mday);

@@ -111,6 +111,18 @@ sprint(char *buf, char *fmt, ...)
 	return out-buf;
 }
 
+int
+snprint(char *buf, int len, char *fmt, ...)
+{
+	char *out;
+	va_list arg;
+
+	va_start(arg, fmt);
+	out = doprint(buf, buf+len, fmt, arg);
+	va_end(arg);
+	return out-buf;
+}
+
 void
 perror(char *msg)
 {

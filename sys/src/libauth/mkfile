@@ -24,6 +24,7 @@ OFILES=\
 	newns.$O\
 	srvauth.$O\
 	httpauth.$O\
+	vncchal.$O\
 	noworld.$O\
 	_asreadn.$O\
 	_asgetticket.$O\

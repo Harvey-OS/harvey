@@ -367,7 +367,7 @@ main(int argc, char *argv[])
 	fmtinstall('F', fcallconv);
 	strcpy(user, getuser());
 
-	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG)){
+	switch(rfork(RFFDG|RFPROC|RFREND|RFNOTEG)){
 	case -1:
 		error("fork");
 	case 0:
@@ -955,6 +955,7 @@ void
 error(char *s)
 {
 	fprint(2, "%s: %s: %r\n", argv0, s);
+	syslog(0, LOGFILE, "%s: %r", s);
 	remove("/srv/telco");
 	postnote(PNGROUP, getpid(), "exit");
 	exits(s);
@@ -1155,16 +1156,9 @@ monitor(Dev *d)
 	int n;
 	char *p;
 	char file[256];
+	int background;
 
-	switch(d->pid = rfork(RFPROC|RFMEM)){
-	case -1:
-		error("out of processes");
-	case 0:
-		break;
-	default:
-		return;
-	}
-
+	background = 0;
 	d->ctl = d->data = -1;
 
 	for(;;){
@@ -1178,6 +1172,18 @@ monitor(Dev *d)
 			error("opening data");
 		d->wp = d->rp = d->rbuf;
 		unlock(d);
+
+		if(!background){
+			background = 1;
+			switch(d->pid = rfork(RFPROC|RFMEM)){
+			case -1:
+				error("out of processes");
+			case 0:
+				break;
+			default:
+				return;
+			}
+		}
 
 		/* wait for ring or off hook */
 		while(d->open == 0){

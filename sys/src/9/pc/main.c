@@ -16,12 +16,12 @@ static  uchar *sp;	/* stack pointer for /boot */
  * Where configuration info is left for the loaded programme.
  * This will turn into a structure as more is done by the boot loader
  * (e.g. why parse the .ini file twice?).
- * There are 1024 bytes available at CONFADDR.
+ * There are XXX bytes available at CONFADDR.
  */
 #define BOOTLINE	((char*)CONFADDR)
 #define BOOTLINELEN	64
 #define BOOTARGS	((char*)(CONFADDR+BOOTLINELEN))
-#define	BOOTARGSLEN	(1024-BOOTLINELEN)
+#define	BOOTARGSLEN	(4096-0x200-BOOTLINELEN)
 #define	MAXCONF		32
 
 char bootdisk[NAMELEN];
@@ -249,11 +249,12 @@ userinit(void)
 	/*
 	 * Kernel Stack
 	 *
-	 * N.B. The -12 for the stack pointer is important.
+	 * N.B. make sure there's enough space for syscall to check
+	 *	for valid args and 
 	 *	4 bytes for gotolabel's return PC
 	 */
 	p->sched.pc = (ulong)init0;
-	p->sched.sp = (ulong)p->kstack+KSTACK-(1+MAXSYSARG)*BY2WD;
+	p->sched.sp = (ulong)p->kstack+KSTACK-(sizeof(Sargs)+BY2WD);
 
 	/*
 	 * User Stack

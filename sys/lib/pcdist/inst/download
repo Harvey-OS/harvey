@@ -1,0 +1,56 @@
+#!/bin/rc
+
+# prereq: mountfs configarch
+# desc: download or continue to download the distribution archives
+
+switch($1) {
+case checkready
+	if(~ $archmedium local) {
+		download=notdone
+		export download
+	}
+
+	devs=(`{cat /net/ipifc/*/status >[2]/dev/null | sed 's/ .*//'})
+	if(~ $#devs 0) {
+		download=notdone
+		export download
+	}
+
+case go
+	if(! test -f /srv/cs) {
+		log starting cs, dns
+		ndb/cs >>/srv/log >[2=1]
+		ndb/dns -r >>/srv/log >[2=1]
+	}
+	if(! test -f /net/cs) {
+		mount -a /srv/cs /net
+		mount -a /srv/dns /net
+	}
+
+	if(! test -d /n/kfs/dist) {
+		rm -f /n/kfs/dist
+		disk/kfscmd -n$disk 'create /dist sys sys 775 d'
+	}
+	disk/kfscmd -n$disk allow
+
+	# BUG make restartable
+	echo 'Downloading distribution package...'
+	if(! hget -vo /n/kfs/dist/_$distname.9gz $installurl/$distname.9gz |[2] bargraph -w 145,129,445,168 'downloading '^$distname.9gz)
+		exit
+	mv /n/kfs/dist/_$distname.9gz /n/kfs/dist/$distname.9gz
+	disk/kfscmd -n$disk sync
+
+	echo 'The distribution is downloaded.'
+
+	distdir=/n/kfs/dist
+	export distdir
+
+case checkdone
+	if(! test -f /n/kfs/dist/$distname.9gz) {
+		download=notdone
+		export download
+	}
+	distdir=/n/kfs/dist
+	export distdir
+}
+

@@ -14,6 +14,7 @@ enum
 	OPlumb,
 	OSrc,
 	OType,
+	OWdir,
 };
 
 /*

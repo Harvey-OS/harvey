@@ -83,7 +83,7 @@ init.h:	initcode /sys/src/libc/9syscall/sys.h
 
 clock.$O faultalpha.$O:	/$objtype/include/ureg.h
 main.$O: 		/sys/src/boot/alphapc/conf.h
-sd53c8xx.$O:		sd53c8xx.i
+sd53c8xx.$O:	sd53c8xx.i
 
 sd53c8xx.i:	../pc/sd53c8xx.n
 	aux/na $prereq > $target

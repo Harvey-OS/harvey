@@ -1,6 +1,6 @@
 .TH MOUSE 2
 .SH NAME
-initmouse, readmouse, atomouse, closemouse, moveto, cursorswitch, getrect, drawgetrect, menuhit, setcursor \- mouse control
+initmouse, readmouse, closemouse, moveto, cursorswitch, getrect, drawgetrect, menuhit, setcursor \- mouse control
 .SH SYNOPSIS
 .nf
 .B
@@ -21,6 +21,9 @@ Mousectl	*initmouse(char *file, Image *i)
 .PP
 .B
 int		readmouse(Mousectl *mc)
+.PP
+.B
+int		atomouse();
 .PP
 .B
 void		closemouse(Mousectl *mc)
@@ -106,11 +109,11 @@ naming the device file connected to the mouse and an
 (see
 .IR draw (2))
 on which the mouse will be visible.
-Typically these are
+Typically the file is
 nil,
 which requests the default
 .BR /dev/mouse ;
-and the window in which the program is running, held in the variable
+and the image is the window in which the program is running, held in the variable
 .B screen
 after a call to
 .IR initdraw .

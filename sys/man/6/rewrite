@@ -83,6 +83,7 @@ Replace the address by the address(es) output by the
 command formed by expanding
 .I arg1
 and recur.
+.PD
 .PP
 .I Mail
 expands the addresses recursively until each address has matched a

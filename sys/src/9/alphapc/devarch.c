@@ -55,8 +55,8 @@ ioinit(void)
 	iomap.maps[i].next = nil;
 	iomap.free = iomap.maps;
 
-	// a dummy entry at 2^16
-	ioalloc(0x10000, 1, 0, "dummy");
+	// a dummy entry at 2^17
+	ioalloc(0x20000, 1, 0, "dummy");
 }
 
 static long cputyperead(char*, int, ulong);

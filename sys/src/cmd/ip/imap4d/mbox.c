@@ -634,7 +634,8 @@ closeBox(Box *box, int opened)
 
 	if(box->writable){
 		deleteMsgs(box);
-		expungeMsgs(box, 0);
+		if(expungeMsgs(box, 0))
+			closeImp(box, checkBox(box, 1));
 	}
 
 	if(fprint(fsCtl, "close %s", box->fs) < 0 && opened)
@@ -654,23 +655,31 @@ int
 deleteMsgs(Box *box)
 {
 	Msg *m;
+	char buf[BufSize], *p, *start;
 	int ok;
 
 	if(!box->writable)
 		return 0;
 
 	/*
-	 * first pass: delete messages
+	 * first pass: delete messages; gang the writes together for speed.
 	 */
 	ok = 1;
+	start = seprint(buf, buf + sizeof(buf), "delete %s", box->fs);
+	p = start;
 	for(m = box->msgs; m != nil; m = m->next){
 		if((m->flags & MDeleted) && !m->expunged){
-			if(fprint(fsCtl, "delete %s %lud", box->fs, m->id) < 0)
-				ok = 0;
-			else
-				m->expunged = 1;
+			m->expunged = 1;
+			p = seprint(p, buf + sizeof(buf), " %lud", m->id);
+			if(p + 32 >= buf + sizeof(buf)){
+				if(write(fsCtl, buf, p - buf) < 0)
+					bye("can't talk to mail server");
+				p = start;
+			}
 		}
 	}
+	if(p != start && write(fsCtl, buf, p - buf) < 0)
+		bye("can't talk to mail server");
 
 	return ok;
 }
@@ -709,7 +718,6 @@ expungeMsgs(Box *box, int send)
 	if(n){
 		box->max -= n;
 		box->dirtyImp = 1;
-		closeImp(box, checkBox(box, 1));
 	}
 	return n;
 }

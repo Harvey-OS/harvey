@@ -19,11 +19,10 @@ sat(void)
 	anom = 175.47630 + .03345972*eday - .56527*capt;
 	motion = 120.4550/3600.;
 
-
 	incl *= radian;
 	node *= radian;
 	argp *= radian;
-	anom = fmod(anom,360.)*radian;
+	anom = fmod(anom, 360.)*radian;
 
 	enom = anom + ecc*sin(anom);
 	do {

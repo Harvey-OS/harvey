@@ -121,13 +121,13 @@ main(int argc, char **argv)
 			break;
 		n = GLONG();
 		p = GPTR(n);
-		print("%.*s\n", n, p);
+		print("%.*s\n", utfnlen(p, n), p);
 		for(;;){
 			if(GLONG() == 0)
 				break;
 			n = GLONG();
 			p = GPTR(n);
-			print("\t%.*s\n", n, p);
+			print("\t%.*s\n", utfnlen(p, n), p);
 		}
 	}
 

@@ -641,7 +641,7 @@ namec(char *name, int amode, int omode, ulong perm)
 	if(name[0] == 0)
 		error(Enonexist);
 
-	if(!((ulong)name & KZERO)) {
+	if(((ulong)name & KZERO) != KZERO) {
 		p = name;
 		t = BY2PG-((ulong)p&(BY2PG-1));
 		while(vmemchr(p, 0, t) == 0) {

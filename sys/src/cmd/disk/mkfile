@@ -1,7 +1,6 @@
 </$objtype/mkfile
 
 TARG=exsort\
-	fdisk\
 	format\
 	kfscmd\
 	mbr\
@@ -11,6 +10,7 @@ TARG=exsort\
 
 DIRS=kfs\
 	prep\
+	sacfs\
 
 OFILES=
 

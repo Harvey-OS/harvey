@@ -603,7 +603,7 @@ mesgcommand(Message *m, char *cmd)
 		}
 		goto Return;
 	}
-	if(strcmp(s, "Undelmesg") == 0){
+	if(strcmp(s, "UnDelmesg") == 0){
 		if(!m->isreply && m->deleted)
 			mesgmenumarkundel(wbox, &mbox, m);
 		goto Return;
@@ -997,7 +997,7 @@ mesgopen(Message *mbox, char *dir, char *s, Message *mesg, int plumbed, char *di
 		winname(m->w, v);
 		free(v);
 		if(m->deleted)
-			wintagwrite(m->w, "Reply all Undelmesg Save ", 6+4+10+5);
+			wintagwrite(m->w, "Reply all UnDelmesg Save ", 6+4+10+5);
 		else
 			wintagwrite(m->w, "Reply all Delmesg Save ", 6+4+8+5);
 		threadcreate(mesgctl, m, STACK);

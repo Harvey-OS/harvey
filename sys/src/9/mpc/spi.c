@@ -154,7 +154,7 @@ spireset(void)
 
 	/* step 13: enable in master mode, 8 bit chacters, slow clock */
 	spi->spmode = MMaster|MRev|MDiv16|MEnable|(0x7<<4)|0xf;
-print("spi->spmode = %ux\n", spi->spmode);
+
 }
 
 static void
@@ -168,7 +168,7 @@ interrupt(Ureg*, void *arg)
 	spi = ctlr->spi;
 	events = spi->spie;
 	spi->spie = events;
-	print("SPI#%x\n", events);
+//	print("SPI#%x\n", events);
 }
 
 void
@@ -199,6 +199,7 @@ spitest(void)
 	int len;
 	Ctlr *ctlr;
 	ulong status;
+	uchar buf[2];
 
 	ctlr = spictlr;
 
@@ -223,7 +224,6 @@ print("len = %d\n", len);
 print("addr = %lux\n", PADDR(b->rp));
 	dre->length = len;
 	dre->status = (dre->status & BDWrap) | BDReady|BDInt|BDLast;
-	eieio();
 spdump(ctlr->sp);
 m->iomem->pbdat |= IBIT(31);
 microdelay(1);
@@ -248,6 +248,14 @@ print("%d status = %lux len=%d\n", ctlr->rdrx, status, len);
 	memmove(b->wp, KADDR(dre->addr), len);
 	b->wp += len;
 print("%ux %ux %ux %ux\n", b->rp[0], b->rp[1], b->rp[2], b->rp[3]);
+
+/* get the data out of the receiving block
+   the data begins at the 13th bit, and ends at the (13+16)th bit
+*/
+	buf[0]=b->rp[1]<<4 | b->rp[2]>>4;
+	buf[1]=b->rp[2]<<4 | b->rp[3]>>4;
+
+print("the value of address 0 in EEPROM is %ux %ux\n",buf[0],buf[1]);
 	dcflush(KADDR(dre->addr), len);
 	dre->status = (status & BDWrap) | BDEmpty | BDInt;
 	ctlr->rdrx = NEXT(ctlr->rdrx, Nrdre);
@@ -260,262 +268,280 @@ void
 spiinit(void)
 {
 	spireset();
-	spitest();
+//	spitest();
 }
 
-#ifdef XXX
+void
+spicmdsend(Block *b, BD *dre, Ctlr *ctlr, int CSdown)
+{   
+	int len;
 
-static void
-epprod(Ctlr *ctlr, int epn)
-{
-	ctlr->spi->uscom = FifoFill | (epn&3);
-	eieio();
-}
-
-static void
-txstart(Endpt *r)
-{
-	int len, flags;
-	Block *b;
-	BD *dre, *rdy;
-
-	if(r->ctlr->init)
-		return;
-	rdy = nil;
-	while(r->ntq < Ntdre-1){
-		b = qget(r->oq);
-		if(b == 0)
-			break;
-
-		dre = &r->tdr[r->tdrh];
-		if(dre->status & BDReady)
-			panic("txstart");
-dumpspi(b, "TX");
+	if(dre->status & BDReady)
+		panic("spicmdsend: txstart");
 	
-		/*
-		 * Give ownership of the descriptor to the chip, increment the
-		 * software ring descriptor pointer and tell the chip to poll.
-		 */
-		flags = 0;
-		switch(b->rp[0]){
-		case TokDATA1:
-			flags = BDData1|BDData0;
-		case TokDATA0:
-			flags |= BDtxcrc|BDcnf|BDReady;
-			flags |= BDData0;
-			b->rp++;	/* skip DATAn */
-		}
-		len = BLEN(b);
-		dcflush(b->rp, len);
-		if(r->txb[r->tdrh] != nil)
-			panic("spi: txstart");
-		r->txb[r->tdrh] = b;
-		dre->addr = PADDR(b->rp);
-		dre->length = len;
-		eieio();
-		dre->status = (dre->status & BDWrap) | BDInt|BDLast | flags;
-		if(rdy){
-			rdy->status |= BDReady;
-			rdy = nil;
-		}
-		if((flags & BDReady) == 0)
-			rdy = dre;
-		eieio();
-		r->ntq++;
-		r->tdrh = NEXT(r->tdrh, Ntdre);
-	}
-	if(rdy)
-		rdy->status |= BDReady;
-	eieio();
+	len = BLEN(b);
+	dcflush(b->rp, len);
+
+	ctlr->txb[ctlr->tdrh] = b;
+	dre->addr = PADDR(b->rp);
+	dre->length = len;
+	dre->status = (dre->status & BDWrap) | BDReady|BDInt|BDLast;
+	m->iomem->pbdat |= IBIT(31);
+
+	ctlr->spi->spcom = 1<<7;	/* transmit now */
+
+	//eieio();
+	ctlr->ntq++;
+	ctlr->tdrh = NEXT(ctlr->tdrh, Ntdre);
+
+	delay(1);
+
+	while(dre->status&BDReady) microdelay(10);
+
+	if(CSdown) m->iomem->pbdat &= ~(IBIT(31));
+
 }
 
-static void
-transmit(Endpt *r)
-{
-	ilock(r->ctlr);
-	txstart(r);
-	iunlock(r->ctlr);
-}
 
-static void
-endptintr(Endpt *r, int events)
+void
+spiread(ulong addr,uchar * buf)
 {
-	int len, status;
-	BD *dre;
+
+  	BD *dre;
 	Block *b;
-
-	if(events & Frxb || 1){
-		dre = &r->rdr[r->rdrx];
-		while(((status = dre->status) & BDEmpty) == 0){
-			if(status & BDrxerr || (status & (BDFirst|BDLast)) != (BDFirst|BDLast)){
-				print("spi rx: %4.4ux %d ", status, dre->length);
-				{uchar *p;int i; p=KADDR(dre->addr); for(i=0;i<14&&i<dre->length; i++)print(" %.2ux", p[i]);print("\n");}
-			}
-			else{
-				/*
-				 * We have a packet. Read it into the next
-				 * free ring buffer, if any.
-				 */
-				len = dre->length-2;	/* discard CRC */
-				if(len >= 0 && (b = iallocb(len)) != 0){
-					memmove(b->wp, KADDR(dre->addr), len);
-					dcflush(KADDR(dre->addr), len);
-					b->wp += len;
-					// spiiq(ctlr, b);
-					dumpspi(b, "RX");
-					freeb(b);
-				}
-			}
-
-			/*
-			 * Finished with this descriptor, reinitialise it,
-			 * give it back to the chip, then on to the next...
-			 */
-			dre->length = 0;
-			dre->status = (dre->status & BDWrap) | BDEmpty | BDInt;
-			eieio();
-
-			r->rdrx = NEXT(r->rdrx, Nrdre);
-			dre = &r->rdr[r->rdrx];
-			r->rxintr = 1;
-			wakeup(&r->ir);
-		}
-	}
-
-	/*
-	 * Transmitter interrupt: handle anything queued for a free descriptor.
-	 */
-	if(events & (Ftxb|Ftxe0|Ftxe1)){
-		lock(r->ctlr);
-		while(r->ntq){
-			dre = &r->tdr[r->tdri];
-			if(dre->status & BDReady)
-				break;
-			print("spitx=#%.4x %8.8lux\n", dre->status, dre->addr);
-			/* TO DO: error counting */
-			b = r->txb[r->tdri];
-			if(b == nil)
-				panic("spi/interrupt: bufp");
-			r->txb[r->tdri] = nil;
-			freeb(b);
-			r->ntq--;
-			r->tdri = NEXT(r->tdri, Ntdre);
-		}
-		txstart(r);
-		unlock(r->ctlr);
-		if(r->ntq)
-			epprod(r->ctlr, r->x);
-	}
-}
-
-
-static void
-dumpspi(Block *b, char *msg)
-{
-	int i;
-
-	print("%s: %8.8lux [%d]: ", msg, (ulong)b->rp, BLEN(b));
-	for(i=0; i<BLEN(b) && i < 16; i++)
-		print(" %.2x", b->rp[i]);
-	print("\n");
-}
-
-static void
-setaddr(Endpt *e, int dev, int endpt)
-{
-	ushort v;
-
-	e->dev = dev;
-	e->endpt = endpt;
-	v = (e->endpt<<7) | e->dev;
-	v |= crc5(v) << 11;
-	e->addr[0] = v;
-	e->addr[1] = v>>8;
-}
-
-static int
-spiinput(void *a)
-{
-	return ((Ctlr*)a)->rxintr;
-}
-
-static void
-spitest(void)
-{
+	int len;
 	Ctlr *ctlr;
-	Endpt *e, *e1;
-	uchar msg[8];
-	int epn, testing, i;
+	ushort status;
+  
+	ctlr = spictlr;
+
+	dre = &ctlr->tdr[ctlr->tdrh];
+
+	b = allocb(4);
+	b->wp[0] = 0xc0 | addr>>3;
+	b->wp[1] = addr<<5;
+	b->wp[2] = 0x00;
+	b->wp[3] = 0x00;
+	b->wp += 4;
+
+	spicmdsend(b, dre, ctlr, 0);
+
+	//delay(10);
+	
+	dre = &ctlr->rdr[ctlr->rdrx];
+	status = dre->status;
+	len = dre->length;
+	
+	while(dre->status&BDEmpty) microdelay(10);
+
+	b = iallocb(len);
+	memmove(b->wp, KADDR(dre->addr), len);
+	b->wp += len;
+
+
+/* get the data out of the receiving block
+   the data begins at the 13th bit, and ends at the (13+16)th bit
+*/
+	buf[0]=b->rp[1]<<4 | b->rp[2]>>4;
+	buf[1]=b->rp[2]<<4 | b->rp[3]>>4;
+
+//    print("read out %ux %ux\n", buf[0],buf[1]);
+	dcflush(KADDR(dre->addr), len);
+	dre->status = (status & BDWrap) | BDEmpty | BDInt;
+	ctlr->rdrx = NEXT(ctlr->rdrx, Nrdre);
+	freeb(b);
+	m->iomem->pbdat &= ~(IBIT(31));
+	microdelay(5);
+
+	return;
+}
+
+void
+spienwrite(void)
+{
+  	BD *dre;
+	Block *b;
+	Ctlr *ctlr;
+	int len;
 
 	ctlr = spictlr;
-	epn = 0;
-	testing = ctlr->spi->usmod & TEST;
-	if(testing)
-		epn = 1;
-	e = &ctlr->pts[0];
-	e1 = &ctlr->pts[1];
-	memset(msg, 0, 8);
-	msg[0] = 0;
-	msg[1] = 8;	/* set configuration */
-	msg[2] = 1;
-	setaddr(e, 0, epn);
-	sendtoken(e, TokSETUP);
-	senddata(e, msg, 8);
-	if(!testing){
-		for(i=0; i<8; i++)
-			msg[i] = 0x40+i;
-		senddata(e1, msg, 8);
-		e->rxintr = 0;
-		sendtoken(e, TokIN);
-		transmit(e);
-		epprod(ctlr, 0);
-		tsleep(&e->ir, spiinput, e, 1000);
-		if(!spiinput(e))
-			print("RX: none\n");
-	}
-	sendtoken(e, TokSETUP);
-	msg[0] = 0x23;
-	msg[1] = 3;	/* set feature */
-	msg[2] = 8;	/* port power */
-	msg[3] = 0;
-	msg[4] = 1;	/* port 1 */
-	senddata(e, msg, 8);
-	if(!testing){
-		for(i=0; i<8; i++)
-			msg[i] = 0x60+i;
-		senddata(e1, msg, 8);
-		e->rxintr = 0;
-		sendtoken(e, TokIN);
-		transmit(e);
-		epprod(ctlr, 0);
-		tsleep(&e->ir, spiinput, e, 1000);
-		if(!spiinput(e))
-			print("RX: none\n");
-	}
+
+	b = allocb(4);
+	b->wp[0] = 0x98;
+	b->wp[1] = 0x00;
+	b->wp[2] = 0x00;
+	b->wp[3] = 0x00;
+	b->wp += 4;
+
+	dre = &ctlr->tdr[ctlr->tdrh];
+	spicmdsend(b,dre,ctlr,1);
+
+	dre=&ctlr->rdr[ctlr->rdrx];
+	len=dre->length;
+	dcflush(KADDR(dre->addr),len);
+	dre->status=(dre->status&BDWrap)|BDEmpty|BDInt;
+	ctlr->rdrx=NEXT(ctlr->rdrx,Nrdre);
+
+	freeb(b);
+	microdelay(5);
+	return;
 }
 
-static void
-setupep(int n, EPparam *ep)
+void
+spidiswrite(void)
 {
-	Endpt *e;
+  	BD *dre;
+	Block *b;
+	Ctlr *ctlr;
+	int len;
 
-	e = &usbctlr->pts[n];
-	e->x = n;
-	e->ctlr = usbctlr;
-	e->xtog = TokDATA0;
-	if(e->oq == nil)
-		e->oq = qopen(8*1024, 1, 0, 0);
-	if(e->iq == nil)
-		e->iq = qopen(8*1024, 1, 0, 0);
-	e->ep = ep;
-	if(ioringinit(e, Nrdre, Ntdre, Bufsize) < 0)
-		panic("usbreset");
-	ep->rbase = PADDR(e->rdr);
-	ep->rbptr = ep->rbase;
-	ep->tbase = PADDR(e->tdr);
-	ep->tbptr = ep->tbase;
-	eieio();
+	ctlr = spictlr;
+
+	dre = &ctlr->tdr[ctlr->tdrh];
+
+	b = allocb(4);
+	b->wp[0] = 0x80;
+	b->wp[1] = 0x00;
+	b->wp[2] = 0x00;
+	b->wp[3] = 0x00;
+	b->wp += 4;
+
+	spicmdsend(b,dre,ctlr,1);
+
+	dre=&ctlr->rdr[ctlr->rdrx];
+	len=dre->length;
+	dcflush(KADDR(dre->addr),len);
+	dre->status=(dre->status&BDWrap)|BDEmpty|BDInt;
+	ctlr->rdrx=NEXT(ctlr->rdrx,Nrdre);
+
+	freeb(b);
+	microdelay(5);
+	return;
 }
 
+void
+spiwrite(ulong addr, uchar *buf)
+{
+  	BD *dre;
+	Block *b;
+	Ctlr *ctlr;
+	int len;
+  
+	ctlr = spictlr;
 
-#endif
+	dre = &ctlr->tdr[ctlr->tdrh];
+
+	b = allocb(4);
+	b->wp[0] = 0x05 ;
+	b->wp[1] = 0x7f & addr;
+	b->wp+=2;
+	memmove((uchar*)b->wp,buf,2);
+	b->wp += 2;
+
+	spicmdsend(b,dre,ctlr,1);
+
+	dre=&ctlr->rdr[ctlr->rdrx];
+	len=dre->length;
+	dcflush(KADDR(dre->addr),len);
+	dre->status=(dre->status&BDWrap)|BDEmpty|BDInt;
+	ctlr->rdrx=NEXT(ctlr->rdrx,Nrdre);
+
+	freeb(b);
+	delay(15);
+	//sleep(15); //sleep for 15ms 
+	return;
+}
+
+void
+spiwriteall(uchar *buf)
+{
+  	BD *dre;
+	Block *b;
+	Ctlr *ctlr;
+	int len;
+
+	ctlr = spictlr;
+
+	dre = &ctlr->tdr[ctlr->tdrh];
+	
+	b = allocb(4);
+	b->wp[0] = 0x04;
+	b->wp[1] = 0x40;
+	b->wp+=2;
+	memmove((uchar*)b->wp,buf,2);
+	//b->wp[2]=0xf0;
+	//b->wp[3]=0xf0;
+	b->wp += 2;
+
+	spicmdsend(b,dre,ctlr,1);
+
+	dre=&ctlr->rdr[ctlr->rdrx];
+	len=dre->length;
+	dcflush(KADDR(dre->addr),len);
+	dre->status=(dre->status&BDWrap)|BDEmpty|BDInt;
+	ctlr->rdrx=NEXT(ctlr->rdrx,Nrdre);
+
+	freeb(b);
+	delay(15);
+	//sleep(15000); //sleep for 15ms 
+	print("leave spiwriteall\n");
+	return;
+}
+
+void
+spierase(ulong addr)
+{
+  	BD *dre;
+	Block *b;
+	Ctlr *ctlr;
+	int len;
+
+	ctlr = spictlr;
+
+	b = allocb(2);
+	b->wp[0] = 0x07;
+	b->wp[1] = addr&0x7f;
+	b->wp+=2;
+
+	dre = &ctlr->tdr[ctlr->tdrh];
+	spicmdsend(b,dre,ctlr,1);
+
+	dre=&ctlr->rdr[ctlr->rdrx];
+	len=dre->length;
+	dcflush(KADDR(dre->addr),len);
+	dre->status=(dre->status&BDWrap)|BDEmpty|BDInt;
+	ctlr->rdrx=NEXT(ctlr->rdrx,Nrdre);
+
+	freeb(b);
+	delay(15);
+	return;
+}
+
+void
+spieraseall(void)
+{
+  	BD *dre;
+	Block *b;
+	Ctlr *ctlr;
+	int len;
+
+	ctlr = spictlr;
+
+	b = allocb(2);
+	b->wp[0] = 0x07;
+	b->wp[1] = 0x80;
+	b->wp+=2;
+
+	dre = &ctlr->tdr[ctlr->tdrh];
+	spicmdsend(b,dre,ctlr,1);
+
+	dre=&ctlr->rdr[ctlr->rdrx];
+	len=dre->length;
+	dcflush(KADDR(dre->addr),len);
+	dre->status=(dre->status&BDWrap)|BDEmpty|BDInt;
+	ctlr->rdrx=NEXT(ctlr->rdrx,Nrdre);
+
+	freeb(b);
+	delay(15);
+	return;
+}

@@ -162,7 +162,6 @@ void
 addport(char *port)
 {
 	int i;
-	void **a;
 
 	if(port == nil)
 		return;
@@ -177,8 +176,6 @@ addport(char *port)
 	dir[i].name = estrdup(port);
 	dir[i].qid = i;
 	dir[i].perm = 0400;
-	a = emalloc(sizeof(void**));
-	a[0] = &dir[i];
 	nports++;
 	ports = erealloc(ports, nports*sizeof(char*));
 	ports[nports-1] = dir[i].name;

@@ -87,10 +87,12 @@ addr(Biobuf *bp)
 	case D_REG:
 	case D_FREG:
 	case D_PSR:
+	case D_FPCR:
 		break;
 	case D_OREG:
 	case D_CONST:
 	case D_BRANCH:
+	case D_SHIFT:
 		off = Bgetc(bp);
 		off |= Bgetc(bp) << 8;
 		off |= Bgetc(bp) << 16;

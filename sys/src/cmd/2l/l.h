@@ -208,7 +208,6 @@ int	Dconv(va_list*, Fconv*);
 int	Pconv(va_list*, Fconv*);
 int	Rconv(va_list*, Fconv*);
 int	Sconv(va_list*, Fconv*);
-int	Xconv(va_list*, Fconv*);
 void	addhist(long, int);
 int	andsize(Prog*, Adr*);
 Prog*	appendp(Prog*);

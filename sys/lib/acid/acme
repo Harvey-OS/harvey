@@ -14,14 +14,14 @@ defn procstk(pid, name)
 	local dir;
 
 	printto("/tmp/acme.acid", stk());
-	rc("cat /tmp/acme.acid | wnew -d "+"Acid/-"+name+"'("+itoa(pid)+")'");
+	rc("cat /tmp/acme.acid | wnew -d "+"Acid/-'"+name+"("+itoa(pid)+")'");
 }
 
 defn taskstk(tid, name)
 {
 	local dir;
 
-	printto("/tmp/acme.acid", stk());
+	printto("/tmp/acme.acid", threadstk(tid));
 	rc("cat /tmp/acme.acid | wnew -d "+"Acid/-"+name+"'("+itoa(pid)+")'");
 }
 
@@ -100,6 +100,30 @@ defn procs()			// print status of processes
 			print(">");
 		print("\t", "setproc(", np, ")\t", status(np), " at ", fmt(*PC, 'a'), "\n");
 		lst = tail lst;
+	}
+	pid = cpid;
+	if pid != 0 then
+		setproc(pid);
+}
+
+defn allstacks()			// print stacks of processes and threads
+{
+	complex Proc P;
+	local T, Tq;
+	local c, lst, cpid;
+
+	cpid = pid;
+	P = (Proc)pq.$head;
+	while P != 0 do{
+		Tq = (Tqueue)P.threads;
+		T = (Thread)Tq.$head;
+		setproc(P.pid);
+		while T != 0 do{
+			if(T.cmdname == 0) then taskstk(T, "unknown");
+			else taskstk(T, *(T.cmdname\s));
+			T = T.nextt;
+		}
+		P = P.next;
 	}
 	pid = cpid;
 	if pid != 0 then

@@ -34,6 +34,16 @@
 #define LDBL_MAX	DBL_MAX
 #define LDBL_MAX_10_EXP	DBL_MAX_10_EXP
 
+typedef 	union FPdbleword FPdbleword;
+union FPdbleword
+{
+	double	x;
+	struct {	/* big endian */
+		long hi;
+		long lo;
+	};
+};
+
 #ifdef _RESEARCH_SOURCE
 /* define stuff needed for floating conversion */
 #define IEEE_MC68k	1

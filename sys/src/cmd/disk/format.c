@@ -250,7 +250,9 @@ main(int argc, char **argv)
 			if(n <= 0 || n >= 10)
 				fatal("reading floppy type");
 			buf[n] = 0;
-			type = estrdup(buf);
+			type = strdup(buf);
+			if(type == nil)
+				fatal("out of memory");
 			break;
 		case Tsd:
 			type = "hard";

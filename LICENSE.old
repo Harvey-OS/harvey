@@ -44,12 +44,14 @@ furnished under this Agreement.
 1.10 "Plan 9 Software" means a network operating system designed for
 research into distributed services, applications and software
 development.
-1.11 "Recipient" means any individual or legal entity receiving the
+1.11 "Plan 9 Trademark" means the trademark PLAN 9 (for which Lucent
+has acquired common law rights and for which Lucent owns U.S.
+Trademark Registration Number 2,065,577).
+1.12 "Recipient" means any individual or legal entity receiving the
 Licensed Software under this Agreement, including all Contributors, or
 receiving the Licensed Software under another license agreement as
 authorized herein.
-1.12   "Source Code" means human readable software code.
-
+1.13 "Source Code" means human readable software code.
 2.0	GRANT OF RIGHTS
 2.1 Subject to the terms of this Agreement and to third party
 intellectual property claims, Lucent grants to Licensee, a
@@ -94,6 +96,40 @@ by the Original Contributor, including but not limited to Lucent, B&H
 Inc., and Y&Y Inc. No rights are granted with respect to Original
 Software except as expressly provided herein.
 
+2.5 Lucent grants to Licensee a nonexclusive, royalty free, worldwide
+license to use the Plan 9 Trademark solely in connection with the Plan
+9 operating system source code and documentation.  Such use by
+Licensee of the Plan 9 Trademark shall be in accordance with the
+following quality standards and controls:
+
+* Any use of the Plan 9 Trademark must be made under the terms of this
+Agreement;
+
+* The Plan 9 Trademark may not be combined with any other mark or logo
+to form a composite mark or logo or suggest that the Parties are part
+of one company;
+
+* The Plan 9 Trademark font must be smaller than the font used for
+Licensee's own trademarks and/or logos.
+
+Upon Lucent's written request and at Licensee's expense, Licensee will
+provide Lucent with a representative sample of Licensee's promotional
+materials bearing the Plan 9 Trademark.  If, for any reason, Lucent
+determines that the quality standards or controls applied by Licensee
+to the Plan 9 system source code and documentation fall below those
+that are consistent with Lucent's standards, upon written notice of
+the deficiency to Licensee, Lucent may, at its sole option and
+discretion, terminate Licensee's right to use the Plan 9 Trademark
+upon written notice to Licensee.
+
+Licensee acknowledges that Lucent is the owner of the Plan 9 Trademark
+and all goodwill attached thereto.  This Agreement does not give
+Licensee any interest in the Plan 9 Trademark except the right to use
+the mark in accordance with the provisions of this Agreement.
+Licensee agrees not to attempt to register the Plan 9 Trademark nor to
+adopt, attempt to register or register anywhere in the world a mark
+the same as or confusingly similar to the Plan 9 Trademark.
+
 
 3.0 	DISTRIBUTION OBLIGATIONS
 
@@ -121,19 +157,19 @@ portion thereof), You must include the following information in a
 conspicuous location governing such distribution (e.g., a separate
 file) and on all copies of any Source Code version of Licensed
 Software You distribute:
-	"The contents herein includes software initially developed by Lucent
-	Technologies Inc. and others, and is subject to the terms of the
-	Lucent Technologies Inc. Plan 9 Open Source License Agreement.  A copy
-	of the Plan 9 open Source License Agreement is available at:
-	http://plan9.bell-labs.com/plan9dist/download.html or by contacting
-	Lucent Technologies at http: //www.lucent.com.  All software
-	distributed under such Agreement is distributed on an "AS IS" basis,
-	WITHOUT WARRANTY OF ANY KIND, either express or implied.  See the
-	Lucent Technologies Inc. Plan 9 Open Source License Agreement for the
-	specific language governing all rights, obligations and limitations
-	under such Agreement.  Portions of the software developed by Lucent
-	Technologies Inc. and others are Copyright (2000.  All rights
-	reserved.
+	"The contents herein includes software initially developed by
+	Lucent Technologies Inc. and others, and is subject to the terms
+	of the Lucent Technologies Inc. Plan 9 Open Source License
+	Agreement.  A copy of the Plan 9 open Source License Agreement is
+	available at: http://plan9.bell-labs.com/plan9dist/download.html
+	or by contacting Lucent Technologies at http: //www.lucent.com.
+	All software distributed under such Agreement is distributed on
+	an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+	implied.  See the Lucent Technologies Inc. Plan 9 Open Source
+	License Agreement for the specific language governing all rights,
+	obligations and limitations under such Agreement.  Portions of
+	the software developed by Lucent Technologies Inc. and others are
+	Copyright (c) 2000.  All rights reserved.
 	Contributor(s):___________________________"
 3.4 You may distribute Licensed Software in Object Code form using
 this Agreement, or under a license of Your choice provided that You
@@ -158,7 +194,7 @@ liability incurred by Original Contributor or any other Contributor as
 result of any such differing terms You offer in Your license.
 3.5 You may not use the names "Lucent Technologies", "Bell Labs" or
 any other name associated with Lucent or any Lucent trademark for any
-purposes other than as specifically provided in this Section 3.0.
+purposes other than as specifically provided in this Agreement.
 3.6 You must include all of the original copyright, labels or other
 notices on the Licensed Software on any copies of the Licensed
 Software which You make; and include with the distribution of any
@@ -184,35 +220,35 @@ kind.
 You agree to provide the Original Contributor, at its request, with a
 copy of the complete Source Code version, Object Code version and
 related documentation for Modifications created or contributed to by
-You if used for any purpose.  Original Contributor and/or other
-Contributors shall have unrestricted, nonexclusive, worldwide,
-perpetual, royalty-free rights, to use, reproduce, modify, display,
-perform, sublicense and distribute Your Modifications, and to grant
-third parties the right to do so, including without limitation as a
-part of or with the Licensed Software; and Original Contributor and/or
-other Contributors shall have the right to license or to otherwise
-transfer to third parties Your Modifications without notice,
-obligation or recourse to You. You grant to Original Contributor,
-Contributors and their respective licensees all rights and licenses
-(including patents) as are necessary to incorporate the Modifications
-created or contributed by You into the Licensed Software and to use,
-distribute or otherwise exploit such Licensed Software without payment
-or accounting to You.
+You if distributed in any form, e.g., binary or source.  Original
+Contributor and/or other Contributors shall have unrestricted,
+nonexclusive, worldwide, perpetual, royalty-free rights, to use,
+reproduce, modify, display, perform, sublicense and distribute such
+Modifications, and to grant third parties the right to do so,
+including without limitation as a part of or with the Licensed
+Software; and Original Contributor and/or other Contributors shall
+have the right to license or to otherwise transfer to third parties
+such Modifications without notice, obligation or recourse to You. You
+grant to Original Contributor, Contributors and their respective
+licensees all rights and licenses (including patents) as are necessary
+to incorporate the Modifications created or contributed and so
+distributed by You into the Licensed Software and to use, distribute
+or otherwise exploit such Licensed Software without payment or
+accounting to You.
 
 5.0 TITLE
 Title, ownership rights, and intellectual property rights in the
-Original Software shall remain in the Original Contributor.  Original
-Contributor and/or the other Contributors reserve all rights not
-expressly granted to You, and no other licenses are granted or
-implied.  The Licensed Software is protected by copyright laws and
-treaties.
+Original Software and the Plan 9 Trademark shall remain in the
+Original Contributor.  Original Contributor and/or the other
+Contributors reserve all rights not expressly granted to You, and no
+other licenses are granted or implied.  The Licensed Software is
+protected by copyright laws and treaties.
 
 6.0  	TERMINATION
 6.1 The licenses and rights granted under this Agreement shall
 terminate automatically if (i) You fail to comply with all of the
 terms and conditions herein; or (ii) You initiate or participate in
-any intellectual property action against Original Contributor and/or
-another Contributor.
+any intellectual property action against Original Contributor.
 
 6.2 The rights and obligations of the parties hereto which by their
 nature would continue beyond termination of this Agreement shall
@@ -286,6 +322,7 @@ Contributor and all other Contributors for any liability incurred as a
 result.
 
 10.0  	U.S. GOVERNMENT RIGHTS
+
 You may only acquire the Licensed Software on behalf of, or for
 delivery to, any part of the United States Government, if the Licensed
 Software is treated as commercial computer software and licensed to
@@ -294,6 +331,7 @@ pursuant to the policies stated in 48 C.F.R.  Section 12.212 (October
 1995) or 48 C.F.R.  Section 227.7202 (June 1995), as applicable.
 
 11.0 	LICENSE VERSIONS
+
 LUCENT, at its sole discretion, may from time to time publish a
 revised and/or new version of this Agreement (each such revised or new
 version shall carry a distinguishing version number) which shall
@@ -380,7 +418,7 @@ program will individually obtain patent licenses, in effect making the
 program proprietary.  To prevent this, we have made it clear that any
 patent must be licensed for everyone's free use or not licensed at
 all.
- 
+
 The precise terms and conditions for copying, distribution and
 modification follow.
 
@@ -617,6 +655,4 @@ YOU ACKNOWLEDGE THAT YOU HAVE READ THIS AGREEMENT (INCLUDING THE
 EXHIBITS) AND UNDERSTAND IT, AND THAT BY CLICKING ON THE "ACCEPT"
 BUTTON BELOW AND INSTALLING/DOWNLOADING THE SOFTWARE YOU ACCEPT AND
 AGREE TO BE BOUND BY THE TERMS AND CONDITIONS OF THIS AGREEMENT.
-
-Plan 9 Open Source License - Version 1.0 - 06/03/00 1
-
+Plan 9 Open Source License - Version 1.1 - 09/20/00 1

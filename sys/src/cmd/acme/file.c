@@ -170,6 +170,20 @@ fileload(File *f, uint p0, int fd, int *nulls)
 	return bufload(f, p0, fd, nulls);
 }
 
+/* return sequence number of pending redo */
+uint
+fileredoseq(File *f)
+{
+	Undo u;
+	Buffer *delta;
+
+	delta = &f->epsilon;
+	if(delta->nc == 0)
+		return ~0;
+	bufread(delta, delta->nc-Undosize, (Rune*)&u, Undosize);
+	return u.seq;
+}
+
 void
 fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 {
@@ -191,19 +205,20 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 		stop = 0;	/* don't know yet */
 	}
 
+	buf = fbufalloc();
 	while(delta->nc > 0){
 		up = delta->nc-Undosize;
 		bufread(delta, up, (Rune*)&u, Undosize);
 		if(isundo){
 			if(u.seq < stop){
 				f->seq = u.seq;
-				return;
+				goto Return;
 			}
 		}else{
 			if(stop == 0)
 				stop = u.seq;
 			if(u.seq > stop)
-				return;
+				goto Return;
 		}
 		switch(u.type){
 		default:
@@ -227,7 +242,6 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 			fileuninsert(f, epsilon, u.p0, u.n);
 			f->mod = u.mod;
 			up -= u.n;
-			buf = fbufalloc();
 			for(i=0; i<u.n; i+=n){
 				n = u.n - i;
 				if(n > RBUFSIZE)
@@ -237,7 +251,6 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 				for(j=0; j<f->ntext; j++)
 					textinsert(f->text[j], u.p0+i, buf, n, FALSE);
 			}
-			fbuffree(buf);
 			*q0p = u.p0;
 			*q1p = u.p0+u.n;
 			break;
@@ -260,6 +273,8 @@ fileundo(File *f, int isundo, uint *q0p, uint *q1p)
 	}
 	if(isundo)
 		f->seq = 0;
+    Return:
+	fbuffree(buf);
 }
 
 void
@@ -282,6 +297,7 @@ fileclose(File *f)
 	bufclose(f);
 	bufclose(&f->delta);
 	bufclose(&f->epsilon);
+	elogclose(f);
 	free(f);
 }
 

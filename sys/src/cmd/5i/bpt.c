@@ -3,7 +3,6 @@
 #include <bio.h>
 #include <mach.h>
 #include <ctype.h>
-#define Extern extern
 #include "arm.h"
 
 void

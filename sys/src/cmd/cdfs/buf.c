@@ -42,7 +42,7 @@ bread(Buf *b, void *v, long n, long off)
 		if(vflag)
 			fprint(2, "try refill at %ld\n", noff);
 		if((m = b->fn(b, b->data, Nblock, noff/b->bs)) <= 0)
-			return -1;
+			return m;
 		b->ndata = b->bs * m;
 		b->off = noff;
 		if(vflag)

@@ -98,9 +98,9 @@ getheader(char *rgn)
 		exits("file");
 	}
 	if(debug)
-		print("reading %s\n", rec);
+		Bprint(&bout, "reading %s\n", rec);
 	if(dss)
-		print("warning: reading %s from jukebox\n", rec);
+		Bprint(&bout, "warning: reading %s from jukebox\n", rec);
 
 	memset(&hd, 0, sizeof(hd));
 	j = 0;
@@ -189,9 +189,9 @@ getplates(void)
 		exits("open");
 	}
 	if(debug)
-		print("reading %s\n", rec);
+		Bprint(&bout, "reading %s\n", rec);
 	if(dss)
-		print("warning: reading %s from jukebox\n", rec);
+		Bprint(&bout, "warning: reading %s from jukebox\n", rec);
 	for(nplate=0;;) {
 		if(dss) {
 			if(Bread(bin, rec, 80) != 80)
@@ -233,7 +233,7 @@ getplates(void)
 	if(nplate >= nelem(plate))
 		fprint(2, "nplate too small %d %d\n", nelem(plate), nplate);
 	if(debug)
-		print("%d plates\n", nplate);
+		Bprint(&bout, "%d plates\n", nplate);
 }
 
 char*
@@ -264,7 +264,7 @@ loop:
 		wait(nil);
 		s1 = open("/srv/il!jukefs", ORDWR);
 		if(s1 < 0) {
-			print("cant start srv il!jukefs\n");
+			Bprint(&bout, "can't open /srv/il!jukefs: %r\n");
 			goto out;
 		}
 	}
@@ -274,7 +274,7 @@ loop:
 	 */
 	if(mount(s1, "/n/njuke", 0, "") < 0) {
 		close(s1);
-		print("\"mount /srv/il!jukefs /n/juke\" failed %r\n");
+		Bprint(&bout, "\"mount /srv/il!jukefs /n/juke\" failed: %r\n");
 		goto out;
 	}
 
@@ -290,7 +290,7 @@ loop:
 		wait(nil);
 		s2 = open("/srv/9660", ORDWR);
 		if(s2 < 0) {
-			print("cant start 9660srv\n");
+			Bprint(&bout, "can't open /srv/9660: %r\n");
 			goto out;
 		}
 	}
@@ -307,7 +307,7 @@ loop:
 			count = 1;
 			goto loop;
 		}
-		print("\"mount /srv/9660 /n/dss %s\" failed %r\n", dssname);
+		Bprint(&bout, "\"mount /srv/9660 /n/dss %s\" failed %r\n", dssname);
 		goto out;
 	}
 

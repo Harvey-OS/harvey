@@ -50,7 +50,9 @@ eresized(int new)
 		return;
 	r = imager();
 	border(screen, r, -Border, nil, ZP);
-	draw(screen, r, allims[which], allmasks[which], allims[0]->r.min);
+	r.min.x += allims[which]->r.min.x - allims[0]->r.min.x;
+	r.min.y += allims[which]->r.min.y - allims[0]->r.min.y;
+	draw(screen, r, allims[which], allmasks[which], allims[which]->r.min);
 	flushimage(display, 1);
 }
 
@@ -164,9 +166,67 @@ transparency(Rawimage *r, char *name)
 	return i;
 }
 
+/* interleave alpha values of 0xFF in data stream. alpha value comes first, then b g r */
+uchar*
+expand(uchar *u, int chanlen, int nchan)
+{
+	int j, k;
+	uchar *v, *up, *vp;
+
+	v = malloc(chanlen*(nchan+1));
+	if(v == nil){
+		fprint(2, "gif: malloc fails: %r\n");
+		exits("malloc");
+	}
+	up = u;
+	vp = v;
+	for(j=0; j<chanlen; j++){
+		*vp++ = 0xFF;
+		for(k=0; k<nchan; k++)
+			*vp++ = *up++;
+	}
+	return v;
+}
+
+void
+addalpha(Rawimage *i)
+{
+	char buf[32];
+
+	switch(outchan){
+	case CMAP8:
+		i->chans[0] = expand(i->chans[0], i->chanlen/1, 1);
+		i->chanlen = 2*(i->chanlen/1);
+		i->chandesc = CRGBVA16;
+		outchan = CHAN2(CMap, 8, CAlpha, 8);
+		break;
+
+	case GREY8:
+		i->chans[0] = expand(i->chans[0], i->chanlen/1, 1);
+		i->chanlen = 2*(i->chanlen/1);
+		i->chandesc = CYA16;
+		outchan = CHAN2(CGrey, 8, CAlpha, 8);
+		break;
+
+	case RGB24:
+		i->chans[0] = expand(i->chans[0], i->chanlen/3, 3);
+		i->chanlen = 4*(i->chanlen/3);
+		i->chandesc = CRGBA32;
+		outchan = RGBA32;
+		break;
+
+	default:
+		chantostr(buf, outchan);
+		fprint(2, "gif: can't add alpha to type %s\n", buf);
+		exits("err");
+	}
+}
+
 /*
- * Called only when writing output.  If the output is RGB24,
- * we must write three bytes per pixel instead of one.
+ * Called only when writing output.  If the output is RGBA32,
+ * we must write four bytes per pixel instead of two.
+ * There's always at least two: data plus alpha.
+ * r is used only for reference; the image is already in c.
  */
 void
 whiteout(Rawimage *r, Rawimage *c)
@@ -177,22 +237,29 @@ whiteout(Rawimage *r, Rawimage *c)
 	rp = r->chans[0];
 	cp = c->chans[0];
 	trindex = r->giftrindex;
-	if(outchan == RGB24)
+	if(outchan == RGBA32)
 		for(i=0; i<r->chanlen; i++){
 			if(*rp == trindex){
-				cp[0] = 0xFF;
-				cp[1] = 0xFF;
-				cp[2] = 0xFF;
+				*cp++ = 0x00;
+				*cp++ = 0x00;
+				*cp++ = 0x00;
+				*cp++ = 0x00;
+			}else{
+				*cp++ = 0xFF;
+				cp += 3;
 			}
 			rp++;
-			cp += 3;
 		}
 	else
 		for(i=0; i<r->chanlen; i++){
-			if(*rp == trindex)
-				*cp = 0xFF;
+			if(*rp == trindex){
+				*cp++ = 0x00;
+				*cp++ = 0x00;
+			}else{
+				*cp++ = 0xFF;
+				cp++;
+			}
 			rp++;
-			cp++;
 		}
 }
 
@@ -217,7 +284,7 @@ show(int fd, char *name)
 {
 	Rawimage **images, **rgbv;
 	Image **ims, **masks;
-	int j, k, n, ch, nloop, loopcount;
+	int j, k, n, ch, nloop, loopcount, dt;
 	char *err;
 	char buf[32];
 
@@ -289,16 +356,17 @@ show(int fd, char *name)
 		nloop = 0;
 		do{
 			for(k=0; k<n; k++){
-				if(masks[k])
-					draw(screen, imager(), display->white, nil, ZP);
 				which = k;
 				eresized(0);
+				dt = images[k]->gifdelay*10;
+				if(dt < 50)
+					dt = 50;
 				while(n==1 || ecankbd()){
 					if((ch=ekbd())=='q' || ch==0x7F || ch==0x04)	/* an odd, democratic list */
 						exits(nil);
 					if(ch == '\n')
 						goto Out;
-				}sleep(images[k]->gifdelay*10);
+				}sleep(dt);
 			}
 			/* loopcount -1 means no loop (this code's rule), loopcount 0 means loop forever (netscape's rule)*/
 		}while(loopcount==0 || ++nloop<loopcount);
@@ -310,8 +378,10 @@ show(int fd, char *name)
 	if(n>1 && output)
 		fprint(2, "gif: warning: only writing first image in %d-image GIF %s\n", n, name);
 	if(nineflag){
-		if(images[0]->gifflags&TRANSP)
+		if(images[0]->gifflags&TRANSP){
+			addalpha(rgbv[0]);
 			whiteout(images[0], rgbv[0]);
+		}
 		chantostr(buf, outchan);
 		print("%11s %11d %11d %11d %11d ", buf,
 			rgbv[0]->r.min.x, rgbv[0]->r.min.y, rgbv[0]->r.max.x, rgbv[0]->r.max.y);
@@ -320,8 +390,10 @@ show(int fd, char *name)
 			return "write";
 		}
 	}else if(cflag){
-		if(images[0]->gifflags&TRANSP)
+		if(images[0]->gifflags&TRANSP){
+			addalpha(rgbv[0]);
 			whiteout(images[0], rgbv[0]);
+		}
 		if(writerawimage(1, rgbv[0]) < 0){
 			fprint(2, "gif: %s: write error: %r\n", name);
 			return "write";

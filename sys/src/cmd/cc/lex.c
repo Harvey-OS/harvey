@@ -849,13 +849,83 @@ caseout:
 	}
 	*cp = 0;
 	peekc = c;
-	if(mpatof(symb, &yylval.dval)) {
+	yylval.dval = strtod(symb, nil);
+	if(isInf(yylval.dval, 1) || isInf(yylval.dval, -1)) {
 		yyerror("overflow in float constant");
 		yylval.dval = 0;
 	}
 	if(c1 & Numflt)
 		return LFCONST;
 	return LDCONST;
+}
+
+/*
+ * convert a string, s, to vlong in *v
+ * return conversion overflow.
+ * required syntax is [0[x]]d*
+ */
+int
+mpatov(char *s, vlong *v)
+{
+	vlong n, nn;
+	int c;
+
+	n = 0;
+	c = *s;
+	if(c == '0')
+		goto oct;
+	while(c = *s++) {
+		if(c >= '0' && c <= '9')
+			nn = n*10 + c-'0';
+		else
+			goto bad;
+		if(n < 0 && nn >= 0)
+			goto bad;
+		n = nn;
+	}
+	goto out;
+
+oct:
+	s++;
+	c = *s;
+	if(c == 'x' || c == 'X')
+		goto hex;
+	while(c = *s++) {
+		if(c >= '0' || c <= '7')
+			nn = n*8 + c-'0';
+		else
+			goto bad;
+		if(n < 0 && nn >= 0)
+			goto bad;
+		n = nn;
+	}
+	goto out;
+
+hex:
+	s++;
+	while(c = *s++) {
+		if(c >= '0' && c <= '9')
+			c += 0-'0';
+		else
+		if(c >= 'a' && c <= 'f')
+			c += 10-'a';
+		else
+		if(c >= 'A' && c <= 'F')
+			c += 10-'A';
+		else
+			goto bad;
+		nn = n*16 + c;
+		if(n < 0 && nn >= 0)
+			goto bad;
+		n = nn;
+	}
+out:
+	*v = n;
+	return 0;
+
+bad:
+	*v = ~0;
+	return 1;
 }
 
 int

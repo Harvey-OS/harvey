@@ -25,7 +25,7 @@ extern	int	Pconv(va_list*, Fconv*);
 enum
 {
 	DOpaque		= 0xFFFFFFFF,
-	DTransparent	= 0x000000FF,
+	DTransparent	= 0x00000000,		/* only useful for allocimage, memfillcolor */
 	DBlack		= 0x000000FF,
 	DWhite		= 0xFFFFFFFF,
 	DRed		= 0xFF0000FF,
@@ -374,7 +374,6 @@ extern void	gendraw(Image*, Rectangle, Image*, Point, Image*, Point);
 extern void	line(Image*, Point, Point, int, int, int, Image*, Point);
 extern void	poly(Image*, Point*, int, int, int, int, Image*, Point);
 extern void	fillpoly(Image*, Point*, int, int, Image*, Point);
-extern Point	greystring(Image*, Point, Image*, Point, Font*, char*);
 extern Point	string(Image*, Point, Image*, Point, Font*, char*);
 extern Point	stringn(Image*, Point, Image*, Point, Font*, char*, int);
 extern Point	runestring(Image*, Point, Image*, Point, Font*, Rune*);
@@ -443,6 +442,7 @@ extern	Display	*display;
 extern	Font		*font;
 extern	Image	*screen;
 extern	int	_cursorfd;
+extern	int	_drawdebug;	/* set to 1 to see errors from flushimage */
 
 #define	BGSHORT(p)		(((p)[0]<<0) | ((p)[1]<<8))
 #define	BGLONG(p)		((BGSHORT(p)<<0) | (BGSHORT(p+2)<<16))

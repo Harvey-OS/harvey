@@ -20,9 +20,9 @@ enum
 
 	MinDecode	= 8,		/* minimum bits to decode a match or lit; >= 8 */
 
-	EWinBlocks	= 32,		/* blocks held in encoder window */
-	DWinBlocks	= 32,		/* blocks held in decoder window */
 	CompBlocks	= 10,		/* max blocks used to encode data */
+	EWinBlocks	= 64,		/* blocks held in encoder window */
+	DWinBlocks	= EWinBlocks,	/* blocks held in decoder window */
 
 	MaxSeqMask	= 8,		/* number of bits in coding block mask */
 	MaxSeqStart	= 256		/* max offset of initial coding block */
@@ -58,7 +58,7 @@ struct UnthwBlock
 struct Unthwack
 {
 	int		slot;		/* next block to use */
-	char		err[ERRLEN];
+	char		err[ThwErrLen];
 	UnthwBlock	blocks[DWinBlocks];
 	uchar		data[DWinBlocks][ThwMaxBlock];
 };
@@ -66,7 +66,8 @@ struct Unthwack
 void	thwackinit(Thwack*);
 void	thwackcleanup(Thwack *tw);
 void	unthwackinit(Unthwack*);
-int	thwack(Thwack*, uchar *dst, Block *bsrc, ulong seq, ulong stats[ThwStats]);
+int	thwack(Thwack*, int mustadd, uchar *dst, int ndst, Block *bsrc, ulong seq, ulong stats[ThwStats]);
 void	thwackack(Thwack*, ulong seq, ulong mask);
 int	unthwack(Unthwack*, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq);
 ulong	unthwackstate(Unthwack *ut, uchar *mask);
+int	unthwackadd(Unthwack *ut, uchar *src, int nsrc, ulong seq);

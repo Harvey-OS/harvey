@@ -32,7 +32,7 @@ enum
 	MEMSIZE		= 30000,
 	NSTATES		= 2000,
 	NTERMS		= 255,
-	NPROD		= 800,
+	NPROD		= 1600,
 	NNONTERM	= 300,
 	TEMPSIZE	= 2000,
 	CNAMSZ		= 5000,
@@ -1214,7 +1214,7 @@ setup(int argc, char *argv[])
 		error("no input file");
 	infile = argv[0];
 	if(infile[0] != '/' && getwd(dirbuf, sizeof dirbuf)!=nil){
-		i = strlen(infile)+1+strlen(dirbuf)+1;
+		i = strlen(infile)+1+strlen(dirbuf)+1+10;
 		s = malloc(i);
 		if(s != nil){
 			snprint(s, i, "%s/%s", dirbuf, infile);

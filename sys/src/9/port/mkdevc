@@ -1,6 +1,6 @@
 #!/bin/rc
 
-awk '
+awk -v 'objtype='$objtype '
 BEGIN{
 		if(ARGC < 2)
 			exit
@@ -44,7 +44,7 @@ collect && section ~ "misc"{
 		}
 		else if($1 ~ ".*\.root"){
 			x = substr($1, 1, index($1, ".")-1);
-			if(x ~ "(dossrv|kfs|vdfs)")
+			if(x ~ "(dossrv|kfs|vdfs|bzfs)")
 				x = "kfs";
 			fs[nfs++] = x;
 		}
@@ -94,7 +94,7 @@ END{
 			printf "\t%slink();\n", link[i];
 		printf "}\n\n";
 
-		if(narch){
+		if(narch || objtype ~ "386"){
 			for(i = 0; i < narch; i++)
 				printf "extern PCArch %s;\n", arch[i];
 			printf "PCArch* knownarch[] = {\n";

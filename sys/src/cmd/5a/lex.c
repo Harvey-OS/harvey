@@ -224,6 +224,9 @@ struct
 	"CPSR",		LPSR,	0,
 	"SPSR",		LPSR,	1,
 
+	"FPSR",		LFCR,	0,
+	"FPCR",		LFCR,	1,
+
 	".EQ",		LCOND,	0,
 	".NE",		LCOND,	1,
 	".CS",		LCOND,	2,
@@ -267,9 +270,6 @@ struct
 	"SUB",		LTYPE1,	ASUB,
 	"RSB",		LTYPE1,	ARSB,
 	"ADD",		LTYPE1,	AADD,
-	"MUL",		LTYPE1,	AMUL,
-	"DIV",		LTYPE1,	ADIV,
-	"MOD",		LTYPE1,	AMOD,
 	"ADC",		LTYPE1,	AADC,
 	"SBC",		LTYPE1,	ASBC,
 	"RSC",		LTYPE1,	ARSC,
@@ -283,6 +283,16 @@ struct
 	"SRL",		LTYPE1,	ASRL,
 	"SRA",		LTYPE1,	ASRA,
 
+	"MUL",		LTYPE1, AMUL,
+	"MULA",		LTYPE1, AMULA,
+	"DIV",		LTYPE1,	ADIV,
+	"MOD",		LTYPE1,	AMOD,
+
+	"MULL",		LTYPEM, AMULL,
+	"MULAL",	LTYPEM, AMULAL,
+	"MULLU",	LTYPEM, AMULLU,
+	"MULALU",	LTYPEM, AMULALU,
+
 	"MVN",		LTYPE2, AMVN,	/* op2 ignored */
 
 	"MOVB",		LTYPE3, AMOVB,
@@ -290,6 +300,41 @@ struct
 	"MOVH",		LTYPE3, AMOVH,
 	"MOVHU",	LTYPE3, AMOVHU,
 	"MOVW",		LTYPE3, AMOVW,
+
+	"MOVD",		LTYPE3, AMOVD,
+	"MOVDF",	LTYPE3, AMOVDF,
+	"MOVDW",	LTYPE3, AMOVDW,
+	"MOVF",		LTYPE3, AMOVF,
+	"MOVFD",	LTYPE3, AMOVFD,
+	"MOVFW",	LTYPE3, AMOVFW,
+	"MOVWD",	LTYPE3, AMOVWD,
+	"MOVWF",	LTYPE3, AMOVWF,
+
+/*
+	"ABSF",		LTYPEI, AABSF,
+	"ABSD",		LTYPEI, AABSD,
+	"NEGF",		LTYPEI, ANEGF,
+	"NEGD",		LTYPEI, ANEGD,
+	"SQTF",		LTYPEI,	ASQTF,
+	"SQTD",		LTYPEI,	ASQTD,
+	"RNDF",		LTYPEI,	ARNDF,
+	"RNDD",		LTYPEI,	ARNDD,
+	"URDF",		LTYPEI,	AURDF,
+	"URDD",		LTYPEI,	AURDD,
+	"NRMF",		LTYPEI,	ANRMF,
+	"NRMD",		LTYPEI,	ANRMD,
+*/
+
+	"CMPF",		LTYPEL, ACMPF,
+	"CMPD",		LTYPEL, ACMPD,
+	"ADDF",		LTYPEK,	AADDF,
+	"ADDD",		LTYPEK,	AADDD,
+	"SUBF",		LTYPEK,	ASUBF,
+	"SUBD",		LTYPEK,	ASUBD,
+	"MULF",		LTYPEK,	AMULF,
+	"MULD",		LTYPEK,	AMULD,
+	"DIVF",		LTYPEK,	ADIVF,
+	"DIVD",		LTYPEK,	ADIVD,
 
 	"B",		LTYPE4, AB,
 	"BL",		LTYPE4, ABL,
@@ -310,6 +355,7 @@ struct
 	"BLT",		LTYPE5,	ABLT,
 	"BGT",		LTYPE5,	ABGT,
 	"BLE",		LTYPE5,	ABLE,
+	"BCASE",	LTYPE5,	ABCASE,
 
 	"SWI",		LTYPE6, ASWI,
 
@@ -320,25 +366,20 @@ struct
 	"SWPBU",	LTYPE9, ASWPBU,
 	"SWPW",		LTYPE9, ASWPW,
 
-	"MLA",		LTYPEA, AMOVW,
+
 	"RET",		LTYPEA, ARET,
 	"RFE",		LTYPEA, ARFE,
-	"END",		LTYPEA, AEND,
 
 	"TEXT",		LTYPEB, ATEXT,
 	"GLOBL",	LTYPEB, AGLOBL,
 	"DATA",		LTYPEC, ADATA,
+	"CASE",		LTYPED, ACASE,
+	"END",		LTYPEE, AEND,
 	"WORD",		LTYPEH, AWORD,
-
 	"NOP",		LTYPEI, ANOP,
-	"MOVD",		LTYPEJ, AMOVD,
-	"ADDD",		LTYPEK, AADDD,
-	"SUBD",		LTYPEK, ASUBD,
 
-	"SUBD",		LTYPEK, ASUBD,
-
-	"MCR",		LTYPEM, 0,
-	"MRC",		LTYPEM, 1,
+	"MCR",		LTYPEJ, 0,
+	"MRC",		LTYPEJ, 1,
 	0
 };
 
@@ -438,6 +479,11 @@ zaddr(Gen *a, int s)
 	case D_REG:
 	case D_FREG:
 	case D_PSR:
+	case D_FPCR:
+		break;
+
+	case D_REGREG:
+		Bputc(&obuf, a->offset);
 		break;
 
 	case D_OREG:
@@ -473,11 +519,37 @@ zaddr(Gen *a, int s)
 	}
 }
 
+static int bcode[] =
+{
+[0]	ABEQ,
+[1]	ABNE,
+[2]	ABCS,
+[3]	ABCC,
+[4]	ABMI,
+[5]	ABPL,
+[6]	ABVS,
+[7]	ABVC,
+[8]	ABHI,
+[9]	ABLS,
+[10]	ABGE,
+[11]	ABLT,
+[12]	ABGT,
+[13]	ABLE,
+[14]	AB,
+[15]	ANOP,
+};
+
 void
 outcode(int a, int scond, Gen *g1, int reg, Gen *g2)
 {
 	int sf, st, t;
 	Sym *s;
+
+	/* hack to make B.NE etc. work: turn it into the corresponding conditional */
+	if(a == AB){
+		a = bcode[scond&0xf];
+		scond = (scond & ~0xf) | Always;
+	}
 
 	if(pass == 1)
 		goto out;

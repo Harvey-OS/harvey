@@ -134,6 +134,37 @@ fix bad tags and clear the contents of the block.
 write all of the blocks that are touched.
 .RE
 .PD
+.TP
+.BI listen " [address]
+Start a listener to serve the network at 
+.IR address ,
+default
+.BR il!*!17008 .
+This feature is intended to facilitate small networks of a couple
+machines in the situation when convenience is more
+important than performance.
+This command is only useful on a CPU server, because
+.B #c/key
+needs to be readable.
+The production file server
+(see
+.IR fs (4))
+is strongly encouraged for anything more than casual use.
+.TP
+.B noneattach
+When listening to the network, the default behavior is that the user
+.B none
+may only attach over connections that have already
+authenticated as someone else.
+This prevents just anyone from being
+able to dial your server and attach as
+.BR none .
+The
+.B noneattach
+command toggles whether 
+.B none
+can attach without such a chaperone.
+.PD
 .SH SOURCE
 .B /sys/src/cmd/disk/kfscmd.c
 .br

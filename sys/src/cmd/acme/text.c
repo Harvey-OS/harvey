@@ -212,6 +212,7 @@ textload(Text *t, uint q0, char *file, int setqid)
 			runemove(rp, t->file->name, t->file->nname);
 			rp[t->file->nname] = '/';
 			winsetname(t->w, rp, t->file->nname+1);
+			free(rp);
 		}
 		dlp = nil;
 		ndl = 0;
@@ -758,7 +759,7 @@ textselect(Text *t)
 					textsetselect(t, q0, t->q1);
 					state = 0;
 				}else if(state != -1){
-					paste(t, t, nil, TRUE, XXX, nil, 0);
+					paste(t, t, nil, TRUE, FALSE, nil, 0);
 					state = -1;
 				}
 			}
@@ -1043,7 +1044,7 @@ textdoubleclick(Text *t, uint *q0, uint *q1)
 			c = '\n';
 		else
 			c = textreadc(t, q-1);
-		p = strrune(l, c);
+		p = runestrchr(l, c);
 		if(p != nil){
 			if(textclickmatch(t, c, r[p-l], 1, &q))
 				*q1 = q-(c!='\n');
@@ -1054,7 +1055,7 @@ textdoubleclick(Text *t, uint *q0, uint *q1)
 			c = '\n';
 		else
 			c = textreadc(t, q);
-		p = strrune(r, c);
+		p = runestrchr(r, c);
 		if(p != nil){
 			if(textclickmatch(t, c, l[p-r], -1, &q)){
 				*q1 = *q0+(*q0<t->file->nc && c=='\n');

@@ -11,7 +11,6 @@ consserve(void)
 	con_session();
 	cmd_exec("cfs");
 	cmd_exec("user");
-	cmd_exec("auth");
 }
 
 int
@@ -416,6 +415,45 @@ cmd_chat(void)
 	chat = 1 - chat;
 }
 
+void
+cmd_noneattach(void)
+{
+	allownone = !allownone;
+	if(allownone) 
+		cprint("none can attach to new connections\n");
+	else
+		cprint("none can only attach on authenticated connections\n");
+}
+
+void
+cmd_noauth(void)
+{
+	if (noauth) {
+		if (nvr.authid[0] == '\0' || nvr.authkey[0] == '\0')
+			cprint("auth configuration error\n");
+		else
+			noauth = 0;
+	} else
+		noauth = 1;
+	cprint("authentication %sabled\n", noauth? "dis" : "en");
+}
+
+void
+cmd_listen(void)
+{
+	char addr[NAMELEN];
+
+	if(skipbl(0))
+		strcpy(addr, "il!*!17008");
+	else
+		cname(addr);
+
+	if(netserve(addr))
+		cprint("announce %s failed\n", addr);
+	else
+		cprint("announce %s\n", addr);
+}
+
 Command	command[] =
 {
 	"allow",	cmd_allow,	"",
@@ -428,7 +466,10 @@ Command	command[] =
 	"disallow",	cmd_disallow,	"",
 	"halt",		cmd_halt,	"",
 	"help",		cmd_help,	"",
+	"listen",		cmd_listen,	"[address]",
 	"newuser",	cmd_newuser,	"username",
+	"noauth",		cmd_noauth,	"",
+	"noneattach",	cmd_noneattach, "",
 	"remove",	cmd_remove,	"filename",
 	"rename",	cmd_rename,	"file newname",
 	"stats",	cmd_stats,	"[fw]",

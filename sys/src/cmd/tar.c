@@ -176,7 +176,7 @@ dorep(char **argv)
 	int cd;
 
 	if (getwd(cwdbuf, sizeof(cwdbuf)) == 0) {
-		fprint(2, "tar: can't find current directory: %s: %r\n", cwdbuf);
+		fprint(2, "tar: can't find current directory: %r\n");
 		exits("cwd");
 	}
 	cwd = cwdbuf;

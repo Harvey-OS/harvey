@@ -168,6 +168,10 @@ typedef struct Vga {
 	void*	private;
 } Vga;
 
+/* 3dfx.c */
+extern Ctlr tdfx;
+extern Ctlr tdfxhwgc;
+
 /* ark2000pv.c */
 extern Ctlr ark2000pv;
 extern Ctlr ark2000pvhwgc;

@@ -24,21 +24,23 @@
 .class		application	java		-		# Java bytecodes
 .cpio		application	x-cpio		-
 .cpp		text		plain		-		# DOS C++ program
+.csv		application	vnd.ms-excel	-	# Microsoft Excel comma-separated-values
 .dat		text		plain		-		# AMPL et al.
 .diff		text		plain		-
+.doc		application	msword		-		# Microsoft Word
 .dvi		application	x-dvi		-		# TeX output
 .enc		application	octet-stream	-		# encrypted file
 .eps		application	postscript	-
 .etx		text		x-setext	-		# [Mosaic]
 .exe		application	octet-stream	-		# DOS executable
 .executable	application	octet-stream	-		# DOS executable
-.exz		application	octet-stream	gzip		# gziped DOS executable
+.exz		application	octet-stream	gzip		# gzipped DOS executable
 .f		text		plain		-		# fortran-77 program
 .flc		video		x-flc		-
 .fli		video		x-fli		-
 .gif		image		gif		-
 .gtar		application	x-gtar		-		# [Mosaic]
-.gz		-		-		gzip		# gziped file
+.gz		-		-		gzip		# gzipped file
 .h		text		plain		-		# C header file
 .hdf		application	x-hdf		-
 .hqx		application	octet-stream	-		# Mac BinHex
@@ -74,6 +76,7 @@
 .pl		text		plain		-		# [Mosaic]
 .pnm		image		x-portable-anymap	-	# [Mosaic]
 .ppm		image		x-portable-pixmap	-	# [Mosaic]
+.ppt		application	vnd.ms-powerpoint	-	# Microsoft PowerPoint
 .ps		application	postscript	-
 .qt		video		quicktime	-		# [Mosaic]
 .r		text		plain		-		# ratfor program
@@ -116,8 +119,15 @@
 .ustar		application	x-ustar		-		# [Mosaic]
 .vcf		text		x-vcard		-		# vCard
 .wav		audio		x-wav		-
+.wbmp		image		vnd.wap.wbmp	-		# wireless bitmap
+.wml		text		vnd.wap.wml	-		# WML doc
+.wmlc		application	vnd.wap.wmlc	-		# compiled WML doc
+.wmls		text		vnd.wap.wmlscript	-	# WMLScript
+.wmlsc		application	vnd.wap.wmlscriptc	-	# compiled WMLScript
 .wsrc		application	x-wais-source	-		# [Mosaic]
 .xbm		image		x-xbitmap	-		# X bitmap
+.xgz		-		-		x-gzip		# gzipped file
+.xls		application	vnd.ms-excel	-	# Microsoft Excel
 .xpm		image		x-xpixmap	-		# [Mosaic]
 .xwd		image		x-xwindowdump	-		# [Mosaic]
 .z		-		-		compress

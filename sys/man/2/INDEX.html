@@ -12,7 +12,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/9p">9p</A>
 -  9P file server functions
-<DD><TT> Fid, File, Req, Srv, Tree, fcreate, fremove, fwalk, mktree, fdirread, srv, postmountsrv, _lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup</TT>
+<DD><TT> Fid, File, Req, Srv, Tree, fcreate, fremove, fwalk, mktree, fdirread, srv, postmountsrv, readbuf, readstr, _lib9p_emalloc, _lib9p_erealloc, _lib9p_estrdup</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/abort">abort</A>
 -  generate a fault
@@ -36,7 +36,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/arg">arg</A>
 -  process option letters from argv
-<DD><TT> ARGBEGIN, ARGEND, ARGC, ARGF, arginit, argopt</TT>
+<DD><TT> ARGBEGIN, ARGEND, ARGC, ARGF, EARGF, arginit, argopt</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/arith3">arith3</A>
 -  operations on 3-d points and planes
@@ -52,7 +52,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/auth">auth</A>
 -  network authentication
-<DD><TT> auth, amount, srvauth, authenticate, getchal, chalreply, apopchal, apopreply, cramchal, cramreply, newns, addns, authdial, passtokey, nvcsum, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, login, httpauth, noworld</TT>
+<DD><TT> auth, amount, srvauth, authnonce, srvauthnonce, authenticate, getchal, chalreply, vncchal, vncreply, apopchal, apopreply, cramchal, cramreply, newns, addns, authdial, passtokey, nvcsum, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, login, httpauth, noworld</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/bind">bind</A>
 -  change name space
@@ -111,12 +111,12 @@
 <DD><TT> dirread</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/disk">disk</A>
-- 
-<DD><TT></TT>
+-  generic disk device interface
+<DD><TT> opendisk, biosfake</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/draw">draw</A>
 -  graphics functions
-<DD><TT> Image, draw, gendraw, drawreplxy, drawrepl, replclipr, line, poly, fillpoly, bezier, bezspline, fillbezier, fillbezspline, ellipse, fillellipse, arc, fillarc, icossin, icossin2, border, string, greystring, stringn, runestring, runestringn, stringbg, stringnbg, runestringbg, runestringnbg, _string, ARROW, drawsetdebug</TT>
+<DD><TT> Image, draw, gendraw, drawreplxy, drawrepl, replclipr, line, poly, fillpoly, bezier, bezspline, fillbezier, fillbezspline, ellipse, fillellipse, arc, fillarc, icossin, icossin2, border, string, stringn, runestring, runestringn, stringbg, stringnbg, runestringbg, runestringnbg, _string, ARROW, drawsetdebug</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/dup">dup</A>
 -  duplicate an open file descriptor
@@ -276,11 +276,15 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/mouse">mouse</A>
 -  mouse control
-<DD><TT> initmouse, readmouse, atomouse, closemouse, moveto, cursorswitch, getrect, drawgetrect, menuhit, setcursor</TT>
+<DD><TT> initmouse, readmouse, closemouse, moveto, cursorswitch, getrect, drawgetrect, menuhit, setcursor</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/mp">mp</A>
 -  extended precision arithmetic
 <DD><TT> mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, mpconv,mptoa, betomp, mptobe, letomp, mptole, mptoui, uitomp, mptoi, itomp, mpdigdiv, mpadd, mpsub, mpleft, mpright, mpmul, mpexp, mpmod, mpdiv, mpcmp, mpextendedgcd, mpinvert, mpsignif, mplowbits0, mpvecdigmuladd, mpvecdigmulsub, mpvecadd, mpvecsub, mpveccmp, mpvecmul, mpmagcmp, mpmagadd, mpmagsub, crtpre, crtin, crtout, crtprefree, crtresfree</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/muldiv">muldiv</A>
+-  high-precision multiplication and division
+<DD><TT> muldiv, umuldiv</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/nan">nan</A>
 -  not-a-number and infinity functions
@@ -327,8 +331,8 @@
 <DD><TT> print, fprint, sprint, snprint, seprint, fmtinstall, strconv, Strconv, numbconv, fltconv, doprint</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/proto">proto</A>
-- 
-<DD><TT></TT>
+-  parse and process a proto file listing
+<DD><TT> rdproto</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/pushssl">pushssl</A>
 -  attach SSL version 2 encryption to a communication channel
@@ -372,11 +376,15 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/rune">rune</A>
 -  rune/UTF conversion
-<DD><TT> runetochar, chartorune, runelen, runenlen, fullrune, utflen, utfrune, utfrrune, utfutf</TT>
+<DD><TT> runetochar, chartorune, runelen, runenlen, fullrune, utflen, utfnlen, utfrune, utfrrune, utfutf</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/runestrcat">runestrcat</A>
+-  rune string operations
+<DD><TT> runestrcat, runestrncat, runestrcmp, runestrncmp, runestrcpy, runestrncpy, runestrecpy, runestrlen, runestrchr, runestrrchr, runestrdup, runestrstr</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/scsi">scsi</A>
-- 
-<DD><TT></TT>
+-  SCSI device operations
+<DD><TT> openscsi, scsiready, scsi, scsicmd, scsierror</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/seek">seek</A>
 -  change file offset
@@ -416,7 +424,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/strcat">strcat</A>
 -  string operations
-<DD><TT> strcat, strncat, strcmp, strncmp, strcpy, strncpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr</TT>
+<DD><TT> strcat, strncat, strcmp, strncmp, strcpy, strncpy, strecpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/stringsize">stringsize</A>
 -  graphical size of strings
@@ -432,7 +440,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/thread">thread</A>
 -  thread and proc management
-<DD><TT> alt, chancreate, proccreate, procdata, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, chanfree, procexec, procexecl, threadchdir, threadcreate, threadexits, threadexitsall, threadgetgrp, threadgetname, threadkill, threadkillgrp, threadmain, threadprint, threadrendezvous, threadsetgrp, threadsetname, threadwaitchan, yield</TT>
+<DD><TT> alt, chancreate, chaninit, proccreate, procdata, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, chanfree, procexec, procexecl, threadchdir, threadcreate, threadexits, threadexitsall, threadgetgrp, threadgetname, threadkill, threadkillgrp, threadmain, threadprint, threadsetgrp, threadsetname, threadwaitchan, yield</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/time">time</A>
 -  time in seconds and nanoseconds since epoch
@@ -449,5 +457,9 @@
 <DT><A HREF="/magic/man2html/2/window">window</A>
 -  window management
 <DD><TT> Screen, allocscreen, publicscreen, freescreen, allocwindow, bottomwindow, bottomnwindows, topwindow, topnwindows, originwindow</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/worldmap">worldmap</A>
+-  generate world coast, river and border maps.
+<DD><TT> mapinit, readtile, drawtile, freetile, drawpoly</TT>
 </DT>
 </DL>

@@ -84,7 +84,7 @@ pcinfo(int n, Rpccall *cmd, Rpccall *reply)
 	argptr += string2S(argptr, &cm);
 	if(argptr != &((uchar *)cmd->args)[n])
 		return garbage(reply, "bad count");
-	chat("\"%.*s\",\"%.*s\"\n", vers.n, vers.s, cm.n, cm.s);
+	chat("\"%.*s\",\"%.*s\"\n", utfnlen(vers.s, vers.n), vers.s, utfnlen(cm.s, cm.n), cm.s);
 	PLONG(sizeof(pc_vers)-1);
 	PPTR(pc_vers, sizeof(pc_vers)-1);
 	PLONG(sizeof(no_comment)-1);
@@ -120,7 +120,7 @@ pc1auth(int n, Rpccall *cmd, Rpccall *reply)
 		uid = name2id(&m->u.ids, id.s);
 	if(uid < 0)
 		uid = 1;
-	chat("\"%.*s\",\"%.*s\" uid=%d\n", id.n, id.s, pw.n, pw.s, uid);
+	chat("\"%.*s\",\"%.*s\" uid=%d\n", utfnlen(id.s, id.n), id.s, utfnlen(pw.s, pw.n), pw.s, uid);
 	PLONG(0);	/* status */
 	PLONG(uid);	/* uid */
 	PLONG(uid);	/* gid */
@@ -155,8 +155,8 @@ pcauth(int n, Rpccall *cmd, Rpccall *reply)
 		uid = name2id(&m->u.ids, id.s);
 	if(uid < 0)
 		uid = 1;
-	chat("\"%.*s\",\"%.*s\",\"%.*s\",\"%.*s\"\n", sys.n, sys.s,
-		id.n, id.s, pw.n, pw.s, cm.n, cm.s);
+	chat("\"%.*s\",\"%.*s\",\"%.*s\",\"%.*s\"\n", utfnlen(sys.s, sys.n), sys.s,
+		utfnlen(id.s, id.n), id.s, utfnlen(pw.s, pw.n), pw.s, utfnlen(cm.s, cm.n), cm.s);
 	PLONG(0);	/* status - OK */
 	PLONG(uid);
 	PLONG(uid);	/* gid */

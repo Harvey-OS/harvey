@@ -143,6 +143,7 @@ with the
 .B -t
 option for testing the pattern matcher without actually
 sending a message.
+.PD
 .PP
 .I Testscan
 is the command line version of

@@ -184,7 +184,20 @@ returns the full contents of the window.
 It may not be written.
 .TP
 .B wctl
-is a write-only file that accepts messages to change the size or placement of the associated window,
+maybe be read or written.
+When read, it returns the location of the window as four decimal integers formatted
+in the usual 12-character style: upper left
+.I x
+and
+.IR y ,
+lower right
+.I x
+and
+.IR y .
+A subsequent read will block until the window changes size or location.
+When written to,
+.B wctl
+accepts messages to change the size or placement of the associated window,
 and to create new windows.
 The messages are in a command-line like format, with a command name,
 possibly followed by options introduced by a minus sign.

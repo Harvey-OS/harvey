@@ -133,6 +133,7 @@ differences.
 .B /sys/src/cmd/diff
 .SH "SEE ALSO"
 .IR cmp (1),
+.IR comm (1),
 .IR ed (1)
 .SH DIAGNOSTICS
 Exit status is the empty string

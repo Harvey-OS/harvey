@@ -85,7 +85,7 @@ pass(int fd)
 	int i;
 
 	for(;;){
-		readenv("#c/systemname", systemname, sizeof systemname);
+		readenv("#c/sysname", systemname, sizeof systemname);
 		print("\n%s password:", systemname);
 		for(i=0; i<sizeof typed; i++){
 			if(read(0, typed+i, 1) != 1){

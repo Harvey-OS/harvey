@@ -10,12 +10,14 @@ OFILES=scat.$O\
 	hinv.$O\
 	image.$O\
 	patch.$O\
+	plot.$O\
 	posn.$O\
 	prose.$O\
 	qtree.$O\
 	util.$O\
 
 HFILES=sky.h
+CFLAGS=$CFLAGS -I/sys/src/cmd/map
 
 LIB=/$objtype/lib/libdraw.a
 BIN=/$objtype/bin

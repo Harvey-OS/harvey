@@ -13,12 +13,11 @@
  *	the registers are:
  *		hi = DX		- constrained by hardware
  *		lo = AX		- constrained by hardware
- *		b = SI		- can't be BP
- *		p = DI		- can't be BP
- *		i = BP
- *		n = CX		- constrained by LOOP instr
+ *		b+n = SI	- can't be BP
+ *		p+n = DI	- can't be BP
+ *		i-n = BP
  *		m = BX
- *		oldhi = EX
+ *		oldhi = CX
  *		
  */
 TEXT	mpvecdigmuladd(SB),$0
@@ -27,12 +26,16 @@ TEXT	mpvecdigmuladd(SB),$0
 	MOVL	n+4(FP),CX
 	MOVL	m+8(FP),BX
 	MOVL	p+12(FP),DI
-	XORL	BP,BP
-	PUSHL	BP
+	MOVL	CX,BP
+	NEGL	BP		/* BP = -n */
+	SHLL	$2,CX
+	ADDL	CX,SI		/* SI = b + n */
+	ADDL	CX,DI		/* DI = p + n */
+	XORL	CX,CX
 _muladdloop:
 	MOVL	(SI)(BP*4),AX	/* lo = b[i] */
 	MULL	BX		/* hi, lo = b[i] * m */
-	ADDL	0(SP),AX	/* lo += oldhi */
+	ADDL	CX,AX		/* lo += oldhi */
 	JCC	_muladdnocarry1
 	INCL	DX		/* hi += carry */
 _muladdnocarry1:
@@ -40,10 +43,10 @@ _muladdnocarry1:
 	JCC	_muladdnocarry2
 	INCL	DX		/* hi += carry */
 _muladdnocarry2:
-	MOVL	DX,0(SP)	/* oldhi = hi */
+	MOVL	DX,CX		/* oldhi = hi */
 	INCL	BP		/* i++ */
-	LOOP	_muladdloop
-	MOVL	0(SP),AX
-	ADDL	AX,(DI)(BP*4)
-	POPL	AX
+	JNZ	_muladdloop
+	XORL	AX,AX
+	ADDL	CX,(DI)(BP*4)	/* p[n] + oldhi */
+	ADCL	AX,AX		/* return carry out of p[n] */
 	RET

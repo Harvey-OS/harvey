@@ -515,11 +515,18 @@ trigraph(Source *s)
 int
 foldline(Source *s)
 {
+	int ncr = 0;
+
+recheck:
 	while (s->inp+1 >= s->inl && fillbuf(s)!=EOF)
 		;
-	if (s->inp[1] == '\n') {
-		memmove(s->inp, s->inp+2, s->inl-s->inp+3);
-		s->inl -= 2;
+	if (s->inp[ncr+1] == '\r') {	/* nonstandardly, ignore CR before line-folding */
+		ncr++;
+		goto recheck;
+	}
+	if (s->inp[ncr+1] == '\n') {
+		memmove(s->inp, s->inp+2+ncr, s->inl-s->inp+3-ncr);
+		s->inl -= 2+ncr;
 		return 1;
 	}
 	return 0;

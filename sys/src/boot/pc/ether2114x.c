@@ -16,13 +16,15 @@
 
 #include "etherif.h"
 
-#define DEBUG		1
+#define DEBUG		(0)
 #define debug		if(DEBUG)print
 
 enum {
 	Nrde		= 4,
-	Ntde		= 1,
+	Ntde		= 4,
 };
+
+#define Rbsz		ROUNDUP(sizeof(Etherpkt)+4, 4)
 
 enum {					/* CRS0 - Bus Mode */
 	Swr		= 0x00000001,	/* Software Reset */
@@ -89,7 +91,7 @@ enum {					/* CSR6 - Operating Mode */
 	Ra		= 0x40000000,	/* Receive All */
 	Sc		= 0x80000000,	/* Special Capture effect enable */
 
-	TrMODE		= Sf,		/* default transmission threshold */
+	TrMODE		= Tr512,	/* default transmission threshold */
 };
 
 enum {					/* CSR9 - ROM and MII Management */
@@ -103,17 +105,12 @@ enum {					/* CSR9 - ROM and MII Management */
 
 	Mdc		= 0x00010000,	/* MII management clock */
 	Mdo		= 0x00020000,	/* MII management write data */
-	Mii		= 0x00040000,	/* MII management operation mode */
+	Mii		= 0x00040000,	/* MII management operation mode (W) */
 	Mdi		= 0x00080000,	/* MII management data in */
 };
 
 enum {					/* CSR12 - General-Purpose Port */
 	Gpc		= 0x00000100,	/* General Purpose Control */
-
-	De500xFSYM	= 0x00000001,	/* output, force 100Mb mode */
-	De500xHD	= 0x00000008,	/* output, half-duplex mode */
-	De500xNoSYM	= 0x00000040,	/* input, 100Mb mode unavailable */
-	De500xNoTBT	= 0x00000080,	/* input, 10Mb mode unavailable */
 };
 
 typedef struct Des {
@@ -183,12 +180,20 @@ enum {					/* PHY registers */
 	Aner		= 6,		/* Auto-Negotiation Expansion */
 };
 
+enum {					/* Variants */
+	Tulip0		= (0x0009<<16)|0x1011,
+	Tulip3		= (0x0019<<16)|0x1011,
+	Pnic		= (0x0002<<16)|0x11AD,
+	Pnic2		= (0xC115<<16)|0x11AD,
+};
+
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
 	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
+	int	id;			/* (pcidev->did<<16)|pcidev->vid */
 
 	uchar	srom[128];
 	uchar*	sromea;			/* MAC address */
@@ -221,6 +226,8 @@ typedef struct Ctlr {
 	int	ntdr;			/* size of tdr */
 	int	tdrh;			/* host index into tdr */
 	int	tdri;			/* interface index into tdr */
+	int	ntq;			/* descriptors active */
+	Block*	setupbp;
 
 	ulong	of;			/* receive statistics */
 	ulong	ce;
@@ -244,15 +251,13 @@ static Ctlr* ctlrtail;
 #define csr32r(c, r)	(inl((c)->port+((r)*8)))
 #define csr32w(c, r, l)	(outl((c)->port+((r)*8), (ulong)(l)))
 
-static uchar setup[Eaddrlen*2*16];
-
 static void
 attach(Ether* ether)
 {
 	Ctlr *ctlr;
 
 	ctlr = ether->ctlr;
-	if((ctlr->csr6 & Sr) == 0){
+	if(!(ctlr->csr6 & Sr)){
 		ctlr->csr6 |= Sr;
 		csr32w(ctlr, 6, ctlr->csr6);
 	}
@@ -262,20 +267,43 @@ static void
 transmit(Ether* ether)
 {
 	Ctlr *ctlr;
+	Block *bp;
 	Des *des;
+	int control;
 	RingBuf *tb;
 
 	ctlr = ether->ctlr;
+	while(ctlr->ntq < (ctlr->ntdr-1)){
+		if(ctlr->setupbp){
+			bp = ctlr->setupbp;
+			ctlr->setupbp = 0;
+			control = Ic|Set|BLEN(bp);
+		}
+		else{
+			tb = &ether->tb[ether->ti];
+			if(tb->owner != Interface)
+				break;
+			bp = allocb(tb->len);
+			memmove(bp->wp, tb->pkt, tb->len);
+			memmove(bp->wp+Eaddrlen, ether->ea, Eaddrlen);
+			bp->wp += tb->len;
 
-	des = &ctlr->tdr[ctlr->tdri];
-	tb = &ether->tb[ether->ti];
-	if((des->status & Own) == 0 && tb->owner == Interface){
-		ctlr->tdr[PREV(ctlr->tdri, ctlr->ntdr)].control &= ~Ic;
-		des->addr = PADDR(tb->pkt);
-		des->bp = tb->pkt;
-		des->control |= Ic|Lseg|Fseg|tb->len;
+			tb->owner = Host;
+			ether->ti = NEXT(ether->ti, ether->ntb);
+
+			control = Ic|Lseg|Fseg|BLEN(bp);
+		}
+
+		ctlr->tdr[PREV(ctlr->tdrh, ctlr->ntdr)].control &= ~Ic;
+		des = &ctlr->tdr[ctlr->tdrh];
+		des->bp = bp;
+		des->addr = PADDR(bp->rp);
+		des->control |= control;
+		ctlr->ntq++;
+		//coherence();
 		des->status = Own;
 		csr32w(ctlr, 1, 0);
+		ctlr->tdrh = NEXT(ctlr->tdrh, ctlr->ntdr);
 	}
 }
 
@@ -331,7 +359,7 @@ interrupt(Ureg*, void* arg)
 				}
 
 				des->control &= Er;
-				des->control |= ROUNDUP(sizeof(Etherpkt)+4, 4);
+				des->control |= Rbsz;
 				des->status = Own;
 
 				ctlr->rdrx = NEXT(ctlr->rdrx, ctlr->nrdr);
@@ -370,8 +398,11 @@ interrupt(Ureg*, void* arg)
 			status &= ~(Unf|Tps);
 		}
 
-		des = &ctlr->tdr[ctlr->tdri];
-		while((des->status & Own) == 0 && des->bp){
+		while(ctlr->ntq){
+			des = &ctlr->tdr[ctlr->tdri];
+			if(des->status & Own)
+				break;
+
 			if(des->status & Es){
 				if(des->status & Uf)
 					ctlr->uf++;
@@ -387,19 +418,11 @@ interrupt(Ureg*, void* arg)
 					ctlr->to++;
 			}
 
-			ring = &ether->tb[ether->ti];
-			ring->owner = Host;
-
-			/*
-			 */
-			if((uchar*)des->bp != setup)
-				ether->ti = NEXT(ether->ti, ether->ntb);
-
+			freeb(des->bp);
 			des->control &= Er;
-			des->bp = 0;
 
+			ctlr->ntq--;
 			ctlr->tdri = NEXT(ctlr->tdri, ctlr->ntdr);
-			des = &ctlr->tdr[ctlr->tdri];
 		}
 		transmit(ether);
 
@@ -416,6 +439,7 @@ ctlrinit(Ether* ether)
 {
 	Ctlr *ctlr;
 	Des *des;
+	Block *bp;
 	int i;
 	uchar bi[Eaddrlen*2];
 
@@ -430,22 +454,27 @@ ctlrinit(Ether* ether)
 	 */
 	ctlr->rdr = malloc(ctlr->nrdr*sizeof(Des));
 	for(des = ctlr->rdr; des < &ctlr->rdr[ctlr->nrdr]; des++){
-		des->bp = malloc(sizeof(Etherpkt)+4);
+		des->bp = malloc(Rbsz);
 		des->status = Own;
-		des->control = ROUNDUP(sizeof(Etherpkt)+4, 4);
+		des->control = Rbsz;
 		des->addr = PADDR(des->bp);
 	}
 	ctlr->rdr[ctlr->nrdr-1].control |= Er;
 	ctlr->rdrx = 0;
 	csr32w(ctlr, 3, PADDR(ctlr->rdr));
 
-	ctlr->tdr = malloc(ctlr->ntdr*sizeof(Des));
+	ctlr->tdr = ialloc(ctlr->ntdr*sizeof(Des), 32);
 	ctlr->tdr[ctlr->ntdr-1].control |= Er;
 	ctlr->tdrh = 0;
 	ctlr->tdri = 0;
 	csr32w(ctlr, 4, PADDR(ctlr->tdr));
 
+	/*
+	 * Clear any bits in the Status Register (CSR5) as
+	 * the PNIC has a different reset value from a true 2114x.
+	 */
 	ctlr->mask = Nis|Ais|Fbe|Rwt|Rps|Ru|Ri|Unf|Tjt|Tps|Ti;
+	csr32w(ctlr, 5, ctlr->mask);
 	csr32w(ctlr, 7, ctlr->mask);
 	ctlr->csr6 |= St;
 	csr32w(ctlr, 6, ctlr->csr6);
@@ -456,17 +485,14 @@ ctlrinit(Ether* ether)
 		bi[i*4+2] = ether->ea[i*2+1];
 		bi[i*4+3] = ether->ea[i*2];
 	}
-	memset(setup, 0xFF, sizeof(bi));
+	bp = allocb(Eaddrlen*2*16);
+	memset(bp->rp, 0xFF, sizeof(bi));
 	for(i = sizeof(bi); i < sizeof(bi)*16; i += sizeof(bi))
-		memmove(setup+i, bi, sizeof(bi));
+		memmove(bp->rp+i, bi, sizeof(bi));
+	bp->wp += sizeof(bi)*16;
 
-	des = &ctlr->tdr[ctlr->tdrh];
-	des->bp = setup;
-	des->addr = PADDR(setup);
-	des->control |= Ic|Set|sizeof(setup);
-	des->status = Own;
-	ctlr->tdrh = NEXT(ctlr->tdrh, ctlr->ntdr);
-	csr32w(ctlr, 1, 0);
+	ctlr->setupbp = bp;
+	transmit(ether);
 }
 
 static void
@@ -518,7 +544,20 @@ miimdo(Ctlr* ctlr, int bits, int n)
 static int
 miir(Ctlr* ctlr, int phyad, int regad)
 {
-	int data;
+	int data, i;
+
+	if(ctlr->id == Pnic){
+		i = 1000;
+		csr32w(ctlr, 20, 0x60020000|(phyad<<23)|(regad<<18));
+		do{
+			microdelay(1);
+			data = csr32r(ctlr, 20);
+		}while((data & 0x80000000) && --i);
+
+		if(i == 0)
+			return -1;
+		return data & 0xFFFF;
+	}
 
 	/*
 	 * Preamble;
@@ -555,6 +594,17 @@ static int
 sromr(Ctlr* ctlr, int r)
 {
 	int i, op, data;
+
+	if(ctlr->id == Pnic){
+		i = 1000;
+		csr32w(ctlr, 19, 0x600|r);
+		do{
+			microdelay(1);
+			data = csr32r(ctlr, 19);
+		}while((data & 0x80000000) && --i);
+
+		return csr32r(ctlr, 9) & 0xFFFF;
+	}
 
 	/*
 	 * This sequence for reading a 16-bit register 'r'
@@ -626,7 +676,7 @@ type5block(Ctlr* ctlr, uchar* block)
 	 * sequence.
 	 */
 	len = *block++;
-	if(ctlr->pcidev->did == 0x0009){
+	if(ctlr->id != Tulip3){
 		for(i = 0; i < len; i++){
 			csr32w(ctlr, 12, *block);
 			block++;
@@ -1005,6 +1055,30 @@ static uchar* leaf21140[] = {
 	0,
 };
 
+/*
+ * Copied to ctlr->srom at offset 20.
+ */
+static uchar leafpnic[] = {
+	0x00, 0x00, 0x00, 0x00,		/* MAC address */
+	0x00, 0x00,
+	0x00,				/* controller 0 device number */
+	0x1E, 0x00,			/* controller 0 info leaf offset */
+	0x00,				/* reserved */
+	0x00, 0x08,			/* selected connection type */
+	0x00,				/* general purpose control */
+	0x01,				/* block count */
+
+	0x8C,				/* format indicator and count */
+	0x01,				/* block type */
+	0x00,				/* PHY number */
+	0x00,				/* GPR sequence length */
+	0x00,				/* reset sequence length */
+	0x00, 0x78,			/* media capabilities */
+	0xE0, 0x01,			/* Nway advertisment */
+	0x00, 0x50,			/* FDX bitmap */
+	0x00, 0x18,			/* TTM bitmap */
+};
+
 static int
 srom(Ctlr* ctlr)
 {
@@ -1046,6 +1120,19 @@ srom(Ctlr* ctlr)
 	}
 
 	/*
+	 * Fake up the SROM for the PNIC.
+	 * It looks like a 21140 with a PHY.
+	 * The MAC address is byte-swapped in the orginal SROM data.
+	 */
+	if(ctlr->id == Pnic){
+		memmove(&ctlr->srom[20], leafpnic, sizeof(leafpnic));
+		for(i = 0; i < Eaddrlen; i += 2){
+			ctlr->srom[20+i] = ctlr->srom[i+1];
+			ctlr->srom[20+i+1] = ctlr->srom[i];
+		}
+	}
+
+	/*
 	 * Next, try to find the info leaf in the SROM for media detection.
 	 * If it's a non-conforming card try to match the vendor ethernet code
 	 * and point p at a fake info leaf with compact 21140 entries.
@@ -1078,7 +1165,7 @@ srom(Ctlr* ctlr)
 	ctlr->leaf = p;
 	ctlr->sct = *p++;
 	ctlr->sct |= *p++<<8;
-	if(ctlr->pcidev->did == 0x0009){
+	if(ctlr->id != Tulip3){
 		csr32w(ctlr, 12, Gpc|*p++);
 		delay(200);
 	}
@@ -1093,7 +1180,7 @@ srom(Ctlr* ctlr)
 		 * The RAMIX PMC665 has a badly-coded SROM,
 		 * hence the test for 21143 and type 3.
 		 */
-		if((*p & 0x80) || (ctlr->pcidev->did == 0x0019 && *(p+1) == 3)){
+		if((*p & 0x80) || (ctlr->id == Tulip3 && *(p+1) == 3)){
 			*p |= 0x80;
 			if(*(p+1) == 1 || *(p+1) == 3)
 				phy = 1;
@@ -1144,12 +1231,14 @@ dec2114xpci(void)
 	int x;
 
 	p = nil;
-	while(p = pcimatch(p, 0x1011, 0)){
-		switch(p->did){
+	while(p = pcimatch(p, 0, 0)){
+		if(p->ccrb != 0x02 || p->ccru != 0)
+			continue;
+		switch((p->did<<16)|p->vid){
 		default:
 			continue;
 
-		case 0x0019:		/* 21143 */
+		case Tulip3:			/* 21143 */
 			/*
 			 * Exit sleep mode.
 			 */
@@ -1158,7 +1247,9 @@ dec2114xpci(void)
 			pcicfgw32(p, 0x40, x);
 			/*FALLTHROUGH*/
 
-		case 0x0009:		/* 21140 */
+		case Pnic:			/* PNIC */
+		case Pnic2:			/* PNIC-II */
+		case Tulip0:			/* 21140 */
 			break;
 		}
 
@@ -1169,8 +1260,9 @@ dec2114xpci(void)
 		ctlr = malloc(sizeof(Ctlr));
 		ctlr->port = p->mem[0].bar & ~0x01;
 		ctlr->pcidev = p;
-		debug("2114x: type 0x%4.4uX at port 0x%4.4uX\n",
-			p->did, ctlr->port);
+		ctlr->id = (p->did<<16)|p->vid;
+		debug("2114x: type 0x%8.8uX at port 0x%4.4uX\n",
+			ctlr->id, ctlr->port);
 
 		/*
 		 * Some cards (e.g. ANA-6910FX) seem to need the Ps bit
@@ -1182,6 +1274,18 @@ dec2114xpci(void)
 
 		if(srom(ctlr)){
 			free(ctlr);
+			break;
+		}
+
+		switch(ctlr->id){
+		default:
+			break;
+
+		case Pnic:			/* PNIC */
+			/*
+			 * Turn off the jabber timer.
+			 */
+			csr32w(ctlr, 15, 0x00000001);
 			break;
 		}
 

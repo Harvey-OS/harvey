@@ -110,9 +110,9 @@ ysearch(char *file)
 			switch(rfork(RFFDG|RFPROC)){
 			case 0:
 				if(diffb)
-					execl("/bin/diff", "diff", "-b", pair[toggle ^ 1], pair[toggle], 0);
+					execl("/bin/diff", "diff", "-nb", pair[toggle ^ 1], pair[toggle], 0);
 				else
-					execl("/bin/diff", "diff", pair[toggle ^ 1], pair[toggle], 0);
+					execl("/bin/diff", "diff", "-n", pair[toggle ^ 1], pair[toggle], 0);
 				fprint(2, "can't exec diff: %r\n");
 				exits(0);
 			case -1:
