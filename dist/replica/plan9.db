@@ -7133,7 +7133,7 @@ sys/src/cmd/fossil/archive.c - 664 sys sys 1045600020 9112
 sys/src/cmd/fossil/build - 664 sys sys 1042005505 449
 sys/src/cmd/fossil/buildsh - 775 sys sys 1042005505 561
 sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
-sys/src/cmd/fossil/cache.c - 664 sys sys 1042311688 41291
+sys/src/cmd/fossil/cache.c - 664 sys sys 1048690487 41275
 sys/src/cmd/fossil/dat.h - 664 sys sys 1042311689 7790
 sys/src/cmd/fossil/deadlock - 775 sys sys 1042005506 413
 sys/src/cmd/fossil/disk.c - 664 sys sys 1042497769 5736
@@ -7143,7 +7143,7 @@ sys/src/cmd/fossil/error.c - 664 sys sys 1042005507 1367
 sys/src/cmd/fossil/error.h - 664 sys sys 1042005507 744
 sys/src/cmd/fossil/file.c - 664 sys sys 1044906157 27633
 sys/src/cmd/fossil/flchk.c - 664 sys sys 1042005507 13670
-sys/src/cmd/fossil/flfmt.c - 664 sys sys 1045776555 10342
+sys/src/cmd/fossil/flfmt.c - 664 sys sys 1048690059 10315
 sys/src/cmd/fossil/flproto - 664 sys sys 1042005508 210
 sys/src/cmd/fossil/fns.h - 664 sys sys 1042311690 2958
 sys/src/cmd/fossil/fossil-acid - 664 sys sys 1042005508 3965
@@ -7156,7 +7156,7 @@ sys/src/cmd/fossil/mkfile - 664 sys sys 1045576809 1567
 sys/src/cmd/fossil/nobwatch.c - 664 sys sys 1042005509 329
 sys/src/cmd/fossil/pack.c - 664 sys sys 1042005510 4683
 sys/src/cmd/fossil/periodic.c - 664 sys sys 1042005510 1091
-sys/src/cmd/fossil/source.c - 664 sys sys 1045576810 18668
+sys/src/cmd/fossil/source.c - 664 sys sys 1048690038 18721
 sys/src/cmd/fossil/srcload.c - 664 sys sys 1042005510 4178
 sys/src/cmd/fossil/stdinc.h - 664 sys sys 1042005510 155
 sys/src/cmd/fossil/trunc.c - 664 sys sys 1042005511 280
@@ -11001,7 +11001,7 @@ sys/src/libc/9sys/convM2S.c - 664 sys sys 1017679320 4969
 sys/src/libc/9sys/convS2M.c - 664 sys sys 1021580001 5014
 sys/src/libc/9sys/cputime.c - 664 sys sys 944961712 191
 sys/src/libc/9sys/ctime.c - 664 sys sys 944961712 4919
-sys/src/libc/9sys/dial.c - 664 sys sys 1048645360 3625
+sys/src/libc/9sys/dial.c - 664 sys sys 1048691618 3606
 sys/src/libc/9sys/dirfstat.c - 664 sys sys 1041363499 676
 sys/src/libc/9sys/dirfwstat.c - 664 sys sys 1014927336 242
 sys/src/libc/9sys/dirmodefmt.c - 664 sys sys 1014927337 581
