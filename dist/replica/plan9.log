@@ -14072,3 +14072,14 @@
 1112502665 3 c 386/9pccpu - 775 sys sys 1112501910 1487876
 1112502665 4 c 386/9pcdisk - 775 sys sys 1112501914 2039028
 1112502665 5 c 386/9pcf - 775 sys sys 1112501918 2381860
+1112535072 0 c sys/src/cmd/sam/plan9.c - 664 sys sys 1112535044 2303
+1112535072 1 c sys/src/cmd/sam/sam.h - 664 sys sys 1112535045 9567
+1112536872 0 c sys/lib/dist/pc/inst/mountdist - 775 sys sys 1112535194 4884
+1112536872 1 c sys/lib/dist/pc/proto - 664 sys sys 1112535197 4250
+1112536872 2 d sys/lib/dist/pc/inst/mountkfs - 775 sys sys 1063856188 0
+1112536872 3 d sys/lib/dist/pc/inst/iskfs - 775 sys sys 1018469719 0
+1112563877 0 c sys/man/4/ftpfs - 664 sys sys 1112563349 4410
+1112563877 1 c sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1112563388 13760
+1112563877 2 c sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1112563713 30346
+1112585482 0 c 386/bin/ftpfs - 775 sys sys 1112583961 270843
+1112585482 1 c 386/bin/sam - 775 sys sys 1112583961 158368

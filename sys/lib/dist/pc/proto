@@ -23,8 +23,8 @@
 		disk	d555 sys sys
 			fdisk	555 sys sys
 			format	555 sys sys
-			kfs	555 sys sys
-			kfscmd	555 sys sys
+#			kfs	555 sys sys
+#			kfscmd	555 sys sys
 			mbr	555 sys sys
 			prep	555 sys sys
 		fossil	d555 sys sys
@@ -73,7 +73,7 @@
 		ed	555 sys sys
 # if cpu goes, exportfs could go
 #		exportfs	555 sys sys
-#		ext2srv	555 sys sys
+		ext2srv	555 sys sys
 		fcp		555	sys	sys
 		grep	555 sys sys
 		hget	555 sys sys
