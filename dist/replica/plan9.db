@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1108354539 103973
 386/bin/aan - 775 sys sys 1108354539 130710
 386/bin/acid - 775 sys sys 1108960003 355983
-386/bin/acme - 775 sys sys 1111205297 428543
+386/bin/acme - 775 sys sys 1111464452 428542
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1104121958 70291
@@ -6819,7 +6819,7 @@ sys/src/cmd/acme/exec.c - 664 sys sys 1111171699 28243
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
 sys/src/cmd/acme/fsys.c - 664 sys sys 1111171699 13097
-sys/src/cmd/acme/look.c - 664 sys sys 1111171699 14212
+sys/src/cmd/acme/look.c - 664 sys sys 1111381048 14210
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
 sys/src/cmd/acme/rows.c - 664 sys sys 1103565437 14702

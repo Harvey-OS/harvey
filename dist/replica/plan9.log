@@ -13973,3 +13973,5 @@
 1111249812 1 c sys/src/cmd/rio/mkfile - 664 sys sys 1111249068 431
 1111255213 0 c sys/src/cmd/replica/applylog.c - 664 sys sys 1111253491 18157
 1111293022 0 c 386/bin/replica/applylog - 775 sys sys 1111291584 116748
+1111381241 0 c sys/src/cmd/acme/look.c - 664 sys sys 1111381048 14210
+1111465860 0 c 386/bin/acme - 775 sys sys 1111464452 428542
