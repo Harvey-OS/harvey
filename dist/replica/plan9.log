@@ -13795,3 +13795,4 @@
 1075348899 5 d sys/src/cmd/rtstats/mkfile - 664 sys sys 1038425447 0
 1075348899 6 d sys/src/cmd/rtstats/edfproc.c - 664 sys sys 1055699325 0
 1075348899 7 d sys/src/cmd/rtstats - 20000000775 sys sys 1018897680 0
+1075689090 0 c sys/games/lib/fortunes - 664 sys sys 1075688069 247488
