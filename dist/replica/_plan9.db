@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
 386/bin/acid - 775 sys sys 1091936087 353717
-386/bin/acme - 775 sys sys 1099545477 425223
+386/bin/acme - 775 sys sys 1100579339 425046
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1085076973 68304
@@ -334,7 +334,7 @@
 386/bin/news - 775 sys sys 1085077084 69654
 386/bin/nfs - 775 sys sys 1089397314 313346
 386/bin/nm - 775 sys sys 1091936093 113471
-386/bin/nntpfs - 775 sys sys 1094218814 158833
+386/bin/nntpfs - 775 sys sys 1100579339 158859
 386/bin/ns - 775 sys sys 1085077086 63226
 386/bin/p - 775 sys sys 1085077086 62948
 386/bin/page - 775 sys sys 1098158510 229681
@@ -390,7 +390,7 @@
 386/bin/spin - 775 sys sys 1094040113 655153
 386/bin/split - 775 sys sys 1085077099 73388
 386/bin/srv - 775 sys sys 1085077099 80398
-386/bin/srvfs - 775 sys sys 1085077099 39578
+386/bin/srvfs - 775 sys sys 1100579339 39567
 386/bin/srvold9p - 775 sys sys 1085077100 128139
 386/bin/ssh - 775 sys sys 1092539158 208978
 386/bin/sshnet - 775 sys sys 1092539158 280678
@@ -458,7 +458,7 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1099800617 206890
+386/bin/usb/usbaudio - 775 sys sys 1100579340 183269
 386/bin/usb/usbd - 775 sys sys 1099800617 127661
 386/bin/usb/usbmouse - 775 sys sys 1099800618 138206
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
@@ -2831,7 +2831,7 @@ mail/lib/pipeto.bayes - 664 upas upas 1063950935 129
 mail/lib/pipeto.lib - 664 upas upas 1068478156 3340
 mail/lib/prof.mbox - 664 upas upas 1063950959 13
 mail/lib/prof.spam - 664 upas upas 1063950959 13
-mail/lib/qmail - 775 upas upas 954266750 180
+mail/lib/qmail - 775 upas upas 1100638780 182
 mail/lib/remotemail - 775 upas upas 959722371 180
 mail/lib/rewrite - 664 upas upas 964036209 295
 mail/lib/rewrite.direct - 664 upas upas 1020271916 1048
@@ -4645,7 +4645,7 @@ sys/man/1/0intro - 664 sys sys 958249499 9623
 sys/man/1/2a - 664 sys sys 1089299164 1188
 sys/man/1/2c - 664 sys sys 1089299164 7193
 sys/man/1/2l - 664 sys sys 1089903786 3992
-sys/man/1/INDEX - 664 sys sys 1100525423 3010
+sys/man/1/INDEX - 664 sys sys 1100579340 3010
 sys/man/1/INDEX.html - 664 sys sys 1089320990 16634
 sys/man/1/acid - 664 sys sys 1082404958 9725
 sys/man/1/acme - 664 sys sys 1019828741 17587
@@ -10931,7 +10931,7 @@ sys/src/cmd/usb/audio - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1100568596 18166
 sys/src/cmd/usb/audio/audiosub.c - 664 sys sys 1100568596 6967
 sys/src/cmd/usb/audio/mkfile - 664 sys sys 1091204980 349
-sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1100568596 9817
+sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1100619443 9818
 sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1100568597 1861
 sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1100568597 17264
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1100568597 600
@@ -12391,8 +12391,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1100579339 425046
-386/bin/nntpfs - 775 sys sys 1100579339 158859
-386/bin/usb/usbaudio - 775 sys sys 1100579340 183269
-386/bin/srvfs - 775 sys sys 1100579339 39567
-sys/man/1/INDEX - 664 sys sys 1100579340 3010
+386/bin/usb/usbaudio - 775 sys sys 1100664617 183278

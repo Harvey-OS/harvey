@@ -458,7 +458,7 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1100579340 183269
+386/bin/usb/usbaudio - 775 sys sys 1100664617 183278
 386/bin/usb/usbd - 775 sys sys 1099800617 127661
 386/bin/usb/usbmouse - 775 sys sys 1099800618 138206
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
@@ -2831,7 +2831,7 @@ mail/lib/pipeto.bayes - 664 upas upas 1063950935 129
 mail/lib/pipeto.lib - 664 upas upas 1068478156 3340
 mail/lib/prof.mbox - 664 upas upas 1063950959 13
 mail/lib/prof.spam - 664 upas upas 1063950959 13
-mail/lib/qmail - 775 upas upas 954266750 180
+mail/lib/qmail - 775 upas upas 1100638780 182
 mail/lib/remotemail - 775 upas upas 959722371 180
 mail/lib/rewrite - 664 upas upas 964036209 295
 mail/lib/rewrite.direct - 664 upas upas 1020271916 1048
@@ -10931,7 +10931,7 @@ sys/src/cmd/usb/audio - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1100568596 18166
 sys/src/cmd/usb/audio/audiosub.c - 664 sys sys 1100568596 6967
 sys/src/cmd/usb/audio/mkfile - 664 sys sys 1091204980 349
-sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1100568596 9817
+sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1100619443 9818
 sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1100568597 1861
 sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1100568597 17264
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1100568597 600
