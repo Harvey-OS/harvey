@@ -80,10 +80,8 @@ struct Playlist {
 };
 
 struct File {
-	QLock;
 	Dir	dir;
 	Channel	*workers;
-	void	*data;
 };
 
 struct Worker
@@ -94,7 +92,6 @@ struct Worker
 
 struct Fid
 {
-	QLock;
 	int	fid;
 	File	*file;
 	ushort	flags;

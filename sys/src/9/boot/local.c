@@ -237,7 +237,7 @@ connectlocalfossil(void)
 			 * If the announce address is tcp!*!foo, then set
 			 * $venti to tcp!127.1!foo instead, which is actually dialable.
 			 */
-			if((p = strstr(f[1], "!*!")) == 0){
+			if((p = strstr(f[1], "!*!")) != 0){
 				*p = 0;
 				snprint(buf, sizeof buf, "%s!127.1!%s", f[1], p+3);
 				f[1] = buf;

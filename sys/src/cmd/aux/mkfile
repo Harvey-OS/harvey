@@ -45,6 +45,7 @@ UPDATE=\
 
 DIRS=mnihongo\
 	flashfs\
+	gps\
 	na\
 	vga
 

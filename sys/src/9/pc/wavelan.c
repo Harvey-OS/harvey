@@ -961,12 +961,55 @@ w_ifstat(Ether* ether, void* a, long n, ulong offset)
 #undef PRINTSTR
 #undef PRINTSTAT
 
+static int
+parsekey(WKey* key, char* a) 
+{
+	int i, k, len, n;
+	char buf[WMaxKeyLen];
+
+	len = strlen(a);
+	if(len == WMinKeyLen || len == WMaxKeyLen){
+		memset(key->dat, 0, sizeof(key->dat));
+		memmove(key->dat, a, len);
+		key->len = len;
+
+		return 0;
+	}
+	else if(len == WMinKeyLen*2 || len == WMaxKeyLen*2){
+		k = 0;
+		for(i = 0; i < len; i++){
+			if(*a >= '0' && *a <= '9')
+				n = *a++ - '0';
+			else if(*a >= 'a' && *a <= 'f')
+				n = *a++ - 'a' + 10;
+			else if(*a >= 'A' && *a <= 'F')
+				n = *a++ - 'A' + 10;
+			else
+				return -1;
+	
+			if(i & 1){
+				buf[k] |= n;
+				k++;
+			}
+			else
+				buf[k] = n<<4;
+		}
+
+		memset(key->dat, 0, sizeof(key->dat));
+		memmove(key->dat, buf, k);
+		key->len = k;
+
+		return 0;
+	}
+
+	return -1;
+}
+
 int
 w_option(Ctlr* ctlr, char* buf, long n)
 {
 	char *p;
 	int i, r;
-	WKey *key;
 	Cmdbuf *cb;
 
 	r = 0;
@@ -1035,12 +1078,8 @@ w_option(Ctlr* ctlr, char* buf, long n)
 	else if(cistrncmp(cb->f[0], "key", 3) == 0){
 		if((i = atoi(cb->f[0]+3)) >= 1 && i <= WNKeys){
 			ctlr->txkey = i-1;
-			key = &ctlr->keys.keys[ctlr->txkey];
-			key->len = strlen(cb->f[1]);
-			if(key->len > WKeyLen)
-				key->len = WKeyLen;
-			memset(key->dat, 0, sizeof(key->dat));
-			memmove(key->dat, cb->f[1], key->len);
+			if(parsekey(&ctlr->keys.keys[ctlr->txkey], cb->f[1]))
+				r = -1;
 		}
 		else
 			r = -1;
