@@ -42,10 +42,11 @@ link
 	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
-	ether8139
+	ether8139	pci
 	ether82543gc	pci
 	ether82557	pci
 	ether83815	pci
+	etherdp83820	pci
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
@@ -79,7 +80,7 @@ misc
 	vgacyber938x	+cur
 	vgaet4000	+cur
 	vgahiqvideo	+cur
-	vgai81x	+cur
+	vgai81x		+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
 	vgamga4xx	+cur

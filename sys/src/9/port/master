@@ -15,7 +15,6 @@ K	kprof
 L	lpt
 M	mnt
 P	arch
-R	realtime
 S	sd
 T	lm78
 U	usb
@@ -34,7 +33,6 @@ i	draw
 k	fs
 l	ether
 m	mouse
-m	nmouse
 m	penmouse
 p	proc
 r	rtc
@@ -47,6 +45,7 @@ y	pcmcia
 z	mntstats
 |	pipe
 ¤	cap
+κ	kbmap
 
 α	local use
 β	local use

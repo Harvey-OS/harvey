@@ -75,7 +75,7 @@ pipecommand(Window *w, char *s)
 					for(;;){
 						t = realloc(t, k+8192+2);
 						if(t == nil)
-							error("win: alloc failed: %r\n");
+							error("alloc failed: %r\n");
 						n = read(snarffd, t+k, 8192);
 						if(n <= 0)
 							break;

@@ -642,7 +642,7 @@ acme/bin/source/acd/access - 664 sys sys 1015011256 9785
 acme/bin/source/acd/acd.h - 664 sys sys 1032232408 3197
 acme/bin/source/acd/acme.c - 664 sys sys 1032232409 6634
 acme/bin/source/acd/cddb - 664 sys sys 1015011256 9313
-acme/bin/source/acd/cddb.c - 664 sys sys 1015011255 3216
+acme/bin/source/acd/cddb.c - 664 sys sys 1104430457 3672
 acme/bin/source/acd/cddbproto - 664 sys sys 1015011256 29480
 acme/bin/source/acd/discid - 664 sys sys 1015011256 5706
 acme/bin/source/acd/mailinglist - 664 sys sys 1015011256 9741
@@ -667,9 +667,9 @@ acme/bin/source/spout.c - 664 sys sys 1015011255 1868
 acme/bin/source/win - 20000000775 sys sys 1015011255 0
 acme/bin/source/win/dat.h - 664 sys sys 1017679345 1992
 acme/bin/source/win/fs.c - 664 sys sys 1045503982 2713
-acme/bin/source/win/main.c - 664 sys sys 1082922243 12609
+acme/bin/source/win/main.c - 664 sys sys 1104430370 12508
 acme/bin/source/win/mkfile - 664 sys sys 1046654934 309
-acme/bin/source/win/pipe.c - 664 sys sys 1017679345 2807
+acme/bin/source/win/pipe.c - 664 sys sys 1104430371 2802
 acme/bin/source/win/util.c - 664 sys sys 1017679346 1169
 acme/bin/source/win/win.c - 664 sys sys 1015011255 4240
 acme/bin/unind - 755 sys sys 1015011256 27
@@ -3036,7 +3036,7 @@ rc/bin/patch/apply - 775 sys sys 1089299188 1276
 rc/bin/patch/create - 775 sys sys 1079969485 1126
 rc/bin/patch/diff - 775 sys sys 1067804404 466
 rc/bin/patch/list - 775 sys sys 1081204287 644
-rc/bin/patch/move - 775 sys sys 1081204288 547
+rc/bin/patch/move - 775 sys sys 1104430337 565
 rc/bin/patch/note - 664 sys sys 1089299189 655
 rc/bin/patch/okay - 775 sys sys 1087487682 242
 rc/bin/patch/sorry - 775 sys sys 1081200166 107
@@ -3116,7 +3116,7 @@ rc/bin/termrc - 775 sys sys 1064585645 2650
 rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
-rc/bin/troff2gif - 775 sys sys 1045504085 178
+rc/bin/troff2gif - 775 sys sys 1104430700 161
 rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
 rc/bin/usbstart - 775 sys sys 1044894155 81
@@ -3558,7 +3558,7 @@ sys/lib/dist/cmd/touchfs.c - 664 sys sys 1018469727 1120
 sys/lib/dist/cmd/unbflz.c - 664 sys sys 1018469727 1688
 sys/lib/dist/logcompress.awk - 664 sys sys 1068558028 298
 sys/lib/dist/logtime.awk - 664 sys sys 1019526213 38
-sys/lib/dist/mkfile - 664 sys sys 1032058298 2308
+sys/lib/dist/mkfile - 664 sys sys 1104430715 3693
 sys/lib/dist/pc - 20000000775 sys sys 1018721419 0
 sys/lib/dist/pc/empty - 20000000775 sys sys 1018469720 0
 sys/lib/dist/pc/emptyfile - 664 sys sys 1018469722 0
@@ -4459,7 +4459,7 @@ sys/lib/tmac/tmac.pictures - 664 sys sys 944956203 4320
 sys/lib/tmac/tmac.psychrefs - 664 sys sys 944956203 608
 sys/lib/tmac/tmac.ptx - 664 sys sys 944956203 330
 sys/lib/tmac/tmac.rscover - 664 sys sys 944956203 2070
-sys/lib/tmac/tmac.s - 664 sys sys 1021579968 23029
+sys/lib/tmac/tmac.s - 664 sys sys 1104430314 23029
 sys/lib/tmac/tmac.scover - 664 sys sys 944956204 4616
 sys/lib/tmac/tmac.sdisp - 664 sys sys 944956204 864
 sys/lib/tmac/tmac.skeep - 664 sys sys 944956204 1346
@@ -4992,7 +4992,7 @@ sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1100524176 4540
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
-sys/man/4/factotum - 664 sys sys 1101786384 14455
+sys/man/4/factotum - 664 sys sys 1104430211 14454
 sys/man/4/fossil - 664 sys sys 1101668322 9564
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1048285446 4327
@@ -5104,7 +5104,7 @@ sys/man/8/ipserv - 664 sys sys 1095862383 4375
 sys/man/8/kfscmd - 664 sys sys 1068569797 4515
 sys/man/8/listen - 664 sys sys 1045501609 3740
 sys/man/8/lp - 664 sys sys 954614702 2491
-sys/man/8/mk9660 - 664 sys sys 1045501618 3940
+sys/man/8/mk9660 - 664 sys sys 1104430379 3946
 sys/man/8/mkfs - 664 sys sys 1071245592 3420
 sys/man/8/mkpaqfs - 664 sys sys 1018386778 892
 sys/man/8/mksacfs - 664 sys sys 964886843 710
@@ -5410,9 +5410,9 @@ sys/src/9/pc/pccd - 664 sys sys 1091458811 1408
 sys/src/9/pc/pccpu - 664 sys sys 1084475127 806
 sys/src/9/pc/pccpuf - 664 sys sys 1073851852 1315
 sys/src/9/pc/pcdisk - 664 sys sys 1073851851 1427
-sys/src/9/pc/pcf - 664 sys sys 1079575654 1462
+sys/src/9/pc/pcf - 664 sys sys 1104430623 1485
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
-sys/src/9/pc/pcflop - 664 sys sys 1067722894 1383
+sys/src/9/pc/pcflop - 664 sys sys 1104430611 1438
 sys/src/9/pc/pci.c - 664 sys sys 1096379063 25817
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
@@ -5449,7 +5449,7 @@ sys/src/9/pc/vgai81x.c - 664 sys sys 1032052924 4905
 sys/src/9/pc/vgamach64xx.c - 664 sys sys 1071245447 29146
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1015014527 5654
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1015014527 11122
-sys/src/9/pc/vganeomagic.c - 664 sys sys 1089299188 11261
+sys/src/9/pc/vganeomagic.c - 664 sys sys 1104430511 11327
 sys/src/9/pc/vganvidia.c - 664 sys sys 1081358011 12205
 sys/src/9/pc/vgargb524.c - 664 sys sys 1015014527 4235
 sys/src/9/pc/vgas3.c - 664 sys sys 1090439162 12189
@@ -5507,7 +5507,7 @@ sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1103633666 3563
 sys/src/9/port/lib.h - 664 sys sys 1091733556 5737
 sys/src/9/port/log.c - 664 sys sys 1014931175 2860
-sys/src/9/port/master - 664 sys sys 1063856961 516
+sys/src/9/port/master - 664 sys sys 1104430269 505
 sys/src/9/port/master.local - 664 sys sys 1063856961 130
 sys/src/9/port/mkbootrules - 775 sys sys 1055700518 923
 sys/src/9/port/mkdevc - 775 sys sys 1068466668 3849
@@ -6786,7 +6786,7 @@ sys/src/cmd/acid/print.c - 664 sys sys 984756705 6840
 sys/src/cmd/acid/proc.c - 664 sys sys 1014924908 4513
 sys/src/cmd/acid/util.c - 664 sys sys 944960738 4297
 sys/src/cmd/acme - 20000000775 sys sys 969511023 0
-sys/src/cmd/acme/acme.c - 664 sys sys 1103565436 19635
+sys/src/cmd/acme/acme.c - 664 sys sys 1104430286 19613
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1079102914 11126
@@ -7113,7 +7113,7 @@ sys/src/cmd/aux/vga/main.c - 664 sys sys 1014925010 8154
 sys/src/cmd/aux/vga/mga2164w.c - 664 sys sys 1014925010 13196
 sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1014925010 35895
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1048636613 905
-sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1089055692 8888
+sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1104430499 8975
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
 sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1088204577 23412
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
@@ -12428,7 +12428,7 @@ sys/src/libventi/strdup.c - 664 sys sys 1045502096 203
 sys/src/libventi/venti.txt - 664 sys sys 1045502097 4347
 sys/src/libventi/zero.c - 664 sys sys 1045502097 1509
 sys/src/mkfile - 664 sys sys 1073061130 1006
-sys/src/mkfile.proto - 664 sys sys 1089382963 265
+sys/src/mkfile.proto - 664 sys sys 1104430482 266
 tmp - 20000000555 sys sys 953999902 0
 usr - 20000000775 sys sys 953406542 0
 usr/glenda - 20000000775 glenda glenda 953406571 0

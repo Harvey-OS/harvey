@@ -37,10 +37,7 @@ neomagiclinear(VGAscr* scr, int* size, int* align)
 	if(p = pcimatch(nil, 0x10C8, 0)){
 		switch(p->did){
 		case 0x0003:		/* MagicGraph 128ZV */
-			aperture = p->mem[0].bar & ~0x0F;
-			*size = p->mem[0].size;
-//print("neomagiclinear0 %lux %d\n", aperture, *size);
-			break;
+		case 0x0083:		/* MagicGraph 128ZV+ */
 		case 0x0004:		/* MagicGraph 128XD */
 		case 0x0005:		/* MagicMedia 256AV */
 		case 0x0006:		/* MagicMedia 256ZX */
@@ -94,11 +91,17 @@ neomagicenable(VGAscr* scr)
 		return;
 	if(p = pcimatch(nil, 0x10C8, 0)){
 		switch(p->did){
-		case 0x0003:		/* MagicGraph 128VZ */
+		case 0x0003:		/* MagicGraph 128ZV */
 			curoff = 0x100;
 			vmsize = 1152*1024;
 			ioaddr = (p->mem[0].bar & ~0x0F) + 0x200000;
 			iosize = 0x200000;
+			break;
+		case 0x0083:		/* MagicGraph 128ZV+ */
+			curoff = 0x100;
+			vmsize = 1152*1024;
+			ioaddr = p->mem[1].bar & ~0x0F;
+			iosize = p->mem[1].size;
 			break;
 		case 0x0004:		/* MagicGraph 128XD */
 			curoff = 0x100;

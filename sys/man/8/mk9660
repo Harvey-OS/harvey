@@ -63,7 +63,7 @@ an ISO-9660 CD image containing the
 files named in
 .I proto
 (by default,
-.BR /sys/lib/sysconfig/proto/allproto )
+.BR /sys/lib/sysconfig/proto/portproto )
 from the file tree
 .I src
 (by default,
@@ -219,8 +219,8 @@ Plan 9 extensions in the system use fields, and
 a Joliet directory tree.
 .IP
 .EX
-disk/mk9660 -9cj -s /n/bootes \e
-	-p /sys/lib/sysconfig/srcproto cdimage
+disk/mk9660 -9cj -s /sys/src \e
+	-p /sys/lib/sysconfig/proto/allproto cdimage
 .EE
 .SH SOURCE
 .B /sys/src/cmd/disk/9660

@@ -356,7 +356,7 @@ for authenticating outbound calls
 .B server
 for authenticating inbound calls
 .TP
-.B speaksfor
+.B speakfor
 for authenticating processes whose
 user id does not match
 .IR factotum 's.
