@@ -1,12 +1,18 @@
 #!/bin/rc
 
+# lucent web proxy caches the page; defeat it
+# rfork n
+# if(! test -d /net.alt/tcp) import achille /net.alt
+# bind /net.alt /net
+
+
 if(! ~ $#* 1) {
 	echo usage: ups 1ZA41W190338680961 >[1=2]
 	exit usage
 }
 
 rfork e
-hget -x /net.alt 'http://wwwapps.ups.com/etracking/tracking.cgi?track=Track&InquiryNumber1='^$1^ \
+hget 'http://wwwapps.ups.com/etracking/tracking.cgi?track=Track&InquiryNumber1='^$1^ \
 	'&TypeOfInquiryNumber=T' >/tmp/ups.1
 
 cat /tmp/ups.1 |
@@ -16,7 +22,7 @@ x=$"x
 x=`{echo $x | sed 's/ /\&/g'}
 x=$"x
 x=$x^'&tdts1.x=19&tdts1.y=7'
-hget -x /net.alt -p $x http://wwwapps.ups.com/etracking/tracking.cgi | htmlfmt >/tmp/ups.2
+hget -p $x http://wwwapps.ups.com/etracking/tracking.cgi | htmlfmt >/tmp/ups.2
 
 # to first blank line, output is a simple two-column table, followed by a blank line
 # after that it's a five column table followed by a blank line

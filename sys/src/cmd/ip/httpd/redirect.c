@@ -94,7 +94,7 @@ redirectinit(void)
 			if(strncmp(field[0], "http://", STRLEN("http://")) == 0 &&
 					strncmp(field[1], "http://", STRLEN("http://")) != 0){
 				host = field[0]+STRLEN("http://");
-				s = strstr(host, "/:");
+				s = strpbrk(host, "/:");
 				if(s)
 					*s = 0;  /* chop trailing slash or portnumber */
 				insert(vhosttab, estrdup(host), estrdup(field[1]));

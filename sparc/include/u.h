@@ -13,7 +13,10 @@ typedef long	jmp_buf[2];
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	(-8)
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
+typedef unsigned char u8int;
+typedef unsigned short u16int;
 typedef unsigned int	u32int;
+typedef unsigned long long u64int;
 
 /* FCR */
 #define	FPINEX	(1<<23)
