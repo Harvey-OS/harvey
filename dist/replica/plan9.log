@@ -14946,3 +14946,5 @@
 1082925120 9 c sys/src/libdraw/readimage.c - 664 sys sys 1082924458 2431
 1082925120 10 c sys/src/libdraw/readsubfont.c - 664 sys sys 1082924458 1053
 1082925120 11 c sys/src/libdraw/subfontcache.c - 664 sys sys 1082924459 752
+1083040325 0 c sys/src/cmd/fossil/9fsys.c - 664 sys sys 1083039532 30218
+1083079933 0 c sys/src/9/pc/trap.c - 664 sys sys 1083078696 20613

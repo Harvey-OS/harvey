@@ -374,7 +374,7 @@ fsysSnapClean(Fsys *fsys, int argc, char* argv[])
 	if(argc > 1)
 		return cliError(usage);
 	if(argc == 1)
-		life = atoi(argv[1]);
+		life = atoi(argv[0]);
 	else
 		snapGetTimes(fsys->fs->snap, &arch, &snap, &life);
 
