@@ -115,6 +115,9 @@ main(int argc, char **argv)
 	case 'C':
 		Cflag = 1;
 		break;
+	case 'p':
+		pflag = 0;
+		break;
 	}ARGEND;
 
 	if(pcap)
@@ -139,16 +142,16 @@ main(int argc, char **argv)
 	} else if((!tiflag) && strstr(file, "ipifc")){
 		if(root == nil)
 			root = &ip;
-		snprint(buf, sizeof buf, "%s/snoopy", file);
+		snprint(buf, Blen, "%s/snoop", file);
 		fd = open(buf, OREAD);
 		if(fd < 0)
-			sysfatal("opening %s", buf);
+			sysfatal("opening %s: %r", buf);
 	} else {
 		if(root == nil)
 			root = &ether;
 		fd = open(file, OREAD);
 		if(fd < 0)
-			sysfatal("opening %s", file);
+			sysfatal("opening %s: %r", file);
 	}
 	filter = compile(filter);
 
