@@ -205,7 +205,7 @@
 386/bin/disk/dump9660 - 775 sys sys 1077422340 152343
 386/bin/disk/exsort - 775 sys sys 1072729312 58501
 386/bin/disk/fdisk - 775 sys sys 1064598124 106639
-386/bin/disk/format - 775 sys sys 1082257737 40960
+386/bin/disk/format - 775 sys sys 1084989290 87510
 386/bin/disk/kfs - 775 sys sys 1073851218 249472
 386/bin/disk/kfscmd - 775 sys sys 1072729312 38425
 386/bin/disk/ksync - 775 sys sys 1020319074 302
