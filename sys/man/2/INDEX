@@ -693,7 +693,8 @@ iowrite ioproc
 iounit iounit
 defmask ip
 eipfmt ip
-equivip ip
+equivip4 ip
+equivip6 ip
 hnputl ip
 hnputs ip
 hnputv ip
@@ -772,6 +773,7 @@ free malloc
 getmalloctag malloc
 getrealloctag malloc
 malloc malloc
+mallocalign malloc
 malloctopoolblock malloc
 mallocz malloc
 msize malloc
@@ -991,6 +993,7 @@ plumbunpackattr plumb
 plumbunpackpartial plumb
 pool pool
 poolalloc pool
+poolallocalignspan pool
 poolblockcheck pool
 poolcheck pool
 poolcompact pool
