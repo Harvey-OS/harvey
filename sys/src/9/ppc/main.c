@@ -14,18 +14,18 @@ typedef struct Plan9ini Plan9ini;
 struct Plan9ini
 {
 	char	*name;
-	char *val;
+	char	*val;
 };
 
-char		*plan9inistr;
-Plan9ini	plan9ini[MAXCONF];
-int		nconf;
+char *plan9inistr;
+Plan9ini plan9ini[MAXCONF];
+int nconf;
 
-Conf	conf;
-FPsave	initfp;
-Lock		testlock;
+Conf conf;
+FPsave initfp;
+Lock testlock;
 
-static void	plan9iniinit(void);
+static void plan9iniinit(void);
 
 char *
 cpuid(void)

@@ -132,10 +132,10 @@ xallocz(ulong size, int zero)
 			}
 			iunlock(&xlists);
 			p = KADDR(p);
-			p->magix = Magichole;
-			p->size = size;
 			if(zero)
 				memset(p->data, 0, size);
+			p->magix = Magichole;
+			p->size = size;
 			return p->data;
 		}
 		l = &h->link;
