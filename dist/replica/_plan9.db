@@ -181,7 +181,7 @@
 386/bin/cmp - 775 sys sys 1104121995 40565
 386/bin/colors - 775 sys sys 1106799173 149453
 386/bin/comm - 775 sys sys 1104121996 61360
-386/bin/con - 775 sys sys 1104121996 78163
+386/bin/con - 775 sys sys 1109909287 78211
 386/bin/cp - 775 sys sys 1104121996 63215
 386/bin/cpp - 775 sys sys 1104121997 150308
 386/bin/cpu - 775 sys sys 1108354550 137694
@@ -617,7 +617,7 @@ acme/acid/sparc - 20000000775 sys sys 1015011246 0
 acme/bin - 20000000775 sys sys 1017457907 0
 acme/bin/386 - 20000000775 sys sys 1015011570 0
 acme/bin/386/News - 775 sys sys 1108960019 128813
-acme/bin/386/Wiki - 775 sys sys 1108960019 126913
+acme/bin/386/Wiki - 775 sys sys 1109909287 126953
 acme/bin/386/acd - 775 sys sys 1032232412 137068
 acme/bin/386/adict - 775 sys sys 1015011247 99806
 acme/bin/386/mkwnew - 775 sys sys 1104122115 38959
@@ -12463,5 +12463,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/con - 775 sys sys 1109909287 78211
-acme/bin/386/Wiki - 775 sys sys 1109909287 126953
