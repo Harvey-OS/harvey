@@ -12363,3 +12363,10 @@
 1068717736 7 c 386/bin/fossil/fossil - 775 sys sys 1068717502 345764
 1068717736 8 c 386/bin/ndb/cs - 775 sys sys 1068717503 144127
 1068773461 0 c sys/src/cmd/jpg/readpng.c - 664 sys sys 1068773222 6914
+1068822087 0 c sys/man/8/prep - 664 sys sys 1068820496 13817
+1068822087 1 c sys/src/cmd/disk/prep/prep.c - 664 sys sys 1068820485 10636
+1068823888 0 c sys/man/1/passwd - 664 sys sys 1068823217 1377
+1068823888 1 d sys/src/libndb/csgetval.rc - 664 sys sys 944961749 0
+1068836496 0 c sys/src/9/boot/local.c - 664 sys sys 1068835808 5355
+1068859816 0 c sys/src/cmd/ki/mkfile - 664 sys sys 1068859845 245
+1068859816 1 c sys/src/cmd/ki/stats.c - 664 sys sys 1068859845 4536

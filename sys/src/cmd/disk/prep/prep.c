@@ -11,25 +11,25 @@ enum {
 	Maxpath = 128,
 };
 
-static int		blank;
-static int		file;
-static int		doautox;
-static int		printflag;
-static Part		**opart;
-static int		nopart;
+static int	blank;
+static int	file;
+static int	doautox;
+static int	printflag;
+static Part	**opart;
+static int	nopart;
 static char	*osecbuf;
 static char	*secbuf;
-static int		rdonly;
-static int		dowrite;
-static int		docache;
-static int		donvram;
+static int	rdonly;
+static int	dowrite;
+static int	docache;
+static int	donvram;
 
-static void		autoxpart(Edit*);
+static void	autoxpart(Edit*);
 static vlong	memsize(void);
-static Part		*mkpart(char*, vlong, vlong, int);
-static void		rdpart(Edit*);
-static void		wrpart(Edit*);
-static void		checkfat(Disk*);
+static Part	*mkpart(char*, vlong, vlong, int);
+static void	rdpart(Edit*);
+static void	wrpart(Edit*);
+static void	checkfat(Disk*);
 
 static void 	cmdsum(Edit*, Part*, vlong, vlong);
 static char 	*cmdadd(Edit*, char*, vlong, vlong);
@@ -40,8 +40,8 @@ static char	*cmdctlprint(Edit*, int, char**);
 
 Edit edit = {
 	.add=	cmdadd,
-	.del=		cmddel,
-	.okname=	cmdokname,
+	.del=	cmddel,
+	.okname=cmdokname,
 	.sum=	cmdsum,
 	.write=	cmdwrite,
 
@@ -69,14 +69,15 @@ struct Auto
 Auto autox[] = 
 {
 	{	"9fat",		10*MB,	100*MB,	10,	},
-	{	"nvram",		512,		512,		1,	},
-	{	"fs",			200*MB,	0,		10,	},
-	{	"fossil",		200*MB,	0,		4,	},
-	{	"arenas",		500*MB,	0,		20,	},
-	{	"isect",		25*MB,	0,		1,	},
-	{	"other",		200*MB,	0,		4,	},
+	{	"nvram",	512,	512,	1,	},
+	{	"fscfg",	512,	512,	1,	},
+	{	"fs",		200*MB,	0,	10,	},
+	{	"fossil",	200*MB,	0,	4,	},
+	{	"arenas",	500*MB,	0,	20,	},
+	{	"isect",	25*MB,	0,	1,	},
+	{	"other",	200*MB,	0,	4,	},
 	{	"swap",		100*MB,	512*MB,	1,	},
-	{	"cache",		50*MB,	1*GB,	2,	},
+	{	"cache",	50*MB,	1*GB,	2,	},
 };
 
 void
@@ -449,8 +450,9 @@ autoxpart(Edit *edit)
 		}
 	}
 
-for(i=0; i<nelem(autox); i++)
-	if(autox[i].alloc) print("%s %llud\n", autox[i].name, autox[i].size);
+	for(i=0; i<nelem(autox); i++)
+		if(autox[i].alloc)
+			print("%s %llud\n", autox[i].name, autox[i].size);
 
 	s = 0;
 	for(i=0; i<nelem(autox); i++){
