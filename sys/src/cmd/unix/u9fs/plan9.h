@@ -112,7 +112,7 @@ struct	Fconv
 	int	f3;
 	int	chr;
 };
-extern	char*	doprint(char*, char*, char*, va_list);
+extern	char*	doprint(char*, char*, char*, ...);
 extern	int	print(char*, ...);
 extern	char*	seprint(char*, char*, char*, ...);
 extern	int	snprint(char*, int, char*, ...);
