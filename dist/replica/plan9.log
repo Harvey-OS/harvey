@@ -18628,3 +18628,9 @@
 1048179656 7 c sys/src/cmd/ssh/sshserve.c - 664 sys sys 1048179703 5940
 1048179656 8 c sys/src/cmd/ssh/util.c - 664 sys sys 1048179672 5506
 1048185062 0 c sys/games/lib/fortunes - 664 sys sys 1048184380 239194
+1048275090 0 a sys/src/cmd/aux/vga/adventure - 664 sys sys 1048274168 14869
+1048285901 0 c sys/man/4/ftpfs - 664 sys sys 1048285446 4327
+1048285901 1 c sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1048285493 13555
+1048285901 2 c sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048285492 158
+1048285901 3 c sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1048285496 29321
+1048289505 0 c sys/src/9/ip/ipifc.c - 664 sys sys 1048288617 37843

@@ -88,7 +88,7 @@ hello(char *dest)
  *  login to remote system
  */
 void
-rlogin(char *rsys)
+rlogin(char *rsys, char *keyspec)
 {
 	char *line;
 	char pass[128];
@@ -97,7 +97,7 @@ rlogin(char *rsys)
 	up = nil;
 	for(;;){
 		if(up == nil && os != Plan9)
-			up = auth_getuserpasswd(auth_getkey, "proto=pass server=%s", rsys);
+			up = auth_getuserpasswd(auth_getkey, "proto=pass server=%s service=ftp %s", rsys, keyspec);
 		if(up != nil){
 			sendrequest("USER", up->user);
 		} else {

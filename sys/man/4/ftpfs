@@ -19,6 +19,10 @@ ftpfs  \- file transfer protocol (FTP) file system
 .I ext
 ]
 [
+.B -k
+.I keyspec
+]
+[
 .B -o
 .I os
 ]
@@ -40,14 +44,27 @@ on
 to provide access to files on the remote machine.
 If required by the remote machine,
 .I ftpfs
-will prompt for a user name and password.
+will ask
+.IR factotum (4)
+for a key matching the pattern
+.IP
+.EX
+proto=pass service=ftp server=\fIsystem\fP user? !password? \fIkeyspec\fP 
+.EE
+.PP
+(If
+.I factotum
+does not have such a key,
+.I factotum
+will prompt the user for one.)
+.PP
 The user names
 .B ftp
 and
 .B anonymous
 conventionally offer guest/read-only access to
 machines.
-Anonymous FTP may be called without user interaction
+Anonymous FTP may be called without using factotum
 by using the
 .B -a
 option and specifying the
@@ -72,7 +89,7 @@ To see all messages from the server use option
 .PP
 Some systems will hangup an ftp connection that has no activity
 for a given period.  The
-.BR -k
+.BR -K
 option causes ftp to send a NOP command every 15 seconds to attempt
 to keep the connection open.  This command can cause some servers to
 hangup, so you'll have to feel your way.
