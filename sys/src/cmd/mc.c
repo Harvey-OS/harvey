@@ -18,6 +18,7 @@
 #define	ALLOC_QUANTA		4096
 
 int linewidth=WIDTH;
+int mintab=1;
 int colonflag=0;
 int tabflag=0;	/* -t flag turned off forever */
 Rune *cbuf, *cbufp;
@@ -27,11 +28,15 @@ int nalloc=ALLOC_QUANTA;
 int nwalloc=WORD_ALLOC_QUANTA;
 int nchars=0;
 int nwords=0;
+int tabwidth=0;
+Font *font;
 Biobuf	bin;
 Biobuf	bout;
 
 void getwidth(void), readbuf(int), error(char *);
 void scanwords(void), columnate(void), morechars(void);
+int wordwidth(Rune*, int);
+int nexttab(int);
 
 void
 main(int argc, char *argv[])
@@ -59,8 +64,14 @@ main(int argc, char *argv[])
 			break;
 		}
 	}
-	if(lineset == 0)
+	if(lineset == 0){
 		getwidth();
+		if(linewidth <= 1){
+			linewidth = WIDTH;
+			font = nil;
+		}
+	}
+
 	cbuf = cbufp = malloc(ALLOC_QUANTA*(sizeof *cbuf));
 	word = malloc(WORD_ALLOC_QUANTA*(sizeof *word));
 	if(word == 0 || cbuf == 0)
@@ -136,7 +147,7 @@ void
 scanwords(void)
 {
 	Rune *p, *q;
-	int i;
+	int i, w;
 
 	nwords=0;
 	maxwidth=0;
@@ -149,8 +160,9 @@ scanwords(void)
 			}
 			word[nwords++] = q;
 			p[-1] = L'\0';
-			if(p-q > maxwidth)
-				maxwidth = p-q;
+			w = wordwidth(q, p-q-1);
+			if(w > maxwidth)
+				maxwidth = w;
 			q = p;
 		}
 	}
@@ -169,6 +181,7 @@ columnate(void)
 	scanwords();
 	if(nwords==0)
 		return;
+	maxwidth = nexttab(maxwidth+mintab-1);
 	words_per_line = linewidth/maxwidth;
 	if(words_per_line <= 0)
 		words_per_line = 1;
@@ -178,24 +191,42 @@ columnate(void)
 		for(j = i; j < nwords; j += nlines){
 			endcol += maxwidth;
 			Bprint(&bout, "%S", word[j]);
-			col += word[j+1]-word[j]-1;
+			col += wordwidth(word[j], runestrlen(word[j]));
 			if(j+nlines < nwords){
 				if(tabflag) {
-					int tabcol = (col|(TAB-1))+1;
-					while(tabcol <= endcol){
+					while(col < endcol){
 						Bputc(&bout, '\t');
-						col = tabcol;
-						tabcol += TAB;
+						col = nexttab(col);
 					}
-				}
-				while(col < endcol){
-					Bputc(&bout, ' ');
-					col++;
+				}else{
+					while(col < endcol){
+						Bputc(&bout, ' ');
+						col++;
+					}
 				}
 			}
 		}
 		Bputc(&bout, '\n');
 	}
+}
+
+int
+wordwidth(Rune *w, int nw)
+{
+	if(font)
+		return runestringnwidth(font, w, nw);
+	return nw;
+}
+
+int
+nexttab(int col)
+{
+	if(tabwidth){
+		col += tabwidth;
+		col -= col%tabwidth;
+		return col;
+	}
+	return col+1;
 }
 
 void
@@ -222,55 +253,51 @@ terror(Display*, char*)
 	longjmp(drawjmp, 1);
 }
 
-Image*
-window(void)
-{
-	int n, fd;
-	char buf[128];
-
-	/* under acme, don't want to read whole screen width */
-	if(access("/dev/acme", OREAD) == 0)
-		return nil;
-	display = initdisplay("/dev", "/dev", terror);
-	if(display == nil)
-		return nil;
-	snprint(buf, sizeof buf, "%s/winname", display->windir);
-	fd = open(buf, OREAD);
-	if(fd<0 || (n=read(fd, buf, 64))<=0){
-		return nil;
-	}
-	close(fd);
-	buf[n] = 0;
-	return namedimage(display, buf);
-}
-
 void
 getwidth(void)
 {
-	Image *w;
-	int width, fd, n;
-	char fontname[256];
+	int n, fd;
+	char buf[128], *f[10], *p;
 
-	if(setjmp(drawjmp))
+	if(access("/dev/acme", OREAD) >= 0){
+		if((fd = open("/dev/acme/ctl", OREAD)) < 0)
+			return;
+		n = read(fd, buf, sizeof buf-1);
+		close(fd);
+		if(n <= 0)
+			return;
+		buf[n] = 0;
+		n = tokenize(buf, f, nelem(f));
+		if(n < 7)
+			return;
+		if((font = openfont(nil, f[6])) == nil)
+			return;
+		if(n >= 8)
+			tabwidth = atoi(f[7]);
+		else
+			tabwidth = 4*stringwidth(font, "0");
+		mintab = stringwidth(font, "0");
+		linewidth = atoi(f[5]);
+		tabflag = 1;
 		return;
+	}
 
-	w = window();
-	if(w == nil)
+	if((p = getenv("font")) == nil)
 		return;
-	fd = open("/env/font", OREAD);
-	if(fd < 0)
+	if((font = openfont(nil, p)) == nil)
 		return;
-	n = read(fd, fontname, sizeof(fontname)-1);
+	if((fd = open("/dev/window", OREAD)) < 0){
+		font = nil;
+		return;
+	}
+	n = read(fd, buf, 5*12);
 	close(fd);
-	if(n < 0)
+	if(n < 5*12){
+		font = nil;
 		return;
-	fontname[n] = 0;
-	if(fontname[0] == 0)
-		return;
-	font = openfont(display, fontname);
-	if(font == nil)
-		return;
-	width = stringwidth(font, " ");
+	}
+	buf[n] = 0;
+	
 	/* window stucture:
 		4 bit left edge
 		1 bit gap
@@ -279,5 +306,11 @@ getwidth(void)
 		text
 		4 bit right edge
 	*/
-	linewidth = (Dx(w->r)-(4+1+12+4+4))/width;
+	linewidth = atoi(buf+3*12) - atoi(buf+1*12) - (4+1+12+4+4);
+	mintab = stringwidth(font, "0");
+	if((p = getenv("tabstop")) != nil)
+		tabwidth = atoi(p)*stringwidth(font, "0");
+	if(tabwidth == 0)
+		tabwidth = 4*stringwidth(font, "0");
+	tabflag = 1;
 }

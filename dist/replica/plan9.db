@@ -27,7 +27,7 @@
 386/bin/9660srv - 775 sys sys 1064598019 104963
 386/bin/aan - 775 sys sys 1064598020 128816
 386/bin/acid - 775 sys sys 1081825815 379877
-386/bin/acme - 775 sys sys 1081480397 424667
+386/bin/acme - 775 sys sys 1082924480 429258
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1071245280 133877
 386/bin/ape/cc - 775 sys sys 1064598025 68790
@@ -305,7 +305,7 @@
 386/bin/lnfs - 775 sys sys 1064598250 100511
 386/bin/look - 775 sys sys 1064598250 64212
 386/bin/ls - 775 sys sys 1073851233 81182
-386/bin/mc - 775 sys sys 1071245338 129548
+386/bin/mc - 775 sys sys 1082924486 131746
 386/bin/md5sum - 775 sys sys 1064598252 59465
 386/bin/mk - 775 sys sys 1064598253 143638
 386/bin/mkdir - 775 sys sys 1082603187 59419
@@ -531,7 +531,7 @@
 386/lib/libcomplete.a - 664 sys sys 1076817073 6312
 386/lib/libcontrol.a - 664 sys sys 1073851267 242856
 386/lib/libdisk.a - 664 sys sys 1073851267 43536
-386/lib/libdraw.a - 664 sys sys 1073851268 372528
+386/lib/libdraw.a - 664 sys sys 1082924460 373342
 386/lib/libflate.a - 664 sys sys 1073851268 77194
 386/lib/libframe.a - 664 sys sys 1073851269 65534
 386/lib/libgeometry.a - 664 sys sys 1073851269 50732
@@ -619,7 +619,7 @@ acme/bin/386/acd - 775 sys sys 1032232412 137068
 acme/bin/386/adict - 775 sys sys 1015011247 99806
 acme/bin/386/mkwnew - 775 sys sys 1064598458 39207
 acme/bin/386/spout - 775 sys sys 1064598459 60029
-acme/bin/386/win - 775 sys sys 1064598460 180032
+acme/bin/386/win - 775 sys sys 1082922246 180754
 acme/bin/Battery - 775 sys sys 1017457907 451
 acme/bin/Isspam - 775 sys sys 1063951165 235
 acme/bin/Perl - 775 sys sys 1015011260 230
@@ -671,7 +671,7 @@ acme/bin/source/spout.c - 664 sys sys 1015011255 1868
 acme/bin/source/win - 20000000775 sys sys 1015011255 0
 acme/bin/source/win/dat.h - 664 sys sys 1017679345 1992
 acme/bin/source/win/fs.c - 664 sys sys 1045503982 2713
-acme/bin/source/win/main.c - 664 sys sys 1046654935 12544
+acme/bin/source/win/main.c - 664 sys sys 1082922243 12609
 acme/bin/source/win/mkfile - 664 sys sys 1046654934 309
 acme/bin/source/win/pipe.c - 664 sys sys 1017679345 2807
 acme/bin/source/win/util.c - 664 sys sys 1017679346 1169
@@ -6816,7 +6816,7 @@ sys/src/cmd/acid/print.c - 664 sys sys 984756705 6840
 sys/src/cmd/acid/proc.c - 664 sys sys 1014924908 4513
 sys/src/cmd/acid/util.c - 664 sys sys 944960738 4297
 sys/src/cmd/acme - 20000000775 sys sys 969511023 0
-sys/src/cmd/acme/acme.c - 664 sys sys 1079044031 19192
+sys/src/cmd/acme/acme.c - 664 sys sys 1082924469 19212
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1079102914 11126
@@ -6838,7 +6838,7 @@ sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1081200110 27335
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
 sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
-sys/src/cmd/acme/wind.c - 664 sys sys 1073566950 11094
+sys/src/cmd/acme/wind.c - 664 sys sys 1082924470 11115
 sys/src/cmd/acme/xfid.c - 664 sys sys 1079044030 19175
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
 sys/src/cmd/archfs.c - 664 sys sys 1014925694 3871
@@ -9725,7 +9725,7 @@ sys/src/cmd/map/mkfile - 664 sys sys 944961024 461
 sys/src/cmd/map/route.c - 644 sys sys 964456085 2718
 sys/src/cmd/map/sqrt.c - 664 sys sys 944961024 675
 sys/src/cmd/map/symbol.c - 664 sys sys 964456085 3310
-sys/src/cmd/mc.c - 664 sys sys 957920262 4978
+sys/src/cmd/mc.c - 664 sys sys 1082924484 5520
 sys/src/cmd/md5sum.c - 664 sys sys 1014926238 1009
 sys/src/cmd/mk - 20000000775 sys sys 988249988 0
 sys/src/cmd/mk/acid - 664 sys sys 1055698806 10395
@@ -11859,7 +11859,7 @@ sys/src/libdraw/bytesperline.c - 664 sys sys 1014927873 617
 sys/src/libdraw/chan.c - 664 sys sys 1014927873 1148
 sys/src/libdraw/cloadimage.c - 664 sys sys 1014927873 933
 sys/src/libdraw/computil.c - 664 sys sys 1014927873 680
-sys/src/libdraw/creadimage.c - 664 sys sys 1014927874 2252
+sys/src/libdraw/creadimage.c - 664 sys sys 1082924457 2379
 sys/src/libdraw/debug.c - 664 sys sys 1014927874 206
 sys/src/libdraw/defont.c - 664 sys sys 944961724 30537
 sys/src/libdraw/draw.c - 664 sys sys 1040442971 1321
@@ -11869,11 +11869,11 @@ sys/src/libdraw/ellipse.c - 664 sys sys 1040442971 1936
 sys/src/libdraw/emenuhit.c - 664 sys sys 1014927874 7136
 sys/src/libdraw/event.c - 664 sys sys 1014927875 8985
 sys/src/libdraw/fmt.c - 664 sys sys 1070344369 270
-sys/src/libdraw/font.c - 664 sys sys 1078466654 7542
+sys/src/libdraw/font.c - 664 sys sys 1082924457 7594
 sys/src/libdraw/freesubfont.c - 664 sys sys 984709664 259
 sys/src/libdraw/getdefont.c - 664 sys sys 944961724 1082
 sys/src/libdraw/getrect.c - 664 sys sys 1014927875 3046
-sys/src/libdraw/getsubfont.c - 664 sys sys 1014927875 757
+sys/src/libdraw/getsubfont.c - 664 sys sys 1082924458 772
 sys/src/libdraw/icossin.c - 664 sys sys 944961724 2117
 sys/src/libdraw/icossin2.c - 664 sys sys 944961724 4587
 sys/src/libdraw/init.c - 664 sys sys 1071692552 9082
@@ -11889,8 +11889,8 @@ sys/src/libdraw/newwindow.c - 664 sys sys 1035232036 424
 sys/src/libdraw/openfont.c - 664 sys sys 1014927876 495
 sys/src/libdraw/poly.c - 664 sys sys 1040442974 1689
 sys/src/libdraw/readcolmap.c - 664 sys sys 1014927877 745
-sys/src/libdraw/readimage.c - 664 sys sys 1014927877 2292
-sys/src/libdraw/readsubfont.c - 664 sys sys 944961725 1022
+sys/src/libdraw/readimage.c - 664 sys sys 1082924458 2431
+sys/src/libdraw/readsubfont.c - 664 sys sys 1082924458 1053
 sys/src/libdraw/rectclip.c - 664 sys sys 944961725 571
 sys/src/libdraw/replclipr.c - 664 sys sys 944961725 363
 sys/src/libdraw/rgb.c - 664 sys sys 984709666 1679
@@ -11899,7 +11899,7 @@ sys/src/libdraw/stringbg.c - 664 sys sys 1040442975 1611
 sys/src/libdraw/stringsubfont.c - 664 sys sys 944961725 960
 sys/src/libdraw/stringwidth.c - 664 sys sys 1080400060 1589
 sys/src/libdraw/subfont.c - 664 sys sys 984709666 495
-sys/src/libdraw/subfontcache.c - 664 sys sys 984709666 745
+sys/src/libdraw/subfontcache.c - 664 sys sys 1082924459 752
 sys/src/libdraw/subfontname.c - 664 sys sys 1014927877 762
 sys/src/libdraw/test.c - 664 sys sys 944961725 201
 sys/src/libdraw/unloadimage.c - 664 sys sys 944961725 1000

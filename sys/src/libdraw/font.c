@@ -156,11 +156,10 @@ cf2subfont(Cachefont *cf, Font *f)
 	if(name == nil){
 		depth = 0;
 		if(f->display){
-			if(f->display->image)
-				depth = f->display->image->depth;
 			if(f->display->screenimage)
 				depth = f->display->screenimage->depth;
-		}
+		}else
+			depth = 8;
 		name = subfontname(cf->name, f->name, depth);
 		if(name == nil)
 			return nil;
@@ -243,7 +242,7 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush, char **subfontname)
 	}
 
 	subf->cf = cf;
-	if(subf->f->ascent > f->ascent){
+	if(subf->f->ascent > f->ascent && f->display){
 		/* should print something? this is a mistake in the font file */
 		/* must prevent c->top from going negative when loading cache */
 		Image *b;
@@ -296,6 +295,8 @@ loadchar(Font *f, Rune r, Cacheinfo *c, int h, int noflush, char **subfontname)
 	c->width = fi->width;
 	c->x = h*f->width;
 	c->left = fi->left;
+	if(f->display == nil)
+		return 1;
 	flushimage(f->display, 0);	/* flush any pending errors */
 	b = bufimage(f->display, 37);
 	if(b == 0)
@@ -352,9 +353,12 @@ fontresize(Font *f, int wid, int ncache, int depth)
 	Display *d;
 
 	ret = 0;
-	d = f->display;
 	if(depth <= 0)
 		depth = 1;
+
+	d = f->display;
+	if(d == nil)
+		goto Nodisplay;
 
 	new = allocimage(d, Rect(0, 0, ncache*wid, f->height), CHAN1(CGrey, depth), 0, 0);
 	if(new == nil){
@@ -379,6 +383,7 @@ fontresize(Font *f, int wid, int ncache, int depth)
 	}
 	freeimage(f->cacheimage);
 	f->cacheimage = new;
+    Nodisplay:
 	f->width = wid;
 	f->maxdepth = depth;
 	ret = 1;

@@ -14932,3 +14932,17 @@
 1082604707 2 c sys/src/9/ip/ipv6.h - 664 sys sys 1082604125 4260
 1082777540 0 c 386/lib/libmp.a - 664 sys sys 1082776286 81428
 1082862156 0 c 386/lib/libmp.a - 664 sys sys 1082862011 77700
+1082923320 0 c acme/bin/386/win - 775 sys sys 1082922246 180754
+1082923320 1 c acme/bin/source/win/main.c - 664 sys sys 1082922243 12609
+1082925120 0 c 386/bin/acme - 775 sys sys 1082924480 429258
+1082925120 1 c 386/bin/mc - 775 sys sys 1082924486 131746
+1082925120 2 c 386/lib/libdraw.a - 664 sys sys 1082924460 373342
+1082925120 3 c sys/src/cmd/acme/acme.c - 664 sys sys 1082924469 19212
+1082925120 4 c sys/src/cmd/acme/wind.c - 664 sys sys 1082924470 11115
+1082925120 5 c sys/src/cmd/mc.c - 664 sys sys 1082924484 5520
+1082925120 6 c sys/src/libdraw/creadimage.c - 664 sys sys 1082924457 2379
+1082925120 7 c sys/src/libdraw/font.c - 664 sys sys 1082924457 7594
+1082925120 8 c sys/src/libdraw/getsubfont.c - 664 sys sys 1082924458 772
+1082925120 9 c sys/src/libdraw/readimage.c - 664 sys sys 1082924458 2431
+1082925120 10 c sys/src/libdraw/readsubfont.c - 664 sys sys 1082924458 1053
+1082925120 11 c sys/src/libdraw/subfontcache.c - 664 sys sys 1082924459 752
