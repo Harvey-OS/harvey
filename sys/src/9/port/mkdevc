@@ -17,6 +17,12 @@ collect && /^[^ \t]/{
 }
 collect && section ~ "dev"{
 		dev[ndev++] = $1;
+		if($1 ~ "ad")
+			devad = 1;
+		if($1 ~ "sd")
+			devsd = 1;
+		if($1 ~ "uart")
+			devuart = 1;
 		if($1 ~ "vga")
 			devvga = 1;
 }
@@ -30,6 +36,8 @@ collect && section ~ "misc"{
 		misc[nmisc++] = $1;
 		if($1 ~ "^arch.*")
 			arch[narch++] = $1;
+		if($1 ~ "^ad.*")
+			adifc[nadifc++] = $1;
 		if($1 ~ "^sd.*")
 			sdifc[nsdifc++] = $1;
 		if($1 ~ "^uart.*")
@@ -95,7 +103,16 @@ END{
 			printf "\tnil,\n};\n\n";
 		}
 
-		if(nsdifc){
+		if(devad){
+			printf "#include \"../port/ad.h\"\n";
+			for(i = 0; i < nadifc; i++)
+				printf "extern ADifc %sifc;\n", adifc[i];
+			printf "ADifc* adifc[] = {\n";
+		  	for(i = 0; i < nadifc; i++)
+				printf "\t&%sifc,\n", adifc[i];
+		  	printf "\tnil,\n};\n\n";
+		}
+		if(devsd){
 			printf "#include \"../port/sd.h\"\n";
 			for(i = 0; i < nsdifc; i++)
 				printf "extern SDifc %sifc;\n", sdifc[i];
@@ -105,7 +122,7 @@ END{
 		  	printf "\tnil,\n};\n\n";
 		}
 
-		if(nphysuart){
+		if(devuart){
 			for(i = 0; i < nphysuart; i++)
 				printf "extern PhysUart %s;\n", physuart[i];
 			printf "PhysUart* physuart[] = {\n";

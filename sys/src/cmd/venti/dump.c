@@ -31,7 +31,7 @@ void
 printArena(int fd, Arena *arena)
 {
 	fprint(fd, "arena='%s' [%lld,%lld)\n\tversion=%d created=%d modified=%d",
-		arena->name, arena->base, arena->base + arena->size + 2 * arena->blockSize,
+		arena->name, arena->base-arena->blockSize, arena->base + arena->size + arena->blockSize,
 		arena->version, arena->ctime, arena->wtime);
 	if(arena->sealed)
 		fprint(2, " sealed\n");

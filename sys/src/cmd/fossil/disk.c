@@ -211,9 +211,32 @@ diskRead(Disk *disk, Block *b)
 void
 diskWrite(Disk *disk, Block *b)
 {
+	assert(b->nlock == 1);
 	assert(b->iostate == BioDirty);
 	blockSetIOState(b, BioWriting);
 	diskQueue(disk, b);
+}
+
+void
+diskWriteAndWait(Disk *disk, Block *b)
+{
+	int nlock;
+
+	/*
+	 * If b->nlock > 1, the block is aliased within
+	 * a single thread.  That thread is us.
+	 * DiskWrite does some funny stuff with VtLock
+	 * and blockPut that basically assumes b->nlock==1.
+	 * We humor diskWrite by temporarily setting
+	 * nlock to 1.  This needs to be revisited.
+	 */
+	nlock = b->nlock;
+	if(nlock > 1)
+		b->nlock = 1;
+	diskWrite(disk, b);
+	while(b->iostate != BioClean)
+		vtSleep(b->ioready);
+	b->nlock = nlock;
 }
 
 int

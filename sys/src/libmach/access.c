@@ -134,6 +134,39 @@ put1(Map *map, ulong addr, uchar *v, int size)
 }
 
 static int
+spread(struct segment *s, char *buf, int n, ulong off)
+{
+	ulong base;
+
+	static struct {
+		struct segment *s;
+		char a[8192];
+		ulong off;
+	} cache;
+
+	if(s->cache){
+		base = off&~(sizeof cache.a-1);
+		if(cache.s != s || cache.off != base){
+			cache.off = ~0;
+			if(seek(s->fd, base, 0) >= 0
+			&& readn(s->fd, cache.a, sizeof cache.a) == sizeof cache.a){
+				cache.s = s;
+				cache.off = base;
+			}
+		}
+		if(cache.s == s && cache.off == base){
+			off &= sizeof cache.a-1;
+			if(off+n > sizeof cache.a)
+				n = sizeof cache.a - off;
+			memmove(buf, cache.a+off, n);
+			return n;
+		}
+	}
+
+	return pread(s->fd, buf, n, off);
+}
+
+static int
 mget(Map *map, ulong addr, char *buf, int size)
 {
 	long off;
@@ -149,9 +182,8 @@ mget(Map *map, ulong addr, char *buf, int size)
 		return -1;
 	}
 	voff = (ulong)off;
-	seek(s->fd, voff, 0);
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
-		k = read(s->fd, buf, size-j);
+		k = spread(s, buf, size-j, voff+j);
 		if (k < 0) {
 			werrstr("can't read address %lux: %r", addr);
 			return -1;

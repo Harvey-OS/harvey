@@ -1,5 +1,10 @@
 #ifndef __STAT_H
 #define __STAT_H
+
+#ifndef __TYPES_H
+#include <sys/types.h>
+#endif
+
 #pragma lib "/$M/lib/ape/libap.a"
 
 /*

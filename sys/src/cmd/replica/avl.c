@@ -224,6 +224,7 @@ struct Avltree
 struct Avlwalk
 {
 	int started;
+	int moved;
 	Avlwalk *next;
 	Avltree *tree;
 	Avl *node;
@@ -256,58 +257,41 @@ lookupavl(Avltree *t, Avl *key)
 static Avl*
 findpredecessor(Avl *a)
 {
-	Avl *last;
 
-	last = nil;
-	while(a && a->n[0]==last){
-		last = a;
-		a = a->p;
-	}
 	if(a == nil)
+		return nil;
+
+	if(a->n[0] != nil){
+		/* predecessor is rightmost descendant of left child */
+		for(a=a->n[0]; a->n[1]; a=a->n[1])
+			;
 		return a;
-	if(a->n[1]==last)
-		return a;
-	a = a->n[0];
-	while(a && a->n[1])
-		a = a->n[1];
-	return a;
+	}else{
+		/* we're at a leaf, successor is a parent we enter from the right */
+		while(a->p && a->p->n[0]==a)
+			a = a->p;
+		return a->p;
+	}
 }		
 
 static Avl*
-findsuccessor(Avl *a, int debug)
+findsuccessor(Avl *a)
 {
-	Avl *last;
 
-	last = nil;
-	if(debug)
-		fprint(2, "succ %p(%p,%p,%p)", a, !a?0:a->p, !a?0:a->n[0], !a?0:a->n[1]);
-	while(a && a->n[1]==last){
-		last = a;
-		a = a->p;
-		if(debug)
-			fprint(2, " u %p(%p,%p,%p)", a, !a?0:a->p, !a?0:a->n[0], !a?0:a->n[1]);
-	}
-	if(a == nil){
-		if(debug)
-			fprint(2, "\n");
+	if(a == nil)
+		return nil;
+
+	if(a->n[1] != nil){
+		/* successor is leftmost descendant of right child */
+		for(a=a->n[1]; a->n[0]; a=a->n[0])
+			;
 		return a;
+	}else{
+		/* we're at a leaf, successor is a parent we enter from the left going up */
+		while(a->p && a->p->n[1] == a)
+			a = a->p;
+		return a->p;
 	}
-	if(last!=nil && a->n[0]==last){
-		if(debug)
-			fprint(2, "\n");
-		return a;
-	}
-	a = a->n[1];
-	if(debug)
-		fprint(2, " dr %p(%p,%p,%p)", a, !a?0:a->p, !a?0:a->n[0], !a?0:a->n[1]);
-	while(a && a->n[0]){
-		a = a->n[0];
-		if(debug)
-			fprint(2, " dl %p(%p,%p,%p)", a, !a?0:a->p, !a?0:a->n[0], !a?0:a->n[1]);
-	}
-	if(debug)
-		fprint(2, "\n");
-	return a;
 }
 
 static void
@@ -325,6 +309,7 @@ walkdel(Avl *a, void *v)
 	for(w=t->walks; w; w=w->next){
 		if(w->node == a){
 			/* back pointer to predecessor; not perfect but adequate */
+			w->moved = 1;
 			w->node = p;
 			if(p == nil)
 				w->started = 0;
@@ -362,11 +347,31 @@ avlnext(Avlwalk *w)
 		w->node = a;
 		w->started = 1;
 	}else{
-		a = findsuccessor(w->node, 0);
-		if(a == w->node){
-			findsuccessor(w->node, 1);
+		a = findsuccessor(w->node);
+		if(a == w->node)
 			abort();
-		}
+		w->node = a;
+	}
+	return w->node;
+}
+
+Avl*
+avlprev(Avlwalk *w)
+{
+	Avl *a;
+
+	if(w->started == 0){
+		for(a=w->tree->root; a && a->n[1]; a=a->n[1])
+			;
+		w->node = a;
+		w->started = 1;
+	}else if(w->moved){
+		w->moved = 0;
+		return w->node;
+	}else{
+		a = findpredecessor(w->node);
+		if(a == w->node)
+			abort();
 		w->node = a;
 	}
 	return w->node;

@@ -42,6 +42,7 @@ int diskReadRaw(Disk*, int, u32int, uchar*);
 int diskWriteRaw(Disk*, int, u32int, uchar*);
 void diskRead(Disk*, Block*);
 void diskWrite(Disk*, Block*);
+void	diskWriteAndWait(Disk*, Block*);
 int diskFlush(Disk*);
 u32int diskSize(Disk*, int);
 int diskBlockSize(Disk*);

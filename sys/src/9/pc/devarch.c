@@ -107,8 +107,6 @@ ioinit(void)
 	iomap.maps[i].next = nil;
 	iomap.free = iomap.maps;
 
-	// a dummy entry at 2^16
-	ioalloc(0x10000, 1, 0, "dummy");
 	/*
 	 * Someone needs to explain why this was here...
 	 */
@@ -402,8 +400,6 @@ archread(Chan *c, void *a, long n, vlong offset)
 	for(m = iomap.m; n > 0 && m != nil; m = m->next){
 		if(offset-- > 0)
 			continue;
-		if(strcmp(m->tag, "dummy") == 0)
-			break;
 		sprint(p, "%8lux %8lux %-12.12s\n", m->start, m->end-1, m->tag);
 		p += Linelen;
 		n--;
