@@ -96,7 +96,7 @@ getchunk(Biobuf *b, char *type, uchar *d, int m)
 	crc2 = get4(buf);
 	if(crc != crc2)
 		sysfatal("getchunk crc failed");
-	return m;
+	return n;
 }
 
 static int
@@ -109,9 +109,10 @@ zread(void *va)
 	if(z->b >= z->e){
 refill_buffer:
 		z->b = z->buf;
-		n = getchunk(z->bi, type, z->b, z->e - z->b);
+		n = getchunk(z->bi, type, z->b, IDATSIZE);
 		if(n < 0 || strcmp(type, "IEND") == 0)
 			return -1;
+		z->e = z->b + n;
 		if(type[0] & PropertyBit)
 			goto refill_buffer;  /* skip auxiliary chunks for now */
 		if(strcmp(type,"IDAT") != 0)
