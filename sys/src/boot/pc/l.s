@@ -39,7 +39,7 @@
 #define rCR4		4
 
 #define OP(o, m, r, rm)	BYTE $o;		/* op + modr/m byte */	\
-			BYTE $((m<<6)|(r<<3)|rm)
+			BYTE $(((m)<<6)|((r)<<3)|(rm))
 #define OPrr(o, r0, r1)	OP(o, 0x03, r0, r1);	/* general r -> r */
 
 #define LWI(i, rX)	BYTE $(0xB8+rX);	/* i -> rX */		\

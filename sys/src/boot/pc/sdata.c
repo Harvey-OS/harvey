@@ -1334,22 +1334,25 @@ ataid(SDev* sdev)
 	 * If there are no active legacy controllers, native
 	 * controllers start at 'C'.
 	 */
+	if(sdev == nil)
+		return nil;
 	ctlr = sdev->ctlr;
 	if(ctlr->cmdport == 0x1F0 || ctlr->cmdport == 0x170)
 		i = 2;
 	else
 		i = 0;
 	while(sdev){
-		if(sdev->ifc != &sdataifc)
-			continue;
-		ctlr = sdev->ctlr;
-		if(ctlr->cmdport == 0x1F0)
-			sdev->idno = 'C';
-		else if(ctlr->cmdport == 0x170)
-			sdev->idno = 'D';
-		else{
-			sdev->idno = 'C'+i;
-			i++;
+		if(sdev->ifc == &sdataifc){
+			ctlr = sdev->ctlr;
+			if(ctlr->cmdport == 0x1F0)
+				sdev->idno = 'C';
+			else if(ctlr->cmdport == 0x170)
+				sdev->idno = 'D';
+			else{
+				sdev->idno = 'C'+i;
+				i++;
+			}
+			//snprint(sdev->name, NAMELEN, "sd%c", sdev->idno);
 		}
 		sdev = sdev->next;
 	}

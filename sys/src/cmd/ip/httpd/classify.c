@@ -306,6 +306,8 @@ Country allc[] =
 	{ 0, 0 }
 };
 
+int classdebug;
+
 static int
 incountries(char *s, Country *cp)
 {
@@ -342,10 +344,13 @@ classify(char *ip, Ndbtuple *t)
 		if(strcmp(nt->attr, "country") == 0){
 			iscountry = 1;
 			if(incountries(nt->val, badc)){
+				if(classdebug)fprint(2, "isbadc\n");
 				isbadc = 1;
 				isgoodc = 0;
-			} else if(!incountries(nt->val, goodc))
+			} else if(!incountries(nt->val, goodc)){
+				if(classdebug)fprint(2, "!isgoodc\n");
 				isgoodc = 0;
+			}
 		}
 
 		/* domain names can always hurt, even without forward verification */
@@ -354,7 +359,8 @@ classify(char *ip, Ndbtuple *t)
 			n = getfields(dom, df, nelem(df), 0, ".");
 
 			/* a bad country in a domain name is always believed */
-			if(incountries(df[n-1], badc) || (n > 1 && incountries(df[n-2], badc))){
+			if(incountries(df[n-1], badc)){
+				if(classdebug)fprint(2, "isbadc dom\n");
 				isbadc = 1;
 				isgoodc = 0;
 			}

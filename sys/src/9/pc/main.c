@@ -395,14 +395,14 @@ confinit(void)
 
 		/*
 		 * Hack for the big boys. Only good while physmem < 4GB.
-		 * Give the kernel a max. of 16MB + enough to allocate the
+		 * Give the kernel fixed max + enough to allocate the
 		 * page pool.
 		 * This is an overestimate as conf.upages < conf.npages.
 		 * The patch of nimage is a band-aid, scanning the whole
 		 * page list in imagereclaim just takes too long.
 		 */
-		if(kpages > (16*MB + conf.npage*sizeof(Page))/BY2PG){
-			kpages = (16*MB + conf.npage*sizeof(Page))/BY2PG;
+		if(kpages > (32*MB + conf.npage*sizeof(Page))/BY2PG){
+			kpages = (32*MB + conf.npage*sizeof(Page))/BY2PG;
 			conf.nimage = 2000;
 			kpages += (conf.nproc*KSTACK)/BY2PG;
 		}

@@ -492,9 +492,11 @@ checknames(Direc *d, int (*isbadname)(char*))
 }
 
 /*
- * ISO 9660 file names must be uppercase, digits, or underscore
- * (we'll convert lower to upper that later), have a basename
- * at most 8 letters, have at most one suffix at most 3 letters.
+ * ISO 9660 file names must be uppercase, digits, or underscore.
+ * we use lowercase, digits, and underscore, translating lower to upper.
+ * files with uppercase letters in their names are thus nonconforming.
+ * conforming files also must have a basename
+ * at most 8 letters and at most one suffix of at most 3 letters.
  */
 static int 
 is9660frog(char c)
@@ -502,8 +504,6 @@ is9660frog(char c)
 	if(c >= '0' && c <= '9')
 		return 0;
 	if(c >= 'a' && c <= 'z')
-		return 0;
-	if(c >= 'A' && c <= 'Z')
 		return 0;
 	if(c == '_')
 		return 0;
@@ -655,13 +655,20 @@ runecmp(Rune *s, Rune *t)
  * and cannot contain '*', '/', ':', ';', '?', or '\'.
  */
 int
+isjolietfrog(Rune r)
+{
+	return r==L'*' || r==L'/' || r==L':' 
+		|| r==';' || r=='?' || r=='\\';
+}
+
+int
 isbadjoliet(char *s)
 {
 	Rune r[NAMELEN], *p;
 
 	strtorune(r, s);
 	for(p=r; *p; p++)
-		if(*p==L'*' || *p==L'/' || *p==L':' || *p==';' || *p=='?' || *p=='\\')
+		if(isjolietfrog(*p))
 			return 1;
 	return 0;
 }
@@ -783,13 +790,10 @@ bputs(Imgbuf *b, char *s, int size)
 		return;
 	}
 
-	n = size - strlen(s);
-	if(n < 0)
-		s -= n;	/* only take suffix of string; n is negative */
-	while(*s)
+	for(n=0; n<size && *s; n++)
 		bputc(b, *s++);
-	if(n > 0)
-		brepeat(b, ' ', n);
+	if(n<size)
+		brepeat(b, ' ', size-n);
 }
 
 /* 
@@ -822,24 +826,22 @@ brepeatr(Imgbuf *b, Rune r, int n)
 }
 
 void
-bputrs(Imgbuf *b, Rune *s, int size)
+bputrs(Imgbuf *b, Rune *s, int osize)
 {
-	int n;
+	int n, size;
 
-	size /= 2;
-	if(s == nil) {
+	size = osize/2;
+	if(s == nil)
 		brepeatr(b, L' ', size);
-		return;
-	}
-
-	n = size - runestrlen(s);
-	if(n < 0)
-		s -= n;	/* only take suffix of string; n is negative */
+	else {
 if(chatty) fprint(2, "write %S\n", s);
-	while(*s)
-		bputr(b, *s++);
-	if(n > 0)
-		brepeatr(b, ' ', n);
+		for(n=0; *s && n<size; n++)
+			bputr(b, *s++);
+		if(n<size)
+			brepeatr(b, ' ', size-n);
+	}
+	if(osize&1)
+		bputc(b, 0);	/* what else can we do? */
 }
 
 void
@@ -1036,8 +1038,10 @@ bputprivol(Imgbuf *b)
 	bputs(b, "CD001", 5);			/* standard identifier */
 	bputc(b, 1);				/* volume descriptor version */
 	bputc(b, 0);				/* unused */
+
 	bputs(b, "PLAN 9", 32);			/* system identifier */
 	bputs(b, upvol, 32);			/* volume identifier */
+
 	brepeat(b, 0, 8);				/* unused */
 	bputn(b, volsize, 4);			/* volume space size */
 	brepeat(b, 0, 32);				/* unused */
@@ -1075,13 +1079,16 @@ bputjolvol(Imgbuf *b)
 	bputs(b, "CD001", 5);			/* standard identifier */
 	bputc(b, 1);				/* volume descriptor version */
 	bputc(b, 0);				/* unused */
-	bputrs(b, L"PLAN 9", 32);			/* system identifier */
+
+	bputrscvt(b, "PLAN 9", 32);			/* system identifier */
 	bputrscvt(b, volume, 32);			/* volume identifier */
+
 	brepeat(b, 0, 8);				/* unused */
 	bputn(b, volsize, 4);			/* volume space size */
 	bputc(b, 0x25);				/* escape sequences: UCS-2 Level 2 */
 	bputc(b, 0x2F);
 	bputc(b, 0x43);
+
 	brepeat(b, 0, 29);
 	bputn(b, 1, 2);				/* volume set size */
 	bputn(b, 1, 2);				/* volume sequence number */

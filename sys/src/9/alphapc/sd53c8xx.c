@@ -1843,9 +1843,9 @@ mb();
 		status = SDcheck;
 		r->flags |= SDvalidsense;
 	}
-	KPRINT("sd53c8xx: %d: r flags %8.8uX status %d rlen %d\n",
-		target, r->flags, r->status, r->dlen);
-	return status;
+	KPRINT("sd53c8xx: %d: r flags %8.8uX status %d rlen %ld\n",
+		target, r->flags, status, r->rlen);
+	return r->status = status;
 }
 
 #define NCR_VID 	0x1000

@@ -220,8 +220,10 @@ send(Connect *c)
 		hprint(hout, "Content-type: text/html\r\n");
 		hprint(hout, "\r\n");
 	}
-	if(strcmp(c->req.meth, "HEAD") == 0)
+	if(strcmp(c->req.meth, "HEAD") == 0){
+		writelog(c, "Reply: 200 netlib_find 0\n");
 		exits(nil);
+	}
 
 	hprint(hout, "<HEAD><TITLE>%s/%s</TITLE></HEAD>\r\n<BODY>\r\n",
 		db[dbi].log,pat);
@@ -241,5 +243,7 @@ send(Connect *c)
 	if(nmatch==0)
 		hprint(hout, "<H4>Nothing Found.</H4>\r\n");
 	hprint(hout, db[dbi].postlude);
+	hflush(hout);
+	writelog(c, "Reply: 200 netlib_find %ld %ld\n", hout->seek, hout->seek);
 	exits(nil);
 }

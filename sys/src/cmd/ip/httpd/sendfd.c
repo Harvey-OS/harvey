@@ -125,7 +125,7 @@ sendfd(Connect *c, int fd, Dir *dir)
 					hprint(hout, "%s 416 Request range not satisfiable\r\n", version);
 					hprint(hout, "Date: %D\r\n", time(nil));
 					hprint(hout, "Server: Plan9\r\n");
-					hprint(hout, "Content-Range: */%lld\r\n", dir->length);
+					hprint(hout, "Content-Range: bytes */%lld\r\n", dir->length);
 					hprint(hout, "Content-Length: %d\r\n", STRLEN(BADRANGE));
 					hprint(hout, "Content-Type: text/html\r\n");
 					if(c->head.closeit)
@@ -159,7 +159,7 @@ sendfd(Connect *c, int fd, Dir *dir)
 		if(r == nil)
 			hprint(hout, "Content-Length: %lld\r\n", dir->length);
 		else if(r->next == nil)
-			hprint(hout, "Content-Range: %ld-%ld/%lld\r\n", r->start, r->stop, dir->length);
+			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, dir->length);
 		else{
 			multir = 1;
 			boundary = mkmimeboundary();
@@ -226,7 +226,7 @@ sendfd(Connect *c, int fd, Dir *dir)
 		if(multir){
 			hprint(hout, "\r\n--%s\r\n", boundary);
 			printtype(hout, type, enc);
-			hprint(hout, "Content-range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, dir->length);
+			hprint(hout, "Content-Range: bytes %ld-%ld/%lld\r\n", r->start, r->stop, dir->length);
 			hprint(hout, "\r\n");
 		}
 		hflush(hout);

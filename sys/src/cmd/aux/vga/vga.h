@@ -56,8 +56,9 @@ enum {					/* flag */
 	Fsnarf		= 0x00000001,	/* snarf done */
 	Foptions	= 0x00000002,	/* options done */
 	Finit		= 0x00000004,	/* init done */
-	Fload		= 0x00000008,	/* snarf done */
+	Fload		= 0x00000008,	/* load done */
 	Fdump		= 0x00000010,	/* dump done */
+	Ferror		= 0x00000020, /* error during snarf */
 
 	Hpclk2x8	= 0x00000100,	/* have double 8-bit mode */
 	Upclk2x8	= 0x00000200,	/* use double 8-bit mode */

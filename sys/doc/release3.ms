@@ -10,11 +10,6 @@ June 7, 2000
 .ce 1000
 Copyright © 2000 Lucent Technologies Inc.
 All Rights Reserved
-THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF LUCENT TECHNOLOGIES INC.
-The copyright notice above does not evidence any actual or
-intended publication of such source code.
-
-All Rights Reserved
 .sp .2i
 .fi
 .LP

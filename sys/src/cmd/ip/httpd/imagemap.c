@@ -61,6 +61,8 @@ main(int argc, char **argv)
 		}
 		hprint(hout, "<head><title>Nothing Found</title></head><body>\n");
 		hprint(hout, "Nothing satisfying your search request could be found.\n</body>\n");
+		hflush(hout);
+		writelog(c, "Reply: 200 imagemap %ld %ld\n", hout->seek, hout->seek);
 		exits(nil);
 	}
 

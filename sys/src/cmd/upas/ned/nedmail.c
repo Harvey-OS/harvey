@@ -57,6 +57,7 @@ Ctype ctype[] = {
 	{ "text",			"txt",	1,	0	},
 	{ "image/jpeg",			"jpg",	0,	"image"	},
 	{ "image/gif",			"gif",	0,	"image"	},
+	{ "application/octet-stream",	"bit",	0,	"image"	},
 	{ "application/pdf",		"pdf",	0,	""	},
 	{ "application/postscript",	"ps",	0,	""	},
 	{ "application/",		0,	0,	0	},

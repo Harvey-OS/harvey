@@ -49,7 +49,7 @@ bread(Buf *b, void *v, long n, long off)
 			fprint(2, "refill %ld at %ld\n", b->ndata, b->off);
 	}
 
-	fprint(2, "read %ld at %ld\n", n, off);
+//	fprint(2, "read %ld at %ld\n", n, off);
 	/* Satisfy request from buffer */
 	off -= b->off;
 	if(n > b->ndata - off)

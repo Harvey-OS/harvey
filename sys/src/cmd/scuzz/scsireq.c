@@ -164,6 +164,8 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 		   | (rp->sense[5]<<8)
 		   | rp->sense[6])
 		   * rp->lbsize;
+		if(!(rp->flags & Fseqdev))
+			return -1;
 		if(rp->sense[2] == 0x80 || rp->sense[2] == 0x08)
 			rp->data.count = nbytes - n;
 		else if(rp->sense[2] == 0x20 && n > 0)

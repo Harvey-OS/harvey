@@ -110,8 +110,11 @@ cinit(void)
 	cache.head = xalloc(sizeof(Mntcache)*NFILE);
 	m = cache.head;
 
+	/* a better algorithm would be nice */
 	if(conf.npage*BY2PG > 200*MB)
 		maxcache = 10*MAXCACHE;
+	if(conf.npage*BY2PG > 400*MB)
+		maxcache = 50*MAXCACHE;
 
 	for(i = 0; i < NFILE-1; i++) {
 		m->next = m+1;

@@ -243,6 +243,10 @@ main(int argc, char** argv)
 	if(pflag)
 		dump(vga);
 
+	for(ctlr = vga->link; ctlr; ctlr = ctlr->link)
+		if(ctlr->flag & Ferror)
+			error("%r");
+
 	if(iflag || lflag){
 		if(getenv(type))
 			sprint(monitordb, "/env/%s", type);

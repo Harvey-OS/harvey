@@ -90,7 +90,12 @@ for(i in $fils) {
 			roff t $i | page
 
 		case n
-			roff n $i | uniq
+			roff n $i | sed '
+				${
+        			       /^$/p
+				}
+				//N
+				/^\n$/D'
 		}
 	}
 }

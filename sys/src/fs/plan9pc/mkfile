@@ -87,7 +87,7 @@ all:V:	$TARG
 <../port/mkfile
 
 $TARG:	$OBJ $TARG.$O
-	$LD -o $target -l -T0x80100020 $prereq -lauth -lc -lcrypt
+	$LD -o $target -l -T0x80100020 $prereq -lauth -lc -lsec
 	size $target
 
 installall:V:	install

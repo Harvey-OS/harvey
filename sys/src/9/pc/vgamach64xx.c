@@ -85,7 +85,7 @@ static ulong
 mach64xxlinear(VGAscr* scr, int* size, int* align)
 {
 	ulong aperture, osize, oaperture;
-	int oapsize, wasupamem;
+	int i, oapsize, wasupamem;
 	Pcidev *p;
 	Physseg seg;
 
@@ -93,16 +93,26 @@ mach64xxlinear(VGAscr* scr, int* size, int* align)
 	oaperture = scr->aperture;
 	oapsize = scr->apsize;
 	wasupamem = scr->isupamem;
-	if(wasupamem)
-		upafree(oaperture, oapsize);
-	scr->isupamem = 0;
 
 	if(p = mach64xxpci()){
-		aperture = p->mem[0].bar & ~0x0F;
-		*size = p->mem[0].size;
+		for(i=0; i<nelem(p->mem); i++){
+			if(p->mem[i].size >= *size
+			&& ((p->mem[i].bar & ~0x0F) & (*align-1)) == 0)
+				break;
+		}
+		if(i >= nelem(p->mem)){
+			print("vgamach64xx: aperture not found\n");
+			return 0;
+		}
+		aperture = p->mem[i].bar & ~0x0F;
+		*size = p->mem[i].size;
 	}
 	else
 		aperture = 0;
+
+	if(wasupamem)
+		upafree(oaperture, oapsize);
+	scr->isupamem = 0;
 
 	aperture = upamalloc(aperture, *size, *align);
 	if(aperture == 0){
@@ -112,7 +122,7 @@ mach64xxlinear(VGAscr* scr, int* size, int* align)
 	else
 		scr->isupamem = 1;
 
-	scr->mmio = (ulong*)(aperture+osize-0x400);
+	scr->mmio = KADDR(aperture+osize-0x400);
 	if(oaperture)
 		print("warning (BUG): redefinition of aperture does not change mach64mmio segment\n");
 	memset(&seg, 0, sizeof(seg));

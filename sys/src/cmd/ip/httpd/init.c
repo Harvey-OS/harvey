@@ -6,7 +6,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: httpd [-b inbuf] [-d domain] [-r remoteip] [-w webroot] [-N netdir] method version uri [search]\n");
+	fprint(2, "usage: httpd [-b inbuf] [-d domain] [-r remoteip] [-w webroot] [-N netdir] [-R reqline] [-L logfd0 logfd1] method version uri [search]\n");
 	exits("usage");
 }
 
@@ -45,6 +45,22 @@ init(int argc, char **argv)
 		if(s != nil)
 			strcpy(netdir, s);
 		break;
+	case 'L':
+		s = ARGF();
+		if(s == nil)
+			usage();
+		logall[0] = strtol(s, nil, 10);
+		s = ARGF();
+		if(s == nil)
+			usage();
+		logall[1] = strtol(s, nil, 10);
+		break;
+	case 'R':
+		s = ARGF();
+		if(s == nil)
+			usage();
+		snprint((char*)connect.header, sizeof(connect.header), "%s", s);
+		break;
 	default:
 		usage();
 	}ARGEND
@@ -81,7 +97,8 @@ init(int argc, char **argv)
 	connect.req.uri = argv[2];
 	connect.req.search = argv[3];
 	connect.head.closeit = 1;
-	connect.hpos = connect.header;
-	connect.hstop = connect.header;
+	connect.hpos = (uchar*)strchr((char*)connect.header, '\0');
+	connect.hstop = connect.hpos;
+	connect.reqtime = time(nil);	/* not quite right, but close enough */
 	return &connect;
 }

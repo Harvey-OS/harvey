@@ -277,14 +277,14 @@ and
 Install the VGA update:
 .IP
 .EX
-wrap/install vga.9gz
+wrap/inst vga.9gz
 .EE
 .PP
 Suppose that the update contains a new
 .B /386/bin/aux/vga
 and
 .B /lib/vgadb
-but those file
+but those files
 have been changed since they
 were installed.
 .I Install

@@ -16,7 +16,6 @@ cons \- console, clocks, process/process group ids, user, null, etc.
 .B /dev/hostdomain
 .B /dev/hostowner
 .B /dev/key
-.B /dev/klog
 .B /dev/null
 .B /dev/pgrpid
 .B /dev/pid
@@ -114,10 +113,6 @@ and always returns zero bytes when read.
 The
 .B zero
 file is a read-only file that produces an infinite stream of zero-valued bytes when read.
-.PP
-The
-.B klog
-file contains the tail of messages written by kernel logging statements.
 .PP
 The
 .B drivers

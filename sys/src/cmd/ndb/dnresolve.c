@@ -514,7 +514,7 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 	rp->negative = 1;
 	rp->negsoaowner = soaowner;
 	rp->negrcode = rcode;
-	if(soarr != nil)
+	if(soarr != nil && soarr->soa != nil)
 		rp->ttl = soarr->soa->minttl+now;
 	else
 		rp->ttl = 5*Min;

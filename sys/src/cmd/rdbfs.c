@@ -727,7 +727,7 @@ mread(Fcall *f)
 			return;
 		}
 		if(sendremote(f) < 0) {
-			snprint(buf, sizeof buf, "remote write %r");
+			snprint(buf, sizeof buf, "rdbfs %r");
 			reply(f, buf);
 			return;
 		}
@@ -779,6 +779,7 @@ void
 mwrite(Fcall *f)
 {
 	Fid *of;
+	char buf[ERRLEN];
 
 	of = lookfid(f->fid);
 	if(of == nil) {
@@ -821,7 +822,8 @@ mwrite(Fcall *f)
 			return;
 		}
 		if(sendremote(f) < 0) {
-			reply(f, "remote write %r");
+			snprint(buf, sizeof buf, "rdbfs %r");
+			reply(f, buf);
 			return;
 		}
 		break;

@@ -232,3 +232,9 @@ release3.html:	release3.ms
 	# remove all those extra blank lines
 	{ echo $FONTS; cat release3.ms } | tbl | ms2html | uniq > $target
 
+%.pdf: %.ps
+	distill $stem.ps
+
+%.all:V:
+	mk $stem.ps $stem.pdf $stem.html
+

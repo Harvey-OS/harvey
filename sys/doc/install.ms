@@ -8,7 +8,7 @@ a supported video card,
 and a hard disk with at least 300MB of unpartitioned space
 and a free primary partition slot.
 If you wish to install from local media,
-you need an extant kfs, FAT or EXT2 file system,
+you need an extant FAT or EXT2 file system,
 or a CD-ROM drive (and a CD writer or some other
 way to get the distribution archive on a CD).
 If you wish to install over the internet,
@@ -91,17 +91,19 @@ and don't change its name
 .CW plan9.9gz ). (
 .PP
 Using a utility such as
-.CW rawrite
-under DOS
 ._H <a href="ftp://ftp.freebsd.org/pub/FreeBSD/tools/rawrite.exe">
-[ftp://ftp.freebsd.org/pub/FreeBSD/tools/rawrite.exe]
+.CW rawrite
 ._H </a>
+under DOS
 (or
 .CW cat
 under a Unix variant),
 write the boot disk image (the file
 .CW 9disk.9fd )
 to a formatted floppy disk.
+Do 
+.I not
+write-protect the floppy disk.
 .PP
 \f4Cold boot your machine from the floppy disk.\fP
 That is, power down,
@@ -692,6 +694,10 @@ avoid confusing the new installation.\f1
 .SH
 Setting up
 .PP
+The first time you bring up the new system, log in as
+.CW glenda .
+You don't need to type a password, just type enter.
+.PP
 Once the system's up you'll need to set up a few things.
 First, have a look at
 .I "Getting Started With Plan 9" ,
@@ -701,6 +707,7 @@ or
 ._H <a href="http://plan9.bell-labs.com/sys/doc/start.html">
 .CW http://plan9.bell-labs.com/sys/doc/start.html .
 ._H </a>
+This will tell you how to do some things, such as adding the real users.
 .PP
 Many aspects of the system are configured by environment variables.
 Very early, you will want to make changes to
@@ -718,6 +725,51 @@ which points to the local disk-resident file system),
 (the local domain name of your main CPU server), and
 .CW $facedom
 (the special name used in the faces database to identify your colleagues).
+You will also want to test that VGA hardware
+acceleration works, and if so comment out
+the line
+in
+.CW /rc/bin/termrc
+that disables it:
+.P1
+# turn off hardware acceleration until you know it's ok.
+echo -n 'hwaccel off' >'#v/vgactl' >[2]/dev/null
+.P2
+If you edited 
+.CW vgadb
+on the floppy disk or used a different 
+.CW aux/vga
+to get the install program going,
+you'll have to copy them over manually
+to the new distribution.
+Once it boots and rio fails, put the install disk
+in and copy them over:
+.P1
+a:
+disk/kfscmd allow
+cp /n/a:/vgadb /lib/vgadb
+cp /n/a:/vga /386/bin/aux/vga  # if you used a new vga
+disk/kfscmd disallow
+disk/kfscmd halt
+.P2
+And reboot by typing Ctl-Alt-Del.
+Rebooting isn't strictly necessary, but it's
+the surest way to test that the system
+will come up right the next time you boot.
+.PP
+When shutting down your system,
+you should first have the 
+.I kfs
+file system sync and halt the disk, by
+typing
+.P1
+disk/kfscmd halt
+.P2
+and then waiting for the message
+.CW kfs: "" ``
+.CW file
+.CW system
+.CW halted ''.
 For more such information, see the
 .I "Getting Started
 document.
@@ -733,6 +785,11 @@ but please try the following ideas before contacting us.
 Also the Plan 9 Usenet group,
 .CW comp.os.plan9 ,
 may be a source of help.
+.PP
+A up-to-date list of encountered problems and their solutions can be found at
+._H <a href="http://plan9.bell-labs.com/plan9dist/errata.html">
+.CW http://plan9.bell-labs.com/plan9dist/errata.html .
+._H </a>
 .PP
 The most common problems will be in the connection between hardware and software.
 First, make sure that the hardware you're running is supported by the drivers
@@ -821,6 +878,16 @@ a line to
 or the card might not be supported.
 Look through the strings in the memory
 for a chipset type and check the hardware list.
+Beware, though, that if you don't know exactly what sort of chip you have,
+editing
+.CW /lib/vgadb
+could be dangerous.
+If you can find out the exact chip type\(emsuch as by looking in the hardware manual,
+the Display Properties in Windows 95, 98, or NT, or the configuration information used
+by a Unix-like system\(emsee if
+.CW /lib/vgadb
+supports it.
+If not, you may need to go the last resort mentioned at the end of this section.
 .PP
 If you have other video cards, it can't hurt
 to try a different one.
@@ -830,7 +897,7 @@ Before invoking
 to start the VGA, the floppy boot script
 writes the output of
 .CW aux/vga
-.CW -ip
+.CW -vip
 to the file
 .CW vgainfo.txt
 in the root directory of the floppy disk.
@@ -867,4 +934,5 @@ contents of both
 .CW plan9.ini
 and
 .CW vgainfo.txt
-from the boot floppy.
+from the boot floppy,
+as well as any hardware information gleaned from other sources.

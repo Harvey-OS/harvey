@@ -34,6 +34,10 @@ qer, runq \- queue management for spooled files
 .I time
 ]
 [
+.B -r
+.I nfiles
+]
+[
 .B -n
 .I nprocs
 ]
@@ -145,6 +149,21 @@ The
 flags specifies the number of hours
 that retries will continue after a send
 failure.  The default is 48 hours.
+.P
+The
+.BR -r
+flag limits the number of files that are processed in a single pass of a queue.
+.I Runq
+accumulates the entire directory containing a queue before processing any
+files.  When a queue contains many files and the system does not
+have enough memory,
+.I runq
+exits without making progress.  This flag forces
+.I runq
+to process the directory in chunks, allowing the queue to
+be drained incrementally.  It is most useful in combination with the
+.I -q
+flag.
 .P
 The
 .BR -s ,

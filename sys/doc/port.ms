@@ -191,19 +191,6 @@ The AMD 29000 compiler
 This compiler was used to port an operating system to an AMD 29240 processor.
 The project is long abandoned, but the compiler lives on.
 .SH
-The SGI Challenge operating system
-.PP
-We use an old SGI Challenge machine as a MIPS-architecture CPU server.  We don't use it
-as a workstation, so you'll find no code in our system to support SGI
-frame buffers or the Reality Engines.  The machines we have are 8-processor
-machines based on the MIPS R4400 processor.
-.PP
-The system can be started by using BOOTP to load
-.CW /mips/9ch .
-See the manual page
-.I booting (8)
-for more information.
-.SH
 The Carrera operating system
 .PP
 We used to have a number of MIPS R4400 PC-like devices called Carreras,
@@ -312,11 +299,11 @@ See
 .I booting (8)
 for details.
 .SH
-The Power PC operating system
+The PowerPC operating system
 .PP
-We have a version of the system that runs on the Power PC,
+We have a version of the system that runs on the PowerPC,
 but only on a home-grown machine called Viaduct.
-The Biaduct minibrick is a small (12x9x3 cm) low-cost embedded
+The Viaduct minibrick is a small (12x9x3 cm) low-cost embedded
 computer consisting of a 50Mhz MPC850, 16MB sdram, 2MB flash,
 and two 10Mb Ethernet ports.  It is designed for home/SOHO
 networking applications such as VPN, firewalls, NAT, etc.

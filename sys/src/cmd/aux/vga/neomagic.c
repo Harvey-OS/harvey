@@ -36,9 +36,9 @@ enum {
 	PanelHorizCenterReg1 = 0x33,
 	PanelHorizCenterReg2 = 0x34,
 	PanelHorizCenterReg3 = 0x35,
-	PanelHorizCenterReg4 = 0x36,	/* 2160, 2200 */
-	PanelVertCenterReg5 = 0x37,	/* 2200 */
-	PanelHorizCenterReg5 = 0x38,	/* 2200 */
+	PanelHorizCenterReg4 = 0x36,	/* 2160, 2200, 2360 */
+	PanelVertCenterReg5 = 0x37,	/* 2200, 2360 */
+	PanelHorizCenterReg5 = 0x38,	/* 2200, 2360 */
 
 	ExtColorModeSelect = 0x90,
 
@@ -90,6 +90,11 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case 0x0005:			/* MagicMedia 256 AV */
 			vga->f[1] = 110000000;
 			vga->vmz = 2560*1024;
+			vga->apz = 16*1024*1024;
+			break;
+		case 0x0006:			/* MagicMedia 256 ZX */
+			vga->f[1] = 110000000;
+			vga->vmz = 4096*1024;
 			vga->apz = 16*1024*1024;
 			break;
 		case 0x0001:			/* MagicGraph 128 */
@@ -156,7 +161,7 @@ init(Vga* vga, Ctlr* ctlr)
 		t |= 0x20;
 		break;
 	}
-	if(0 && nm->pci->did == 0x0005){
+	if(0 && (nm->pci->did == 0x0005) || (nm->pci->did == 0x0006)){
 		vga->graphics[PanelDispCntlReg1] &= 0x98;
 		vga->graphics[PanelDispCntlReg1] |= (t & ~0x98);
 	}

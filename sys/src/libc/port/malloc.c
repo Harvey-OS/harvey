@@ -19,7 +19,7 @@ Private sbrkmempriv;
 
 static Pool sbrkmem = {
 	.name=		"sbrkmem",
-	.maxsize=		2*1024*1024*1024,
+	.maxsize=		2UL*1024*1024*1024,
 	.minarena=	4*1024,
 	.quantum=	32,
 	.alloc=		sbrkalloc,

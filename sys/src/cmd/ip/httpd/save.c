@@ -132,22 +132,7 @@ main(int argc, char **argv)
 	write(datafd, c->xferbuf, n);
 	close(datafd);
 
-	/*
-	 * send the reply
-	 */
-	if(c->req.vermaj){
-		okheaders(c);
-		hprint(hout, "Content-type: text/html\r\n");
-		hprint(hout, "Content-Length: %lld\r\n", dir.length);
-		hprint(hout, "\r\n");
-	}
-	if(strcmp(c->req.meth, "HEAD") == 0)
-		exits(0);
-
-	hflush(hout);
-	while((n = read(htmlfd, c->xferbuf, BufSize)) > 0)
-		if(write(1, c->xferbuf, n) != n)
-			break;
+	sendfd(c, htmlfd, &dir);
 
 	exits(nil);
 }

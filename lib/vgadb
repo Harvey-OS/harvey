@@ -104,6 +104,8 @@ ctlr
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.3-08"
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.00-06"
 	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.2-07"
+	0xC0044="Phoenix S3 TRIO64 Enhanced VGA BIOS. Version 1.5-07"
+	0xC0044="S3 86C325 Video BIOS. Version 1.00-05"
 	link=vga
 	hwgc=s3hwgc
 	ctlr=trio64 linear=1
@@ -123,6 +125,7 @@ ctlr
 	0xC0043="Stealth 3D 3000 Vers. 1.02"
 	0xC0043="Stealth 3D 3000 Vers. 2.01"
 	0xC0043="Stealth 3D 3000 Vers. 2.02"
+	0xC004B="Stealth III S540"		# Savage4-based
 	0xC0044="STB Velocity 3D BIOS. Version 1.10"	# STB Velocity 3D
 	0xC00D8="#9-325 BIOS Version 2.18.08"		# #9FX Reality 332
 	0xC001A="PNTNIBM VGA Compatible BIOS" 	# Hercules Terminator
@@ -192,6 +195,7 @@ ctlr
 	0xC0000-0xC0200="MACH64LP"
 	0xC0000-0xC0200="MACH64LI"
 	0xC0000-0xC0200="MACH64LM"
+	0xC0000-0xC0200="MACH64VT"
 	0xC0000-0xC0200="RAGE128"
 	link=vga
 	ctlr=mach64xx linear=1
@@ -228,6 +232,7 @@ ctlr
 	ctlr=hiqvideo linear=1
 	hwgc=hiqvideohwgc
 ctlr
+	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V3.0 )"	# Millennium
 	0xC002D="MATROX/MILLENNIUM  VGA/VBE BIOS (V2.5 )"	# Millennium
 	0xC002D="MATROX/MISTRAL  VGA/VBE BIOS (V1."		# Millennium II
 	link=vga
@@ -236,6 +241,7 @@ ctlr
 ctlr
 	0xC0048="MagicGraph 128XD 40K"			# IBM Thinkpad 560X
 	0xC0048="MagicGraph 256 AV 48K"			# IBM Thinkpad 570, 600E
+	0xC0048="MagicMedia 256ZX  48K"			# IBM Thinkpad 600X
 	ctlr=neomagic linear=1
 	hwgc=neomagichwgc
 

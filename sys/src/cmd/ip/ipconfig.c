@@ -115,6 +115,7 @@ main(int argc, char **argv)
 	char *p;
 	int retry, verb;
 
+print("argc %d %s %s\n", argc, argv[0], argv[1]);
 	srand(truerand());
 	fmtinstall('E', eipconv);
 	fmtinstall('I', eipconv);

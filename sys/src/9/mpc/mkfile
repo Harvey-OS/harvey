@@ -42,6 +42,7 @@ OBJ=\
 	cpm.$O\
 	main.$O\
 	mmu.$O\
+	random.$O\
 	rmap.$O\
 	trap.$O\
 	$DEVS\

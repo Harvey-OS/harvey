@@ -113,18 +113,22 @@
 .nh\}
 .ift \{.bd S 3 3
 .HY \}
+\X'html <B>'
+\X'html [<A HREF="/sys/man/index.html">manual index</A>]'
+\X'html [<A HREF="/sys/man/\\$2/INDEX.HTML">section index</A>]'
+\X'html </B>'
 ..
 .deSH
 .PD
 .}X 0 "\\$1"
 .nr)E 2
-\&\\$1 \|\\$2 \|\\$3 \|\\$4 \|\\$5 \|\\$6
+\X'html <H4>'\&\\$1 \|\\$2 \|\\$3 \|\\$4 \|\\$5 \|\\$6\X'html </H4>'
 ..
 .deSS
 .PD
 .}X 3n "" ""
 .nr)E 2
-\&\\$1 \|\\$2 \|\\$3 \|\\$4 \|\\$5 \|\\$6
+\X'html <H5>'\&\\$1 \|\\$2 \|\\$3 \|\\$4 \|\\$5 \|\\$6\X'html </H5>'
 ..
 .de}X
 .}E
@@ -195,8 +199,10 @@
 ..
 .deIR
 .nh
+\X'html manref start \\$1 \\$2'
 .}S 2 1 \& "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6"
 .HY
+\X'html manref end \\$1 \\$2'
 .}f
 ..
 .deIB
@@ -256,6 +262,7 @@
 .fi
 ..
 .dePP
+\X'html <P>'
 .sp\\n(PDu
 .ne1.1v
 .}E
@@ -304,6 +311,7 @@
 .it1 }N
 .nr)E 1
 .di]B
+\X'html <P>'
 ..
 .deTF
 .IP "" "\w'\f5\\$1\ \ \fP'u"

@@ -173,7 +173,7 @@ allocm(Type *tp)
 	return *l;
 }
 
-char *parts[] = { "dos", "9fat", 0 };
+char *parts[] = { "dos", "9fat", "data", 0 };
 
 Medium*
 probe(int type, int flag, int dev)

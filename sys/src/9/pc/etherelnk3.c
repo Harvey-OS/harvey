@@ -34,6 +34,7 @@
  *	9050 PCI	3C905-TX	Fast Etherlink XL Shared 10BASE-T/100BASE-TX
  *	9051 PCI	3C905-T4	Fast Etherlink Shared 10BASE-T/100BASE-T4
  *	9055 PCI	3C905B-TX	Fast Etherlink Shared 10BASE-T/100BASE-TX
+ *	9200 PCI	3C905C-TX	Fast Etherlink Shared 10BASE-T/100BASE-TX
  *
  *	9058 PCMCIA	3C589[B]-[TP|COMBO]
  *
@@ -1735,6 +1736,7 @@ etherelnk3reset(Ether* ether)
 	case 0x9050:
 	case 0x9051:
 	case 0x9055:
+	case 0x9200:
 		if(BUSTYPE(ether->tbdf) != BusPCI)
 			goto buggery;
 		busmaster = 2;
@@ -1809,7 +1811,7 @@ etherelnk3reset(Ether* ether)
 /*
  * forgive me, but i am weak
  */
-if(did == 0x9055){
+if(did == 0x9055 || did ==0x9200){
    xcvr = xcvrMii;
    XCVRDEBUG("9055 reset ops 0x%uX\n",
 	ins(port+ResetOp905B));

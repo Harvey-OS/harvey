@@ -250,6 +250,8 @@ int		qwrite(Queue*, void*, int);
 void		qsetlimit(Queue*, int);
 void		qnoblock(Queue*, int);
 int		rand(void);
+void		randominit(void);
+ulong		randomread(void*, ulong);
 void		rdb(void);
 int		readnum(ulong, char*, ulong, ulong, int);
 int		readstr(ulong, char*, ulong, char*);

@@ -41,7 +41,7 @@ trio64clock(Vga* vga, Ctlr* ctlr)
 	double trouble;
 
 	/*
-	 * The max value of R and the speed rating of the part vary
+	 * The max value of R, M, N, and the speed rating of the part vary
 	 * between parts and are passed to this routine in r[1] and f[1].
 	 *			R	    F
 	 *	Trio64		3	135000000
@@ -60,8 +60,8 @@ trio64clock(Vga* vga, Ctlr* ctlr)
 	 * 1)		   (M+2) x Fref
 	 *    vga->f[1] <= ------------ <= vga->f[1]*2
 	 *		       (N+2)
-	 * 2) 1 <= M <= 127
-	 * 3) 1 <= N <= 31
+	 * 2) 1 <= M <= vga->m[1] (usually 127)
+	 * 3) 1 <= N <= vga->n[1] (usually 31)
 	 * 4) 0 <= R <= vga->r[1]
 	 *
 	 * First determine R:
@@ -79,11 +79,11 @@ trio64clock(Vga* vga, Ctlr* ctlr)
 	 * Now find the closest match for M and N.
 	 */
 	vga->d[0] = vga->f[0]+1;
-	for(n = 1; n <= 31; n++){
+	for(n = 1; n <= vga->n[1]; n++){
 		trouble = vga->f[0]*(n+2)*(1<<vga->r[0]);
 		trouble /= RefFreq;
 		m = (trouble+0.5) - 2;
-		if(m > 127)
+		if(m > vga->m[1])
 			continue;
 
 		trouble = (m+2)*RefFreq;
@@ -153,6 +153,8 @@ init(Vga* vga, Ctlr* ctlr)
 
 		vga->f[1] = 135000000;
 		vga->r[1] = 3;
+		vga->n[1] = 31;
+		vga->m[1] = 127;
 		trio64clock(vga, ctlr);
 		vga->sequencer[0x12] = (vga->r[0]<<5)|vga->n[0];
 		vga->sequencer[0x13] = vga->m[0];

@@ -410,6 +410,8 @@ error(char *title, char *fmt, ...)
 	hprint(hout, "<head><title>%s</title></head>\n", title);
 	hprint(hout, "<body><h1>%s</h1></body>\n", title);
 	hprint(hout, "%s\n", buf);
+	hflush(hout);
+	writelog(connect, "Reply: 404\nReason: %s\n", title);
 	exits(nil);
 }
 
@@ -804,6 +806,8 @@ main(int argc, char **argv)
 		dosearch(connect->req.vermaj, connect->req.search);
 	else
 		doconvert(connect->req.uri, connect->req.vermaj, 0);
+	hflush(hout);
+	writelog(connect, "200 man2html %ld %ld\n", hout->seek, hout->seek);
 	exits(nil);
 }
 

@@ -357,16 +357,15 @@ matches all input containing the string
 except for messages that also contain the
 strings in the override list.  Often it
 is desirable to override a pattern based on
-header fields identifying the sender or
+the name of the sender or
 recipient.  For this reason, each override
-pattern is applied to the header as well
+pattern is applied to the header and the command line as well
 as the section of the
 canonicalized input containing the matching data.
-Thus a pattern matching the command line
+Thus a pattern matching the command line or the header
 searches both the command line and the header
-for overrides, a match in the body searches
-the body and header, but a match in the header
-looks only in the header for overrides.
+for overrides while a match in the body searches
+the body, header and command line for overrides.
 .PP
 The structure of the pattern file and the matching
 algorithm define the strategy for detecting

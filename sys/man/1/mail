@@ -763,7 +763,7 @@ The message contains the attributes
 .IR filetype =mail,
 .IR mailtype = "deleted or new" ,
 and
-.IR length = "<message length in bytes> .
+.IR length = "<message length in bytes>" .
 The contents of the message is the full path
 name of the directory representing the message.
 .PD

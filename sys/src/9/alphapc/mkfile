@@ -45,6 +45,7 @@ OBJ=\
 	kbd.$O\
 	main.$O\
 	mmu.$O\
+	random.$O\
 	trap.$O\
 	$DEVS\
 	$PORT\

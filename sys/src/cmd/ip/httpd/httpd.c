@@ -119,8 +119,8 @@ main(int argc, char **argv)
 	if(mydomain == nil)
 		mydomain = sysdom();
 	syslog(0, HTTPLOG, nil);
-	logall[0] = open("/sys/log/httpd/0",OWRITE);
-	logall[1] = open("/sys/log/httpd/1",OWRITE);
+	logall[0] = open("/sys/log/httpd/0", OWRITE);
+	logall[1] = open("/sys/log/httpd/1", OWRITE);
 	redirectinit();
 	contentinit();
 	urlinit();
@@ -221,7 +221,6 @@ dolisten(char *address)
 			ends = getendpoints(ndir);
 			c = mkconnect();
 			c->remotesys = ends->rsys;
-			c->begin_time = time(nil);
 
 			hinit(&c->hin, 0, Hread);
 			hinit(&c->hout, 1, Hwrite);
@@ -249,7 +248,7 @@ parsereq(Connect *c)
 {
 	Strings ss;
 	char *vs, *v, *magic, *search, *uri, *origuri, *extra, *newpath;
-	char virtualhost[100];
+	char virtualhost[100], logfd0[10], logfd1[10];
 	int t, n, ok;
 
 	if(httpcan != nil){
@@ -267,6 +266,7 @@ parsereq(Connect *c)
 		if(!gethead(c, 0))
 			return 0;
 		alarm(0);
+		c->reqtime = time(nil);
 		c->req.meth = getword(c);
 		if(c->req.meth == nil)
 			return fail(c, Syntax);
@@ -379,8 +379,10 @@ parsereq(Connect *c)
 	 * for magic we exec a new program and serve no more requests
 	 */
 	snprint(c->xferbuf, BufSize, "/bin/ip/httpd/%s", magic);
-	writelog(c, "Magic: %s\n", magic);
+	snprint(logfd0, sizeof(logfd0), "%d", logall[0]);
+	snprint(logfd1, sizeof(logfd1), "%d", logall[1]);
 	execl(c->xferbuf, magic, "-d", mydomain, "-w", webroot, "-r", c->remotesys, "-N", netdir, "-b", hunload(&c->hin),
+		"-L", logfd0, logfd1, "-R", c->header,
 		c->req.meth, v, uri, search, nil);
 	logit(c, "no magic %s uri %s", magic, uri);
 	return fail(c, NotFound, origuri);

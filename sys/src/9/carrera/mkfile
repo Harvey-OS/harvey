@@ -43,6 +43,7 @@ OBJ=\
 	kbd.$O\
 	main.$O\
 	mmu.$O\
+	random.$O\
 	rdb.$O\
 	screen.$O\
 	trap.$O\

@@ -49,5 +49,7 @@ main(int argc, char **argv)
 	}
 
 	hprint(hout, "</pre></body>\n");
+	hflush(hout);
+	writelog(c, "Reply: 200 echo %ld %ld\n", hout->seek, hout->seek);
 	exits(nil);
 }
