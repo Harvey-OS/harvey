@@ -16918,3 +16918,17 @@
 1098541861 0 c sys/games/lib/fortunes - 664 sys sys 1098540092 250651
 1098547262 0 c sys/src/9/port/sd.h - 664 sys sys 1098546338 2348
 1098588670 0 c 386/9pcdisk - 775 sys sys 1098587542 2019954
+1098804712 0 a mail/lib/validateaddress - 775 upas upas 1098803974 48
+1098804712 1 a mail/lib/validatesender - 775 upas upas 1098803974 1081
+1098804712 2 c sys/src/cmd/upas/bayes/hash.c - 664 sys sys 1098803887 4562
+1098804712 3 c sys/src/cmd/upas/bayes/hash.h - 664 sys sys 1098803887 470
+1098804712 4 c sys/src/cmd/upas/common/common.h - 664 sys sys 1098803897 2040
+1098804712 5 c sys/src/cmd/upas/common/process.c - 664 sys sys 1098803900 3012
+1098804712 6 c sys/src/cmd/upas/q/runq.c - 664 sys sys 1098803913 12465
+1098804712 7 c sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1098803923 5150
+1098804712 8 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1098803934 30216
+1098804712 9 c sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1098803961 10231
+1098847920 0 c 386/bin/upas/runq - 775 sys sys 1098846467 111047
+1098847920 1 c 386/bin/upas/send - 775 sys sys 1098846467 189497
+1098847920 2 c 386/bin/upas/smtp - 775 sys sys 1098846467 270306
+1098847920 3 c 386/bin/upas/smtpd - 775 sys sys 1098846468 326493

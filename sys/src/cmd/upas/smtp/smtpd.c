@@ -9,6 +9,8 @@
 #include <auth.h>
 #include "../smtp/y.tab.h"
 
+#define DBGMX 1
+
 char	*me;
 char	*him="";
 char	*dom;
@@ -38,6 +40,7 @@ char	*tlscert;
 List	senders;
 List	rcvers;
 
+char	*piperror;
 int	pipemsg(int*);
 String*	startcmd(void);
 int	rejectcheck(void);
@@ -53,10 +56,10 @@ catchalarm(void *a, char *msg)
 	/* log alarms but continue */
 	if(strstr(msg, "alarm")){
 		if(senders.first && rcvers.first)
-			syslog(0, "smtpd", "note: %s->%s: %s\n", s_to_c(senders.first->p),
+			syslog(0, "smtpd", "note: %s->%s: %s", s_to_c(senders.first->p),
 				s_to_c(rcvers.first->p), msg);
 		else
-			syslog(0, "smtpd", "note: %s\n", msg);
+			syslog(0, "smtpd", "note: %s", msg);
 		rv = 0;
 	}
 
@@ -90,6 +93,7 @@ main(int argc, char **argv)
 	char *netdir;
 
 	netdir = nil;
+	quotefmtinstall();
 	ARGBEGIN{
 	case 'D':
 		Dflag++;
@@ -250,9 +254,32 @@ sayhi(void)
 void
 hello(String *himp, int extended)
 {
+	char **mynames;
+
 	if(rejectcheck())
 		return;
 	him = s_to_c(himp);
+
+	if(strchr(him, '.') && nci && !trusted && fflag && strcmp(nci->rsys, nci->lsys) != 0){
+		/*
+		 * We don't care if he lies about who he is, but it is
+		 * not okay to pretend to be us.  Many viruses do this,
+		 * just parroting back what we say in the greeting.
+		 */
+		if(strcmp(him, dom) == 0)
+			goto Liarliar;
+		for(mynames=sysnames_read(); mynames && *mynames; mynames++){
+			if(cistrcmp(*mynames, him) == 0){
+			Liarliar:
+				syslog(0, "smtpd", "Hung up on %s; claimed to be %s",
+					nci->rsys, him);
+				reply("554 Liar!\r\n");
+				exits("client pretended to be us");
+				return;
+			}
+		}
+	}
+		
 	if(strchr(him, '.') == 0 && nci != nil && strchr(nci->rsys, '.') != nil)
 		him = nci->rsys;
 
@@ -273,7 +300,6 @@ void
 sender(String *path)
 {
 	String *s;
-	char *cp;
 	static char *lastsender;
 
 	if(rejectcheck())
@@ -325,18 +351,6 @@ sender(String *path)
 	 */
 	filterstate = blocked(path);
 
-	/*
-	 * perform DNS lookup to see if sending domain exists
-	 */
-	if(filterstate == ACCEPT && rflag && returnable(s_to_c(path))){
-		if(rmtdns(nci->root, s_to_c(path)) < 0){
-			filterstate = REFUSED;
-			lastsender = strdup(s_to_c(path));
-			cp = strrchr(lastsender, '!');
-			if(cp)
-				*cp = 0;
-		}
-	}
 	logged = 0;
 	listadd(&senders, path);
 	reply("250 sender is %s\r\n", s_to_c(path));
@@ -921,7 +935,7 @@ pipemsg(int *byteswritten)
 	yyparse();
 
 	/*
- 	 *  Llook for masquerades.  Let Sender: trump From: to allow mailing list
+ 	 *  Look for masquerades.  Let Sender: trump From: to allow mailing list
 	 *  forwarded messages.
 	 */
 	if(fflag)
@@ -954,15 +968,21 @@ pipemsg(int *byteswritten)
 	for(f = firstfield; cp != nil && f; f = f->next){
 		for(p = f->node; cp != 0 && p; p = p->next)
 			cp = bprintnode(pp->std[0]->fp, p);
-		if(status == 0 && Bprint(pp->std[0]->fp, "\n") < 0)
+		if(status == 0 && Bprint(pp->std[0]->fp, "\n") < 0){
+			piperror = "write error";
 			status = 1;
+		}
 	}
-	if(cp == nil)
+	if(cp == nil){
+		piperror = "sender domain";
 		status = 1;
+	}
 
 	/* write anything we read following the header */
-	if(status == 0 && Bwrite(pp->std[0]->fp, cp, s_to_c(hdr) + s_len(hdr) - cp) < 0)
+	if(status == 0 && Bwrite(pp->std[0]->fp, cp, s_to_c(hdr) + s_len(hdr) - cp) < 0){
+		piperror = "write error 2";
 		status = 1;
+	}
 	s_free(hdr);
 
 	/*
@@ -984,22 +1004,28 @@ pipemsg(int *byteswritten)
 		}
 		nbytes += n;
 		if(status == 0 && Bwrite(pp->std[0]->fp, *cp == '.' ? cp+1 : cp, n) < 0){
+			piperror = "write error 3";
 			status = 1;
 		}
 	}
 	s_free(line);
 	if(sawdot == 0){
 		/* message did not terminate normally */
+		piperror = "unexpected eof";
 		syskillpg(pp->pid);
 		status = 1;
 	}
 
-	if(status == 0 && Bflush(pp->std[0]->fp) < 0)
+	if(status == 0 && Bflush(pp->std[0]->fp) < 0){
+		piperror = "write error 4";
 		status = 1;
+	}
 	stream_free(pp->std[0]);
 	pp->std[0] = 0;
 	*byteswritten = nbytes;
 	pipesigoff();
+	if(status && !piperror)
+		piperror = "write on closed pipe";
 	return status;
 }
 
@@ -1017,6 +1043,79 @@ firstline(char *x)
 	return buf;
 }
 
+int
+sendermxcheck(void)
+{
+	char *cp, *senddom, *user;
+	char *who;
+	int pid;
+	Waitmsg *w;
+
+	who = s_to_c(senders.first->p);
+	if(strcmp(who, "/dev/null") == 0){
+		/* /dev/null can only send to one rcpt at a time */
+		if(rcvers.first != rcvers.last){
+			werrstr("rejected: /dev/null sending to multiple recipients");
+			return -1;
+		}
+		return 0;
+	}
+
+	if(access("/mail/lib/validatesender", AEXEC) < 0)
+		return 0;
+
+	senddom = strdup(who);
+	if((cp = strchr(senddom, '!')) == nil){
+		werrstr("rejected: domainless sender %s", who);
+		free(senddom);
+		return -1;
+	}
+	*cp++ = 0;
+	user = cp;
+
+	switch(pid = fork()){
+	case -1:
+		werrstr("deferred: fork: %r");
+		return -1;
+	case 0:
+		/*
+		 * Could add an option with the remote IP address
+		 * to allow validatesender to implement SPF eventually.
+		 */
+		execl("/mail/lib/validatesender", "validatesender", 
+			"-n", nci->root, senddom, user, nil);
+		_exits("exec validatesender: %r");
+	default:
+		break;
+	}
+
+	free(senddom);
+	w = wait();
+	if(w == nil){
+		werrstr("deferred: wait failed: %r");
+		return -1;
+	}
+	if(w->pid != pid){
+		werrstr("deferred: wait returned wrong pid %d != %d", w->pid, pid);
+		free(w);
+		return -1;
+	}
+	if(w->msg[0] == 0){
+		free(w);
+		return 0;
+	}
+	/*
+	 * skip over validatesender 143123132: prefix from rc.
+	 */
+	cp = strchr(w->msg, ':');
+	if(cp && *(cp+1) == ' ')
+		werrstr("%s", cp+2);
+	else
+		werrstr("%s", w->msg);
+	free(w);
+	return -1;
+}
+
 void
 data(void)
 {
@@ -1024,6 +1123,8 @@ data(void)
 	String *err;
 	int status, nbytes;
 	char *cp, *ep;
+	char errx[ERRMAX];
+	Link *l;
 
 	if(rejectcheck())
 		return;
@@ -1034,6 +1135,19 @@ data(void)
 	}
 	if(rcvers.last == 0){
 		reply("503 Data without RCPT TO:\r\n");
+		rejectcount++;
+		return;
+	}
+	if(sendermxcheck()){
+		rerrstr(errx, sizeof errx);
+		if(strncmp(errx, "rejected:", 9) == 0)
+			reply("554 %s\r\n", errx);
+		else
+			reply("450 %s\r\n", errx);
+		for(l=rcvers.first; l; l=l->next)
+			syslog(0, "smtpd", "[%s/%s] %s -> %s sendercheck: %s",
+					him, nci->rsys, s_to_c(senders.first->p), 
+					s_to_c(l->p), errx);
 		rejectcount++;
 		return;
 	}
@@ -1068,8 +1182,6 @@ data(void)
 		if(*s_to_c(err))
 			fprint(2, "%d error %s\n", getpid(), s_to_c(err));
 	}
-	proc_free(pp);
-	pp = 0;
 
 	/*
 	 *  if process terminated abnormally, send back error message
@@ -1082,8 +1194,12 @@ data(void)
 				s_to_c(senders.first->p), s_to_c(cmd), firstline(s_to_c(err)));
 			code = 554;
 		} else {
-			syslog(0, "smtpd", "++[%s/%s] %s %s returned %s", him, nci->rsys,
-				s_to_c(senders.first->p), s_to_c(cmd), firstline(s_to_c(err)));
+			syslog(0, "smtpd", "++[%s/%s] %s %s %s%s%sreturned %#q %s", him, nci->rsys,
+				s_to_c(senders.first->p), s_to_c(cmd), 
+				piperror ? "error during pipemsg: " : "",
+				piperror ? piperror : "",
+				piperror ? "; " : "",
+				pp->waitmsg->msg, firstline(s_to_c(err)));
 			code = 450;
 		}
 		for(cp = s_to_c(err); ep = strchr(cp, '\n'); cp = ep){
@@ -1102,6 +1218,8 @@ data(void)
 			logcall(nbytes);
 		}
 	}
+	proc_free(pp);
+	pp = 0;
 	s_free(cmd);
 	s_free(err);
 
@@ -1228,7 +1346,7 @@ auth(String *mech, String *resp)
 	if (rejectcheck())
 		goto bomb_out;
 
- 	syslog(0, "smtpd", "auth(%s, %s) from %s\n", s_to_c(mech),
+ 	syslog(0, "smtpd", "auth(%s, %s) from %s", s_to_c(mech),
 		resp==nil?"nil":s_to_c(resp), him);
 
 	if (authenticated) {
