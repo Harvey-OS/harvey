@@ -602,9 +602,9 @@ rtl8139interrupt(Ureg*, void* arg)
 static Ctlr*
 rtl8139match(Ether* edev, int id)
 {
-	int port;
 	Pcidev *p;
 	Ctlr *ctlr;
+	int i, port;
 
 	/*
 	 * Any adapter matches if no edev->port is supplied,
@@ -623,6 +623,17 @@ rtl8139match(Ether* edev, int id)
 		if(ioalloc(port, p->mem[0].size, 0, "rtl8139") < 0){
 			print("rtl8139: port 0x%uX in use\n", port);
 			continue;
+		}
+
+		if(pcigetpms(p) > 0){
+			pcisetpms(p, 0);
+	
+			for(i = 0; i < 6; i++)
+				pcicfgw32(p, PciBAR0+i*4, p->mem[i].bar);
+			pcicfgw8(p, PciINTL, p->intl);
+			pcicfgw8(p, PciLTR, p->ltr);
+			pcicfgw8(p, PciCLS, p->cls);
+			pcicfgw16(p, PciPCR, p->pcr);
 		}
 
 		ctlr->port = port;

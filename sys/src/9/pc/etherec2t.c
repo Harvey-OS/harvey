@@ -26,7 +26,7 @@ typedef struct Ec2t {
 static Ec2t ec2tpcmcia[] = {
 	{ "EC2T", 0, },			/* Linksys Combo PCMCIA EthernetCard */
 	{ "PCMPC100", 1, },		/* EtherFast 10/100 PC Card */
-	{ "PCM100", 1, },	/* EtherFast PCM100 Card */
+	{ "PCM100", 1, },		/* EtherFast PCM100 Card */
 	{ "EN2216", 0, },		/* Accton EtherPair-PCMCIA */
 	{ "FA410TX", 1, },		/* Netgear FA410TX */
 	{ "Network Everywhere", 0, },	/* Linksys NP10T 10BaseT Card */

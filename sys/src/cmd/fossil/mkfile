@@ -1,7 +1,7 @@
 </$objtype/mkfile
 BIN=/$objtype/bin/fossil
 
-TARG=fossil flchk flfmt conf
+TARG=fossil flchk flfmt conf last
 
 LIBFILES=\
 	9p\
@@ -21,6 +21,7 @@ LIBFILES=\
 	archive\
 	nobwatch\
 	cache\
+	check\
 	disk\
 	error\
 	file\

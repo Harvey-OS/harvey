@@ -123,8 +123,7 @@ sourceRoot(Fs *fs, u32int addr, int mode)
 	if(b == nil)
 		return nil;
 
-	if(mode == OReadWrite)
-	if((b->l.state&BsClosed) || b->l.epoch != fs->ehi){
+	if(mode == OReadWrite && b->l.epoch != fs->ehi){
 		fprint(2, "sourceRoot: fs->ehi = %ud, b->l = %L\n", fs->ehi, &b->l);
 		blockPut(b);
 		vtSetError(EBadRoot);
@@ -283,7 +282,7 @@ sourceKill(Source *r, int doremove)
 	entryPack(&e, b->data, r->offset % r->epb);
 	blockDirty(b);
 	if(addr != NilBlock)
-		blockRemoveLink(b, addr, type, tag);
+		blockRemoveLink(b, addr, type, tag, 1);
 	blockPut(b);
 
 	if(doremove){
@@ -341,9 +340,7 @@ sourceShrinkSize(Source *r, Entry *e, uvlong size)
 		ptrsz *= ppb;
 
 	while(type&BtLevelMask){
-		if(b->addr == NilBlock
-		|| (b->l.state&BsClosed)
-		|| b->l.epoch != r->fs->ehi){
+		if(b->addr == NilBlock || b->l.epoch != r->fs->ehi){
 			/* not worth copying the block just so we can zero some of it */
 			blockPut(b);
 			return 0;
@@ -360,7 +357,7 @@ sourceShrinkSize(Source *r, Entry *e, uvlong size)
 			memmove(b->data+i*VtScoreSize, vtZeroScore, VtScoreSize);
 			blockDirty(b);
 			if(addr != NilBlock)
-				blockRemoveLink(b, addr, type-1, e->tag);
+				blockRemoveLink(b, addr, type-1, e->tag, 1);
 		}
 
 		/* recurse (go around again) on the partially necessary block */
@@ -379,9 +376,7 @@ sourceShrinkSize(Source *r, Entry *e, uvlong size)
 			return 0;
 	}
 
-	if(b->addr == NilBlock
-	|| (b->l.state&BsClosed)
-	|| b->l.epoch != r->fs->ehi){
+	if(b->addr == NilBlock || b->l.epoch != r->fs->ehi){
 		blockPut(b);
 		return 0;
 	}
@@ -540,8 +535,11 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	if(b == nil || mode == OReadOnly)
 		return b;
 
-	assert(!(p->l.state&BsClosed) && p->l.epoch == fs->ehi);
-	if(!(b->l.state&BsClosed) && b->l.epoch == fs->ehi)
+	if(p->l.epoch != fs->ehi){
+		fprint(2, "blockWalk: parent not writable\n");
+		abort();
+	}
+	if(b->l.epoch == fs->ehi)
 		return b;
 
 	oe = *e;
@@ -577,7 +575,7 @@ blockWalk(Block *p, int index, int mode, Fs *fs, Entry *e)
 	blockDirty(p);
 
 	if(addr != NilBlock)
-		blockRemoveLink(p, addr, type, e->tag);
+		blockRemoveLink(p, addr, type, e->tag, 0);
 
 	return b;
 }
@@ -707,7 +705,7 @@ sourceShrinkDepth(Source *r, Block *p, Entry *e, int depth)
 
 	/* (iii) */
 	if(rb->addr != NilBlock)
-		blockRemoveLink(p, rb->addr, rb->l.type, rb->l.tag);
+		blockRemoveLink(p, rb->addr, rb->l.type, rb->l.tag, 1);
 
 	blockPut(rb);
 	if(ob!=nil && ob!=rb)
@@ -870,6 +868,7 @@ sourceLoadBlock(Source *r, int mode)
 		if(b == nil)
 			return nil;
 		assert(b->l.epoch == r->fs->ehi);
+	//	fprint(2, "sourceLoadBlock %p %V => %V\n", r, r->score, b->score);
 		memmove(r->score, b->score, VtScoreSize);
 		r->scoreEpoch = b->l.epoch;
 		r->tag = b->l.tag;
@@ -953,6 +952,12 @@ sourceLock2(Source *r, Source *rr, int mode)
 		b = sourceLoadBlock(r, mode);
 		if(b == nil)
 			return 0;
+		if(memcmp(r->score, rr->score, VtScoreSize) != 0){
+			memmove(rr->score, b->score, VtScoreSize);
+			rr->scoreEpoch = b->l.epoch;
+			rr->tag = b->l.tag;
+			rr->epoch = rr->fs->ehi;
+		}
 		blockDupLock(b);
 		bb = b;
 	}else if(r->parent==rr->parent || r->offset > rr->offset){

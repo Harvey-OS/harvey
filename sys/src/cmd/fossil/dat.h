@@ -4,6 +4,7 @@ typedef struct Block Block;
 typedef struct Cache Cache;
 typedef struct Disk Disk;
 typedef struct Entry Entry;
+typedef struct Fsck Fsck;
 typedef struct Header Header;
 typedef struct Label Label;
 typedef struct Periodic Periodic;
@@ -155,55 +156,18 @@ struct DirEntryEnum {
 	DirEntry *buf;
 };
 
-/* Block states; two orthogonal fields, Bv* and Ba* */
+/* Block states */
 enum {
 	BsFree = 0,		/* available for allocation */
 	BsBad = 0xFF,		/* something is wrong with this block */
 
 	/* bit fields */
 	BsAlloc = 1<<0,	/* block is in use */
-	BsCopied = 1<<1,	/* block has been copied */
+	BsCopied = 1<<1,	/* block has been copied (usually in preparation for unlink) */
 	BsVenti = 1<<2,	/* block has been stored on Venti */
-	BsClosed = 1<<3,	/* block has been unlinked from active file system */
+	BsClosed = 1<<3,	/* block has been unlinked on disk from active file system */
 	BsMask = BsAlloc|BsCopied|BsVenti|BsClosed,
 };
-
-/*
- * Each block has a state and generation
- * The following invariants are maintained
- * 	Each block has no more than than one parent per generation
- * 	For Active*, no child has a parent of a greater generation
- *	For Snap*, there is a snap parent of given generation and there are
- *		no parents of greater gen - implies no children snaps
- *		of a lesser gen
- *	For *RO, the block is fixed - no change can be made - all pointers
- *		are valid venti addresses
- *	For *A, the block is on the venti server
- *	There are no pointers to Zombie blocks
- *
- * Transitions
- *	Archiver at generation g
- *	Mutator at generation h
- *
- *	Want to modify a block
- *		Venti: create new Active(h)
- *		Active(x): x == h: do nothing
- *		Active(x): x < h: change to Snap(h-1) + add Active(h)
- *		ActiveRO(x): change to SnapRO(h-1) + add Active(h)
- *		ActiveA(x): add Active(h)
- *		Snap*(x): should not occur
- *		Zombie(x): should not occur
- *	Want to archive
- *		Active(x): x != g: should never happen
- *		Active(x): x == g fix children and free them: move to ActiveRO(g);
- *		ActiveRO(x): x != g: should never happen
- *		ActiveRO(x): x == g: wait until it hits ActiveA or SnapA
- *		ActiveA(x): done
- *		Snap(x): x < g: should never happen
- *		Snap(x): x >= g: fix children, freeing all SnapA(y) x == y;
- *		SnapRO(x): wait until it hits SnapA
- *
- */
 
 /*
  * block types
@@ -286,6 +250,50 @@ struct WalkPtr
 	Entry e;
 	uchar type;
 	u32int tag;
+};
+
+enum
+{
+	DoClose = 1<<0,
+	DoClre = 1<<1,
+	DoClri = 1<<2,
+	DoClrp = 1<<3,
+};
+
+struct Fsck
+{
+/* filled in by caller */
+	int printblocks;
+	int useventi;
+	int flags;
+	int printdirs;
+	int printfiles;
+	int walksnapshots;
+	int walkfs;
+	Fs *fs;
+	int (*print)(char*, ...);
+	void (*clre)(Fsck*, Block*, int);
+	void (*clrp)(Fsck*, Block*, int);
+	void (*close)(Fsck*, Block*, u32int);
+	void (*clri)(Fsck*, char*, MetaBlock*, int, Block*);
+
+/* used internally */
+	Cache *cache;
+	uchar *amap;	/* all blocks seen so far */
+	uchar *emap;	/* all blocks seen in this epoch */
+	uchar *xmap;	/* all blocks in this epoch with parents in this epoch */
+	uchar *errmap;	/* blocks with errors */
+	uchar *smap;	/* walked sources */
+	int nblocks;
+	int bsize;
+	int walkdepth;
+	u32int hint;	/* where the next root probably is */
+	int nseen;
+	int quantum;
+	int nclre;
+	int nclrp;
+	int nclose;
+	int nclri;
 };
 
 /* disk partitions */

@@ -761,15 +761,19 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 			continue;
 		}
 		l = b->l;
-		consPrint("label %#ux %ud %ud %ud %ud %#x\n",
-			addr, l.type, l.state, l.epoch, l.epochClose, l.tag);
-		l.state = BsFree;
-		l.type = BtMax;
-		l.tag = 0;
-		l.epoch = 0;
-		l.epochClose = 0;
-		if(!blockSetLabel(b, &l))
-			consPrint("freeing %#ux: %R\n", addr);
+		if(l.state == BsFree)
+			consPrint("%#ux is already free\n", addr);
+		else{
+			consPrint("label %#ux %ud %ud %ud %ud %#x\n",
+				addr, l.type, l.state, l.epoch, l.epochClose, l.tag);
+			l.state = BsFree;
+			l.type = BtMax;
+			l.tag = 0;
+			l.epoch = 0;
+			l.epochClose = 0;
+			if(!blockSetLabel(b, &l, 0))
+				consPrint("freeing %#ux: %R\n", addr);
+		}
 		blockPut(b);
 		argc--;
 		argv++;
@@ -913,7 +917,7 @@ fsysEsearch1(File* f, char* s, u32int elo)
 			if((ff = fileWalk(f, de.elem)) == nil)
 				consPrint("\tcannot walk %s/%s: %R\n", s, de.elem);
 			else{
-				if(!fileGetSources(ff, &e, &ee, 0))
+				if(!fileGetSources(ff, &e, &ee))
 					consPrint("\tcannot get sources for %s/%s: %R\n", s, de.elem);
 				else if(e.snap != 0 && e.snap < elo){
 					consPrint("\t%ud\tclri %s/%s\n", e.snap, s, de.elem);
@@ -1244,6 +1248,143 @@ error:
 	return 0;
 }
 
+static void
+fsckClri(Fsck *fsck, char *name, MetaBlock *mb, int i, Block *b)
+{
+	USED(name);
+
+	if((fsck->flags&DoClri) == 0)
+		return;
+
+	mbDelete(mb, i);
+	mbPack(mb);
+	blockDirty(b);	
+}
+
+static void
+fsckClose(Fsck *fsck, Block *b, u32int epoch)
+{
+	Label l;
+
+	if((fsck->flags&DoClose) == 0)
+		return;
+	l = b->l;
+	if(l.state == BsFree || (l.state&BsClosed)){
+		consPrint("%#ux is already closed\n", b->addr);
+		return;
+	}
+	if(epoch){	
+		l.state |= BsClosed;
+		l.epochClose = epoch;
+	}else
+		l.state = BsFree;
+		
+	if(!blockSetLabel(b, &l, 0))
+		consPrint("%#ux setlabel: %R\n", b->addr);
+}
+
+static void
+fsckClre(Fsck *fsck, Block *b, int offset)
+{
+	Entry e;
+
+	if((fsck->flags&DoClre) == 0)
+		return;
+	if(offset<0 || offset*VtEntrySize >= fsck->bsize){
+		consPrint("bad clre\n");
+		return;
+	}
+	memset(&e, 0, sizeof e);
+	entryPack(&e, b->data, offset);
+	blockDirty(b);
+}
+
+static void
+fsckClrp(Fsck *fsck, Block *b, int offset)
+{
+	if((fsck->flags&DoClrp) == 0)
+		return;
+	if(offset<0 || offset*VtScoreSize >= fsck->bsize){
+		consPrint("bad clre\n");
+		return;
+	}
+	memmove(b->data+offset*VtScoreSize, vtZeroScore, VtScoreSize);
+	blockDirty(b);
+}
+
+static int
+fsysCheck(Fsys *fsys, int argc, char *argv[])
+{
+	int i, halting;
+	char *usage = "usage: [fsys name] check [-v] [options]";
+	Fsck fsck;
+	Block *b;
+	Super super;
+
+	memset(&fsck, 0, sizeof fsck);
+	fsck.fs = fsys->fs;
+	fsck.clri = fsckClri;
+	fsck.clre = fsckClre;
+	fsck.clrp = fsckClrp;
+	fsck.close = fsckClose;
+	fsck.print = consPrint;
+
+	ARGBEGIN{
+	default:
+		return cliError(usage);
+	}ARGEND
+
+	for(i=0; i<argc; i++){
+		if(strcmp(argv[i], "pblock") == 0)
+			fsck.printblocks = 1;
+		else if(strcmp(argv[i], "pdir") == 0)
+			fsck.printdirs = 1;
+		else if(strcmp(argv[i], "pfile") == 0)
+			fsck.printfiles = 1;
+		else if(strcmp(argv[i], "bclose") == 0)
+			fsck.flags |= DoClose;
+		else if(strcmp(argv[i], "clri") == 0)
+			fsck.flags |= DoClri;
+		else if(strcmp(argv[i], "clre") == 0)
+			fsck.flags |= DoClre;
+		else if(strcmp(argv[i], "clrp") == 0)
+			fsck.flags |= DoClrp;
+		else if(strcmp(argv[i], "fix") == 0)
+			fsck.flags |= DoClose|DoClri|DoClre|DoClrp;
+		else if(strcmp(argv[i], "venti") == 0)
+			fsck.useventi = 1;
+		else if(strcmp(argv[i], "snapshot") == 0)
+			fsck.walksnapshots = 1;
+		else{
+			consPrint("unknown option '%s'\n", argv[i]);
+			return cliError(usage);
+		}
+	}
+
+	halting = fsys->fs->halted==0;
+	if(halting)
+		fsHalt(fsys->fs);
+	if(fsys->fs->arch){
+		b = superGet(fsys->fs->cache, &super);
+		if(b == nil){
+			consPrint("could not load super block\n");
+			goto Out;
+		}
+		blockPut(b);
+		if(super.current != NilBlock){
+			consPrint("cannot check fs while archiver is running; wait for it to finish\n");
+			goto Out;
+		}
+	}
+	fsCheck(&fsck);
+	consPrint("fsck: %d clri, %d clre, %d clrp, %d bclose\n",
+		fsck.nclri, fsck.nclre, fsck.nclrp, fsck.nclose);
+Out:
+	if(halting)
+		fsUnhalt(fsys->fs);
+	return 1;
+}
+
 static int
 fsysVenti(char* name, int argc, char* argv[])
 {
@@ -1488,6 +1629,7 @@ static struct {
 
 	{ "bfree",	fsysBfree, },
 	{ "block",	fsysBlock, },
+	{ "check",	fsysCheck, },
 	{ "clre",	fsysClre, },
 	{ "clri",	fsysClri, },
 	{ "clrp",	fsysClrp, },
@@ -1521,7 +1663,8 @@ fsysXXX1(Fsys *fsys, int i, int argc, char* argv[])
 		return 0;
 	}
 
-	if(fsys->fs->halted && fsyscmd[i].f != fsysUnhalt){
+	if(fsys->fs->halted
+	&& fsyscmd[i].f != fsysUnhalt && fsyscmd[i].f != fsysCheck){
 		vtSetError("file system %s is halted", fsys->name);
 		vtUnlock(fsys->lock);
 		return 0;

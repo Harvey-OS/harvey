@@ -142,6 +142,36 @@ con /srv/fscons
 .B fsys
 .I name
 ]
+.B check
+[
+.B pblock
+] [
+.B pdir
+] [
+.B pfile
+] [
+.B bclose
+] [
+.B clri
+] [
+.B clre
+] [
+.B clrp
+]
+.br
+\h'1.5i'
+[
+.B fix
+] [
+.B venti
+] [
+.B snapshot
+]
+.PP
+[
+.B fsys
+.I name
+]
 .B clre
 .I addr
 .I offsets
@@ -747,6 +777,73 @@ Before doing so, it prints a
 .I block
 command that can be used to restore the entry.
 .PP
+.I Check
+checks the file system for various inconsistencies.
+If the file system is not already halted, it is halted for
+the duration of the check.
+If the archiver is currently sending a snapshot to Venti,
+the check will refuse to run; the only recourse is to wait
+for the archiver to finish.
+.PP
+A list of keyword options control the check.
+The
+.BR pblock ,
+.BR pdir ,
+and
+.B pfile
+options cause 
+.I check
+to print the name of each block, directory, or file encountered.
+.PP
+By default,
+.I check
+reports errors but does not fix them.
+The
+.BR bclose ,
+.BR clri ,
+.BR clre ,
+and
+.B clrp
+options specify correcting actions that may be taken:
+closing leaked blocks, clearing bad file directory entries,
+clearing bad pointers, and clearing bad entries.
+The
+.B fix
+option enables all of these; it is equivalent to
+.B bclose
+.B clri
+.B clre
+.BR clrp .
+.PP
+By default,
+.I check
+scans the portion of the active file system held in the write buffer,
+avoiding blocks stored on Venti or used only in snapshots.
+The
+.B venti
+option causes
+.I check
+to scan the portion of the file system stored on Venti,
+and the
+.B snapshot
+option causes
+.I check
+to scan old snapshots.
+Specfying
+.B snapshot
+causes
+.I check
+to take a long time;
+specifying
+.B venti
+or
+(worse)
+.B venti
+.B snapshot
+causes
+.I check
+to take a very long time.
+.PP
 .I Create
 creates a file on the current file system.
 .I Uid
@@ -763,11 +860,12 @@ command).
 is the low 9 bits of the permission mode of the file,
 in octal.
 The 
-.BR -a ,
-.BR -d ,
+.BR a ,
+.BR d ,
 and
-.B -l
-flags set the append-only, directory, and lock bits.
+.B l
+mode prefixes
+set the append-only, directory, and lock bits.
 .PP
 .I Df
 prints the amount of used disk space in the write buffer.
@@ -829,7 +927,7 @@ with
 .IR snaptime .
 .PP
 .I Halt
-suspends file system activity;
+suspends all file system activity;
 .I unhalt
 resumes activity.
 .PP

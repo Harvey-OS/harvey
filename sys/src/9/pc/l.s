@@ -353,7 +353,7 @@ TEXT wrmsr(SB), $0
 
 /*
  * Try to determine the CPU type which requires fiddling with EFLAGS.
- * If the Id bit can be toggled then the CPUID instruciton can be used
+ * If the Id bit can be toggled then the CPUID instruction can be used
  * to determine CPU identity and features. First have to check if it's
  * a 386 (Ac bit can't be set). If it's not a 386 and the Id bit can't be
  * toggled then it's an older 486 of some kind.

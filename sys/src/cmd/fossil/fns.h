@@ -25,14 +25,15 @@ Block* cacheGlobal(Cache*, uchar[VtScoreSize], int, u32int, int);
 Block* cacheAllocBlock(Cache*, int, u32int, u32int, u32int);
 void cacheFlush(Cache*, int);
 u32int cacheLocalSize(Cache*, int);
+int readLabel(Cache*, Label*, u32int addr);
 
 Block* blockCopy(Block*, u32int, u32int, u32int);
 void blockDupLock(Block*);
 void blockPut(Block*);
 void blockDependency(Block*, Block*, int, uchar*, Entry*);
 int blockDirty(Block*);
-int blockRemoveLink(Block*, u32int, int, u32int);
-int blockSetLabel(Block*, Label*);
+void blockRemoveLink(Block*, u32int, int, u32int, int);
+int blockSetLabel(Block*, Label*, int);
 Block* _blockSetLabel(Block*, Label*);
 void blockSetIOState(Block*, int);
 int blockWrite(Block*);
@@ -76,11 +77,10 @@ void periodicKill(Periodic*);
 
 File* fileRoot(Source*);
 int fileSnapshot(File*, File*, u32int, int);
-int fileGetSources(File*, Entry*, Entry*, int);
+int fileGetSources(File*, Entry*, Entry*);
 int mkVac(VtSession*, uint, Entry*, Entry*, DirEntry*, uchar[VtScoreSize]);
 int fsNextQid(Fs*, u64int*);
 Block* superGet(Cache*, Super*);
-void superPut(Block*, Super*, int);
 
 Arch* archInit(Cache*, Disk*, Fs*, VtSession*);
 void archFree(Arch*);
@@ -98,5 +98,7 @@ int nextWalk(WalkPtr*, uchar[VtScoreSize], uchar*, u32int*, Entry**);
 
 void snapGetTimes(Snap*, u32int*, u32int*, u32int*);
 void snapSetTimes(Snap*, u32int, u32int, u32int);
+
+void fsCheck(Fsck*);
 
 #pragma varargck type "L" Label*
