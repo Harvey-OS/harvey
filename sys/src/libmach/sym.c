@@ -321,7 +321,7 @@ symbase(long *n)
 Sym *
 getsym(int index)
 {
-	if(index < nsym)
+	if(index >= 0 && index < nsym)
 		return &symbols[index];
 	return 0;
 }
@@ -590,7 +590,7 @@ textsym(Symbol *s, int index)
 
 	if(buildtbls() == 0)
 		return 0;
-	if(index >= ntxt)
+	if(index < 0 || index >= ntxt)
 		return 0;
 	fillsym(txt[index].sym, s);
 	s->handle = (void *)&txt[index];
@@ -607,7 +607,7 @@ filesym(int index, char *buf, int n)
 
 	if(buildtbls() == 0)
 		return 0;
-	if(index >= nfiles)
+	if(index < 0 || index >= nfiles)
 		return 0;
 	hp = files[index].hist;
 	if(!hp || !hp->name)
@@ -766,7 +766,7 @@ localsym(Symbol *s, int index)
 {
 	Txtsym *tp;
 
-	if(s == 0)
+	if(s == 0 || index < 0)
 		return 0;
 	if(buildtbls() == 0)
 		return 0;
@@ -791,7 +791,7 @@ globalsym(Symbol *s, int index)
 	if(buildtbls() == 0)
 		return 0;
 
-	if(index < nglob) {
+	if(index >=0 && index < nglob) {
 		fillsym(globals[index], s);
 		s->index = index;
 		return 1;

@@ -1418,8 +1418,8 @@ issymref(Instr *ip, Symbol *s, long w, long val)
 	if (s->class==CDATA) {
 		/* use first bss symbol (or "end") rather than edata */
 		if (s->name[0]=='e' && strcmp(s->name, "edata") == 0){
-			if((globalsym(&tmp, s->index+1) && tmp.value==s->value)
-			|| (globalsym(&tmp, s->index-1) && tmp.value==s->value))
+			if((s ->index >= 0 && globalsym(&tmp, s->index+1) && tmp.value==s->value)
+			|| (s->index > 0 && globalsym(&tmp, s->index-1) && tmp.value==s->value))
 				*s = tmp;
 		}
 		if (w == 0)
