@@ -9,12 +9,12 @@
 386/9loaddebug - 775 sys sys 1039914699 259921
 386/9loadlite - 775 sys sys 1032215927 124616
 386/9loadlitedebug - 775 sys sys 1039914699 183617
-386/9pc - 775 sys sys 1039764767 1783420
-386/9pc.gz - 664 sys sys 1039764768 614091
-386/9pccpu - 775 sys sys 1039764770 1429714
-386/9pccpu.gz - 664 sys sys 1039764771 498997
-386/9pcdisk - 775 sys sys 1039766107 1987341
-386/9pcdisk.gz - 664 sys sys 1039766104 703132
+386/9pc - 775 sys sys 1040006337 1783420
+386/9pc.gz - 664 sys sys 1040006338 614078
+386/9pccpu - 775 sys sys 1040006340 1448231
+386/9pccpu.gz - 664 sys sys 1040006341 504177
+386/9pcdisk - 775 sys sys 1040006344 1987341
+386/9pcdisk.gz - 664 sys sys 1040006345 703136
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1039758526 113387
@@ -1178,7 +1178,7 @@ lib/face/48x48x2/x - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/y - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/z - 20000000755 sys sys 944941683 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1019530375 1600
+lib/face/48x48x4/.dict - 664 sys sys 1039965405 1750
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -3166,7 +3166,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1039720623 237691
+sys/games/lib/fortunes - 664 sys sys 1040004323 237819
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1032324435 4127
 sys/include/String.h - 664 sys sys 1014929061 1133
@@ -5094,6 +5094,7 @@ sys/src/9/pc/fns.h - 664 sys sys 1026847643 4216
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
 sys/src/9/pc/i8253.c - 664 sys sys 1032052919 6791
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
+sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1015014519 7956
 sys/src/9/pc/kbd.c - 664 sys sys 1039753498 9134
@@ -5101,7 +5102,7 @@ sys/src/9/pc/l.s - 664 sys sys 1026847645 20867
 sys/src/9/pc/main.c - 664 sys sys 1034202255 14255
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1032303986 12994
-sys/src/9/pc/mkfile - 664 sys sys 1039911473 2994
+sys/src/9/pc/mkfile - 664 sys sys 1040002514 2995
 sys/src/9/pc/mmu.c - 664 sys sys 1018553449 10008
 sys/src/9/pc/mouse.c - 664 sys sys 1020369766 6315
 sys/src/9/pc/mp.c - 664 sys sys 1018974174 17091
@@ -5128,7 +5129,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1032487085 44555
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1015014523 7412
-sys/src/9/pc/trap.c - 664 sys sys 1036812833 19279
+sys/src/9/pc/trap.c - 664 sys sys 1040002517 19364
 sys/src/9/pc/uarti8250.c - 664 sys sys 1020369766 12671
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1015014524 3505
@@ -5200,7 +5201,7 @@ sys/src/9/port/edf.c - 664 sys sys 1037669300 24710
 sys/src/9/port/edf.h - 664 sys sys 1037669301 4398
 sys/src/9/port/error.h - 664 sys sys 1014931175 2583
 sys/src/9/port/fault.c - 664 sys sys 1032052807 6557
-sys/src/9/port/initcode.c - 664 sys sys 1039753332 446
+sys/src/9/port/initcode.c - 664 sys sys 1040002543 465
 sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1015278339 3524
 sys/src/9/port/lib.h - 664 sys sys 1014931175 5676
@@ -11611,7 +11612,7 @@ sys/src/libventi/mkfile - 664 sys sys 1036005853 447
 sys/src/libventi/pack.c - 664 sys sys 1036005839 2834
 sys/src/libventi/packet.c - 664 sys sys 1019678692 13253
 sys/src/libventi/packet.h - 664 sys sys 1019678692 641
-sys/src/libventi/plan9.c - 664 sys sys 1036470162 8463
+sys/src/libventi/plan9.c - 664 sys sys 1039964807 8481
 sys/src/libventi/score.c - 664 sys sys 1019678692 255
 sys/src/libventi/session.h - 664 sys sys 1036470162 913
 sys/src/libventi/sha1-plan9.c - 664 sys sys 1036005838 1058

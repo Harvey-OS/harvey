@@ -607,6 +607,8 @@ syscall(Ureg* ureg)
 		e = up->syserrstr;
 		up->syserrstr = up->errstr;
 		up->errstr = e;
+		if(0 && up->pid == 1)
+			print("syscall %lud error %s\n", scallnr, up->syserrstr);
 	}
 	if(up->nerrlab){
 		print("bad errstack [%uld]: %d extra\n", scallnr, up->nerrlab);
