@@ -129,7 +129,6 @@ ctlr
 	0xC0044="Stealth64 Video 2001"
 	0xC993F="S3 86C765 Video BIOS. Version 1.03-08"
 	0xC0044="Phoenix S3 TRIO32 Enhanced VGA BIOS. Version 1.3-08"
-	0xC0080="0000000 (C) COPYRIGHT IBM 1994"
 	link=vga
 	hwgc=s3hwgc
 	ctlr=trio64 linear=1
@@ -170,7 +169,8 @@ ctlr
 	0xCBCBC="TOSHIBA Savage\MX BIOS Ver. 4.00.20 - 21" # Portégé 3440CT
 	0xC0044="S3 86CM65 Video BIOS"		# Compaq Presario 3060 (Aurora64V+)
 	0xC0045="S3 Savage\IX BIOS Ver. 4.02.50 - 39"	# IBM Thinkpad T21
-	0xC000E="VIDEO B"		# Connectix Virtual PC
+	0xC907F="Trio64"			# Microsoft Virtual PC 2004
+	0xC000E="VIDEO B"			# Connectix Virtual PC
 	link=vga
 	hwgc=s3hwgc
 	ctlr=virge linear=1

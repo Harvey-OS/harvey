@@ -2792,7 +2792,7 @@ lib/tftpd - 20000000775 sys sys 944944178 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1089495677 28511
+lib/vgadb - 664 sys sys 1090440147 28518
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
 lp - 20000000775 sys sys 958199268 0
@@ -5415,7 +5415,7 @@ sys/src/9/pc/vgamga4xx.c - 664 sys sys 1015014527 11122
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1089299188 11261
 sys/src/9/pc/vganvidia.c - 664 sys sys 1081358011 12205
 sys/src/9/pc/vgargb524.c - 664 sys sys 1015014527 4235
-sys/src/9/pc/vgas3.c - 664 sys sys 1068129423 12143
+sys/src/9/pc/vgas3.c - 664 sys sys 1090439162 12189
 sys/src/9/pc/vgasavage.c - 664 sys sys 1064679984 16251
 sys/src/9/pc/vgat2r4.c - 664 sys sys 1015014528 10355
 sys/src/9/pc/vgatvp3020.c - 664 sys sys 1015014528 4491
@@ -7100,7 +7100,7 @@ sys/src/cmd/aux/vga/tvp3026.c - 664 sys sys 1014925013 3580
 sys/src/cmd/aux/vga/tvp3026clock.c - 664 sys sys 1014925013 1960
 sys/src/cmd/aux/vga/vga.c - 664 sys sys 1014925013 9305
 sys/src/cmd/aux/vga/vga.h - 664 sys sys 1025416295 10154
-sys/src/cmd/aux/vga/virge.c - 664 sys sys 1089055693 18540
+sys/src/cmd/aux/vga/virge.c - 664 sys sys 1090439328 18587
 sys/src/cmd/aux/vga/vision864.c - 664 sys sys 1014925014 2325
 sys/src/cmd/aux/vga/vision964.c - 664 sys sys 1014925014 3426
 sys/src/cmd/aux/vga/vision968.c - 664 sys sys 1014925014 3959
@@ -9710,7 +9710,7 @@ sys/src/cmd/ndb/cs.c - 664 sys sys 1080572749 32985
 sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1087406287 18127
-sys/src/cmd/ndb/dn.c - 664 sys sys 1079918815 26961
+sys/src/cmd/ndb/dn.c - 664 sys sys 1090409399 26970
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1055701929 2126
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1055701929 3062
 sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1079747687 15363
@@ -12339,3 +12339,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/aux/vga - 775 sys sys 1090465582 299379
+386/bin/ndb/dns - 775 sys sys 1090465583 217891
+386/bin/ndb/dnsdebug - 775 sys sys 1090465583 192507
+386/bin/ndb/dnstcp - 775 sys sys 1090465584 191144
