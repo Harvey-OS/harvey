@@ -19,7 +19,7 @@ static Vctl *vctl[256];
 
 enum
 {
-	Ntimevec = 10		/* number of time buckets for each intr */
+	Ntimevec = 20		/* number of time buckets for each intr */
 };
 ulong intrtimes[256][Ntimevec];
 
@@ -267,7 +267,7 @@ intrtime(Mach*, int vno)
 	if(up == nil && m->perf.inidle > diff)
 		m->perf.inidle -= diff;
 
-	diff /= m->cpumhz*10;	// quantum = 10µsec
+	diff /= m->cpumhz*100;	// quantum = 100µsec
 	if(diff >= Ntimevec)
 		diff = Ntimevec-1;
 	intrtimes[vno][diff]++;
@@ -304,17 +304,12 @@ trap(Ureg* ureg)
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
 	Mach *mach;
-	Ureg urcopy;
-	ulong *u;
-
-	urcopy = *ureg;
-	memset(buf, 0, sizeof(buf));
 
 	m->perf.intrts = perfticks();
 	user = (ureg->cs & 0xFFFF) == UESEL;
 	if(user){
 		up->dbgreg = ureg;
-		if (m->havetsc)
+		if(m->havetsc)
 			cycles(&up->kentry);
 	}
 
@@ -329,20 +324,8 @@ trap(Ureg* ureg)
 		if(ctl->isr)
 			ctl->isr(vno);
 		for(v = ctl; v != nil; v = v->next){
-			if(v->f){
+			if(v->f)
 				v->f(ureg, v->a);
-				if (vno & ~0xff){
-					u = (ulong*)&u;
-					for(i = 0; i < 40; ++i && (u+=4))
-						iprint("0x%lux:	0x%lux	0x%lux	0x%lux	0x%lux\n", u, u[0], u[1], u[2], u[3]);
-					iprint("vno 0x%ux after calling %s\n", vno, v->name);
-					iprint("ureg di si bp nsp bx dx cx ax gs fs es ds trap ecode pc cs flags sp ss\n");
-					u = (ulong*)ureg;
-					for(i = 0; i < 19; i++)
-						iprint("0x%lux ", u[i]);
-					panic("vno");
-				}
-			}
 		}
 		if(ctl->eoi)
 			ctl->eoi(vno);
@@ -505,7 +488,6 @@ _dumpstack(Ureg *ureg)
 	ulong l, v, i, estack;
 	extern ulong etext;
 
-return;
 	print("ktrace /kernel/path %.8lux %.8lux\n", ureg->pc, ureg->sp);
 	i = 0;
 	if(up
@@ -740,7 +722,7 @@ notify(Ureg* ureg)
 		pexit(n->msg, n->flag!=NDebug);
 	}
 
-	if(up->notified) {
+	if(up->notified){
 		qunlock(&up->debug);
 		splhi();
 		return 0;

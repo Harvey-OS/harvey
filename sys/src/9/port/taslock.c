@@ -187,8 +187,13 @@ unlock(Lock *l)
 	l->key = 0;
 	coherence();
 
-	if(up)
-		deccnt(&up->nlocks);
+	if(up && deccnt(&up->nlocks) == 0 && up->delaysched && islo()){
+		/*
+		 * Call sched if the need arose while locks were held
+		 * But, don't do it from interrupt routines, hence the islo() test
+		 */
+		sched();
+	}
 }
 
 void

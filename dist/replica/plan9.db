@@ -4587,7 +4587,7 @@ sys/man/1/history - 664 sys sys 1044909169 1709
 sys/man/1/hoc - 664 sys sys 944959676 2357
 sys/man/1/idiff - 664 sys sys 1018386774 927
 sys/man/1/join - 664 sys sys 957920006 2562
-sys/man/1/jpg - 664 sys sys 1032632642 3671
+sys/man/1/jpg - 664 sys sys 1068209494 4003
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
 sys/man/1/leak - 664 sys sys 1017423522 2871
@@ -4741,7 +4741,7 @@ sys/man/2/genrandom - 664 sys sys 1017251164 876
 sys/man/2/getcallerpc - 664 sys sys 964455063 670
 sys/man/2/getenv - 664 sys sys 944959695 685
 sys/man/2/getfcr - 664 sys sys 1015091521 2713
-sys/man/2/getfields - 664 sys sys 1015091522 1472
+sys/man/2/getfields - 664 sys sys 1068209043 1605
 sys/man/2/getpid - 664 sys sys 944959694 657
 sys/man/2/getuser - 664 sys sys 1016466457 641
 sys/man/2/getwd - 664 sys sys 971455511 701
@@ -5250,6 +5250,7 @@ sys/src/9/pc/etherif.h - 664 sys sys 1045063564 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1067792708 42430
 sys/src/9/pc/ethermii.c - 664 sys sys 1039803177 4555
 sys/src/9/pc/ethermii.h - 664 sys sys 1039895684 3259
+sys/src/9/pc/etherrhine.c - 664 sys sys 1068244865 13437
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1015014518 15079
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1026847642 3722
@@ -5298,7 +5299,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1067722685 50288
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1055689892 7406
-sys/src/9/pc/trap.c - 664 sys sys 1067722686 20552
+sys/src/9/pc/trap.c - 664 sys sys 1068237910 20045
 sys/src/9/pc/uarti8250.c - 664 sys sys 1067722686 13859
 sys/src/9/pc/uartpci.c - 664 sys sys 1015014524 2709
 sys/src/9/pc/usb.h - 664 sys sys 1063857246 3566
@@ -5355,7 +5356,7 @@ sys/src/9/port/devmouse.c - 664 sys sys 1067722758 12203
 sys/src/9/port/devnmouse.c - 664 sys sys 1036812999 3738
 sys/src/9/port/devpipe.c - 664 sys sys 1032640439 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1055688361 13021
-sys/src/9/port/devproc.c - 664 sys sys 1067880146 28269
+sys/src/9/port/devproc.c - 664 sys sys 1068237926 28403
 sys/src/9/port/devrealtime.c - 664 sys sys 1055688366 16209
 sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1055688396 28669
@@ -5366,7 +5367,7 @@ sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1066737478 45222
 sys/src/9/port/devuart.c - 664 sys sys 1067722718 11683
-sys/src/9/port/edf.c - 664 sys sys 1068135508 12286
+sys/src/9/port/edf.c - 664 sys sys 1068215525 12348
 sys/src/9/port/edf.h - 664 sys sys 1067722760 1124
 sys/src/9/port/error.h - 664 sys sys 1055700517 2630
 sys/src/9/port/fault.c - 664 sys sys 1067722722 6628
@@ -5395,10 +5396,10 @@ sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1067722718 3944
 sys/src/9/port/portclock.c - 664 sys sys 1068135508 4305
 sys/src/9/port/portdat.h - 664 sys sys 1067722763 22621
-sys/src/9/port/portfns.h - 664 sys sys 1067722759 11369
+sys/src/9/port/portfns.h - 664 sys sys 1068215525 11376
 sys/src/9/port/portmkfile - 664 sys sys 1067722766 2098
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
-sys/src/9/port/proc.c - 664 sys sys 1068135509 24818
+sys/src/9/port/proc.c - 664 sys sys 1068215525 24867
 sys/src/9/port/qio.c - 664 sys sys 1067953182 23406
 sys/src/9/port/qlock.c - 664 sys sys 1067722765 3196
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
@@ -5410,7 +5411,7 @@ sys/src/9/port/swap.c - 664 sys sys 1055688551 6980
 sys/src/9/port/sysfile.c - 664 sys sys 1067722760 22127
 sys/src/9/port/sysproc.c - 664 sys sys 1067722765 15396
 sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
-sys/src/9/port/taslock.c - 664 sys sys 1067722721 3348
+sys/src/9/port/taslock.c - 664 sys sys 1068209643 3532
 sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
 sys/src/9/port/thwack.h - 664 sys sys 1015278340 1792
 sys/src/9/port/tod.c - 664 sys sys 1067722762 4856
