@@ -29,13 +29,20 @@ typedef unsigned long long int  uint64_t;
 #define __EXTENSIONS__	1	/* for struct timeval */
 #endif
 
-#include <inttypes.h>	/* for int64_t et al. */
+#include <inttypes.h>		/* for int64_t et al. */
 #include <stdarg.h>		/* for va_list, vararg macros */
+#ifndef va_copy
+#ifdef __va_copy
+#define va_copy	__va_copy
+#else
+#define va_copy(d, s)	memmove(&(d), &(s), sizeof(va_list))
+#endif /* __va_copy */
+#endif /* va_copy */
 #include <sys/types.h>
 #include <string.h>		/* for memmove */
 #include <unistd.h>		/* for write */
 
-#define ulong p9ulong	/* because sys/types.h has some of these sometimes */
+#define ulong p9ulong		/* because sys/types.h has some of these sometimes */
 #define ushort p9ushort
 #define uchar p9uchar
 #define uint p9uint
@@ -112,7 +119,7 @@ struct	Fconv
 	int	f3;
 	int	chr;
 };
-extern	char*	doprint(char*, char*, char*, ...);
+extern	char*	doprint(char*, char*, char*, va_list *argp);
 extern	int	print(char*, ...);
 extern	char*	seprint(char*, char*, char*, ...);
 extern	int	snprint(char*, int, char*, ...);
