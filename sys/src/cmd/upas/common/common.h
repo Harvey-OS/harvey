@@ -63,6 +63,7 @@ typedef struct process{
 	stream	*std[3];	/* standard fd's*/
 	int	pid;		/* process identifier*/
 	int	status;		/* exit status*/
+	Waitmsg	*waitmsg;
 } process;
 
 extern stream	*instream(void);

@@ -121,6 +121,7 @@ findstab(Hash *hh, char *str, int n, int create)
 	hh->all = tab;
 	tab->n = n;
 	tab->count = 0;
+	tab->date = 0;
 	hh->stab[h] = tab;
 
 	hh->ntab++;
@@ -217,14 +218,21 @@ int
 Bwritehash(Biobuf *b, Hash *hh)
 {
 	Stringtab *s;
+	int now;
 
+	now = time(0);
 	s = sortstab(hh);
 	Bprint(b, "# hash table\n");
 	for(; s; s=s->link){
 		if(s->count <= 0)
 			continue;
+		/*
+		 * Entries that haven't been updated in thirty days get tossed.
+		 */
+		if(s->date+30*86400 < now)
+			continue;
 		Bwrite(b, s->str, s->n);
-		Bprint(b, "\t%d\n", s->count);
+		Bprint(b, "\t%d %d\n", s->count, s->date);
 	}
 	if(Bflush(b) == Beof)
 		return -1;
@@ -237,6 +245,8 @@ Breadhash(Biobuf *b, Hash *hh, int scale)
 	char *s;
 	char *t;
 	int n;
+	int date;
+	Stringtab *st;
 
 	s = Brdstr(b, '\n', 1);
 	if(s == nil)
@@ -253,9 +263,19 @@ Breadhash(Biobuf *b, Hash *hh, int scale)
 		if(*t < '0' || *t > '9')
 			sysfatal("bad hash table format");
 		n = strtol(t, &t, 10);
-		if(*t != 0)
-			sysfatal("bad hash table format");
-		findstab(hh, s, strlen(s), 1)->count += n*scale;
+		date = time(0);
+		if(*t != 0){
+			if(*t == ' '){
+				t++;
+				date = strtol(t, &t, 10);
+			}
+			if(*t != 0)
+				sysfatal("bad hash table format");
+		}
+		st = findstab(hh, s, strlen(s), 1);
+		if(date > st->date)
+			st->date = date;
+		st->count += n*scale;
 	}
 }
 

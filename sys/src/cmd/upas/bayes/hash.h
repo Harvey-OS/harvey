@@ -5,6 +5,7 @@ struct Stringtab {
 	char *str;
 	int n;
 	int count;
+	int date;
 };
 
 typedef struct Hash Hash;

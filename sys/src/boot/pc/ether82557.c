@@ -555,6 +555,7 @@ i82557pci(void)
 		case 0x1229:		/* Intel 8255[789] */
 		case 0x1031:		/* Intel 82562EM */
 		case 0x2449:		/* Intel 82562ET */
+		case 0x1039:		/* Intel 82801BD PRO/100 VE */
 			break;
 		}
 

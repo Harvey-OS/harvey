@@ -1,0 +1,51 @@
+#!/bin/rc
+
+rfork en
+fn usage{
+	echo 'usage: validatesender [-n /net] plan9.bell-labs.com glenda' >[1=2]
+	exit usage
+}
+
+echo $sysname $pid '$' validatesender $* >>/sys/log/smtpd.mx
+
+netroot=/net
+if(~ $1 -n){
+	shift
+	netroot=$1
+	shift
+}
+if(! ~ $#* 2)
+	usage
+
+dom=$1
+addr=$2
+
+# Cause some problems
+if(~ $dom swtch.com && ~ $addr glenda && ! ~ $sysname olive)
+	exit 'deferred: always defer this one'
+
+# Lucent only - use external network when mail from external domains
+# is delivered to us internally.  Assume that local domains are fine.
+netroot=/net
+if(~ $dom *.lucent.com lucent.com *.bell-labs.com bell-labs.com)
+	exit ''
+if(! ~ $sysname ethel)
+	exit ''
+if(~ $sysname ethel){
+	if(! test -d /net.alt/tcp)
+		import outside /net.alt
+	if(test -d /net.alt/tcp)
+		netroot=/net.alt
+}
+
+if(x=`{upas/smtp -p $netroot/tcp!$dom postmaster $addr >[2=1] | 
+		tee >{sed 's/^/'$sysname' '$pid' /' >> /sys/log/smtpd.mx} |
+		tail -1})
+	exit ''
+
+smtpstatus=$status
+if(~ $#x 0)
+	x=$smtpstatus
+if(~ $smtpstatus *'Permanent Failure'*)
+	exit 'rejected: smtp ping: '^$"x
+exit 'deferred: smtp ping: '^$"x

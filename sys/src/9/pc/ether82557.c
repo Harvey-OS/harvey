@@ -931,6 +931,7 @@ i82557pci(void)
 		case 0x1209:		/* Intel 82559ER */
 		case 0x1229:		/* Intel 8255[789] */
 		case 0x1030:		/* Intel 82559 InBusiness 10/100  */
+		case 0x1039:		/* Intel 82801BD PRO/100 VE */
 			break;
 		}
 

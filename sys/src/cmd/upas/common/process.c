@@ -143,7 +143,7 @@ proc_wait(process *pp)
 		pp->status = -1;
 	else
 		pp->status = status->msg[0];
-	free(status);
+	pp->waitmsg = status;
 	return pp->status;
 }
 
@@ -160,6 +160,7 @@ proc_free(process *pp)
 			stream_free(pp->std[i]);
 	if (pp->pid >= 0)
 		proc_wait(pp);
+	free(pp->waitmsg);
 	free((char *)pp);
 	return 0;
 }
