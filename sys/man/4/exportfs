@@ -188,13 +188,6 @@ which is created with mode
 (default 0600).
 By default, the name space is the directory tree rooted at 
 .IR path .
-If the 
-.B -S
-option is given, the name space is obtained by
-mounting
-.B path
-(typically a file in 
-.BR /srv ).
 If the
 .BR -d ,
 .BR -R ,

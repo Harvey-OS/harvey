@@ -21,7 +21,12 @@ The
 command monitors incoming mail and
 displays in its window a representation of the user's mail box
 using a small image for each message.
-The image is typically a portrait of the sender.
+The image is typically a portrait of the sender. Which image to 
+display is determined by two directories /usr/$user/lib/face 
+and /lib/face. Entries in /usr/$user/lib/face take priority over 
+those in /lib/face. See 
+.IR face (6),
+for how these directories are organised.
 .PP
 If the user is running
 .IR plumber (4),

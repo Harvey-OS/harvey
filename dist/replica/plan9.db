@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
 386/bin/acid - 775 sys sys 1091936087 353717
-386/bin/acme - 775 sys sys 1099545477 425223
+386/bin/acme - 775 sys sys 1100579339 425046
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1085076973 68304
@@ -334,7 +334,7 @@
 386/bin/news - 775 sys sys 1085077084 69654
 386/bin/nfs - 775 sys sys 1089397314 313346
 386/bin/nm - 775 sys sys 1091936093 113471
-386/bin/nntpfs - 775 sys sys 1094218814 158833
+386/bin/nntpfs - 775 sys sys 1100579339 158859
 386/bin/ns - 775 sys sys 1085077086 63226
 386/bin/p - 775 sys sys 1085077086 62948
 386/bin/page - 775 sys sys 1098158510 229681
@@ -390,7 +390,7 @@
 386/bin/spin - 775 sys sys 1094040113 655153
 386/bin/split - 775 sys sys 1085077099 73388
 386/bin/srv - 775 sys sys 1085077099 80398
-386/bin/srvfs - 775 sys sys 1085077099 39578
+386/bin/srvfs - 775 sys sys 1100579339 39567
 386/bin/srvold9p - 775 sys sys 1085077100 128139
 386/bin/ssh - 775 sys sys 1092539158 208978
 386/bin/sshnet - 775 sys sys 1092539158 280678
@@ -458,7 +458,7 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1099800617 206890
+386/bin/usb/usbaudio - 775 sys sys 1100579340 183269
 386/bin/usb/usbd - 775 sys sys 1099800617 127661
 386/bin/usb/usbmouse - 775 sys sys 1099800618 138206
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
@@ -3007,7 +3007,7 @@ rc/bin/dosmnt - 775 sys sys 958526437 285
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1015701359 2390
 rc/bin/fedex - 775 sys sys 1060187356 1244
-rc/bin/fshalt - 775 sys sys 1076458748 1315
+rc/bin/fshalt - 775 sys sys 1100524288 1335
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427
@@ -3015,7 +3015,7 @@ rc/bin/ipconf/lra - 775 sys sys 1058791152 1558
 rc/bin/ipconf/outside - 775 sys sys 1058790951 550
 rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
 rc/bin/ipso - 775 sys sys 1079377794 2838
-rc/bin/iwhois - 775 sys sys 1068053163 584
+rc/bin/iwhois - 775 sys sys 1100534870 1372
 rc/bin/kill - 775 sys sys 1018387014 132
 rc/bin/label - 775 sys sys 945617207 34
 rc/bin/lc - 775 sys sys 945617207 24
@@ -4645,7 +4645,7 @@ sys/man/1/0intro - 664 sys sys 958249499 9623
 sys/man/1/2a - 664 sys sys 1089299164 1188
 sys/man/1/2c - 664 sys sys 1089299164 7193
 sys/man/1/2l - 664 sys sys 1089903786 3992
-sys/man/1/INDEX - 664 sys sys 1089339723 3026
+sys/man/1/INDEX - 664 sys sys 1100579340 3010
 sys/man/1/INDEX.html - 664 sys sys 1089320990 16634
 sys/man/1/acid - 664 sys sys 1082404958 9725
 sys/man/1/acme - 664 sys sys 1019828741 17587
@@ -4687,8 +4687,7 @@ sys/man/1/ed - 664 sys sys 961259286 13916
 sys/man/1/emacs - 664 sys sys 944959673 199
 sys/man/1/eqn - 664 sys sys 944959675 5655
 sys/man/1/expect - 664 sys sys 1058791094 3023
-sys/man/1/face - 664 sys sys 1062505426 2278
-sys/man/1/faces - 664 sys sys 1072972212 2093
+sys/man/1/faces - 664 sys sys 1100525422 2317
 sys/man/1/factor - 664 sys sys 957920005 1019
 sys/man/1/file - 664 sys sys 1015024739 1578
 sys/man/1/filter - 664 sys sys 1041108741 4403
@@ -4989,7 +4988,7 @@ sys/man/4/cfs - 664 sys sys 1015024813 1758
 sys/man/4/consolefs - 664 sys sys 1069179473 3920
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
-sys/man/4/exportfs - 664 sys sys 1081200463 4652
+sys/man/4/exportfs - 664 sys sys 1100524176 4540
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1053127875 14460
 sys/man/4/fossil - 664 sys sys 1087005581 9423
@@ -5084,7 +5083,7 @@ sys/man/8/INDEX.html - 664 sys sys 1089321186 7944
 sys/man/8/aan - 664 sys sys 1045501064 1670
 sys/man/8/aliasmail - 664 sys sys 1055701148 1353
 sys/man/8/apm - 664 sys sys 1017679308 1811
-sys/man/8/auth - 664 sys sys 1079529504 4225
+sys/man/8/auth - 664 sys sys 1100575042 4226
 sys/man/8/boot - 664 sys sys 1063858248 8362
 sys/man/8/booting - 664 sys sys 1015024984 4136
 sys/man/8/checkarenas - 664 sys sys 1019866709 669
@@ -6805,7 +6804,7 @@ sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1099500744 27642
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
-sys/src/cmd/acme/util.c - 664 sys sys 1079102916 7412
+sys/src/cmd/acme/util.c - 664 sys sys 1100535510 7208
 sys/src/cmd/acme/wind.c - 664 sys sys 1096388102 11187
 sys/src/cmd/acme/xfid.c - 664 sys sys 1079044030 19175
 sys/src/cmd/ar.c - 664 sys sys 1046643027 23717
@@ -9770,7 +9769,7 @@ sys/src/cmd/netstat.c - 664 sys sys 1078839959 3846
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
 sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
 sys/src/cmd/nm.c - 664 sys sys 1073313392 4912
-sys/src/cmd/nntpfs.c - 664 sys sys 1094156765 18904
+sys/src/cmd/nntpfs.c - 664 sys sys 1100524486 18920
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558
 sys/src/cmd/p.c - 664 sys sys 1043516305 1497
 sys/src/cmd/page - 20000000775 sys sys 956344628 0
@@ -10379,7 +10378,7 @@ sys/src/cmd/spin/vars.c - 664 sys sys 953242990 8412
 sys/src/cmd/spin/version.h - 664 sys sys 956275780 54
 sys/src/cmd/split.c - 664 sys sys 1038183077 3219
 sys/src/cmd/srv.c - 664 sys sys 1074452607 3885
-sys/src/cmd/srvfs.c - 664 sys sys 1084470046 1655
+sys/src/cmd/srvfs.c - 664 sys sys 1100524152 1672
 sys/src/cmd/srvold9p - 20000000775 sys sys 1016921011 0
 sys/src/cmd/srvold9p/9p1.h - 664 sys sys 1016921010 2413
 sys/src/cmd/srvold9p/9p1lib.c - 664 sys sys 1016921010 11446
@@ -10929,13 +10928,13 @@ sys/src/cmd/upas/vf/mkfile - 664 sys sys 1064393881 241
 sys/src/cmd/upas/vf/vf.c - 664 sys sys 1087829630 17442
 sys/src/cmd/usb - 20000000775 sys sys 1017802022 0
 sys/src/cmd/usb/audio - 20000000775 sys sys 1017802021 0
-sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1099760452 18231
-sys/src/cmd/usb/audio/audiosub.c - 664 sys sys 1099760453 13512
+sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1100568596 18166
+sys/src/cmd/usb/audio/audiosub.c - 664 sys sys 1100568596 6967
 sys/src/cmd/usb/audio/mkfile - 664 sys sys 1091204980 349
-sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1099760452 15571
-sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1099760452 1911
-sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1099760452 42236
-sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1099760453 2120
+sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1100568596 9817
+sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1100568597 1861
+sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1100568597 17264
+sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1100568597 600
 sys/src/cmd/usb/lib - 20000000775 sys sys 1018369393 0
 sys/src/cmd/usb/lib/device.c - 664 sys sys 1099760882 2968
 sys/src/cmd/usb/lib/dump.c - 664 sys sys 1099760882 12704

@@ -12,7 +12,7 @@ changeuser, wrkey, convkeys, convkeys2, printnetkey, status, authsrv, guard.srv,
 .RB [ -p ]
 .I keyfile
 .PP
-.B auth/convkeys
+.B auth/convkeys2
 .RB [ -p ]
 .I keyfile
 .PP
@@ -190,7 +190,7 @@ an easy way to run a command as none.
 .TP
 .B /lib/ndb/auth
 Speaksfor relationships and mappings for
-rasius server id's.
+RADIUS server id's.
 .TP
 .B /adm/keys.who
 List of users in the Plan 9 database.

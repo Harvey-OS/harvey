@@ -1,26 +1,58 @@
 #!/bin/rc
+# iwhois domain - print registration data for domain
+rfork e
+person=`{echo $1|sed s/@.*//}
+fn boilerplate { sed -n '/^[	 ]*[A-Za-z][A-Za-z]*:$/,$p' $* }
+
 switch($1){
 case *@*
-	person=`{echo $1|sed s/@.*//}
 	machine=`{echo $1|sed s/.*@//}
-	fn boilerplate { sed '1,/^$/d' $* }
-case *.co.uk
-	person=`{echo $1|sed s/@.*//}
+case *.ca
+	machine=whois.cira.ca
+	fn boilerplate { grep -v ':[	 ]*$' $* }
+case *.us
+	machine=whois.nic.us
+	fn boilerplate { sed '/^>* Whois database was last updated on/,$d' $* }
+case *.co.uk *.net.uk *.org.uk
 	machine=whois.nic.uk
 	fn boilerplate { sed '/^ +WHOIS database last updated at/,$d' $* }
+case *.ac.uk
+	machine=whois.ja.net
+case *.au
+	machine=whois.aunic.net
+	fn boilerplate { grep -v ':[	 ]*$' $* }
+case *.fr
+	machine=whois.nic.fr
+	fn boilerplate { grep -v '^%%' $* }
+case *.de
+	machine=whois.denic.de
+	fn boilerplate { cat $* }
+case *.dk
+	machine=whois.dk-hostmaster.dk
+	fn boilerplate { grep -v '^#' $* }
+case *.se
+	machine=whois.nic-se.se
+	fn boilerplate { grep -v '^#' $* | uniq }
+case *.es
+	echo no known whois server for .es
+	exit
 case *
-	person=$1
-	machine=rs.internic.net
-	fn boilerplate { sed '1,/^$/d' $* }
+	machine=whois.internic.net	# alternate: whois.networksolutions.com
 }
 file=/tmp/iwhois$pid
-echo ''$person'' | telnet -n tcp!$machine!whois > $file
+fn sigexit {
+	rm -f $file
+}
+echo $person | telnet -nr tcp!$machine!whois > $file
 x=`{ sed -n 's/.*Whois Server: (.*)/\1/p' $file }
 switch($x){
 case ''
-	;
+	;			# e.g., for .ca
+case *' '*
+	echo $0: buggery: $x >[1=2]
+	exit botch
 case *
-	echo ''$person'' | telnet -n tcp!$x!whois > $file
+	echo $person | telnet -nr tcp!$x!whois > $file
 }
 boilerplate $file
 rm $file
