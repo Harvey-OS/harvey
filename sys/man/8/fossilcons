@@ -83,11 +83,6 @@ con /srv/fscons
 .B fsys
 .I name
 .B venti
-.B -d
-|
-[
-.B -r
-]
 [
 .I host
 ]
@@ -336,8 +331,7 @@ If the in-memory table was read from a file
 (see the
 .I users
 command below),
-the new table is written to
-.IR /active/adm/users .
+the new table is written to that file.
 There is no distinction between users and groups:
 a user is a group with one member.
 The user table records a mapping between
@@ -493,16 +487,12 @@ If no
 command is issued before
 .IR open ,
 the default Venti server will be used.
-The
-.B -d
-flag closes the connection to the Venti server
-and can only be used when the file system is closed.
-The
-.B -r
-flag redials the Venti server and can only
-be used when the file system is open;
-.I host
-must be given again.
+If the file system is open, the command
+redials the Venti server.
+This can be used to reestablish broken connections.
+It is not a good idea to use the command to switch
+between Venti servers, since Fossil does not keep track
+of which blocks are stored on which servers.
 .PP
 .I Open
 opens the file system, reading the

@@ -939,7 +939,7 @@ fprint(2, "fileMetaFlush moving entry from %ud -> %ud\n", f->boff, boff);
 	bb = sourceBlock(fp->msource, f->boff, OReadWrite);
 	mbDelete(&mb, i);
 	mbPack(&mb);	
-	blockDependency(b, bb, -1, nil);
+	blockDependency(b, bb, -1, nil, nil);
 	blockPut(bb);
 	blockDirty(b);
 	blockPut(b);
@@ -1393,17 +1393,17 @@ fileMetaAlloc(File *f, DirEntry *dir, u32int start)
 
 	/* meta block depends on super block for qid ... */
 	bb = cacheLocal(b->c, PartSuper, 0, OReadOnly);
-	blockDependency(b, bb, -1, nil);
+	blockDependency(b, bb, -1, nil, nil);
 	blockPut(bb);
 
 	/* ... and one or two dir entries */
 	epb = s->dsize/VtEntrySize;
 	bb = sourceBlock(s, dir->entry/epb, OReadOnly);
-	blockDependency(b, bb, -1, nil);
+	blockDependency(b, bb, -1, nil, nil);
 	blockPut(bb);
 	if(dir->mode & ModeDir){
 		bb = sourceBlock(s, dir->mentry/epb, OReadOnly);
-		blockDependency(b, bb, -1, nil);
+		blockDependency(b, bb, -1, nil, nil);
 		blockPut(bb);
 	}
 	

@@ -61,27 +61,31 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	 * protocol to do. Use a separate lock to protect altering
 	 * the auth information inside afid.
 	 */
-	if((afid = fidGet(fid->con, t->afid, 0)) == nil){
+	if(t->afid == NOFID){
 		/*
 		 * If no authentication is asked for, allow
 		 * "none" provided the connection has already
 		 * been authenticatated.
-		 */
-		if(strcmp(fid->uname, unamenone) == 0 && fid->con->aok){
-			if((fid->uid = uidByUname(fid->uname)) == nil)
-				return 0;
-			return 1;
-		}
-
-		/*
+		 * 
 		 * The console is allowed to attach without
 		 * authentication.
 		 */
-		if(!fid->con->isconsole)
+		if(!fid->con->isconsole &&
+		(strcmp(fid->uname, unamenone) != 0 || !fid->con->aok)){
+			consPrint("attach %s as %s: connection not authenticated, not console\n", fsysGetName(fsys), fid->uname);
 			return 0;
-		if((fid->uid = uidByUname(fid->uname)) == nil)
+		}
+
+		if((fid->uid = uidByUname(fid->uname)) == nil){
+			consPrint("attach %s as %s: unknown uname\n", fsysGetName(fsys), fid->uname);
 			return 0;
+		}
 		return 1;
+	}
+
+	if((afid = fidGet(fid->con, t->afid, 0)) == nil){
+		consPrint("attach %s as %s: bad afid\n", fsysGetName(fsys), fid->uname);
+		return 0;
 	}
 
 	/*
@@ -89,10 +93,12 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	 * check uname and aname match.
 	 */
 	if(!(afid->qid.type & QTAUTH)){
+		consPrint("attach %s as %s: afid not an auth file\n", fsysGetName(fsys), fid->uname);
 		fidPut(afid);
 		return 0;
 	}
 	if(strcmp(afid->uname, fid->uname) != 0 || afid->fsys != fsys){
+		consPrint("attach %s as %s: afid is for %s as %s\n", fsysGetName(fsys), fid->uname, fsysGetName(afid->fsys), afid->uname);
 		fidPut(afid);
 		return 0;
 	}
@@ -101,6 +107,7 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	if(afid->cuname == nil){
 		if(authRead(afid, buf, 0) != 0 || afid->cuname == nil){
 			vtUnlock(afid->alock);
+			consPrint("attach %s as %s: auth protocol not finished\n", fsysGetName(fsys), fid->uname);
 			fidPut(afid);
 			return 0;
 		}
@@ -109,6 +116,7 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 
 	assert(fid->uid == nil);
 	if((fid->uid = uidByUname(afid->cuname)) == nil){
+		consPrint("attach %s as %s: unknown cuname %s\n", fsysGetName(fsys), fid->uname, afid->cuname);
 		fidPut(afid);
 		return 0;
 	}

@@ -712,7 +712,7 @@ cmdUname(int argc, char* argv[])
 	User *u, *up;
 	int d, dflag, i, r;
 	char *p, *uid, *uname;
-	char *createfmt = "fsys main create -d /active/usr/%s %s %s 0775";
+	char *createfmt = "fsys main create /active/usr/%s %s %s d775";
 	char *usage = "usage: uname uname [uid|:uid|%%newname|=leader|+member|-member]";
 
 	dflag = 0;

@@ -10,7 +10,11 @@ case kfs
 case netlib
 	9fs netlib2 && bind /n/netlib2/netlib /netlib
 case dump
-	mount /srv/boot /n/dump dump
+	mount /srv/boot /n/dump dump >[2]/dev/null ||
+	mount /srv/boot /n/dump main/archive ||
+	mount /srv/boot /n/dump dump	# again to print error
+case snap
+	mount /srv/boot /n/snap main/snapshot
 case other
 	mount -C /srv/boot /n/other other
 case juke
