@@ -49,6 +49,7 @@ struct Ctype {
 	char 	*ext;
 	int	display;
 	char	*plumbdest;
+	Ctype	*next;
 };
 
 Ctype ctype[] = {
@@ -57,17 +58,18 @@ Ctype ctype[] = {
 	{ "text/html",			"html",	1,	0	},
 	{ "text/tab-separated-values",	"tsv",	1,	0	},
 	{ "text/richtext",		"rtx",	1,	0	},
+	{ "text/rtf",			"rtf",	1,	0	},
 	{ "text",			"txt",	1,	0	},
 	{ "message/rfc822",		"msg",	0,	0	},
+	{ "image/bmp",			"bmp",	0,	"image"	},
 	{ "image/jpeg",			"jpg",	0,	"image"	},
 	{ "image/gif",			"gif",	0,	"image"	},
-	{ "application/octet-stream",	"bin",	0,	0	},
 	{ "application/pdf",		"pdf",	0,	"postscript"	},
 	{ "application/postscript",	"ps",	0,	"postscript"	},
 	{ "application/",		0,	0,	0	},
 	{ "image/",			0,	0,	0	},
 	{ "multipart/",			"mul",	0,	0	},
-	{ "", 				0,	0,	0	},
+
 };
 
 Message*	acmd(Cmd*, Message*);
@@ -207,6 +209,7 @@ main(int argc, char **argv)
 	Message *cur, *m, *x;
 	char cmdline[4*1024];
 	Cmd cmd;
+	Ctype *cp;
 	char *err;
 	int n, cflag;
 	char *av[4];
@@ -268,6 +271,9 @@ main(int argc, char **argv)
 
 	top.path = s_copy(root);
 
+	for(cp = ctype; cp < ctype+nelem(ctype)-1; cp++)
+		cp->next = cp+1;
+
 	if(singleton != nil){
 		cur = dosingleton(&top, singleton);
 		if(cur == nil){
@@ -282,6 +288,7 @@ main(int argc, char **argv)
 			sysfatal("can't read %s", s_to_c(top.path));
 		Bprint(&out, "%d message%s\n", n, plural(n));
 	}
+
 
 	notify(catchnote);
 	prompt = s_new();
@@ -679,14 +686,63 @@ cracktime(char *d, char *out, int len)
 }
 
 Ctype*
-findctype(char *t)
+findctype(Message *m)
 {
-	Ctype *cp;
+	char *p;
+	char ftype[128];
+	int n, pfd[2];
+	Ctype *a, *cp;
+	static Ctype nulltype	= { "", 0, 0, 0 };
+	static Ctype bintype 	= { "application/octet-stream", "bin", 0, 0 };
 
-	for(cp = ctype; ; cp++)
-		if(strncmp(cp->type, t, strlen(cp->type)) == 0)
-			break;
-	return cp;
+	for(cp = ctype; cp; cp = cp->next)
+		if(strncmp(cp->type, m->type, strlen(cp->type)) == 0)
+			return cp;
+
+/*	use file(1) for any unknown mimetypes
+ *
+ *	if (strcmp(m->type, bintype.type) != 0)
+ *		return &nulltype;
+ */
+	if(pipe(pfd) < 0)
+		return &bintype;
+
+	*ftype = 0;
+	switch(fork()){
+	case -1:
+		break;
+	case 0:
+		close(pfd[1]);
+		close(0);
+		dup(pfd[0], 0);
+		close(1);
+		dup(pfd[0], 1);
+		execl("/bin/file", "file", "-m", s_to_c(extendpath(m->path, "body")), 0);
+		exits(0);
+	default:
+		close(pfd[0]);
+		n = read(pfd[1], ftype, sizeof(ftype));
+		if(n > 0)
+			ftype[n] = 0;
+		close(pfd[1]);
+		waitpid();
+		break;
+	}
+
+	if (*ftype=='\0' || (p = strchr(ftype, '/')) == nil)
+		return &bintype;
+	*p++ = 0;
+
+	a = mallocz(sizeof(Ctype), 1);
+	a->type = strdup(ftype);
+	a->ext = strdup(p);
+	a->display = 0;
+	a->plumbdest = strdup(ftype);
+	for(cp = ctype; cp->next; cp = cp->next)
+		continue;
+	cp->next = a;
+	a->next = nil;
+	return a;
 }
 
 void
@@ -1320,7 +1376,7 @@ pcmd(Cmd*, Message *m)
 		printpart(m->path, "unixheader");
 	if(printpart(m->path, "header") > 0)
 		Bprint(&out, "\n");
-	cp = findctype(m->type);
+	cp = findctype(m);
 	if(cp->display){
 		if(strcmp(m->type, "text/html") == 0)
 			printhtml(m);
@@ -1328,13 +1384,13 @@ pcmd(Cmd*, Message *m)
 			printpart(m->path, "body");
 	} else if(strcmp(m->type, "multipart/alternative") == 0){
 		for(nm = m->child; nm != nil; nm = nm->next){
-			cp = findctype(nm->type);
+			cp = findctype(nm);
 			if(cp->ext != nil && strncmp(cp->ext, "txt", 3) == 0)
 				break;
 		}
 		if(nm == nil)
 			for(nm = m->child; nm != nil; nm = nm->next){
-				cp = findctype(nm->type);
+				cp = findctype(nm);
 				if(cp->display)
 					break;
 			}
@@ -1350,7 +1406,7 @@ pcmd(Cmd*, Message *m)
 
 			for(nm = nm->next; nm != nil; nm = nm->next){
 				s = rooted(s_clone(nm->path));
-				cp = findctype(nm->type);
+				cp = findctype(nm);
 				snprintHeader(buf, sizeof buf, -1, nm);
 				compress(buf);
 				if(strcmp(nm->disposition, "inline") == 0){
@@ -1420,18 +1476,18 @@ quotecmd(Cmd*, Message *m)
 	Bprint(&out, "\n");
 	if(m->from != nil && *m->from)
 		Bprint(&out, "On %s, %s wrote:\n", m->date, m->from);
-	cp = findctype(m->type);
+	cp = findctype(m);
 	if(cp->display){
 		printpartindented(m->path, "body", "> ");
 	} else if(strcmp(m->type, "multipart/alternative") == 0){
 		for(nm = m->child; nm != nil; nm = nm->next){
-			cp = findctype(nm->type);
+			cp = findctype(nm);
 			if(cp->ext != nil && strncmp(cp->ext, "txt", 3) == 0)
 				break;
 		}
 		if(nm == nil)
 			for(nm = m->child; nm != nil; nm = nm->next){
-				cp = findctype(nm->type);
+				cp = findctype(nm);
 				if(cp->display)
 					break;
 			}
@@ -1440,7 +1496,7 @@ quotecmd(Cmd*, Message *m)
 	} else if(strncmp(m->type, "multipart/", 10) == 0){
 		nm = m->child;
 		if(nm != nil){
-			cp = findctype(nm->type);
+			cp = findctype(nm);
 			if(cp->display || strncmp(m->type, "multipart/", 10) == 0)
 				quotecmd(nil, nm);
 		}
