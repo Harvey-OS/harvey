@@ -268,7 +268,7 @@
 386/bin/ip/pptpd - 775 sys sys 1045538024 123603
 386/bin/ip/rarpd - 775 sys sys 1045538024 107221
 386/bin/ip/rexexec - 775 sys sys 1048799695 86880
-386/bin/ip/rip - 775 sys sys 1039758571 89757
+386/bin/ip/rip - 775 sys sys 1050760699 89819
 386/bin/ip/rlogind - 775 sys sys 1045538025 66387
 386/bin/ip/telnetd - 775 sys sys 1048799696 120198
 386/bin/ip/tftpd - 775 sys sys 1045538025 102539
@@ -297,7 +297,7 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1049377481 143599
 386/bin/ndb/csquery - 775 sys sys 1039758577 60136
-386/bin/ndb/dns - 775 sys sys 1050714846 211399
+386/bin/ndb/dns - 775 sys sys 1050757250 211475
 386/bin/ndb/dnsdebug - 775 sys sys 1050714853 186310
 386/bin/ndb/dnsquery - 775 sys sys 1039758578 62442
 386/bin/ndb/dnstcp - 775 sys sys 1049428258 185185
@@ -5062,6 +5062,7 @@ sys/src/9/ip/ipv6.h - 664 sys sys 1022588099 4304
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1045063513 1651
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1026847568 4003
+sys/src/9/ip/nudp.c - 664 sys sys 1050756592 13069
 sys/src/9/ip/nullmedium.c - 664 sys sys 1022588099 491
 sys/src/9/ip/pktmedium.c - 664 sys sys 1045063516 1355
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
@@ -9075,7 +9076,7 @@ sys/src/cmd/ip/pptp.c - 664 sys sys 1050360938 16575
 sys/src/cmd/ip/pptpd.c - 664 sys sys 1015701128 23548
 sys/src/cmd/ip/rarpd.c - 664 sys sys 1031510476 3347
 sys/src/cmd/ip/rexexec.c - 664 sys sys 1025393126 740
-sys/src/cmd/ip/rip.c - 664 sys sys 1015701126 12315
+sys/src/cmd/ip/rip.c - 664 sys sys 1050760698 12424
 sys/src/cmd/ip/rlogind.c - 664 sys sys 1015013113 755
 sys/src/cmd/ip/snoopy - 20000000775 sys sys 1015090062 0
 sys/src/cmd/ip/snoopy/arp.c - 664 sys sys 1032059928 1902
@@ -9313,7 +9314,7 @@ sys/src/cmd/ndb/csgetval.c - 664 sys sys 957402051 1051
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1049249333 18409
 sys/src/cmd/ndb/dn.c - 664 sys sys 1049408473 25198
-sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1050714836 15288
+sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1050757241 15358
 sys/src/cmd/ndb/dns.c - 664 sys sys 1049249331 15051
 sys/src/cmd/ndb/dns.h - 664 sys sys 1032060499 8082
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1049249332 8333

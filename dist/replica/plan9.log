@@ -19171,3 +19171,8 @@
 1050715915 19 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1050714836 15288
 1050715915 20 c sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1050714835 5133
 1050717717 0 c sys/src/libsunrpc/udp.c - 664 sys sys 1050717777 2193
+1050757300 0 c 386/bin/ndb/dns - 775 sys sys 1050757250 211475
+1050757300 1 a sys/src/9/ip/nudp.c - 664 sys sys 1050756592 13069
+1050757300 2 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1050757241 15358
+1050760903 0 c 386/bin/ip/rip - 775 sys sys 1050760699 89819
+1050760903 1 c sys/src/cmd/ip/rip.c - 664 sys sys 1050760698 12424
