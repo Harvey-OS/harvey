@@ -44,6 +44,8 @@ fn spool-tagged-spam {
 		_mbox=$1
 	{
 		cat $D/rawheader | sed 's/^[Ss][Uu][Bb][Jj][Ee][Cc][Tt]:/& SPAM:/'
+		if(! grep -si '^subject:' $D/rawheader)
+			echo 'Subject: SPAM: '
 		echo
 		cat $D/rawbody
 	} | $BIN/deliver $RECIP $D/from $_mbox || exit $status
@@ -106,7 +108,20 @@ fn listupdate {
 	$BIN/list add $PF $D/from $D/to $D/cc $D/sender
 }
 
-# bayesian spam filter.  alternative to token.  see /mail/lib/bayes.setup
+# microsoft virus going around 9/22/2003
+fn isvirus {
+	virus=no
+	if(grep -s '\.(exe|scr|bat|com)' $D/2/2/mimeheader >[2]/dev/null){
+		s=`{ls -l $D/2/2/raw | awk '{print $6}'}
+		if(~ $s 1440??) virus=yes
+	}
+	if(~ $virus yes)
+		status=''
+	if not
+		status='not this virus'
+}
+
+# bayesian spam filter.  alternative to token.  see /mail/lib/setup.bayes
 fn isspam {
 	for(i in _prof.mbox _prof.spam _bounced){
 		if(! test -f $i){
