@@ -3142,7 +3142,7 @@ rc/bin/window - 775 sys sys 1071573331 1781
 rc/bin/wloc - 775 sys sys 969512017 191
 rc/bin/wurl2txt - 755 sys sys 1017431148 296
 rc/bin/xls2txt - 755 sys sys 1105020030 520
-rc/bin/yesterday - 775 sys sys 1108996192 2551
+rc/bin/yesterday - 775 sys sys 1109685641 2445
 rc/lib - 20000000775 sys sys 948037639 0
 rc/lib/rcmain - 664 sys sys 984696976 579
 sparc - 20000000775 sys sys 947991046 0
@@ -4720,7 +4720,7 @@ sys/man/1/gs - 664 sys sys 1032054727 6906
 sys/man/1/gview - 664 sys sys 1087829746 4298
 sys/man/1/gzip - 664 sys sys 969499884 3073
 sys/man/1/hget - 664 sys sys 1067722859 1483
-sys/man/1/history - 664 sys sys 1044909169 1709
+sys/man/1/history - 664 sys sys 1109685635 1709
 sys/man/1/hoc - 664 sys sys 944959676 2357
 sys/man/1/idiff - 664 sys sys 1018386774 927
 sys/man/1/join - 664 sys sys 957920006 2562
