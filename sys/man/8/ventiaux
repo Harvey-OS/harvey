@@ -66,6 +66,7 @@ write \- Venti maintenance and debugging commands
 ]
 .I name
 .I file
+.PP
 .B venti/fmtindex
 [
 .B -a

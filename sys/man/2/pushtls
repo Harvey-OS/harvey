@@ -143,10 +143,10 @@ to perform the corresponding function on the server side:
 .EE
 The private key corresponding to
 .I cert.pem
-should have been previously loaded into factotum, for example by
-.EX
-   auth/secretpem key.pem > /mnt/factotum/ctl
-.EE
+should have been previously loaded into factotum.
+(See
+.IR rsa (8)
+for more about key generation.)
 .PP
 .I Conn
 is not required for the ongoing conversation and may

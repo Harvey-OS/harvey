@@ -59,6 +59,7 @@ auth_freeAI(AuthInfo *ai)
 	free(ai->suid);
 	free(ai->cap);
 	free(ai->secret);
+	free(ai);
 }
 
 static uchar*

@@ -4671,7 +4671,7 @@ sys/man/2/print - 664 sys sys 1046620831 8889
 sys/man/2/privalloc - 664 sys sys 984709633 651
 sys/man/2/proto - 664 sys sys 969499889 2948
 sys/man/2/pushssl - 664 sys sys 958249503 1032
-sys/man/2/pushtls - 664 sys sys 1045501472 4516
+sys/man/2/pushtls - 664 sys sys 1053127877 4496
 sys/man/2/qball - 664 sys sys 950892866 2000
 sys/man/2/qsort - 664 sys sys 944959694 763
 sys/man/2/quaternion - 664 sys sys 950892867 3421
@@ -4757,7 +4757,7 @@ sys/man/4/consolefs - 664 sys sys 1022112154 3751
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1018386776 3746
-sys/man/4/factotum - 664 sys sys 1049038407 14737
+sys/man/4/factotum - 664 sys sys 1053127875 14460
 sys/man/4/fossil - 664 sys sys 1048643971 8463
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1048285446 4327
@@ -4902,7 +4902,7 @@ sys/man/8/tlssrv - 664 sys sys 1037580152 2594
 sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
 sys/man/8/venti - 664 sys sys 1048637200 5194
-sys/man/8/ventiaux - 664 sys sys 1045501683 9967
+sys/man/8/ventiaux - 664 sys sys 1053095327 9971
 sys/man/8/vga - 664 sys sys 959698505 3557
 sys/man/8/x509 - 664 sys sys 1037581047 1115
 sys/man/fonts - 664 sys sys 944959700 218
@@ -10835,7 +10835,7 @@ sys/src/libauth/auth_challenge.c - 664 sys sys 1014929316 1976
 sys/src/libauth/auth_chuid.c - 664 sys sys 1016833881 669
 sys/src/libauth/auth_getkey.c - 664 sys sys 1038605082 865
 sys/src/libauth/auth_getuserpasswd.c - 664 sys sys 1014929317 1363
-sys/src/libauth/auth_proxy.c - 664 sys sys 1019058720 3595
+sys/src/libauth/auth_proxy.c - 664 sys sys 1053106349 3606
 sys/src/libauth/auth_respond.c - 664 sys sys 1044828825 1420
 sys/src/libauth/auth_rpc.c - 664 sys sys 1048645351 2064
 sys/src/libauth/auth_userpasswd.c - 664 sys sys 1014929317 1097
