@@ -5,8 +5,8 @@ BIN=/$objtype/bin/usb
 none:VQ:
 	echo mk all, install, installall, clean, or nuke
 
-install installall safeinstall:VQ:
+install installall safeinstall:V:
 	cp usbprint $bin
 
-all safeinstall clean nuke:VQ:
+all safeinstall clean nuke:V:
 	echo usbprint

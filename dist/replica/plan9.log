@@ -13281,3 +13281,5 @@
 1073566966 1 c sys/src/cmd/acme/ecmd.c - 664 sys sys 1073566949 24288
 1073566966 2 c sys/src/cmd/acme/util.c - 664 sys sys 1073566950 6456
 1073566966 3 c sys/src/cmd/acme/wind.c - 664 sys sys 1073566950 11094
+1073660579 0 c sys/src/cmd/usb/mkfile - 664 sys sys 1073660279 211
+1073660579 1 c sys/src/cmd/usb/print/mkfile - 664 sys sys 1073660166 195
