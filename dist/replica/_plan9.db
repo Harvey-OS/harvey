@@ -3343,7 +3343,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1105406030 251918
+sys/games/lib/fortunes - 664 sys sys 1105977679 252117
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -5025,7 +5025,7 @@ sys/man/4/tapefs - 664 sys sys 944959699 1731
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
-sys/man/4/usb - 664 sys sys 1101830658 3423
+sys/man/4/usb - 664 sys sys 1105992038 4295
 sys/man/4/usbd - 664 sys sys 1018386778 731
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
@@ -5273,7 +5273,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1091732792 404
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
-sys/src/9/boot/local.c - 664 sys sys 1068835808 5355
+sys/src/9/boot/local.c - 664 sys sys 1105976808 5619
 sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
 sys/src/9/boot/paq.c - 664 sys sys 1067722601 1099
@@ -6515,7 +6515,7 @@ sys/src/boot/pc/ether589.c - 664 sys sys 1015007950 4628
 sys/src/boot/pc/ether79c970.c - 664 sys sys 1015007950 11717
 sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1102429126 14806
-sys/src/boot/pc/ether8169.c - 664 sys sys 1103641772 18622
+sys/src/boot/pc/ether8169.c - 664 sys sys 1106018997 18687
 sys/src/boot/pc/ether82557.c - 664 sys sys 1098848150 18911
 sys/src/boot/pc/ether83815.c - 664 sys sys 1019537742 19576
 sys/src/boot/pc/ether8390.c - 664 sys sys 1015007951 16065
@@ -12457,3 +12457,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9loaddebug - 775 sys sys 1106021711 306647
+386/9pccpu - 775 sys sys 1106021714 1488543

@@ -179,7 +179,7 @@ int
 connectlocalfossil(void)
 {
 	int fd;
-	char *venti, *f[32];
+	char *venti, *f[32], *p;
 	int nf;
 	char partition[128], buf[512];
 	char *dev;
@@ -232,7 +232,16 @@ connectlocalfossil(void)
 				f[2] = "tcp!127.1!8000";
 			}
 			configloopback();
-			run("/boot/venti", "-c", venti, "-a", f[1], "-h", f[2], 0);
+			run("/boot/venti", "-c", f[0], "-a", f[1], "-h", f[2], 0);
+			/*
+			 * If the announce address is tcp!*!foo, then set
+			 * $venti to tcp!127.1!foo instead, which is actually dialable.
+			 */
+			if((p = strstr(f[1], "!*!")) == 0){
+				*p = 0;
+				snprint(buf, sizeof buf, "%s!127.1!%s", f[1], p+3);
+				f[1] = buf;
+			}
 			setenv("venti", f[1]);
 		}else{
 			/* set up the network so we can talk to the venti server */
