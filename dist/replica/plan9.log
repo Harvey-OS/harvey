@@ -18280,3 +18280,16 @@
 1104940940 5 c sys/src/cmd/fossil/fossil-acid - 664 sys sys 1104940044 3991
 1104985950 0 c 386/bin/calendar - 775 sys sys 1104984451 79974
 1104985950 1 c 386/bin/fossil/fossil - 775 sys sys 1104984451 360391
+1104989550 0 c rc/bin/patch/create - 775 sys sys 1104988374 1160
+1104989550 1 a sys/log/secstore - 10000000666 sys sys 1104988287 0
+1104989550 2 c sys/man/8/secstore - 664 sys sys 1104988387 1391
+1105018356 0 c sys/man/8/secstore - 664 sys sys 1105016705 1954
+1105020157 0 a 386/bin/aux/msexceltables - 775 sys sys 1105019969 80904
+1105020157 1 a rc/bin/xls2txt - 755 sys sys 1105020030 520
+1105020157 2 c sys/man/1/doc2txt - 664 sys sys 1105020018 2077
+1105030959 0 c sys/src/9/alphapc/trap.c - 664 sys sys 1105030177 18099
+1105030959 1 c sys/src/9/bitsy/trap.c - 664 sys sys 1105030166 19484
+1105030959 2 c sys/src/9/mtx/trap.c - 664 sys sys 1105030157 15882
+1105030959 3 c sys/src/9/pc/trap.c - 664 sys sys 1105030146 20520
+1105030959 4 c sys/src/9/ppc/trap.c - 664 sys sys 1105030152 18384
+1105072367 0 c 386/bin/aux/msexceltables - 775 sys sys 1105070896 80904

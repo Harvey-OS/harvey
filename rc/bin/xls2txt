@@ -1,0 +1,32 @@
+#!/bin/rc
+
+rfork en
+
+if(! ~ $#* 0 1) {
+	echo 'usage: xls2txt [file.xls]' >[1=2]
+	exit usage
+}
+
+switch($#*){
+case 0
+	cat >/tmp/xls2txt.$pid
+	file=/tmp/xls2txt.$pid
+case 1
+	file=$1
+}
+aux/olefs $file || { 
+	echo 'xls2txt: couldn''t mount excel document' >[1=2]
+	rm -f /tmp/xls2txt.$pid
+	exit word
+}
+
+if(! test -f /mnt/doc/Workbook) {
+	echo 'xls2txt: is an MSoffice doc but not an Excel document' >[1=2]
+	rm -f /tmp/xls2txt.$pid
+	exit wordxls
+}
+
+aux/msexceltables /mnt/doc/Workbook
+unmount /mnt/doc
+rm -f /tmp/xls2txt.$pid
+
