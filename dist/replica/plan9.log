@@ -18193,3 +18193,5 @@
 1046817090 1 c sys/include/ape/stdio.h - 664 sys sys 1046815898 4863
 1046817090 2 c sys/src/ape/lib/ap/stdio/fseek.c - 664 sys sys 1046815860 416
 1046887277 0 c sys/man/2/9p - 664 sys sys 1046886431 15221
+1046959292 0 c sys/man/3/root - 664 sys sys 1046958450 632
+1046971893 0 c sys/src/cmd/unix/drawterm/devip-unix.c - 664 sys sys 1046970237 15063
