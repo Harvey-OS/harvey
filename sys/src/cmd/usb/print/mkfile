@@ -1,0 +1,12 @@
+</386/mkfile
+
+BIN=/$objtype/bin/usb
+
+none:VQ:
+	echo mk all, install, installall, clean, or nuke
+
+install installall safeinstall:VQ:
+	cp usbprint $bin
+
+all safeinstall clean nuke:VQ:
+	echo usbprint

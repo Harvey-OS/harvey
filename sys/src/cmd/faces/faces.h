@@ -41,24 +41,26 @@ struct Facefile
 	Facefile	*next;
 };
 
-char		date[];
-char		*maildir;
+extern char	date[];
+extern char	*maildir;
+extern char	**maildirs;
+extern int	nmaildirs;
 
 Face*	nextface(void);
-void		findbit(Face*);
-void		freeface(Face*);
-void		initplumb(void);
-void		killall(char*);
-void		showmail(Face*);
-void		delete(char*, char*);
-void		freefacefile(Facefile*);
+void	findbit(Face*);
+void	freeface(Face*);
+void	initplumb(void);
+void	killall(char*);
+void	showmail(Face*);
+void	delete(char*, char*);
+void	freefacefile(Facefile*);
 Face*	dirface(char*, char*);
-void		resized(void);
-int		alreadyseen(char*);
+void	resized(void);
+int	alreadyseen(char*);
 ulong	dirlen(char*);
 
-void		*emalloc(ulong);
-void		*erealloc(void*, ulong);
-char		*estrdup(char*);
-char		*findfile(Face*, char*, char*);
-void		addmaildir(char*);
+void	*emalloc(ulong);
+void	*erealloc(void*, ulong);
+char	*estrdup(char*);
+char	*findfile(Face*, char*, char*);
+void	addmaildir(char*);

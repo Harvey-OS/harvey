@@ -63,7 +63,10 @@ with the
 flag causes
 .B faces
 to read the messages in
-.B /mail/fs/mbox
+.BR /mail/fs/mbox
+— or the mailboxes specified with the
+.B -m
+flag —
 upon startup.
 .PP
 The
@@ -72,11 +75,11 @@ option directs
 .I faces
 to watch for messages arriving in
 .I maildir
-as well as in
+instead of
 .BR /mail/fs/mbox .
-However, only
-.BR /mail/fs/mbox
-is used to load the initial set of faces.
+Multiple
+.B -m
+flags may be used to watch multiple mailboxes.
 .PP
 The
 .B -h

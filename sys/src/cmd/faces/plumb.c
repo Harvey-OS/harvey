@@ -11,8 +11,9 @@ static int		seefd = -1;
 static int		logfd = -1;
 static char	*user;
 static char	*logtag;
-static char	**maildirs;
-static int		nmaildirs;
+
+char		**maildirs;
+int		nmaildirs;
 
 void
 initplumb(void)
@@ -273,17 +274,11 @@ nextface(void)
 			if(m == nil)
 				killall("error on seemail plumb port");
 			t = value(m->attr, "mailtype", "");
-			if(strcmp(t, "delete") == 0){
+			if(strcmp(t, "delete") == 0)
 				delete(m->data, value(m->attr, "digest", nil));
-				plumbfree(m);
-				continue;
-			}
-			if(strcmp(t, "new") != 0){
+			else if(strcmp(t, "new") != 0)
 				fprint(2, "faces: unknown plumb message type %s\n", t);
-				plumbfree(m);
-				continue;
-			}
-			for(i=0; i<nmaildirs; i++)
+			else for(i=0; i<nmaildirs; i++)
 				if(strncmp(m->data, maildirs[i], strlen(maildirs[i])) == 0)
 					goto Found;
 			plumbfree(m);

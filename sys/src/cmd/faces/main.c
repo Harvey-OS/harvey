@@ -55,20 +55,20 @@ uchar rightdata[] = {
 
 Image	*blue;		/* full arrow */
 Image	*bgrnd;		/* pale blue background color */
-Image	*left;			/* left-pointing arrow mask */
+Image	*left;		/* left-pointing arrow mask */
 Image	*right;		/* right-pointing arrow mask */
-Font		*tinyfont;
-Font		*mediumfont;
-Font		*datefont;
-int		first, last;		/* first and last visible face; last is first invisible */
-int		nfaces;
-int		mousefd;
-int		nacross;
-int		ndown;
+Font	*tinyfont;
+Font	*mediumfont;
+Font	*datefont;
+int	first, last;	/* first and last visible face; last is first invisible */
+int	nfaces;
+int	mousefd;
+int	nacross;
+int	ndown;
 
-char		date[64];
-Face		**faces;
-char		*maildir = "/mail/fs/mbox";
+char	date[64];
+Face	**faces;
+char	*maildir = "/mail/fs/mbox";
 ulong	now;
 
 Point	datep = { 8, 6 };
@@ -89,7 +89,6 @@ setdate(void)
 void
 init(void)
 {
-	addmaildir(maildir);
 	mousefd = open("/dev/mouse", OREAD);
 	if(mousefd < 0){
 		fprint(2, "faces: can't open mouse: %r\n");
@@ -682,6 +681,8 @@ usage(void)
 void
 main(int argc, char *argv[])
 {
+	int i;
+
 	ARGBEGIN{
 	case 'h':
 		history++;
@@ -691,6 +692,7 @@ main(int argc, char *argv[])
 		break;
 	case 'm':
 		addmaildir(EARGF(usage()));
+		maildir = nil;
 		break;
 	default:
 		usage();
@@ -700,6 +702,8 @@ main(int argc, char *argv[])
 		fprint(2, "faces: initdraw failed: %r\n");
 		exits("initdraw");
 	}
+	if(maildir)
+		addmaildir(maildir);
 	init();
 	unlockdisplay(display);	/* initdraw leaves it locked */
 	display->locking = 1;	/* tell library we're using the display lock */
@@ -710,7 +714,8 @@ main(int argc, char *argv[])
 	startproc(timeproc, Timep);
 	startproc(mouseproc, Mousep);
 	if(initload)
-		loadmboxfaces(maildir);
+		for(i = 0; i < nmaildirs; i++)
+		 loadmboxfaces(maildirs[i]);
 	faceproc();
 	fprint(2, "faces: %s process exits\n", procnames[Mainp]);
 	killall(nil);

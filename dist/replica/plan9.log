@@ -13256,3 +13256,16 @@
 1072909862 2 a sys/src/libcomplete - 20000000775 sys sys 1072904881 0
 1072909862 3 a sys/src/libcomplete/complete.c - 664 sys sys 1072904881 2673
 1072909862 4 a sys/src/libcomplete/mkfile - 664 sys sys 1072904881 208
+1072972871 0 c sys/man/1/faces - 664 sys sys 1072972212 2093
+1072972871 1 c sys/src/9/boot/bootip.c - 664 sys sys 1072972133 3418
+1072972871 2 c sys/src/9/mtx/mkfile - 664 sys sys 1072972534 1520
+1072972871 3 c sys/src/9/pc/io.h - 664 sys sys 1072972600 8023
+1072972871 4 c sys/src/9/pc/usbuhci.c - 664 sys sys 1072972271 30738
+1072972871 5 c sys/src/ape/lib/ap/plan9/mkfile - 664 sys sys 1072972153 1385
+1072972871 6 c sys/src/cmd/acme/util.c - 664 sys sys 1072972297 6436
+1072972871 7 c sys/src/cmd/faces/faces.h - 664 sys sys 1072972232 1115
+1072972871 8 c sys/src/cmd/faces/main.c - 664 sys sys 1072972232 13637
+1072972871 9 c sys/src/cmd/faces/plumb.c - 664 sys sys 1072972233 7054
+1073008876 0 a sys/src/cmd/usb/print - 20000000775 sys sys 1073007760 0
+1073008876 1 a sys/src/cmd/usb/print/mkfile - 664 sys sys 1073007760 197
+1073008876 2 a sys/src/cmd/usb/print/usbprint - 775 sys sys 1073007760 222
