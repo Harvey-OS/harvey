@@ -463,7 +463,7 @@ windfilewidth(Window *w, uint q0, int oneelement)
 void
 showcandidates(Window *w, Completion *c)
 {
-	int i, moveit;
+	int i;
 	Fmt f;
 	Rune *rp;
 	uint nr, qline, q0;
@@ -489,10 +489,7 @@ showcandidates(Window *w, Completion *c)
 	nr = runestrlen(rp);
 
 	q0 = w->q0;
-	moveit = q0 == w->qh;
 	winsert(w, rp, runestrlen(rp), qline);
-	if(moveit)
-		w->qh += nr;
 	free(rp);
 	wsetselect(w, q0+nr, q0+nr);
 }
