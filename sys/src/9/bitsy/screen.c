@@ -16,7 +16,7 @@
 
 #define	MINX	8
 
-int landscape = 1;	/* orientation of the screen, default is 0: portait */
+int landscape = 0;	/* orientation of the screen, default is 0: portait */
 
 enum {
 	Wid		= 240,

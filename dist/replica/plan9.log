@@ -12021,3 +12021,7 @@
 1053223268 0 c sys/src/cmd/rx.c - 664 sys sys 1053223080 3374
 1053226869 0 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1053226064 30784
 1053277372 0 a mail/lib/pipeto.lib - 664 upas upas 1053275597 2715
+1053342129 0 c sys/src/9/bitsy/Booting101 - 664 sys sys 1053341743 7306
+1053342129 1 c sys/src/9/bitsy/screen.c - 664 sys sys 1053340962 10145
+1053342129 2 c sys/src/9/bitsy/wavelan.c - 664 sys sys 1053340976 27266
+1053401563 0 c sys/games/lib/fortunes - 664 sys sys 1053400198 243227
