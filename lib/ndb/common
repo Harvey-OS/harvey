@@ -181,6 +181,7 @@ tcp=infcsigner port=6672
 tcp=inflogin port=6673
 tcp=bandt port=7330
 tcp=face port=32000
+tcp=dhashgate port=11978
 tcp=exportfs port=17007
 tcp=rexexec port=17009
 tcp=ncpu port=17010
@@ -219,6 +220,6 @@ udp=bfs port=2201
 udp=virgil port=2202
 udp=bandt2 port=7331
 udp=oradius port=1645
-udp=chord-dhash port=11865
+udp=dhash port=11977
 
 gre=ppp port=34827
