@@ -23,14 +23,14 @@ typedef struct Objtype {
 } Objtype;
 
 Objtype objtype[] = {
-	{"386",		"8c", "8l", "8"},
 	{"68020",	"2c", "2l", "2"},
+	{"arm",		"5c", "5l", "5"},
+	{"amd64",	"6c", "6l", "6"},
 	{"alpha",	"7c", "7l", "7"},
-	{"mips",	"vc", "vl", "v"},
-	{"arm",	"5c", "5l", "5"},
-	{"mips2",	"4c", "4l", "4"},
-	{"power",	"qc", "ql", "q"},
+	{"386",		"8c", "8l", "8"},
 	{"sparc",	"kc", "kl", "k"},
+	{"power",	"qc", "ql", "q"},
+	{"mips",	"vc", "vl", "v"},
 };
 
 enum {
@@ -45,7 +45,7 @@ typedef struct List {
 
 List	srcs, objs, cpp, cc, ld, ldargs, srchlibs;
 int	cflag, vflag, Eflag, Sflag, Aflag;
-char	*allos = "2478kqv";
+char	*allos = "2678kqv";
 
 void	append(List *, char *);
 char	*changeext(char *, char *);
@@ -112,7 +112,9 @@ main(int argc, char *argv[])
 				append(&srchlibs, lib);
 			break;
 		case 'N':
-			append(&cc, "-N");
+		case 'T':
+		case 'w':
+			append(&cc, smprint("-%c", ARGC()));
 			break;
 		case 'O':
 			break;
@@ -138,9 +140,6 @@ main(int argc, char *argv[])
 		case 'v':
 			vflag = 1;
 			append(&ldargs, "-v");
-			break;
-		case 'w':
-			append(&cc, "-w");
 			break;
 		case 'A':
 			Aflag = 1;
