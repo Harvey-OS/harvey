@@ -11181,7 +11181,7 @@ sys/src/libc/9sys/write.c - 664 sys sys 1014927340 110
 sys/src/libc/9sys/writev.c - 664 sys sys 1014927340 577
 sys/src/libc/9syscall - 20000000775 sys sys 1014927373 0
 sys/src/libc/9syscall/mkfile - 664 sys sys 1032061071 2427
-sys/src/libc/9syscall/sys.h - 664 sys sys 1062076905 896
+sys/src/libc/9syscall/sys.h - 664 sys sys 1062619381 878
 sys/src/libc/alpha - 20000000775 sys sys 984709299 0
 sys/src/libc/alpha/_seek.c - 664 sys sys 944961723 179
 sys/src/libc/alpha/argv0.s - 664 sys sys 984709435 90
