@@ -5296,7 +5296,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1055689891 52089
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1067722685 50288
+sys/src/9/pc/sdata.c - 664 sys sys 1068336178 50325
 sys/src/9/pc/sdmylex.c - 664 sys sys 1015014523 27750
 sys/src/9/pc/sdscsi.c - 664 sys sys 1055689892 7406
 sys/src/9/pc/trap.c - 664 sys sys 1068237910 20045
@@ -10562,9 +10562,9 @@ sys/src/cmd/upas/filterkit/readaddrs.c - 664 sys sys 1018549521 1381
 sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
-sys/src/cmd/upas/fs/fs.c - 664 sys sys 1063896947 27346
+sys/src/cmd/upas/fs/fs.c - 664 sys sys 1068350246 27381
 sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1061779754 18103
-sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1063858849 28505
+sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1068350247 28726
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1047490343 7464
 sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1063854740 12408

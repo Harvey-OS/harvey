@@ -1115,6 +1115,15 @@ convert(Message *m)
 			m->bend = x + len;
 			m->ballocd = 1;
 		}
+	} else if(cistrcmp(s_to_c(m->charset), "iso-2022-jp") == 0){
+		len = xtoutf("jis", &x, m->body, m->bend);
+		if(len != 0){
+			if(m->ballocd)
+				free(m->body);
+			m->body = x;
+			m->bend = x + len;
+			m->ballocd = 1;
+		}
 	} else if(cistrcmp(s_to_c(m->charset), "windows-1257") == 0
 			|| cistrcmp(s_to_c(m->charset), "windows-1252") == 0){
 		len = is8bit(m);
