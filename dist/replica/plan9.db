@@ -6048,9 +6048,9 @@ sys/src/ape/lib/bsd/setlinebuf.c - 664 sys sys 1014921995 111
 sys/src/ape/lib/bsd/shutdown.c - 664 sys sys 1014921995 117
 sys/src/ape/lib/bsd/socket.c - 664 sys sys 1014921995 2810
 sys/src/ape/lib/bsd/socketpair.c - 664 sys sys 1014921995 325
-sys/src/ape/lib/bsd/strcasecmp.c - 664 sys sys 1014921995 299
+sys/src/ape/lib/bsd/strcasecmp.c - 664 sys sys 1051635385 343
 sys/src/ape/lib/bsd/strdup.c - 664 sys sys 1014921995 182
-sys/src/ape/lib/bsd/strncasecmp.c - 664 sys sys 1014921995 684
+sys/src/ape/lib/bsd/strncasecmp.c - 664 sys sys 1051635385 385
 sys/src/ape/lib/bsd/writev.c - 664 sys sys 1014921995 908
 sys/src/ape/lib/l - 20000000775 sys sys 1014921994 0
 sys/src/ape/lib/l/allprint.c - 664 sys sys 1014921994 458
@@ -10364,7 +10364,7 @@ sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1047490338 16071
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1047490342 28282
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1047490343 7464
-sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1048645264 11514
+sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1051633710 11590
 sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418
