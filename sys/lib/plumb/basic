@@ -12,10 +12,10 @@ type is text
 data matches '(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|prospero)://[a-zA-Z0-9_@\-]+([.:][a-zA-Z0-9_@\-]+)*/?[a-zA-Z0-9_?,%#~&/\-+=]+([:.][a-zA-Z0-9_?,%#~&/\-+=]+)*\.(jpe?g|JPE?G|gif|GIF|ps|PS|pdf|PDF)'
 plumb start rc -c 'hget '$0' | page -w'
 
-# doc and rtf files go to wdoc2txt
+# rtf files go to wdoc2txt
 type is text
 data matches '[a-zA-Z¡-￿0-9_\-./]+'
-data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(doc|rtf)'
+data matches '([a-zA-Z¡-￿0-9_\-./]+)\.rtf'
 arg isfile	$0
 plumb to msword
 plumb start wdoc2txt $file
@@ -40,11 +40,11 @@ arg isfile	$0
 plumb to image
 plumb client page -wi
 
-# postscript/pdf/dvi go to page but not over the a plumb port
+# postscript/pdf/dvi/doc go to page but not over the a plumb port
 # the port is here for reference but is unused
 type is text
 data matches '[a-zA-Z¡-￿0-9_\-./]+'
-data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(ps|PS|eps|EPS|pdf|PDF|dvi|DVI)'
+data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(ps|PS|eps|EPS|pdf|PDF|dvi|DVI|doc|DOC)'
 arg isfile	$0
 plumb to postscript
 plumb start page -w $file

@@ -144,12 +144,14 @@ mkdir(char *name, ulong mode, ulong mtime, char *uid, char *gid)
 	Dir *d, xd;
 	int fd;
 	char *p;
+	char olderr[256];
 
 	fd = create(name, OREAD, mode);
 	if(fd < 0){
+		rerrstr(olderr, sizeof(olderr));
 		if((d = dirstat(name)) == nil || !(d->mode & DMDIR)){
 			free(d);
-			warn("can't make directory %q: %r", name);
+			warn("can't make directory %q, mode %luo: %s", name, olderr);
 			return;
 		}
 	}
