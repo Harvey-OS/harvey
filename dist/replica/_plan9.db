@@ -12382,3 +12382,9 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9loaddebug - 775 sys sys 1096600155 298042
+386/9loadlitedebug - 775 sys sys 1096600155 192976
+386/9pc - 775 sys sys 1096600159 1817314
+386/9pccpu - 775 sys sys 1096600162 1473469
+386/9pcdisk - 775 sys sys 1096600167 2019920
+386/9pcf - 775 sys sys 1096600172 2351563
