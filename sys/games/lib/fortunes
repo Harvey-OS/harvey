@@ -4004,3 +4004,5 @@ return ({goto L; p;}) && ({L: 5;});
 object-oriented design is the roman numerals of computing.  - rob
 Java is the f*cking COBOL of the 90s, and future generations of geeks are going to fly back from Mars to piss on our graves for inflicting it on them.  - rasputnik@hellooperator.net
 httpd_server* httpd_initialize(char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P, unsigned short port, char* cgi_pattern, int cgi_limit, char* charset, char* p3p, int max_age, char* cwd, int no_log, FILE* logfp, int no_symlink_check, int vhost, int global_passwd, char* url_pattern, char* local_pattern, int no_empty_referers )
+it's easier to post to 9fans than to think. - boyd
+We assume familiarity with Rubik's Cube, the delights of which cannot be presented adequately in a textual description!  - an algorithms textbook

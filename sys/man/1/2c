@@ -231,7 +231,7 @@ which initializes the third and tenth elements of the eleven-element array
 Structure initializers can specify the structure element by using the name
 following a period, as
 .EX
-    int struct { int x; int y; } s = { .y 1, .x 5 };
+    struct { int x; int y; } s = { .y 1, .x 5 };
 .EE
 which initializes elements
 .B y
@@ -242,7 +242,7 @@ of the structure
 These forms also accept the new ANSI C notation, which includes an equal sign:
 .EX
     int a[] = { [3] = 1, [10] = 5 };
-    int struct { int x; int y; } s = { .y = 1, .x = 5 };
+    struct { int x; int y; } s = { .y = 1, .x = 5 };
 .EE
 .TP
 \-
