@@ -29,7 +29,7 @@ enum
 	TcptimerDONE	= 2,
 	MAX_TIME 	= (1<<20),	/* Forever */
 	TCP_ACK		= 50,		/* Timed ack sequence in ms */
-	MAXBACKMS	= 30000,	/* longest backoff time (ms) before hangup */
+	MAXBACKMS	= 9*60*1000,	/* longest backoff time (ms) before hangup */
 
 	URG		= 0x20,		/* Data marked urgent */
 	ACK		= 0x10,		/* Acknowledge is valid */
@@ -707,10 +707,7 @@ tcphalt(Tcppriv *priv, Tcptimer *t)
 int
 backoff(int n)
 {
-	if(n < 5)
-		return 1 << n;
-
-	return 64;
+	return 1 << n;
 }
 
 void
@@ -3123,15 +3120,15 @@ tcpsettimer(Tcpctl *tcb)
 {
 	int x;
 
-	/* round trip depenency */
+	/* round trip dependency */
 	x = backoff(tcb->backoff) *
 	    (tcb->mdev + (tcb->srtt>>LOGAGAIN) + MSPTICK) / MSPTICK;
 
-	/* bounded twixt 1/2 and 10 seconds */
+	/* bounded twixt 1/2 and 64 seconds */
 	if(x < 500/MSPTICK)
 		x = 500/MSPTICK;
-	else if(x > (10000/MSPTICK))
-		x = 10000/MSPTICK;
+	else if(x > (64000/MSPTICK))
+		x = 64000/MSPTICK;
 	tcb->timer.start = x;
 }
 
