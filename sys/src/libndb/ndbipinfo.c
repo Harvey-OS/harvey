@@ -1,178 +1,101 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include <ip.h>
 #include <ndb.h>
+#include <ip.h>
 
-typedef struct Attr Attr;
-struct Attr
+enum
 {
-	Attr		*next;
-	int		addronly;
-	char		*attr;
-	Ndbtuple	*first;	
-	Ndbtuple	*last;
-	int		masklen;
+	Ffound=	1<<0,
+	Fignore=1<<1,
+	Faddr=	1<<2,
 };
 
-#ifdef DEBUGGING
-static void
-prtuple(char *tag, Ndbtuple *t)
-{
-	print("%s tag\n\t", tag);
-	for(; t != nil; t = t->entry){
-		print("%s=%s ", t->attr, t->val);
-		if(t->entry != t->line){
-			if(t->entry != nil)
-				print("\n\t");
-			else
-				print("\n");
-		}
-	}
-}
-#endif DEBUGGING
+static Ndbtuple*	filter(Ndb *db, Ndbtuple *t, Ndbtuple *f);
+static Ndbtuple*	mkfilter(int argc, char **argv);
+static int		filtercomplete(Ndbtuple *f);
+static Ndbtuple*	toipaddr(Ndb *db, Ndbtuple *t);
+static int		prefixlen(uchar *ip);
+static Ndbtuple*	subnet(Ndb *db, uchar *net, Ndbtuple *f, int prefix);
 
-/*
- *  reorder the tuple to put x's line first in the entry
- */
+/* make a filter to be used in filter */
 static Ndbtuple*
-reorder(Ndbtuple *t, Ndbtuple *x)
+mkfilter(int argc, char **argv)
+{
+	Ndbtuple *t, *first, *last;
+	char *p;
+
+	last = first = nil;
+	while(argc-- > 0){
+		t = ndbnew(0, 0);
+		if(first)
+			last->entry = t;
+		else
+			first = t;
+		last = t;
+		p = *argv++;
+		if(*p == '@'){
+			t->ptr |= Faddr;
+			p++;
+		}
+		strncpy(t->attr, p, sizeof(t->attr)-1);
+	}
+	return first;
+}
+
+/* return true if every pair of filter has been used */
+static int
+filtercomplete(Ndbtuple *f)
+{
+	for(; f; f = f->entry)
+		if((f->ptr & Fignore) == 0)
+			return 0;
+	return 1;
+}
+
+/* set the attribute of all entries in a tuple */
+static Ndbtuple*
+setattr(Ndbtuple *t, char *attr)
 {
 	Ndbtuple *nt;
-	Ndbtuple *last, *prev;
 
-	/* if x is first, we're done */
-	if(x == t)
-		return t;
-
-	/* find end of x's line */
-	for(last = x; last->line == last->entry; last = last->line)
-		;
-
-	/* rotate to make this line first */
-	if(last->line != t){
-
-		/* detach this line and everything after it from the entry */
-		for(nt = t; nt->entry != last->line; nt = nt->entry)
-			;
-		nt->entry = nil;
-	
-		/* switch */
-		for(nt = last; nt->entry != nil; nt = nt->entry)
-			;
-		nt->entry = t;
-	}
-
-	/* rotate line to make x first */
-	if(x != last->line){
-
-		/* find entry before x */
-		for(prev = last; prev->line != x; prev = prev->line);
-			;
-
-		/* detach line */
-		nt = last->entry;
-		last->entry = last->line;
-
-		/* reattach */
-		prev->entry = nt;
-	}
-
-	return x;
+	for(nt = t; nt; nt = nt->entry)
+		strcpy(nt->attr, attr);
+	return t;
 }
 
 /*
- *  lookup an ip addresses
+ *  return only the attr/value pairs in t maching the filter, f.
+ *  others are freed.  line structure is preserved.
  */
 static Ndbtuple*
-toipaddr(Ndb *db, Ndbtuple *t)
+filter(Ndb *db, Ndbtuple *t, Ndbtuple *f)
 {
-	Ndbtuple *xt, *nt, **l;
-	char buf[Ndbvlen];
-	Ndbs s;
-	char *attr;
+	Ndbtuple *nt, *nf, *next;
 
-	attr = ipattr(t->val);
-	if(strcmp(attr, "ip") == 0)
-		return t;
+	/* filter out what we don't want */
+	for(nt = t; nt; nt = next){
+		next = nt->entry;
 
-	nt = ndbgetval(db, &s, attr, t->val, "ip", buf);
-	if(nt == nil)
-		return 0;
-	nt = reorder(nt, s.t);
-
-	/* throw out non ip twoples */
-	l = &nt;
-	while(*l != nil){
-		xt = *l;
-		if(strcmp(xt->attr, "ip") != 0){
-			/* unlink */
-			*l = xt->entry;
-			xt->entry = nil;
-
-			/* free */
-			ndbfree(xt);
-			continue;
+		/* look through filter */
+		for(nf = f; nf != nil; nf = nf->entry){
+			if(!(nf->ptr&Fignore) && strcmp(nt->attr, nf->attr) == 0)
+				break;
 		}
-		strcpy(xt->attr, t->attr);
-		l = &xt->entry;
-	}
-
-	ndbfree(t);
-	return nt;
-}
-
-/*
- *  Mine the entry for the desired attributes.  Longer masks
- *  take priority.
- */
-static Ndbtuple*
-mine(Ndb *db, Ndbtuple *t, Attr *a, int masklen, int *needed)
-{
-	Ndbtuple **l, *nt;
-
-	for(; a != nil; a = a->next){
-		for(l = &t; *l != nil;){
-			nt = *l;
-			if(strcmp(a->attr, nt->attr) != 0){
-				l = &nt->entry;
-				continue;
-			}
-
-			if(a->first){
-				/* longer masks replace shorter */
-				if(masklen > a->masklen){
-					ndbfree(a->first);
-					a->first = nil;
-					a->last = nil;
-					(*needed)++;
-				} else if(a->masklen > masklen) {
-					l = &nt->entry;
-					continue;
-				}
-			}
-
-			/* unchain tuple from t */
-			*l = nt->entry;
-			nt->entry = nil;
-
-			if(a->addronly)
-				nt = toipaddr(db, nt);
-			if(nt == nil)
-				continue;
-
-			/* chain tuple into the Attr */
-			if(a->last)
-				a->last->entry = nt;
-			else
-				a->first = nt;
-			while(nt->entry)
-				nt = nt->entry;
-			a->last = nt;
-			a->masklen = masklen;
-			(*needed)--;
+		if(nf == nil){
+			/* remove nt from t */
+			t = ndbdiscard(t, nt);
+		} else {
+			if(nf->ptr & Faddr)
+				t = ndbsubstitute(t, nt, setattr(ndbgetipaddr(db, nt->val), nt->attr));
+			nf->ptr |= Ffound;
 		}
 	}
+
+	/* remember filter etnries that matched */
+	for(nf = f; nf != nil; nf = nf->entry)
+		if(nf->ptr & Ffound)
+			nf->ptr = (nf->ptr & ~Ffound) | Fignore;
 
 	return t;
 }
@@ -190,34 +113,35 @@ prefixlen(uchar *ip)
 }
 
 /*
- *  look for all networks whose masks are shorter than lastlen
- *  and whose IP address matches net.
+ *  look through a containing subset
  */
-static void
-subnet(Ndb *db, uchar *net, Attr *a, int prefix, int *needed)
+static Ndbtuple*
+subnet(Ndb *db, uchar *net, Ndbtuple *f, int prefix)
 {
 	Ndbs s;
-	Ndbtuple *t;
+	Ndbtuple *t, *nt;
 	char netstr[Ndbvlen];
 	char maskstr[Ndbvlen];
 	uchar mask[IPaddrlen];
 	int masklen;
 
+	t = nil;
 	sprint(netstr, "%I", net);
-	t = ndbsearch(db, &s, "ip", netstr);
-	while(t != nil){
-		if(ndblookval(t, t, "ipnet", maskstr) != nil){
-			if(ndblookval(t, t, "ipmask", maskstr))
+	nt = ndbsearch(db, &s, "ip", netstr);
+	while(nt != nil){
+		if(ndblookval(nt, nt, "ipnet", maskstr) != nil){
+			if(ndblookval(nt, nt, "ipmask", maskstr))
 				parseipmask(mask, maskstr);
 			else
 				ipmove(mask, defmask(net));
 			masklen = prefixlen(mask);
 			if(masklen <= prefix)
-				t = mine(db, t, a, masklen, needed);
-		}
-		ndbfree(t);
-		t = ndbsnext(&s, "ip", netstr);
+				t = ndbconcatenate(t, filter(db, nt, f));
+		} else
+			ndbfree(nt);
+		nt = ndbsnext(&s, "ip", netstr);
 	}
+	return t;
 }
 
 /*
@@ -229,13 +153,9 @@ subnet(Ndb *db, uchar *net, Attr *a, int prefix, int *needed)
 Ndbtuple*
 ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 {
-	Ndbtuple *t, *nt, **lt;
+	Ndbtuple *t, *nt, *f;
 	Ndbs s;
-	char *p;
-	Attr *a, *list, **l;
-	int i, needed;
 	char ipstr[Ndbvlen];
-	uchar ip[IPaddrlen];
 	uchar net[IPaddrlen];
 	int prefix, smallestprefix;
 	int force;
@@ -245,63 +165,40 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	fmtinstall('M', eipfmt);
 
 	/* get needed attributes */
-	needed = 0;
-	l = &list;
-	for(i = 0; i < n; i++){
-		p = *alist++;
-		if(p == nil)
-			break;
-		a = mallocz(sizeof(*a), 1);
-		if(a == nil)
-			break;
-		if(*p == '@'){
-			a->addronly = 1;
-			p++;
-		}
-		a->attr = p;
-		*l = a;
-		l = &(*l)->next;
-		needed++;
-	}
+	f = mkfilter(n, alist);
 
 	/*
 	 *  first look for a matching entry with an ip address
 	 */
-	t = ndbgetval(db, &s, attr, val, "ip", ipstr);
-	if(t == nil){
+	t = nil;
+	nt = ndbgetval(db, &s, attr, val, "ip", ipstr);
+	if(nt == nil){
 		/* none found, make one up */
 		if(strcmp(attr, "ip") != 0)
 			return nil;
-		strncpy(ipstr, val, sizeof(ipstr)-1);
-		ip[sizeof(ip)-1] = 0;
-		t = malloc(sizeof(*t));
-		strcpy(t->attr, "ip");
-		strcpy(t->val, ipstr);
+		t = ndbnew("ip", val);
 		t->line = t;
 		t->entry = nil;
-		t = mine(db, t, list, 128, &needed);
-		ndbfree(t);
 	} else {
 		/* found one */
-		while(t != nil){
-			t = reorder(t, s.t);
-			t = mine(db, t, list, 128, &needed);
-			ndbfree(t);
-			t = ndbsnext(&s, attr, val);
+		while(nt != nil){
+			nt = ndbreorder(nt, s.t);
+			t = ndbconcatenate(t, nt);
+			nt = ndbsnext(&s, attr, val);
 		}
 	}
-	parseip(ip, ipstr);
-	ipmove(net, ip);
+	t = filter(db, t, f);
+	parseip(net, ipstr);
 
 	/*
 	 *  now go through subnets to fill in any missing attributes
 	 */
-	if(isv4(ip)){
+	if(isv4(net)){
 		prefix = 127;
 		smallestprefix = 100;
 		force = 0;
 	} else {
-		/* in v6, the last 8 bytes have no structure */
+		/* in v6, the last 8 bytes have no structure (we hope) */
 		prefix = 64;
 		smallestprefix = 2;
 		memset(net+8, 0, 8);
@@ -315,35 +212,15 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	 *  complete, we may need to find a trick to speed this up.
 	 */
 	for(; prefix >= smallestprefix; prefix--){
-		if(needed == 0)
+		if(filtercomplete(f))
 			break;
 		if(!force && (net[prefix/8] & (1<<(7-(prefix%8)))) == 0)
 			continue;
 		force = 0;
 		net[prefix/8] &= ~(1<<(7-(prefix%8)));
-		subnet(db, net, list, prefix, &needed);
+		t = ndbconcatenate(t, subnet(db, net, f, prefix));
 	}
 
-	/*
-	 *  chain together the results and free the list
-	 */
-	lt = &t;
-	while(list != nil){
-		a = list;
-		list = a->next;
-		*lt = a->first;
-		if(*lt == nil && strcmp(a->attr, "ipmask") == 0){
-			/* add a default ipmask if we need one */
-			*lt = mallocz(sizeof( Ndbtuple), 1);
-			strcpy((*lt)->attr, "ipmask");
-			snprint((*lt)->val, sizeof((*lt)->val), "%M", defmask(ip));
-		}
-		while(nt = *lt){
-			nt->line = nt->entry;
-			lt = &nt->entry;
-		}
-		free(a);
-	}
-
+	ndbfree(f);
 	return t;
 }

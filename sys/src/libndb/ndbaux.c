@@ -21,9 +21,7 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 	if(*cp == '#' || *cp == '\n')
 		return 0;
 
-	t = mallocz(sizeof(Ndbtuple), 1);
-	if(t == nil)
-		return nil;
+	t = ndbnew(nil, nil);
 	setmalloctag(t, getcallerpc(&cp));
 	*tp = t;
 
@@ -56,9 +54,7 @@ _ndbparsetuple(char *cp, Ndbtuple **tp)
 				cp++;
 			len = cp - p;
 		}
-		if(len >= Ndbvlen)
-			len = Ndbvlen;
-		strncpy(t->val, p, len);
+		ndbsetval(t, p, len);
 	}
 
 	return cp;

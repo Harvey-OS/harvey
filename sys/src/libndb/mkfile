@@ -2,20 +2,25 @@
 
 LIB=/$objtype/lib/libndb.a
 OFILES=\
-	ndbhash.$O\
-	ndbopen.$O\
-	ndbparse.$O\
-	ndbcache.$O\
-	ndbcat.$O\
-	ndbgetval.$O\
-	ndbaux.$O\
-	ndbfree.$O\
-	ipattr.$O\
-	ndbipinfo.$O\
-	ndblookval.$O\
 	csgetval.$O\
 	csipinfo.$O\
 	dnsquery.$O\
+	ipattr.$O\
+	ndbaux.$O\
+	ndbcache.$O\
+	ndbcat.$O\
+	ndbconcatenate.$O\
+	ndbdiscard.$O\
+	ndbfree.$O\
+	ndbgetipaddr.$O\
+	ndbgetval.$O\
+	ndbhash.$O\
+	ndbipinfo.$O\
+	ndblookval.$O\
+	ndbopen.$O\
+	ndbparse.$O\
+	ndbreorder.$O\
+	ndbsubstitute.$O\
 
 HFILES=\
 	/sys/include/ndb.h\

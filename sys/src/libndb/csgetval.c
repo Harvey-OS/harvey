@@ -11,7 +11,7 @@
  *  return 0 if not found.
  */
 Ndbtuple*
-csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
+csgetvalue(char *netroot, char *attr, char *val, char *rattr, char *buf, int len)
 {
 	Ndbtuple *t, *first, *last;
 	int n, linefound;
@@ -35,6 +35,7 @@ csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 	}
 	seek(fd, 0, 0);
 
+	werrstr("");
 	first = last = 0;
 	linefound = 0;
 	for(;;){
@@ -58,8 +59,12 @@ csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 
 		for(; t; t = t->entry){
 			if(buf[0] == 0 || linefound == 0)
-				if(strcmp(rattr, t->attr) == 0)
-					strcpy(buf, t->val);
+				if(strcmp(rattr, t->attr) == 0){
+					strncpy(buf, t->val, len);
+					buf[len-1] = 0;
+					if(strlen(t->val) >= len)
+						werrstr("return value truncated");
+				}
 			if(linefound == 0)
 				if(strcmp(attr, t->attr) == 0)
 					linefound = 1;
@@ -69,4 +74,10 @@ csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
 
 	setmalloctag(first, getcallerpc(&netroot));
 	return first;
+}
+
+Ndbtuple*
+csgetval(char *netroot, char *attr, char *val, char *rattr, char *buf)
+{
+	return csgetvalue(netroot, attr, val, rattr, buf, Ndbvlen);
 }
