@@ -19,6 +19,12 @@ LIB=	/$objtype/lib/libdraw.a\
 	/$objtype/lib/libframe.a\
 
 BIN=/$objtype/bin/aux
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
 </sys/src/cmd/mkone
 
 CFLAGS=-I../sam $CFLAGS
