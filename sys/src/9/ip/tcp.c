@@ -336,8 +336,6 @@ struct Tcppriv
 	QLock 	tl;
 	Tcptimer *timers;
 
-	Rendez	tcpr;			/* used by tcpackproc */
-
 	/* hash table for matching conversations */
 	Ipht	ht;
 
@@ -645,7 +643,7 @@ tcpackproc(void *a)
 	priv = tcp->priv;
 
 	for(;;) {
-		tsleep(&priv->tcpr, return0, 0, MSPTICK);
+		tsleep(&up->sleep, return0, 0, MSPTICK);
 
 		qlock(&priv->tl);
 		timeo = nil;

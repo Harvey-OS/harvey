@@ -24,6 +24,7 @@ dev
 	vga
 
 	sd
+	fs
 	floppy		dma
 	lpt
 
@@ -43,18 +44,20 @@ link
 	ether79c970	pci
 	ether8003	ether8390
 	ether8139
-	ether82557	pci
 	ether82543gc	pci
+	ether82557	pci
 	ether83815	pci
 	etherec2t	ether8390
-	etherga620	pci
 	etherelnk3	pci
+	etherga620	pci
+	etherigbe	pci ethermii
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
 	pcmciamodem
 	netdevmedium
+	loopbackmedium
 	usbuhci
 
 misc
@@ -65,6 +68,7 @@ misc
 	sdmylex		pci sdscsi
 
 	uarti8250
+	uartpci		pci
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
@@ -107,6 +111,6 @@ boot boot #S/sdC0/
 bootdir
 	bootpcdisk.out boot
 	/386/bin/ip/ipconfig
-	factotum.hack factotum
+	/386/bin/auth/factotum
 	/386/bin/disk/kfs
 	/386/bin/cfs

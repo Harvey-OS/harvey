@@ -65,7 +65,10 @@ struct builtin{
 	void (*fnc)(void);
 }Builtin[];
 int eflagok;			/* kludge flag so that -e doesn't exit in startup */
+int havefork;
+
 void execcd(void), execwhatis(void), execeval(void), execexec(void);
+int execforkexec(void);
 void execexit(void), execshift(void);
 void execwait(void), execumask(void), execdot(void), execflag(void);
 void execfunc(var*), execcmds(io *);

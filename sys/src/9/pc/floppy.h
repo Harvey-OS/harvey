@@ -30,8 +30,6 @@ struct FDrive
 	uchar	*cache;		/* track cache */
 	int	ccyl;
 	int	chead;
-
-	Rendez	r;		/* waiting here for motor to spin up */
 };
 
 /*
@@ -52,7 +50,6 @@ struct FController
 	int	confused;	/* controler needs to be reset */
 	Rendez	r;		/* wait here for command termination */
 	int	motor;		/* bit mask of spinning disks */
-	Rendez	kr;		/* for motor watcher */
 };
 
 /*

@@ -29,6 +29,7 @@ static Field p_fields[] =
 {
 	{"s",		Fnum,	Os,	"source port",	} ,
 	{"d",		Fnum,	Od,	"dest port",	} ,
+	{"a",		Fnum,	Osd,	"source/dest port",	} ,
 	{"sd",		Fnum,	Osd,	"source/dest port",	} ,
 	{0}
 };

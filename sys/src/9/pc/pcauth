@@ -23,6 +23,7 @@ dev
 	vga
 
 	sd
+	fs
 	floppy		dma
 
 	uart
@@ -61,5 +62,5 @@ boot cpu boot #S/sdC0/
 bootdir
 	bootpcauth.out boot
 	/386/bin/ip/ipconfig
-	factotum.hack factotum
+	/386/bin/auth/factotum
 	/386/bin/disk/kfs

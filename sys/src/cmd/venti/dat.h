@@ -128,6 +128,12 @@ struct Config
 	ArenaPart	**aparts;
 	int		nsects;			/* index sections initialized */
 	ISect		**sects;
+	u32int		bcmem;
+	u32int		mem;
+	u32int		icmem;
+	int		queueWrites;
+	char		*haddr;
+	char		*vaddr;
 };
 
 /*

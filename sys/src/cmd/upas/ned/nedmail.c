@@ -14,6 +14,7 @@ char	*user;
 char	wd[2048];
 String	*mbpath;
 int	natural;
+int	doflush;
 
 int interrupted;
 
@@ -61,8 +62,8 @@ Ctype ctype[] = {
 	{ "image/jpeg",			"jpg",	0,	"image"	},
 	{ "image/gif",			"gif",	0,	"image"	},
 	{ "application/octet-stream",	"bin",	0,	0	},
-	{ "application/pdf",		"pdf",	0,	""	},
-	{ "application/postscript",	"ps",	0,	""	},
+	{ "application/pdf",		"pdf",	0,	"postscript"	},
+	{ "application/postscript",	"ps",	0,	"postscript"	},
 	{ "application/",		0,	0,	0	},
 	{ "image/",			0,	0,	0	},
 	{ "multipart/",			"mul",	0,	0	},
@@ -84,6 +85,7 @@ Message*	scmd(Cmd*, Message*);
 Message*	ucmd(Cmd*, Message*);
 Message*	wcmd(Cmd*, Message*);
 Message*	xcmd(Cmd*, Message*);
+Message*	ycmd(Cmd*, Message*);
 Message*	pipecmd(Cmd*, Message*);
 Message*	rpipecmd(Cmd*, Message*);
 Message*	bangcmd(Cmd*, Message*);
@@ -120,7 +122,8 @@ struct {
 	{ "s",	1,	scmd,	"s file   append raw message to file" },
 	{ "u",	0,	ucmd,	"u        remove deletion mark" },
 	{ "w",	1,	wcmd,	"w file   store message contents as file" },
-	{ "x",	0,	xcmd,	"x        exit with mailbox unchanged" },
+	{ "x",	0,	xcmd,	"x        exit without flushing deleted messages" },
+	{ "y",	0,	ycmd,	"x        synchronize with mail box" },
 	{ "=",	1,	eqcmd,	"=        print current message number" },
 	{ "|",	1,	pipecmd, "|cmd     pipe message body to a command" },
 	{ "||",	1,	rpipecmd, "|cmd     pipe raw message to a command" },
@@ -169,6 +172,7 @@ String*		rooted(String*);
 int		plumb(Message*, Ctype*);
 String*		addrecolon(char*);
 void		exitfs(char*);
+Message*	flushdeleted(Message*);
 
 void
 usage(void)
@@ -324,6 +328,8 @@ main(int argc, char **argv)
 			if(singleton != nil && (cmd.delete || cmd.f == dcmd))
 				qcmd(nil, nil);
 		}
+		if(doflush)
+			cur = flushdeleted(cur);
 	}
 	qcmd(nil, nil);
 }
@@ -360,6 +366,20 @@ file2message(Message *parent, char *name)
 	m->parent = parent;
 
 	return m;
+}
+
+void
+freemessage(Message *m)
+{
+	Message *nm, *next;
+
+	for(nm = m->child; nm != nil; nm = next){
+		next = nm->next;
+		freemessage(nm);
+	}
+	s_free(m->path);
+	s_free(m->info);
+	free(m);
 }
 
 //
@@ -1406,16 +1426,17 @@ quotecmd(Cmd*, Message *m)
 	return m;
 }
 
+// really delete messages
 Message*
-qcmd(Cmd*, Message*)
+flushdeleted(Message *cur)
 {
-	Message *m;
+	Message *m, **l;
 	char buf[1024], *p, *e, *msg;
 	int deld, n, fd;
 
+	doflush = 0;
 	deld = 0;
 
-	// really delete messages
 	fd = open("/mail/fs/ctl", ORDWR);
 	if(fd < 0){
 		fprint(2, "!can't delete mail, opening /mail/fs/ctl: %r\n");
@@ -1424,28 +1445,41 @@ qcmd(Cmd*, Message*)
 	e = &buf[sizeof(buf)];
 	p = seprint(buf, e, "delete %s", mbname);
 	n = 0;
-	for(m = top.child; m != nil; m = m->next)
-		if(m->deleted){
-			deld++;
-			msg = strrchr(s_to_c(m->path), '/');
-			if(msg == nil)
-				msg = s_to_c(m->path);
-			else
-				msg++;
-			if(e-p < 10){
-				write(fd, buf, p-buf);
-				n = 0;
-				p = seprint(buf, e, "delete %s", mbname);
-			}
-			p = seprint(p, e, " %s", msg);
-			n++;
+	for(l = &top.child; *l != nil;){
+		m = *l;
+		if(!m->deleted){
+			l = &(*l)->next;
+			continue;
 		}
+
+		// don't return a pointer to a deleted message
+		if(m == cur)
+			cur = m->next;
+
+		deld++;
+		msg = strrchr(s_to_c(m->path), '/');
+		if(msg == nil)
+			msg = s_to_c(m->path);
+		else
+			msg++;
+		if(e-p < 10){
+			write(fd, buf, p-buf);
+			n = 0;
+			p = seprint(buf, e, "delete %s", mbname);
+		}
+		p = seprint(p, e, " %s", msg);
+		n++;
+
+		// unchain and free
+		*l = m->next;
+		if(m->next)
+			m->next->prev = m->prev;
+		freemessage(m);
+	}
 	if(n)
 		write(fd, buf, p-buf);
-	close(fd);
 
-	if(didopen)
-		closemb();
+	close(fd);
 
 	switch(deld){
 	case 0:
@@ -1457,10 +1491,31 @@ qcmd(Cmd*, Message*)
 		Bprint(&out, "!%d messages deleted\n", deld);
 		break;
 	}
+
+	if(cur == nil)
+		return top.child;
+	return cur;
+}
+
+Message*
+qcmd(Cmd*, Message*)
+{
+	flushdeleted(nil);
+
+	if(didopen)
+		closemb();
 	Bflush(&out);
 
 	exitfs(0);
 	return nil;	// not reached
+}
+
+Message*
+ycmd(Cmd*, Message *m)
+{
+	doflush = 1;
+
+	return icmd(nil, m);
 }
 
 Message*
@@ -1500,6 +1555,8 @@ ucmd(Cmd*, Message *m)
 		return nil;
 	while(m->parent != &top)
 		m = m->parent;
+	if(m->deleted < 0)
+		Bprint(&out, "!can't undelete, already flushed\n");
 	m->deleted = 0;
 	return m;
 }
@@ -1812,7 +1869,17 @@ appendtofile(Message *m, char *part, char *base, int mbox)
 	}
 
 	s_reset(file);
+
 	relpath(base, file);
+	if(sysisdir(s_to_c(file))){
+		s_append(file, "/");
+		if(m->filename && strchr(m->filename, '/') == nil)
+			s_append(file, m->filename);
+		else {
+			s_append(file, "att.XXXXXXXXXXX");
+			mktemp(s_to_c(file));
+		}
+	}
 	if(mbox)
 		out = open(s_to_c(file), OWRITE);
 	else

@@ -27,6 +27,7 @@ enum
 	L1Buffered=	(1<<2),
 	L1DomShift=	5,
 	L1Domain0=	(0<<L1DomShift),
+	L1KernelRO=	(0x0<<10),
 	L1KernelRW=	(0x1<<10),
 	L1UserRO=	(0x2<<10),
 	L1UserRW=	(0x3<<10),

@@ -735,6 +735,8 @@ datblk(long s, long n, int str)
 #define	FPW(x,y)\
 	(SP(2,1)|(20<<21)|((x)<<3)|((y)<<0))
 
+int vshift(int);
+
 int
 asmout(Prog *p, Optab *o, int aflag)
 {
@@ -902,9 +904,11 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
-		if(v >= 32)
+
+		/* OP_SRR will use only the low 5 bits of the shift value */
+		if(v >= 32 && vshift(p->as))
 			o1 = OP_SRR(opirr(p->as+ALAST), v-32, r, p->to.reg);
-		else
+		else 
 			o1 = OP_SRR(opirr(p->as), v, r, p->to.reg);
 		break;
 
@@ -1383,5 +1387,17 @@ opirr(int a)
 	case AADDVU:		return SP(3,1);
 	}
 	diag("bad irr %d", a);
+abort();
+	return 0;
+}
+
+int
+vshift(int a)
+{
+	switch(a){
+	case ASLLV:		return 1;
+	case ASRLV:		return 1;
+	case ASRAV:		return 1;
+	}
 	return 0;
 }

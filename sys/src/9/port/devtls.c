@@ -318,7 +318,7 @@ tlsgen(Chan *c, char*, Dirtab *, int, int s, Dir *dp)
 			nm = tr->user;
 		else
 			nm = eve;
-		if ((name = trnames[s]) == nil) {
+		if((name = trnames[s]) == nil){
 			name = trnames[s] = smalloc(16);
 			sprint(name, "%d", s);
 		}
@@ -802,7 +802,9 @@ tlsrecread(TlsRec *tr)
 		put64(seq, in->seq);
 		in->seq++;
 		(*tr->packMac)(in->sec, in->sec->mackey, seq, header, p, len, hmac);
-		if(unpad_len <= in->sec->maclen || memcmp(hmac, p+len, in->sec->maclen) != 0)
+		if(unpad_len <= in->sec->maclen)
+			rcvError(tr, EBadRecordMac, "short record mac");
+		if(memcmp(hmac, p+len, in->sec->maclen) != 0)
 			rcvError(tr, EBadRecordMac, "record mac mismatch");
 		b->wp = b->rp + len;
 	}
@@ -1085,7 +1087,7 @@ tlsbread(Chan *c, long n, ulong offset)
 		if(tr->hprocessed == nil){
 			b = qbread(tr->handq, MaxRecLen + 1);
 			if(*b->rp++ == RAlert){
-				strecpy(up->errstr, up->errstr+ERRMAX, (char*)b->rp);
+				kstrcpy(up->errstr, (char*)b->rp, ERRMAX);
 				freeb(b);
 				nexterror();
 			}

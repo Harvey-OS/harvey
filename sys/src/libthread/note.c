@@ -90,10 +90,10 @@ _threadnote(void *v, char *s)
 	if(strncmp(s, "sys:", 4) == 0)
 		noted(NDFLT);
 
-//	if(_threadexitsallstatus){
-//		_threaddebug(DBGNOTE, "Threadexitsallstatus = '%s'\n", _threadexitsallstatus);
-//		_exits(_threadexitsallstatus);
-//	}
+	if(_threadexitsallstatus){
+		_threaddebug(DBGNOTE, "Threadexitsallstatus = '%s'\n", _threadexitsallstatus);
+		_exits(_threadexitsallstatus);
+	}
 
 	if(strcmp(s, "threadint")==0)
 		noted(NCONT);

@@ -64,15 +64,15 @@ xcistuple(int slotno, int tuple, int subtuple, void *v, int nv, int attr)
 			break;
 
 		n = link;
-		if (link > 1 && subtuple != -1) {
-			if (readc(&cis, &c) != 1)
+		if(link > 1 && subtuple != -1){
+			if(readc(&cis, &c) != 1)
 				break;
 			subtype = c;
 			n--;
-		} else
+		}else
 			subtype = -1;
 
-		if(type == tuple && subtype == subtuple) {
+		if(type == tuple && subtype == subtuple){
 			p = v;
 			for(l=0; l<nv && l<n; l++)
 				if(readc(&cis, p++) != 1)

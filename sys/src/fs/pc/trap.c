@@ -279,8 +279,8 @@ trap(Ureg *ur)
 		 * In this case, a 'default IRQ7' is generated, but
 		 * the corresponding bit in the ISR isn't set.
 		 * In fact, just ignore all such interrupts.
-		if(nspuriousintr < 2)
 		 */
+		if(nspuriousintr < 2)
 			print("spurious interrupt %d, lastintr %d\n", v-Int0vec, lastintr);
 		nspuriousintr++;
 		return;

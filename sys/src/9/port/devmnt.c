@@ -1151,12 +1151,12 @@ mntchk(Chan *c)
 	/* This routine is mostly vestiges of prior lives; now it's just sanity checking */
 
 	if(c->mchan == nil)
-		panic("mntchk 1: nil mchan c %s\n", c2name(c));
+		panic("mntchk 1: nil mchan c %s\n", channame(c));
 
 	m = c->mchan->mux;
 
 	if(m == nil)
-		print("mntchk 2: nil mux c %s c->mchan %s \n", c2name(c), c2name(c->mchan));
+		print("mntchk 2: nil mux c %s c->mchan %s \n", channame(c), channame(c->mchan));
 
 	/*
 	 * Was it closed and reused (was error(Eshutdown); now, it can't happen)

@@ -2081,12 +2081,12 @@ cacheFlush(Cache *c, int wait)
 	vtLock(c->lk);
 	if(wait){
 		while(c->ndirty){
-			consPrint("cacheFlush: %d dirty blocks, uhead %p\n",
-				c->ndirty, c->uhead);
+		//	consPrint("cacheFlush: %d dirty blocks, uhead %p\n",
+		//		c->ndirty, c->uhead);
 			vtWakeup(c->flush);
 			vtSleep(c->flushwait);
 		}
-		consPrint("cacheFlush: done (uhead %p)\n", c->ndirty, c->uhead);
+	//	consPrint("cacheFlush: done (uhead %p)\n", c->ndirty, c->uhead);
 	}else
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);

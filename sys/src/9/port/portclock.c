@@ -31,7 +31,7 @@ tadd(Timers *tt, Timer *nt)
 			*last = t->next;
 			break;
 		}
-		if (t->period == nt->period){
+		if(t->period == nt->period){
 			/* look for another timer at same frequency for combining */
 			pt = t;
 		}
@@ -52,7 +52,7 @@ tadd(Timers *tt, Timer *nt)
 	}
 	nt->next = *last;
 	*last = nt;
-	if (last == &tt->head)
+	if(last == &tt->head)
 		return nt->when;
 	else
 		return 0;
@@ -68,7 +68,7 @@ timeradd(Timer *nt)
 	tt = &timers[m->machno];
 	ilock(tt);
 	when = tadd(tt, nt);
-	if (when)
+	if(when)
 		timerset(when);
 	iunlock(tt);
 }
@@ -87,7 +87,7 @@ timerdel(Timer *dt)
 			break;
 		}
 	}
-	if (last == &tt->head && tt->head)
+	if(last == &tt->head && tt->head)
 		timerset(tt->head->when);
 	iunlock(tt);
 }
@@ -163,7 +163,7 @@ timerintr(Ureg *u, uvlong)
 		tt->head = t->next;
 		fcallcount[m->machno]++;
 		iunlock(tt);
-		if (t->f){
+		if(t->f){
 			(*t->f)(u, t);
 			splhi();
 		} else
@@ -201,7 +201,7 @@ addclock0link(void (*f)(void), int ms)
 	/* Synchronize this to hztimer: reduces # of interrupts */
 	nt = malloc(sizeof(Timer));
 	nt->when = 0;
-	if (ms == 0)
+	if(ms == 0)
 		ms = 1000/HZ;
 	nt->period = ms2fastticks(ms);
 	nt->f = (void (*)(Ureg*, Timer*))f;

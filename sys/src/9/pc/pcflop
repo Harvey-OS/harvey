@@ -49,6 +49,7 @@ link
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
+	etherigbe pci ethermii
 #	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci

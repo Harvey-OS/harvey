@@ -13,7 +13,7 @@ enum {
 
 static int		blank;
 static int		file;
-static int		doauto;
+static int		doautox;
 static int		printflag;
 static Part		**opart;
 static int		nopart;
@@ -24,7 +24,7 @@ static int		dowrite;
 static int		docache;
 static int		donvram;
 
-static void		autopart(Edit*);
+static void		autoxpart(Edit*);
 static vlong	memsize(void);
 static Part		*mkpart(char*, vlong, vlong, int);
 static void		rdpart(Edit*);
@@ -48,10 +48,41 @@ Edit edit = {
 	.unit=	"sector",
 };
 
+typedef struct Auto Auto;
+struct Auto
+{
+	char *name;
+	uvlong	min;
+	uvlong	max;
+	uint weight;
+	uchar	alloc;
+	uvlong	size;
+};
+
+#define GB (1024*1024*1024)
+#define MB (1024*1024)
+#define KB (1024)
+
+/*
+ * Order matters -- this is the layout order on disk.
+ */
+Auto autox[] = 
+{
+	{	"9fat",		10*MB,	100*MB,	10,	},
+	{	"nvram",		512,		512,		1,	},
+	{	"fs",			200*MB,	0,		10,	},
+	{	"fossil",		200*MB,	0,		4,	},
+	{	"arenas",		500*MB,	0,		20,	},
+	{	"isect",		25*MB,	0,		1,	},
+	{	"other",		200*MB,	0,		4,	},
+	{	"swap",		100*MB,	512*MB,	1,	},
+	{	"cache",		50*MB,	1*GB,	2,	},
+};
+
 void
 usage(void)
 {
-	fprint(2, "usage: disk/prep [-abcfprw] [-s sectorsize] /dev/sdC0/plan9\n");
+	fprint(2, "usage: disk/prep [bcfprw] [-a partname]... [-s sectorsize] /dev/sdC0/plan9\n");
 	exits("usage");
 }
 
@@ -59,13 +90,29 @@ void
 main(int argc, char **argv)
 {
 	int i;
+	char *p;
 	Disk *disk;
 	vlong secsize;
 
 	secsize = 0;
 	ARGBEGIN{
 	case 'a':
-		doauto++;
+		p = EARGF(usage());
+		for(i=0; i<nelem(autox); i++){
+			if(strcmp(p, autox[i].name) == 0){
+				if(autox[i].alloc){
+					fprint(2, "you said -a %s more than once.\n", p);
+					usage();
+				}
+				autox[i].alloc = 1;
+				break;
+			}
+		}
+		if(i == nelem(autox)){
+			fprint(2, "don't know how to create autoxmatic partition %s\n", p);
+			usage();
+		}
+		doautox = 1;
 		break;
 	case 'b':
 		blank++;
@@ -132,8 +179,8 @@ main(int argc, char **argv)
 		exits(0);
 	}
 
-	if(doauto)
-		autopart(&edit);
+	if(doautox)
+		autoxpart(&edit);
 
 	if(dowrite) {
 		runcmd(&edit, "w");
@@ -146,10 +193,6 @@ main(int argc, char **argv)
 		runcmd(&edit, getline(&edit));
 	}
 }
-
-#define GB (1024*1024*1024)
-#define MB (1024*1024)
-#define KB (1024)
 
 static void
 cmdsum(Edit *edit, Part *p, vlong a, vlong b)
@@ -331,47 +374,92 @@ min(vlong a, vlong b)
 }
 
 static void
-autopart(Edit *edit)
+autoxpart(Edit *edit)
 {
-	vlong fat, fs, swap, secs, secsize, cache, nvram;
+	int i, totw, futz;
+	vlong secs, secsize, s;
 	char *err;
 
 	if(edit->npart > 0) {
-		if(doauto)
+		if(doautox)
 			fprint(2, "partitions already exist; not repartitioning\n");
 		return;
 	}
 
-	if(doauto == 0)
-		fprint(2, "initializing default plan9 partition table\n");
-
 	secs = edit->disk->secs;
 	secsize = edit->disk->secsize;
+	for(;;){
+		/* compute total weights */
+		totw = 0;
+		for(i=0; i<nelem(autox); i++){
+			if(autox[i].alloc==0 || autox[i].size)
+				continue;
+			totw += autox[i].weight;
+		}
+		if(totw == 0)
+			break;
 
-	fat = min(secs/10, (10*1024*1024)/secsize)+2;
-	swap = min(secs/5, memsize()/secsize);
-	fs = secs - fat - swap;
-	if(docache) {
-		cache = fs/2;
-		fs -= cache;
-	} else
-		cache = 0;
-	if(donvram) {
-		nvram = 1;
-		fs -= nvram;
-	} else
-		nvram = 0;
+		if(secs <= 0){
+			fprint(2, "ran out of disk space during autoxpartition.\n");
+			return;
+		}
 
-	if(err = addpart(edit, mkpart("9fat", 0, fat, 1)))
-		fprint(2, "autopart: %s\n", err);
-	if(err = addpart(edit, mkpart("fs", fat, fat+fs, 1)))
-		fprint(2, "autopart: %s\n", err);
-	if(cache && (err = addpart(edit, mkpart("cache", fat+fs, fat+fs+cache, 1))))
-		fprint(2, "autopart: %s\n", err);
-	if(nvram && (err = addpart(edit, mkpart("nvram", fat+fs+cache, fat+fs+cache+nvram, 1))))
-		fprint(2, "autopart: %s\n", err);
-	if(err = addpart(edit, mkpart("swap", fat+fs+cache+nvram, fat+fs+cache+nvram+swap, 1)))
-		fprint(2, "autopart: %s\n", err);
+		/* assign any minimums for small disks */
+		futz = 0;
+		for(i=0; i<nelem(autox); i++){
+			if(autox[i].alloc==0 || autox[i].size)
+				continue;
+			s = (secs*autox[i].weight)/totw;
+			if(s < autox[i].min/secsize){
+				autox[i].size = autox[i].min/secsize;
+				secs -= autox[i].size;
+				futz = 1;
+				break;
+			}
+		}
+		if(futz)
+			continue;
+
+		/* assign any maximums for big disks */
+		futz = 0;
+		for(i=0; i<nelem(autox); i++){
+			if(autox[i].alloc==0 || autox[i].size)
+				continue;
+			s = (secs*autox[i].weight)/totw;
+			if(autox[i].max && s > autox[i].max/secsize){
+				autox[i].size = autox[i].max/secsize;
+				secs -= autox[i].size;
+				futz = 1;
+				break;
+			}
+		}
+		if(futz)
+			continue;
+
+		/* finally, assign partition sizes according to weights */
+		for(i=0; i<nelem(autox); i++){
+			if(autox[i].alloc==0 || autox[i].size)
+				continue;
+			s = (secs*autox[i].weight)/totw;
+			autox[i].size = s;
+
+			/* use entire disk even in face of rounding errors */
+			secs -= autox[i].size;
+			totw -= autox[i].weight;
+		}
+	}
+
+for(i=0; i<nelem(autox); i++)
+	if(autox[i].alloc) print("%s %llud\n", autox[i].name, autox[i].size);
+
+	s = 0;
+	for(i=0; i<nelem(autox); i++){
+		if(autox[i].alloc == 0)
+			continue;
+		if(err = addpart(edit, mkpart(autox[i].name, s, s+autox[i].size, 1)))
+			fprint(2, "addpart %s: %s\n", autox[i].name, err);
+		s += autox[i].size;
+	}
 }
 
 static void

@@ -2,7 +2,6 @@
 
 awk -v 'objtype='$objtype '
 BEGIN{
-		nfs = 0;
 		if(ARGC < 2)
 			exit
 }
@@ -45,27 +44,6 @@ collect && section ~ "misc"{
 					vgacur[nvgacur++] = $1;
 			}
 		}
-		else if($1 ~ ".*\.root"){
-			x = substr($1, 1, index($1, ".")-1);
-			if(x ~ "(9660srv|dossrv|kfs|nkfs|vdfs|bzfs)")
-				x = "kfs";
-			if(x ~ "nfactotum")
-				x = "factotum";
-			fsname[nfs] = x;
-			fs[nfs++] = x;
-		}
-}
-collect && section ~ "bootdir"{
-		if(NF >= 2)
-			x = $2;
-		else{
-			x = $1;
-			sub(/.*\//, "", x);
-		}
-		fsname[nfs] = x;
-		x = $1;
-		gsub(/[^a-zA-Z0-9_]/, "_", x);
-		fs[nfs++] = x;
 }
 
 collect && section ~ "port"{
@@ -99,16 +77,11 @@ END{
 		printf "\tnil,\n};\n\n";
 
 
-		for(i = 0; i < nfs; i++){
-			printf "extern uchar %scode[];\n", fs[i];
-			printf "extern ulong %slen;\n", fs[i];
-		}
 		for(i = 0; i < nlink; i++)
 			printf "extern void %slink(void);\n", link[i];
 
 		printf "void links(void){\n";
-		for(i = 0; i < nfs; i++)
-			printf "\taddbootfile(\"%s\", %scode, %slen);\n", fsname[i], fs[i], fs[i];
+		print "\tbootlinks();\n";
 		for(i = 0; i < nlink; i++)
 			printf "\t%slink();\n", link[i];
 		printf "}\n\n";

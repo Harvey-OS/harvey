@@ -155,7 +155,8 @@ struct Chan
 	Ref;
 	Chan*	next;			/* allocation */
 	Chan*	link;
-	vlong	offset;			/* in file */
+	vlong	offset;			/* in fd */
+	vlong	devoffset;			/* in underlying device; see read */
 	ushort	type;
 	ulong	dev;
 	ushort	mode;			/* read/write */
@@ -168,6 +169,11 @@ struct Chan
 	QLock	umqlock;		/* serialize unionreads */
 	int	uri;			/* union read index */
 	int	dri;			/* devdirread index */
+	uchar*	dirrock;	/* directory entry rock for translations */
+	int	nrock;
+	int	mrock;
+	QLock	rockqlock;
+	int	ismtpt;
 	ulong	mountid;
 	Mntcache *mcp;			/* Mount cache pointer */
 	Mnt		*mux;		/* Mnt for clients using me for messages */
@@ -218,7 +224,7 @@ struct Dirtab
 {
 	char	name[KNAMELEN];
 	Qid	qid;
-	vlong length;
+	vlong	length;
 	long	perm;
 };
 
@@ -329,7 +335,6 @@ struct Swapalloc
 	uchar*	last;			/* Speed swap allocation */
 	uchar*	top;			/* Top of swap map */
 	Rendez	r;			/* Pager kproc idle sleep */
-	Rendez	pause;
 	ulong	highwater;		/* Pager start threshold */
 	ulong	headroom;		/* Space pager frees under highwater */
 }swapalloc;
@@ -442,8 +447,8 @@ struct Egrp
 	Ref;
 	RWlock;
 	Evalue	**ent;
-	int nent;
-	int ment;
+	int	nent;
+	int	ment;
 	ulong	path;	/* qid.path of next Evalue to be allocated */
 	ulong	vers;	/* of Egrp */
 };
@@ -543,7 +548,7 @@ enum
 	TCSys,
 	TCReal,
 
-	NERR = 15,
+	NERR = 64,
 	NNOTE = 5,
 
 	Nrq		= 20,	/* number of scheduler priority levels */
@@ -649,9 +654,9 @@ struct Proc
 	Note	lastnote;
 	int	(*notify)(void*, char*);
 
-	Lock		*lockwait;
-	Lock		*lastlock;	/* debugging */
-	Lock		*lastilock;	/* debugging */
+	Lock	*lockwait;
+	Lock	*lastlock;	/* debugging */
+	Lock	*lastilock;	/* debugging */
 
 	Mach	*wired;
 	Mach	*mp;		/* machine this process last ran on */
@@ -667,7 +672,7 @@ struct Proc
 	int	preempted;	/* true if this process hasn't finished the interrupt
 				 *  that last preempted it
 				 */
-	Task		*task;	/* if non-null, real-time proc, task contains scheduling params */
+	Task	*task;		/* if non-null, real-time proc, task contains scheduling params */
 
 	ulong	qpc;		/* pc calling last blocking qlock */
 
@@ -861,18 +866,18 @@ struct Timer
 };
 
 struct Edfinterface {
-	int		(*isedf)(Proc*);
-	void		(*edfbury)(Proc*);
-	int		(*edfanyready)(void);
-	void		(*edfready)(Proc*);
+	int	(*isedf)(Proc*);
+	void	(*edfbury)(Proc*);
+	int	(*edfanyready)(void);
+	void	(*edfready)(Proc*);
 	Proc*	(*edfrunproc)(void);
-	void		(*edfblock)(Proc*);
-	void		(*edfinit)(void);
-	void		(*edfexpel)(Task*);
+	void	(*edfblock)(Proc*);
+	void	(*edfinit)(void);
+	void	(*edfexpel)(Task*);
 	char *	(*edfadmit)(Task*);
-	void		(*edfdeadline)(Proc*);
-	void		(*resacquire)(Task*, CSN*);
-	void		(*resrelease)(Task*);
+	void	(*edfdeadline)(Proc*);
+	void	(*resacquire)(Task*, CSN*);
+	void	(*resrelease)(Task*);
 };
 
 /*

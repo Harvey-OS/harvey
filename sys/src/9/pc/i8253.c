@@ -66,6 +66,8 @@ static struct
 
 	ushort	last;		/* last value of clock 1 */
 	uvlong	ticks;		/* cumulative ticks of counter 1 */
+
+	ulong	periodset;
 }i8253;
 
 
@@ -185,9 +187,6 @@ guesscpuhz(int aalcycles)
 	i8253.hz = Freq<<Tickshift;
 }
 
-ulong i8253periodset;
-int i8253dotimerset = 1;
-
 ulong phist[128];
 
 void
@@ -197,14 +196,11 @@ i8253timerset(uvlong next)
 	ulong want;
 	ulong now;
 
-	if(i8253dotimerset == 0)
-		return;
-
-	want = next>>Tickshift;
-	now = i8253.ticks;	/* assuming whomever called us just did fastticks() */
-
 	period = MaxPeriod;
 	if(next != 0){
+		want = next>>Tickshift;
+		now = i8253.ticks;	/* assuming whomever called us just did fastticks() */
+
 		period = want - now;
 		if(period < MinPeriod)
 			period = MinPeriod;
@@ -224,7 +220,7 @@ phist[nelem(phist)-1] = period;
 
 		/* remember period */
 		i8253.period = period;
-		i8253periodset++;
+		i8253.periodset++;
 		iunlock(&i8253);
 	}
 }
@@ -238,6 +234,7 @@ i8253clock(Ureg* ureg, void*)
 void
 i8253enable(void)
 {
+print("i8253enable...");
 	i8253.enabled = 1;
 	i8253.period = Freq/HZ;
 	intrenable(IrqCLOCK, i8253clock, 0, BUSUNKNOWN, "clock");

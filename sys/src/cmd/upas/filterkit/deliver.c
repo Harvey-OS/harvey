@@ -1,6 +1,8 @@
 #include "sys.h"
 #include "dat.h"
 
+Biobuf in;
+
 void
 usage(void)
 {
@@ -13,13 +15,16 @@ main(int argc, char **argv)
 {
 	int fd;
 	char now[30];
-	char buf[1024];
+	char *p;
 	int n, bytes;
 	Addr *a;
 	char *deliveredto;
 	char last;
 	char *str;
 	Mlock *l;
+	char buf[256];
+
+	Binit(&in, 0, OREAD);
 
 	ARGBEGIN{
 	}ARGEND;
@@ -48,14 +53,35 @@ main(int argc, char **argv)
 	if(fprint(fd, "From %s %s\n", a->val, now) < 0)
 		sysfatal("writing mailbox: %r");
 	last = 0;
+
+	/* pass all \n terminated lines.  Escape '^From ' */
 	for(bytes = 0;; bytes += n){
-		n = read(0, buf, sizeof buf);
-		if(n < 0)
-			sysfatal("writing mailbox: %r");
-		if(n == 0)
+		p = Brdline(&in, '\n');
+		if(p == nil)
 			break;
-		if(write(fd, buf, n) != n)
+		n = Blinelen(&in);
+		if((last == 0 || last == '\n') && n >= 5 && strncmp(p, "From ", 5) == 0)
+			if(write(fd, " ", 1) != 1)
+				sysfatal("writing mailbox: %r");
+		if(write(fd, p, n) != n){
 			sysfatal("writing mailbox: %r");
+			bytes++;
+		}
+		last = p[n-1];
+	}
+
+	/* just in case all lines aren't null terminated */
+	for(;; bytes += n){
+		n = Bread(&in, buf, sizeof(buf));
+		if(n <= 0)
+			break;
+		if((last == 0 || last == '\n') && n >= 5 && strncmp(buf, "From ", 5) == 0)
+			if(write(fd, " ", 1) != 1)
+				sysfatal("writing mailbox: %r");
+		if(write(fd, buf, n) != n){
+			sysfatal("writing mailbox: %r");
+			bytes++;
+		}
 		last = buf[n-1];
 	}
 

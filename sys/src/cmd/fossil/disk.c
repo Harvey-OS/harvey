@@ -36,12 +36,15 @@ diskAlloc(int fd)
 	Disk *disk;
 	
 	if(pread(fd, buf, HeaderSize, HeaderOffset) < HeaderSize){
+		vtSetError("short read: %r");
 		vtOSError();
 		return nil;
 	}
 
-	if(!headerUnpack(&h, buf))
+	if(!headerUnpack(&h, buf)){
+		vtSetError("bad disk header");
 		return nil;
+	}
 	disk = vtMemAllocZ(sizeof(Disk));
 	disk->lk = vtLockAlloc();
 	disk->starve = vtRendezAlloc(disk->lk);
@@ -255,7 +258,7 @@ diskThread(void *a)
 
 	vtThreadSetName("disk");
 
-fprint(2, "diskThread %d\n", getpid());
+//fprint(2, "diskThread %d\n", getpid());
 
 	buf = vtMemAlloc(disk->h.blockSize);
 
@@ -328,7 +331,7 @@ fprint(2, "diskWriteRaw failed: date=%s part=%d addr=%ux: %r\n", ctime(times(0))
 		nio++;
 	}
 Done:
-fprint(2, "diskThread done\n");
+//fprint(2, "diskThread done\n");
 	disk->ref--;
 	vtWakeup(disk->die);
 	vtUnlock(disk->lk);

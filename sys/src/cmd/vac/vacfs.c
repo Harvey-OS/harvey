@@ -789,11 +789,13 @@ permf(VacFile *vf, char *user, int p)
 	if(!vfGetDir(vf, &dir))
 		return 0;
 	perm = dir.mode & 0777;
+	if(noperm)
+		goto Good;
 	if((p*Pother) & perm)
 		goto Good;
-	if((noperm || strcmp(user, dir.gid)==0) && ((p*Pgroup) & perm))
+	if(strcmp(user, dir.gid)==0 && ((p*Pgroup) & perm))
 		goto Good;
-	if((noperm || strcmp(user, dir.uid)==0) && ((p*Powner) & perm))
+	if(strcmp(user, dir.uid)==0 && ((p*Powner) & perm))
 		goto Good;
 	vdCleanup(&dir);
 	return 0;

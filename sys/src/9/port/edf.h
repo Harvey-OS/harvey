@@ -7,8 +7,9 @@ enum {
 	Maxsteps = Maxtasks * 2 * 100,	/* 100 periods of maximum # of tasks */
 
 	/* Edf.flags field */
-	Verbose = 0x1,
-	Useblocking = 0x2,
+	Verbose		= 0x1,
+	Useblocking	= 0x2,
+	BestEffort		= 0x4,
 
 	Infinity = 0xffffffffffffffffULL,
 
@@ -18,9 +19,10 @@ enum Edfstate {
 	EdfUnused,		/* task structure not in use */
 	EdfExpelled,		/* in initialization, not yet admitted */
 	EdfAdmitted,		/* admitted, but not started */
+	EdfBestEffort,		/* admitted, but not RT scheduled */
 
 	EdfIdle,			/* admitted, but no member processes */
-	EdfAwaitrelease,	/* released, but too early (on qwaitrelease) */
+	EdfAwaitrelease,	/* waiting for release (on qwaitrelease) */
 	EdfReleased,		/* released, but not yet scheduled (on qreleased) */
 	EdfRunning,		/* one of this task's procs is running (on stack) */
 	EdfExtra,			/* one of this task's procs is running in extra time (off stack) */

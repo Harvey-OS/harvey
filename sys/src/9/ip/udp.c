@@ -23,8 +23,8 @@ enum
 	UDP6_PHDR_OFF = 0,
 
 	IP_UDPPROTO	= 17,
+	UDP_USEAD7	= 52,
 	UDP_USEAD6	= 36,
-	UDP_USEAD4	= 12,
 
 	Udprxms		= 200,
 	Udptickms	= 100,
@@ -199,6 +199,22 @@ udpkick(void *x, Block *bp)
 
 	ucb = (Udpcb*)c->ptcl;
 	switch(ucb->headers) {
+	case 7:
+		/* get user specified addresses */
+		bp = pullupblock(bp, UDP_USEAD7);
+		if(bp == nil)
+			return;
+		ipmove(raddr, bp->rp);
+		bp->rp += IPaddrlen;
+		ipmove(laddr, bp->rp);
+		bp->rp += IPaddrlen;
+		/* pick interface closest to dest */
+		if(ipforme(f, laddr) != Runi)
+			findlocalip(f, laddr, raddr);
+		bp->rp += IPaddrlen;		/* Ignore ifc address */
+		rport = nhgets(bp->rp);
+		bp->rp += 2+2;			/* Ignore local port */
+		break;
 	case 6:
 		/* get user specified addresses */
 		bp = pullupblock(bp, UDP_USEAD6);
@@ -214,34 +230,18 @@ udpkick(void *x, Block *bp)
 		rport = nhgets(bp->rp);
 		bp->rp += 2+2;			/* Ignore local port */
 		break;
-	case 4:
-		bp = pullupblock(bp, UDP_USEAD4);
-		if(bp == nil)
-			return;
-		v4tov6(raddr, bp->rp);
-		bp->rp += IPv4addrlen;
-		v4tov6(laddr, bp->rp);
-		bp->rp += IPv4addrlen;
-		if(ipforme(f, laddr) != Runi)
-			findlocalip(f, laddr, raddr);
-		rport = nhgets(bp->rp);
-		bp->rp += 2+2;
-		break;
 	default:
 		rport = 0;
 		break;
 	}
 
-	if(ucb->headers == 6) {
+	if(ucb->headers) {
 		if(memcmp(laddr, v4prefix, IPv4off) == 0 ||
 		    ipcmp(laddr, IPnoaddr) == 0)
 			version = 4;
 		else
 			version = 6;
-	}
-	else if(ucb->headers == 4)
-		version = 4;
-	else {
+	} else {
 		if( (memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
 			memcmp(c->laddr, v4prefix, IPv4off) == 0)
 			|| ipcmp(c->raddr, IPnoaddr) == 0)
@@ -266,7 +266,7 @@ udpkick(void *x, Block *bp)
 		uh4->frag[0] = 0;
 		uh4->frag[1] = 0;
 		hnputs(uh4->udpplen, ptcllen);
-		if(ucb->headers == 4 || ucb->headers == 6) {
+		if(ucb->headers) {
 			v6tov4(uh4->udpdst, raddr);
 			hnputs(uh4->udpdport, rport);
 			v6tov4(uh4->udpsrc, laddr);
@@ -301,7 +301,7 @@ udpkick(void *x, Block *bp)
 		ptcllen = dlen + UDP_UDPHDR_SZ;
 		hnputl(uh6->viclfl, ptcllen);
 		uh6->hoplimit = IP_UDPPROTO;
-		if(ucb->headers == 6) {
+		if(ucb->headers) {
 			ipmove(uh6->udpdst, raddr);
 			hnputs(uh6->udpdport, rport);
 			ipmove(uh6->udpsrc, laddr);
@@ -347,6 +347,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	Fs *f;
 	int version;
 	int ottl, oviclfl, olen;
+	uchar *p;
 
 	upriv = udp->priv;
 	f = udp->f;
@@ -494,27 +495,24 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	       laddr, lport, len);
 
 	switch(ucb->headers){
+	case 7:
+		/* pass the src address */
+		bp = padblock(bp, UDP_USEAD7);
+		p = bp->rp;
+		ipmove(p, raddr); p += IPaddrlen;
+		ipmove(p, laddr); p += IPaddrlen;
+		ipmove(p, ifc->lifc->local); p += IPaddrlen;
+		hnputs(p, rport); p += 2;
+		hnputs(p, lport);
+		break;
 	case 6:
 		/* pass the src address */
 		bp = padblock(bp, UDP_USEAD6);
-		ipmove(bp->rp, raddr);
-		if(ipforme(f, laddr) == Runi)
-			ipmove(bp->rp+IPaddrlen, laddr);
-		else
-			ipmove(bp->rp+IPaddrlen, ifc->lifc->local);
-		hnputs(bp->rp+2*IPaddrlen, rport);
-		hnputs(bp->rp+2*IPaddrlen+2, lport);
-		break;
-	case 4:
-		/* pass the src address */
-		bp = padblock(bp, UDP_USEAD4);
-		v6tov4(bp->rp, raddr);
-		if(ipforme(f, laddr) == Runi)
-			v6tov4(bp->rp+IPv4addrlen, laddr);
-		else
-			v6tov4(bp->rp+IPv4addrlen, ifc->lifc->local);
-		hnputs(bp->rp + 2*IPv4addrlen, rport);
-		hnputs(bp->rp + 2*IPv4addrlen + 2, lport);
+		p = bp->rp;
+		ipmove(p, raddr); p += IPaddrlen;
+		ipmove(p, ipforme(f, laddr)==Runi ? laddr : ifc->lifc->local); p += IPaddrlen;
+		hnputs(p, rport); p += 2;
+		hnputs(p, lport);
 		break;
 	}
 
@@ -541,11 +539,11 @@ udpctl(Conv *c, char **f, int n)
 
 	ucb = (Udpcb*)c->ptcl;
 	if(n == 1){
-		if(strcmp(f[0], "headers4") == 0){
-			ucb->headers = 4;
+		if(strcmp(f[0], "oldheaders") == 0){
+			ucb->headers = 6;
 			return nil;
 		} else if(strcmp(f[0], "headers") == 0){
-			ucb->headers = 6;
+			ucb->headers = 7;
 			return nil;
 		}
 	}

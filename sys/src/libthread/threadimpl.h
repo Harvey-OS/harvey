@@ -65,31 +65,31 @@ struct Tqueue		/* Thread queue */
 
 struct Thread
 {
-	Lock		lock;			/* protects thread data structure */
-	jmp_buf	sched;		/* for context switches */
-	int		id;			/* thread id */
-	int 		grp;			/* thread group */
+	Lock		lock;		/* protects thread data structure */
+	jmp_buf		sched;		/* for context switches */
+	int		id;		/* thread id */
+	int 		grp;		/* thread group */
 	int		moribund;	/* thread needs to die */
 	State		state;		/* run state */
-	State		nextstate;		/* next run state */
-	uchar	*stk;			/* top of stack (lowest address of stack) */
-	uint		stksize;		/* stack size */
-	Thread	*next;		/* next on ready queue */
+	State		nextstate;	/* next run state */
+	uchar		*stk;		/* top of stack (lowest address of stack) */
+	uint		stksize;	/* stack size */
+	Thread		*next;		/* next on ready queue */
 
 	Proc		*proc;		/* proc of this thread */
-	Thread	*nextt;		/* next on list of threads in this proc*/
-	int		ret;			/* return value for Exec, Fork */
+	Thread		*nextt;		/* next on list of threads in this proc*/
+	int		ret;		/* return value for Exec, Fork */
 
 	char		*cmdname;	/* ptr to name of thread */
 
 	int		inrendez;
-	Thread	*rendhash;	/* Trgrp linked list */
-	ulong	rendtag;		/* rendezvous tag */
-	ulong	rendval;		/* rendezvous value */
+	Thread		*rendhash;	/* Trgrp linked list */
+	ulong		rendtag;	/* rendezvous tag */
+	ulong		rendval;	/* rendezvous value */
 	int		rendbreak;	/* rendezvous has been taken */
 
 	Chanstate	chan;		/* which channel operation is current */
-	Alt		*alt;			/* pointer to current alt structure (debugging) */
+	Alt		*alt;		/* pointer to current alt structure (debugging) */
 
 	void*	udata[NPRIV];	/* User per-thread data pointer */
 };
@@ -104,33 +104,34 @@ struct Execargs
 struct Proc
 {
 	Lock		lock;
-	jmp_buf	sched;		/* for context switches */
+	jmp_buf		sched;			/* for context switches */
 	int		pid;			/* process id */
-	int		splhi;		/* delay notes */
-	Thread	*thread;		/* running thread */
+	int		splhi;			/* delay notes */
+	Thread		*thread;		/* running thread */
 
 	int		needexec;
-	Execargs	exec;		/* exec argument */
-	Proc		*newproc;	/* fork argument */
+	Execargs	exec;			/* exec argument */
+	Proc		*newproc;		/* fork argument */
 	char		exitstr[ERRMAX];	/* exit status */
 
 	int		rforkflag;
 	int		nthreads;
-	Tqueue	threads;		/* All threads of this proc */
-	Tqueue	ready;		/* Runnable threads */
+	Tqueue		threads;		/* All threads of this proc */
+	Tqueue		ready;			/* Runnable threads */
 	Lock		readylock;
 
 	char		printbuf[Printsize];
 	int		blocked;		/* In a rendezvous */
 	int		pending;		/* delayed note pending */
 	int		nonotes;		/*  delay notes */
-	uint		nextID;		/* ID of most recently created thread */
-	Proc		*next;		/* linked list of Procs */
+	uint		nextID;			/* ID of most recently created thread */
+	Proc		*next;			/* linked list of Procs */
 
 	void		*arg;			/* passed between shared and unshared stk */
-	char		str[ERRMAX];	/* used by threadexits to avoid malloc */
+	char		str[ERRMAX];		/* used by threadexits to avoid malloc */
 
-	void*	udata;		/* User per-proc data pointer */
+	void*		udata;			/* User per-proc data pointer */
+	char		threadint;		/* tag for threadexitsall() */
 };
 
 struct Pqueue {		/* Proc queue */

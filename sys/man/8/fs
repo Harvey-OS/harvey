@@ -266,6 +266,17 @@ to be advanced to the current WORM on the next dump.
 This is a discredited idea to try to keep operating
 on the knee of the cache working set.
 Buy more cache disk.
+.TP
+.B trim
+reduces the file system's
+.I fsize
+to fit the device containing the file system.
+This is useful after copying a partially-full file system
+into a slightly smaller device.
+Running
+.B "check free"
+afterward will construct a new free list that contains no
+blocks outside the new, smaller file system.
 .PP
 .I Clean
 prints the block numbers in
@@ -359,13 +370,13 @@ The optional
 .I platter
 limits affected blocks to those on that platter.
 .TP
-.BR prchain " [\fIstart\fP] [\fLback\fP]
+.BR prchain " [\fIstart\fP] [\fIback-flag\fP]
 Print the chain of superblocks for the directory containing the
 roots of the dumped file systems, starting at block number
 .I start
 (default 0) going forward (backwards if
-.B back
-is supplied).
+.I back-flag
+is supplied and is non-zero).
 .TP
 .BR searchtag " [\fIstart\fP] [\fItag\fP] [\fIblocks\fP]
 Reads the WORM device starting at block

@@ -25,7 +25,7 @@ void
 threadexitsall(char *exitstr)
 {
 	Proc *p;
-	int *pid;
+	int pid[64];
 	int i, npid, mypid;
 
 	if(exitstr == nil)
@@ -38,19 +38,25 @@ threadexitsall(char *exitstr)
 	 * signal others.
 	 * copying all the pids first avoids other threads
 	 * teardown procedures getting in the way.
+	 *
+	 * avoid mallocs since malloc can post a note which can
+	 * call threadexitsall...
 	 */
-	lock(&_threadpq.lock);
-	npid = 0;
-	for(p=_threadpq.head; p; p=p->next)
-		npid++;
-	pid = _threadmalloc(npid*sizeof(pid[0]), 0);
-	npid = 0;
-	for(p = _threadpq.head; p; p=p->next)
-		pid[npid++] = p->pid;
-	unlock(&_threadpq.lock);
-	for(i=0; i<npid; i++)
-		if(pid[i] != mypid)
+	for(;;){
+		lock(&_threadpq.lock);
+		npid = 0;
+		for(p = _threadpq.head; p && npid < nelem(pid); p=p->next){
+			if(p->threadint == 0 && p->pid != mypid){
+				pid[npid++] = p->pid;
+				p->threadint = 1;
+			}
+		}
+		unlock(&_threadpq.lock);
+		if(npid == 0)
+			break;
+		for(i=0; i<npid; i++)
 			postnote(PNPROC, pid[i], "threadint");
+	}
 
 	/* leave */
 	exits(exitstr);

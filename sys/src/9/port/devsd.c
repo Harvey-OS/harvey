@@ -229,7 +229,7 @@ sdgetdev(int idno)
 
 	qlock(&devslock);
 	for(i = 0; i != ndevs; i++)
-		if (devs[i].dt_dev->idno == idno)
+		if(devs[i].dt_dev->idno == idno)
 			break;
 	
 	if(i == ndevs)
@@ -276,16 +276,16 @@ sdgetunit(SDev* sdev, int subno)
 		}
 		sdev->unitflg[subno] = 1;
 
-		if(sdev->enabled == 0 && sdev->ifc->enable)
-			sdev->ifc->enable(sdev);
-		sdev->enabled = 1;
-
 		snprint(buf, sizeof(buf), "%s%d", sdev->name, subno);
 		kstrdup(&unit->name, buf);
 		kstrdup(&unit->user, eve);
 		unit->perm = 0555;
 		unit->subno = subno;
 		unit->dev = sdev;
+
+		if(sdev->enabled == 0 && sdev->ifc->enable)
+			sdev->ifc->enable(sdev);
+		sdev->enabled = 1;
 
 		/*
 		 * No need to lock anything here as this is only
@@ -471,7 +471,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 
 		qlock(&devslock);
 		for(i = 0; i != ndevs; i++){
-			if (s < devs[i].dt_nunits)
+			if(s < devs[i].dt_nunits)
 				break;
 			s -= devs[i].dt_nunits;
 		}
@@ -482,7 +482,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 			return -1;
 		}
 
-		if ((sdev = devs[i].dt_dev) == nil){
+		if((sdev = devs[i].dt_dev) == nil){
 			qunlock(&devslock);
 			return 0;
 		}
@@ -604,7 +604,7 @@ sdattach(char* spec)
 
 	qlock(&devslock);
 	for (sdev = nil, i = 0; i != ndevs; i++)
-		if ((sdev = devs[i].dt_dev) != nil && sdev->idno == idno)
+		if((sdev = devs[i].dt_dev) != nil && sdev->idno == idno)
 			break;
 
 	if(i == ndevs || subno >= sdev->nunit || sdgetunit(sdev, subno) == nil){
@@ -695,7 +695,7 @@ sdclose(Chan* c)
 		break;
 	case Qraw:
 		sdev = sdgetdev(DEV(c->qid));
-		if (sdev) {
+		if(sdev){
 			unit = sdev->unit[UNIT(c->qid)];
 			unit->rawinuse = 0;
 			decref(&sdev->r);
@@ -905,7 +905,7 @@ sdread(Chan *c, void *a, long n, vlong off)
 
 	case Qctl:
 		sdev = sdgetdev(DEV(c->qid));
-		if (sdev == nil)
+		if(sdev == nil)
 			error(Enonexist);
 
 		unit = sdev->unit[UNIT(c->qid)];
@@ -944,7 +944,7 @@ sdread(Chan *c, void *a, long n, vlong off)
 
 	case Qraw:
 		sdev = sdgetdev(DEV(c->qid));
-		if (sdev == nil)
+		if(sdev == nil)
 			error(Enonexist);
 
 		unit = sdev->unit[UNIT(c->qid)];
@@ -1139,7 +1139,7 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 	case Qctl:
 		cb = parsecmd(a, n);
 		sdev = sdgetdev(DEV(c->qid));
-		if (sdev == nil)
+		if(sdev == nil)
 			error(Enonexist);
 		unit = sdev->unit[UNIT(c->qid)];
 
@@ -1244,7 +1244,7 @@ sdwstat(Chan* c, uchar* dp, int n)
 		error(Eperm); 
 
 	sdev = sdgetdev(DEV(c->qid));
-	if (sdev == nil)
+	if(sdev == nil)
 		error(Enonexist);
 	unit = sdev->unit[UNIT(c->qid)];
 	qlock(&unit->ctl);

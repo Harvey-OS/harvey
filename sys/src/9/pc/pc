@@ -45,7 +45,7 @@ link
 	ether8139
 	ether82543gc	pci
 	ether82557	pci
-	ether83815
+	ether83815	pci
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
@@ -56,6 +56,7 @@ link
 	ethermedium
 	pcmciamodem
 	netdevmedium
+	loopbackmedium
 	usbuhci
 
 misc
@@ -108,4 +109,4 @@ boot
 bootdir
 	bootpc.out boot
 	/386/bin/ip/ipconfig
-	factotum.hack factotum
+	/386/bin/auth/factotum

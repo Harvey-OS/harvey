@@ -16,6 +16,7 @@ char	*thestring 	= "power";
  *	-H2 -T4128 -R4096		is plan9 format
  *	-H3 -T0x02010000 -D0x00001000	is raw
  *	-H4 -T0x1000200 -D0x20000e00 -R4	is aix xcoff executable
+ *	-H5 -T0x80010000 -t0x10000	ELF, phys = 10000, vaddr = 0x8001...
  */
 
 void
@@ -135,6 +136,15 @@ main(int argc, char *argv[])
 			INITTEXT = 0x1000000L+HEADR;
 		if(INITDAT == -1)
 			INITDAT = 0x20000000;
+		if(INITRND == -1)
+			INITRND = 0;
+		break;
+	case 5:	/* elf executable */
+		HEADR = rnd(52L+3*32L, 16);
+		if(INITTEXT == -1)
+			INITTEXT = 0x00400000L+HEADR;
+		if(INITDAT == -1)
+			INITDAT = 0x10000000;
 		if(INITRND == -1)
 			INITRND = 0;
 		break;

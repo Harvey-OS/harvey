@@ -53,6 +53,7 @@ extern long	sysfilelen(Biobuf*);
 extern int	sysremove(char*);
 extern int	sysrename(char*, char*);
 extern int	sysexist(char*);
+extern int	sysisdir(char*);
 extern int	syskill(int);
 extern int	syskillpg(int);
 extern int	syscreate(char*, int, ulong);

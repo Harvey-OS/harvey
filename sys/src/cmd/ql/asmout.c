@@ -556,12 +556,6 @@ asmout(Prog *p, Optab *o, int aflag)
 		r = p->reg;
 		if(r == NREG)
 			r = p->to.reg;
-		if(v < 0 || v > 31)
-			diag("illegal shift %ld\n%P", v, p);
-		if(v < 0)
-			v = 0;
-		else if(v > 32)
-			v = 32;
 		if(p->as == ASRW || p->as == ASRWCC) {	/* shift right */
 			mask[0] = v;
 			mask[1] = 31;

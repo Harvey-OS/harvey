@@ -52,7 +52,7 @@ from16(char *a, mpint *b)
 
 	b->top = 0;
 	for(p = a; *p; p++)
-		if(tab.t16[*p] == INVAL)
+		if(tab.t16[*(uchar*)p] == INVAL)
 			break;
 	mpbits(b, (p-a)*4);
 	b->top = 0;
@@ -62,7 +62,7 @@ from16(char *a, mpint *b)
 		for(i = 0; i < Dbits; i += 4){
 			if(p <= a)
 				break;
-			x |= tab.t16[*--p]<<i;
+			x |= tab.t16[*(uchar*)--p]<<i;
 		}
 		b->p[b->top++] = x;
 	}
@@ -88,7 +88,7 @@ from10(char *a, mpint *b)
 		// do a billion at a time in native arithmetic
 		x = 0;
 		for(i = 0; i < 9; i++){
-			y = tab.t10[*a];
+			y = tab.t10[*(uchar*)a];
 			if(y == INVAL)
 				break;
 			a++;
@@ -118,7 +118,7 @@ from64(char *a, mpint *b)
 	uchar *p;
 	int n, m;
 
-	for(; tab.t64[*a] != INVAL; a++)
+	for(; tab.t64[*(uchar*)a] != INVAL; a++)
 		;
 	n = a-buf;
 	mpbits(b, n*6);
@@ -138,7 +138,7 @@ from32(char *a, mpint *b)
 	uchar *p;
 	int n, m;
 
-	for(; tab.t64[*a] != INVAL; a++)
+	for(; tab.t64[*(uchar*)a] != INVAL; a++)
 		;
 	n = a-buf;
 	mpbits(b, n*5);

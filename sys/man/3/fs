@@ -1,6 +1,6 @@
 .TH FS 3 
 .SH NAME
-fs \- file system devices.
+fs \- file system devices
 .SH SYNOPSIS
 .nf
 .B bind -b #k /dev

@@ -590,6 +590,23 @@ sysexist(char *file)
 }
 
 /*
+ *  return nonzero if file is a directory
+ */
+extern int
+sysisdir(char *file)
+{
+	Dir	*d;
+	int	rv;
+
+	d = dirstat(file);
+	if(d == nil)
+		return 0;
+	rv = d->mode & DMDIR;
+	free(d);
+	return rv;
+}
+
+/*
  * kill a process or process group
  */
 

@@ -59,7 +59,6 @@ struct IGMP
 {
 	Lock;
 	Rendez	r;
-	Rendez	r0;
 	IGMPrep	*reports;
 };
 
@@ -159,7 +158,7 @@ igmpproc(void *a)
 				continue;
 			}
 
-			tsleep(&igmpalloc.r0, return0, 0, MSPTICK);
+			tsleep(&up->sleep, return0, 0, MSPTICK);
 		}
 		unlock(&igmpalloc);
 	}

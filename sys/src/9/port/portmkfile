@@ -30,7 +30,7 @@ all:V:
 		mk 'CONF='$i
 
 clean:V:
-	rm -f *.[$OS] *.root.s cfs.h fs.h init.h conf.h *.out factotum.hack ipconfig.hack
+	rm -f *.[$OS] *.root.s *.rootc.c cfs.h fs.h init.h conf.h *.out
 	for(i in $CONFLIST)
 		mk $i.clean
 
@@ -82,10 +82,4 @@ boot$CONF.out: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$CC $CFLAGS boot$CONF.c
 	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB print.$O
 
-# this lets us say "factotum.hack factotum" instead of "/386/bin/auth/factotum factotum"
-# in the kernel config files.  the latter won't work until we have long file names.
-factotum.hack: /$objtype/bin/auth/factotum
-	cp $prereq $target
 
-ipconfig.hack: /$objtype/bin/ip/ipconfig
-	cp $prereq $target

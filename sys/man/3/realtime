@@ -70,7 +70,7 @@ a machine- and architecture-dependent unit called
 .IR tick ).
 Every $T$ nanoseconds, the task is
 .I released
-— i.e., it becomes schedulable — and it received a
+— i.e., it becomes schedulable — and it receives a
 .I slice
 of $C$ nsec.
 When the task is released, its
@@ -109,8 +109,8 @@ deadline.  When a task is released it can, therefore, preempt a task
 that has a later deadline, but was released earlier.
 .PP
 Real-time tasks sharing resources, however, may need to be prevented
-from preempting each other.  They can do this by declaring a shared
-resource.  The scheduler will not preempt one task with another that
+from preempting each other.  They must do this by declaring their shared
+resources.  The scheduler will not preempt one task with another that
 shares a common resource.  To do this, the scheduler needs to know the
 names of the sharable resources used by each of the tasks, the amount
 of time the resources are used, and the way in which resource usage is
@@ -124,13 +124,16 @@ it is not legal to acquire $A$, acquire $B$, release $A$ and release $B$
 in that order.
 .PP
 During the admission test, information about resource sharing is used
-to calculate secondary deadlines for each task, called
+to calculate
 .IR "inherited deadlines" ,
-$Δ$, which is the minimum of the deadlines $D$ of each of the tasks
-that shares a resource currently held by the current task.
+for each task.  A resource's
+.IR "inherited deadline" ,
+$Δ$, is the minimum of the deadlines $D$ of each of the tasks
+that shares that resource.  A task's $Δ$ is the minimum of the
+resource $Δ$s of all resources held by the task.
 .PP
-Acquiring a resource will lower the $Δ$ of the task (or keep it the
-same); releasing one will increase the $Δ$ (or keep it the same).
+Acquiring a resource may lower the $Δ$ of the task; releasing one
+may increase it.
 .PP
 The scheduler allows a released task $T$ to preempt running task $T'$
 iff $d < d' ^ D < Δ'$; the first half of the condition says that the

@@ -29,8 +29,9 @@ loopbackbind(Ipifc *ifc, int, char**)
 
 	lb = smalloc(sizeof(*lb));
 	lb->f = ifc->conv->p->f;
-	lb->q = qopen(128*1024, Qmsg, nil, nil);
+	lb->q = qopen(1024*1024, Qmsg, nil, nil);
 	ifc->arg = lb;
+	ifc->mbps = 1000;
 
 	kproc("loopbackread", loopbackread, ifc);
 

@@ -1,6 +1,7 @@
 extern char Enoerror[];		/* no error */
 extern char Emount[];		/* inconsistent mount */
 extern char Eunmount[];		/* not mounted */
+extern char Eismtpt[];		/* is a mount point */
 extern char Eunion[];		/* not in union */
 extern char Emountrpc[];	/* mount rpc error */
 extern char Eshutdown[];	/* device shut down */

@@ -31,13 +31,14 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 	}
 	fd = open(file, m);
 	if(fd < 0){
-		vtOSError();
+		vtSetError("open %s: %r", file);
 		return nil;
 	}
 
 	bwatchInit();	
 	disk = diskAlloc(fd);
 	if(disk == nil){
+		vtSetError("diskAlloc: %R");
 		close(fd);
 		return nil;
 	}
@@ -56,6 +57,7 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 		goto Err;
 	if(!superUnpack(&super, b->data)){
 		blockPut(b);
+		vtSetError("bad super block");
 		goto Err;
 	}
 	blockPut(b);
@@ -63,7 +65,7 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 	fs->ehi = super.epochHigh;
 	fs->elo = super.epochLow;
 
-fprint(2, "fs->ehi %d fs->elo %d active=%d\n", fs->ehi, fs->elo, super.active);
+//fprint(2, "fs->ehi %d fs->elo %d active=%d\n", fs->ehi, fs->elo, super.active);
 
 	fs->source = sourceRoot(fs, super.active, mode);
 	if(fs->source == nil){
@@ -74,10 +76,13 @@ fprint(2, "fs->ehi %d fs->elo %d active=%d\n", fs->ehi, fs->elo, super.active);
 		if(mode == OReadOnly || strcmp(vtGetError(), EBadRoot) != 0)
 			goto Err;
 		b = cacheLocalData(fs->cache, super.active, BtDir, RootTag, OReadWrite, 0);
-		if(b == nil)
+		if(b == nil){
+			vtSetError("cacheLocalData: %R");
 			goto Err;
+		}
 		if(!(b->l.state&BsClosed) && b->l.epoch == fs->ehi){
 			blockPut(b);
+			vtSetError("bad root source block");
 			goto Err;
 		}
 		b = blockCopy(b, RootTag, fs->ehi, fs->elo);
@@ -88,6 +93,7 @@ fprint(2, "fs->ehi %d fs->elo %d active=%d\n", fs->ehi, fs->elo, super.active);
 		bs = cacheLocal(fs->cache, PartSuper, 0, OReadWrite);
 		if(bs == nil){
 			blockPut(b);
+			vtSetError("cacheLocal: %R");
 			goto Err;
 		}
 		superPack(&super, bs->data);
@@ -96,19 +102,23 @@ fprint(2, "fs->ehi %d fs->elo %d active=%d\n", fs->ehi, fs->elo, super.active);
 		blockPut(bs);
 		blockPut(b);
 		fs->source = sourceRoot(fs, super.active, mode);
-		if(fs->source == nil)
+		if(fs->source == nil){
+			vtSetError("sourceRoot: %R");
 			goto Err;
+		}
 	}
 
-fprint(2, "got fs source\n");
+//fprint(2, "got fs source\n");
 
 	vtRLock(fs->elk);
 	fs->file = fileRoot(fs->source);
 	vtRUnlock(fs->elk);
-	if(fs->file == nil)
+	if(fs->file == nil){
+		vtSetError("fileRoot: %R");
 		goto Err;
+	}
 
-fprint(2, "got file root\n");
+//fprint(2, "got file root\n");
 
 	if(mode == OReadWrite){
 		fs->metaFlush = periodicAlloc(fsMetaFlush, fs, 1000);
@@ -117,6 +127,7 @@ fprint(2, "got file root\n");
 	return fs;
 
 Err:
+fprint(2, "fsOpen error\n");
 	fsClose(fs);
 	return nil;
 }
@@ -308,6 +319,36 @@ fileOpenSnapshot(Fs *fs, int doarchive)
 		fileDecRef(dir);
 		return f;
 	}
+}
+
+static int
+fsNeedArch(Fs *fs, uint archMinute)
+{
+	int need;
+	File *f;
+	char buf[100];
+	Tm now;
+	ulong then;
+
+	then = time(0);
+	now = *localtime(then);
+
+	/* back up to yesterday if necessary */
+	if(now.hour < archMinute/60
+	|| now.hour == archMinute/60 && now.min < archMinute%60)
+		now = *localtime(then-86400);
+
+	snprint(buf, sizeof buf, "/archive/%d/%02d%02d",
+		now.year+1900, now.mon+1, now.mday);
+	need = 1;
+	vtRLock(fs->elk);
+	f = fileOpen(fs, buf);
+	if(f){
+		need = 0;
+		fileDecRef(f);
+	}
+	vtRUnlock(fs->elk);
+	return need;
 }
 
 int
@@ -733,6 +774,176 @@ fsMetaFlush(void *a)
 	cacheFlush(fs->cache, 0);
 }
 
+static int
+fsEsearch1(File *f, char *path, u32int savetime, u32int *plo)
+{
+	int n, r;
+	DirEntry de;
+	DirEntryEnum *dee;
+	File *ff;
+	Entry e, ee;
+	char *t;
+
+	dee = deeOpen(f);
+	if(dee == nil)
+		return 0;
+
+	n = 0;
+	for(;;){
+		r = deeRead(dee, &de);
+		if(r <= 0)
+			break;
+		if(de.mode & ModeSnapshot){
+			if((ff = fileWalk(f, de.elem)) != nil){
+				if(fileGetSources(ff, &e, &ee, 0))
+					if(de.mtime >= savetime && e.snap != 0)
+						if(e.snap < *plo)
+							*plo = e.snap;
+				fileDecRef(ff);
+			}
+		}
+		else if(de.mode & ModeDir){
+			if((ff = fileWalk(f, de.elem)) != nil){
+				t = smprint("%s/%s", path, de.elem);
+				n += fsEsearch1(ff, t, savetime, plo);
+				vtMemFree(t);
+				fileDecRef(ff);
+			}
+		}
+		deCleanup(&de);
+		if(r < 0)
+			break;
+	}
+	deeClose(dee);
+
+	return n;
+}
+
+static int
+fsEsearch(Fs *fs, char *path, u32int savetime, u32int *plo)
+{
+	int n;
+	File *f;
+	DirEntry de;
+
+	f = fileOpen(fs, path);
+	if(f == nil)
+		return 0;
+	if(!fileGetDir(f, &de)){
+		fileDecRef(f);
+		return 0;
+	}
+	if((de.mode & ModeDir) == 0){
+		fileDecRef(f);
+		deCleanup(&de);
+		return 0;
+	}
+	deCleanup(&de);
+	n = fsEsearch1(f, path, savetime, plo);
+	fileDecRef(f);
+	return n;
+}
+
+void
+fsSnapshotCleanup(Fs *fs, u32int age)
+{
+	u32int lo;
+
+	/*
+	 * Find the best low epoch we can use,
+	 * given that we need to save all the unventied archives
+	 * and all the snapshots younger than age.
+	 */
+	vtRLock(fs->elk);
+	lo = fs->ehi;
+	fsEsearch(fs, "/archive", 0, &lo);
+	fsEsearch(fs, "/snapshot", time(0)-age*60, &lo);
+	vtRUnlock(fs->elk);
+
+	fsEpochLow(fs, lo);
+	fsSnapshotRemove(fs);
+}
+
+/* remove all snapshots that have expired */
+/* return number of directory entries remaining */
+static int
+fsRsearch1(File *f, char *s)
+{
+	int n, r;
+	DirEntry de;
+	DirEntryEnum *dee;
+	File *ff;
+	char *t;
+
+	dee = deeOpen(f);
+	if(dee == nil)
+		return 0;
+
+	n = 0;
+	for(;;){
+		r = deeRead(dee, &de);
+		if(r <= 0)
+			break;
+		n++;
+		if(de.mode & ModeSnapshot){
+			if((ff = fileWalk(f, de.elem)) != nil)
+				fileDecRef(ff);
+			else if(strcmp(vtGetError(), ESnapOld) == 0){
+				if(fileClri(f, de.elem, "adm"))
+					n--;
+			}
+		}
+		else if(de.mode & ModeDir){
+			if((ff = fileWalk(f, de.elem)) != nil){
+				t = smprint("%s/%s", s, de.elem);
+				if(fsRsearch1(ff, t) == 0)
+					if(fileRemove(ff, "adm"))
+						n--;
+				vtMemFree(t);
+				fileDecRef(ff);
+			}
+		}
+		deCleanup(&de);
+		if(r < 0)
+			break;
+	}
+	deeClose(dee);
+
+	return n;
+}
+
+static int
+fsRsearch(Fs *fs, char *path)
+{
+	File *f;
+	DirEntry de;
+
+	f = fileOpen(fs, path);
+	if(f == nil)
+		return 0;
+	if(!fileGetDir(f, &de)){
+		fileDecRef(f);
+		return 0;
+	}
+	if((de.mode & ModeDir) == 0){
+		fileDecRef(f);
+		deCleanup(&de);
+		return 0;
+	}
+	deCleanup(&de);
+	fsRsearch1(f, path);
+	fileDecRef(f);
+	return 1;
+}
+
+void
+fsSnapshotRemove(Fs *fs)
+{
+	vtRLock(fs->elk);
+	fsRsearch(fs, "/snapshot");
+	vtRUnlock(fs->elk);
+}
+
 struct Snap
 {
 	Fs *fs;
@@ -740,8 +951,10 @@ struct Snap
 	VtLock *lk;
 	uint snapMinutes;
 	uint archMinute;
+	uint snapLife;
 	u32int lastSnap;
 	u32int lastArch;
+	u32int lastCleanup;
 	uint ignore;
 };
 
@@ -751,6 +964,7 @@ snapEvent(void *v)
 	Snap *s;
 	u32int now, min;
 	Tm tm;
+	int need;
 
 	s = v;
 
@@ -764,7 +978,6 @@ snapEvent(void *v)
 	 */
 	if(s->snapMinutes != ~0 && s->snapMinutes != 0
 	&& now%s->snapMinutes==0 && now != s->lastSnap){
-if(0)fprint(2, "snapshot %02d%02d\n", now/60, now%60);
 		if(!fsSnapshot(s->fs, 0))
 			fprint(2, "fsSnapshot snap: %R\n");
 		s->lastSnap = now;
@@ -772,14 +985,33 @@ if(0)fprint(2, "snapshot %02d%02d\n", now/60, now%60);
 
 	/*
 	 * Archival snapshots happen at archMinute.
+	 * If we miss an archive (for example, because we
+	 * were down), we do it as soon as possible.
 	 */
 	tm = *localtime(now*60);
 	min = tm.hour*60+tm.min;
-	if(s->archMinute != ~0 && min == s->archMinute && now != s->lastArch){
-if(0)fprint(2, "archive %02d%02d\n", now/60, now%60);
-		if(!fsSnapshot(s->fs, 1))
-			fprint(2, "fsSnapshot arch: %R\n");
-		s->lastArch = now;
+	if(s->archMinute != ~0){
+		need = 0;
+		if(min == s->archMinute && now != s->lastArch)
+			need = 1;
+		if(s->lastArch == 0){
+			s->lastArch = 1;
+			if(fsNeedArch(s->fs, s->archMinute))
+				need = 1;
+		}
+		if(need){
+			fsSnapshot(s->fs, 1);
+			s->lastArch = now;
+		}
+	}
+
+	/*
+	 * Snapshot cleanup happens every snaplife or every day.
+	 */
+	if(s->snapLife != ~0
+	&& (s->lastCleanup+s->snapLife < now || s->lastCleanup+24*60 < now)){
+		fsSnapshotCleanup(s->fs, s->snapLife);
+		s->lastCleanup = now;
 	}
 	vtUnlock(s->lk);
 }
@@ -795,25 +1027,28 @@ snapInit(Fs *fs)
 	s->lk = vtLockAlloc();
 	s->snapMinutes = -1;
 	s->archMinute = -1;
+	s->snapLife = -1;
 	s->ignore = 5*2;	/* wait five minutes for clock to stabilize */
 	return s;
 }
 
 void
-snapGetTimes(Snap *s, u32int *arch, u32int *snap)
+snapGetTimes(Snap *s, u32int *arch, u32int *snap, u32int *snaplen)
 {
 	vtLock(s->lk);
 	*snap = s->snapMinutes;
 	*arch = s->archMinute;
+	*snaplen = s->snapLife;
 	vtUnlock(s->lk);
 }
 
 void
-snapSetTimes(Snap *s, u32int arch, u32int snap)
+snapSetTimes(Snap *s, u32int arch, u32int snap, u32int snaplen)
 {
 	vtLock(s->lk);
 	s->snapMinutes = snap;
 	s->archMinute = arch;
+	s->snapLife = snaplen;
 	vtUnlock(s->lk);
 }
 

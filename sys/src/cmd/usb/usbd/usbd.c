@@ -158,7 +158,7 @@ badstatus:
 			/* TO DO: initialise status endpoint */
 			for(i=1; i<=nh->nport; i++)
 				portpower(nh, i, 1);
-			sleep(nh->pwrms);
+			sleep(100+nh->pwrms);
 			for(i=1; i<=nh->nport; i++) {
 				arg = emallocz(sizeof(Enum), 1);
 				arg->hub = nh;
@@ -208,10 +208,10 @@ configure(Hub *h, int port)
 
 	if(portenable(h, port, 1) < 0)
 		return nil;
-	sleep(20);
+	sleep(100);
 	if(portreset(h, port) < 0)
 		return nil;
-	sleep(20);
+	sleep(100);
 	s = portstatus(h, port);
 	if(s == -1)
 		return nil;
@@ -219,20 +219,24 @@ configure(Hub *h, int port)
 		fprint(2, "%H.%d status %#ux\n", h, port, s);
 	if((s & (1<<PORT_CONNECTION)) == 0)
 		return nil;
+	sleep(100);
 	if((s & (1<<PORT_SUSPEND)) == 0) {
 		if (debug)
 			fprint(2, "enabling port %H.%d\n", h, port);
 		if(portenable(h, port, 1) < 0)
 			return nil;
+		sleep(100);
 		s = portstatus(h, port);
 		if(s == -1)
 			return nil;
+		sleep(100);
 		if (debug)
 			fprint(2, "%H.%d status now %#ux\n", h, port, s);
 	}
 
 	ls = (s & (1<<PORT_LOW_SPEED)) != 0;
 	devspeed(h->dev0, ls);
+	sleep(100);
 	maxpkt = getmaxpkt(h->dev0);
 	if(maxpkt < 0) {
 Error0:
@@ -250,7 +254,9 @@ Error1:
 	if(setaddress(h->dev0, d->id) < 0)
 		goto Error1;
 	d->state = Assigned;
+	sleep(100);
 	devspeed(d, ls);
+	sleep(100);
 	if(describedevice(d) < 0)
 		goto Error1;
 	if(verbose || debug) {

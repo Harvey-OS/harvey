@@ -82,6 +82,15 @@ truncates the output file when it opens it;
 .B -trunc
 .B 0
 opens it without truncation.
+.TP
+.BI -quiet\  n\^
+By default,
+.I dd
+prints the number of blocks read and written
+once it is finished.
+.B -quiet
+.B 1
+silences this summary.
 .HP
 \fL-conv\ ascii\ \ \ \ \fRConvert
 .SM EBCDIC

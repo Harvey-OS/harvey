@@ -134,6 +134,7 @@ enum {
 	S_MAKEFILE,	/* target -> node */
 	S_MAKEVAR,	/* dumpable mk variable */
 	S_EXPORTED,	/* var -> current exported value */
+	S_BULKED,	/* we have bulked this dir */
 	S_WESET,	/* variable; we set in the mkfile */
 	S_INTERNAL,	/* an internal mk variable (e.g., stem, target) */
 };

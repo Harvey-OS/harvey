@@ -1,5 +1,7 @@
 #include	"l.h"
 
+#define	KZERO	0x80000000
+
 #define	LPUT(c)\
 	{\
 		cbp[0] = (c)>>24;\
@@ -86,6 +88,7 @@ asmb(void)
 	case 0:
 	case 1:
 	case 2:
+	case 5:
 		seek(cout, HEADR+textsize, 0);
 		break;
 	case 3:
@@ -110,6 +113,7 @@ asmb(void)
 		Bflush(&bso);
 		switch(HEADTYPE) {
 		case 0:
+		case 5:
 			seek(cout, HEADR+textsize+datsize, 0);
 			break;
 		case 3:
@@ -263,6 +267,49 @@ asmb(void)
 		lput(0L);
 		lput(0L);
 		lput(0x80L);			/* flags */
+		break;
+	case 5:
+		strnput("\177ELF", 4);		/* e_ident */
+		CPUT(1);					/* class = 32 bit */
+		CPUT(2);					/* data = MSB */
+		CPUT(1);					/* version = CURRENT */
+		strnput("", 9);
+		lput((2L<<16)|20L);			/* type = EXEC; machine = PowerPC */
+		lput(1L);					/* version = CURRENT */
+		lput(entryvalue() & ~KZERO);	/* entry vaddr */
+		lput(52L);					/* offset to first phdr */
+		lput(0L);					/* offset to first shdr */
+		lput(0L);					/* flags = PPC */
+		lput((52L<<16)|32L);			/* Ehdr & Phdr sizes*/
+		lput((3L<<16)|0L);			/* # Phdrs & Shdr size */
+		lput((0L<<16)|0L);			/* # Shdrs & shdr string size */
+
+		lput(1L);					/* text - type = PT_LOAD */
+		lput(HEADR);				/* file offset */
+		lput(INITTEXT & ~KZERO);		/* vaddr */
+		lput(INITTEXT);				/* paddr */
+		lput(textsize);				/* file size */
+		lput(textsize);				/* memory size */
+		lput(0x05L);				/* protections = RX */
+		lput(0x10000L);			/* alignment code?? */
+
+		lput(1L);					/* data - type = PT_LOAD */
+		lput(HEADR+textsize);		/* file offset */
+		lput(INITDAT & ~KZERO);		/* vaddr */
+		lput(INITDAT);				/* paddr */
+		lput(datsize);				/* file size */
+		lput(datsize);				/* memory size */
+		lput(0x07L);				/* protections = RWX */
+		lput(0x10000L);			/* alignment code?? */
+
+		lput(0L);					/* data - type = PT_NULL */
+		lput(HEADR+textsize+datsize);	/* file offset */
+		lput(0L);
+		lput(0L);
+		lput(symsize);				/* symbol table size */
+		lput(lcsize);				/* line number size */
+		lput(0x04L);				/* protections = R */
+		lput(0x04L);				/* alignment code?? */
 		break;
 	}
 	cflush();

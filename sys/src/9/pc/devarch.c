@@ -55,7 +55,7 @@ int narchdir = Qbase;
 int (*_pcmspecial)(char*, ISAConf*);
 void (*_pcmspecialclose)(int);
 
-extern int i8253dotimerset;
+static int dotimerset = 1;
 
 /*
  * Add a file to the #P listing.  Once added, you can't delete it.
@@ -111,9 +111,9 @@ ioinit(void)
 	ioalloc(0x10000, 1, 0, "dummy");
 	/*
 	 * Someone needs to explain why this was here...
+	 */
 	ioalloc(0x0fff, 1, 0, "dummy");	// i82557 is at 0x1000, the dummy
 					// entry is needed for swappable devs.
-	 */
 
 	if ((excluded = getconf("ioexclude")) != nil) {
 		char *s;
@@ -754,6 +754,7 @@ archctlread(Chan*, void *a, long nn, vlong offset)
 	n += snprint(buf+n, sizeof buf-n, "pge %s\n", getcr4()&0x80 ? "on" : "off");
 	n += snprint(buf+n, sizeof buf-n, "coherence %s\n",
 		coherence==wbflush ? "wbflush" : "nop");
+	n += snprint(buf+n, sizeof buf-n, "timerset %s\n", dotimerset ? "on" : "off");
 	buf[n] = 0;
 	return readstr(offset, a, nn, buf);
 }
@@ -808,10 +809,11 @@ archctlwrite(Chan*, void *a, long n, vlong)
 		break;
 	case CMi8253set:
 		if(strcmp(cb->f[1], "on") == 0)
-			i8253dotimerset = 1;
-		else if(strcmp(cb->f[1], "off") == 0)
-			i8253dotimerset = 0;
-		else
+			dotimerset = 1;
+		else if(strcmp(cb->f[1], "off") == 0){
+			dotimerset = 0;
+			(*arch->timerset)(0);
+		}else
 			cmderror(cb, "invalid i2853set ctl");
 		break;
 	}
@@ -895,5 +897,6 @@ fastticks(uvlong *hz)
 void
 timerset(uvlong x)
 {
-	(*arch->timerset)(x);
+	if(dotimerset)
+		(*arch->timerset)(x);
 }

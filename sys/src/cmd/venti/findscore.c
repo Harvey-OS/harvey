@@ -40,8 +40,7 @@ findscore(Arena *arena, uchar *score)
 	u32int clump;
 	int i, n, found;
 
-//ZZZ remove fprint?
-	if(arena->clumps)
+	if(arena->clumps && verbose)
 		fprint(2, "reading directory for arena=%s with %d entries\n", arena->name, arena->clumps);
 
 	cis = MKN(ClumpInfo, ClumpChunks);

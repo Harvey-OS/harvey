@@ -51,7 +51,7 @@ char *aanfilter = "/bin/aan";
 int encproto = Encnone;
 static void	mksecret(char *, uchar *);
 static int localread9pmsg(int, void *, uint, ulong *);
-static char *anstring  = "il!*!0";
+static char *anstring  = "tcp!*!0";
 int	filter(int, char *);
 
 void

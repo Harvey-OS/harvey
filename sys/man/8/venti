@@ -201,6 +201,9 @@ The units for the various cache sizes above can be specified by appending a
 or
 .LR g
 to indicate kilobytes, megabytes, or gigabytes respectively.
+The command line options override options found in the
+.IR venti.conf (6)
+file.
 .PP
 .I Sync
 connects to a running Venti server and executes a sync rpc

@@ -127,21 +127,21 @@ isolate(int rddata, ulong *id1, ulong *id2)
 	outb(Address, 0x01);	/* point to serial isolation register */
 	delay(1);
 	csum = 0x6a;
-	for (i = 0; i < 64; i++) {
+	for(i = 0; i < 64; i++){
 		bit = readbit(rddata);
 		csum = (csum>>1) | (((csum&1) ^ ((csum>>1)&1) ^ bit)<<7);
 		p = &id[i>>3];
 		*p = (*p>>1) | (bit<<7);
 	}
-	for (; i < 72; i++) {
+	for(; i < 72; i++){
 		p = &id[i>>3];
 		*p = (*p>>1) | (readbit(rddata)<<7);
 	}
 	*id1 = (id[3]<<24)|(id[2]<<16)|(id[1]<<8)|id[0];
 	*id2 = (id[7]<<24)|(id[6]<<16)|(id[5]<<8)|id[4];
-	if (*id1 == 0)
+	if(*id1 == 0)
 		return 0;
-	if (id[8] != csum)
+	if(id[8] != csum)
 		DPRINT("pnp: bad checksum id1 %lux id2 %lux csum %x != %x\n", *id1, *id2, csum, id[8]); /**/
 	return id[8] == csum;
 }

@@ -56,7 +56,7 @@ permFile(File* file, Fid* fid, int perm)
 			return 1;
 		}
 	}
-	if(fsysNoPermCheck(fid->fsys)){
+	if(fsysNoPermCheck(fid->fsys) || fid->con->noperm){
 		deCleanup(&de);
 		return 1;
 	}
@@ -937,7 +937,7 @@ rTattach(Msg* m)
 	else
 		fid->uname = vtStrDup(unamenone);
 
-	if(fsysNoAuthCheck(fsys)){
+	if(fsysNoAuthCheck(fsys) || m->con->noauth){
 		if((fid->uid = uidByUname(fid->uname)) == nil)
 			fid->uid = vtStrDup(unamenone);
 	}
@@ -981,7 +981,7 @@ rTauth(Msg* m)
 	}
 	vtMemFree(fsname);
 
-	if(fsysNoAuthCheck(fsys)){
+	if(fsysNoAuthCheck(fsys) || m->con->noauth){
 		m->con->aok = 1;
 		vtSetError("authentication disabled");
 		fsysPut(fsys);

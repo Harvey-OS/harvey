@@ -39,7 +39,7 @@ void	*Malloc(int);
 char	*maketmp(void);
 int	match(char*, char*, char*);
 void	mk(char*);
-ulong	mkmtime(char*);
+ulong	mkmtime(char*, int);
 long	mtime(char*);
 Arc	*newarc(Node*, Rule*, char*, Resub*);
 Bufblock *newbuf(void);

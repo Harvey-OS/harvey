@@ -94,8 +94,11 @@ syncArena(Arena *arena, u32int n, int zok, int fix)
 		}else if(!broken && !clumpInfoEq(&ci, &cl.info)){
 			if(clumpInfoEq(&ci, &zci)){
 				err |= SyncCIZero;
-				if(!zok)
-					fprint(2, "unwritten clump info for clump=%d\n", clump);
+				if(!zok){
+					fprint(2, "unwritten clump info for clump=%d ", clump);
+					fprint(2, "score=%V type=%d\n",
+						cl.info.score, cl.info.type);
+				}
 			}else{
 				err |= SyncCIErr;
 				fprint(2, "bad clump info for clump=%d\n", clump);

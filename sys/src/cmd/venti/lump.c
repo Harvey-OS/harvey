@@ -134,7 +134,7 @@ writeQLump(Lump *u, Packet *p, int creator)
 
 static void
 readAhead(u64int a, Arena *arena, u64int aa, int n)
-{	
+{
 	u8int buf[ClumpSize];
 	Clump cl;
 	IAddr ia;

@@ -9,6 +9,12 @@ mpleft(mpint *b, int shift, mpint *res)
 	int d, l, r, i, otop;
 	mpdigit this, last;
 
+	res->sign = b->sign;
+	if(b->top==0){
+		res->top = 0;
+		return;
+	}
+
 	// a negative left shift is a right shift
 	if(shift < 0){
 		mpright(b, -shift, res);
