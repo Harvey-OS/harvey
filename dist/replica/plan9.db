@@ -4988,7 +4988,7 @@ sys/man/6/ar - 664 sys sys 944959678 2092
 sys/man/6/authsrv - 664 sys sys 1035840090 10534
 sys/man/6/color - 664 sys sys 988225304 5181
 sys/man/6/face - 664 sys sys 1062505426 2846
-sys/man/6/font - 664 sys sys 954089525 2528
+sys/man/6/font - 664 sys sys 1077594184 2528
 sys/man/6/image - 664 sys sys 988225304 6209
 sys/man/6/keyboard - 664 sys sys 984709638 4467
 sys/man/6/man - 664 sys sys 944959678 4961
