@@ -457,11 +457,11 @@ status(int expungeable, int uids)
 	if(selected->sendFlags)
 		sendFlags(selected, uids);
 	if(tell || selected->toldMax != selected->max){
-		Bprint(&bout, "* %lud exists\r\n", selected->max);
+		Bprint(&bout, "* %lud EXISTS\r\n", selected->max);
 		selected->toldMax = selected->max;
 	}
 	if(tell || selected->toldRecent != selected->recent){
-		Bprint(&bout, "* %lud recent\r\n", selected->recent);
+		Bprint(&bout, "* %lud RECENT\r\n", selected->recent);
 		selected->toldRecent = selected->recent;
 	}
 	if(tell)
@@ -994,7 +994,7 @@ namespaceCmd(char *tg, char *cmd)
 	 * personal, other users, shared namespaces
 	 * send back nil or descriptions of (prefix heirarchy-delim) for each case
 	 */
-	Bprint(&bout, "* namespace ((\"\" \"/\")) nil nil\r\n");
+	Bprint(&bout, "* NAMESPACE ((\"\" \"/\")) nil nil\r\n");
 	Bprint(&bout, "%s OK %s completed\r\n", tg, cmd);
 }
 
@@ -1130,9 +1130,9 @@ selectCmd(char *tg, char *cmd)
 	imapState = SSelected;
 
 	Bprint(&bout, "* FLAGS (\\Seen \\Answered \\Flagged \\Deleted \\Draft)\r\n");
-	Bprint(&bout, "* %lud exists\r\n", selected->max);
+	Bprint(&bout, "* %lud EXISTS\r\n", selected->max);
 	selected->toldMax = selected->max;
-	Bprint(&bout, "* %lud recent\r\n", selected->recent);
+	Bprint(&bout, "* %lud RECENT\r\n", selected->recent);
 	selected->toldRecent = selected->recent;
 	for(m = selected->msgs; m != nil; m = m->next){
 		if(!m->expunged && (m->flags & MSeen) != MSeen){

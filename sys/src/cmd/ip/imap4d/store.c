@@ -81,10 +81,10 @@ sendFlags(Box *box, int uids)
 	box->sendFlags = 0;
 	for(m = box->msgs; m != nil; m = m->next){
 		if(!m->expunged && m->sendFlags){
-			Bprint(&bout, "* %lud fetch (", m->seq);
+			Bprint(&bout, "* %lud FETCH (", m->seq);
 			if(uids)
 				Bprint(&bout, "uid %lud ", m->uid);
-			Bprint(&bout, "flags (");
+			Bprint(&bout, "FLAGS (");
 			writeFlags(&bout, m, 1);
 			Bprint(&bout, "))\r\n");
 			m->sendFlags = 0;

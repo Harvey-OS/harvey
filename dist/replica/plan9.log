@@ -13887,3 +13887,9 @@
 1066098627 5 c sys/src/cmd/fossil/9user.c - 664 sys sys 1066098098 17239
 1066098627 6 c sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1066098098 7244
 1066098627 7 c sys/src/cmd/fossil/file.c - 664 sys sys 1066098099 28004
+1066318374 0 c 386/bin/ip/imap4d - 775 sys sys 1066317082 237216
+1066318374 1 c sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1066317057 11762
+1066318374 2 c sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1066317057 40675
+1066318374 3 c sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
+1066327268 0 c sys/src/cmd/ip/imap4d/fetch.c - 664 sys sys 1066325855 11762
+1066327268 1 c sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1066325859 40675
