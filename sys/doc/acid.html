@@ -110,11 +110,11 @@ language and program interact:
 /sys/lib/acid/port
 /sys/lib/acid/mips
 acid: new()
-75721: system call  _main ADD  $-0x14,R29
+75721: system call  _main ADD  <I>-0x14,R29
 75721: breakpoint   main+0x4   MOVW  R31,0x0(R29)
 acid: bpset(ls)
 acid: cont()
-75721: breakpoint   ls    ADD  $-0x16c8,R29
+75721: breakpoint   ls    ADD  </I>-0x16c8,R29
 acid: stk()
 At pc:0x0000141c:ls /sys/src/cmd/ls.c:87
 ls(s=0x0000004d,multi=0x00000000) /sys/src/cmd/ls.c:87
@@ -250,63 +250,63 @@ The supported format characters are:
 <DL><DD>
 </P>
 <DL COMPACT>
-<DT>&lt;TT&gt;o&lt;/TT&gt;<DD>
+<DT><TT>o</TT><DD>
 Print two-byte integer in octal.
-<DT>&lt;TT&gt;O&lt;/TT&gt;<DD>
+<DT><TT>O</TT><DD>
 Print four-byte integer in octal.
-<DT>&lt;TT&gt;q&lt;/TT&gt;<DD>
+<DT><TT>q</TT><DD>
 Print two-byte integer in signed octal.
-<DT>&lt;TT&gt;Q&lt;/TT&gt;<DD>
+<DT><TT>Q</TT><DD>
 Print four-byte integer in signed octal.
-<DT>&lt;TT&gt;B&lt;/TT&gt;<DD>
+<DT><TT>B</TT><DD>
 Print four-byte integer in binary.
-<DT>&lt;TT&gt;d&lt;/TT&gt;<DD>
+<DT><TT>d</TT><DD>
 Print two-byte integer in signed decimal.
-<DT>&lt;TT&gt;D&lt;/TT&gt;<DD>
+<DT><TT>D</TT><DD>
 Print four-byte integer in signed decimal.
-<DT>&lt;TT&gt;Y&lt;/TT&gt;<DD>
+<DT><TT>Y</TT><DD>
 Print eight-byte integer in signed decimal.
-<DT>&lt;TT&gt;Z&lt;/TT&gt;<DD>
+<DT><TT>Z</TT><DD>
 Print eight-byte integer in unsigned decimal.
-<DT>&lt;TT&gt;x&lt;/TT&gt;<DD>
+<DT><TT>x</TT><DD>
 Print two-byte integer in hexadecimal.
-<DT>&lt;TT&gt;X&lt;/TT&gt;<DD>
+<DT><TT>X</TT><DD>
 Print four-byte integer in hexadecimal.
-<DT>&lt;TT&gt;Y&lt;/TT&gt;<DD>
+<DT><TT>Y</TT><DD>
 Print eight-byte integer in hexadecimal.
-<DT>&lt;TT&gt;u&lt;/TT&gt;<DD>
+<DT><TT>u</TT><DD>
 Print two-byte integer in unsigned decimal.
-<DT>&lt;TT&gt;U&lt;/TT&gt;<DD>
+<DT><TT>U</TT><DD>
 Print four-byte integer in unsigned decimal.
-<DT>&lt;TT&gt;f&lt;/TT&gt;<DD>
+<DT><TT>f</TT><DD>
 Print single-precision floating point number.
-<DT>&lt;TT&gt;F&lt;/TT&gt;<DD>
+<DT><TT>F</TT><DD>
 Print double-precision floating point number.
-<DT>&lt;TT&gt;g&lt;/TT&gt;<DD>
+<DT><TT>g</TT><DD>
 Print a single precision floating point number in string format.
-<DT>&lt;TT&gt;G&lt;/TT&gt;<DD>
+<DT><TT>G</TT><DD>
 Print a double precision floating point number in string format.
-<DT>&lt;TT&gt;b&lt;/TT&gt;<DD>
+<DT><TT>b</TT><DD>
 Print byte in hexadecimal.
-<DT>&lt;TT&gt;c&lt;/TT&gt;<DD>
+<DT><TT>c</TT><DD>
 Print byte as an ASCII character.
-<DT>&lt;TT&gt;C&lt;/TT&gt;<DD>
+<DT><TT>C</TT><DD>
 Like
 <TT>c</TT>,
 with
 printable ASCII characters represented normally and
 others printed in the form <TT>\x</TT><I>nn</I>.
-<DT>&lt;TT&gt;s&lt;/TT&gt;<DD>
+<DT><TT>s</TT><DD>
 Interpret the addressed bytes as UTF characters
 and print successive characters until a zero byte is reached.
-<DT>&lt;TT&gt;r&lt;/TT&gt;<DD>
+<DT><TT>r</TT><DD>
 Print a two-byte integer as a rune.
-<DT>&lt;TT&gt;R&lt;/TT&gt;<DD>
+<DT><TT>R</TT><DD>
 Print successive two-byte integers as runes
 until a zero rune is reached.
-<DT>&lt;TT&gt;i&lt;/TT&gt;<DD>
+<DT><TT>i</TT><DD>
 Print as machine instructions.
-<DT>&lt;TT&gt;I&lt;/TT&gt;<DD>
+<DT><TT>I</TT><DD>
 As
 <TT>i</TT>
 above, but print the machine instructions in
@@ -315,7 +315,7 @@ an alternate form if possible:
 and
 <TT>mipsco</TT>
 reproduce the manufacturers' syntax.
-<DT>&lt;TT&gt;a&lt;/TT&gt;<DD>
+<DT><TT>a</TT><DD>
 Print the value in symbolic form.
 </DL>
 </dl>
@@ -467,7 +467,7 @@ examines and modifies Acid's map for a process.
 Name conflicts between keywords in the Acid language, symbols in the program,
 and previously defined functions are resolved when the interpreter starts up.
 Each name is made unique by prefixing enough
-<TT>$</TT>
+<TT></TT><I></I><TT>
 characters to the front of the name to make it unique. Acid reports
 a list of each name change at startup. The report looks like this:
 <DL><DT><DD><TT><PRE>
@@ -475,16 +475,16 @@ a list of each name change at startup. The report looks like this:
 /lib/acid/port
 /lib/acid/mips
 Symbol renames:
-	append=$append T/0xa4e40
+	append=</TT>append T/0xa4e40
 acid:
 </PRE></TT></DL>
 The symbol
 <TT>append</TT>
 is both a keyword and a text symbol in the program. The message reports
 that the text symbol is now named
-<TT>$append</TT>.
+<TT></TT><I>append</I><TT>.
 </P>
-<H4>Expressions
+</TT><H4>Expressions
 </H4>
 <P>
 Operators have the same
@@ -791,8 +791,8 @@ will generate Acid source code defining such complex types and functions; see
 A
 <I>unary-expression</I>
 may be qualified with a format specifier using the
-<TT>o</TT>
-perator. This has the same effect as passing the expression to the
+<TT>\</TT>
+operator. This has the same effect as passing the expression to the
 <TT>fmt</TT>
 builtin function.
 <DL><DT><DD><TT><PRE>
@@ -1214,7 +1214,7 @@ The source file address uses the same format as
 <br>
 acid: bpset(filepc("main:10"))
 acid: bptab()
-	0x00001020 usage  ADD	$-0xc,R29
+	0x00001020 usage  ADD	-0xc,R29
 </PRE></TT></DL>
 <br>
 
@@ -1235,8 +1235,8 @@ what kind of object will be fetched by the
 and
 <TT>@</TT>
 operators. The
-<TT>o</TT>
-perator is a short-hand form of the
+<TT>\</TT>
+operator is a short-hand form of the
 <TT>fmt</TT>
 builtin function. The
 <TT>fmt</TT>
@@ -1248,9 +1248,9 @@ unchanged.
 <br>
 acid: main=fmt(main, 'i') // as instructions
 acid: print(main\X, "\t", *main)
-0x00001020 ADD	$-64,R29
+0x00001020 ADD	<I>-64,R29
 </PRE></TT></DL>
-<br>
+</I><br>
 
 
 
@@ -1512,7 +1512,7 @@ environment.
 <DL><DT><DD><TT><PRE>
 <br>
 acid: newproc("-l .")
-56720: system call	_main	ADD	$-0x14,R29
+56720: system call	_main	ADD	-0x14,R29
 </PRE></TT></DL>
 <br>
 
@@ -1583,9 +1583,9 @@ acid: print(10, "decimal ", 10\D, "octal ", 10\o)
 acid: print({1, 2, 3})
 {0x00000001 , 0x00000002 , 0x00000003 }
 acid: print(main, main\a, "\t", @main\i)
-0x00001020 main	ADD	$-64,R29
+0x00001020 main	ADD	<I>-64,R29
 </PRE></TT></DL>
-<br>
+</I><br>
 
 
 
@@ -1607,7 +1607,7 @@ accepts a maximum of 512 arguments.
 <DL><DT><DD><TT><PRE>
 <br>
 acid: printto("/env/foo", "hello")
-acid: rc("echo -n $foo")
+acid: rc("echo -n foo")
 hello
 </PRE></TT></DL>
 <br>
@@ -1784,9 +1784,9 @@ is used to implement single stepping.
 <DL><DT><DD><TT><PRE>
 <br>
 acid: startstop(pid)
-75374: breakpoint	ls	ADD	$-0x16c8,R29
+75374: breakpoint	ls	ADD	<I>-0x16c8,R29
 </PRE></TT></DL>
-<br>
+</I><br>
 
 
 
@@ -1923,7 +1923,7 @@ function is passive; it does not itself cause the program to stop.
 <DL><DT><DD><TT><PRE>
 <br>
 acid: waitstop(pid)
-75374: breakpoint	ls	ADD	$-0x16c8,R29
+75374: breakpoint	ls	ADD	-0x16c8,R29
 </PRE></TT></DL>
 <br>
 
@@ -1939,15 +1939,15 @@ Acid is started.
 These modules are located in the directory
 <TT>/sys/lib/acid</TT>.
 These functions may be overridden, personalized, or added to by code defined in
-<TT>$home/lib/acid</TT>.
+<TT></TT><I>home/lib/acid</I><TT>.
 The implementation of these functions can be examined using the
-<TT>whatis</TT>
+</TT><TT>whatis</TT><TT>
 operator and then modified during debugging sessions.
 
 
 
 </P>
-<br>&#32;<br>
+</TT><br>&#32;<br>
 <DL>
 <DT><DT>&#32;<DD>
 <TT>Bsrc</TT>
@@ -2089,12 +2089,12 @@ operator.
 <DL><DT><DD><TT><PRE>
 <br>
 acid: asm(main)
-main     0x00001020 ADD    $-0x64,R29
+main     0x00001020 ADD    -0x64,R29
 main+0x4 0x00001024 MOVW   R31,0x0(R29)
 main+0x8 0x00001028 MOVW   R1,argc+4(FP)
-main+0xc 0x0000102c MOVW   $bin(SB),R1
+main+0xc 0x0000102c MOVW   <I>bin(SB),R1
 </PRE></TT></DL>
-<br>
+</I><br>
 
 
 
@@ -2201,12 +2201,12 @@ this command stops disassembling at function boundaries.
 <DL><DT><DD><TT><PRE>
 <br>
 acid: casm()
-main+0x10 0x00001030	MOVW	$0x1,R3
+main+0x10 0x00001030	MOVW	0x1,R3
 main+0x14 0x00001034	MOVW	R3,0x8(R29)
-main+0x18 0x00001038	MOVW	$0x1,R5
+main+0x18 0x00001038	MOVW	<I>0x1,R5
 main+0x1c 0x0000103c	JAL	Binit(SB)
 </PRE></TT></DL>
-<br>
+</I><br>
 
 
 
@@ -2260,7 +2260,7 @@ to fetch each object.
 acid: dump(main+35, 4, "X2bi")
 0x00001043: 0x0c8fa700 108 143 lwc2 r0,0x528f(R4) 
 0x0000104d: 0xa9006811   0   0 swc3 r0,0x0(R24) 
-0x00001057: 0x2724e800   4  37 ADD  $-0x51,R23,R31 
+0x00001057: 0x2724e800   4  37 ADD  -0x51,R23,R31 
 0x00001061: 0xa200688d   6   0 NOOP
 0x0000106b: 0x2710c000   7   0 BREAK
 </PRE></TT></DL>
@@ -2342,9 +2342,9 @@ acid: func()
 95197: breakpoint	ls+0x8	MOVW	R1,R8
 95197: breakpoint	ls+0xc	MOVW	R8,R1
 95197: breakpoint	ls+0x10	MOVW	R8,s+4(FP)
-95197: breakpoint	ls+0x14	MOVW	$0x2f,R5
+95197: breakpoint	ls+0x14	MOVW	<I>0x2f,R5
 95197: breakpoint	ls+0x18	JAL	utfrrune(SB)
-95197: breakpoint	utfrrune	ADD	$-0x18,R29
+95197: breakpoint	utfrrune	ADD	</I>-0x18,R29
 </PRE></TT></DL>
 <br>
 
@@ -2489,10 +2489,10 @@ simultaneously. The user can rotate between the copies using
 <br>
 acid: progargs="-l"
 acid: new()
-60: external interrupt	_main	ADD	$-0x14,R29
+60: external interrupt	_main	ADD	<I>-0x14,R29
 60: breakpoint	main+0x4	MOVW	R31,0x0(R29)
 </PRE></TT></DL>
-<br>
+</I><br>
 
 
 
@@ -2816,7 +2816,7 @@ function will trace down through function calls.
 acid: stmnt()
 62: breakpoint	main+0x18 MOVW	R5,0xc(R29)
 62: breakpoint	main+0x1c JAL	Binit(SB)
-62: breakpoint	Binit     ADD	$-0x18,R29
+62: breakpoint	Binit     ADD	-0x18,R29
 binit.c:91
  89	int
  90	Binit(Biobuf *bp, int f, int mode)
@@ -2898,18 +2898,18 @@ The variable
 <TT>progargs</TT>
 supplies arguments to the new process.
 The environment variable
-<TT>$8&#189;srv</TT>
+<TT></TT><I>8&#189;srv</I><TT>
 must be set to allow the interpreter to locate the mount channel for the
 window system.
 The window is created in the top left corner of the screen and is
 400x600 pixels in size. The
-<TT>win</TT>
+</TT><TT>win</TT><TT>
 function may be modified to alter the geometry.
 The window system will not be able to deliver notes in the new window
 since the pid of the created process is not passed when the server is
 mounted to create a new window.
 <DT><DT>&#32;<DD>
-<DL><DT><DD><TT><PRE>
+</TT><DL><DT><DD><TT><PRE>
 <br>
 acid: win()
 </PRE></TT></DL>
@@ -2917,5 +2917,5 @@ acid: win()
 </dl>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

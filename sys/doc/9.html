@@ -167,7 +167,7 @@ servers to office- and home-resident workstations or PCs, called terminals
 in Plan 9 terminology.
 Figure 1 shows the arrangement.
 <DL><DT><DD><TT><PRE>
-<br><img src="network.pic.6030.gif"><br>
+<br><img src="network.pic.19237420.gif"><br>
 </PRE></TT></DL>
 </P>
 <DL>
@@ -1026,21 +1026,21 @@ a relative of
 <TT>make</TT>,
 reads the names of the current and target
 architectures from environment variables called
-<TT>$cputype</TT>
+<TT></TT><I>cputype</I>
 and
-<TT>$objtype</TT>.
+</TT><TT></TT><TT>objtype</TT>.
 By default the current processor is the target, but setting
-<TT>$objtype</TT>
+<TT></TT><I>objtype</I>
 to the name of another architecture
 before invoking
-<TT>mk</TT>
+</TT><TT>mk</TT>
 results in a cross-build:
 <DL><DT><DD><TT><PRE>
 % objtype=sparc mk
 </PRE></TT></DL>
 builds a program for the SPARC architecture regardless of the executing machine.
 The value of
-<TT>$objtype</TT>
+</TT><TT></TT><TT>objtype</TT>
 selects a
 file of architecture-dependent variable definitions
 that configures the build to use the appropriate compilers and loader.
@@ -1273,13 +1273,13 @@ of the Plan 9 name space.
 For instance, the directory
 <TT>/bin</TT>
 is built as a union of
-<TT>/$cputype/bin</TT>
+<TT>/</TT><I>cputype/bin</I>
 (program binaries),
-<TT>/rc/bin</TT>
+</TT><TT>/rc/bin</TT>
 (shell scripts),
 and perhaps more directories provided by the user.
 This construction makes the shell
-<TT>$PATH</TT>
+</TT><TT></TT><TT>PATH</TT>
 variable unnecessary.
 </P>
 <P>
@@ -1312,7 +1312,7 @@ necessary to have a notation that permits
 direct access to the devices without an existing name space.
 The root directory
 of the tree served by a device driver can be accessed using the syntax
-<TT>#</TT>&lt;I&gt;c&lt;/I&gt;,
+<TT>#</TT><I>c</I>,
 where
 <I>c</I>
 is a unique character (typically a letter) identifying the
@@ -2022,7 +2022,7 @@ and
 It also measures the time to send a byte on a pipe from one process
 to another and the throughput on a pipe between two processes.
 The results appear in Table 1.
-<br><img src="-.6031.gif"><br>
+<br><img src="-.19237421.gif"><br>
 Table 1.  Performance comparison.
 </P>
 <br>&#32;<br>
@@ -2040,9 +2040,9 @@ An example is the problem of heterogeneous instruction architectures,
 which is addressed by the compilers (different code characters, portable
 object code),
 the environment
-(<TT>$cputype</TT>
+(<TT></TT><I>cputype</I>
 and
-<TT>$objtype</TT>),
+</TT><TT></TT><TT>objtype</TT>),
 the name space
 (binding in
 <TT>/bin</TT>),
@@ -2260,8 +2260,8 @@ USENIX Summer Conf. Proc.,
 Nashville, June, 1991, pp. 257-265,
 reprinted in this volume.
 <DT>[Pike93]<DD>
-Rob Pike and Ken Thompson, ``Hello World or &#191;ALPHA&#191;&#191;MU&#191;&#191;ALPHA &#191;&#191;&#191;MUEPSILON or
-&#191;&#191;&#191;&#191;&#191; &#191;&#191;'',
+Rob Pike and Ken Thompson, ``Hello World or &#922;&#945;&#955;&#951;&#956;&#941;&#961;&#945; &#954;&#972;&#963;&#956;&#949; or
+&#12371;&#12435;&#12395;&#12385;&#12399; &#19990;&#30028;'',
 USENIX Winter Conf. Proc.,
 San Diego, 1993, pp. 43-50,
 reprinted in this volume.
@@ -2364,10 +2364,9 @@ Volume 2,
 AT&amp;T Bell Laboratories,
 Murray Hill, NJ,
 1995.
-
 </H4>
 </dl>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2001 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

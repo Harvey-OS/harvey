@@ -88,17 +88,17 @@ Commands related to
 <I>lp</I>
 that are not shell scripts can most often be found
 in
-<TT>/$cputype/bin/aux</TT>.
+<TT>/</TT><I>cputype/bin/aux</I><TT>.
 The directory where all the
-<I>lp</I>
+</TT><I>lp</I><TT>
 scripts  reside is defined within
-<I>lp</I>
+</TT><I>lp</I><TT>
 by the shell variable
-<TT>LPLIB</TT>.
+</TT><TT>LPLIB</TT><TT>.
 In the remainder of this document, file names will be specified
 with this shell variable as their root.
 </P>
-<H4>2 Usage
+</TT><H4>2 Usage
 </H4>
 <P>
 <I>Lp</I>
@@ -109,31 +109,31 @@ This can be done in any of three ways described here.
 <DL COMPACT>
 <DT>1)<DD>
 The file
-<TT>$LPLIB/defdevice</TT>
+<TT></TT>LPLIB/defdevice<TT>
 may contain the name of a default output device.
 This may not be practical for environments where
 there are many printers.
 <DT>2)<DD>
 The user's environment variable
-<TT>LPDEST</TT>
+</TT><TT>LPDEST</TT><TT>
 may be set to the name of the device to be used.
 This is often a more practical solution when there are several printers
 available.
 This overrides a
-<TT>defdevice</TT>
+</TT><TT>defdevice</TT><TT>
 specification.
 <DT>3)<DD>
 The
-<TT>-d</TT>
-<I>printer</I>
+</TT><TT>-d</TT><TT>
+</TT><I>printer</I><TT>
 option to the
-<I>lp</I>
+</TT><I>lp</I><TT>
 command specifies
-<I>printer</I>
+</TT><I>printer</I><TT>
 as the device to which output should be directed, overriding the
 previous two specifications.
 </dl>
-<P>
+</TT><P>
 <br>
 If
 <I>printer</I>
@@ -191,7 +191,7 @@ with
 A file can be converted to PostScript using the pseudo-printer
 <TT>stdout</TT>:
 <DL><DT><DD><TT><PRE>
-% troff -ms lp.ms | lp -dstdout &#62; lp.ps
+% troff -ms lp.ms | lp -dstdout &gt; lp.ps
 </PRE></TT></DL>
 LaTeX (and analogously TeX)
 documents are printed in two steps:
@@ -234,10 +234,10 @@ The format of the status and queue printout is up to the administrator.
 The job started above can be killed with
 <TT>-k</TT>:
 <DL><DT><DD><TT><PRE>
-$ lp -dpsu -k rice29436.1
+<I> lp -dpsu -k rice29436.1
 rice29436.1 removed from psu queue on cetus
 </PRE></TT></DL>
-<H4>3 Options
+</I><H4>3 Options
 </H4>
 <P>
 There are options available to modify the way in which a job is handled.
@@ -251,7 +251,7 @@ Table 1 lists the standard
 options, the shell variable settings, and description of the options.
 
 <br>&#32;<br>
-<br><img src="data.15750.gif"><br>
+<br><img src="data.19118320.gif"><br>
 <br>&#32;<br>
 <I>Table 1. Lp Option List</I>
 <br>&#32;<br>
@@ -282,59 +282,59 @@ or as specified by the shell environment variable
 <TT>LPDEST</TT>
 or as specified by
 the file
-<TT>$LPLIB/defdevice</TT>.
+<TT></TT>LPLIB/defdevice<TT>.
 This name is used in creating directories and log files that are associated with
 the printers operation.
-<DT><TT>0<DD>
-LOC0</TT> just describes where the printer is physically located.
-<DT><TT>0<DD>
-DEST_HOST0</TT> is the host from which the files are printed.
+<DT></TT><TT>0<DD>
+LOC0</TT><TT> just describes where the printer is physically located.
+<DT></TT><TT>0<DD>
+DEST_HOST0</TT><TT> is the host from which the files are printed.
 Files may be spooled on other machines before being transferred to the
 destination host.
-<DT><TT>0<DD>
-OUT_DEV0</TT> is the physical device name or network address needed by the printer daemon
+<DT></TT><TT>0<DD>
+OUT_DEV0</TT><TT> is the physical device name or network address needed by the printer daemon
 to connect to the printer.
 This field depends on the requirements of the daemon and may contain a `&#191;'
 if not required.
-<DT><TT>0<DD>
-SPEED0</TT> is the baud rate setting for the port.
+<DT></TT><TT>0<DD>
+SPEED0</TT><TT> is the baud rate setting for the port.
 This field depends on the requirements of the daemon and may contain a `&#191;'
 if not required.
-<DT><TT>0<DD>
-LPCLASS0</TT> is used to encode minor printer differences.
+<DT></TT><TT>0<DD>
+LPCLASS0</TT><TT> is used to encode minor printer differences.
 The keyword
-<TT>reverse</TT>
+</TT><TT>reverse</TT><TT>
 is used by some of the preprocessors
 to reverse the order the pages are printed to accommodate different output
 trays (either face up or face down).
 The keyword
-<TT>nohead</TT>
+</TT><TT>nohead</TT><TT>
 is used to suppress the header page.
 This is used for special and color printers.
 The keyword
-<TT>duplex</TT>
+</TT><TT>duplex</TT><TT>
 is used to coax double sided output from duplex printers.
-<DT><TT>0<DD>
-LPPROC0</TT> is the command from the
-<TT>LPLIB/process</TT>
+<DT></TT><TT>0<DD>
+LPPROC0</TT><TT> is the command from the
+</TT><TT>LPLIB/process</TT><TT>
 directory to be used to convert input to a format
 that will be accepted by the device.
 The preprocessor is invoked by the spooler.
-<DT><TT>0<DD>
-SPOOLER0</TT> is the command from the
-<TT>LPLIB/spooler</TT>
+<DT></TT><TT>0<DD>
+SPOOLER0</TT><TT> is the command from the
+</TT><TT>LPLIB/spooler</TT><TT>
 directory which will select files using the
-<TT>SCHED</TT>
+</TT><TT>SCHED</TT><TT>
 command and invoke the
-<TT>LPPROC</TT>
+</TT><TT>LPPROC</TT><TT>
 command, putting its output
 into the remote spool directory.
 The output is sent directly to the spool directory on the
 destination machine to avoid conflicts when client and
 server machines share spool directories.
-<DT><TT>0<DD>
-STAT0</TT> is the command from the
-<TT>LPLIB/stat</TT>
+<DT></TT><TT>0<DD>
+STAT0</TT><TT> is the command from the
+</TT><TT>LPLIB/stat</TT><TT>
 directory that prints the status of the device and the list of jobs
 waiting on the queue for the device.
 The status information depends on what is available from the printer
@@ -342,44 +342,44 @@ and interface software.
 The queue information should be changed to show information
 useful in tracking down problems.
 The
-<TT>SCHED</TT>
+</TT><TT>SCHED</TT><TT>
 command is used to show the jobs in the order
 in which they will be printed.
-<DT><TT>0<DD>
-KILL0</TT> is the command from the
-<TT>LPLIB/kill</TT>
+<DT></TT><TT>0<DD>
+KILL0</TT><TT> is the command from the
+</TT><TT>LPLIB/kill</TT><TT>
 that removes jobs from the queue.
 The jobs to be removed are given as arguments to the
-<I>lp</I>
+</TT><I>lp</I><TT>
 command.
 When possible, it should also abort the currently running job
 if it has to be killed.
-<DT><TT>0<DD>
-DAEMON0</TT> is the command from the
-<TT>LPLIB/daemon</TT>
+<DT></TT><TT>0<DD>
+DAEMON0</TT><TT> is the command from the
+</TT><TT>LPLIB/daemon</TT><TT>
 that is meant to run asynchronously to remove
 jobs from the queue.
 Jobs may either be passed on to another host or sent to the
 printing device.
-<I>Lp</I>
+</TT><I>Lp</I><TT>
 always tries to start a daemon process when one is specified.
-<DT><TT>0<DD>
-SCHED0</TT> is the command from the
-<TT>LPLIB/sched</TT>
+<DT></TT><TT>0<DD>
+SCHED0</TT><TT> is the command from the
+</TT><TT>LPLIB/sched</TT><TT>
 that is used to present the job names to the
 daemon and stat programs
 in some order, e.g., first-in-first-out, smallest first.
 </dl>
-<H4>5 Support programs
+</TT><H4>5 Support programs
 </H4>
 <P>
 The following sections describe the basic functions of the programs
 that are found in the subdirectories of
-<TT>$LPLIB</TT>.
+<TT></TT><I>LPLIB</I><TT>.
 The programs in a specific directory vary with the
 type of output device or networks that have to be used.
 </P>
-<H4>5.1 Process directory
+</TT><H4>5.1 Process directory
 </H4>
 <P>
 The
@@ -515,30 +515,30 @@ The daemon first checks to see that it is the only one running
 by using the
 <TT>LOCK</TT>
 program found in the
-<TT>/$cputype/bin/aux</TT>
+<TT>/</TT>cputype/bin/aux<TT>
 directory.
 The
-<TT>LOCK</TT>
+</TT><TT>LOCK</TT><TT>
 command creates a
-<TT>LOCK</TT>
+</TT><TT>LOCK</TT><TT>
 file in the printer's queue directory.
 The daemon then executes the scheduler to obtain the name of the
 next job on the queue.
 </P>
-<P>
+</TT><P>
 The processing of jobs may entail transfer to another host
 or transmission to a printer.
 The details of this are specific to the individual daemons.
 If a job is processed without error, it is removed from the queue.
 If a job does not succeed, the associated files may be
 moved to a printer specific directory in
-<TT>$LPLIB/prob</TT>.
+<TT></TT><I>LPLIB/prob</I><TT>.
 In either case, the daemon can make an entry in the printer's
 log file.
 Before exiting, the daemon should clean up lock files by calling
-<TT>UNLOCK</TT>.
+</TT><TT>UNLOCK</TT><TT>.
 </P>
-<P>
+</TT><P>
 Several non-standard daemon programs have been designed
 to suit various requirements and whims.
 One such program announces job completion and empty paper trays
@@ -557,15 +557,15 @@ The most commonly used scheduler program is
 <TT>FIFO</TT>,
 which looks like this:
 <DL><DT><DD><TT><PRE>
-ls -tr $* | sed -n -e 's/.*  *//' \
-  -e '/^[0-9][0-9]*.[1-9][0-9]*$/p'
+ls -tr * | sed -n -e 's/.*  *//' \
+  -e '/^[0-9][0-9]*.[1-9][0-9]*<I>/p'
 </PRE></TT></DL>
 This lists all the job files in this printer's queue in modification
 time order.
 Jobs entering the queue have a dot (.) prefixed to their name
 to keep the scheduler from selecting them before they are complete.
 </P>
-<H4>6 Where Things Go Wrong
+</I><H4>6 Where Things Go Wrong
 </H4>
 <P>
 There are four directories where
@@ -614,11 +614,11 @@ create the four directories
 and
 <TT>tmp</TT>
 in
-<TT>$LPLIB</TT>
-<TT>(/sys/lib/lp)</TT>
+<TT></TT>LPLIB<TT>
+</TT><TT>(/sys/lib/lp)</TT><TT>
 so that they are writable by anyone.
 </P>
-<H4>6.1 Log directory
+</TT><H4>6.1 Log directory
 </H4>
 <P>
 The log files for a particular
@@ -640,30 +640,30 @@ is written by the program that communicates with the printer itself.
 These are named
 <I>printer</I>.<TT>st</TT>.
 These are overwritten with each new job and are saved in the
-<TT>$LPLIB/prob</TT>
+<TT></TT><I>LPLIB/prob</I><TT>
 directory along with the job under circumstances described below.
 When a printer does not appear to be functioning these files are the
 place to look first.
 </P>
-<H4>6.2 Prob directory
+</TT><H4>6.2 Prob directory
 </H4>
 <P>
 When a job fails to produce output,
 the log files should be checked for any obvious problems.
 If none can be found, a directory with full read and write permissions
 should be created with the name of the printer in the
-<TT>$LPLIB/prob</TT>
+<TT></TT>LPLIB/prob<TT>
 directory.
 Subsequent failure of a job will cause the daemon to leave a
 copy of the job and the printer communication log in
-<TT>$LPLIB/prob/</TT><I>printer</I>
+</TT><TT></TT><I>LPLIB/prob/</I><TT></TT><I>printer</I><TT>
 directory.
 It is common for a printer to enter states from which
 it cannot be rescued except by manually cycling the power on the printer.
 After this is done the print daemon should recover by itself
 (give it a minute).
 If it does not recover, remove the
-<TT>LOCK</TT>
+</TT><TT>LOCK</TT><TT>
 file from the printer's spool directory to kill the daemon.
 The daemon will have to be restarted by sending another job
 to the printer.
@@ -672,7 +672,7 @@ For PostScript printers just use:
 echo '%!PS' | lp
 </PRE></TT></DL>
 </P>
-<H4>6.3 Repairing Stuck Daemons
+</TT><H4>6.3 Repairing Stuck Daemons
 </H4>
 <P>
 There are conditions that occur which are not handled
@@ -703,21 +703,21 @@ The Plan 9
 <TT>lpdaemon</TT>
 will accept jobs sent from BSD LPR/LPD systems.
 The
-<TT>/$cputype/bin/aux/lpdaemon</TT>
+<TT>/</TT>cputype/bin/aux/lpdaemon<TT>
 command is executed from the service call and it accepts print jobs, requests for status,
 and requests to kill jobs.
 The command
-<TT>/$cputype/bin/aux/lpsend</TT>
+</TT><TT>/</TT><I>cputype/bin/aux/lpsend</I><TT>
 is used to send jobs
 to other Plan 9 machines and is usually called from
 within a spooler or daemon script.
 The command
-<TT>/$cputype/bin/aux/lpdsend</TT>
+</TT><TT>/</TT><TT>cputype/bin/aux/lpdsend</TT><TT>
 is used to send jobs
 to machines and printers that use the BSD LPR/LPD protocol and is also usually called from
 within a spooler or daemon script.
 </P>
-<H4>8 Acknowledgements
+</TT><H4>8 Acknowledgements
 </H4>
 <P>
 Special thanks to Rich Drechsler for supplying and maintaining most of
@@ -740,8 +740,7 @@ May, 1986, Berkeley, CA
 [RFC1179] Request for Comments: 1179, Line Printer Daemon Protocol, Aug 1990
 <br>
 [Sys5] System V manual, date unknown
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

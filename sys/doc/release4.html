@@ -8,10 +8,12 @@ data
 Fourth Release Notes
 <br>
 April, 2002
+<br>
+updated June, 2003
 </H1>
 <br>&#32;<br>
 <DL><DT><DD><TT><PRE>
-Copyright &#169; 2002 Lucent Technologies Inc.
+Copyright &#169; 2002-2003 Lucent Technologies Inc.
 All Rights Reserved
 <br>&#32;<br>
 </PRE></TT></DL>
@@ -43,8 +45,12 @@ and many of the other file servers such as
 </A>and
 <A href="/magic/man2html/4/u9fs"><I>u9fs</I>(4)
 </A>work just fine with long names.
-It's only the standard disk-resident file servers
-that don't, and as soon we have versions that do, we'll release them.
+It's only the old disk-resident file servers
+that don't.
+The new file server
+<A href="/magic/man2html/4/fossil"><I>fossil</I>(4)
+</A>handles supports long names and many other features.
+The older servers are now deprecated.
 <br>&#32;<br>
 The following is a partial list of the major changes throughout the system.
 <br>&#32;<br>
@@ -63,7 +69,7 @@ Security has been a focus of attention.
 A new security agent,
 <A href="/magic/man2html/4/factotum"><I>factotum</I>(4),
 </A>manages passwords and other secrets and, coupled with a new secure file store
-<A href="/magic/man2html/4/secstore"><I>secstore</I>(4),
+<A href="/magic/man2html/8/secstore"><I>secstore</I>(8),
 </A>enables secure single sign-on.
 <br>&#32;<br>
 *
@@ -86,17 +92,18 @@ We are phasing out the IL protocol since it doesn't handle long-distance connect
 well (and long-distance networks don't handle it well, either).
 IL is still used by
 <A href="/magic/man2html/4/fs"><I>fs</I>(4)
-</A>(in time, that too will change)
-but TCP has become the standard protocol for all other services.
+</A>but TCP has become the standard protocol for all other services.
 <br>&#32;<br>
 *
 The software for the new network-resident secure block store,
 <A href="/magic/man2html/8/venti"><I>venti</I>(8),
 </A>is included with this distribution.
-We are in the process of reworking
-<A href="/magic/man2html/4/fs"><I>fs</I>(4)
-</A>to use Venti rather than a WORM as its permanent block repository/backup medium,
-but that code is only in the design stage and is not included in this release.
+The new
+file server
+<A href="/magic/man2html/4/fossil"><I>fossil</I>(4)
+</A>uses Venti rather than a WORM as its permanent block repository/backup medium.
+It is still being developed, but is mature enough that a handful of users
+throughout the world are using it as their primary file server.
 <br>&#32;<br>
 *
 The need to handle longer file names triggered a rethinking of the way the
@@ -148,15 +155,26 @@ that they are described in a separate document, entitled
 Changes to the Programming Environment in the Fourth Release of Plan 9.
 Please read it before you start updating your own software to run under the new system.
 <br>&#32;<br>
-There's lots more.
+The installation method has also changed and we're moving towards a new
+method for maintaining updates.
+The Plan 9 Wiki
+(<TT>http://plan9.bell-labs.com/wiki/plan9</TT>)
+and Usenet group
+(<TT>comp.os.plan9</TT>)
+are the places to visit to learn more and stay current.
+In particular, the installation notes are now maintained in the Wiki;
+the traditional papers on installation and start-up are gone.
+<br>&#32;<br>
+There's lots more new stuff.
 If you have problems, mail
 <TT>9trouble@plan9.bell-labs.com</TT>
-or, better, ask the Usenet newsgroup
+or, better, check the wiki
+<TT>http://plan9.bell-labs.com/wiki/plan9</TT>
+or ask the Usenet newsgroup
 <TT>comp.os.plan9</TT>.
-Please don't mail us individually.
 <br>&#32;<br>
 Good Luck!
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

@@ -61,9 +61,9 @@ open file or the current directory.
 Consider the following unedited transcript of a session running the Bourne shell on a modern
 Unix system:
 <DL><DT><DD><TT><PRE>
-% echo $HOME
+% echo <I>HOME
 /home/rob
-% cd $HOME
+% cd </I>HOME
 % pwd
 /n/bopp/v7/rob
 % cd /home/rob
@@ -83,8 +83,8 @@ It is, of course, the consequence of a series of symbolic links intended to give
 the illusion they share a disk, when in fact their files are scattered over several devices:
 <DL><DT><DD><TT><PRE>
 % ls -ld /home/rob /home/ken
-lrwxr-xr-x  1 root  sys   14 Dec 26  1998 /home/ken -&#62; /n/bopp/v6/ken
-lrwxr-xr-x  1 root  sys   14 Dec 23  1998 /home/rob -&#62; /n/bopp/v7/rob
+lrwxr-xr-x  1 root  sys   14 Dec 26  1998 /home/ken -&gt; /n/bopp/v6/ken
+lrwxr-xr-x  1 root  sys   14 Dec 23  1998 /home/rob -&gt; /n/bopp/v7/rob
 % 
 </PRE></TT></DL>
 The introduction of symbolic links has changed the Unix file system from a true
@@ -142,20 +142,20 @@ involve some lexical processing (somewhat like the
 function discussed later
 in this paper), augmented by heuristics such as examining the environment
 for names like
-<TT>$HOME</TT>
+<TT></TT><I>HOME</I><TT>
 and
-<TT>$PWD</TT>
+</TT><TT></TT><TT>PWD</TT><TT>
 to assist initialization of the state of the private view. [Korn00]
-<br>&#32;<br>
+</TT><br>&#32;<br>
 This transcript begins with a Bourne shell running:
 <DL><DT><DD><TT><PRE>
 % cd /home/rob
 % pwd
 /n/bopp/v7/rob
 % ksh
-$ pwd
+<I> pwd
 /home/rob
-$ 
+</I> 
 </PRE></TT></DL>
 This result is encouraging.  Another example, again starting from a Bourne shell:
 <DL><DT><DD><TT><PRE>
@@ -163,12 +163,12 @@ This result is encouraging.  Another example, again starting from a Bourne shell
 % cd ../ken
 ../ken: bad directory
 % ksh
-$ pwd
+<I> pwd
 /home/rob
-$ cd ../ken
-$ pwd
+</I> cd ../ken
+<I> pwd
 /home/ken
-$
+</I>
 </PRE></TT></DL>
 By doing extra work,
 the Korn shell is providing more sensible behavior,
@@ -181,16 +181,16 @@ but it is easy to defeat:
 % pwd
 /n/bopp/v7/rob/bin
 % ksh
-$ pwd
+<I> pwd
 /n/bopp/v7/rob/bin
-$ exit
+</I> exit
 % cd /home/ken
 % pwd
 /n/bopp/v6/ken
 % ksh
-$ pwd
+<I> pwd
 /n/bopp/v6/ken
-$ 
+</I> 
 </PRE></TT></DL>
 In these examples,
 <TT>ksh</TT>'s
@@ -330,17 +330,17 @@ to contain first the standard binaries, then the contents of
 private SPARC binaries.
 The ability to build such union directories
 obviates the need for a shell
-<TT>$PATH</TT>
+<TT></TT><I>PATH</I><TT>
 variable
 while providing opportunities for managing heterogeneity.
 If the system were a Power PC, the same sequence would be run with
-<TT>power</TT>
+</TT><TT>power</TT><TT>
 textually substituted for
-<TT>sparc</TT>
+</TT><TT>sparc</TT><TT>
 to place the Power PC binaries in
-<TT>/bin</TT>
+</TT><TT>/bin</TT><TT>
 rather than the SPARC binaries.
-<br>&#32;<br>
+</TT><br>&#32;<br>
 Trouble is already brewing.  After these bindings are set up,
 where does
 <DL><DT><DD><TT><PRE>
@@ -511,13 +511,13 @@ for
 <DT><DT>&#32;<DD>
 The parent of a directory
 <I>X</I>,
-<I>X<TT>/..</TT>,</I>
+<I>X</I><TT>/..</TT>,<TT>
 is the same directory that would obtain if
 we instead accessed the directory named by stripping away the last
 path name element of
-<I>X</I>.
+</TT><I>X</I><TT>.
 </dl>
-<br>&#32;<br>
+</TT><br>&#32;<br>
 For example, if we are in the directory
 <TT>/a/b/c</TT>
 and
@@ -624,13 +624,13 @@ Moreover, the presence of a full file name for each
 in the mount table provides the information necessary to resolve ambiguities.
 <br>&#32;<br>
 The mount table is examined in the
-<TT>from->to</TT>
+<TT>from</TT>-><TT>to</TT>
 direction when evaluating a name, but
 <TT>..</TT>
 points backwards in the hierarchy, so to evaluate
 <TT>..</TT>
 the table must be examined in the
-<TT>to->from</TT>
+<TT>to</TT>-><TT>from</TT>
 direction.
 (``How did we get here?'')
 <br>&#32;<br>
@@ -926,11 +926,11 @@ getwd(char *buf, int nbuf)
 	int n, fd;
 
 	fd = open(".", OREAD);
-	if(fd &#60; 0)
+	if(fd &lt; 0)
 		return NULL;
 	n = fd2path(fd, buf, nbuf);
 	close(fd);
-	if(n &#60; 0)
+	if(n &lt; 0)
 		return NULL;
 	return buf;
 }
@@ -957,8 +957,8 @@ openfiles(void)
 	int i;
 	char buf[256];
 
-	for(i=0; i&#60;NFD; i++)
-		if(fd2path(i, buf, sizeof buf) &#62;= 0)
+	for(i=0; i&lt;NFD; i++)
+		if(fd2path(i, buf, sizeof buf) &gt;= 0)
 			print("%d: %s\n", i, buf);
 }
 </PRE></TT></DL>
@@ -991,13 +991,13 @@ file system [Kill84].
 For process
 <I>n</I>,
 the file
-<TT>/proc/<I>n</I>/fd</TT>
+<TT>/proc/</TT><I>n</I><TT>/fd</TT><I>
 is a list of all its open files, including its working directory,
 with associated information including its open status,
 I/O offset, unique id (analogous to i-number)
 and file name.
 Here is the contents of the
-<TT>fd</TT>
+</I><TT>fd</TT><I>
 file for a process in the window system on the machine being used to write this paper:
 <DL><DT><DD><TT><PRE>
 % cat /proc/125099/fd 
@@ -1013,11 +1013,11 @@ file for a process in the window system on the machine being used to write this 
 % 
 </PRE></TT></DL>
 (The Linux implementation of
-<TT>/proc</TT>
+</I><TT>/proc</TT><I>
 provides a related service by giving a directory in which each file-descriptor-numbered file is
 a symbolic link to the file itself.)
 When debugging errant systems software, such information can be valuable.
-<br>&#32;<br>
+</I><br>&#32;<br>
 Another motivation for getting names right was the need to extract from the system
 an accurate description of the mount table, so that a process's name space could be
 recreated on another machine, in order to move (or simulate) a computing environment
@@ -1029,7 +1029,7 @@ fast multiprocessor.
 Without accurate names, it was impossible to do the job right; now
 <TT>/proc</TT>
 provides a description of the name space of each process,
-<TT>/proc/<I>n</I>/ns</TT>:
+<TT>/proc/</TT><I>n</I><TT>/ns</TT><I>:
 <DL><DT><DD><TT><PRE>
 % cat /proc/125099/ns
 bind  / /
@@ -1060,28 +1060,28 @@ cd /usr/rob
 % 
 </PRE></TT></DL>
 (The
-<TT>#</TT>
+</I><TT>#</TT><I>
 notation identifies raw device drivers so they may be attached to the name space.)
 The last line of the file gives the working directory of the process.
 The format of this file is that used by a library routine,
-<TT>newns</TT>,
+</I><TT>newns</TT><I>,
 which reads a textual description like this and reconstructs a name space.
 Except for the need to quote
-<TT>#</TT>
+</I><TT>#</TT><I>
 characters, the output is also a shell script that invokes the user-level commands
-<TT>bind</TT>
+</I><TT>bind</TT><I>
 and
-<TT>mount</TT>,
+</I><TT>mount</TT><I>,
 which are just interfaces to the underlying system calls.
 However,
 files like
-<TT>/net/il/134/data</TT>
+</I><TT>/net/il/134/data</TT><I>
 represent network connections; to find out where they point, so that the corresponding
 calls can be reestablished for another process,
 they must be examined in more detail using the network device files [PrWi93].  Another program,
-<TT>ns</TT>,
+</I><TT>ns</TT><I>,
 does this; it reads the
-<TT>/proc/<I>n</I>/ns</TT>
+</I><TT>/proc/</TT><I>n</I><TT>/ns</TT><I>
 file, decodes the information, and interprets it, translating the network
 addresses and quoting the names when required:
 <DL><DT><DD><TT><PRE>
@@ -1096,7 +1096,7 @@ name space and recreate it elsewhere.
 And like the open file descriptor table,
 they are a boon to debugging; it is always helpful to know
 exactly what resources a program is using.
-<H4>Adapting to Unix
+</I><H4>Adapting to Unix
 </H4>
 <br>&#32;<br>
 This work was done for the Plan 9 operating system, which has the advantage that
@@ -1214,8 +1214,7 @@ Dave Presotto and Phil Winterbottom,
 ``The Organization of Networks in Plan 9'',
 <I>Proceedings of the Winter 1993 USENIX Conference</I>,
 San Diego, 1993, pp. 43-50.
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

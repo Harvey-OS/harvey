@@ -130,6 +130,9 @@ colophon.ps:D:	/sys/lib/man/colophon
 	troff $prereq | lp -dstdout > $target
 	cleanps $target
 
+%.page:D:	%.ps
+	page -w $stem.ps
+
 %.ps:D:	%.ms
 	{ echo $FONTS; cat $stem.ms } | tbl | troff -ms | lp -dstdout > $target
 	cleanps $target
@@ -143,6 +146,10 @@ troff.trout:D:	troff.ms
 troff.ps:D:	troff.ms
 	echo this gets some scary-looking errors, but they''''re fine
 	{ echo $FONTS; cat $prereq } | tbl | eqn | troff -ms | lp -dstdout > $target
+	cleanps $target
+
+fossil.ps:D: fossil.ms
+	{ echo $FONTS; cat $prereq } | pic | troff -ms | lp -dstdout >$target
 	cleanps $target
 
 auth.ps:D:	auth.ms

@@ -100,9 +100,9 @@ first in the machine-dependent directory and then
 in the machine-independent directory.
 At the time of writing there are thirty-one machine-independent include
 files and two (per machine) machine-dependent ones:
-<TT><ureg.h></TT>
+<TT>&lt;ureg.h&gt;</TT>
 and
-<TT><u.h></TT>.
+<TT>&lt;u.h&gt;</TT>.
 The first describes the layout of registers on the system stack,
 for use by the debugger.
 The second defines some
@@ -147,13 +147,13 @@ The type
 is the largest integer type available; on most architectures it
 is a 64-bit value.
 A couple of other types in
-<TT><u.h></TT>
+<TT>&lt;u.h&gt;</TT>
 are
 <TT>u32int</TT>,
 which is guaranteed to have exactly 32 bits (a possibility on all the supported architectures) and
 <TT>mpdigit</TT>,
 which is used by the multiprecision math package
-<TT><mp.h></TT>.
+<TT>&lt;mp.h&gt;</TT>.
 The
 <TT>#define</TT>
 constants permit an architecture-independent (but compiler-dependent)
@@ -165,12 +165,12 @@ and
 <P>
 Every Plan 9 C program begins
 <DL><DT><DD><TT><PRE>
-#include &#60;u.h&#62;
+#include &lt;u.h&gt;
 </PRE></TT></DL>
 because all the other installed header files use the
 <TT>typedefs</TT>
 declared in
-<TT><u.h></TT>.
+<TT>&lt;u.h&gt;</TT>.
 </P>
 <P>
 In strict ANSI C, include files are grouped to collect related functions
@@ -191,14 +191,14 @@ plus all the system calls and related functions.
 To use these functions, one must
 <TT>#include</TT>
 the file
-<TT><libc.h></TT>,
+<TT>&lt;libc.h&gt;</TT>,
 which in turn must follow
-<TT><u.h></TT>,
+<TT>&lt;u.h&gt;</TT>,
 to define their prototypes for the compiler.
 Here is the complete source to the traditional first C program:
 <DL><DT><DD><TT><PRE>
-#include &#60;u.h&#62;
-#include &#60;libc.h&#62;
+#include &lt;u.h&gt;
+#include &lt;libc.h&gt;
 
 void
 main(void)
@@ -226,13 +226,13 @@ All these functions are, of course, documented in the Programmer's Manual.
 <P>
 To use
 <TT>printf</TT>,
-<TT><stdio.h></TT>
+<TT>&lt;stdio.h&gt;</TT>
 must be included to define the function prototype for
 <TT>printf</TT>:
 <DL><DT><DD><TT><PRE>
-#include &#60;u.h&#62;
-#include &#60;libc.h&#62;
-#include &#60;stdio.h&#62;
+#include &lt;u.h&gt;
+#include &lt;libc.h&gt;
+#include &lt;stdio.h&gt;
 
 void
 main(int argc, char *argv[])
@@ -351,7 +351,7 @@ that may be run (on a 680X0 machine):
 </PRE></TT></DL>
 The loader automatically links with whatever libraries the program
 needs, usually including the standard C library as defined by
-<TT><libc.h></TT>.
+<TT>&lt;libc.h&gt;</TT>.
 Of course the compiler and loader have lots of options, both familiar and new;
 see the manual for details.
 The compiler does not generate an executable automatically;
@@ -447,34 +447,34 @@ When the system starts or a user logs in the environment is configured
 so the appropriate binaries are available in
 <TT>/bin</TT>.
 The configuration process is controlled by an environment variable,
-<TT>$cputype</TT>,
+<TT></TT><I>cputype</I><TT>,
 with value such as
-<TT>mips</TT>,
-<TT>68020</TT>,
-<TT>386</TT>,
+</TT><TT>mips</TT><TT>,
+</TT><TT>68020</TT><TT>,
+</TT><TT>386</TT><TT>,
 or
-<TT>sparc</TT>.
+</TT><TT>sparc</TT><TT>.
 For each architecture there is a directory in the root,
 with the appropriate name,
 that holds the binary and library files for that architecture.
 Thus
-<TT>/mips/lib</TT>
+</TT><TT>/mips/lib</TT><TT>
 contains the object code libraries for MIPS programs,
-<TT>/mips/include</TT>
+</TT><TT>/mips/include</TT><TT>
 holds MIPS-specific include files, and
-<TT>/mips/bin</TT>
+</TT><TT>/mips/bin</TT><TT>
 has the MIPS binaries.
 These binaries are attached to
-<TT>/bin</TT>
+</TT><TT>/bin</TT><TT>
 at boot time by binding
-<TT>/$cputype/bin</TT>
+</TT><TT>/</TT><TT>cputype/bin</TT><TT>
 to
-<TT>/bin</TT>,
+</TT><TT>/bin</TT><TT>,
 so
-<TT>/bin</TT>
+</TT><TT>/bin</TT><TT>
 always contains the correct files.
 </P>
-<P>
+</TT><P>
 The MIPS compiler,
 <TT>vc</TT>,
 by definition
@@ -493,11 +493,11 @@ If one is running on a SPARC,
 <TT>/sparc/bin/vc</TT>
 will compile programs for the MIPS;
 if one is running on machine
-<TT>$cputype</TT>,
-<TT>/$cputype/bin/vc</TT>
+<TT></TT><I>cputype</I><TT>,
+</TT><TT>/</TT><TT>cputype/bin/vc</TT><TT>
 will compile programs for the MIPS.
 </P>
-<P>
+</TT><P>
 Because of the bindings that assemble
 <TT>/bin</TT>,
 the shell always looks for a command, say
@@ -505,20 +505,20 @@ the shell always looks for a command, say
 in
 <TT>/bin</TT>
 and automatically finds the file
-<TT>/$cputype/bin/date</TT>.
+<TT>/</TT><I>cputype/bin/date</I><TT>.
 Therefore the MIPS compiler is known as just
-<TT>vc</TT>;
+</TT><TT>vc</TT><TT>;
 the shell will invoke
-<TT>/bin/vc</TT>
+</TT><TT>/bin/vc</TT><TT>
 and that is guaranteed to be the version of the MIPS compiler
 appropriate for the machine running the command.
 Regardless of the architecture of the compiling machine,
-<TT>/bin/vc</TT>
+</TT><TT>/bin/vc</TT><TT>
 is
-<I>always</I>
+</TT><I>always</I><TT>
 the MIPS compiler.
 </P>
-<P>
+</TT><P>
 Also, the output of
 <TT>vc</TT>
 and
@@ -554,27 +554,27 @@ makes it easy to compile the source into binary suitable for any architecture.
 </P>
 <P>
 The variable
-<TT>$cputype</TT>
+<TT></TT>cputype<TT>
 is advisory: it reports the architecture of the current environment, and should
 not be modified.  A second variable,
-<TT>$objtype</TT>,
+</TT><TT></TT><I>objtype</I><TT>,
 is used to set which architecture is being
-<I>compiled</I>
+</TT><I>compiled</I><TT>
 for.
 The value of
-<TT>$objtype</TT>
+</TT><TT></TT><TT>objtype</TT><TT>
 can be used by a
-<TT>mkfile</TT>
+</TT><TT>mkfile</TT><TT>
 to configure the compilation environment.
 </P>
-<P>
+</TT><P>
 In each machine's root directory there is a short
 <TT>mkfile</TT>
 that defines a set of macros for the compiler, loader, etc.
 Here is
 <TT>/mips/mkfile</TT>:
 <DL><DT><DD><TT><PRE>
-&#60;/sys/src/mkfile.proto
+&lt;/sys/src/mkfile.proto
 
 CC=vc
 LD=vl
@@ -583,7 +583,7 @@ AS=va
 </PRE></TT></DL>
 The line
 <DL><DT><DD><TT><PRE>
-&#60;/sys/src/mkfile.proto
+&lt;/sys/src/mkfile.proto
 </PRE></TT></DL>
 causes
 <TT>mk</TT>
@@ -621,72 +621,72 @@ Here is a
 to build the installed source for
 <TT>sam</TT>:
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
-OBJ=sam.$O address.$O buffer.$O cmd.$O disc.$O error.$O \
-	file.$O io.$O list.$O mesg.$O moveto.$O multi.$O \
-	plan9.$O rasp.$O regexp.$O string.$O sys.$O xec.$O
+&lt;/<I>objtype/mkfile
+OBJ=sam.</I>O address.<I>O buffer.</I>O cmd.<I>O disc.</I>O error.<I>O \
+	file.</I>O io.<I>O list.</I>O mesg.<I>O moveto.</I>O multi.<I>O \
+	plan9.</I>O rasp.<I>O regexp.</I>O string.<I>O sys.</I>O xec.<I>O
 
-$O.out:	$OBJ
-	$LD $OBJ
+</I>O.out:	<I>OBJ
+	</I>LD <I>OBJ
 
-install:	$O.out
-	cp $O.out /$objtype/bin/sam
+install:	</I>O.out
+	cp <I>O.out /</I>objtype/bin/sam
 
 installall:
-	for(objtype in $CPUS) mk install
+	for(objtype in <I>CPUS) mk install
 
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
+%.</I>O:	%.c
+	<I>CC </I>CFLAGS <I>stem.c
 
-$OBJ:	sam.h errors.h mesg.h
-address.$O cmd.$O parse.$O xec.$O unix.$O:	parse.h
+</I>OBJ:	sam.h errors.h mesg.h
+address.<I>O cmd.</I>O parse.<I>O xec.</I>O unix.<I>O:	parse.h
 
 clean:V:
-	rm -f [$OS].out *.[$OS] y.tab.?
+	rm -f [</I>OS].out *.[<I>OS] y.tab.?
 </PRE></TT></DL>
 (The actual
-<TT>mkfile</TT>
+</I><TT>mkfile</TT><I>
 imports most of its rules from other secondary files, but
 this example works and is not misleading.)
 The first line causes
-<TT>mk</TT>
+</I><TT>mk</TT><I>
 to include the contents of
-<TT>/$objtype/mkfile</TT>
+</I><TT>/</TT><I>objtype/mkfile</I><TT>
 in the current
-<TT>mkfile</TT>.
+</TT><TT>mkfile</TT><TT>.
 If
-<TT>$objtype</TT>
+</TT><TT></TT><I>objtype</I><TT>
 is
-<TT>mips</TT>,
+</TT><TT>mips</TT><TT>,
 this inserts the MIPS macro definitions into the
-<TT>mkfile</TT>.
+</TT><TT>mkfile</TT><TT>.
 In this case the rule for
-<TT>$O.out</TT>
+</TT><TT></TT><TT>O.out</TT><TT>
 uses the MIPS tools to build
-<TT>v.out</TT>.
+</TT><TT>v.out</TT><TT>.
 The
-<TT>%.$O</TT>
+</TT><TT>%.</TT><I>O</I><TT>
 rule in the file uses
-<TT>mk</TT>'s
+</TT><TT>mk</TT><TT>'s
 pattern matching facilities to convert the source files to the object
 files through the compiler.
 (The text of the rules is passed directly to the shell,
-<TT>rc</TT>,
+</TT><TT>rc</TT><TT>,
 without further translation.
 See the
-<TT>mk</TT>
+</TT><TT>mk</TT><TT>
 manual if any of this is unfamiliar.)
 Because the default rule builds
-<TT>$O.out</TT>
+</TT><TT></TT><TT>O.out</TT><TT>
 rather than
-<TT>sam</TT>,
+</TT><TT>sam</TT><TT>,
 it is possible to maintain binaries for multiple machines in the
 same source directory without conflict.
 This is also, of course, why the output files from the various
 compilers and loaders
 have distinct names.
 </P>
-<P>
+</TT><P>
 The rest of the
 <TT>mkfile</TT>
 should be easy to follow; notice how the rules for
@@ -695,21 +695,21 @@ and
 <TT>installall</TT>
 (that is, install versions for all architectures) use other macros
 defined in
-<TT>/$objtype/mkfile</TT>.
+<TT>/</TT><I>objtype/mkfile</I><TT>.
 In Plan 9,
-<TT>mkfiles</TT>
+</TT><TT>mkfiles</TT><TT>
 for commands conventionally contain rules to
-<TT>install</TT>
+</TT><TT>install</TT><TT>
 (compile and install the version for
-<TT>$objtype</TT>),
-<TT>installall</TT>
+</TT><TT></TT><TT>objtype</TT><TT>),
+</TT><TT>installall</TT><TT>
 (compile and install for all
-<TT>$objtypes</TT>),
+</TT><TT></TT><I>objtypes</I><TT>),
 and
-<TT>clean</TT>
+</TT><TT>clean</TT><TT>
 (remove all object files, binaries, etc.).
 </P>
-<P>
+</TT><P>
 The
 <TT>mkfile</TT>
 is easy to use.  To build a MIPS binary,
@@ -769,10 +769,10 @@ getlong(void)
 {
 	ulong l;
 
-	l = (getchar()&amp;0xFF)&#60;&#60;24;
-	l |= (getchar()&amp;0xFF)&#60;&#60;16;
-	l |= (getchar()&amp;0xFF)&#60;&#60;8;
-	l |= (getchar()&amp;0xFF)&#60;&#60;0;
+	l = (getchar()&amp;0xFF)&lt;&lt;24;
+	l |= (getchar()&amp;0xFF)&lt;&lt;16;
+	l |= (getchar()&amp;0xFF)&lt;&lt;8;
+	l |= (getchar()&amp;0xFF)&lt;&lt;0;
 	return l;
 }
 </PRE></TT></DL>
@@ -805,7 +805,7 @@ and hope that the target machine supports ANSI C and POSIX.
 </H4>
 <P>
 The default C library, defined by the include file
-<TT><libc.h></TT>,
+<TT>&lt;libc.h&gt;</TT>,
 contains no buffered I/O package.
 It does have several entry points for printing formatted text:
 <TT>print</TT>
@@ -821,7 +821,7 @@ explicitly include the header file associated with an appropriate library.
 The recommended I/O library, used by most Plan 9 utilities, is
 <TT>bio</TT>
 (buffered I/O), defined by
-<TT><bio.h></TT>.
+<TT>&lt;bio.h&gt;</TT>.
 There also exists an implementation of ANSI Standard I/O,
 <TT>stdio</TT>.
 </P>
@@ -840,9 +840,9 @@ does not predefine them.  Here is a program to copy input to output a byte
 at a time using
 <TT>bio</TT>:
 <DL><DT><DD><TT><PRE>
-#include &#60;u.h&#62;
-#include &#60;libc.h&#62;
-#include &#60;bio.h&#62;
+#include &lt;u.h&gt;
+#include &lt;libc.h&gt;
+#include &lt;bio.h&gt;
 
 Biobuf	bin;
 Biobuf	bout;
@@ -976,8 +976,8 @@ For more information, see the Programmer's Manual, in particular
 <A href="/magic/man2html/2/rune"><I>rune</I>(2),
 </A>and the paper,
 ``Hello world, or
-&#191;ALPHA&#191;&#191;MU&#191;&#191;ALPHA &#191;&#191;&#191;MUEPSILON, or 
-&#191;&#191;&#191;&#191;&#191; &#191;&#191;'',
+&#922;&#945;&#955;&#951;&#956;&#941;&#961;&#945; &#954;&#972;&#963;&#956;&#949;, or 
+&#12371;&#12435;&#12395;&#12385;&#12399; &#19990;&#30028;'',
 by Rob Pike and
 Ken Thompson;
 there is not room for the full story here.
@@ -1004,7 +1004,7 @@ representation of the characters
 The type
 <TT>Rune</TT>
 is defined in
-<TT><u.h></TT>
+<TT>&lt;u.h&gt;</TT>
 to be
 <TT>ushort</TT>,
 which is also the  `wide character' type in the compiler.
@@ -1055,14 +1055,14 @@ Finally, although it's not ANSI C, the Plan 9 C compilers
 assume any character with value above
 <TT>Runeself</TT>
 is an alphanumeric,
-so ALPHA is a legal, if non-portable, variable name.
+so &#945; is a legal, if non-portable, variable name.
 </P>
 <H4>Arguments
 </H4>
 <P>
 Some macros are defined
 in
-<TT><libc.h></TT>
+<TT>&lt;libc.h&gt;</TT>
 for parsing the arguments to
 <TT>main()</TT>.
 They are described in
@@ -1184,12 +1184,12 @@ struct Node
 void	lock(struct Lock*);
 </PRE></TT></DL>
 one may refer to
-<TT>node->type</TT>,
-<TT>node->dval</TT>,
-<TT>node->fval</TT>,
-<TT>node->lval</TT>,
+<TT>node-&gt;type</TT>,
+<TT>node-&gt;dval</TT>,
+<TT>node-&gt;fval</TT>,
+<TT>node-&gt;lval</TT>,
 and
-<TT>node->locked</TT>.
+<TT>node-&gt;locked</TT>.
 Moreover, the address of a
 <TT>struct</TT>
 <TT>Node</TT>
@@ -1436,42 +1436,42 @@ language to format and display data structure types defined in the program.
 The easiest way to use this feature is to put a rule in the
 <TT>mkfile</TT>:
 <DL><DT><DD><TT><PRE>
-syms:   main.$O
-        $CC -a main.c &#62; syms
+syms:   main.O
+        <I>CC -a main.c &gt; syms
 </PRE></TT></DL>
 Then from within
-<TT>acid</TT>,
+</I><TT>acid</TT><I>,
 <DL><DT><DD><TT><PRE>
 acid: include("sourcedirectory/syms")
 </PRE></TT></DL>
 to read in the relevant definitions.
 (For multi-file source, you need to be a little fancier;
 see
-<A href="/magic/man2html/1/2c"><I>2c</I>(1)).
+<A href="/magic/man2html/1/2c"></I><I>2c</I><I>(1)).
 </A>This text includes, for each defined compound
 type, a function with that name that may be called with the address of a structure
 of that type to display its contents.
 For example, if
-<TT>rect</TT>
+</I><TT>rect</TT><I>
 is a global variable of type
-<TT>Rectangle</TT>,
+</I><TT>Rectangle</TT><I>,
 one may execute
 <DL><DT><DD><TT><PRE>
 Rectangle(*rect)
 </PRE></TT></DL>
 to display it.
 The
-<TT>*</TT>
+</I><TT>*</TT><I>
 (indirection) operator is necessary because
 of the way
-<TT>acid</TT>
+</I><TT>acid</TT><I>
 works: each global symbol in the program is defined as a variable by
-<TT>acid</TT>,
+</I><TT>acid</TT><I>,
 with value equal to the
-<I>address</I>
+</I><I>address</I><I>
 of the symbol.
 </P>
-<P>
+</I><P>
 Another common technique is to write by hand special
 <TT>acid</TT>
 code to define functions to aid debugging, initialize the debugger, and so on.
@@ -1505,9 +1505,8 @@ There is much more to say here.  See
 manual page, the reference manual, or the paper
 ``Acid: A Debugger Built From A Language'',
 also by Phil Winterbottom.
-
 </P>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

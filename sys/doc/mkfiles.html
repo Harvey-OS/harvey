@@ -52,7 +52,7 @@ its source and invoke
 <I>mk</I>
 with the appropriate target as an argument.
 All mkfiles provide the following standard targets:
-<br><img src="data.8940.gif"><br>
+<br><img src="data.19114400.gif"><br>
 <br>&#32;<br>
 If no target is specified on the
 <TT>mk</TT>
@@ -122,13 +122,13 @@ the values of variables, some of which must be
 set by the product mkfile and some of which are
 supplied by the generic mkfile.  Variables in the
 latter class include:
-<br><img src="data.8941.gif"><br>
+<br><img src="data.19114401.gif"><br>
 <br>&#32;<br>
 The following variables are set by the product mkfile
 and used by the generic mkfile.
 Any may be empty depending on the specific product being
 made.
-<br><img src="data.8942.gif"><br>
+<br><img src="data.19114402.gif"><br>
 <H4>Mkfile Organization
 </H4>
 <br>&#32;<br>
@@ -136,20 +136,20 @@ All
 mkfiles
 share the following common structure:
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile	# architecture-dependent definitions
+&lt;/<I>objtype/mkfile	# </I>architecture-dependent definitions<I>
 <br>&#32;<br>
-<I>variable definitions</I>		# TARG, OFILES, HFILES, etc.
+</I><I>variable definitions</I><I>		# TARG</I>, <I>OFILES</I>, <I>HFILES</I>, etc.<I>
 <br>&#32;<br>
-&#60;/sys/src/cmd/<I>generic</I>	# mkone, mkmany, mklib, or mksyslib
+&lt;/sys/src/cmd/</I><I>generic</I><I>	# mkone</I>, <I>mkmany</I>, <I>mklib</I>, or <I>mksyslib
 <br>&#32;<br>
-<I>variable overrides</I>		# CFLAGS, objtype, etc.
+</I><I>variable overrides</I><I>		# CFLAGS</I>, <I>objtype</I>, etc.<I>
 <br>&#32;<br>
-<I>extra rules</I>			# overrides, augmented rules, additional targets
+</I><I>extra rules</I><I>			# </I>overrides, augmented rules, additional targets<I>
 </PRE></TT></DL>
 Note that the architecture-dependent mkfiles include file
-<TT>/sys/src/mkfile.proto</TT>
+</I><TT>/sys/src/mkfile.proto</TT><I>
 for system-wide variables that are common to all architectures.
-<br>&#32;<br>
+</I><br>&#32;<br>
 The variables driving the expansion of the generic mkfile
 may be specified in any order as long as they are defined
 before the inclusion of the generic mkfile.  The value
@@ -216,9 +216,9 @@ is executed without a target, the
 <TT>all</TT>
 target is built; it
 produces an executable in
-<TT>$O.out</TT>.
+<TT></TT>O.out<TT>.
 Variable
-<TT>HFILES</TT>
+</TT><TT>HFILES</TT><TT>
 identifies the header files that
 are included in all or most or
 the C source files.  Occasionally,
@@ -228,11 +228,11 @@ source files.  A
 header can be added to the prerequisites for
 those object files by adding a rule of
 the following form following the inclusion of generic mkfile
-<TT>mkone</TT>:
+</TT><TT>mkone</TT><TT>:
 <DL><DT><DD><TT><PRE>
-file.$O:	header.h
+file.</TT><I>O:	header.h
 </PRE></TT></DL>
-<br>&#32;<br>
+</I><br>&#32;<br>
 The mkfile for a directory producing a single
 executable using the normal set of rules is
 trivial: a list of some files followed by the
@@ -242,54 +242,54 @@ For example,
 <TT>/sys/src/cmd/diff/mkfile</TT>
 contains:
 <DL><DT><DD><TT><PRE>
-&#60; /$objtype/mkfile
+&lt; /objtype/mkfile
 
 TARG=diff
 OFILES=\
-	diffdir.$O\
-	diffio.$O\
-	diffreg.$O\
-	main.$O\
+	diffdir.<I>O\
+	diffio.</I>O\
+	diffreg.<I>O\
+	main.</I>O\
 
 HFILES=diff.h
 
-BIN=/$objtype/bin
-&#60;/sys/src/cmd/mkone
+BIN=/<I>objtype/bin
+&lt;/sys/src/cmd/mkone
 </PRE></TT></DL>
 The more complex mkfile in
-<TT>/sys/src/cmd/awk</TT>
+</I><TT>/sys/src/cmd/awk</TT><I>
 overrides compiler and loader variables to
 select the ANSI/POSIX Computing Environment with appropriately
 defined command line variables.  It also overrides
 the default
-<TT>yacc</TT>
+</I><TT>yacc</TT><I>
 rule to place the output soure in file
-<TT>awkgram.c</TT>
+</I><TT>awkgram.c</TT><I>
 and the
-<TT>clean</TT>
+</I><TT>clean</TT><I>
 and
-<TT>nuke</TT>
+</I><TT>nuke</TT><I>
 rules, so it can remove the non-standard intermediate
 files.  Finally, the last three rules build a version of
-<TT>maketab</TT>
+</I><TT>maketab</TT><I>
 appropriate for the architecture where the
-<TT>mk</TT>
+</I><TT>mk</TT><I>
 is being
 run and then executes it to create source file
-<TT>proctab.c</TT>:
+</I><TT>proctab.c</TT><I>:
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/</I>objtype/mkfile
 
 TARG=awk
-OFILES=re.$O\
-	lex.$O\
-	main.$O\
-	parse.$O\
-	proctab.$O\
-	tran.$O\
-	lib.$O\
-	run.$O\
-	awkgram.$O\
+OFILES=re.<I>O\
+	lex.</I>O\
+	main.<I>O\
+	parse.</I>O\
+	proctab.<I>O\
+	tran.</I>O\
+	lib.<I>O\
+	run.</I>O\
+	awkgram.<I>O\
 
 HFILES=awk.h\
 	y.tab.h\
@@ -297,37 +297,37 @@ HFILES=awk.h\
 
 YFILES=awkgram.y
 
-BIN=/$objtype/bin
-&#60;/sys/src/cmd/mkone
+BIN=/</I>objtype/bin
+&lt;/sys/src/cmd/mkone
 CFLAGS=-c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE \
 	-D_BSD_EXTENSION -DUTF
 YFLAGS=-S -d -v
 CC=pcc
 LD=pcc
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+cpuobjtype=`{sed -n 's/^O=//p' /<I>cputype/mkfile}
 
-y.tab.h awkgram.c:	$YFILES
-	$YACC -o awkgram.c $YFLAGS $prereq
+y.tab.h awkgram.c:	</I>YFILES
+	<I>YACC -o awkgram.c </I>YFLAGS <I>prereq
 
 clean:V:
-	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug\
-		 y.output $TARG
+	rm -f *.[</I>OS] [<I>OS].out [</I>OS].maketab y.tab.? y.debug\
+		 y.output <I>TARG
 
 nuke:V:
-	rm -f *.[$OS] [$OS].out [$OS].maketab y.tab.? y.debug\
-		 y.output awkgram.c $TARG
+	rm -f *.[</I>OS] [<I>OS].out [</I>OS].maketab y.tab.? y.debug\
+		 y.output awkgram.c <I>TARG
 
-proctab.c:	$cpuobjtype.maketab
-	./$cpuobjtype.maketab &#62;proctab.c
+proctab.c:	</I>cpuobjtype.maketab
+	./<I>cpuobjtype.maketab &gt;proctab.c
 
-$cpuobjtype.maketab:	y.tab.h maketab.c
-	objtype=$cputype
-	mk maketab.$cputype
+</I>cpuobjtype.maketab:	y.tab.h maketab.c
+	objtype=<I>cputype
+	mk maketab.</I>cputype
 
-maketab.$cputype:V:	y.tab.h maketab.$O
-	$LD -o $O.maketab maketab.$O
+maketab.<I>cputype:V:	y.tab.h maketab.</I>O
+	<I>LD -o </I>O.maketab maketab.<I>O
 </PRE></TT></DL>
-<H4>Mkmany
+</I><H4>Mkmany
 </H4>
 <br>&#32;<br>
 The
@@ -356,45 +356,45 @@ specifies files containing
 common subroutines loaded with all executables.
 Consider the mkfile:
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/objtype/mkfile
 
 TARG=alpha beta
-OFILES=common.$O
-BIN=/$objtype/bin
-&#60;/sys/src/cmd/mkmany
+OFILES=common.<I>O
+BIN=/</I>objtype/bin
+&lt;/sys/src/cmd/mkmany
 </PRE></TT></DL>
 It assumes the main functions for executables
 <TT>alpha</TT>
 and
 <TT>beta</TT>
 are in files
-<TT>alpha.$O</TT>
+<TT>alpha.</TT><I>O</I><TT>
 and
-<TT>beta.$O</TT>
+</TT><TT>beta.</TT><TT>O</TT><TT>
 and that both programs use the subroutines
 in file
-<TT>common.$O</TT>.
+</TT><TT>common.</TT><I>O</I><TT>.
 The
-<TT>all</TT>
+</TT><TT>all</TT><TT>
 target builds all executables, leaving each in
 a file with a name of the form
-<TT>$O.<I>progname</I></TT>
+</TT><TT></TT><TT>O.</TT><I>progname</I><TT></TT><I>
 where
-<I>progname</I>
+</I><I>progname</I><I>
 is the name of the executable.  In this
 example the
-<TT>all</TT>
+</I><TT>all</TT><I>
 target produces executables
-<TT>$O.alpha</TT>
+</I><TT></TT><I>O.alpha</I><TT>
 and 
-<TT>$O.beta</TT>.
-<br>&#32;<br>
+</TT><TT></TT><TT>O.beta</TT><TT>.
+</TT><br>&#32;<br>
 The
 <TT>mkmany</TT>
 rules provide additional
 targets for building a single
 executable:
-<br><img src="data.8943.gif"><br>
+<br><img src="data.19114403.gif"><br>
 <H4>Mklib
 </H4>
 <br>&#32;<br>
@@ -454,30 +454,30 @@ The mkfile from
 <TT>/sys/src/cmd/upas/libString</TT>
 contains the following specifications to
 build the local library
-<TT>libString.a$O</TT>
+<TT>libString.a</TT><I>O</I><TT>
 for the object architecture referenced by
-<TT>$O:</TT>
+</TT><TT></TT><TT>O</TT>:<TT></TT>
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/<I>objtype/mkfile
 
-LIB=libString.a$O
-OFILES=	s_alloc.$O\
-	s_append.$O\
-	s_array.$O\
-	s_copy.$O\
-	s_getline.$O\
-	s_grow.$O\
-	s_nappend.$O\
-	s_parse.$O\
-	s_read.$O\
-	s_read_line.$O\
-	s_tolower.$O\
+LIB=libString.a</I>O
+OFILES=	s_alloc.<I>O\
+	s_append.</I>O\
+	s_array.<I>O\
+	s_copy.</I>O\
+	s_getline.<I>O\
+	s_grow.</I>O\
+	s_nappend.<I>O\
+	s_parse.</I>O\
+	s_read.<I>O\
+	s_read_line.</I>O\
+	s_tolower.<I>O\
 
-&#60;/sys/src/cmd/mklib
+&lt;/sys/src/cmd/mklib
 
 nuke:V:
 	mk clean
-	rm -f libString.a[$OS]
+	rm -f libString.a[</I>OS]
 </PRE></TT></DL>
 The override of the rule for target
 <TT>nuke</TT>
@@ -516,13 +516,13 @@ Special targets support manipulation of a single
 object file; the target
 <TT>objfile</TT>
 updates file
-<TT>objfile<TT>.$O</TT></TT>
+<TT>objfile</TT><TT>.</TT><I>O</I><TT></TT><I>
 in the library of the current architecture and the target
-<TT>objfile.all</TT>
+</I><TT>objfile.all</TT><I>
 updates
-<TT>objfile<TT>.$O</TT></TT>
+</I><TT>objfile</TT><TT>.</TT><TT>O</TT><TT></TT><TT>
 in the libraries of all architectures.
-<H4>Overrides
+</TT><H4>Overrides
 </H4>
 <br>&#32;<br>
 The rules provided by a generic mkfile or
@@ -555,10 +555,10 @@ variables.  Additional constraints can be added
 to a rule by specifying the target and
 the new prerequisite.  For example,
 <DL><DT><DD><TT><PRE>
-%.$O:	header.h
+%.<I>O:	header.h
 </PRE></TT></DL>
 adds file
-<TT>header.h</TT>
+</I><TT>header.h</TT><I>
 the set of prerequisites for all object files.
 There is no mechanism for adding additional
 commands to an existing recipe; if a
@@ -570,37 +570,37 @@ of the original rule exactly.  The recipe
 associated with the new rule
 then replaces the recipe of the original rule.
 For example,
-<TT>/sys/src/cmd/lex/mkfile</TT>
+</I><TT>/sys/src/cmd/lex/mkfile</TT><I>
 overrides the default
-<TT>installall</TT>
+</I><TT>installall</TT><I>
 rule to perform the normal loop on all
 architectures and then copy a prototype file
 to the system library directory.
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/</I>objtype/mkfile
 
 TARG=lex
-OFILES=lmain.$O\
-	y.tab.$O\
-	sub1.$O\
-	sub2.$O\
-	header.$O\
+OFILES=lmain.<I>O\
+	y.tab.</I>O\
+	sub1.<I>O\
+	sub2.</I>O\
+	header.<I>O\
 
 HFILES=ldefs.h\
 
 YFILES=parser.y\
 
-BIN=/$objtype/bin
-&#60;/sys/src/cmd/mkone
+BIN=/</I>objtype/bin
+&lt;/sys/src/cmd/mkone
 
 installall:V:
-	for(objtype in $CPUS)
+	for(objtype in <I>CPUS)
 		mk install
 	cp ncform /sys/lib/lex
 </PRE></TT></DL>
 Another way to perform the same override is to
 add a dependency to the default
-<TT>installall</TT>
+</I><TT>installall</TT><I>
 rule that executes an additional rule to
 install the prototype file:
 <DL><DT><DD><TT><PRE>
@@ -609,7 +609,7 @@ installall:V:	ncform.install
 ncform.install:V:
 	cp ncform /sys/lib/lex
 </PRE></TT></DL>
-<H4>Special Tricks
+</I><H4>Special Tricks
 </H4>
 <br>&#32;<br>
 Two special cases
@@ -660,8 +660,7 @@ augments the default rules to build and install the
 executable with
 elaborate rules to generate
 and maintain the auxiliary spelling lists.
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>
