@@ -133,6 +133,47 @@ rather than exit cleanly on errors,
 to facilitate debugging.
 .PP
 Pressing and holding button 1 permits panning about the page.
+.PP
+Button 2 raises a menu of operations on the current image or the
+entire set.  The image transformations are non-destructive and are
+valid only for the currently displayed image.  They are lost as soon
+as another image is displayed.
+The button 2 menu operations are:
+.TF Resize
+.TP
+.B Orig size
+Restores the image to the original. All modifications are lost.
+.TP
+.B Zoom
+Prompts the user to sweep a rectangle on the image which is 
+expanded proportionally to the rectangle.
+.TP
+.B Fit window
+Resizes the image so that it fits in the current window.
+.TP
+.B Rotate 90
+Rotates the image 90 degrees clockwise
+.TP
+.B Upside down
+Toggles whether images are displayed upside-down.
+.TP
+.B Next
+Displays the next page.
+.TP
+.B Prev
+Displays the previous page.
+.TP
+.B Reverse
+Reverses the order in which pages are displayed.
+.TP
+.B Write
+Writes the image to file.
+.PD
+.PP
+Button 3 raises a menu of the
+pages
+to be selected for viewing in any order.
+.PP
 Typing a
 .B q
 or
@@ -157,12 +198,9 @@ removes an image from the working set.
 .PP
 To go to a specific page, one can type its number followed by enter.
 Typing left arrow, backspace, or minus displays the previous page.
-Clicking button 2 or typing right arrow, space, or enter displays the next page.
+Typing right arrow, space, or enter displays the next page.
 The up and down arrow pan up and down one half screen height,
 changing pages when panning off the top or bottom of the page.
-Button 3 raises a menu of the
-pages
-to be selected for viewing in any order.
 .PP
 .I Page
 calls
