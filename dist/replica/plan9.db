@@ -1,6 +1,6 @@
 29000 - 20000000775 sys sys 954099276 0
 29000/include - 20000000775 sys sys 954099548 0
-29000/include/u.h - 664 sys sys 1015089429 888
+29000/include/u.h - 664 sys sys 1042604325 984
 29000/include/ureg.h - 664 sys sys 944946363 793
 29000/lib - 20000000775 sys sys 948037563 0
 29000/mkfile - 664 sys sys 948141302 46
@@ -163,7 +163,7 @@
 386/bin/con - 775 sys sys 1039758552 76698
 386/bin/cp - 775 sys sys 1039758553 62687
 386/bin/cpp - 775 sys sys 1039758553 148353
-386/bin/cpu - 775 sys sys 1039758553 137158
+386/bin/cpu - 775 sys sys 1042571399 137045
 386/bin/crop - 775 sys sys 1039758553 115496
 386/bin/date - 775 sys sys 1039758553 43976
 386/bin/db - 775 sys sys 1039758554 323623
@@ -239,7 +239,7 @@
 386/bin/ip/gping - 775 sys sys 1039758567 178125
 386/bin/ip/hogports - 775 sys sys 1039758567 43296
 386/bin/ip/httpd - 20000000775 sys sys 1016920846 0
-386/bin/ip/httpd/httpd - 775 sys sys 1039758567 283575
+386/bin/ip/httpd/httpd - 775 sys sys 1042522767 283517
 386/bin/ip/httpd/imagemap - 775 sys sys 1039758568 113595
 386/bin/ip/httpd/man2html - 775 sys sys 1039758568 121860
 386/bin/ip/httpd/save - 775 sys sys 1039758568 130924
@@ -453,7 +453,7 @@
 386/include/ape/math.h - 664 sys sys 1022624465 1902
 386/include/ape/stdarg.h - 664 sys sys 944946040 276
 386/include/ape/ureg.h - 664 sys sys 944946041 812
-386/include/u.h - 664 sys sys 1015013889 1355
+386/include/u.h - 664 sys sys 1042604326 1450
 386/include/ureg.h - 664 sys sys 944946012 523
 386/init - 775 sys sys 1039762724 97616
 386/ld.com - 775 sys sys 1032215930 64488
@@ -505,7 +505,7 @@
 68000/bin/fossil - 20000000775 sys sys 1042090587 0
 68000/bin/venti - 20000000775 sys sys 1019679272 0
 68000/include - 20000000775 sys sys 948037602 0
-68000/include/u.h - 664 sys sys 1015089430 1340
+68000/include/u.h - 664 sys sys 1042604326 1435
 68000/include/ureg.h - 664 sys sys 944946363 436
 68000/lib - 20000000775 sys sys 948037600 0
 68000/mkfile - 664 sys sys 948141303 52
@@ -530,14 +530,14 @@
 68020/include/ape/ureg.h - 664 sys sys 944946347 741
 68020/include/dac.h - 664 sys sys 944946363 154
 68020/include/lbp.h - 664 sys sys 944946363 76
-68020/include/u.h - 664 sys sys 1015089430 1340
+68020/include/u.h - 664 sys sys 1042604327 1436
 68020/include/ureg.h - 664 sys sys 944946363 436
 68020/lib - 20000000775 sys sys 947992106 0
 68020/lib/ape - 20000000775 sys sys 947992106 0
 68020/mkfile - 664 sys sys 948141303 52
 960 - 20000000775 sys sys 948037581 0
 960/include - 20000000775 sys sys 948037594 0
-960/include/u.h - 664 sys sys 1015089430 864
+960/include/u.h - 664 sys sys 1042604328 959
 960/mkfile - 664 sys sys 948141303 52
 LICENSE - 666 sys sys 1032615845 35386
 NOTICE - 444 sys sys 1018803063 63
@@ -751,7 +751,7 @@ alpha/include/ape/float.h - 664 sys sys 969656988 1674
 alpha/include/ape/math.h - 664 sys sys 1022624467 1900
 alpha/include/ape/stdarg.h - 664 sys sys 958591172 413
 alpha/include/ape/ureg.h - 664 sys sys 944946346 1241
-alpha/include/u.h - 664 sys sys 1015089430 1441
+alpha/include/u.h - 664 sys sys 1042604328 1536
 alpha/include/ureg.h - 664 sys sys 944946362 644
 alpha/lib - 20000000775 sys sys 947992106 0
 alpha/lib/ape - 20000000775 sys sys 947992106 0
@@ -778,7 +778,7 @@ arm/include/ape/float.h - 664 sys sys 985642226 1643
 arm/include/ape/math.h - 664 sys sys 1022624468 1902
 arm/include/ape/stdarg.h - 664 sys sys 985642227 276
 arm/include/ape/ureg.h - 664 sys sys 985642227 617
-arm/include/u.h - 664 sys sys 1015089430 1324
+arm/include/u.h - 664 sys sys 1042604329 1419
 arm/include/ureg.h - 664 sys sys 971095234 341
 arm/lib - 20000000775 sys sys 985643938 0
 arm/lib/ape - 20000000775 sys sys 985643938 0
@@ -2749,7 +2749,7 @@ mips/include/ape/math.h - 664 sys sys 1022624469 1900
 mips/include/ape/stdarg.h - 664 sys sys 944946346 324
 mips/include/ape/ureg.h - 664 sys sys 944946346 991
 mips/include/mips2ureg.h - 664 sys sys 952879416 886
-mips/include/u.h - 664 sys sys 1015089431 1330
+mips/include/u.h - 664 sys sys 1042604329 1425
 mips/include/ureg.h - 664 sys sys 944946362 550
 mips/lib - 20000000775 sys sys 947991960 0
 mips/lib/ape - 20000000775 sys sys 947991960 0
@@ -2843,7 +2843,7 @@ power/include/ape/float.h - 664 sys sys 969656988 1608
 power/include/ape/math.h - 664 sys sys 1032057792 1900
 power/include/ape/stdarg.h - 664 sys sys 944946355 324
 power/include/ape/ureg.h - 664 sys sys 944946362 1025
-power/include/u.h - 664 sys sys 1015089431 2669
+power/include/u.h - 664 sys sys 1042604330 2764
 power/include/ureg.h - 664 sys sys 1032057837 997
 power/lib - 20000000775 sys sys 947992106 0
 power/lib/ape - 20000000775 sys sys 947992106 0
@@ -2969,7 +2969,7 @@ rc/bin/termrc - 775 sys sys 1038278927 2637
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1032539305 161
-rc/bin/ups - 775 sys sys 1038379867 881
+rc/bin/ups - 775 sys sys 1042567965 989
 rc/bin/usps - 775 sys sys 1016826030 450
 rc/bin/vwhois - 775 sys sys 953999875 294
 rc/bin/wdoc2txt - 755 sys sys 1017431153 277
@@ -3002,7 +3002,7 @@ sparc/include/ape/float.h - 664 sys sys 969656988 1624
 sparc/include/ape/math.h - 664 sys sys 1022624470 1901
 sparc/include/ape/stdarg.h - 664 sys sys 944946348 324
 sparc/include/ape/ureg.h - 664 sys sys 944946348 1048
-sparc/include/u.h - 664 sys sys 1015089431 1328
+sparc/include/u.h - 664 sys sys 1042604330 1423
 sparc/include/ureg.h - 664 sys sys 944946363 599
 sparc/lib - 20000000775 sys sys 947992106 0
 sparc/lib/ape - 20000000775 sys sys 947992106 0
@@ -6776,7 +6776,7 @@ sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 944960879 4631
 sys/src/cmd/cpp/test.c - 664 sys sys 944960879 47
 sys/src/cmd/cpp/tokens.c - 664 sys sys 944960879 6755
-sys/src/cmd/cpu.c - 664 sys sys 1034195355 20296
+sys/src/cmd/cpu.c - 664 sys sys 1042571397 20349
 sys/src/cmd/crop.c - 664 sys sys 1039753034 4136
 sys/src/cmd/date.c - 664 sys sys 944961351 449
 sys/src/cmd/db - 20000000775 sys sys 988249965 0
@@ -8903,7 +8903,7 @@ sys/src/cmd/ip/httpd/man2html.c - 664 sys sys 1015090172 8789
 sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1038443005 1384
 sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
 sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1015096252 4744
-sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1017679316 2977
+sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1042522766 2978
 sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
 sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1017679317 12134
 sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1019678647 5917
