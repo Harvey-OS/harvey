@@ -57,7 +57,7 @@
 386/bin/auth/convkeys - 775 sys sys 1064598035 86037
 386/bin/auth/convkeys2 - 775 sys sys 1064598036 86053
 386/bin/auth/cron - 775 sys sys 1076990349 142971
-386/bin/auth/debug - 775 sys sys 1081480398 99315
+386/bin/auth/debug - 775 sys sys 1083812548 99356
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
 386/bin/auth/factotum - 775 sys sys 1081480398 312737
@@ -126,13 +126,13 @@
 386/bin/aux/mswordstrings - 775 sys sys 1064598076 64020
 386/bin/aux/na - 775 sys sys 1064598077 153189
 386/bin/aux/nfsmount - 775 sys sys 1064598079 231906
-386/bin/aux/nfsserver - 775 sys sys 1081480400 186662
+386/bin/aux/nfsserver - 775 sys sys 1083812549 186660
 386/bin/aux/olefs - 775 sys sys 1073851213 145690
 386/bin/aux/p9bitpost - 775 sys sys 1064598082 127824
 386/bin/aux/pcmcia - 775 sys sys 1071245291 46548
-386/bin/aux/pcnfsd - 775 sys sys 1081480400 127894
+386/bin/aux/pcnfsd - 775 sys sys 1083812549 127888
 386/bin/aux/portmap - 775 sys sys 1064598084 141451
-386/bin/aux/portmapper - 775 sys sys 1081480401 126782
+386/bin/aux/portmapper - 775 sys sys 1083812550 126776
 386/bin/aux/postgif - 775 sys sys 1071245292 176711
 386/bin/aux/postprint - 775 sys sys 1071245292 161360
 386/bin/aux/postreverse - 775 sys sys 1071245293 166125
@@ -167,7 +167,7 @@
 386/bin/bitsy/keyboard - 775 sys sys 1071245298 302036
 386/bin/bitsy/light - 775 sys sys 1020319072 242
 386/bin/bitsy/params - 775 sys sys 1064598100 57026
-386/bin/bitsy/pencal - 775 sys sys 1081480403 115740
+386/bin/bitsy/pencal - 775 sys sys 1083812550 115778
 386/bin/bitsy/prompter - 775 sys sys 1071245300 284220
 386/bin/bunzip2 - 775 sys sys 1064598103 95833
 386/bin/bzip2 - 775 sys sys 1064598103 112422
@@ -280,7 +280,7 @@
 386/bin/ip/httpd/netlib_history - 775 sys sys 1068385801 112809
 386/bin/ip/httpd/save - 775 sys sys 1064598231 130742
 386/bin/ip/httpd/webls - 775 sys sys 1071245336 129484
-386/bin/ip/httpd/wikipost - 775 sys sys 1064598232 111102
+386/bin/ip/httpd/wikipost - 775 sys sys 1083812550 111306
 386/bin/ip/imap4d - 775 sys sys 1076990354 236967
 386/bin/ip/ipconfig - 775 sys sys 1081480408 136372
 386/bin/ip/ping - 775 sys sys 1064598234 74889
@@ -6775,7 +6775,7 @@ sys/src/cmd/9l/sched.c - 664 sys sys 1014936054 9790
 sys/src/cmd/9l/span.c - 664 sys sys 1045503966 11787
 sys/src/cmd/9nfs - 20000000775 sys sys 1015090374 0
 sys/src/cmd/9nfs/9auth.c - 664 sys sys 1017337812 1454
-sys/src/cmd/9nfs/9p.c - 664 sys sys 1017337813 3291
+sys/src/cmd/9nfs/9p.c - 664 sys sys 1083772192 3365
 sys/src/cmd/9nfs/all.h - 664 sys sys 1017337813 322
 sys/src/cmd/9nfs/auth.c - 664 sys sys 1017337813 424
 sys/src/cmd/9nfs/authhostowner.c - 664 sys sys 1071498519 4190
@@ -6794,7 +6794,7 @@ sys/src/cmd/9nfs/pcnfsd.c - 664 sys sys 1017337815 3964
 sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1040952456 3179
 sys/src/cmd/9nfs/rpc.c - 664 sys sys 1017337815 5293
 sys/src/cmd/9nfs/rpc.h - 664 sys sys 1017337815 1996
-sys/src/cmd/9nfs/server.c - 664 sys sys 1078839960 10996
+sys/src/cmd/9nfs/server.c - 664 sys sys 1083771826 10980
 sys/src/cmd/9nfs/string.c - 664 sys sys 1017337815 1659
 sys/src/cmd/9nfs/strparse.c - 664 sys sys 1015090373 506
 sys/src/cmd/9nfs/system.c - 664 sys sys 1017337815 437
@@ -6887,7 +6887,7 @@ sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1015008430 2347
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1015008432 2401
 sys/src/cmd/auth/cron.c - 664 sys sys 1063858528 11410
-sys/src/cmd/auth/debug.c - 664 sys sys 1078839961 7339
+sys/src/cmd/auth/debug.c - 664 sys sys 1083771270 7356
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
 sys/src/cmd/auth/factotum - 20000000775 sys sys 1017165894 0
@@ -7202,7 +7202,7 @@ sys/src/cmd/bitsy/keyboard.c - 664 sys sys 1014926253 9509
 sys/src/cmd/bitsy/light.rc - 775 sys sys 985466176 242
 sys/src/cmd/bitsy/mkfile - 664 sys sys 985559341 237
 sys/src/cmd/bitsy/params.c - 664 sys sys 1014926253 1124
-sys/src/cmd/bitsy/pencal.c - 664 sys sys 1079016904 4589
+sys/src/cmd/bitsy/pencal.c - 664 sys sys 1083770967 4604
 sys/src/cmd/bitsy/prompter.c - 664 sys sys 1014926253 5888
 sys/src/cmd/bzip2 - 20000000775 sys sys 969500958 0
 sys/src/cmd/bzip2/CHANGES - 664 sys sys 964847954 6251
@@ -9483,7 +9483,7 @@ sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
 sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1017679317 12134
 sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1070288192 7269
 sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3
-sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1019678647 5917
+sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1083771074 5913
 sys/src/cmd/ip/imap4d - 20000000775 sys sys 988249981 0
 sys/src/cmd/ip/imap4d/auth.c - 664 sys sys 1015013075 3510
 sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1062298855 4597

@@ -82,7 +82,7 @@ main(int argc, char **argv) {
 		debug = 1;
 		break;
 	}ARGEND;
-	
+
 	if((mouse = open("/dev/mouse", OREAD)) < 0
 	 && (mouse = open("#m/mouse", OREAD)) < 0)
 		sysfatal("#m/mouse: %r");
@@ -94,13 +94,15 @@ main(int argc, char **argv) {
 	if(initdraw(nil, nil, "calibrate") < 0)
 		sysfatal("initdraw: %r\n");
 
+	wctl = -1;
 	for(ntries = 0; ntries < 3; ntries++){
 		r = insetrect(display->image->r, 2);
-	
-		wctl = open("/dev/wctl", ORDWR);
+
+		if(wctl < 0)
+			wctl = open("/dev/wctl", ORDWR);
 		if(wctl >= 0){
 			char buf[4*12+1];
-	
+
 			buf[48] = 0;
 			oldsize = screen->r;
 			if(fprint(wctl, "resize -r %R", r) <= 0)
@@ -108,7 +110,7 @@ main(int argc, char **argv) {
 			if(getwindow(display, Refbackup) < 0)
 				sysfatal("getwindow");
 			if(debug) fprint(2, "resize: %R\n", screen->r);
-	
+
 			if(read(mousectl, buf, 48) != 48)
 				sysfatal("read mousectl: %r");
 			if(debug > 1) fprint(2, "mousectl %s\n", buf);
@@ -125,10 +127,10 @@ main(int argc, char **argv) {
 			cal.transx = 0;
 			cal.transy = 0;
 		}
-	
+
 		fprint(2, "calibrate %ld %ld %ld %ld (old)\n",
 			(long)cal.scalex, (long)cal.scaley, (long)cal.transx, (long)cal.transy);
-	
+
 		if(debug)
 			fprint(2, "screen coords %R\n", screen->r);
 		pts[0] = addpt(Pt( 16,  16), screen->r.min);
@@ -137,33 +139,33 @@ main(int argc, char **argv) {
 		pts[3] = addpt(Pt(-16, -16), screen->r.max);
 		pts[4] = Pt((screen->r.max.x + screen->r.min.x)/2,
 					(screen->r.max.y + screen->r.min.y)/2);;
-	
+
 		for(i = 0; i < 4; i++){
 			cross(pts[i]);
 			pens[i] = scr2pen(getmouse(mouse));
 			if (debug) fprint(2, "%P\n", pens[i]);
 		}
-	
+
 		cal.scalex = (pts[2].x + pts[3].x - pts[0].x - pts[1].x) * 65536.0 /
 				  (pens[2].x + pens[3].x - pens[0].x - pens[1].x);
 		cal.scaley = (pts[1].y + pts[3].y - pts[0].y - pts[2].y) * 65536.0 /
 				  (pens[1].y + pens[3].y - pens[0].y - pens[2].y);
 		cal.transx = pts[0].x - (pens[0].x*cal.scalex) / 65536.0;
 		cal.transy = pts[0].y - (pens[0].y*cal.scaley) / 65536.0;
-	
+
 		if(debug)
 			fprint(2, "scale [%f, %f], trans [%f, %f]\n",
 				cal.scalex, cal.scaley, cal.transx, cal.transy);
-	
+
 		fprint(mousectl, "calibrate %ld %ld %ld %ld",
 			(long)cal.scalex, (long)cal.scaley, (long)cal.transx, (long)cal.transy);
-	
+
 		cross(pts[4]);
 		pens[4] = getmouse(mouse);
-	
+
 		draw(screen, screen->r, display->white, nil, ZP);
 		flushimage(display, 1);
-	
+
 		if(abs(pts[4].x-pens[4].x) <= 4 && abs(pts[4].y-pens[4].y) <= 4){
 			fprint(2, "Calibration ok: %P -> %P\n", pts[4], pens[4]);
 			break;
