@@ -5042,7 +5042,7 @@ sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
 sys/src/9/ip/arp.c - 664 sys sys 1047951324 10671
 sys/src/9/ip/chandial.c - 664 sys sys 1022588098 2276
-sys/src/9/ip/devip.c - 664 sys sys 1047260561 24089
+sys/src/9/ip/devip.c - 664 sys sys 1054391399 24207
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1047260562 15120
@@ -5053,7 +5053,7 @@ sys/src/9/ip/igmp.c - 664 sys sys 1047260564 5190
 sys/src/9/ip/il.c - 664 sys sys 1047260564 26943
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1047951326 15285
-sys/src/9/ip/ip.h - 664 sys sys 1049423191 16080
+sys/src/9/ip/ip.h - 664 sys sys 1054391400 16066
 sys/src/9/ip/ipaux.c - 664 sys sys 1049423191 12798
 sys/src/9/ip/ipifc.c - 664 sys sys 1048288617 37843
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
