@@ -123,6 +123,7 @@ deadlineintr(Ureg*, Timer *t)
 		return;
 
 	p = t->ta;
+
 	DPRINT("%t deadlineintr %lud[%s]\n", todget(nil), p->pid, statename[p->state]);
 	/* If we're interrupting something other than the proc pointed to by t->a,
 	 * we've already achieved recheduling, so we need not do anything
@@ -142,7 +143,7 @@ release(Proc *p)
 {
 	/* Called with edflock held */
 	Edf *e;
-	void (*pt)(Proc*, int);
+	void (*pt)(Proc*, int, vlong);
 
 	e = p->edf;
 	e->flags &= ~Yield;
@@ -165,8 +166,10 @@ release(Proc *p)
 		e->S = e->C;
 		DPRINT("%t release %lud[%s], r=%t, d=%t, t=%t, S=%t\n",
 			now, p->pid, statename[p->state], e->r, e->d, e->t, e->S);
-		if (pt = proctrace)
-			pt(p, SRelease);
+		if (pt = proctrace){
+			pt(p, SRelease, e->r);
+			pt(p, SDeadline, e->d);
+		}
 	}else{
 		DPRINT("%t release %lud[%s], too late t=%t, called from 0x%lux\n",
 			now, p->pid, statename[p->state], e->t, getcallerpc(&p));
@@ -238,7 +241,7 @@ edfrecord(Proc *p)
 {
 	vlong used;
 	Edf *e;
-	void (*pt)(Proc*, int);
+	void (*pt)(Proc*, int, vlong);
 
 	e = p->edf;
 	edflock();
@@ -250,7 +253,7 @@ edfrecord(Proc *p)
 	if (e->S > 0){
 		if (e->S <= used){
 			if(pt = proctrace)
-				pt(p, SDeadline);
+				pt(p, SSlice, now);
 			DPRINT("%t edfrecord slice used up\n", now);
 			e->d = now;
 			e->S = 0;
@@ -303,7 +306,7 @@ edfadmit(Proc *p)
 	Edf *e;
 	int i;
 	Proc *r;
-	void	(*pt)(Proc*, int);
+	void (*pt)(Proc*, int, vlong);
 
 	e = p->edf;
 	if (e->flags & Admitted)
@@ -331,7 +334,7 @@ edfadmit(Proc *p)
 	e->flags |= Admitted;
 
 	if(pt = proctrace)
-		pt(p, SAdmit);
+		pt(p, SAdmit, now);
 
 	/* Look for another proc with the same period to synchronize to */
 	SET(r);
@@ -392,13 +395,13 @@ void
 edfstop(Proc *p)
 {
 	Edf *e;
-	void	(*pt)(Proc*, int);
+	void (*pt)(Proc*, int, vlong);
 
 	if ((e = p->edf) && (e->flags & Admitted)){
 		edflock();
 		DPRINT("%t edfstop %lud[%s]\n", now, p->pid, statename[p->state]);
 		if(pt = proctrace)
-			pt(p, SExpel);
+			pt(p, SExpel, now);
 		e->flags &= ~Admitted;
 		if (p->tt)
 			timerdel(p);
@@ -417,12 +420,12 @@ edfyield(void)
 {
 	/* sleep until next release */
 	Edf *e;
-	void	(*pt)(Proc*, int);
+	void (*pt)(Proc*, int, vlong);
 
 	edflock();
 	e = up->edf;
 	if(pt = proctrace)
-		pt(up, SYield);
+		pt(up, SYield, now);
 	while(e->t < now)
 		e->t += e->T;
 	e->r = e->t;
@@ -444,7 +447,7 @@ edfready(Proc *p)
 	Edf *e;
 	Schedq *rq;
 	Proc *l, *pp;
-	void (*pt)(Proc*, int);
+	void (*pt)(Proc*, int, vlong);
 
 	if ((e = p->edf) == nil || (e->flags & Admitted) == 0)
 		return 0;	/* Not an edf process */
@@ -489,8 +492,6 @@ edfready(Proc *p)
 		DPRINT("%t edfready %lud %s release now\n", now, p->pid, statename[p->state]);
 		/* release now */
 		release(p);
-		if(pt = proctrace)
-			pt(p, SRelease);
 	}
 	DPRINT("^");
 	rq = &runq[PriEdf];
@@ -517,7 +518,7 @@ edfready(Proc *p)
 	p->readytime = m->ticks;
 	p->state = Ready;
 	if(pt = proctrace)
-		pt(p, SReady);
+		pt(p, SReady, now);
 	edfunlock();
 	return 1;
 }

@@ -20,45 +20,52 @@ int	gettokens(char *str, char **args, int maxargs, char *delims)
 int	tokenize(char *str, char **args, int maxargs)
 .SH DESCRIPTION
 .I Getfields
-breaks the null-terminated
+places into the array
+.I args
+pointers to the first
+.I maxargs
+fields of the null terminated
 .SM UTF
 string
-.I str
-into at most
-.I maxargs
-null-terminated fields and places pointers to the start of these fields in the array
-.IR args .
-Some of the bytes in
-.I str
-are overwritten.
-If there are more than
-.I maxargs
-fields,
-only the first
-.I maxargs
-fields will be set.
-.I Delims
-is a
-.SM UTF
-string defining a set of delimiters.
+.IR str .
+Delimiters between these fields are set to null.
 .PP
+Fields are substrings of
+.I str
+whose definition depends on the value of
+.IR multiflag.
 If
 .I multiflag
 is zero,
 adjacent fields are separated by exactly one delimiter.
-A string containing
-.I n
-delimiter characters
-contains
-.IR n +1
-fields.
+For example
+.EX
+
+	getfields("#alice#bob##charles###", arg, 3, 0, "#");
+
+.EE
+yields three substrings:
+null-string ,
+.BR "alice" ,
+and
+.BR "bob##charles###" .
 If the
 .I multiflag
 argument is not zero,
 a field is a non-empty string of non-delimiters.
+For example
+.EX
+
+	getfields("#alice#bob##charles###", arg, 3, 1, "#");
+
+.EE
+yields the three substrings:
+.BR "alice" ,
+.BR "bob" ,
+and
+.BR "charles###" .
 .PP
-Getfields
-returns the number of tokens processed.
+Getfields returns the number of fields pointed to.
 .PP
 .I Gettokens
 is the same as

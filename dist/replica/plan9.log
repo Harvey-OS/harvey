@@ -14189,3 +14189,13 @@
 1068157925 0 c 386/9load - 775 sys sys 1068156766 181788
 1068157925 1 c sys/src/boot/pc/sdata.c - 664 sys sys 1068156754 35084
 1068159726 0 c sys/src/boot/pc/console.c - 664 sys sys 1068158999 3487
+1068210121 0 c sys/man/1/jpg - 664 sys sys 1068209494 4003
+1068210121 1 c sys/man/2/getfields - 664 sys sys 1068209043 1605
+1068210121 2 c sys/src/9/port/taslock.c - 664 sys sys 1068209643 3532
+1068215523 0 c sys/src/9/port/devproc.c - 664 sys sys 1068215525 28324
+1068215523 1 c sys/src/9/port/edf.c - 664 sys sys 1068215525 12348
+1068215523 2 c sys/src/9/port/portfns.h - 664 sys sys 1068215525 11376
+1068215523 3 c sys/src/9/port/proc.c - 664 sys sys 1068215525 24867
+1068238928 0 c sys/src/9/pc/trap.c - 664 sys sys 1068237910 20045
+1068238928 1 c sys/src/9/port/devproc.c - 664 sys sys 1068237926 28403
+1068246130 0 a sys/src/9/pc/etherrhine.c - 664 sys sys 1068244865 13437

@@ -243,7 +243,7 @@ void		procinit0(void);
 void		procflushseg(Segment*);
 void		procpriority(Proc*, int, int);
 Proc*		proctab(int);
-extern void	(*proctrace)(Proc*, int); 
+extern void	(*proctrace)(Proc*, int, vlong); 
 void		procwired(Proc*, int);
 Pte*		ptealloc(void);
 Pte*		ptecpy(Pte*);
