@@ -5446,7 +5446,7 @@ sys/src/9/port/devcons.c - 664 sys sys 1072704673 22374
 sys/src/9/port/devdraw.c - 664 sys sys 1039753332 41987
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
-sys/src/9/port/devfs.c - 664 sys sys 1067722764 10760
+sys/src/9/port/devfs.c - 664 sys sys 1081864735 10779
 sys/src/9/port/devkbmap.c - 644 sys sys 1079463756 2774
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1076612248 14573
