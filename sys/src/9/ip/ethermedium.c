@@ -573,6 +573,7 @@ recvarp(Ipifc *ifc)
 	Block *ebp, *rbp;
 	Etherarp *e, *r;
 	uchar ip[IPaddrlen];
+	static uchar eprinted[4];
 	Etherrock *er = ifc->arg;
 
 	ebp = devtab[er->achan->type]->bread(er->achan, ifc->maxmtu, 0);
@@ -608,8 +609,13 @@ recvarp(Ipifc *ifc)
 		/* check for machine using my ip or ether address */
 		v4tov6(ip, e->spa);
 		if(iplocalonifc(ifc, ip) || ipproxyifc(er->f, ifc, ip)){
-			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) != 0)
-				print("arpreq: 0x%E also has ip addr %V\n", e->sha, e->spa);
+			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) != 0){
+				if (memcmp(eprinted, e->spa, sizeof(e->spa))){
+					/* print only once */
+					print("arpreq: 0x%E also has ip addr %V\n", e->sha, e->spa);
+					memmove(eprinted, e->spa, sizeof(e->spa));
+				}
+			}
 		} else {
 			if(memcmp(e->sha, ifc->mac, sizeof(e->sha)) == 0){
 				print("arpreq: %V also has ether addr %E\n", e->spa, e->sha);

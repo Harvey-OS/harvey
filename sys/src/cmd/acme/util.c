@@ -88,7 +88,7 @@ errorwin1(Rune *dir, int ndir, Rune **incl, int nincl)
 
 /* make new window, if necessary; return with it locked */
 Window*
-errorwin(Mntdir *md, int owner)
+errorwin(Mntdir *md, int owner, Window *e)
 {
 	Window *w;
 
@@ -97,27 +97,24 @@ errorwin(Mntdir *md, int owner)
 			w = errorwin1(nil, 0, nil, 0);
 		else
 			w = errorwin1(md->dir, md->ndir, md->incl, md->nincl);
-		winlock(w, owner);
+		if(w != e)
+			winlock(w, owner);
 		if(w->col != nil)
 			break;
 		/* window was deleted too fast */
-		winunlock(w);
+		if(w != e)
+			winunlock(w);
 	}
 	return w;
 }
 
-void
-warning(Mntdir *md, char *s, ...)
+static void
+printwarning(Window *ew, Mntdir *md, Rune *r)
 {
-	Rune *r;
 	int nr, q0, owner;
 	Window *w;
 	Text *t;
-	va_list arg;
 
-	va_start(arg, s);
-	r = runevsmprint(s, arg);
-	va_end(arg);
 	if(r == nil)
 		error("runevsmprint failed");
 	nr = runestrlen(r);
@@ -130,7 +127,7 @@ warning(Mntdir *md, char *s, ...)
 			error("initializing columns in warning()");
 	}
 
-	w = errorwin(md, 'E');
+	w = errorwin(md, 'E', ew);
 	t = &w->body;
 	owner = w->owner;
 	if(owner == 0)
@@ -142,8 +139,37 @@ warning(Mntdir *md, char *s, ...)
 	textscrdraw(t);
 	w->owner = owner;
 	w->dirty = FALSE;
-	winunlock(w);
+	if(ew != w)
+		winunlock(w);
 	free(r);
+}
+
+void
+warning(Mntdir *md, char *s, ...)
+{
+	Rune *r;
+	va_list arg;
+
+	va_start(arg, s);
+	r = runevsmprint(s, arg);
+	va_end(arg);
+	printwarning(nil, md, r);
+}
+
+/*
+ * Warningew is like warning but avoids locking the error window
+ * if it's already locked by checking that ew!=error window.
+ */
+void
+warningew(Window *ew, Mntdir *md, char *s, ...)
+{
+	Rune *r;
+	va_list arg;
+
+	va_start(arg, s);
+	r = runevsmprint(s, arg);
+	va_end(arg);
+	printwarning(ew, md, r);
 }
 
 int

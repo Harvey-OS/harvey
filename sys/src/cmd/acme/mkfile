@@ -42,5 +42,5 @@ $O.out:	/$objtype/lib/libframe.a /$objtype/lib/libdraw.a /$objtype/lib/libthread
 edit.$O ecmd.$O elog.$O:	edit.h
 
 syms:V:
-	vc -a acme.c > syms
-	for(i in ????.c) vc -aa $i >> syms
+	8c -a acme.c > syms
+	for(i in ????.c) 8c -aa $i >> syms

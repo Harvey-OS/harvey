@@ -533,15 +533,15 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 			f->qidpath = d->qid.path;
 			f->mtime = d->mtime;
 			if(f->unread)
-				warning(nil, "%s not written; file already exists\n", name);
+				warningew(w, nil, "%s not written; file already exists\n", name);
 			else
-				warning(nil, "%s modified%s%s since last read\n", name, d->muid[0]?" by ":"", d->muid);
+				warningew(w, nil, "%s modified%s%s since last read\n", name, d->muid[0]?" by ":"", d->muid);
 			goto Rescue1;
 		}
 	}
 	fd = create(name, OWRITE, 0666);
 	if(fd < 0){
-		warning(nil, "can't create file %s: %r\n", name);
+		warningew(w, nil, "can't create file %s: %r\n", name);
 		goto Rescue1;
 	}
 	r = fbufalloc();
@@ -550,7 +550,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 	d = dirfstat(fd);
 	isapp = (d!=nil && d->length>0 && (d->qid.type&QTAPPEND));
 	if(isapp){
-		warning(nil, "%s not written; file is append only\n", name);
+		warningew(w, nil, "%s not written; file is append only\n", name);
 		goto Rescue2;
 	}
 
@@ -561,7 +561,7 @@ putfile(File *f, int q0, int q1, Rune *namer, int nname)
 		bufread(f, q, r, n);
 		m = snprint(s, BUFSIZE+1, "%.*S", n, r);
 		if(write(fd, s, m) != m){
-			warning(nil, "can't write file %s: %r\n", name);
+			warningew(w, nil, "can't write file %s: %r\n", name);
 			goto Rescue2;
 		}
 	}
@@ -624,7 +624,7 @@ put(Text *et, Text*, Text *argt, int, int, Rune *arg, int narg)
 	f = w->body.file;
 	name = getname(&w->body, argt, arg, narg, TRUE);
 	if(name == nil){
-		warning(nil, "no file name\n");
+		warningew(w, nil, "no file name\n");
 		return;
 	}
 	namer = bytetorune(name, &nname);

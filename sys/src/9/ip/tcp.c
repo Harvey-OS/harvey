@@ -28,7 +28,7 @@ enum
 	TcptimerON	= 1,
 	TcptimerDONE	= 2,
 	MAX_TIME 	= (1<<20),	/* Forever */
-	TCP_ACK		= 200,		/* Timed ack sequence in ms */
+	TCP_ACK		= 50,		/* Timed ack sequence in ms */
 
 	URG		= 0x20,		/* Data marked urgent */
 	ACK		= 0x10,		/* Acknowledge is valid */
@@ -213,6 +213,7 @@ struct Tcpctl
 		ulong	urg;		/* Urgent pointer */
 		ulong	lastacked;	/* Last ack sent */
 		int	blocked;
+		int	una;		/* unacked data segs */
 	} rcv;
 	ulong	iss;			/* Initial sequence number */
 	ushort	cwind;			/* Congestion window */
@@ -1353,7 +1354,7 @@ limbo(Conv *s, uchar *source, uchar *dest, Tcp *seg, int version)
 		if(ipcmp(lp->laddr, dest) != 0)
 			continue;
 
-		/* each new SYN restarts the retramsmits */
+		/* each new SYN restarts the retransmits */
 		lp->irs = seg->seq;
 		break;
 	}
@@ -2358,6 +2359,7 @@ tcpoutput(Conv *s)
 		tcprcvwin(s);
 
 		/* By default we will generate an ack */
+		tcb->rcv.una = 0;
 		seg.source = s->lport;
 		seg.dest = s->rport;
 		seg.flags = ACK;

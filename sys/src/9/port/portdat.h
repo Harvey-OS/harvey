@@ -845,10 +845,10 @@ extern	Uart*	consuart;
 struct Timer
 {
 	uvlong	when;			/* fastticks when f should be called */
+	ulong	period;
 	void	(*f)(Ureg*, Timer*);
 	void	*a;
 	Timer	*next;
-	ulong	period;
 };
 
 struct Edfinterface {
@@ -876,7 +876,7 @@ struct Perf
 	ulong	avg_inintr;	/* avg time per clock tick in interrupt handlers */
 	ulong	inidle;		/* time since last clock tick in idle loop */
 	ulong	avg_inidle;	/* avg time per clock tick in idle loop */
-	ulong	last;		/* value of perfticks() at last clock tick */
+	ulong	last;			/* value of perfticks() at last clock tick */
 	ulong	period;		/* perfticks() per clock tick */
 };
 

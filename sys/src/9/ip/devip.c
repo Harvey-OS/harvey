@@ -32,6 +32,7 @@ enum
 	Qlocal,
 	Qremote,
 	Qstatus,
+	Qsnoop,
 
 	Logtype=	5,
 	Masktype=	(1<<Logtype)-1,
@@ -84,7 +85,7 @@ ip3gen(Chan *c, int i, Dir *dp)
 		devdir(c, q, "err", qlen(cv->eq), cv->owner, cv->perm, dp);
 		return 1;
 	case Qlisten:
-		devdir(c, q, "listen", qlen(cv->eq), cv->owner, cv->perm, dp);
+		devdir(c, q, "listen", 0, cv->owner, cv->perm, dp);
 		return 1;
 	case Qlocal:
 		p = "local";
@@ -92,6 +93,11 @@ ip3gen(Chan *c, int i, Dir *dp)
 	case Qremote:
 		p = "remote";
 		break;
+	case Qsnoop:
+		if(strcmp(cv->p->name, "ipifc") != 0)
+			return -1;
+		devdir(c, q, "snoop", qlen(cv->sq), cv->owner, 0400, dp);
+		return 1;
 	case Qstatus:
 		p = "status";
 		break;
@@ -235,6 +241,7 @@ ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	case Qlocal:
 	case Qremote:
 	case Qstatus:
+	case Qsnoop:
 		return ip3gen(c, TYPE(c->qid), dp);
 	}
 	return -1;
@@ -390,6 +397,15 @@ ipopen(Chan* c, int omode)
 	case Qipgate6:
 		if(omode != OREAD)
 			error(Eperm);
+		break;
+	case Qsnoop:
+		if(omode != OREAD)
+			error(Eperm);
+		p = f->p[PROTO(c->qid)];
+		cv = p->conv[CONV(c->qid)];
+		if(strcmp(ATTACHER(c), cv->owner) != 0 && !iseve())
+			error(Eperm);
+		incref(&cv->snoopers);
 		break;
 	case Qclone:
 		p = f->p[PROTO(c->qid)];
@@ -575,6 +591,11 @@ ipclose(Chan* c)
 	case Qerr:
 		if(c->flag & COPEN)
 			closeconv(f->p[PROTO(c->qid)]->conv[CONV(c->qid)]);
+		break;
+	case Qsnoop:
+		if(c->flag & COPEN)
+			decref(&f->p[PROTO(c->qid)]->conv[CONV(c->qid)]->snoopers);
+		break;
 	}
 	free(((IPaux*)c->aux)->owner);
 	free(c->aux);
@@ -663,6 +684,9 @@ ipread(Chan *ch, void *a, long n, vlong off)
 	case Qerr:
 		c = f->p[PROTO(ch->qid)]->conv[CONV(ch->qid)];
 		return qread(c->eq, a, n);
+	case Qsnoop:
+		c = f->p[PROTO(ch->qid)]->conv[CONV(ch->qid)];
+		return qread(c->sq, a, n);
 	case Qstats:
 		x = f->p[PROTO(ch->qid)];
 		if(x->stats == nil)

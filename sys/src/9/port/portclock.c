@@ -157,8 +157,8 @@ timerintr(Ureg *u, uvlong)
 	while(t = tt->head){
 		when = t->when;
 		if(when > now){
-			iunlock(tt);
 			timerset(when);
+			iunlock(tt);
 			m->splpc = pc;	/* for kernel profiling */
 			if(callhzclock)
 				hzclock(u);

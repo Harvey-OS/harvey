@@ -5,9 +5,9 @@
 #include "fns.h"
 #include "io.h"
 #include "ureg.h"
-#include "../port/error.h"
-#include	"realtime.h"
-#include	"../port/edf.h"
+#include "error.h"
+#include "realtime.h"
+#include "edf.h"
 
 #pragma	varargck	type	"T"		vlong
 

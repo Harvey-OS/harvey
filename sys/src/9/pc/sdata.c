@@ -1287,7 +1287,8 @@ atagenioretry(Drive* drive)
 	if(drive->dmactl){
 		drive->dmactl = 0;
 		print("atagenioretry: disabling dma\n");
-	}else if(drive->rwmctl)
+	}
+	else if(drive->rwmctl)
 		drive->rwmctl = 0;
 	else
 		return atasetsense(drive, SDcheck, 4, 8, drive->error);
@@ -1715,10 +1716,15 @@ atapnp(void)
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
-		case (0x248A<<16)|0x8086:	/* 82801BAM ICH2-M */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */
-		case (0x24CB<<16)|0x8086:	/* 945 ?? */
+		case (0x2411<<16)|0x8086:	/* 82801AA (ICH) */
+		case (0x2421<<16)|0x8086:	/* 82801AB (ICH0) */
+		case (0x244A<<16)|0x8086:	/* 82801BA (ICH2, Mobile) */
+		case (0x244B<<16)|0x8086:	/* 82801BA (ICH2, High-End) */
+		case (0x248A<<16)|0x8086:	/* 82801CA (ICH3, Mobile) */
+		case (0x248B<<16)|0x8086:	/* 82801CA (ICH3, High-End) */
+		case (0x24CB<<16)|0x8086:	/* 82801DB (ICH4, High-End) */
 			break;
 		}
 

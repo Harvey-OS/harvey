@@ -108,6 +108,9 @@ ioinit(void)
 
 	// a dummy entry at 2^16
 	ioalloc(0x10000, 1, 0, "dummy");
+	/*
+	 * Someone needs to explain why this was here...
+	 */
 	ioalloc(0x0fff, 1, 0, "dummy");	// i82557 is at 0x1000, the dummy
 					// entry is needed for swappable devs.
 
@@ -341,7 +344,7 @@ enum
 static long
 archread(Chan *c, void *a, long n, vlong offset)
 {
-	char buf[Linelen+1], *p;
+	char *buf, *p;
 	int port;
 	ushort *sp;
 	ulong *lp;
@@ -388,23 +391,30 @@ archread(Chan *c, void *a, long n, vlong offset)
 		break;
 	}
 
-	offset = offset/Linelen;
+	/* allocate a buffer to avoid page faults in the loop */
+	if((buf = malloc(n+1)) == nil)	/* +1 for the NUL */
+		error(Enomem);
+	p = buf;
 	n = n/Linelen;
-	p = a;
+	offset = offset/Linelen;
+
 	lock(&iomap);
 	for(m = iomap.m; n > 0 && m != nil; m = m->next){
 		if(offset-- > 0)
 			continue;
 		if(strcmp(m->tag, "dummy") == 0)
 			break;
-		sprint(buf, "%8lux %8lux %-12.12s\n", m->start, m->end-1, m->tag);
-		memmove(p, buf, Linelen);
+		snprint(p, Linelen+1, "%8lux %8lux %-12.12s\n", m->start, m->end-1, m->tag);
 		p += Linelen;
 		n--;
 	}
 	unlock(&iomap);
 
-	return p - (char*)a;
+	n = p - buf;
+	memmove(a, buf, n);
+	free(buf);
+
+	return n;
 }
 
 static long

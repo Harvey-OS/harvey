@@ -382,7 +382,7 @@ xfidwrite(Xfid *x)
 	x->data[x->count] = 0;
 	switch(qid){
 	case Qcons:
-		w = errorwin(x->f->mntdir, 'X');
+		w = errorwin(x->f->mntdir, 'X', nil);
 		t=&w->body;
 		goto BodyTag;
 

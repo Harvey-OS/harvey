@@ -36,12 +36,12 @@ Ip4hdr *ipoff = 0;
 
 struct Ip6hdr
 {
-  uchar vcf[4];  /* version, class label, and flow label */ 
-  uchar ploadlen[2];  /* payload length */
-  uchar proto; /* next header, i.e. proto */
-  uchar ttl;   /* hop limit, i.e. ttl */
-  uchar src[16]; /* IP source */
-  uchar dst[16]; /* IP destination */
+	uchar vcf[4];		/* version, class label, and flow label */ 
+	uchar ploadlen[2];	/* payload length */
+	uchar proto;		/* next header, i.e. proto */
+	uchar ttl;		/* hop limit, i.e. ttl */
+	uchar src[16];		/* IP source */
+	uchar dst[16];		/* IP destination */
 };
 
 
@@ -49,7 +49,7 @@ enum
 {
 	Tproto,
 	Tdata,
-  Tiph,
+	Tiph,
 	Tdst,
 	Tsrc,
 	Tifc,
@@ -69,7 +69,7 @@ char *ftname[] =
 {
 [Tproto]	"proto",
 [Tdata]		"data",
-[Tiph]	  "iph",
+[Tiph]	 	"iph",
 [Tdst]		"dst",
 [Tsrc]		"src",
 [Tifc]		"ifc",
@@ -82,16 +82,16 @@ struct Ipmux
 {
 	Ipmux	*yes;
 	Ipmux	*no;
-	uchar	type;		 /* type of field (Txxxx) */
-	uchar	ctype;   /* tupe of comparison (Cxxxx) */
-	uchar	len;		 /* length in bytes of item to compare */
-	uchar	n;		   /* number of items val points to */
-	short	off;		 /* offset of comparison */
-	short	eoff;		 /* end offset of comparison */
-  uchar skiphdr; /* should offset start after ip header */
+	uchar	type;		/* type of field(Txxxx) */
+	uchar	ctype;		/* tupe of comparison(Cxxxx) */
+	uchar	len;		/* length in bytes of item to compare */
+	uchar	n;		/* number of items val points to */
+	short	off;		/* offset of comparison */
+	short	eoff;		/* end offset of comparison */
+	uchar	skiphdr;	/* should offset start after ipheader */
 	uchar	*val;
 	uchar	*mask;
-	uchar	*e;		/* val + n*len */
+	uchar	*e;		/* val+n*len*/
 
 	int	ref;		/* so we can garbage collect */
 	Conv	*conv;
@@ -164,14 +164,14 @@ parseop(char **pp)
 		p += 5;
 	}
 	else if(strncmp(p, "data", 4) == 0 || strncmp(p, "iph", 3) == 0){
-    if(strncmp(p, "data", 4) == 0) {
-		  type = Tdata;
-      p += 4;
-    }
-    else {
-      type = Tiph;
-	    p += 3;
-    }
+		if(strncmp(p, "data", 4) == 0) {
+			type = Tdata;
+			p += 4;
+		}
+		else {
+			type = Tiph;
+			p += 3;
+		}
 		p = skipwhite(p);
 		if(*p != '[')
 			return nil;
@@ -206,10 +206,10 @@ parseop(char **pp)
 	f->mask = nil;
 	f->n = 1;
 	f->ref = 1;
-  if(type == Tdata)
-    f->skiphdr = 1;
-  else
-    f->skiphdr = 0;
+	if(type == Tdata)
+		f->skiphdr = 1;
+	else
+		f->skiphdr = 0;
 
 	return f;	
 }
@@ -274,7 +274,7 @@ parsemux(char *p)
 			v4parseip(f->mask, mask);
 			break;
 		case Tdata:
-    case Tiph:
+		case Tiph:
 			f->mask = smalloc(f->len);
 			parseval(f->mask, mask, f->len);
 			break;
@@ -303,7 +303,7 @@ parsemux(char *p)
 			break;
 		case Tproto:
 		case Tdata:
-    case Tiph:
+		case Tiph:
 			parseval(v, vals[n], f->len);
 			break;
 		}
@@ -360,7 +360,7 @@ ipmuxcmp(Ipmux *a, Ipmux *b)
 
 	/* compare offsets, call earlier ones more specific */
 	n = (a->off+((int)a->skiphdr)*(ulong)ipoff->data) - 
-      (b->off+((int)b->skiphdr)*(ulong)ipoff->data);
+		(b->off+((int)b->skiphdr)*(ulong)ipoff->data);
 	if(n != 0)
 		return n;
 
@@ -684,8 +684,8 @@ ipmuxiput(Proto *p, Ipifc *ifc, Block *bp)
 	Ip4hdr *ip;
 	Ip6hdr *ip6;
 
-  ip = (Ip4hdr*)bp->rp;
-  hl = (ip->vihl&0x0F)<<2;
+	ip = (Ip4hdr*)bp->rp;
+	hl = (ip->vihl&0x0F)<<2;
 
 	if(p->priv == nil)
 		goto nomatch;

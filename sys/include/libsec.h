@@ -216,6 +216,7 @@ struct RSApriv
 };
 
 RSApriv*	rsagen(int nlen, int elen, int rounds);
+RSApriv*	rsafill(mpint *n, mpint *e, mpint *d, mpint *p, mpint *q);
 mpint*		rsaencrypt(RSApub *k, mpint *in, mpint *out);
 mpint*		rsadecrypt(RSApriv *k, mpint *in, mpint *out);
 RSApub*		rsapuballoc(void);
@@ -225,8 +226,10 @@ void		rsaprivfree(RSApriv*);
 RSApub*		rsaprivtopub(RSApriv*);
 RSApub*		X509toRSApub(uchar*, int, char*, int);
 RSApriv*	asn1toRSApriv(uchar*, int);
+void		asn1dump(uchar *der, int len);
 uchar*		decodepem(char *s, char *type, int *len);
 uchar*		X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
+char*		X509verify(uchar *cert, int ncert, RSApub *pk);
 
 /////////////////////////////////////////////////////////
 // elgamal
