@@ -75,7 +75,7 @@ $p$CONF.gz: $p$CONF
 
 install:V: $p$CONF $p$CONF.gz
 	cp $p$CONF $p$CONF.gz /$objtype/
-	import lookout / /n/lookout && cp $p$CONF $p$CONF.gz /n/lookout/$objtype/
+	# import lookout / /n/lookout && cp $p$CONF $p$CONF.gz /n/lookout/$objtype/
 
 <../boot/bootmkfile
 <../port/portmkfile

@@ -2995,6 +2995,14 @@ rc/bin/mapdemo - 775 sys sys 945617207 4075
 rc/bin/membername - 775 sys sys 945617207 89
 rc/bin/mousereset - 775 sys sys 1015089542 37
 rc/bin/nroff - 775 sys sys 945617208 27
+rc/bin/patch - 20000000775 sys sys 1067803227 0
+rc/bin/patch/apply - 775 sys sys 1067804403 1234
+rc/bin/patch/create - 775 sys sys 1067804404 1129
+rc/bin/patch/diff - 775 sys sys 1067804404 466
+rc/bin/patch/list - 775 sys sys 1067804541 321
+rc/bin/patch/note - 664 sys sys 1067804405 593
+rc/bin/patch/okay - 775 sys sys 1067803227 240
+rc/bin/patch/undo - 775 sys sys 1067804405 549
 rc/bin/pc - 20000000775 sys sys 960857447 0
 rc/bin/pc/bootfloppy - 775 sys sys 964455816 439
 rc/bin/pc/bootplan9 - 775 sys sys 960857446 1639
@@ -4600,6 +4608,7 @@ sys/man/1/ns - 664 sys sys 944959677 893
 sys/man/1/p - 664 sys sys 944959673 504
 sys/man/1/page - 664 sys sys 969499885 4870
 sys/man/1/passwd - 664 sys sys 1022163988 2053
+sys/man/1/patch - 664 sys sys 1067804449 2176
 sys/man/1/pcc - 664 sys sys 1015024740 3478
 sys/man/1/pic - 664 sys sys 1022625353 8229
 sys/man/1/pipefile - 664 sys sys 984709628 1861
@@ -5233,7 +5242,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1063857363 48522
 sys/src/9/pc/etherga620.c - 664 sys sys 1067723192 28788
 sys/src/9/pc/etherga620fw.h - 644 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1045063564 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1067722636 43330
+sys/src/9/pc/etherigbe.c - 664 sys sys 1067792708 42430
 sys/src/9/pc/ethermii.c - 664 sys sys 1039803177 4555
 sys/src/9/pc/ethermii.h - 664 sys sys 1039895684 3259
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
@@ -5252,7 +5261,7 @@ sys/src/9/pc/l.s - 664 sys sys 1067722634 23586
 sys/src/9/pc/main.c - 664 sys sys 1067722634 14685
 sys/src/9/pc/mem.h - 664 sys sys 1018553448 4573
 sys/src/9/pc/memory.c - 664 sys sys 1032303986 12994
-sys/src/9/pc/mkfile - 664 sys sys 1067722635 3217
+sys/src/9/pc/mkfile - 664 sys sys 1067810339 3219
 sys/src/9/pc/mmu.c - 664 sys sys 1049509456 10014
 sys/src/9/pc/mouse.c - 664 sys sys 1065717607 6625
 sys/src/9/pc/mp.c - 664 sys sys 1048644112 16928
