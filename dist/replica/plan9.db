@@ -163,7 +163,7 @@
 386/bin/con - 775 sys sys 1039758552 76698
 386/bin/cp - 775 sys sys 1039758553 62687
 386/bin/cpp - 775 sys sys 1039758553 148353
-386/bin/cpu - 775 sys sys 1042571399 137045
+386/bin/cpu - 775 sys sys 1042640741 137389
 386/bin/crop - 775 sys sys 1039758553 115496
 386/bin/date - 775 sys sys 1039758553 43976
 386/bin/db - 775 sys sys 1039758554 323623
@@ -200,9 +200,9 @@
 386/bin/fmt - 775 sys sys 1039758560 63811
 386/bin/fortune - 775 sys sys 1039758560 66329
 386/bin/fossil - 20000000775 sys sys 1042005470 0
-386/bin/fossil/flchk - 775 sys sys 1042440488 228190
-386/bin/fossil/flfmt - 775 sys sys 1042440489 226775
-386/bin/fossil/fossil - 775 sys sys 1042440490 331207
+386/bin/fossil/flchk - 775 sys sys 1042640742 229085
+386/bin/fossil/flfmt - 775 sys sys 1042640743 227670
+386/bin/fossil/fossil - 775 sys sys 1042640744 332102
 386/bin/freq - 775 sys sys 1039758560 60443
 386/bin/fs - 20000000775 sys sys 954380769 0
 386/bin/fs/32vfs - 775 sys sys 1039758560 96155
@@ -239,7 +239,7 @@
 386/bin/ip/gping - 775 sys sys 1039758567 178125
 386/bin/ip/hogports - 775 sys sys 1039758567 43296
 386/bin/ip/httpd - 20000000775 sys sys 1016920846 0
-386/bin/ip/httpd/httpd - 775 sys sys 1042522767 283517
+386/bin/ip/httpd/httpd - 775 sys sys 1042640745 283885
 386/bin/ip/httpd/imagemap - 775 sys sys 1039758568 113595
 386/bin/ip/httpd/man2html - 775 sys sys 1039758568 121860
 386/bin/ip/httpd/save - 775 sys sys 1039758568 130924
@@ -302,7 +302,7 @@
 386/bin/paqfs - 775 sys sys 1039758581 108073
 386/bin/passwd - 775 sys sys 1039758581 81058
 386/bin/pbd - 775 sys sys 1038443175 4663
-386/bin/pcc - 775 sys sys 1039758581 66189
+386/bin/pcc - 775 sys sys 1042640615 65847
 386/bin/pic - 775 sys sys 1038443175 303238
 386/bin/pipefile - 775 sys sys 1039758581 39893
 386/bin/plot - 775 sys sys 1039758582 216945
@@ -9233,7 +9233,7 @@ sys/src/cmd/paqfs/mkpaqfs.c - 664 sys sys 1032060367 8509
 sys/src/cmd/paqfs/paqfs.c - 664 sys sys 1032060367 18320
 sys/src/cmd/paqfs/paqfs.h - 664 sys sys 1018721430 966
 sys/src/cmd/pbd.c - 664 sys sys 944961351 247
-sys/src/cmd/pcc.c - 664 sys sys 1014926696 5938
+sys/src/cmd/pcc.c - 664 sys sys 1042640611 5937
 sys/src/cmd/pic - 20000000775 sys sys 954037275 0
 sys/src/cmd/pic/arcgen.c - 664 sys sys 944961042 5999
 sys/src/cmd/pic/blockgen.c - 664 sys sys 944961042 5209
