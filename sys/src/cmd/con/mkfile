@@ -7,8 +7,9 @@ TARG=con\
 
 BIN=/$objtype/bin
 
-UPDATE=mkfile\
-	${TARG:%=/386/bin/%}\
+UPDATE=\
+	mkfile\
+	$HFILES\
 	${TARG:%=%.c}\
 	/sys/man/1/con\
 

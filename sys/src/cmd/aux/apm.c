@@ -128,7 +128,7 @@ static char *error[256] = {
 [0x0B]	"interface not engaged",
 [0x0C]	"function not supported",
 [0x0D]	"resume timer disabled",
-[0x60]	"unable to enter requestsed state",
+[0x60]	"unable to enter requested state",
 [0x80]	"no power mgmt events pending",
 [0x86]	"apm not present",
 };
@@ -925,7 +925,7 @@ flushthread(void*)
 				*rq = or->aux;
 				if(tailp==&or->aux)
 					tailp = rq;
-				respond(or, "flushed");
+				respond(or, "interrupted");
 				break;
 			}
 		}

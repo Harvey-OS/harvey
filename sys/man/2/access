@@ -29,7 +29,7 @@ must permit searches.
 Zero is returned if the desired access is permitted,
 \-1 if not.
 .PP
-Only access bits are checked.
+Only access for open is checked.
 A file may look executable, but
 .IR exec (2)
 will fail unless it is in proper format.
@@ -58,7 +58,3 @@ must open the file to check permissions.
 (It calls
 .IR stat (2)
 to check simple existence.)
-Besides giving misleading information about the writability of directories,
-this is as expensive as the open that
-.I access
-is often intended to avoid.

@@ -89,12 +89,6 @@ ls(char *s, int multi)
 	char *p;
 	Dir *db;
 
-	for(;;) {
-		p = utfrrune(s, '/');
-		if(p == 0 || p[1] != 0 || p == s)
-			break;
-		*p = 0;
-	}
 	db = dirstat(s);
 	if(db == nil){
     error:
@@ -109,6 +103,7 @@ ls(char *s, int multi)
 		n = dirreadall(fd, &db);
 		if(n < 0)
 			goto error;
+		cleanname(s);
 		growto(ndir+n);
 		for(i=0; i<n; i++){
 			dirbuf[ndir+i].d = db+i;
@@ -121,6 +116,7 @@ ls(char *s, int multi)
 		growto(ndir+1);
 		dirbuf[ndir].d = db;
 		dirbuf[ndir].prefix = 0;
+		cleanname(s);
 		p = utfrrune(s, '/');
 		if(p){
 			dirbuf[ndir].prefix = s;

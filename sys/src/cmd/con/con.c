@@ -37,7 +37,6 @@ long	iwrite(int, void*, int);
 int	menu(int);
 void	msgfromkbd(int);
 void	msgfromnet(int);
-void	msgnotifyf(void*, char*);
 int	msgwrite(int, void*, int);
 void	notifyf(void*, char*);
 void	pass(int, int, int);
@@ -256,6 +255,8 @@ notifyf(void *a, char *msg)
 {
 	USED(a);
 
+	if(strstr(msg, "yankee"))
+		noted(NDFLT);
 	if(strstr(msg, "closed pipe")
 	|| strcmp(msg, "interrupt") == 0
 	|| strcmp(msg, "hangup") == 0)
@@ -389,14 +390,14 @@ stdcon(int net)
 	case 0:
 		notify(notifyf);
 		fromnet(net);
-		postnote(PNPROC, ttypid, "");
+		postnote(PNPROC, ttypid, "die yankee dog");
 		exits(0);
 	default:
 		notify(notifyf);
 		fromkbd(net);
 		if(notkbd)
 			for(;;)sleep(0);
-		postnote(PNPROC, netpid, "");
+		postnote(PNPROC, netpid, "die yankee dog");
 		exits(0);
 	}
 }
@@ -418,7 +419,7 @@ fromkbd(int net)
 		n = read(0, buf, sizeof(buf));
 		if(n < 0){
 			if(wasintr()){
-				if(cooked){
+				if(!raw){
 					buf[0] = 0x7f;
 					n = 1;
 				} else
@@ -435,7 +436,7 @@ fromkbd(int net)
 			if(menu(net) < 0)
 				return;
 		}else{
-			if(cooked && n==0){
+			if(!raw && n==0){
 				buf[0] = 0x4;
 				n = 1;
 			}
@@ -687,26 +688,6 @@ struct Msg {
 	char b[MAXMSG];
 };
 
-/*
- *  convert certain interrupts into mesgld messages
- */
-void
-msgnotifyf(void *a, char *msg)
-{
-	USED(a);
-
-	if(strstr(msg, "closed pipe"))
-		noted(NCONT);
-	if(strcmp(msg, "interrupt") == 0){
-		sendctl1(msgfd, M_SIGNAL, SIGINT);
-		noted(NCONT);
-	}
-	if(strcmp(msg, "hangup") == 0){
-		sendctl(msgfd, M_HANGUP);
-		noted(NCONT);
-	}
-	noted(NDFLT);
-}
 
 /*
  *  send an empty mesgld message
