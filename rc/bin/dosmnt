@@ -6,7 +6,7 @@ if(! ~ $#* 2){
 	exit usage
 }
 
-x=(`{echo /dev/sd??/dos*})
+x=(`{ls /dev/sd??/dos* >[2]/dev/null |uniq})
 if(test $#x -lt $1){
 	echo 'not that many dos disks' >[1=2]
 	exit usage

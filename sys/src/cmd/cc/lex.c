@@ -142,7 +142,7 @@ compile(char *file, char **defs, int ndef)
 	p = utfrrune(ofile, pathchar());
 	if(p) {
 		*p++ = 0;
-		if(!debug['O'])
+		if(!debug['.'])
 			include[0] = strdup(ofile);
 	} else
 		p = ofile;

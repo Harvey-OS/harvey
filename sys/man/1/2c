@@ -138,7 +138,7 @@ of the
 .I file
 argument.  If this fails,
 the
-.I -O
+.I -.
 flag is given or the name is enclosed in
 .BR <> ,
 it is then sought
@@ -150,7 +150,7 @@ then in
 and finally in
 .BR /$objtype/include .
 .TP
-.B -O
+.B -.
 Suppress the automatic searching for include files in
 the directory of the file argument.
 .TP

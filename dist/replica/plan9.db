@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1108285260 115096
-386/bin/8c - 775 sys sys 1109217972 358000
+386/bin/8c - 775 sys sys 1109303823 358000
 386/bin/8l - 775 sys sys 1107835553 115728
 386/bin/9660srv - 775 sys sys 1108354539 103973
 386/bin/aan - 775 sys sys 1108354539 130710
@@ -3012,7 +3012,7 @@ rc/bin/dircp - 775 sys sys 1107836261 193
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 945617206 1726
-rc/bin/dosmnt - 775 sys sys 958526437 285
+rc/bin/dosmnt - 775 sys sys 1109288224 303
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1015701359 2390
 rc/bin/fedex - 775 sys sys 1060187356 1244
@@ -4657,7 +4657,7 @@ sys/man - 20000000775 sys sys 1012278794 0
 sys/man/1 - 20000000775 sys sys 1018897631 0
 sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1101668050 1188
-sys/man/1/2c - 664 sys sys 1109196896 8237
+sys/man/1/2c - 664 sys sys 1109303821 8237
 sys/man/1/2l - 664 sys sys 1101668051 4365
 sys/man/1/INDEX - 664 sys sys 1104811679 3004
 sys/man/1/INDEX.html - 664 sys sys 1104736360 16403
@@ -5412,7 +5412,7 @@ sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1104430611 1438
 sys/src/9/pc/pci.c - 664 sys sys 1107436009 25850
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
-sys/src/9/pc/pcmkfile - 664 sys sys 1109202191 101
+sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
 sys/src/9/pc/plan9l.s - 664 sys sys 1015014521 910
 sys/src/9/pc/psaux.c - 664 sys sys 1026847650 915
@@ -7237,7 +7237,7 @@ sys/src/cmd/cc/compat.c - 664 sys sys 1084472048 417
 sys/src/cmd/cc/dcl.c - 664 sys sys 1089299183 26723
 sys/src/cmd/cc/dpchk.c - 664 sys sys 1107365037 7152
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
-sys/src/cmd/cc/lex.c - 664 sys sys 1109187034 23826
+sys/src/cmd/cc/lex.c - 664 sys sys 1109303822 23826
 sys/src/cmd/cc/lexbody - 664 sys sys 1098499731 9014
 sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
 sys/src/cmd/cc/macbody - 664 sys sys 1108281581 11703
@@ -11747,7 +11747,7 @@ sys/src/libc/port/lock.c - 664 sys sys 1014927398 493
 sys/src/libc/port/log.c - 664 sys sys 1014927398 1026
 sys/src/libc/port/lrand.c - 664 sys sys 1035832917 1109
 sys/src/libc/port/malloc.acid - 664 sys sys 1014927398 6227
-sys/src/libc/port/malloc.c - 664 sys sys 1102093081 5697
+sys/src/libc/port/malloc.c - 664 sys sys 1109250219 5713
 sys/src/libc/port/memccpy.c - 664 sys sys 1014927398 216
 sys/src/libc/port/memchr.c - 664 sys sys 1014927398 182
 sys/src/libc/port/memcmp.c - 664 sys sys 1014927398 259
