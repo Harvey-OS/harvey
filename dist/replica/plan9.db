@@ -27,7 +27,7 @@
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
 386/bin/acid - 775 sys sys 1085076972 371882
-386/bin/acme - 775 sys sys 1085076973 424873
+386/bin/acme - 775 sys sys 1086836655 424880
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1071245280 133877
 386/bin/ape/cc - 775 sys sys 1085076973 68304
@@ -6830,7 +6830,7 @@ sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
 sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
 sys/src/cmd/acme/elog.c - 664 sys sys 1078839859 7236
-sys/src/cmd/acme/exec.c - 664 sys sys 1079489096 28152
+sys/src/cmd/acme/exec.c - 664 sys sys 1086809679 28158
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1079102913 2883
 sys/src/cmd/acme/fsys.c - 664 sys sys 1079102915 12799
