@@ -375,7 +375,7 @@
 386/bin/rx - 775 sys sys 1071245345 80158
 386/bin/sam - 775 sys sys 1064598302 156664
 386/bin/scat - 775 sys sys 1071245346 282545
-386/bin/scp - 775 sys sys 1069592375 151684
+386/bin/scp - 775 sys sys 1075184164 151804
 386/bin/scuzz - 775 sys sys 1064598306 110748
 386/bin/sed - 775 sys sys 1064598306 88194
 386/bin/seq - 775 sys sys 1064598307 38429
@@ -10868,7 +10868,7 @@ sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
 sys/src/cmd/upas/send/tryit - 664 sys sys 944961322 584
 sys/src/cmd/upas/smtp - 20000000775 sys sys 988250017 0
-sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1071335923 5588
+sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1075211327 6300
 sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1067722781 746
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1055703150 4887
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
