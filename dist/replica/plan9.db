@@ -405,7 +405,7 @@
 386/bin/tee - 775 sys sys 1064598326 38656
 386/bin/telco - 775 sys sys 1064598327 104810
 386/bin/telnet - 775 sys sys 1064598327 80561
-386/bin/test - 775 sys sys 1070416286 67968
+386/bin/test - 775 sys sys 1070459150 68512
 386/bin/time - 775 sys sys 1064598328 59564
 386/bin/tlsclient - 775 sys sys 1064598330 196114
 386/bin/tlssrv - 775 sys sys 1064598331 196448
@@ -4703,7 +4703,7 @@ sys/man/1/tbl - 664 sys sys 944959674 4308
 sys/man/1/tcs - 664 sys sys 952627441 2575
 sys/man/1/tee - 664 sys sys 969499886 351
 sys/man/1/tel - 664 sys sys 1045501423 941
-sys/man/1/test - 664 sys sys 1070415988 3302
+sys/man/1/test - 664 sys sys 1070459150 3475
 sys/man/1/thesaurus - 664 sys sys 1068121775 222
 sys/man/1/time - 664 sys sys 944959673 380
 sys/man/1/touch - 664 sys sys 1018369246 461
@@ -10453,7 +10453,7 @@ sys/src/cmd/telco/mkfile - 664 sys sys 944961290 201
 sys/src/cmd/telco/telco.c - 664 sys sys 1021579996 26253
 sys/src/cmd/telco/telcodata - 775 sys sys 944961290 95
 sys/src/cmd/telco/telcofax - 664 sys sys 944961289 30
-sys/src/cmd/test.c - 664 sys sys 1070416286 4823
+sys/src/cmd/test.c - 664 sys sys 1070459150 5319
 sys/src/cmd/time.c - 664 sys sys 1014926662 1546
 sys/src/cmd/tlsclient.c - 664 sys sys 1024375149 1631
 sys/src/cmd/tlssrv.c - 664 sys sys 1018720167 3254

@@ -24,6 +24,8 @@ int	isreg(char *);
 int	isatty(int);
 int	isint(char *, int *);
 int	isolder(char *, char *);
+int	isolderthan(char *, char *);
+int	isnewerthan(char *, char *);
 int	hasmode(char *, ulong);
 int	tio(char *, int);
 int	e(void), e1(void), e2(void), e3(void);
@@ -168,6 +170,12 @@ e3(void) {
 
 	if(EQ(p2, "-older"))
 		return(isolder(nxtarg(0), a));
+
+	if(EQ(p2, "-ot"))
+		return(isolderthan(nxtarg(0), a));
+
+	if(EQ(p2, "-nt"))
+		return(isnewerthan(nxtarg(0), a));
 
 	if(!isint(a, &int1))
 		return(!EQ(a,""));
@@ -349,4 +357,28 @@ isolder(char *pin, char *f)
 	}
 
 	return(dir.mtime+n < time(0));
+}
+
+int
+isolderthan(char *a, char *b)
+{
+	Dir ad, bd;
+
+	if(localstat(a, &ad)<0)
+		return(0);
+	if(localstat(b, &bd)<0)
+		return(0);
+	return ad.mtime > bd.mtime;
+}
+
+int
+isnewerthan(char *a, char *b)
+{
+	Dir ad, bd;
+
+	if(localstat(a, &ad)<0)
+		return(0);
+	if(localstat(b, &bd)<0)
+		return(0);
+	return ad.mtime < bd.mtime;
 }
