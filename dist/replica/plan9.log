@@ -12813,3 +12813,4 @@
 1069815619 0 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1069814541 30917
 1069819220 0 c sys/src/cmd/disk/mkext.c - 664 sys sys 1069818199 5500
 1069819220 1 c sys/src/cmd/fossil/9p.c - 664 sys sys 1069818231 21498
+1069885828 0 c sys/man/8/fossilcons - 664 sys sys 1069884636 15073

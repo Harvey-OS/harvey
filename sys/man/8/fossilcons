@@ -93,7 +93,7 @@ con /srv/fscons
 .I name
 .B open
 [
-.B -APVWr
+.B -APWr
 ]
 [
 .B -c
@@ -359,6 +359,18 @@ With the
 flag, 
 .I srv 
 edits a list of console services rather than 9P services.
+With no arguments,
+.I srv
+prints the current list of services.
+With one argument, srv
+.I name
+starts a new service at
+.IR /srv/name ;
+the
+.B -d
+flag causes 
+.I srv
+to remove the named service.
 See the
 .I [fsys] open
 command below for a description of the
@@ -587,11 +599,8 @@ If no
 command is issued before
 .IR open ,
 the default Venti server will be used.
-If the file system is open,
-and was not opened with the
-.B -V
-flag,
-the command redials the Venti server.
+If the file system is open, the command
+redials the Venti server.
 This can be used to reestablish broken connections.
 It is not a good idea to use the command to switch
 between Venti servers, since Fossil does not keep track
@@ -608,9 +617,6 @@ run with no authentication
 .TP
 .B -P
 run with no permission checking
-.TP
-.B -V
-do not attempt to connect to a Venti server
 .TP
 .B -W
 allow wstat to make arbitrary changes to the user and group fields
