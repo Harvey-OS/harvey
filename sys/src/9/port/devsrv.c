@@ -147,7 +147,7 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 	if(omode & OCEXEC)	/* can't happen */
 		panic("someone broke namec");
 
-	sp = malloc(sizeof(Srv));
+	sp = malloc(sizeof(Srv)+strlen(name)+1);
 	if(sp == 0)
 		error(Enomem);
 
@@ -162,14 +162,14 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 
 	sp->path = qidpath++;
 	sp->link = srv;
+	sp->name = (char*)(sp+1);
+	strcpy(sp->name, name);
 	c->qid.type = QTFILE;
 	c->qid.path = sp->path;
 	srv = sp;
 	qunlock(&srvlk);
 	poperror();
 
-	sp->name = smalloc(strlen(name)+1);
-	strcpy(sp->name, name);
 	kstrdup(&sp->owner, up->user);
 	sp->perm = perm&0777;
 
@@ -209,10 +209,6 @@ srvremove(Chan *c)
 
 	if(sp->chan)
 		cclose(sp->chan);
-	if(sp->name){
-		free(sp->name);
-		sp->name = nil;
-	}
 	free(sp);
 }
 

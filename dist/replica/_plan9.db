@@ -71,7 +71,7 @@
 386/bin/auth/rsafill - 775 sys sys 1104121968 143416
 386/bin/auth/rsagen - 775 sys sys 1104121969 153041
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
-386/bin/auth/secstore - 775 sys sys 1104121969 189231
+386/bin/auth/secstore - 775 sys sys 1104206870 189563
 386/bin/auth/secstored - 775 sys sys 1104121970 196626
 386/bin/auth/secuser - 775 sys sys 1104121971 152299
 386/bin/auth/status - 775 sys sys 1020319060 738
@@ -5493,7 +5493,7 @@ sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1071245428 28564
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1017679394 9600
-sys/src/9/port/devsrv.c - 664 sys sys 1086406908 5198
+sys/src/9/port/devsrv.c - 664 sys sys 1104243965 5149
 sys/src/9/port/devssl.c - 664 sys sys 1045063590 26100
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1086406907 45225
@@ -12449,4 +12449,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/auth/secstore - 775 sys sys 1104206870 189563
+386/9pc - 775 sys sys 1104294668 1833476
+386/9pccpu - 775 sys sys 1104294673 1488469
+386/9pcdisk - 775 sys sys 1104294683 1908736
