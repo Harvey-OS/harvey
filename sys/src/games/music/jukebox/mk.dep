@@ -1,0 +1,4 @@
+client.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/bio.h client.h playlist.h
+colors.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/draw.h /sys/include/keyboard.h /sys/include/mouse.h /sys/include/control.h colors.h
+music.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/draw.h /sys/include/keyboard.h /sys/include/mouse.h /sys/include/control.h colors.h client.h playlist.h
+playlist.$O: /$objtype/include/u.h /sys/include/libc.h /sys/include/thread.h /sys/include/draw.h /sys/include/keyboard.h /sys/include/mouse.h /sys/include/control.h playlist.h

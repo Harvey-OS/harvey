@@ -404,6 +404,14 @@ doLMchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
 	ulong schedule[32];
 	uchar p14[15], p16[16];
 	uchar s8[8] = {0x4b, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25};
+	int n = strlen(pass);
+
+	if(n > 14){
+		// let prudent people avoid the LM vulnerability
+		//   and protect the loop below from buffer overflow
+		memset(reply, 0, MSchapResplen);
+		return;
+	}
 
 	// Spec says space padded, experience says otherwise
 	memset(p14, 0, sizeof p14 -1);

@@ -1,0 +1,46 @@
+#!/bin/rc
+
+cdrom=/dev/sdC1
+
+switch($#*){
+case 3
+	starttrack = `{echo $1 - 1 | hoc}
+	endtrack = `{echo $2 - 1 | hoc}
+	desttrack = $3
+case *
+	echo Usage readcd starttrack endtrack desttrack
+}
+
+if(test -e /mnt/cd/ctl){
+	echo -n ingest >/mnt/cd/ctl >[2]/dev/null
+}
+if not {
+	if (~ $cdrom '')	cdfs
+	if not		cdfs -d $cdrom
+}
+
+>/tmp/readcd
+>/tmp/map
+cat /mnt/cd/ctl
+sed 1q /mnt/cd/ctl | rc
+echo $starttrack $endtrack $desttrack | awk '{
+	start = $1
+	finish = $2
+	dest = $3
+	print "read cd tracks " start "-" finish " starting at " dest
+	for (i = start; i <= finish; i++) {
+		cmd = sprintf("ls -l /mnt/cd/a%3.3d | awk ''{print $6}''>>/tmp/readcd", i)
+		system(cmd)
+		getline x<"/tmp/readcd"
+		sec = x/44100/4
+		min = sec/60
+		sec = sec%60
+		printf("track {\n\t\n\tfile {%3.3d}\n\ttime {%d:%2.2d}\n}\n",i+dest-start,min,sec)>"/tmp/map"
+	}
+	for (i = start; i <= finish; i++) {
+		cmd = sprintf("/bin/games/pacenc /mnt/cd/a%3.3d %3.3d",i,i+dest-start)
+		print cmd
+		system(cmd)
+	}
+}'
+echo eject >/mnt/cd/ctl

@@ -1,0 +1,18 @@
+</$objtype/mkfile
+<../mkinc
+
+CFLAGS = -DDEFAULTMAP="$DEFAULTMAP"
+TARG = jukefs
+BIN = /$objtype/bin/games
+
+CFILES=\
+	catset.c\
+	fs.c\
+	parse.c\
+	print.c\
+	search.c\
+	server.c\
+
+OFILES = ${CFILES:%.c=%.$O}
+
+</sys/src/cmd/mkone
