@@ -1094,7 +1094,7 @@ isp9font(void)
 		}
 	}
 	if (i) {
-		print("font file\n");
+		print(mime ? "text/plain\n" : "font file\n");
 		return 1;
 	}
 	return 0;

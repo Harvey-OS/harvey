@@ -486,61 +486,6 @@ imap4hangup(Imap *imap)
 }
 
 //
-// download just the header of a message
-// because we do this, the sha1 digests are only of
-// the headers.  hopefully this won't cause problems.
-//
-// this doesn't work (and isn't used).  the downloading
-// itself works, but we need to have the full mime headers
-// to get the right recursive structures into the file system,
-// which means having the body.  i've also had other weird
-// problems with bodies being paged in incorrectly.
-//
-// this is here as a start in case someone else wants a crack
-// at it.  note that if you start using this you'll have to 
-// change the digest in imap4fetch() to digest just the header.
-//
-static char*
-imap4fetchheader(Imap *imap, Mailbox *mb, Message *m)
-{
-	int i;
-	char *p, *s, sdigest[2*SHA1dlen+1];
-
-	imap->size = 0;
-	free(imap->base);
-	imap->base = nil;
-	imap->data = nil;
-
-	imap4cmd(imap, "UID FETCH %lud RFC822.HEADER", (ulong)m->imapuid);
-	if(!isokay(s = imap4resp(imap)))
-		return s;
-	if(imap->base == nil)
-		return "didn't get header";
-
-	p = imap->base;
-	removecr(p);
-	free(m->start);
-	m->start = p;
-	m->end = p+strlen(p);
-	m->bend = m->rbend = m->end;
-	m->header = m->start;
-	//m->fetched = 0;
-
-	imap->base = nil;
-	imap->data = nil;
-
-	parseheaders(m, 0, mb, 1);
-
-	// digest headers
-	sha1((uchar*)m->start, m->hend - m->start, m->digest, nil);
-	for(i = 0; i < SHA1dlen; i++)
-		sprint(sdigest+2*i, "%2.2ux", m->digest[i]);
-	m->sdigest = s_copy(sdigest);
-
-	return nil;
-}
-
-//
 // download a single message
 //
 static char*
@@ -549,55 +494,24 @@ imap4fetch(Mailbox *mb, Message *m)
 	int i;
 	char *p, *s, sdigest[2*SHA1dlen+1];
 	Imap *imap;
-//	int sz;
 
 	imap = mb->aux;
 
-//	if(s = imap4dial(imap))
-//		return s;
-//
-//	imap4cmd(imap, "STATUS %s (MESSAGES UIDVALIDITY)", imap->mbox);
-//	if(!isokay(s = imap4resp(imap)))
-//		return s;
-//	if((ulong)(m->imapuid>>32) != imap->validity)
-//		return "uids changed underfoot";
-
 	imap->size = 0;
 
-	/* SIZE */
-//	if(!isokay(s = imap4resp(imap)))
-//		return s;
-//	if(imap->size == 0)
-//		return "didn't get size from size command";
-
-//	sz = imap->size;
-//	p = emalloc(sz+1);
-//	free(imap->base);
-//	imap->base = p;
-//	imap->data = p;
-//	imap->size = sz;
-
-	/* HEADER */
-//	if(!isokay(s = imap4resp(imap)))
-//		return s;
-//	if(imap->size == sz){
-//		free(p);
-//		imap->data = nil;
-//		return "didn't get header";
-//	}
-
-	/* TEXT */
 	if(!isokay(s = imap4resp(imap)))
 		return s;
 
 	p = imap->base;
+	if(p == nil)
+		return "did not get message body";
+
 	removecr(p);
 	free(m->start);
 	m->start = p;
 	m->end = p+strlen(p);
 	m->bend = m->rbend = m->end;
 	m->header = m->start;
-	//m->fetched = 1;
 
 	imap->base = nil;
 	imap->data = nil;

@@ -5158,7 +5158,7 @@ sys/src/9/bitsy/l.s - 664 sys sys 1055700934 18211
 sys/src/9/bitsy/main.c - 664 sys sys 1067722593 9083
 sys/src/9/bitsy/map - 664 sys sys 1017695515 236
 sys/src/9/bitsy/mem.h - 664 sys sys 1055700932 8049
-sys/src/9/bitsy/mkfile - 664 sys sys 1071245512 2450
+sys/src/9/bitsy/mkfile - 664 sys sys 1071671673 2466
 sys/src/9/bitsy/mmu.c - 664 sys sys 1055700931 11228
 sys/src/9/bitsy/mouse.c - 664 sys sys 1017695516 962
 sys/src/9/bitsy/paqfiles - 20000000775 sys sys 1020011250 0
@@ -5440,7 +5440,7 @@ sys/src/9/port/mkroot - 775 sys sys 1039753334 235
 sys/src/9/port/mkrootall - 775 sys sys 1055954696 386
 sys/src/9/port/mkrootc - 775 sys sys 1055954695 717
 sys/src/9/port/mksystab - 664 sys sys 1014931176 783
-sys/src/9/port/mul64fract.c - 664 sys sys 1071320142 618
+sys/src/9/port/mul64fract.c - 664 sys sys 1071671674 867
 sys/src/9/port/netif.c - 664 sys sys 1066514951 13421
 sys/src/9/port/netif.h - 664 sys sys 1066514947 2975
 sys/src/9/port/nulledf.c - 664 sys sys 1037669300 821
@@ -7510,7 +7510,7 @@ sys/src/cmd/fax/receive.c - 664 sys sys 944960990 1097
 sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
-sys/src/cmd/file.c - 664 sys sys 1065017417 20590
+sys/src/cmd/file.c - 664 sys sys 1071719684 20614
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1035832953 1674
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -10780,7 +10780,7 @@ sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1068350246 27381
-sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1061779754 18103
+sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1071689378 16021
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1071334860 28493
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465
@@ -11781,7 +11781,7 @@ sys/src/libdraw/getrect.c - 664 sys sys 1014927875 3046
 sys/src/libdraw/getsubfont.c - 664 sys sys 1014927875 757
 sys/src/libdraw/icossin.c - 664 sys sys 944961724 2117
 sys/src/libdraw/icossin2.c - 664 sys sys 944961724 4587
-sys/src/libdraw/init.c - 664 sys sys 1070660683 9077
+sys/src/libdraw/init.c - 664 sys sys 1071692552 9082
 sys/src/libdraw/keyboard.c - 664 sys sys 1030970091 1703
 sys/src/libdraw/line.c - 664 sys sys 1040442973 731
 sys/src/libdraw/loadimage.c - 664 sys sys 1014927876 983
