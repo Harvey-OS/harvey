@@ -13,7 +13,7 @@ OFILES =\
 
 
 TARG = secstore secstored secuser aescbc
-DEBUG = secacct secchk
+DEBUG = secchk
 
 UPDATE=\
 	$HFILES\

@@ -13286,3 +13286,16 @@
 1106454670 10 c 386/bin/mntgen - 775 sys sys 1106453227 139193
 1106454670 11 c 386/bin/tprof - 775 sys sys 1106453230 255090
 1106454670 12 c 386/lib/libmach.a - 664 sys sys 1106453232 652292
+1106577094 0 c sys/src/cmd/auth/secstore/password.c - 664 sys sys 1106575527 2818
+1106577094 1 c sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1106575526 859
+1106577094 2 c sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1106575527 8065
+1106577094 3 c sys/src/cmd/auth/secstore/util.c - 664 sys sys 1106575527 1819
+1106577094 4 d sys/src/cmd/auth/secstore/secacct.c - 644 sys sys 1015008431 0
+1106578896 0 c sys/src/cmd/auth/secstore/mkfile - 664 sys sys 1106577499 836
+1106578896 1 c sys/src/cmd/auth/secstore/password.c - 664 sys sys 1106577427 2929
+1106586095 0 c sys/src/9/port/devproc.c - 664 sys sys 1106585362 28465
+1106625703 0 c sys/src/cmd/ip/tftpd.c - 664 sys sys 1106624712 7642
+1106627504 0 c 386/bin/auth/aescbc - 775 sys sys 1106625920 140626
+1106627504 1 c 386/bin/auth/secstore - 775 sys sys 1106625920 195166
+1106627504 2 c 386/bin/auth/secstored - 775 sys sys 1106625920 196858
+1106627504 3 c 386/bin/auth/secuser - 775 sys sys 1106625921 152808

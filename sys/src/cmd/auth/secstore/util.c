@@ -1,5 +1,9 @@
 #include <u.h>
 #include <libc.h>
+#include <mp.h>
+#include <libsec.h>
+#include "SConn.h"
+#include "secstore.h"
 
 void *
 emalloc(ulong n)
@@ -86,3 +90,20 @@ getpassm(char *prompt)
 	}
 	return nil;  // NOT REACHED
 }
+
+char *
+validatefile(char *f)
+{
+	char *nl;
+
+	if(f==nil || *f==0)
+		return nil;
+	if(nl = strchr(f, '\n'))
+		*nl = 0;
+	if(strchr(f,'/') != nil || strcmp(f,"..")==0 || strlen(f) >= 300){
+		syslog(0, LOG, "no slashes allowed: %s\n", f);
+		return nil;
+	}
+	return f;
+}
+

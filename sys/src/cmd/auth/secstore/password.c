@@ -12,8 +12,11 @@ openPW(char *id, int mode)
 {
 	Biobuf *b;
 	int nfn = strlen(SECSTORE_DIR)+strlen(id)+20;
-	char *fn = emalloc(nfn);
+	char *fn;
 
+	if(validatefile(id) == nil || strcmp(id,".") == 0)
+		return nil;
+	fn = emalloc(nfn);
 	snprint(fn, nfn, "%s/who/%s", SECSTORE_DIR, id);
 	b = Bopen(fn, mode);
 	free(fn);
@@ -74,6 +77,11 @@ getPW(char *id, int dead_or_alive)
 		}
 	}
 	Bterm(bin);
+	if(pw->Hi == nil){
+		werrstr("corrupted account file");
+		freePW(pw);
+		return nil;
+	}
 	if(dead_or_alive)
 		return pw;  // return PW entry for editing, whether currently valid or not
 	if(pw->expire <= now){
