@@ -31,7 +31,7 @@ typedef struct Vpage0 {
 } Vpage0;
 Vpage0 *vpage0;
 
-static void	irq(Ureg*);
+static int	irq(Ureg*);
 static void	gpiointr(Ureg*, void*);
 
 /* recover state after power suspend
@@ -337,7 +337,7 @@ void
 trap(Ureg *ureg)
 {
 	ulong inst;
-	int user, x, rv;
+	int clockintr, user, x, rv;
 	ulong va, fsr;
 	char buf[ERRMAX];
 	int rem;
@@ -363,12 +363,13 @@ trap(Ureg *ureg)
 	else
 		ureg->pc -= 4;
 
+	clockintr = 0;
 	switch(ureg->type){
 	default:
 		panic("unknown trap");
 		break;
 	case PsrMirq:
-		irq(ureg);
+		clockintr = irq(ureg);
 		break;
 	case PsrMabt:	/* prefetch fault */
 		faultarm(ureg, ureg->pc, user, 1);
@@ -443,7 +444,7 @@ trap(Ureg *ureg)
 	splhi();
 
 	/* delaysched set because we held a lock or because our quantum ended */
-	if(up && up->delaysched){
+	if(up && up->delaysched && clockintr){
 		sched();
 		splhi();
 	}
@@ -458,15 +459,19 @@ trap(Ureg *ureg)
 /*
  *  here on irq's
  */
-static void
+static int
 irq(Ureg *ur)
 {
 	ulong va;
-	int i;
+	int clockintr, i;
 	Vctl *v;
 
 	va = intrregs->icip;
 
+	if(va & (1<<IRQtimer0))
+		clockintr = 1;
+	else
+		clockintr = 0;
 	for(i = 0; i < 32; i++){
 		if(((1<<i) & va) == 0)
 			continue;
@@ -477,6 +482,8 @@ irq(Ureg *ur)
 	}
 	if(va)
 		print("unknown interrupt: %lux\n", va);
+
+	return clockintr;
 }
 
 /*

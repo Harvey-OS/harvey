@@ -116,6 +116,7 @@
 386/bin/aux/mnihongo - 775 sys sys 1104121979 138518
 386/bin/aux/mouse - 775 sys sys 1104121979 44026
 386/bin/aux/ms2 - 775 sys sys 1104121980 81824
+386/bin/aux/msexceltables - 775 sys sys 1105070896 80904
 386/bin/aux/mswordstrings - 775 sys sys 1104121980 65317
 386/bin/aux/na - 775 sys sys 1104121980 154635
 386/bin/aux/nfsmount - 775 sys sys 1104121981 234092
@@ -3033,7 +3034,7 @@ rc/bin/nroff - 775 sys sys 945617208 27
 rc/bin/patch - 20000000775 sys sys 1067803227 0
 rc/bin/patch/applied - 775 sys sys 1081204295 110
 rc/bin/patch/apply - 775 sys sys 1089299188 1276
-rc/bin/patch/create - 775 sys sys 1079969485 1126
+rc/bin/patch/create - 775 sys sys 1104988374 1160
 rc/bin/patch/diff - 775 sys sys 1067804404 466
 rc/bin/patch/list - 775 sys sys 1081204287 644
 rc/bin/patch/move - 775 sys sys 1104430337 565
@@ -3129,6 +3130,7 @@ rc/bin/whois - 775 sys sys 945617210 189
 rc/bin/window - 775 sys sys 1071573331 1781
 rc/bin/wloc - 775 sys sys 969512017 191
 rc/bin/wurl2txt - 755 sys sys 1017431148 296
+rc/bin/xls2txt - 755 sys sys 1105020030 520
 rc/bin/yesterday - 775 sys sys 1084332530 2545
 rc/lib - 20000000775 sys sys 948037639 0
 rc/lib/rcmain - 664 sys sys 984696976 579
@@ -4633,6 +4635,7 @@ sys/log/portmapper - 10000000666 sys sys 958934039 0
 sys/log/ppp - 10000000666 sys sys 958934039 0
 sys/log/pptpd - 10000000666 sys sys 958934039 0
 sys/log/runq - 10000000666 sys sys 1080134438 182
+sys/log/secstore - 10000000666 sys sys 1104988287 0
 sys/log/smtp - 10000000666 sys sys 1080134438 69
 sys/log/smtp.fail - 10000000666 sys sys 958934039 0
 sys/log/smtpd - 10000000666 sys sys 958934040 0
@@ -4681,7 +4684,7 @@ sys/man/1/dc - 664 sys sys 944959674 4834
 sys/man/1/dd - 664 sys sys 1055693436 3346
 sys/man/1/deroff - 664 sys sys 1017423524 1826
 sys/man/1/diff - 664 sys sys 969499884 2793
-sys/man/1/doc2txt - 664 sys sys 954089516 1095
+sys/man/1/doc2txt - 664 sys sys 1105020018 2077
 sys/man/1/doctype - 664 sys sys 944959673 849
 sys/man/1/du - 664 sys sys 1017166323 1410
 sys/man/1/echo - 664 sys sys 1079969656 430
@@ -5126,7 +5129,7 @@ sys/man/8/replica - 664 sys sys 1102088374 6295
 sys/man/8/rsa - 664 sys sys 1057955511 4628
 sys/man/8/scanmail - 664 sys sys 969499895 10803
 sys/man/8/scuzz - 664 sys sys 984709640 7916
-sys/man/8/secstore - 664 sys sys 1064807283 1306
+sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
 sys/man/8/smtp - 664 sys sys 1091126310 4724
@@ -5196,7 +5199,7 @@ sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1015012787 51009
 sys/src/9/alphapc/sdata.c - 664 sys sys 1015012787 25
 sys/src/9/alphapc/sdscsi.c - 664 sys sys 1015012787 26
 sys/src/9/alphapc/sio.c - 664 sys sys 1015012787 293
-sys/src/9/alphapc/trap.c - 664 sys sys 1084475126 18035
+sys/src/9/alphapc/trap.c - 664 sys sys 1105030177 18099
 sys/src/9/alphapc/uarti8250.c - 664 sys sys 1015012788 29
 sys/src/9/alphapc/vga.c - 664 sys sys 1015012788 23
 sys/src/9/alphapc/vgargb524.c - 664 sys sys 1015012788 29
@@ -5251,7 +5254,7 @@ sys/src/9/bitsy/screen.h - 664 sys sys 1017695520 260
 sys/src/9/bitsy/sd.h - 664 sys sys 1037029038 0
 sys/src/9/bitsy/sdata.c - 664 sys sys 1055700868 44660
 sys/src/9/bitsy/tar.c - 664 sys sys 1017695521 1375
-sys/src/9/bitsy/trap.c - 664 sys sys 1084475126 19338
+sys/src/9/bitsy/trap.c - 664 sys sys 1105030166 19484
 sys/src/9/bitsy/uartsa1110.c - 664 sys sys 1037029045 8530
 sys/src/9/bitsy/wavelan.c - 664 sys sys 1064584681 27267
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
@@ -5333,7 +5336,7 @@ sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
 sys/src/9/mtx/pci.c - 664 sys sys 1087657434 16662
 sys/src/9/mtx/random.c - 664 sys sys 1036813598 1983
 sys/src/9/mtx/raven.c - 664 sys sys 1018721288 2587
-sys/src/9/mtx/trap.c - 664 sys sys 1084475126 15856
+sys/src/9/mtx/trap.c - 664 sys sys 1105030157 15882
 sys/src/9/mtx/uarti8250.c - 664 sys sys 1018721288 11590
 sys/src/9/pc - 20000000775 sys sys 1018721225 0
 sys/src/9/pc/apbootstrap.h - 664 sys sys 1018553448 928
@@ -5430,7 +5433,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
 sys/src/9/pc/sdata.c - 664 sys sys 1099487462 50970
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
-sys/src/9/pc/trap.c - 664 sys sys 1092080705 20458
+sys/src/9/pc/trap.c - 664 sys sys 1105030146 20520
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
 sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
@@ -5579,7 +5582,7 @@ sys/src/9/ppc/msaturn.h - 664 sys sys 1059490753 99
 sys/src/9/ppc/mtx.c - 664 sys sys 1059490753 177
 sys/src/9/ppc/random.c - 664 sys sys 1059490753 1983
 sys/src/9/ppc/saturntimer.c - 664 sys sys 1072705482 1737
-sys/src/9/ppc/trap.c - 664 sys sys 1100701675 18357
+sys/src/9/ppc/trap.c - 664 sys sys 1105030152 18384
 sys/src/9/ppc/uartsaturn.c - 664 sys sys 1059490754 7151
 sys/src/9/ppc/uartsmc.c - 664 sys sys 1068135489 11462
 sys/src/9/ppc/ucu - 664 sys sys 1067722849 672

@@ -49,6 +49,8 @@ for(i in $*){
 	if not
 		echo warning: new file $i not on sources >[1=2]
 	echo $i $uniq >>$d/files
+	chmod ug+rw $d/*
+	chmod a+r $d/*
 }
 
 if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons){
