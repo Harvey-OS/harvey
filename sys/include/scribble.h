@@ -4,6 +4,8 @@
 typedef struct Scribble Scribble;
 typedef struct graffiti Graffiti;
 
+#pragma incomplete Graffiti
+
 typedef struct pen_point {
 	Point;
 	long	chaincode;

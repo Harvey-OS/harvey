@@ -13,6 +13,13 @@ typedef struct Source Source;
 typedef struct Super Super;
 typedef struct WalkPtr WalkPtr;
 
+#pragma incomplete Arch
+#pragma incomplete BList
+#pragma incomplete Cache
+#pragma incomplete Disk
+#pragma incomplete Periodic
+#pragma incomplete Snap
+
 /* tuneable parameters - probably should not be constants */
 enum {
 	BytesPerEntry = 100,	/* estimate of bytes per dir entries - determines number of index entries in the block */

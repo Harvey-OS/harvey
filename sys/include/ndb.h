@@ -10,6 +10,9 @@ typedef struct Ndbhf	Ndbhf;
 typedef struct Ndbs	Ndbs;
 typedef struct Ndbcache	Ndbcache;
 
+#pragma incomplete Ndbhf
+#pragma incomplete Ndbcache
+
 enum
 {
 	Ndbalen=	32,	/* max attribute length */

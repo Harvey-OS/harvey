@@ -122,7 +122,6 @@ void		freeblist(Block*);
 int		freebroken(void);
 void		freepte(Segment*, Pte*);
 void		freesegs(int);
-void		freesession(Session*);
 void		getcolor(ulong, ulong*, ulong*, ulong*);
 ulong		getmalloctag(void*);
 ulong		getrealloctag(void*);

@@ -1,6 +1,4 @@
 #include	"all.h"
-#include	<fcall.h>
-#include	<auth.h>
 
 #define MSIZE	(MAXDAT+128)
 

@@ -1,6 +1,5 @@
 typedef struct Alarms	Alarms;
 typedef struct Block	Block;
-typedef struct CSN	CSN;
 typedef struct Chan	Chan;
 typedef struct Cmdbuf	Cmdbuf;
 typedef struct Cmdtab	Cmdtab;
@@ -13,7 +12,6 @@ typedef struct Evalue	Evalue;
 typedef struct Fgrp	Fgrp;
 typedef struct DevConf	DevConf;
 typedef struct Image	Image;
-typedef struct List	List;
 typedef struct Log	Log;
 typedef struct Logflag	Logflag;
 typedef struct Mntcache Mntcache;
@@ -26,13 +24,11 @@ typedef struct Note	Note;
 typedef struct Page	Page;
 typedef struct Palloc	Palloc;
 typedef struct Perf	Perf;
-typedef struct Pgrps	Pgrps;
 typedef struct PhysUart	PhysUart;
 typedef struct Pgrp	Pgrp;
 typedef struct Physseg	Physseg;
 typedef struct Proc	Proc;
 typedef struct Pte	Pte;
-typedef struct Pthash	Pthash;
 typedef struct QLock	QLock;
 typedef struct Queue	Queue;
 typedef struct Ref	Ref;
@@ -42,16 +38,20 @@ typedef struct RWlock	RWlock;
 typedef struct Sargs	Sargs;
 typedef struct Schedq	Schedq;
 typedef struct Segment	Segment;
-typedef struct Session	Session;
-typedef struct Task	Task;
 typedef struct Talarm	Talarm;
 typedef struct Timer	Timer;
-typedef struct Timers	Timers;		/* defined in portdat.h */
+typedef struct Timers	Timers;
 typedef struct Uart	Uart;
 typedef struct Waitq	Waitq;
 typedef struct Walkqid	Walkqid;
 typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
+#pragma incomplete DevConf
+#pragma incomplete Edf
+#pragma incomplete Mntcache
+#pragma incomplete Mntrpc
+#pragma incomplete Queue
+#pragma incomplete Timers
 
 #include <fcall.h>
 
@@ -176,8 +176,8 @@ struct Chan
 	QLock	rockqlock;
 	int	ismtpt;
 	ulong	mountid;
-	Mntcache *mcp;			/* Mount cache pointer */
-	Mnt		*mux;		/* Mnt for clients using me for messages */
+	Mntcache*mcp;			/* Mount cache pointer */
+	Mnt*	mux;			/* Mnt for clients using me for messages */
 	union {
 		void*	aux;
 		Qid	pgrpid;		/* for #p/notepg */
@@ -185,8 +185,7 @@ struct Chan
 	};
 	Chan*	mchan;			/* channel to mounted server */
 	Qid	mqid;			/* qid of root of mount point */
-	Session*session;
-	Cname	*name;
+	Cname*	name;
 };
 
 struct Cname
@@ -507,6 +506,7 @@ enum {
 	Tabsolute,	/* timer programmed in ns since epoch */
 	Tperiodic,	/* periodic timer, period in ns */
 };
+
 struct Timer
 {
 	/* Public interface */
@@ -756,7 +756,6 @@ extern	char*	statename[];
 extern  Image	swapimage;
 extern	int	nsyscall;
 extern	char	*sysname;
-extern	Pthash	syspt;
 extern	Talarm	talarm;
 extern	uint	qiomaxatomic;
 

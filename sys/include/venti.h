@@ -5,11 +5,16 @@ typedef struct VtSession	VtSession;
 typedef struct VtSha1		VtSha1;
 typedef struct Packet		Packet;
 typedef struct VtLock 		VtLock;
-typedef struct VtRWLock 	VtRWLock;
 typedef struct VtRendez		VtRendez;
 typedef struct VtRoot		VtRoot;
 typedef struct VtEntry		VtEntry;
 typedef struct VtServerVtbl	VtServerVtbl;
+
+#pragma incomplete VtSession
+#pragma incomplete VtSha1
+#pragma incomplete Packet
+#pragma incomplete VtLock
+#pragma incomplete VtRendez
 
 enum {
 	VtScoreSize	= 20, /* Venti */

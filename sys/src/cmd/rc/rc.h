@@ -34,6 +34,9 @@ typedef struct redir redir;
 typedef struct thread thread;
 typedef struct builtin builtin;
 
+#pragma incomplete word
+#pragma incomplete io
+
 struct tree{
 	int type;
 	int rtype, fd0, fd1;		/* details of REDIR PIPE DUP tokens */

@@ -14,6 +14,8 @@ typedef struct Sys	Sys;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
 
+#pragma incomplete Ureg
+
 #define MAXSYSARG	5	/* for mount(fd, mpt, flag, arg, srv) */
 
 /*

@@ -2,6 +2,8 @@ typedef struct File	File;
 typedef struct Node	Node;
 typedef struct OS	OS;
 
+#pragma incomplete File
+
 enum
 {
 	Maxpath=	512,

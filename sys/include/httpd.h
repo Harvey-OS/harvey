@@ -15,6 +15,8 @@ typedef struct HSPairs		HSPairs;
 
 typedef struct Bin		Bin;
 
+#pragma incomplete Bin
+
 enum
 {
 	HMaxWord	= 32*1024,
