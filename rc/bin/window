@@ -71,6 +71,7 @@ if(~ $1 -m){
 	srv = $wsys
 	rfork ne
 	{
+		unmount /mnt/acme /dev >[2]/dev/null
 		if(mount $srv $dir 'new -pid '^`{cat /dev/ppid}^' '$"*){
 			bind -b $dir /dev
 			# toss geometry parameters to find command
