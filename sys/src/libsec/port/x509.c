@@ -1573,6 +1573,7 @@ enum {
 	ALG_md4WithRSAEncryption,
 	ALG_md5WithRSAEncryption,
 	ALG_sha1WithRSAEncryption,
+	ALG_md5,
 	NUMALGS
 };
 typedef struct Ints7 {
@@ -1584,15 +1585,17 @@ static Ints7 oid_md2WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 2 };
 static Ints7 oid_md4WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 3 };
 static Ints7 oid_md5WithRSAEncryption = {7, 1, 2, 840, 113549, 1, 1, 4 };
 static Ints7 oid_sha1WithRSAEncryption ={7, 1, 2, 840, 113549, 1, 1, 5 };
+static Ints7 oid_md5 ={6, 1, 2, 840, 113549, 2, 5, 0 };
 static Ints *alg_oid_tab[NUMALGS+1] = {
 	(Ints*)&oid_rsaEncryption,
 	(Ints*)&oid_md2WithRSAEncryption,
 	(Ints*)&oid_md4WithRSAEncryption,
 	(Ints*)&oid_md5WithRSAEncryption,
 	(Ints*)&oid_sha1WithRSAEncryption,
+	(Ints*)&oid_md5,
 	nil
 };
-static DigestFun digestalg[NUMALGS+1] = { md5, md5, md5, md5, sha1, nil };
+static DigestFun digestalg[NUMALGS+1] = { md5, md5, md5, md5, sha1, md5, nil };
 
 static void
 freecert(CertX509* c)
@@ -2008,7 +2011,7 @@ digest_certinfo(Bytes *cert, DigestFun digestfun, uchar *digest)
 }
 
 static char*
-verify_signature(Bytes* signature, RSApub *pk, uchar *edigest)
+verify_signature(Bytes* signature, RSApub *pk, uchar *edigest, Elem **psigalg)
 {
 	Elem e;
 	Elist *el;
@@ -2034,6 +2037,7 @@ verify_signature(Bytes* signature, RSApub *pk, uchar *edigest)
 	if(decode(buf, buflen, &e) != ASN_OK || !is_seq(&e, &el) || elistlen(el) != 2 ||
 			!is_octetstring(&el->tl->hd, &digest))
 		return "signature parse error";
+	*psigalg = &el->hd;
 	if(memcmp(digest->data, edigest, digest->len) == 0)
 		return nil;
 	return "digests did not match";
@@ -2070,6 +2074,7 @@ X509verify(uchar *cert, int ncert, RSApub *pk)
 	Bytes *b;
 	CertX509 *c;
 	uchar digest[SHA1dlen];
+	Elem *sigalg;
 
 	b = makebytes(cert, ncert);
 	c = decode_cert(b);
@@ -2077,8 +2082,8 @@ X509verify(uchar *cert, int ncert, RSApub *pk)
 		digest_certinfo(b, digestalg[c->signature_alg], digest);
 	freebytes(b);
 	if(c == nil)
-		return nil;
-	e = verify_signature(c->signature, pk, digest);
+		return "cannot decode cert";
+	e = verify_signature(c->signature, pk, digest, &sigalg);
 	freecert(c);
 	return e;
 }
@@ -2217,22 +2222,23 @@ mkalg(int alg)
 	return mkseq(mkel(mkoid(alg_oid_tab[alg]), mkel(Null(), nil)));
 }
 
-typedef struct Ints4pref {
+typedef struct Ints7pref {
 	int		len;
-	int		data[4];
+	int		data[7];
 	char	prefix[4];
-} Ints4pref;
-Ints4pref DN_oid[] = {
-	{4, 2, 5, 4, 6,  "C="},
-	{4, 2, 5, 4, 8,  "ST="},
-	{4, 2, 5, 4, 7,  "L="},
-	{4, 2, 5, 4, 10, "O="},
-	{4, 2, 5, 4, 11, "OU="},
-	{4, 2, 5, 4, 3,  "CN="},
+} Ints7pref;
+Ints7pref DN_oid[] = {
+	{4, 2, 5, 4, 6, 0, 0, 0,  "C="},
+	{4, 2, 5, 4, 8, 0, 0, 0,  "ST="},
+	{4, 2, 5, 4, 7, 0, 0, 0,  "L="},
+	{4, 2, 5, 4, 10, 0, 0, 0, "O="},
+	{4, 2, 5, 4, 11, 0, 0, 0, "OU="},
+	{4, 2, 5, 4, 3, 0, 0, 0,  "CN="},
+ 	{7, 1,2,840,113549,1,9,1, "E="},
 };
 
 static Elem
-mkname(Ints4pref *oid, char *subj)
+mkname(Ints7pref *oid, char *subj)
 {
 	return mkset(mkel(mkseq(mkel(mkoid((Ints*)oid), mkel(mkstring(subj), nil))), nil));
 }
@@ -2300,7 +2306,7 @@ X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
 	md5(certinfobytes->data, certinfobytes->len, digest, 0);
 	freebytes(certinfobytes);
 	sig = mkseq(
-		mkel(mkalg(ALG_md5WithRSAEncryption),
+		mkel(mkalg(ALG_md5),
 		mkel(mkoctet(digest, MD5dlen),
 		nil)));
 	if(encode(sig, &sigbytes) != ASN_OK)
@@ -2313,6 +2319,66 @@ X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
 	e = mkseq(
 		mkel(certinfo,
 		mkel(mkalg(ALG_md5WithRSAEncryption),
+		mkel(mkbits(buf, buflen),
+		nil))));
+	free(buf);
+	if(encode(e, &certbytes) != ASN_OK)
+		goto errret;
+	if(certlen)
+		*certlen = certbytes->len;
+	cert = certbytes->data;
+errret:
+	freevalfields(&e.val);
+	return cert;
+}
+
+uchar*
+X509req(RSApriv *priv, char *subj, int *certlen)
+{
+	/* RFC 2314, PKCS #10 Certification Request Syntax */
+	int version = 0;
+	uchar *cert = nil;
+	RSApub *pk = rsaprivtopub(priv);
+	Bytes *certbytes, *pkbytes, *certinfobytes, *sigbytes;
+	Elem e, certinfo, subject, pubkey, sig;
+	uchar digest[MD5dlen], *buf;
+	int buflen;
+	mpint *pkcs1;
+
+	e.val.tag = VInt;  /* so freevalfields at errret is no-op */
+	subject = mkDN(subj);
+	pubkey = mkseq(mkel(mkbigint(pk->n),mkel(mkint(mptoi(pk->ek)),nil)));
+	if(encode(pubkey, &pkbytes) != ASN_OK)
+		goto errret;
+	freevalfields(&pubkey.val);
+	pubkey = mkseq(
+		mkel(mkalg(ALG_rsaEncryption),
+		mkel(mkbits(pkbytes->data, pkbytes->len),
+		nil)));
+	freebytes(pkbytes);
+	certinfo = mkseq(
+		mkel(mkint(version),
+		mkel(subject,
+		mkel(pubkey,
+		nil))));
+	if(encode(certinfo, &certinfobytes) != ASN_OK)
+		goto errret;
+	md5(certinfobytes->data, certinfobytes->len, digest, 0);
+	freebytes(certinfobytes);
+	sig = mkseq(
+		mkel(mkalg(ALG_md5),
+		mkel(mkoctet(digest, MD5dlen),
+		nil)));
+	if(encode(sig, &sigbytes) != ASN_OK)
+		goto errret;
+	pkcs1 = pkcs1pad(sigbytes, pk->n);
+	freebytes(sigbytes);
+	rsadecrypt(priv, pkcs1, pkcs1);
+	buflen = mptobe(pkcs1, nil, 0, &buf);
+	mpfree(pkcs1);
+	e = mkseq(
+		mkel(certinfo,
+		mkel(mkalg(ALG_md5),
 		mkel(mkbits(buf, buflen),
 		nil))));
 	free(buf);
@@ -2404,8 +2470,51 @@ asn1dump(uchar *der, int len)
 	Elem e;
 
 	if(decode(der, len, &e) != ASN_OK){
-		fprint(2,"didn't parse\n");
+		print("didn't parse\n");
 		exits("didn't parse");
 	}
 	edump(e);
+}
+
+void
+X509dump(uchar *cert, int ncert)
+{
+	char *e;
+	Bytes *b;
+	CertX509 *c;
+	RSApub *pk;
+	uchar digest[SHA1dlen];
+	Elem *sigalg;
+
+	print("begin X509dump\n");
+	b = makebytes(cert, ncert);
+	c = decode_cert(b);
+	if(c != nil)
+		digest_certinfo(b, digestalg[c->signature_alg], digest);
+	freebytes(b);
+	if(c == nil){
+		print("cannot decode cert");
+		return;
+	}
+
+	print("serial %d\n", c->serial);
+	print("issuer %s\n", c->issuer);
+	print("validity %s %s\n", c->validity_start, c->validity_end);
+	print("subject %s\n", c->subject);
+	pk = decode_rsapubkey(c->publickey);
+	print("pubkey e=%B n(%d)=%B\n", pk->ek, mpsignif(pk->n), pk->n);
+
+	print("sigalg=%d digest=%.*H\n", c->signature_alg, MD5dlen, digest);
+	e = verify_signature(c->signature, pk, digest, &sigalg);
+	if(e==nil){
+		e = "nil (meaning ok)";
+		print("sigalg=\n");
+		if(sigalg)
+			edump(*sigalg);
+	}
+	print("self-signed verify_signature returns: %s\n", e);
+
+	rsapubfree(pk);
+	freecert(c);
+	print("end X509dump\n");
 }
