@@ -19313,3 +19313,8 @@
 1052328689 0 c lib/ndb/common - 664 sys sys 1052327139 5263
 1052370014 0 c lib/vgadb - 664 sys sys 1052368828 27553
 1052409652 0 c lib/vgadb - 664 sys sys 1052409026 27589
+1052685074 0 d sys/src/cmd/ip/dhcpd/8.dhcpd - 775 sys sys 1051207142 0
+1052685074 1 d sys/src/cmd/ip/dhcpd/db.8 - 664 sys sys 1051207140 0
+1052685074 2 d sys/src/cmd/ip/dhcpd/dhcpd.8 - 664 sys sys 1051207140 0
+1052685074 3 d sys/src/cmd/ip/dhcpd/ndb.8 - 664 sys sys 1051207140 0
+1052685074 4 d sys/src/cmd/ip/dhcpd/ping.8 - 664 sys sys 1051207140 0
