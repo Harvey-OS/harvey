@@ -9,7 +9,8 @@
  * Intel 81x chipset family.
  *   mem[0]: AGP aperture memory, 64MB for 810-DC100, from 0xF4000000
  *   mem[1]: GC Register mmio space, 512KB for 810-DC100, from 0xFF000000
- *   For the memory of David Hogan who wrote this driver first for LCD.   
+ *   For the memory of David Hogan, died April 9, 2003,  who wrote this driver 
+ *   first for LCD.
  *                   August 28, 2003 Kenji Okamoto
  */
 
@@ -131,6 +132,7 @@ init(Vga* vga, Ctlr* ctlr)
 {
 	I81x *i81x;
 	int vt, vde, vrs, vre;
+	ulong *rp;
 
 	i81x = vga->private;
 
@@ -143,7 +145,9 @@ init(Vga* vga, Ctlr* ctlr)
 	*/
 	i81x->clk[0] = 0x00030013;
 	i81x->clk[1] = 0x00100053;
-	i81x->clk[4] = 0x40404040;
+	rp = (ulong*)i81x->mmio+0x6010;
+	i81x->clk[4] = *rp;
+	i81x->clk[4] |= 0x4040;
 	vga->misc = vgai(MiscR);
 	switch(vga->virtx) {
 	case 640:	/* 640x480 DCLK_0D 25.175MHz dot clock */
