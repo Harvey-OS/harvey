@@ -27,6 +27,8 @@ for(i in $*){
 	if not
 		ls -ld $i
 	if(patch/okay $i){
+		if(test -r $i/email)
+			echo from `{cat $i/email}
 		cat $i/files | awk '{print "	" $1}'
 		cat $i/readme | sed 's/^/	/' | $trunc
 		if(test -f $i/notes)

@@ -19,7 +19,7 @@
 386/bin/8l - 775 sys sys 1107835553 115728
 386/bin/9660srv - 775 sys sys 1104121955 103973
 386/bin/aan - 775 sys sys 1104121955 130710
-386/bin/acid - 775 sys sys 1107662683 355831
+386/bin/acid - 775 sys sys 1108008331 355831
 386/bin/acme - 775 sys sys 1107920768 428057
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
@@ -117,7 +117,7 @@
 386/bin/aux/mklatinkbd - 775 sys sys 1104121979 64179
 386/bin/aux/mnihongo - 775 sys sys 1106799170 138512
 386/bin/aux/mouse - 775 sys sys 1104121979 44026
-386/bin/aux/ms2 - 775 sys sys 1107662685 81689
+386/bin/aux/ms2 - 775 sys sys 1108008332 81689
 386/bin/aux/msexceltables - 775 sys sys 1106453225 80995
 386/bin/aux/mswordstrings - 775 sys sys 1104121980 65317
 386/bin/aux/na - 775 sys sys 1104121980 154635
@@ -187,7 +187,7 @@
 386/bin/cpu - 775 sys sys 1104121997 137694
 386/bin/crop - 775 sys sys 1104121998 115763
 386/bin/date - 775 sys sys 1104121998 43261
-386/bin/db - 775 sys sys 1107662685 302241
+386/bin/db - 775 sys sys 1108008332 302241
 386/bin/dc - 775 sys sys 1104121999 99028
 386/bin/dd - 775 sys sys 1104121999 45347
 386/bin/deroff - 775 sys sys 1104122000 74244
@@ -208,8 +208,8 @@
 386/bin/disk/ksync - 775 sys sys 1020319074 302
 386/bin/disk/mbr - 775 sys sys 1104122004 73689
 386/bin/disk/mk9660 - 775 sys sys 1020319074 144
-386/bin/disk/mkext - 775 sys sys 1104122005 81305
-386/bin/disk/mkfs - 775 sys sys 1104122005 87423
+386/bin/disk/mkext - 775 sys sys 1108008333 82654
+386/bin/disk/mkfs - 775 sys sys 1108008333 87697
 386/bin/disk/mksacfs - 775 sys sys 1020319074 71451
 386/bin/disk/prep - 775 sys sys 1104122005 97879
 386/bin/disk/sacfs - 775 sys sys 1020319075 79882
@@ -223,7 +223,7 @@
 386/bin/ext2srv - 775 sys sys 1104122007 173894
 386/bin/faces - 775 sys sys 1106799174 192579
 386/bin/factor - 775 sys sys 1104122008 61475
-386/bin/file - 775 sys sys 1107662685 112495
+386/bin/file - 775 sys sys 1108008333 112495
 386/bin/fmt - 775 sys sys 1104122009 65301
 386/bin/fortune - 775 sys sys 1104122009 67136
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -305,8 +305,8 @@
 386/bin/join - 775 sys sys 1104122031 116241
 386/bin/jpg - 775 sys sys 1104122031 174137
 386/bin/kbmap - 775 sys sys 1106799176 142498
-386/bin/kprof - 775 sys sys 1107662686 99571
-386/bin/ktrace - 775 sys sys 1107662686 113522
+386/bin/kprof - 775 sys sys 1108008333 99571
+386/bin/ktrace - 775 sys sys 1108008334 113522
 386/bin/lens - 775 sys sys 1104122032 124095
 386/bin/lex - 775 sys sys 1104122033 98664
 386/bin/lnfs - 775 sys sys 1104122033 99449
@@ -339,7 +339,7 @@
 386/bin/netstat - 775 sys sys 1104122040 84385
 386/bin/news - 775 sys sys 1104122041 71653
 386/bin/nfs - 775 sys sys 1104122041 315389
-386/bin/nm - 775 sys sys 1107662686 115585
+386/bin/nm - 775 sys sys 1108008334 115585
 386/bin/nntpfs - 775 sys sys 1104122042 160898
 386/bin/ns - 775 sys sys 1104122042 65260
 386/bin/p - 775 sys sys 1104122043 64982
@@ -357,7 +357,7 @@
 386/bin/ppm - 775 sys sys 1104122046 148999
 386/bin/pr - 775 sys sys 1104122046 77408
 386/bin/primes - 775 sys sys 1104122046 38793
-386/bin/prof - 775 sys sys 1107662686 104314
+386/bin/prof - 775 sys sys 1108008334 104314
 386/bin/proof - 775 sys sys 1106799178 177605
 386/bin/ps - 775 sys sys 1104122047 65805
 386/bin/pwd - 775 sys sys 1104122047 36897
@@ -386,10 +386,10 @@
 386/bin/sed - 775 sys sys 1104122054 89523
 386/bin/seq - 775 sys sys 1104122054 38206
 386/bin/sha1sum - 775 sys sys 1104122054 61133
-386/bin/size - 775 sys sys 1107662687 74340
+386/bin/size - 775 sys sys 1108008334 74340
 386/bin/sleep - 775 sys sys 1085077097 3413
-386/bin/snap - 775 sys sys 1107662687 269685
-386/bin/snapfs - 775 sys sys 1107662688 338539
+386/bin/snap - 775 sys sys 1108008335 269685
+386/bin/snapfs - 775 sys sys 1108008336 338539
 386/bin/sniffer - 775 sys sys 1038443185 99028
 386/bin/snoopy - 775 sys sys 1104122056 157546
 386/bin/sort - 775 sys sys 1104122056 82285
@@ -407,7 +407,7 @@
 386/bin/swap - 775 sys sys 1104122060 62094
 386/bin/syscall - 775 sys sys 1104122060 73536
 386/bin/tail - 775 sys sys 1104122060 65938
-386/bin/tar - 775 sys sys 1107920770 95246
+386/bin/tar - 775 sys sys 1108008336 95244
 386/bin/tbl - 775 sys sys 1104122061 113124
 386/bin/tcs - 775 sys sys 1104122062 256588
 386/bin/tee - 775 sys sys 1104122062 38428
@@ -422,7 +422,7 @@
 386/bin/topng - 775 sys sys 1104122065 137679
 386/bin/toppm - 775 sys sys 1104122065 164905
 386/bin/touch - 775 sys sys 1104122066 63763
-386/bin/tprof - 775 sys sys 1107662688 255167
+386/bin/tprof - 775 sys sys 1108008337 255167
 386/bin/tr - 775 sys sys 1104122066 61851
 386/bin/trace - 775 sys sys 1106799181 180728
 386/bin/troff - 775 sys sys 1094040114 357714
@@ -546,7 +546,7 @@
 386/lib/libhttpd.a - 664 sys sys 1105161539 99488
 386/lib/libip.a - 664 sys sys 1105161539 35602
 386/lib/libl.a - 664 sys sys 1105161539 5384
-386/lib/libmach.a - 664 sys sys 1107662690 652906
+386/lib/libmach.a - 664 sys sys 1108008338 652906
 386/lib/libmemdraw.a - 664 sys sys 1105161541 283188
 386/lib/libmemlayer.a - 664 sys sys 1105161541 47360
 386/lib/libmp.a - 664 sys sys 1105161541 79532
@@ -2995,6 +2995,7 @@ rc/bin/ape/chown - 775 sys sys 945617285 43
 rc/bin/ape/false - 775 sys sys 945617285 17
 rc/bin/ape/grep - 775 sys sys 1023738308 60
 rc/bin/ape/install - 775 sys sys 1015089725 572
+rc/bin/ape/ld - 775 sys sys 1107957880 98
 rc/bin/ape/psh - 775 sys sys 1040481105 240
 rc/bin/ape/ranlib - 755 sys sys 1099176402 18
 rc/bin/ape/rmdir - 775 sys sys 945617286 16
@@ -3041,10 +3042,10 @@ rc/bin/nroff - 775 sys sys 945617208 27
 rc/bin/patch - 20000000775 sys sys 1067803227 0
 rc/bin/patch/applied - 775 sys sys 1081204295 110
 rc/bin/patch/apply - 775 sys sys 1089299188 1276
-rc/bin/patch/create - 775 sys sys 1107836219 1380
+rc/bin/patch/create - 775 sys sys 1107957505 1404
 rc/bin/patch/diff - 775 sys sys 1106151131 466
 rc/bin/patch/email - 775 sys sys 1107836219 401
-rc/bin/patch/list - 775 sys sys 1081204287 644
+rc/bin/patch/list - 775 sys sys 1107957885 696
 rc/bin/patch/move - 775 sys sys 1104430337 565
 rc/bin/patch/note - 664 sys sys 1089299189 655
 rc/bin/patch/okay - 775 sys sys 1087487682 242
@@ -7432,9 +7433,9 @@ sys/src/cmd/disk/kfs/sub.c - 664 sys sys 1022008488 10804
 sys/src/cmd/disk/kfs/uid.c - 664 sys sys 1071335904 6791
 sys/src/cmd/disk/kfscmd.c - 664 sys sys 1015009135 1109
 sys/src/cmd/disk/mbr.c - 664 sys sys 1080218150 4325
-sys/src/cmd/disk/mkext.c - 664 sys sys 1091943345 5760
+sys/src/cmd/disk/mkext.c - 664 sys sys 1107957513 5806
 sys/src/cmd/disk/mkfile - 664 sys sys 1022385851 500
-sys/src/cmd/disk/mkfs.c - 664 sys sys 1032059493 14298
+sys/src/cmd/disk/mkfs.c - 664 sys sys 1108000852 14697
 sys/src/cmd/disk/prep - 20000000775 sys sys 988249968 0
 sys/src/cmd/disk/prep/calc.y - 664 sys sys 958519682 2378
 sys/src/cmd/disk/prep/edit.c - 664 sys sys 1017854327 9714
@@ -12057,7 +12058,7 @@ sys/src/libmach/8db.c - 664 sys sys 1088653064 39144
 sys/src/libmach/8obj.c - 664 sys sys 1091732625 2200
 sys/src/libmach/access.c - 664 sys sys 1068478065 4309
 sys/src/libmach/elf.h - 664 sys sys 1107634043 2262
-sys/src/libmach/executable.c - 664 sys sys 1107621932 13917
+sys/src/libmach/executable.c - 664 sys sys 1107963442 13918
 sys/src/libmach/k.c - 664 sys sys 964540516 3330
 sys/src/libmach/kdb.c - 664 sys sys 1014929544 21143
 sys/src/libmach/kobj.c - 664 sys sys 1091732625 2217

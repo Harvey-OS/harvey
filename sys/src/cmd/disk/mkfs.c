@@ -345,8 +345,8 @@ void
 copy(Dir *d)
 {
 	char cptmp[LEN], *p;
-	long tot;
-	int f, t, n, needwrite;
+	int f, t, n, needwrite, nowarnyet = 1;
+	vlong tot, len;
 	Dir nd;
 
 	f = open(oldfile, OREAD);
@@ -372,14 +372,24 @@ copy(Dir *d)
 	}
 
 	needwrite = 0;
-	for(tot = 0;; tot += n){
-		n = read(f, buf, buflen);
-		if(n < 0){
-			warn("can't read %q: %r", oldfile);
-			break;
+	for(tot = 0; tot < d->length; tot += n){
+		len = d->length - tot;
+		/* don't read beyond d->length */
+		if (len > buflen)
+			len = buflen;
+		n = read(f, buf, len);
+		if(n <= 0) {
+			if(n < 0 && nowarnyet) {
+				warn("can't read %q: %r", oldfile);
+				nowarnyet = 0;
+			}
+			/*
+			 * don't quit: pad to d->length (in pieces) to agree
+			 * with the length in the header, already emitted.
+			 */
+			memset(buf, 0, len);
+			n = len;
 		}
-		if(n == 0)
-			break;
 		if(fskind == Archive){
 			if(Bwrite(&bout, buf, n) != n)
 				error("write error: %r");
@@ -399,10 +409,12 @@ copy(Dir *d)
 			error("can't write zero at end of %q: %r", newfile);
 	}
 	if(tot != d->length){
-		warn("wrong number bytes written to %q (was %d should be %d)\n",
+		/* this should no longer happen */
+		warn("wrong number of bytes written to %q (was %lld should be %lld)\n",
 			newfile, tot, d->length);
 		if(fskind == Archive){
 			warn("seeking to proper position\n");
+			/* does no good if stdout is a pipe */
 			Bseek(&bout, d->length - tot, 1);
 		}
 	}
