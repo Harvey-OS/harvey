@@ -13042,3 +13042,5 @@
 1060268569 2 c sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 1060268569 3 c sys/src/9/port/devuart.c - 664 sys sys 1060267239 11762
 1060270370 0 c sys/src/9/pc/vganvidia.c - 664 sys sys 1060269772 6545
+1060354970 0 c lib/namespace - 664 sys sys 1060354451 590
+1060360372 0 c sys/games/lib/fortunes - 664 sys sys 1060359152 244377

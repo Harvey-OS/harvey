@@ -2719,7 +2719,7 @@ lib/kana - 664 sys sys 944943772 1061
 lib/katakana - 664 sys sys 944943772 982
 lib/keyboard - 664 sys sys 984694514 25842
 lib/mammals - 664 sys sys 944943772 27760
-lib/namespace - 664 sys sys 1051022248 606
+lib/namespace - 664 sys sys 1060354451 590
 lib/namespace.ftp - 664 sys sys 1020313578 373
 lib/namespace.httpd - 664 sys sys 984695868 1209
 lib/ndb - 20000000775 sys sys 959260770 0
@@ -3261,7 +3261,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1055817277 243905
+sys/games/lib/fortunes - 664 sys sys 1060359152 244377
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1044836327 4309
 sys/include/String.h - 664 sys sys 1055701304 1291
