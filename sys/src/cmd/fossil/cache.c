@@ -62,6 +62,10 @@ struct Cache
 	BList *uhead;
 	BList *utail;
 	VtRendez *unlink;
+
+	/* block counts */
+	int nused;
+	int ndisk;
 };
 
 struct BList {
@@ -91,6 +95,9 @@ struct FreeList {
 	VtLock *lk;
 	u32int last;	/* last block allocated */
 	u32int end;	/* end of data partition */
+	u32int nfree;	/* number of free blocks */
+	u32int nused;	/* number of used blocks */
+	u32int epochLow;	/* low epoch when last updated nfree and nused */
 };
 
 static FreeList *flAlloc(u32int end);
@@ -195,7 +202,7 @@ bwatchSetBlockSize(c->size);
 	c->maxdirty = nblocks*(DirtyPercentage*0.01);
 
 	c->fl = flAlloc(diskSize(disk, PartData));
-	
+
 	c->unlink = vtRendezAlloc(c->lk);
 	c->flush = vtRendezAlloc(c->lk);
 	c->flushwait = vtRendezAlloc(c->lk);
@@ -748,9 +755,59 @@ if(0)diskWrite(c->disk, b);
 
 if(0)fprint(2, "fsAlloc %ud type=%d tag = %ux\n", addr, type, tag);
 	lastAlloc = addr;
+	fl->nused++;
 	vtUnlock(fl->lk);
 	b->pc = getcallerpc(&c);
 	return b;
+}
+
+void
+cacheCountUsed(Cache *c, u32int epochLow, u32int *used, u32int *total, u32int *bsize)
+{
+	int n;
+	u32int addr, nused;
+	Block *b;
+	Label lab;
+	FreeList *fl;
+
+	fl = c->fl;
+	n = c->size / LabelSize;
+	*bsize = c->size;
+	vtLock(fl->lk);
+	if(fl->epochLow == epochLow){
+		*used = fl->nused;
+		*total = fl->end;
+		vtUnlock(fl->lk);
+		return;
+	}
+	b = nil;
+	nused = 0;
+	for(addr=0; addr<fl->end; addr++){
+		if(addr%n == 0){
+			blockPut(b);
+			b = cacheLocal(c, PartLabel, addr/n, OReadOnly);
+			if(b == nil){
+				fprint(2, "flCountUsed: loading %ux: %R\n", addr/n);
+				break;
+			}
+		}
+		if(!labelUnpack(&lab, b->data, addr%n))
+			continue;
+		if(lab.state == BsFree)
+			continue;
+		if((lab.state&BsClosed) && lab.epochClose <= epochLow)
+			continue;
+		nused++;
+	}
+	blockPut(b);
+	if(addr == fl->end){
+		fl->nused = nused;
+		fl->epochLow = epochLow;
+	}
+	*used = nused;
+	*total = fl->end;
+	vtUnlock(fl->lk);
+	return;
 }
 
 static FreeList *
@@ -795,6 +852,7 @@ blockCopy(Block *b, u32int tag, u32int ehi, u32int elo)
 		return nil;
 	}
 
+//fprint(2, "alloc %lux copy %V\n", bb->addr, b->score);
 	/*
 	 * Change label on b to mark that we've copied it.
 	 * This has to come after cacheAllocBlock, since we
@@ -1169,7 +1227,11 @@ blockDependency(Block *b, Block *bb, int index, uchar *score, Entry *e)
 	if(index == -1 && bb->part == PartData)
 		assert(b->l.type == BtData);
 
-	assert(bb->iostate == BioDirty);
+	if(bb->iostate != BioDirty){
+		fprint(2, "%d:%x:%d iostate is %d in blockDependency\n",
+			bb->part, bb->addr, bb->l.type, bb->iostate);
+		abort();
+	}
 
 	p = blistAlloc(bb);
 	if(p == nil)
@@ -1421,6 +1483,8 @@ blockRollback(Block *b, uchar *buf)
  * If b depends on other blocks:
  * 
  *	If the block has been written out, remove the dependency.
+ *	If the dependency is replaced by a more recent dependency,
+ *		throw it out.
  *	If we know how to write out an old version of b that doesn't
  *		depend on it, do that.
  *
@@ -1466,7 +1530,12 @@ blockWrite(Block *b)
 		 * the assertion is true because the block still has version p->vers,
 		 * which means it hasn't been written out since we last saw it.
 		 */
-		assert(bb->iostate == BioDirty);
+		if(bb->iostate != BioDirty){
+			fprint(2, "%d:%x:%d iostate is %d in blockWrite\n",
+				bb->part, bb->addr, bb->l.type, bb->iostate);
+			/* probably BioWriting if it happens? */
+		}
+
 		blockPut(bb);
 
 		if(p->index < 0){
@@ -2012,11 +2081,12 @@ cacheFlush(Cache *c, int wait)
 	vtLock(c->lk);
 	if(wait){
 		while(c->ndirty){
-			consPrint("cacheFlush: %d dirty blocks\n", c->ndirty);
+			consPrint("cacheFlush: %d dirty blocks, uhead %p\n",
+				c->ndirty, c->uhead);
 			vtWakeup(c->flush);
 			vtSleep(c->flushwait);
 		}
-		consPrint("cacheFlush: done\n", c->ndirty);
+		consPrint("cacheFlush: done (uhead %p)\n", c->ndirty, c->uhead);
 	}else
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);

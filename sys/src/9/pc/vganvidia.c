@@ -29,12 +29,12 @@ static Pcidev*
 nvidiapci(void)
 {
 	Pcidev *p;
-	ushort *did;
 
 	p = nil;
-	while((p = pcimatch(p, 0x10DE, 0)) != nil)
-		if(p->did > 0x20 && p->ccrp == 3)	/* video card */
+	while((p = pcimatch(p, 0x10DE, 0)) != nil){
+		if(p->did > 0x20 && p->ccrb == 3)	/* video card */
 			return p;
+	}
 	return nil;
 }
 

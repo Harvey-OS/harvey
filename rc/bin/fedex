@@ -11,7 +11,7 @@ fn bgrep{
 pattern=`{echo $1 | sed 's;/;\\&;'}
 shift
 
-echo 'X {
+@{ echo 'X {
 $
 a
 
@@ -20,11 +20,42 @@ a
 X ,x/(.+\n)+\n/ g/'$pattern'/p' |
 sam -d $* >[2]/dev/null
 }
+}
+
+fn awk2 {
+	awk 'NR%2==1 { a=$0; } 
+		NR%2==0 { b=$0; printf("%-30s %s\n", a, b); }
+	' $*
+}
+
+fn awk3 {
+	awk '{line[NR] = $0}
+	END{
+		i = 4;
+		while(i < NR){
+			what=line[i++];
+			when=line[i];
+			comment="";
+			if(!(when ~ /..\/..\/.... ..:../)){
+				# out of sync
+				printf("%s\n", what);
+				continue;
+			}
+			i++;
+			if(!(line[i+1] ~ /..\/..\/.... ..:../) &&
+				(i+2 > NR || line[i+2] ~ /..\/..\/.... ..:../)){
+				what = what ", " line[i++];
+			}
+			printf("%s  %s\n", when, what);
+		}
+	}' $*
+}
 
 # hget 'http://www.fedex.com/cgi-bin/track_it?airbill_list='$1'&kurrent_airbill='$1'&language=english&cntry_code=us&state=0' |
 hget 'http://www.fedex.com/cgi-bin/tracking?action=track&language=english&cntry_code=us&initial=x&mps=y&tracknumbers='$1 |
 	htmlfmt >/tmp/fedex.$pid
-bgrep 'Tracking Number' /tmp/fedex.$pid
-bgrep 'Scan Activity' /tmp/fedex.$pid
+bgrep 'Tracking Number' /tmp/fedex.$pid | awk2
+echo
+bgrep 'Scan Activity' /tmp/fedex.$pid | awk3
 rm /tmp/fedex.$pid
 

@@ -45,14 +45,12 @@ HFILES=\
 	error.h\
 	9.h\
 
+CFILES=${TARG:%=%.c} $LIBCFILES
+
 UPDATE=\
 	mkfile\
 	$CFILES\
 	$HFILES\
-
-default:V: all
-
-CFILES=${TARG:%=%.c} $LIBCFILES
 
 default:V: all
 
