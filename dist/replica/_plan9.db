@@ -370,7 +370,7 @@
 386/bin/read - 775 sys sys 1104122049 58046
 386/bin/replica - 20000000775 sys sys 1018321168 0
 386/bin/replica/applychanges - 775 sys sys 1104122049 98562
-386/bin/replica/applylog - 775 sys sys 1111032635 116663
+386/bin/replica/applylog - 775 sys sys 1111291584 116748
 386/bin/replica/changes - 775 sys sys 1020319082 42
 386/bin/replica/compactdb - 775 sys sys 1104122050 78491
 386/bin/replica/pull - 775 sys sys 1020319083 39
@@ -12482,4 +12482,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/replica/applylog - 775 sys sys 1111291584 116748
