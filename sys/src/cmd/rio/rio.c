@@ -806,10 +806,37 @@ sweep(void)
 	return i;
 }
 
-/*
- * BUG: should interlock so applications don't change screen
- * while tmp[] holds backing store
- */
+void
+drawedge(Image **bp, Rectangle r)
+{
+	Image *b = *bp;
+	if(b != nil && Dx(b->r) == Dx(r) && Dy(b->r) == Dy(r))
+		originwindow(b, r.min, r.min);
+	else{
+		freeimage(b);
+		*bp = allocwindow(wscreen, r, Refbackup, DRed);
+	}
+}
+
+void
+drawborder(Rectangle r, int show)
+{
+	static Image *b[4];
+	int i;
+	if(show == 0){
+		for(i = 0; i < 4; i++){
+			freeimage(b[i]);
+			b[i] = nil;
+		}
+	}else{
+		r = canonrect(r);
+		drawedge(&b[0], Rect(r.min.x, r.min.y, r.min.x+Borderwidth, r.max.y));
+		drawedge(&b[1], Rect(r.min.x+Borderwidth, r.min.y, r.max.x-Borderwidth, r.min.y+Borderwidth));
+		drawedge(&b[2], Rect(r.max.x-Borderwidth, r.min.y, r.max.x, r.max.y));
+		drawedge(&b[3], Rect(r.min.x+Borderwidth, r.max.y-Borderwidth, r.max.x-Borderwidth, r.max.y));
+	}
+}
+
 Image*
 drag(Window *w, Rectangle *rp)
 {
@@ -824,20 +851,19 @@ drag(Window *w, Rectangle *rp)
 	dm = subpt(mouse->xy, w->screenr.min);
 	d = subpt(i->r.max, i->r.min);
 	op = subpt(mouse->xy, dm);
-	drawgetrect(Rect(op.x, op.y, op.x+d.x, op.y+d.y), 1);
+	drawborder(Rect(op.x, op.y, op.x+d.x, op.y+d.y), 1);
 	flushimage(display, 1);
 	while(mouse->buttons == 4){
 		p = subpt(mouse->xy, dm);
 		if(!eqpt(p, op)){
-			drawgetrect(Rect(op.x, op.y, op.x+d.x, op.y+d.y), 0);
-			drawgetrect(Rect(p.x, p.y, p.x+d.x, p.y+d.y), 1);
+			drawborder(Rect(p.x, p.y, p.x+d.x, p.y+d.y), 1);
 			flushimage(display, 1);
 			op = p;
 		}
 		readmouse(mousectl);
 	}
 	r = Rect(op.x, op.y, op.x+d.x, op.y+d.y);
-	drawgetrect(r, 0);
+	drawborder(r, 0);
 	cornercursor(w, mouse->xy, 1);
 	moveto(mousectl, mouse->xy);	/* force cursor update; ugly */
 	menuing = FALSE;
@@ -898,22 +924,21 @@ bandsize(Window *w)
 	startp = p;
 	which = whichcorner(w, p);
 	r = whichrect(w->screenr, p, which);
-	drawgetrect(r, 1);
+	drawborder(r, 1);
 	or = r;
 	but = mouse->buttons;
 	while(mouse->buttons == but){
 		p = onscreen(mouse->xy);
 		r = whichrect(w->screenr, p, which);
 		if(!eqrect(r, or) && goodrect(r)){
-			drawgetrect(or, 0);
-			drawgetrect(r, 1);
+			drawborder(r, 1);
 			flushimage(display, 1);
 			or = r;
 		}
 		readmouse(mousectl);
 	}
 	p = mouse->xy;
-	drawgetrect(or, 0);
+	drawborder(or, 0);
 	flushimage(display, 1);
 	wsetcursor(w, 1);
 	if(mouse->buttons!=0 || Dx(or)<100 || Dy(or)<3*font->height){

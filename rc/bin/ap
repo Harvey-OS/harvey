@@ -6,32 +6,33 @@
 tmp=/tmp/tmp.$pid
 wire='http://www.newsday.com/news/nationworld/wire'
 if ( ~ $#* 0 )
-	hget $wire |
+	hget $wire | tee /tmp/ap.tmp |
 		htmlfmt -a -w 100 |
 		sed -n '
+			1,/On Wall Street/d
 			/AP News Wire/,$d
-			/reddot\.gif/ {
+			/^• / {
 				N
+				s/^• / /g
 				s/\n/ /g
-				s/\[image [^\]]*] *//
 				s/\[\/news\/nationworld\/wire\//|/
 				s/,[0-9]+,[0-9]+\.story.*$//
 				p
 		}' |
-		awk -F '|' '{
+		awk -F '|' '
+			{
 			s = "";
-			for (i = 2; i <= NF; i++)
+			for (i = 1; i < NF; i++)
 				s = s " " $i;
-			printf("%-40s %s\n", s, $1);
+			printf("%-40s %s\n", $NF, s);
 		}'
 
-if not 
+if not
 	hget $wire/^$1^.story |
 		htmlfmt |
 		sed '
-			1,/^AP News Alert/d
-			s/.*(Copyright .* The Associated Press).*$/\1/p
-			/Copyright .* The Associated Press/,$d
-		'
-
-
+			1,/^By Associated Press$/d
+			s/\| Article licensing.*$//
+			/^Copyright ©/p
+			/^Copyright ©/,$d
+			'

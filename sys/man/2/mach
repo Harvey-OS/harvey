@@ -41,7 +41,7 @@ void unusemap(Map *map, int seg)
 Map *loadmap(Map *map, int fd, Fhdr *fp)
 .PP
 .B
-int attachproc(int pid, int kflag, int corefd, Fhdr *fp)
+Map *attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 .PP
 .B
 int get1(Map *map, ulong addr, uchar *buf, int n)
