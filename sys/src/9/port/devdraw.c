@@ -37,7 +37,7 @@ enum
 
 #define	NHASH		(1<<5)
 #define	HASHMASK	(NHASH-1)
-#define	IOUNIT	(64*1024)
+#define	IOUNIT		(64*1024)
 
 typedef struct Client Client;
 typedef struct Draw Draw;
@@ -58,7 +58,7 @@ struct Draw
 	int		nclient;
 	Client**	client;
 	int		nname;
-	DName*	name;
+	DName*		name;
 	int		vers;
 	int		softscreen;
 	int		blanked;	/* screen turned off */
@@ -98,10 +98,10 @@ struct Refx
 
 struct DName
 {
-	char			*name;
-	Client	*client;
+	char		*name;
+	Client		*client;
 	DImage*		dimage;
-	int			vers;
+	int		vers;
 };
 
 struct FChar
@@ -131,7 +131,7 @@ struct DImage
 	int		nfchar;
 	FChar*		fchar;
 	DScreen*	dscreen;	/* 0 if not a window */
-	DImage*	fromname;	/* image this one is derived from, by name */
+	DImage*		fromname;	/* image this one is derived from, by name */
 	DImage*		next;
 };
 
@@ -146,8 +146,8 @@ struct DScreen
 	int		id;
 	int		public;
 	int		ref;
-	DImage	*dimage;
-	DImage	*dfill;
+	DImage		*dimage;
+	DImage		*dfill;
 	Memscreen*	screen;
 	Client*		owner;
 	DScreen*	next;
@@ -155,7 +155,7 @@ struct DScreen
 
 static	Draw		sdraw;
 static	Memimage	*screenimage;
-static	Memdata	screendata;
+static	Memdata		screendata;
 static	Rectangle	flushrect;
 static	int		waste;
 static	DScreen*	dscreen;
@@ -177,7 +177,7 @@ static	char Ewriteoutside[] =	"writeimage outside image";
 static	char Enotfont[] =	"image not a font";
 static	char Eindex[] =		"character index out of range";
 static	char Enoclient[] =	"no such draw client";
-static	char Edepth[] =	"image has bad depth";
+static	char Edepth[] =		"image has bad depth";
 static	char Enameused[] =	"image name in use";
 static	char Enoname[] =	"no image with that name";
 static	char Eoldname[] =	"named image no longer valid";
@@ -2071,4 +2071,3 @@ drawidletime(void)
 {
 	return TK2SEC(MACHP(0)->ticks - sdraw.blanktime)/60;
 }
-

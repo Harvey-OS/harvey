@@ -15,8 +15,8 @@ extern	void*	memchr(void*, int, ulong);
  * string routines
  */
 extern	char*	strcat(char*, char*);
-extern	char*	strchr(char*, char);
-extern	char*	strrchr(char*, char);
+extern	char*	strchr(char*, int);
+extern	char*	strrchr(char*, int);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strecpy(char*, char*, char*);
@@ -74,7 +74,7 @@ extern	int	vsnprint(char*, int, char*, va_list);
 extern	int	sprint(char*, char*, ...);
 
 extern	int	fmtinstall(int, int (*)(Fmt*));
-extern	int	quotefmtinstall(void);
+extern	void	quotefmtinstall(void);
 extern	int	fmtprint(Fmt*, char*, ...);
 extern	int	fmtstrcpy(Fmt*, char*);
 extern	int	encodefmt(Fmt*);
@@ -155,7 +155,7 @@ typedef struct Waitmsg	Waitmsg;
 
 struct Qid
 {
-	vlong	path;
+	uvlong	path;
 	ulong	vers;
 	uchar	type;
 };
@@ -185,7 +185,7 @@ struct OWaitmsg
 
 struct Waitmsg
 {
-	int	pid;	/* of loved one */
+	int	pid;		/* of loved one */
 	ulong	time[3];	/* of loved one and descendants */
 	char	msg[ERRMAX];	/* actually variable-size in user mode */
 };

@@ -10,7 +10,7 @@
 char	BADEQ[] = "unexpected `='";
 
 BOOL	executing;
-extern	char	*lp;
+extern	Rune	*lp;
 
 char	eqformat[ARB] = "z";
 char	stformat[ARB] = "zMi";
@@ -28,7 +28,7 @@ command(char *buf, int defcom)
 {
 	char	*reg;
 	char	savc;
-	char	*savlp=lp;
+	Rune	*savlp=lp;
 	char	savlc = lastc;
 	char	savpc = peekc;
 	static char lastcom = '=', savecom = '=';
@@ -39,7 +39,7 @@ command(char *buf, int defcom)
 		if (*buf==EOR)
 			return(FALSE);
 		clrinp();
-		lp=buf;
+		lp=(Rune*)buf;
 	}
 	do {
 		adrflg=expr(0);		/* first address */
@@ -285,7 +285,7 @@ void
 shell(void)
 {
 	int	rc, unixpid;
-	char *argp = lp;
+	char *argp = (char*)lp;
 
 	while (lastc!=EOR)
 		rdc();
