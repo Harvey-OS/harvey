@@ -724,6 +724,8 @@ readtar(char *buffer)
 
 	if (recno >= nblock || first == 0) {
 		if ((i = readn(mt, tbuf, TBLOCK*nblock)) <= 0) {
+			if (i == 0)
+				werrstr("unexpected end of file");
 			fprint(2, "tar: archive read error: %r\n");
 			exits("archive read");
 		}

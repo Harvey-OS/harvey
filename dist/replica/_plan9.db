@@ -3327,7 +3327,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1094056593 249464
+sys/games/lib/fortunes - 664 sys sys 1094570700 249644
 sys/include - 20000000775 sys sys 1016902416 0
 sys/include/9p.h - 664 sys sys 1091904420 4392
 sys/include/String.h - 664 sys sys 1091904425 1319
@@ -10394,7 +10394,7 @@ sys/src/cmd/tapefs/tpfs.c - 664 sys sys 1071322722 2012
 sys/src/cmd/tapefs/util.c - 664 sys sys 1014926385 2653
 sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1014926385 3971
-sys/src/cmd/tar.c - 664 sys sys 1070287474 15531
+sys/src/cmd/tar.c - 664 sys sys 1094598836 15585
 sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987
@@ -12337,3 +12337,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/tar - 775 sys sys 1094612761 81786
