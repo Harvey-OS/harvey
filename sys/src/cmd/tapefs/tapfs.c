@@ -53,10 +53,11 @@ populate(char *name)
 		f.size = tpp->size[0] + (tpp->size[1]<<8);
 		f.mdate = cvtime(tpp->tmod);
 		f.mode = tpp->mode[0]&0777;
+		f.uid = tpp->uid[0]&0377;
 		isabs = tpp->name[0]=='/';
 		f.name = (char *)tpp->name+isabs;
 		if (verbose)
-			print("%s mode %o, %s", f.name, f.mode, ctime(f.mdate));
+			print("%s mode %o uid %d, %s", f.name, f.mode, f.uid, ctime(f.mdate));
 		poppath(f, 1);
 	}
 }

@@ -44,9 +44,9 @@ qlock(QLock *q)
 	up->qnext = 0;
 	up->state = Queueing;
 	up->qpc = getcallerpc(&q);
-	unlock(&q->use);
 	if(edf->isedf(up))
 		edf->edfblock(up);
+	unlock(&q->use);
 	sched();
 }
 
@@ -108,9 +108,9 @@ rlock(RWlock *q)
 	q->tail = up;
 	up->qnext = 0;
 	up->state = QueueingR;
-	unlock(&q->use);
 	if(edf->isedf(up))
 		edf->edfblock(up);
+	unlock(&q->use);
 	sched();
 }
 
@@ -165,9 +165,9 @@ wlock(RWlock *q)
 	q->tail = up;
 	up->qnext = 0;
 	up->state = QueueingW;
-	unlock(&q->use);
 	if(edf->isedf(up))
 		edf->edfblock(up);
+	unlock(&q->use);
 	sched();
 }
 

@@ -32,9 +32,6 @@ dsagen(DSApub *opub)
 	// find a generator alpha of the multiplicative
 	// group Z*p, i.e., of order n = p-1.  We use the
 	// fact that q divides p-1 to reduce the exponent.
-	//
-	// This isn't very efficient.  If anyone has a better
-	// idea, mail presotto@closedmind.org
 	exp = mpnew(0);
 	g = mpnew(0);
 	r = mpnew(0);

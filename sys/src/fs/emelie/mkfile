@@ -93,10 +93,10 @@ HFILES=\
 	../port/lib.h\
 	../port/portdat.h\
 	../port/portfns.h\
-	./dat.h\
-	./fns.h\
-	./io.h\
-	./mem.h\
+	dat.h\
+	fns.h\
+	io.h\
+	mem.h\
 	/$objtype/include/u.h\
 	/$objtype/include/ureg.h\
 

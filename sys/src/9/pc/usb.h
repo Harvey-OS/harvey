@@ -117,6 +117,8 @@ struct Udev
 	int		id;
 	uchar	port;		/* port number on connecting hub */
 	ulong	csp;
+	ushort	vid;		/* vendor id */
+	ushort	did;		/* product id */
 	int		ls;
 	int		npt;
 	Endpt*	ep[16];	/* active end points */

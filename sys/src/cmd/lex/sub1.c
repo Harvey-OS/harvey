@@ -531,11 +531,11 @@ treedump(void)
 				break;
 			case RCCL:
 				print("ccl ");
-				strpt(left[t]);
+				allprint(left[t]);
 				break;
 			case RNCCL:
 				print("nccl ");
-				strpt(left[t]);
+				allprint(left[t]);
 				break;
 			case DIV:
 				print("/ %d %d",left[t],right[t]);

@@ -127,7 +127,7 @@ main(int argc, char *argv[])
 	for(i = 0; i < ap->narenas; i++)
 		found += findscore(ap->arenas[i], score);
 
-	print("found %d occurances of %V\n", found, score);
+	print("found %d occurences of %V\n", found, score);
 
 	if(verbose > 1)
 		printStats();

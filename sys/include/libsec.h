@@ -261,7 +261,7 @@ struct EGsig
 };
 
 EGpriv*		eggen(int nlen, int rounds);
-mpint*		egencrypt(EGpub *k, mpint *in, mpint *out);
+mpint*		egencrypt(EGpub *k, mpint *in, mpint *out);	// deprecated
 mpint*		egdecrypt(EGpriv *k, mpint *in, mpint *out);
 EGsig*		egsign(EGpriv *k, mpint *m);
 int		egverify(EGpub *k, EGsig *sig, mpint *m);
@@ -302,7 +302,7 @@ struct DSAsig
 	mpint	*r, *s;
 };
 
-DSApriv*	dsagen(DSApub *opub);
+DSApriv*	dsagen(DSApub *opub);	// opub not checked for consistency!
 DSAsig*		dsasign(DSApriv *k, mpint *m);
 int		dsaverify(DSApub *k, DSAsig *sig, mpint *m);
 DSApub*		dsapuballoc(void);

@@ -77,17 +77,25 @@ fn prompt {
 		ifs='' {rd=`{read}}
 		if(~ $#rd 0)
 			exit notdone
-		rd=`{echo $rd}
-		if(~ $#rd 0 || ~ $rd '')
-			rd=$def
-
-		switch($#opts){
-		case 0
-			if(! ~ $rd '')
-				okay=yes
-		case *
-			if(~ $rd $opts)
-				okay=yes
+		if(~ $rd !*){
+			ifs='' {rd=`{echo $rd | sed 's/!//'}}
+			echo $rd
+			rc -c $rd
+			echo !$status
+		}
+		if not{
+			rd=`{echo $rd}
+			if(~ $#rd 0 || ~ $rd '')
+				rd=$def
+	
+			switch($#opts){
+			case 0
+				if(! ~ $rd '')
+					okay=yes
+			case *
+				if(~ $rd $opts)
+					okay=yes
+			}
 		}
 	}
 	echo -n $rd >/env/rd	# just in case

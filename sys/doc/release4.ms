@@ -4,11 +4,13 @@ Plan 9 From Bell Labs
 Fourth Release Notes
 .br
 April, 2002
+.br
+updated June, 2003
 .LP
 .sp -.4i
 .nf
 .ce 1000
-Copyright © 2002 Lucent Technologies Inc.
+Copyright © 2002-2003 Lucent Technologies Inc.
 All Rights Reserved
 .sp .2i
 .fi
@@ -40,8 +42,12 @@ and many of the other file servers such as
 and
 .I u9fs (4)
 work just fine with long names.
-It's only the standard disk-resident file servers
-that don't, and as soon we have versions that do, we'll release them.
+It's only the old disk-resident file servers
+that don't.
+The new file server
+.I fossil (4)
+handles supports long names and many other features.
+The older servers are now deprecated.
 .LP
 The following is a partial list of the major changes throughout the system.
 .de Xx
@@ -83,16 +89,17 @@ We are phasing out the IL protocol since it doesn't handle long-distance connect
 well (and long-distance networks don't handle it well, either).
 IL is still used by
 .I fs (4)
-(in time, that too will change)
 but TCP has become the standard protocol for all other services.
 .Xx
 The software for the new network-resident secure block store,
 .I venti (8),
 is included with this distribution.
-We are in the process of reworking
-.I fs (4)
-to use Venti rather than a WORM as its permanent block repository/backup medium,
-but that code is only in the design stage and is not included in this release.
+The new
+file server
+.I fossil (4)
+uses Venti rather than a WORM as its permanent block repository/backup medium.
+It is still being developed, but is mature enough that a handful of users
+throughout the world are using it as their primary file server.
 .Xx
 The need to handle longer file names triggered a rethinking of the way the
 system handles strings in general.

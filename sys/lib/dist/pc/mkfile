@@ -22,10 +22,11 @@ boot.raw:Q: proto $SUB
 		touchfs 1000000000 >boot.raw
 
 boot.bz2:Q: boot.raw
-	cat boot.raw |
-		bflz -n 32 | bzip2 -9 >$target
-	# rm -rf boot proto.cp
-	ls -l boot.bz2
+	ls -l boot.raw
+	bflz -n 32 < boot.raw >boot.bflz
+	ls -l boot.bflz
+	bzip2 -9 < boot.bflz >$target
+	ls -l $target
 
 root.bz2:Q: boot.bz2
 	{
@@ -69,13 +70,13 @@ clean:V:
 	rm -rf boot boot.bz2 root.bz2 9pcflop ndisk 9load cddisk proto.cp 9loaddebug
 
 install:V: ndisk 9loaddebug
-	cp 9loaddebug ../web.protect
-	cp ndisk ../web.protect/disk
+	cp 9loaddebug ../web.protect2
+	cp ndisk ../web.protect2/disk
 	#mk clean
 
 test:V: ndisk 9loaddebug
-	cp 9loaddebug ../web.protect/n9loaddebug
-	cp ndisk ../web.protect/ndisk
+	cp 9loaddebug ../web.protect2/n9loaddebug
+	cp ndisk ../web.protect2/ndisk
 
 cd0:D:	cddisk
 	rm -f cd0

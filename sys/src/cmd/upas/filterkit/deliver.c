@@ -52,7 +52,7 @@ main(int argc, char **argv)
 	now[28] = 0;
 	if(fprint(fd, "From %s %s\n", a->val, now) < 0)
 		sysfatal("writing mailbox: %r");
-	last = 0;
+	last = '\n';
 
 	/* pass all \n terminated lines.  Escape '^From ' */
 	for(bytes = 0;; bytes += n){
@@ -60,7 +60,7 @@ main(int argc, char **argv)
 		if(p == nil)
 			break;
 		n = Blinelen(&in);
-		if((last == 0 || last == '\n') && n >= 5 && strncmp(p, "From ", 5) == 0)
+		if(last == '\n' && n >= 5 && strncmp(p, "From ", 5) == 0)
 			if(write(fd, " ", 1) != 1)
 				sysfatal("writing mailbox: %r");
 		if(write(fd, p, n) != n){
@@ -75,7 +75,7 @@ main(int argc, char **argv)
 		n = Bread(&in, buf, sizeof(buf));
 		if(n <= 0)
 			break;
-		if((last == 0 || last == '\n') && n >= 5 && strncmp(buf, "From ", 5) == 0)
+		if(last == '\n' && n >= 5 && strncmp(buf, "From ", 5) == 0)
 			if(write(fd, " ", 1) != 1)
 				sysfatal("writing mailbox: %r");
 		if(write(fd, buf, n) != n){

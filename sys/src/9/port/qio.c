@@ -1324,6 +1324,13 @@ qiwrite(Queue *q, void *vp, int len)
 
 		ilock(q);
 
+		/* don't queue over the limit, just lose the bytes */
+		if(q->len >= q->limit){
+			iunlock(q);
+			freeb(b);
+			break;
+		}
+	
 		QDEBUG checkb(b, "qiwrite");
 		if(q->bfirst)
 			q->blast->next = b;

@@ -44,11 +44,11 @@ For each connected device there is a directory in
 .BI #U/usb n\fR.
 Reading
 .BI #U/usb n /*/status
-yields the state, class, subclass and proto of each device in the
+yields the state, class/subclass/proto, vendor-id and product-id of each device in the
 first line.  The remaining lines give the state of each of the
 interfaces.
 .PP
-To find a mouse, for example, scan the status files for the line
+To find a mouse, for example, scan the status files for the line beginning with
 .IP
 .EX
 .BR "Enabled 0x020103"
@@ -202,7 +202,7 @@ on the endpoint file.  See also
 .TF "#U/usb n /*/status"
 .TP
 .BI #U/usb n /*/status
-USB device status file, class, subclass and proto are found in line one
+USB device status file; class/subclass/proto, vendor-id and product-id are found in line one
 .TP
 .BI #U/usb n /*/ctl
 USB

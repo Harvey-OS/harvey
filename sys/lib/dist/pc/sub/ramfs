@@ -1,4 +1,4 @@
 #!/bin/rc
 
-exec /kfs RAMFS $*
+exec boot/kfs RAMFS $*
 # kfs is bzfs

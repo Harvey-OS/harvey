@@ -25,6 +25,12 @@ prints a sequence of numbers, one per line, from
 as possible, in increments of
 .I incr
 (default 1).
+The loop is:
+.sp
+.EX
+  for(val = min; val <= max; val += incr) print val;
+.EE
+.sp
 The numbers are interpreted as floating point.
 .PP
 Normally integer values are printed as decimal integers.
@@ -49,7 +55,7 @@ nor with numbers in exponential notation.
 .TP
 .L
 seq 0 .05 .1
-Print 
+Print
 .BR "0 0.05 0.1" 
 (on separate lines).
 .TP

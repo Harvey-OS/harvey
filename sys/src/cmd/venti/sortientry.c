@@ -75,8 +75,8 @@ sortRawIEntries(Index *ix, Part *tmp, u64int *base)
 		}
 		clumps += n;
 	}
-fprint(2, "got %lld clumps - starting sort\n", clumps);
 	if(ok){
+fprint(2, "got %lld clumps - starting sort\n", clumps);
 		sorted = sortIEBucks(ib);
 		*base = (u64int)ib->chunks * ib->size;
 		if(sorted != clumps){
@@ -110,7 +110,7 @@ readArenaInfo(IEBucks *ib, Arena *arena, u64int a)
 	cis = MKN(ClumpInfo, ClumpChunks);
 	ok = 1;
 	memset(&ie, 0, sizeof(IEntry));
-	for(clump = 0; clump < arena->clumps; clump += n){
+	for(clump = 0; clump < arena->clumps && ok; clump += n){
 		n = ClumpChunks;
 		if(n > arena->clumps - clump)
 			n = arena->clumps - clump;
@@ -128,7 +128,11 @@ readArenaInfo(IEBucks *ib, Arena *arena, u64int a)
 			a += ci->size + ClumpSize;
 			ie.ia.blocks = (ci->size + ClumpSize + (1 << ABlockLog) - 1) >> ABlockLog;
 			scoreCp(ie.score, ci->score);
-			sprayIEntry(ib, &ie);
+			if(!sprayIEntry(ib, &ie)){
+				setErr(EOk, "can't put entry into bucket: %R");
+				ok = 0;
+				break;
+			}
 		}
 	}
 	free(cis);

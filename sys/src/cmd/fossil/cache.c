@@ -1958,10 +1958,10 @@ flushFill(Cache *c)
 	Block *b;
 
 	vtLock(c->lk);
-//	if(c->ndirty == 0){
-//		vtUnlock(c->lk);
-//		return;
-//	}
+	if(c->ndirty == 0){
+		vtUnlock(c->lk);
+		return;
+	}
 
 	p = c->baddr;
 	ndirty = 0;
@@ -2064,6 +2064,16 @@ flushThread(void *a)
 		for(i=0; i<FlushSize; i++)
 			if(!cacheFlushBlock(c))
 				break;
+		if(i==0 && c->ndirty){
+			/*
+			 * All the blocks are being written right now -- there's nothing to do.
+			 * We might be spinning with cacheFlush though -- he'll just keep
+			 * kicking us until c->ndirty goes down.  Probably we should sleep
+			 * on something that the diskThread can kick, but for now we'll
+			 * just pause for a little while waiting for disks to finish.
+			 */
+			sleep(100);
+		}
 		vtLock(c->lk);
 		vtWakeupAll(c->flushwait);
 	}

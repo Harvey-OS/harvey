@@ -21,16 +21,16 @@ dsasign(DSApriv *priv, mpint *m)
 	// find a k that has an inverse mod q
 	while(1){
 		mprand(qlen, genrandom, k);
-		if((mpcmp(mpone, k) > 0) || (mpcmp(k, qm1) >= 0))
+		if((mpcmp(mpone, k) > 0) || (mpcmp(k, pub->q) >= 0))
 			continue;
 		mpextendedgcd(k, q, r, kinv, s);
 		if(mpcmp(r, mpone) != 0)
-			continue;
+			sysfatal("dsasign: pub->q not prime");
 		break;
 	}
 
   	// make kinv positive
-	mpmod(kinv, qm1, kinv);
+	mpmod(kinv, pub->q, kinv);
 
 	// r = ((alpha**k) mod p) mod q
 	mpexp(alpha, k, p, r);

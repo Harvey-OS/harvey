@@ -21,6 +21,7 @@ egpubfree(EGpub *eg)
 	mpfree(eg->p);
 	mpfree(eg->alpha);
 	mpfree(eg->key);
+	free(eg);
 }
 
 
@@ -44,6 +45,7 @@ egprivfree(EGpriv *eg)
 	mpfree(eg->pub.alpha);
 	mpfree(eg->pub.key);
 	mpfree(eg->secret);
+	free(eg);
 }
 
 EGsig*
@@ -64,4 +66,5 @@ egsigfree(EGsig *eg)
 		return;
 	mpfree(eg->r);
 	mpfree(eg->s);
+	free(eg);
 }

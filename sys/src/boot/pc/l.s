@@ -1,7 +1,11 @@
 #include "x16.h"
 #include "mem.h"
 
+#ifdef PXE
 #define PDB		0x90000		/* temporary page tables (24KB) */
+#else
+#define PDB		0x08000
+#endif PXE
 
 #define NoScreenBlank	1
 /*#define ResetDiscs	1*/

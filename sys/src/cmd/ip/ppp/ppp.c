@@ -467,7 +467,7 @@ getframe(PPP *ppp, int *protop)
 			}
 		} else if(BLEN(b) > 0){
 			ppp->in.discards++;
-			netlog("ppp: len %ld/%ld cksum %ux (%ux %ux %ux %ux)\n",
+			netlog("ppp: discard len %ld/%ld cksum %ux (%ux %ux %ux %ux)\n",
 				BLEN(b), BLEN(buf), fcs, b->rptr[0],
 				b->rptr[1], b->rptr[2], b->rptr[3]);
 		}
@@ -1559,8 +1559,8 @@ ipopen(PPP *ppp)
 		/* we may have changed addresses */
 		if(ipcmp(ppp->local, ppp->curlocal) != 0 ||
 		   ipcmp(ppp->remote, ppp->curremote) != 0){
-			snprint(buf, sizeof buf, "remove %I 255.255.255.255",
-			    ppp->curremote);
+			snprint(buf, sizeof buf, "remove %I 255.255.255.255 %I",
+			    ppp->curlocal, ppp->curremote);
 			if(fprint(ppp->ipcfd, "%s", buf) < 0)
 				syslog(0, "ppp", "can't %s: %r", buf);
 			snprint(buf, sizeof buf, "add %I 255.255.255.255 %I %lud proxy",
@@ -2502,6 +2502,25 @@ xfer(int fd)
 	close(fd);
 }
 
+static int
+readcr(int fd, char *buf, int nbuf)
+{
+	char c;
+	int n, tot;
+
+	tot = 0;
+	while((n=read(fd, &c, 1)) == 1){
+		if(c == '\n'){
+			buf[tot] = 0;
+			return tot;
+		}
+		buf[tot++] = c;
+		if(tot == nbuf)
+			sysfatal("line too long in readcr");
+	}
+	return n;
+}
+
 static void
 connect(int fd, int cfd)
 {
@@ -2552,12 +2571,13 @@ connect(int fd, int cfd)
 			if (debug)
 				print("sending %s, expecting %s\n", _args[0], _args[1]);
 
-			if ((nb = write(fd, _args[0], strlen(_args[0]))) < 0)
-				sysfatal("cannot write %ss: %r", _args[0]);
-			assert(nb == strlen(_args[0]));
+			if(strlen(_args[0])){
+				nb = fprint(fd, "%s\r", _args[0]);
+				assert(nb > 0);
+			}
 
 			if (strlen(_args[1]) > 0) {
-				if ((nb = read(fd, response, sizeof response)) < 0)
+				if ((nb = readcr(fd, response, sizeof response-1)) < 0)
 					sysfatal("cannot read response from: %r");
 
 				if (debug)
@@ -2758,11 +2778,11 @@ main(int argc, char **argv)
 			fprint(cfd, "r1");	/* rts on */
 			fprint(cfd, "d1");	/* dtr on */
 			fprint(cfd, "c1");	/* dcdhup on */
-			if(user)
+			if(user || chatfile)
 				connect(mediain, cfd);
 			close(cfd);
 		} else {
-			if(user)
+			if(user || chatfile)
 				connect(mediain, -1);
 		}
 		mediaout = mediain;

@@ -14,7 +14,7 @@ nfastrand(ulong n)
 	 * so we want a random number < m.
 	 */
 	if(n > Maxrand)
-		abort();
+		sysfatal("nfastrand: n too large");
 
 	m = Maxrand - Maxrand % n;
 	while((r = fastrand()) >= m)

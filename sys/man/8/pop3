@@ -142,4 +142,14 @@ running on the authentication server.
 .IR rewrite (6),
 .IR send (8),
 .IR upasfs (4)
-
+.SH BUGS
+Usually messages flagged for deletion with
+.B DELE
+are not actually deleted until the client sends a
+.B QUIT
+command to end the conversation.
+.I Pop3
+implements a non-standard command
+.B SYNC
+that deletes messages flagged for deletion
+without ending the conversation.

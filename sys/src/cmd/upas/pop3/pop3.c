@@ -24,6 +24,7 @@ static int retrcmd(char*);
 static int statcmd(char*);
 static int stlscmd(char*);
 static int topcmd(char*);
+static int synccmd(char*);
 static int uidlcmd(char*);
 static int usercmd(char*);
 static char *nextarg(char*);
@@ -49,6 +50,7 @@ Cmd cmdtab[] =
 	"retr", 1, retrcmd,
 	"stat", 1, statcmd,
 	"stls", 0, stlscmd,
+	"sync", 1, synccmd,
 	"top", 1, topcmd,
 	"uidl", 1, uidlcmd,
 	"user", 0, usercmd,
@@ -437,8 +439,8 @@ noopcmd(char *arg)
 	return 0;
 }
 
-static int
-quitcmd(char*)
+static void
+_synccmd(char*)
 {
 	int i, fd;
 	char *s;
@@ -446,7 +448,7 @@ quitcmd(char*)
 
 	if(!loggedin){
 		sendok("");
-		exits(nil);
+		return;
 	}
 
 	fmtstrinit(&f);
@@ -458,16 +460,29 @@ quitcmd(char*)
 	if(strcmp(s, "delete mbox") != 0){	/* must have something to delete */
 		if((fd = open("../ctl", OWRITE)) < 0){
 			senderr("open ctl to delete messages: %r");
-			exits(nil);
+			return;
 		}
 		if(write(fd, s, strlen(s)) < 0){
 			senderr("error deleting messages: %r");
-			exits(nil);
+			return;
 		}
 	}
 	sendok("");
-	exits(nil);	
-	return 0;		
+}
+
+static int
+synccmd(char*)
+{
+	_synccmd(nil);
+	return 0;
+}
+
+static int
+quitcmd(char*)
+{
+	synccmd(nil);
+	exits(nil);
+	return 0;
 }
 
 static int

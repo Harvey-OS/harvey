@@ -963,7 +963,7 @@ cleaniso(Endpt *e, int frnum)
 			if ((td->flags & IsoClean) == 0){
 				e->buffered -= n;
 				if (e->buffered < 0){
-					print("e->buffered %d?\n", e->buffered);
+//					print("e->buffered %d?\n", e->buffered);
 					e->buffered = 0;
 				}
 			}

@@ -238,6 +238,7 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	uchar ip[IPaddrlen];
 	uchar net[IPaddrlen];
 	int prefix, smallestprefix;
+	int force;
 
 	/* just in case */
 	fmtinstall('I', eipfmt);
@@ -298,11 +299,13 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	if(isv4(ip)){
 		prefix = 127;
 		smallestprefix = 100;
+		force = 0;
 	} else {
 		/* in v6, the last 8 bytes have no structure */
 		prefix = 64;
 		smallestprefix = 2;
 		memset(net+8, 0, 8);
+		force = 1;
 	}
 
 	/*
@@ -314,8 +317,9 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	for(; prefix >= smallestprefix; prefix--){
 		if(needed == 0)
 			break;
-		if((net[prefix/8] & (1<<(7-(prefix%8)))) == 0)
+		if(!force && (net[prefix/8] & (1<<(7-(prefix%8)))) == 0)
 			continue;
+		force = 0;
 		net[prefix/8] &= ~(1<<(7-(prefix%8)));
 		subnet(db, net, list, prefix, &needed);
 	}

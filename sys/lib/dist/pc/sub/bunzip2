@@ -1,4 +1,4 @@
 #!/bin/rc
 
-exec /kfs BUNZIP
+exec /boot/kfs BUNZIP
 # kfs is bzfs

@@ -6,8 +6,23 @@
 #include <libc.h>
 #include <disk.h>
 
+typedef struct {
+	uchar	active;			/* active flag */
+	uchar	starth;			/* starting head */
+	uchar	starts;			/* starting sector */
+	uchar	startc;			/* starting cylinder */
+	uchar	type;			/* partition type */
+	uchar	endh;			/* ending head */
+	uchar	ends;			/* ending sector */
+	uchar	endc;			/* ending cylinder */
+	uchar	lba[4];			/* starting LBA */
+	uchar	size[4];		/* size in sectors */
+} Tentry;
+
 enum {
-	Toffset = 0x1BE	/* offset of partition table */
+	Toffset = 0x1BE,		/* offset of partition table */
+
+	Type9	= 0x39,
 };
 
 /*
@@ -55,17 +70,64 @@ fatal(char *fmt, ...)
 	exits(err);
 }
 
+static void
+putle32(void* v, u32int i)
+{
+	uchar *p;
+
+	p = v;
+	p[0] = i;
+	p[1] = i>>8;
+	p[2] = i>>16;
+	p[3] = i>>24;
+}
+
+static void
+writechs(Disk *disk, uchar *p, vlong lba)
+{
+	int c, h, s;
+
+	s = lba % disk->s;
+	h = (lba / disk->s) % disk->h;
+	c = lba / (disk->s * disk->h);
+
+	if(c >= 1024) {
+		c = 1023;
+		h = disk->h - 1;
+		s = disk->s - 1;
+	}
+
+	p[0] = h;
+	p[1] = ((s+1) & 0x3F) | ((c>>2) & 0xC0);
+	p[2] = c;
+}
+
+static void
+wrtentry(Disk *disk, Tentry *tp, int type, u32int base, u32int lba, u32int end)
+{
+	tp->type = type;
+	writechs(disk, &tp->starth, lba);
+	writechs(disk, &tp->endh, end-1);
+	putle32(tp->lba, lba-base);
+	putle32(tp->size, end-lba);
+}
+
 void
 main(int argc, char **argv)
 {
 	Disk *disk;
+	Tentry *tp;
 	uchar *mbr, *buf;
 	char *mbrfile;
 	ulong secsize;
-	int sysfd, nmbr;
+	int flag9, sysfd, nmbr;
 
+	flag9 = 0;
 	mbrfile = nil;
 	ARGBEGIN {
+	case '9':
+		flag9 = 1;
+		break;
 	case 'm':
 		mbrfile = ARGF();
 		break;
@@ -115,6 +177,12 @@ main(int argc, char **argv)
 		close(sysfd);
 		memmove(buf+Toffset, mbr+Toffset, secsize-Toffset);
 		memmove(mbr, buf, nmbr);
+	}
+
+	if(flag9){
+		tp = (Tentry*)(mbr+Toffset);
+		memset(tp, 0, secsize-Toffset);
+		wrtentry(disk, tp, Type9, 0, disk->s, disk->secs);
 	}
 	mbr[secsize-2] = 0x55;
 	mbr[secsize-1] = 0xAA;

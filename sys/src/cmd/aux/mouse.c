@@ -131,6 +131,7 @@ setupeia(int fd, char *baud, char *bits)
 	timedwrite(fd, bits, strlen(bits));
 	timedwrite(fd, "s1", 2);
 	timedwrite(fd, "pn", 2);
+	timedwrite(fd, "i1", 2);
 	alarm(0);
 }
 

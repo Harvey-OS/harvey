@@ -151,6 +151,9 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 		print(pbuf);
 		len = getline(buf, size, timeout);
 		switch(len){
+		case 0:
+			/* RETURN */
+			continue;
 		case -1:
 			/* ^U typed */
 			continue;
