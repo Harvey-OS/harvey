@@ -164,16 +164,16 @@ readmouse(Vnc *v)
 }
 
 static int snarffd = -1;
-static ulong snarf_vers;
+static ulong snarfvers;
 
 void 
 writesnarf(Vnc *v, long n)
 {
 	uchar buf[8192];
 	long m;
-	Biobuf * fd;
+	Biobuf *b;
 
-	if( (fd = Bopen("/dev/snarf", OWRITE)) == nil ){
+	if((b = Bopen("/dev/snarf", OWRITE)) == nil){
 		vncgobble(v, n);
 		return;
 	}
@@ -185,16 +185,16 @@ writesnarf(Vnc *v, long n)
 		vncrdbytes(v, buf, m);
 		n -= m;
 
-		Bwrite(fd, buf, m);
+		Bwrite(b, buf, m);
 	}
-	Bterm(fd);
-	snarf_vers++;
+	Bterm(b);
+	snarfvers++;
 }
 
 char *
-getsnarf(int * sz)
+getsnarf(int *sz)
 {
-	char * snarf, * p;
+	char *snarf, *p;
 	int n, c;
 
 	*sz =0;
@@ -206,7 +206,7 @@ getsnarf(int * sz)
 		p += c;
 		n -= c;
 		*sz += c;
-		if ( n == 0 ){
+		if (n == 0){
 			snarf = realloc(snarf, *sz + 8192);
 			n = 8192;
 		}
@@ -233,7 +233,7 @@ checksnarf(Vnc *v)
 		dir = dirstat("/dev/snarf");
 		if(dir == nil)	/* this happens under old drawterm */
 			continue;
-		if(dir->qid.vers > snarf_vers){
+		if(dir->qid.vers > snarfvers){
 			snarf = getsnarf(&len);
 
 			vnclock(v);
@@ -246,7 +246,7 @@ checksnarf(Vnc *v)
 
 			free(snarf);
 
-			snarf_vers = dir->qid.vers;
+			snarfvers = dir->qid.vers;
 		}
 		free(dir);
 	}

@@ -241,6 +241,7 @@ ulong		pwait(Waitmsg*);
 void		qaddlist(Queue*, Block*);
 Block*		qbread(Queue*, int);
 long		qbwrite(Queue*, Block*);
+Queue*		qbypass(void (*)(void*, Block*), void*);
 int		qcanread(Queue*);
 void		qclose(Queue*);
 int		qconsume(Queue*, void*, int);

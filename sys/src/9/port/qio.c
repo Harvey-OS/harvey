@@ -38,6 +38,7 @@ struct Queue
 	int	eof;		/* number of eofs read by user */
 
 	void	(*kick)(void*);	/* restart output */
+	void	(*bypass)(void*, Block*);	/* bypass queue altogether */
 	void*	arg;		/* argument to kick */
 
 	QLock	rlock;		/* mutex for reading processes */
@@ -795,7 +796,6 @@ qopen(int limit, int msg, void (*kick)(void*), void *arg)
 	if(q == 0)
 		return 0;
 
-	ilock(q);
 	q->limit = q->inilim = limit;
 	q->kick = kick;
 	q->arg = arg;
@@ -804,7 +804,24 @@ qopen(int limit, int msg, void (*kick)(void*), void *arg)
 	q->state |= Qstarve;
 	q->eof = 0;
 	q->noblock = 0;
-	iunlock(q);
+
+	return q;
+}
+
+/* open a queue to be bypassed */
+Queue*
+qbypass(void (*bypass)(void*, Block*), void *arg)
+{
+	Queue *q;
+
+	q = malloc(sizeof(Queue));
+	if(q == 0)
+		return 0;
+
+	q->limit = 0;
+	q->arg = arg;
+	q->bypass = bypass;
+	q->state = 0;
 
 	return q;
 }
@@ -1143,8 +1160,14 @@ qbwrite(Queue *q, Block *b)
 	int n, dowakeup;
 	Proc *p;
 
-	dowakeup = 0;
 	n = BLEN(b);
+
+	if(q->bypass){
+		(*q->bypass)(q->arg, b);
+		return n;
+	}
+
+	dowakeup = 0;
 	qlock(&q->wlock);
 	if(waserror()){
 		if(b != nil)

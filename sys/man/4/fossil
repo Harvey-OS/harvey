@@ -43,7 +43,7 @@ fossil \- archival file server
 ]
 [
 .B -v
-.BI vac: score
+.I score
 ]
 .I file
 .SH DESCRIPTION
@@ -311,7 +311,7 @@ Set the textual label on the file system to
 .IR label .
 The label is only a comment.
 .TP
-.BI "-v vac:" score
+.BI -v " score
 Initialize the file system using the vac file
 system stored on Venti at
 .IR score .
@@ -373,7 +373,7 @@ format a new file system using the last archive score printed
 on the console:
 .IP
 .EX
-fossil/flfmt -v vac:b9b3...5559 /dev/sdC0/fossil
+fossil/flfmt -v b9b3...5559 /dev/sdC0/fossil
 .EE
 .LP
 Note that while
