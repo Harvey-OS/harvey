@@ -13866,3 +13866,6 @@
 1109871007 0 c acme/wiki/src/wiki.c - 664 sys sys 1109869230 10727
 1109910615 0 c 386/bin/con - 775 sys sys 1109909287 78211
 1109910615 1 c acme/bin/386/Wiki - 775 sys sys 1109909287 126953
+1110290499 0 c sys/src/cmd/unix/README - 664 sys sys 1110289527 746
+1110290499 1 c sys/src/cmd/unix/sam/README - 664 sys sys 1110289373 306
+1110310304 0 c sys/games/lib/fortunes - 664 sys sys 1110309055 253240
