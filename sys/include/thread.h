@@ -96,7 +96,7 @@ int		threadnotify(int (*f)(void*, char*), int in);
 int		threadid(void);
 int		threadpid(int);
 int		threadsetgrp(int);	/* set thread group, return old */
-void		threadsetname(char *name);
+void		threadsetname(char *fmt, ...);
 Channel*	threadwaitchan(void);
 int	tprivalloc(void);
 void	tprivfree(int);
