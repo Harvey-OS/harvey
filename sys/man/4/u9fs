@@ -81,7 +81,7 @@ should be
 .BR rhosts ,
 .BR none ,
 or
-.BR 9p1 .
+.BR p9any .
 The default is
 .BR rhosts ,
 which uses the
@@ -98,10 +98,12 @@ This is useful when
 .I u9fs
 is not invoked from
 .I inetd
-(see examples below).
+(see examples below, or
+.I srvssh
+in .IR srv (4)).
 Specifying
-.B 9p1
-uses the second and third edition Plan 9 authentication mechanisms.
+.B p9any
+uses the fourth edition Plan 9 authentication mechanisms.
 The file 
 .BR /etc/u9fs.key ,
 or
