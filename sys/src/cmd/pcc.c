@@ -11,14 +11,13 @@ typedef struct Objtype {
 } Objtype;
 
 Objtype objtype[] = {
-	{"arm",	"5c", "5l", "5", "5.out"},
-	{"mips2",	"4c", "4l", "4", "4.out"},
-	{"mips",	"vc", "vl", "v", "v.out"},
-	{"68000",	"1c", "1l", "1", "1.out"},
 	{"68020",	"2c", "2l", "2", "2.out"},
-	{"sparc",	"kc", "kl", "k", "k.out"},
-	{"386",		"8c", "8l", "8", "8.out"},
+	{"arm",		"5c", "5l", "5", "5.out"},
+	{"amd64",	"6c", "6l", "6", "6.out"},
 	{"alpha",	"7c", "7l", "7", "7.out"},
+	{"386",		"8c", "8l", "8", "8.out"},
+	{"sparc",	"kc", "kl", "k", "k.out"},
+	{"mips",	"vc", "vl", "v", "v.out"},
 	{"power",	"qc", "ql", "q", "q.out"},
 };
 
@@ -79,8 +78,10 @@ main(int argc, char *argv[])
 			break;
 		case 'w':
 		case 'B':
+		case 'F':
 		case 'N':
 		case 'S':
+		case 'T':
 		case 'V':
 			append(&cc, smprint("-%c", ARGC()));
 			break;
@@ -115,9 +116,6 @@ main(int argc, char *argv[])
 			} else
 				append(&cc, "-a");
 			cflag = 1;
-			break;
-		case 'F':
-			append(&cc, "-F");
 			break;
 		default:
 			fprint(2, "pcc: flag -%c ignored\n", ARGC());

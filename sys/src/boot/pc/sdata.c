@@ -874,7 +874,8 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 
 	qlock(ctlr);
 
-	if(ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 107*1000) < 0){
+	as = ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 107*1000);
+	if(as < 0 || (as&Chk)){
 		qunlock(ctlr);
 		return -1;
 	}

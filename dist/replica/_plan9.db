@@ -5444,7 +5444,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1060267144 3797
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1112461125 52220
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1045063730 27355
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1032059019 12455
-sys/src/9/pc/sdata.c - 664 sys sys 1112382836 51083
+sys/src/9/pc/sdata.c - 664 sys sys 1112727807 51105
 sys/src/9/pc/sdmylex.c - 664 sys sys 1071245460 27812
 sys/src/9/pc/sdscsi.c - 664 sys sys 1077033661 7487
 sys/src/9/pc/trap.c - 664 sys sys 1105109602 20537
@@ -5613,7 +5613,7 @@ sys/src/ape/9src/tty.h - 664 sys sys 1014921996 2407
 sys/src/ape/cmd - 20000000775 sys sys 1014921977 0
 sys/src/ape/cmd/README - 664 sys sys 1014921974 2953
 sys/src/ape/cmd/basename.c - 664 sys sys 1014921974 729
-sys/src/ape/cmd/cc.c - 664 sys sys 1023741702 7363
+sys/src/ape/cmd/cc.c - 664 sys sys 1112707823 7362
 sys/src/ape/cmd/diff - 20000000775 sys sys 1046198752 0
 sys/src/ape/cmd/diff/COPYING - 664 sys sys 1046198741 17982
 sys/src/ape/cmd/diff/ChangeLog - 664 sys sys 1046198741 66704
@@ -6571,7 +6571,7 @@ sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1094674489 2271
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1077033951 52135
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdata.c - 664 sys sys 1112382847 38084
+sys/src/boot/pc/sdata.c - 664 sys sys 1112727812 38106
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1015007955 28743
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1077033682 7022
 sys/src/boot/pc/trap.c - 664 sys sys 1018462833 7098
@@ -9822,7 +9822,7 @@ sys/src/cmd/paqfs/mkpaqfs.c - 664 sys sys 1072729575 8836
 sys/src/cmd/paqfs/paqfs.c - 664 sys sys 1084470285 19571
 sys/src/cmd/paqfs/paqfs.h - 664 sys sys 1072729575 1016
 sys/src/cmd/pbd.c - 664 sys sys 944961351 247
-sys/src/cmd/pcc.c - 664 sys sys 1048644546 5994
+sys/src/cmd/pcc.c - 664 sys sys 1112744693 5937
 sys/src/cmd/pic - 20000000775 sys sys 954037275 0
 sys/src/cmd/pic/arcgen.c - 664 sys sys 944961042 5999
 sys/src/cmd/pic/blockgen.c - 664 sys sys 944961042 5209
@@ -12482,3 +12482,18 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9load - 775 sys sys 1112757508 215872
+386/9loaddebug - 775 sys sys 1112757509 310076
+386/9loadlite - 775 sys sys 1112757508 135244
+386/9loadlitedebug - 775 sys sys 1112757509 199047
+386/9pc - 775 sys sys 1112757401 1833344
+386/9pc.gz - 664 sys sys 1112757510 643423
+386/9pccpu - 775 sys sys 1112757404 1487894
+386/9pccpu.gz - 664 sys sys 1112757511 529529
+386/9pcdisk - 775 sys sys 1112757408 2039046
+386/9pcdisk.gz - 664 sys sys 1112757513 733576
+386/9pcf - 775 sys sys 1112757412 2381878
+386/9pcf.gz - 664 sys sys 1112757515 886966
+386/9pxeload - 775 sys sys 1112757508 215872
+386/bin/pcc - 775 sys sys 1112757395 67806
+386/bin/ape/cc - 775 sys sys 1112757395 70297
