@@ -16861,3 +16861,15 @@
 1041229876 0 c 386/lib/libregexp.a - 664 sys sys 1041228419 37356
 1041262210 0 a sys/man/3/fs - 664 sys sys 1041261485 2707
 1041262210 1 a sys/src/9/port/devfs.c - 664 sys sys 1041261474 11170
+1041350417 0 c sys/src/9/port/devfs.c - 664 sys sys 1041350175 11171
+1041361316 0 c sys/src/fs/choline/9cholinefs.c - 664 sys sys 1041361226 2962
+1041361316 1 c sys/src/fs/emelie/9pcfs.c - 664 sys sys 1041361237 2962
+1041361316 2 c sys/src/fs/port/9p2.c - 664 sys sys 1041361346 36053
+1041361316 3 c sys/src/fs/port/auth.c - 664 sys sys 1041361345 7608
+1041361316 4 c sys/src/fs/port/data.c - 664 sys sys 1041361346 4411
+1041361316 5 c sys/src/fs/port/portdat.h - 664 sys sys 1041361347 16579
+1041361316 6 c sys/src/fs/port/time.c - 664 sys sys 1041361347 6179
+1041361316 7 c sys/src/fs/roro/9rorofs.c - 664 sys sys 1041361248 2914
+1041361316 8 c sys/src/fs/sony/9sonyfs.c - 664 sys sys 1041361261 2962
+1041364878 0 c sys/src/libc/9sys/dirfstat.c - 664 sys sys 1041363499 676
+1041364878 1 c sys/src/libc/9sys/dirstat.c - 664 sys sys 1041363499 688
