@@ -2,7 +2,6 @@
 
 rfork e
 
-slashnhack=yes
 
 smon='s/Jan/01/
 	s/Feb/02/
@@ -18,7 +17,7 @@ smon='s/Jan/01/
 	s/Dec/12/'
 
 fn usage {
-	echo 'usage: yesterday [-abcCdDN] [-[[[yy]yy]mm]dd] [-n daysago] file ...' >[1=2]
+	echo 'usage: yesterday [-abcCdDs] [-[[[yy]yy]mm]dd] [-n daysago] file ...' >[1=2]
 	exit 'usage'
 }
 
@@ -80,10 +79,6 @@ while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 --){
 	case -s
 		defdump=snap
 		shift
-# The slashnhack is always right.
-#	case -N
-#		slashnhack=no
-#		shift
 	case -n*
 		if(~ $1 -n){
 			if(~ $#* 1)
@@ -133,7 +128,7 @@ for(i){
 	xpath=`{cleanname -d $dir -- $i}
 	xdump=$defdump
 	dumppath=$xpath
-	if(~ $slashnhack yes && ~ $xpath /n/*/*){
+	if(~ $xpath /n/*/*){
 		xdump=`{echo $xpath | sed 's:/n/([^/]+)/.*:\1'$defdump':'}
 		dumppath=`{echo $xpath | sed 's:/n/[^/]+(/.*):\1:'}
 	}
