@@ -492,7 +492,7 @@ function must be provided; it fills
 with at most
 .IB r -> ifcall . count
 bytes of data from offset
-.IB r -> ofcall . offset
+.IB r -> ifcall . offset
 of the file.
 It also sets
 .IB r -> ofcall . count

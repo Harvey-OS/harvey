@@ -17131,3 +17131,12 @@
 1043933432 2 c sys/src/9/bitsy/mkfile - 664 sys sys 1043922405 2438
 1043933432 3 c sys/src/9/bitsy/wavelan.c - 664 sys sys 1043922422 25684
 1043933432 4 d sys/src/9/bitsy/initcode - 664 sys sys 1017695514 0
+1044032419 0 c 386/bin/bitsy/keyboard - 775 sys sys 1044031527 300929
+1044032419 1 c 386/bin/bitsy/prompter - 775 sys sys 1044031528 283113
+1044032419 2 c 386/lib/ape/libap.a - 664 sys sys 1044031555 780602
+1044032419 3 c 386/lib/libthread.a - 664 sys sys 1044031555 68178
+1044032419 4 c sys/lib/man/lookman/index - 664 sys sys 1044031559 1400691
+1044034220 0 m sys/src/9/bitsy/init9.s - 664 sys sys 1043922398 183
+1044034220 1 m sys/src/9/bitsy/sd.h - 664 sys sys 1037029038 0
+1044034220 2 m sys/src/9/bitsy/sdata.c - 664 sys sys 1037029041 44666
+1044052234 0 c sys/man/2/9p - 664 sys sys 1044050898 14553
