@@ -32,7 +32,7 @@ nfs \- Sun network file system client
 .I cmd
 ...
 .PP
-.B aux/nfsmonut
+.B aux/nfsmount
 [
 .B -R
 ]
@@ -51,7 +51,7 @@ If one address is given, it is taken to be the address of a port mapper service;
 .I nfs
 queries the port mapper to find the addresses
 of the NFS mount service and file service.
-If two addresses are given, the port mapper is bypassed;
+If two addresses are given, the port mapper is bypasswd;
 .I addr1
 is used as the address of the NFS mount service,
 and
@@ -106,13 +106,77 @@ on most Unix systems).
 and
 .I nfsmount
 are test programs to perform port mapper and NFS mount RPCs.
-Run
-.B aux/portmap
-.B -?
-and
-.B aux/nfsmount
-.B -?
-for lists of commands.
+They
+are useful mainly to help debug problems with
+starting 
+.I nfs
+itself.
+The 
+.B -R
+option causes them to print all RPC messages sent and received.
+.PP
+.I Portmap
+queries a Sun RPC portmap server, which maps integer
+(program, version, protocol) triples to port numbers.
+Program and version are Sun RPC defined, while protocol
+is typically TCP (6) or UDP (17).
+The commands are:
+.TP
+.B null
+a no-op
+.TP
+.B dump
+print the entire map
+.TP
+.B set \fIprog\fP \fIvers\fP \fIproto\fP \fIport\fP
+add an entry to (or replace an entry in) the map
+.TP
+.B unset \fIprog\fP \fIvers\fP \fIproto\fP \fIport\fP
+remove an entry from the map
+.TP
+.B getport \fIprog\fP \fIvers\fP \fIproto\fP
+look for an entry with \fIprog\fP, \fIvers\fP, \fIproto\fP
+in the map, and return the corresponding port
+.PD
+The default command is
+.BR dump .
+For running NFS over UDP, there must be an entry
+for the NFS v3 mount daemon (100005, 3, 17) and the
+NFS v3 server itself (100003, 3, 17).  
+.PP
+.I Nfsmount
+queries a Sun NFS mount server, which authenticates (ha!)
+connections and hands out file handles naming the root of
+an exported file system.  This handle is used as the basis
+for a conversation with the NFS service daemon itself.
+The commands are:
+.TP
+.B null
+a no-op
+.TP
+.B export
+dump the export table;
+each line is a path followed by a list of machines or groups
+allowed to mount that path
+.TP
+.B mnt \fIpath\fR
+attempt to acquire a file handle for \fIpath\fR.
+the request has user and group id 1001 and
+.L gnot
+as the system name.
+.TP
+.B umnt \fIpath\fR
+notify the mount daemon that a particular path is being
+unmounted by the requesting system
+.TP
+.B umntall
+notify the mount daemon that all paths mounted by the
+requesting system are being unmounted
+.TP
+.B dump
+should also dump an export table, but typically 
+does nothing
+.PD
 .SH EXAMPLE
 We use this in our
 .B /rc/bin/9fs

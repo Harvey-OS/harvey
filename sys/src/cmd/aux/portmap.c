@@ -166,7 +166,7 @@ threadmain(int argc, char **argv)
 		break;
 	}ARGEND
 
-	if(argc < 2)
+	if(argc < 1)
 		usage();
 
 	fmtinstall('B', sunRpcFmt);

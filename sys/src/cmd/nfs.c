@@ -840,7 +840,8 @@ readmap(char *passwd, char *group)
 				continue;
 			}
 			if(u->ng >= nelem(u->g)){
-				fprint(2, "%s:%d: user %s is in too many groups; ignoring %s\n", group, line, p, name);
+				if(verbose)
+					fprint(2, "%s:%d: user %s is in too many groups; ignoring %s\n", group, line, p, name);
 				continue;
 			}
 			u->g[u->ng++] = gid;
@@ -1016,6 +1017,7 @@ fsopen(Req *r)
 {
 	FidAux *aux;
 	Nfs3Attr attr;
+	Nfs3SetAttr sa;
 	u1int have;
 	ulong a, b;
 
@@ -1023,25 +1025,32 @@ fsopen(Req *r)
 	a = 0;
 	switch(r->ifcall.mode&OMASK){
 	case OREAD:
-		a = 1;
+		a = 0x0001;
 		break;
 	case OWRITE:
-		a = 2;
+		a = 0x0004;
 		break;
 	case ORDWR:
-		a = 3;
+		a = 0x0001|0x0004;
 		break;
 	case OEXEC:
 		a = 0x20;
 		break;
 	}
 	if(r->ifcall.mode&OTRUNC)
-		a = 0x10;
+		a |= 0x0004;
 
 	if(nfsAccess(aux->auth, r->tag, &aux->handle, a, &b, &have, &attr) < 0
 	|| (!have && nfsGetattr(aux->auth, r->tag, &aux->handle, &attr) < 0)){
+    Error:
 		responderrstr(r);
 		return;
+	}
+	if(r->ifcall.mode&OTRUNC){
+		memset(&sa, 0, sizeof sa);
+		sa.setSize = 1;
+		if(nfsSetattr(aux->auth, r->tag, &aux->handle, &sa) < 0)
+			goto Error;
 	}
 	attrToQid(&attr, &r->fid->qid);
 	r->ofcall.qid = r->fid->qid;

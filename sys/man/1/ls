@@ -42,7 +42,7 @@ List in long format, giving mode (see below), file system type
 (e.g., for devices, the
 .B #
 code letter that names it; see
-.IR Intro (4)),
+.IR intro (3)),
 the instance or subdevice number, owner, group,
 size in bytes, and time of last modification
 for each file.

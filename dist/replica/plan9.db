@@ -124,7 +124,7 @@
 386/bin/aux/p9bitpost - 775 sys sys 1047307246 128070
 386/bin/aux/pcmcia - 775 sys sys 1039758543 46790
 386/bin/aux/pcnfsd - 775 sys sys 1045537955 126750
-386/bin/aux/portmap - 775 sys sys 1046368787 140955
+386/bin/aux/portmap - 775 sys sys 1049840989 141624
 386/bin/aux/portmapper - 775 sys sys 1045537955 125638
 386/bin/aux/postgif - 775 sys sys 1048745022 174648
 386/bin/aux/postprint - 775 sys sys 1048745023 159149
@@ -309,7 +309,7 @@
 386/bin/netkey - 775 sys sys 1039758579 70753
 386/bin/netstat - 775 sys sys 1045538036 81379
 386/bin/news - 775 sys sys 1045538036 70512
-386/bin/nfs - 775 sys sys 1048745058 316048
+386/bin/nfs - 775 sys sys 1049840990 316945
 386/bin/nm - 775 sys sys 1045538037 123227
 386/bin/nntpfs - 775 sys sys 1048745059 162301
 386/bin/ns - 775 sys sys 1039758580 63830
@@ -4487,7 +4487,7 @@ sys/man/1/lens - 664 sys sys 1029431866 1230
 sys/man/1/lex - 664 sys sys 1032058565 1520
 sys/man/1/look - 664 sys sys 944959673 1348
 sys/man/1/lp - 664 sys sys 1015024739 3304
-sys/man/1/ls - 664 sys sys 1027260860 2791
+sys/man/1/ls - 664 sys sys 1049813576 2791
 sys/man/1/mail - 664 sys sys 1035832988 2159
 sys/man/1/man - 664 sys sys 954378836 1611
 sys/man/1/marshal - 664 sys sys 1045501381 3308
@@ -4768,7 +4768,7 @@ sys/man/4/kfs - 664 sys sys 1019058716 2159
 sys/man/4/lnfs - 664 sys sys 1048643973 1215
 sys/man/4/mntgen - 664 sys sys 1043680799 473
 sys/man/4/namespace - 664 sys sys 1018386777 6916
-sys/man/4/nfs - 664 sys sys 1049135219 2740
+sys/man/4/nfs - 664 sys sys 1049776970 4475
 sys/man/4/nntpfs - 664 sys sys 1032632346 2771
 sys/man/4/paqfs - 664 sys sys 1017723482 1541
 sys/man/4/plumber - 664 sys sys 944959699 2748
@@ -6683,7 +6683,7 @@ sys/src/cmd/aux/na/na.y - 775 sys sys 1015008889 25158
 sys/src/cmd/aux/nfsmount.c - 664 sys sys 1045589268 6202
 sys/src/cmd/aux/olefs.c - 664 sys sys 1014925094 9627
 sys/src/cmd/aux/pcmcia.c - 664 sys sys 1014925094 8223
-sys/src/cmd/aux/portmap.c - 664 sys sys 1045589269 3617
+sys/src/cmd/aux/portmap.c - 664 sys sys 1049776133 3617
 sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
 sys/src/cmd/aux/reboot.c - 664 sys sys 1014925091 1411
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
@@ -9328,7 +9328,7 @@ sys/src/cmd/ndb/query.c - 664 sys sys 957402054 1133
 sys/src/cmd/ndb/time.c - 664 sys sys 957402055 321
 sys/src/cmd/netstat.c - 664 sys sys 1038237140 3796
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
-sys/src/cmd/nfs.c - 664 sys sys 1048644535 30830
+sys/src/cmd/nfs.c - 664 sys sys 1049839711 31035
 sys/src/cmd/nm.c - 664 sys sys 1014926696 4908
 sys/src/cmd/nntpfs.c - 664 sys sys 1048644540 18869
 sys/src/cmd/ns.c - 664 sys sys 984717934 3558
