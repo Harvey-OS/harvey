@@ -53,3 +53,5 @@ If the mailbox
 	/mail/box/$user/outgoing
 exists, Acme Mail will save your a copy of your outgoing messages
 there.  Attachments are described in the copy but not included.
+
+The -m mntpoint flag specifies a different mount point for /upas/fs.

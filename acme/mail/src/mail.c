@@ -96,6 +96,9 @@ threadmain(int argc, char *argv[])
 	case 'o':
 		outgoing = EARGF(usage());
 		break;
+	case 'm':
+		smprint(maildir, "%s/", EARGF(usage()));
+		break;
 	default:
 		usage();
 	}ARGEND

@@ -218,8 +218,6 @@ cgen(Node *n, Node *nn)
 			break;
 		}
 
-		if(l->op == OBIT)
-			goto asbitop;
 		if(l->complex >= r->complex) {
 			if(l->addable < INDEXED)
 				reglcgen(&nod2, l, Z);
@@ -238,6 +236,12 @@ cgen(Node *n, Node *nn)
 
 		regalloc(&nod, n, nn);
 		gmove(&nod2, &nod);
+		if(nod1.type->etype != nod.type->etype){
+			regalloc(&nod3, &nod, Z);
+			gmove(&nod1, &nod3);
+			regfree(&nod1);
+			nod1 = nod3;
+		}
 		gopcode(o, &nod1, Z, &nod);
 		gmove(&nod, &nod2);
 		if(nn != Z)
