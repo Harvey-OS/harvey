@@ -388,9 +388,9 @@ pcmctlwrite(char *p, long n, ulong, PCMslot *sp)
 				error("bad configuration index");
 			index = i;
 		}
-		if(sp->cpresent & (1<<Rconfig)){
+		if(sp->cfg[0].cpresent & (1<<Rconfig)){
 			cp = sp->attr;
-			cp += sp->caddr + Rconfig;
+			cp += sp->cfg[0].caddr + Rconfig;
 			*cp = index;
 		}
 

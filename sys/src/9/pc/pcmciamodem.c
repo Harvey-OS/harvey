@@ -29,6 +29,7 @@ static char* modems[] = {
 	"GSM/GPRS",
 	"AirCard 555",
 	"Gold Card Global",		/* Psion V90 Gold card */
+	"Merlin UMTS Modem",		/* Novatel card */
 	0,
 };
 
@@ -61,7 +62,6 @@ pcmciamodemlink(void)
 			} else
 				break;
 		}
-
 		slot = pcmspecial(modems[j], &isa);
 		if(slot >= 0){
 			if(usingcom2)

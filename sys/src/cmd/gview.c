@@ -1994,7 +1994,7 @@ void main(int argc, char *argv[])
 			fprintf(stderr,"Cannot read input file %s\n", *argv);
 			exits("no valid input file");
 		} else if (e > 0) {
-			fprintf(stderr,"Bad syntax at line %d of file %s\n", e, *argv);
+			fprintf(stderr,"Bad syntax at line %d of file %s\n", e, *argv ? *argv : "-");
 			exits("bad syntax in input");
 		}
 	} while (*argv && *++argv);

@@ -6,6 +6,10 @@
 #include "../port/error.h"
 #include "io.h"
 
+enum{
+	Linktarget = 0x13,
+};
+	
 /*
  *  read and crack the card information structure enough to set
  *  important parameters like power
@@ -21,6 +25,7 @@ typedef struct Cisdat {
 static void	tcfig(PCMslot*, Cisdat*, int);
 static void	tentry(PCMslot*, Cisdat*, int);
 static void	tvers1(PCMslot*, Cisdat*, int);
+static void	tlonglnkmfc(PCMslot*, Cisdat*, int);
 
 static int
 readc(Cisdat *cis, uchar *x)
@@ -106,8 +111,8 @@ pcmcisread(PCMslot *pp)
 	uchar type, link;
 
 	memset(pp->ctab, 0, sizeof(pp->ctab));
-	pp->caddr = 0;
-	pp->cpresent = 0;
+	pp->ncfg = 0;
+	memset(pp->cfg, 0, sizeof(pp->cfg));
 	pp->configed = 0;
 	pp->nctab = 0;
 	pp->verstr[0] = 0;
@@ -136,6 +141,9 @@ pcmcisread(PCMslot *pp)
 
 		switch(type){
 		default:
+			break;
+		case 6:
+			tlonglnkmfc(pp, &cis, type);
 			break;
 		case 0x15:
 			tvers1(pp, &cis, type);
@@ -183,8 +191,15 @@ tcfig(PCMslot *pp, Cisdat *cis, int )
 	rmsize = ((size>>2)&0xf) + 1;
 	if(readc(cis, &last) != 1)
 		return;
-	pp->caddr = getlong(cis, rasize);
-	pp->cpresent = getlong(cis, rmsize);
+
+	if(pp->ncfg >= 8){
+		print("tcfig: too many configuration registers\n");
+		return;
+	}
+	
+	pp->cfg[pp->ncfg].caddr = getlong(cis, rasize);
+	pp->cfg[pp->ncfg].cpresent = getlong(cis, rmsize);
+	pp->ncfg++;
 }
 
 static ulong vexp[8] =
@@ -469,4 +484,56 @@ tvers1(PCMslot *pp, Cisdat *cis, int )
 		last = c;
 	}
 	pp->verstr[i] = 0;
+}
+
+static void
+tlonglnkmfc(PCMslot *pp, Cisdat *cis, int)
+{
+	int i, npos, opos;
+	uchar nfn, space, expect, type, this, link;
+
+	readc(cis, &nfn);
+	for(i = 0; i < nfn; i++){
+		readc(cis, &space);
+		npos        = getlong(cis, 4);
+		opos        = cis->cispos;
+		cis->cispos = npos;
+		expect      = Linktarget;
+
+		while(1){
+			this = cis->cispos;
+			if(readc(cis, &type) != 1)
+				break;
+			if(type == 0xFF)
+				break;
+			if(readc(cis, &link) != 1)
+				break;
+
+			if(expect && expect != type){
+				print("tlonglnkmfc: expected %X found %X\n",
+					expect, type);
+				break;
+			}
+			expect = 0;
+
+			switch(type){
+			default:
+				break;
+			case 0x15:
+				tvers1(pp, cis, type);
+				break;
+			case 0x1A:
+				tcfig(pp, cis, type);
+				break;
+			case 0x1B:
+				tentry(pp, cis, type);
+				break;
+			}
+
+			if(link == 0xFF)
+				break;
+			cis->cispos = this + (2+link);
+		}
+		cis->cispos = opos;
+	}
 }
