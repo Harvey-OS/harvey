@@ -8,6 +8,8 @@ TARG=jpg\
 	png\
 	topng\
 	yuv\
+	ico\
+	toico\
 
 IMFILES=\
 	torgbv.$O\

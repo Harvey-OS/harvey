@@ -97,10 +97,22 @@ main(int argc, char *argv[])
 		b1s += n;
 		b2s += n;
 	}
+	if (b1e - b1s < 0 || b2e - b2s < 0) {
+		if (!sflag) {
+			if (b1e - b1s < 0)
+				print("error on %s after %lld bytes\n",
+					name1, nc-1);
+			if (b2e - b2s < 0)
+				print("error on %s after %lld bytes\n",
+					name2, nc-1);
+		}
+		exits("read error");
+	}
 	if(b1e - b1s == b2e - b2s)
 		exits((char *)0);
 	if(!sflag)
-		print("EOF on %s\n", (b1e - b1s > b2e - b2s)? name2 : name1);
+		print("EOF on %s after %lld bytes\n",
+			(b1e - b1s > b2e - b2s)? name2 : name1, nc-1);
 	exits("EOF");
 }
 

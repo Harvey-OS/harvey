@@ -3928,7 +3928,7 @@ sys/lib/man/lookman - 20000000775 sys sys 956337764 0
 sys/lib/man/lookman/index - 664 sys sys 1045538133 1405018
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
-sys/lib/man/mkhtmlindex - 775 sys sys 959447575 1235
+sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
 sys/lib/man/mksearchindex - 775 sys sys 959447575 197
 sys/lib/man/permind - 20000000775 sys sys 959447712 0
 sys/lib/man/permind/bfile - 664 sys sys 956337769 17
@@ -4640,7 +4640,7 @@ sys/man/1/history - 664 sys sys 1044909169 1709
 sys/man/1/hoc - 664 sys sys 944959676 2357
 sys/man/1/idiff - 664 sys sys 1018386774 927
 sys/man/1/join - 664 sys sys 957920006 2562
-sys/man/1/jpg - 664 sys sys 1068209494 4003
+sys/man/1/jpg - 664 sys sys 1072106983 4789
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
 sys/man/1/leak - 664 sys sys 1017423522 2871
@@ -7249,7 +7249,7 @@ sys/src/cmd/chgrp.c - 664 sys sys 1014926580 624
 sys/src/cmd/chmod.c - 664 sys sys 1014926580 1858
 sys/src/cmd/cleanname.c - 664 sys sys 944960760 715
 sys/src/cmd/clock.c - 664 sys sys 1014925410 1881
-sys/src/cmd/cmp.c - 664 sys sys 1019525053 2098
+sys/src/cmd/cmp.c - 664 sys sys 1072145760 2379
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
 sys/src/cmd/comm.c - 664 sys sys 944961350 2140
 sys/src/cmd/con - 20000000775 sys sys 944961996 0
@@ -9519,10 +9519,11 @@ sys/src/cmd/join.c - 664 sys sys 944961364 7488
 sys/src/cmd/jpg - 20000000775 sys sys 988249983 0
 sys/src/cmd/jpg/close.c - 664 sys sys 944961292 1930
 sys/src/cmd/jpg/gif.c - 664 sys sys 1045505400 8844
+sys/src/cmd/jpg/ico.c - 664 sys sys 1072107030 8799
 sys/src/cmd/jpg/imagefile.h - 664 sys sys 988225303 2246
 sys/src/cmd/jpg/jpegdump.c - 664 sys sys 1018802871 7161
 sys/src/cmd/jpg/jpg.c - 664 sys sys 1014926432 7389
-sys/src/cmd/jpg/mkfile - 664 sys sys 1067719079 1000
+sys/src/cmd/jpg/mkfile - 664 sys sys 1072107030 1014
 sys/src/cmd/jpg/multichan.c - 664 sys sys 1039753047 825
 sys/src/cmd/jpg/onechan.c - 664 sys sys 1039753044 3732
 sys/src/cmd/jpg/png.c - 664 sys sys 1014926432 4655
@@ -9535,6 +9536,7 @@ sys/src/cmd/jpg/readyuv.c - 664 sys sys 1067742240 3502
 sys/src/cmd/jpg/rgbrgbv.c - 664 sys sys 984718829 1236
 sys/src/cmd/jpg/rgbycc.c - 664 sys sys 944961292 2486
 sys/src/cmd/jpg/togif.c - 664 sys sys 944961292 2828
+sys/src/cmd/jpg/toico.c - 664 sys sys 1072107030 5638
 sys/src/cmd/jpg/topng.c - 664 sys sys 988225303 1116
 sys/src/cmd/jpg/toppm.c - 664 sys sys 944961292 1571
 sys/src/cmd/jpg/torgbv.c - 664 sys sys 1067719080 6443
