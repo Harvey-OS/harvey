@@ -424,7 +424,7 @@
 386/bin/tr - 775 sys sys 1104122066 61851
 386/bin/trace - 775 sys sys 1104122067 180734
 386/bin/troff - 775 sys sys 1094040114 357714
-386/bin/troff2html - 775 sys sys 1105589129 79914
+386/bin/troff2html - 775 sys sys 1105675429 85684
 386/bin/tweak - 775 sys sys 1104122068 191750
 386/bin/unicode - 775 sys sys 1104122068 62523
 386/bin/uniq - 775 sys sys 1104122068 61900
@@ -12457,4 +12457,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/troff2html - 775 sys sys 1105675429 85684
