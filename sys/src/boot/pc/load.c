@@ -548,5 +548,12 @@ warp9(ulong entry)
 		sddetach();
 
 	consdrain();
+	/*
+	 * This is where to push things on the stack to
+	 * boot *BSD systems, e.g.
+	(*(void(*)(void*, void*, void*, void*, ulong, ulong))(PADDR(entry)))(0, 0, 0, 0, 8196, 640);
+	 * will enable NetBSD boot (the real memory size needs to
+	 * go in the 5th argument).
+	 */
 	(*(void(*)(void))(PADDR(entry)))();
 }

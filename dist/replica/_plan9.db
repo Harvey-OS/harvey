@@ -6482,14 +6482,14 @@ sys/src/boot/pc/8250.c - 664 sys sys 1015007947 5727
 sys/src/boot/pc/alarm.c - 664 sys sys 1015007947 1668
 sys/src/boot/pc/apm.c - 664 sys sys 1015007947 289
 sys/src/boot/pc/bcom.c - 664 sys sys 1032215919 6421
-sys/src/boot/pc/boot.c - 664 sys sys 1021579983 3353
+sys/src/boot/pc/boot.c - 664 sys sys 1109364490 8418
 sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
 sys/src/boot/pc/bootp.c - 664 sys sys 1107882190 12147
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
 sys/src/boot/pc/clock.c - 664 sys sys 1103641772 6425
 sys/src/boot/pc/conf.c - 664 sys sys 1094674484 10217
 sys/src/boot/pc/console.c - 664 sys sys 1094674483 3388
-sys/src/boot/pc/dat.h - 664 sys sys 1094674488 3518
+sys/src/boot/pc/dat.h - 664 sys sys 1109364490 3565
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1019533020 23202
@@ -6520,7 +6520,7 @@ sys/src/boot/pc/etherigbe.c - 664 sys sys 1096379796 39825
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1071175087 12403
-sys/src/boot/pc/fns.h - 664 sys sys 1094674488 4146
+sys/src/boot/pc/fns.h - 664 sys sys 1109364490 4221
 sys/src/boot/pc/fs.c - 664 sys sys 1094674483 1509
 sys/src/boot/pc/fs.h - 664 sys sys 1094674488 653
 sys/src/boot/pc/ilock.c - 664 sys sys 1015007952 303
@@ -6532,7 +6532,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1103641771 13843
 sys/src/boot/pc/lib.h - 664 sys sys 1094674487 2794
-sys/src/boot/pc/load.c - 664 sys sys 1094674484 8635
+sys/src/boot/pc/load.c - 664 sys sys 1109364491 8903
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1103641771 3371
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
