@@ -8,7 +8,7 @@ LDFLAGS=
 YFLAGS=-d
 
 NOTSYS=sml|dup
-BUGGERED=gc|lmlvideo|dwb|unix|perl|celp|mosml|ovac|vfs|aviation|tex
+BUGGERED=gc|lmlvideo|dwb|unix|perl|celp|mosml|ovac|vfs|aviation|_vnc|postscript
 OUTOFDATE=old|ssls
 
 NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
@@ -107,7 +107,20 @@ installall:V:
 $BIN/init:	$O.init
 	cp $prereq /$objtype/init
 
+$O.cj:	cj.$O
+	$LD $LDFLAGS -o $O.cj cj.$O /$objtype/lib/libjpg.a
+
 %.update:V:
 	update $stem.c /386/bin/$stem
 
-
+compilers:V:
+	@{
+		cd cc
+		mk installall
+		mk clean
+	}
+	for(i in 1c 2c 5c 7c 8c kc qc vc) @{
+		cd $i;
+		mk installall
+		mk clean
+	}

@@ -510,3 +510,7 @@ gets mounted
 .SH SEE ALSO
 .IR ndb (2)
 .IR ndb (6)
+.SH BUGS
+.I Ndb
+databases are case-sensitive; 
+ethernet addresses must be in lower-case hexadecimal.

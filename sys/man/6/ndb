@@ -168,6 +168,7 @@ Internet address
 .TP
 .B ether
 Ethernet address
+(must be lower-case hexadecimal)
 .TP
 .B bootf
 file to download for initial bootstrap
