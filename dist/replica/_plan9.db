@@ -43,7 +43,7 @@
 386/bin/ascii - 775 sys sys 1102171653 64633
 386/bin/astro - 775 sys sys 1085076975 138775
 386/bin/auth - 20000000775 sys sys 1016920815 0
-386/bin/auth/aescbc - 775 sys sys 1102171653 133192
+386/bin/auth/aescbc - 775 sys sys 1103947526 133193
 386/bin/auth/asn12rsa - 775 sys sys 1102171653 119609
 386/bin/auth/authsrv - 775 sys sys 1102171654 165428
 386/bin/auth/changeuser - 775 sys sys 1102171654 96991
@@ -71,9 +71,9 @@
 386/bin/auth/rsafill - 775 sys sys 1102171661 143381
 386/bin/auth/rsagen - 775 sys sys 1102171662 153006
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
-386/bin/auth/secstore - 775 sys sys 1102171662 189195
-386/bin/auth/secstored - 775 sys sys 1102171663 196590
-386/bin/auth/secuser - 775 sys sys 1102171663 152255
+386/bin/auth/secstore - 775 sys sys 1103947527 189196
+386/bin/auth/secstored - 775 sys sys 1103947527 196591
+386/bin/auth/secuser - 775 sys sys 1103947528 152264
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1102171663 63017
 386/bin/auth/warning - 775 sys sys 1102171664 99524
@@ -1257,7 +1257,7 @@ lib/face/48x48x2/x - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/y - 20000000755 sys sys 944941683 0
 lib/face/48x48x2/z - 20000000755 sys sys 944941683 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1097900894 2501
+lib/face/48x48x4/.dict - 664 sys sys 1103981657 2530
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -12449,7 +12449,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/auth/aescbc - 775 sys sys 1103947526 133193
-386/bin/auth/secstore - 775 sys sys 1103947527 189196
-386/bin/auth/secstored - 775 sys sys 1103947527 196591
-386/bin/auth/secuser - 775 sys sys 1103947528 152264
