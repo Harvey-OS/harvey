@@ -17125,3 +17125,6 @@
 1101668515 7 c sys/man/4/fossil - 664 sys sys 1101668322 9564
 1101733206 0 c sys/man/4/factotum - 664 sys sys 1101733103 14455
 1101787217 0 c sys/man/4/factotum - 664 sys sys 1101786384 14455
+1101830425 0 c sys/games/lib/fortunes - 664 sys sys 1101830177 251359
+1101832226 0 c sys/man/4/usb - 664 sys sys 1101830658 3423
+1101832226 1 c sys/src/cmd/usb/misc/usbprint - 775 sys sys 1101830683 256

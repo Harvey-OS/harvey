@@ -3337,7 +3337,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1100795513 251274
+sys/games/lib/fortunes - 664 sys sys 1101830177 251359
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -5018,7 +5018,7 @@ sys/man/4/tapefs - 664 sys sys 944959699 1731
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
-sys/man/4/usb - 664 sys sys 1101397021 3413
+sys/man/4/usb - 664 sys sys 1101830658 3423
 sys/man/4/usbd - 664 sys sys 1018386778 731
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
@@ -10949,7 +10949,7 @@ sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091205037 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1091205037 274
 sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1099760451 3451
-sys/src/cmd/usb/misc/usbprint - 775 sys sys 1091205037 234
+sys/src/cmd/usb/misc/usbprint - 775 sys sys 1101830683 256
 sys/src/cmd/usb/mkfile - 664 sys sys 1091327562 354
 sys/src/cmd/usb/mouse - 20000000775 sys sys 1017802022 0
 sys/src/cmd/usb/printer - 20000000775 sys sys 1073007760 0

@@ -2,7 +2,7 @@
 .SH NAME
 usbmouse,
 usbaudio,
-usbprinter
+usbprint
 \- Universal Serial Bus user level device drivers
 .SH SYNOPSIS
 .B usb/usbmouse
@@ -30,7 +30,7 @@ usbprinter
 .I n
 ]
 .PP
-.B usb/usbprinter
+.B usb/usbprint
 .SH DESCRIPTION
 These programs implement support for specific USB device classes.
 They should be run after
@@ -139,9 +139,9 @@ The data format is little endian, samples ordered primarily by time and
 secondarily by channel.  Samples occupy the minimum integral number
 of bytes.  Read and write operations of arbitrary size are allowed.
 .SS Printers
-.B Usbprinter
+.B Usbprint
 is a script that mounts a usb printer on
-.BR /n/lp .
+.BR /dev/lp .
 .SH EXAMPLE
 .LP
 To use a USB mouse and audio device, put the following in your profile
@@ -153,6 +153,7 @@ if (test -r '#U'/usb0) {
 	usb/usbd
 	usb/usbmouse -a 2
 	usb/usbaudio -v x
+	usb/usbprint
 }
 .EE
 .PP
