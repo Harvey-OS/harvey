@@ -127,7 +127,7 @@
 386/bin/aux/nfsserver - 775 sys sys 1064598080 171173
 386/bin/aux/olefs - 775 sys sys 1064598081 145503
 386/bin/aux/p9bitpost - 775 sys sys 1064598082 127824
-386/bin/aux/pcmcia - 775 sys sys 1064598082 46522
+386/bin/aux/pcmcia - 775 sys sys 1065397226 46816
 386/bin/aux/pcnfsd - 775 sys sys 1064598083 126867
 386/bin/aux/portmap - 775 sys sys 1064598084 141451
 386/bin/aux/portmapper - 775 sys sys 1064598085 125755
@@ -6819,7 +6819,7 @@ sys/src/cmd/aux/na/na.h - 775 sys sys 955036627 267
 sys/src/cmd/aux/na/na.y - 775 sys sys 1015008889 25158
 sys/src/cmd/aux/nfsmount.c - 664 sys sys 1045589268 6202
 sys/src/cmd/aux/olefs.c - 664 sys sys 1014925094 9627
-sys/src/cmd/aux/pcmcia.c - 664 sys sys 1014925094 8223
+sys/src/cmd/aux/pcmcia.c - 664 sys sys 1065397225 8366
 sys/src/cmd/aux/portmap.c - 664 sys sys 1049776133 3617
 sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
 sys/src/cmd/aux/reboot.c - 664 sys sys 1014925091 1411

@@ -181,8 +181,16 @@ tdevice(int ttype, int len)
 		if(id == End)
 			return;
 
+		/* PRISM cards have a device tuple with id = size = 0. */
+		if(id == 0x00){
+			if(readc(&size) != 1)
+				return;
+			len--;
+			continue;
+		}
+
 		speed = id & 0x7;
-		if(speed == 0xE){
+		if(speed == 0x7){
 			if(readc(&speed) != 1)
 				return;
 			len--;

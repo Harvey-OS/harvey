@@ -13841,3 +13841,5 @@
 1065141025 0 c 386/lib/libthread.a - 664 sys sys 1065139515 71512
 1065141025 1 c sys/src/libthread/id.c - 664 sys sys 1065139502 1772
 1065281485 0 a sys/lib/webls.denied - 444 sys sys 1065280436 52
+1065398515 0 c 386/bin/aux/pcmcia - 775 sys sys 1065397226 46816
+1065398515 1 c sys/src/cmd/aux/pcmcia.c - 664 sys sys 1065397225 8366
