@@ -9,13 +9,13 @@
 386/9loaddebug - 775 sys sys 1085583486 270508
 386/9loadlite - 775 sys sys 1077033685 125344
 386/9loadlitedebug - 775 sys sys 1085583486 183619
-386/9pc - 775 sys sys 1085583489 1810627
+386/9pc - 775 sys sys 1087618546 1811884
 386/9pc.gz - 664 sys sys 1077049336 635727
-386/9pccpu - 775 sys sys 1085583493 1464801
+386/9pccpu - 775 sys sys 1087618551 1466062
 386/9pccpu.gz - 664 sys sys 1077049387 519909
-386/9pcdisk - 775 sys sys 1085583499 2013077
+386/9pcdisk - 775 sys sys 1087618555 2014334
 386/9pcdisk.gz - 664 sys sys 1040006345 703136
-386/9pcf - 775 sys sys 1085583502 2333080
+386/9pcf - 775 sys sys 1087618560 2346321
 386/9pcf.gz - 664 sys sys 1077049490 872650
 386/9pxeload - 775 sys sys 1071320501 188380
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -5153,7 +5153,7 @@ sys/src/9/alphapc/fns.h - 664 sys sys 1084331942 3901
 sys/src/9/alphapc/fptrap.c - 664 sys sys 1015012785 707
 sys/src/9/alphapc/i8259.c - 664 sys sys 1015012785 3409
 sys/src/9/alphapc/initcode - 664 sys sys 1039753419 779
-sys/src/9/alphapc/io.h - 664 sys sys 1015012785 4612
+sys/src/9/alphapc/io.h - 664 sys sys 1087657423 4540
 sys/src/9/alphapc/kbd.c - 664 sys sys 1015012785 8676
 sys/src/9/alphapc/l.s - 664 sys sys 1067722580 9124
 sys/src/9/alphapc/main.c - 664 sys sys 1039753420 13626
@@ -5295,7 +5295,7 @@ sys/src/9/mtx/fns.h - 664 sys sys 1084475126 3171
 sys/src/9/mtx/i8259.c - 664 sys sys 1018721286 4695
 sys/src/9/mtx/inb.s - 664 sys sys 1018721286 1476
 sys/src/9/mtx/initcode - 664 sys sys 1039753442 444
-sys/src/9/mtx/io.h - 664 sys sys 1018721286 4889
+sys/src/9/mtx/io.h - 664 sys sys 1087657404 4817
 sys/src/9/mtx/kbd.c - 664 sys sys 1018721286 8358
 sys/src/9/mtx/l.s - 664 sys sys 1067722599 10730
 sys/src/9/mtx/main.c - 664 sys sys 1018721287 8344
@@ -5304,7 +5304,7 @@ sys/src/9/mtx/mkfile - 664 sys sys 1072972534 1520
 sys/src/9/mtx/mmu.c - 664 sys sys 1018721287 4388
 sys/src/9/mtx/mtx - 664 sys sys 1056336297 416
 sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
-sys/src/9/mtx/pci.c - 664 sys sys 1018721287 16662
+sys/src/9/mtx/pci.c - 664 sys sys 1087657434 16662
 sys/src/9/mtx/random.c - 664 sys sys 1036813598 1983
 sys/src/9/mtx/raven.c - 664 sys sys 1018721288 2587
 sys/src/9/mtx/trap.c - 664 sys sys 1084475126 15856
@@ -5365,7 +5365,7 @@ sys/src/9/pc/i8253.c - 664 sys sys 1084475127 6272
 sys/src/9/pc/i8259.c - 664 sys sys 1015014519 4423
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
-sys/src/9/pc/io.h - 664 sys sys 1086987325 8101
+sys/src/9/pc/io.h - 664 sys sys 1087657448 8029
 sys/src/9/pc/kbd.c - 664 sys sys 1079617269 11655
 sys/src/9/pc/l.s - 664 sys sys 1086960172 22732
 sys/src/9/pc/main.c - 664 sys sys 1084475127 14675
@@ -5386,7 +5386,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1073851851 1427
 sys/src/9/pc/pcf - 664 sys sys 1079575654 1462
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1067722894 1383
-sys/src/9/pc/pci.c - 664 sys sys 1086987325 25736
+sys/src/9/pc/pci.c - 664 sys sys 1087657460 25736
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1048635123 1545
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1067722684 5273
 sys/src/9/pc/plan9l.s - 664 sys sys 1015014521 910
