@@ -2,6 +2,8 @@
 #include "dat.h"
 #include "fns.h"
 
+typedef struct ICache		ICache;
+
 struct ICache
 {
 	VtLock	*lock;			/* locks hash table & all associated data */

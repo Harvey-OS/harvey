@@ -38,6 +38,7 @@ extern int	s_read(Biobuf*, String*, int);
 extern char	*s_read_line(Biobuf*, String*);
 extern char	*s_getline(Biobuf*, String*);
 typedef struct Sinstack Sinstack;
+#pragma incomplete Sinstack
 extern char	*s_rdinstack(Sinstack*, String*);
 extern Sinstack	*s_allocinstack(char*);
 extern void	s_freeinstack(Sinstack*);

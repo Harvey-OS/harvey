@@ -79,6 +79,8 @@ enum {
 typedef struct Token Token;
 typedef struct Attr Attr;
 
+#pragma incomplete Token
+
 // BUILD
 
 typedef struct Item Item;
@@ -111,6 +113,9 @@ typedef struct Stack Stack;
 typedef struct Pstate Pstate;
 typedef struct ItemSource ItemSource;
 typedef struct Lay Lay;	// defined in Layout module
+
+#pragma incomplete Lay
+
 
 // Alignment types
 enum {

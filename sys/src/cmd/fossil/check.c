@@ -18,8 +18,6 @@ static void checkDirs(Fsck*);
 #pragma varargck argpos error 2
 #pragma varargck argpos warn 2
 
-int bout;
-
 static Fsck*
 checkInit(Fsck *chk)
 {

@@ -439,7 +439,7 @@ rc* recognizer_get_context(recognizer rec)
 
     /*Do the function.*/
 
-    return(recognizer_get_context(rec));
+    return(rec->recognizer_get_context(rec));
 }
 
 /*

@@ -38,8 +38,10 @@ typedef struct Key Key;
 typedef struct Keyring Keyring;
 typedef struct Logbuf Logbuf;
 typedef struct Proto Proto;
-typedef struct User User;
 typedef struct State State;
+
+#pragma incomplete State
+
 
 struct Fsstate
 {

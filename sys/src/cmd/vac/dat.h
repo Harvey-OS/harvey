@@ -4,7 +4,7 @@ typedef struct MetaBlock MetaBlock;
 typedef struct MetaEntry MetaEntry;
 typedef struct Lump Lump;
 typedef struct Cache Cache;
-typedef struct Super Super;
+#pragma incomplete Cache
 
 enum {
 	NilBlock	= (~0UL),

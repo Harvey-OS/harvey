@@ -12,6 +12,7 @@ typedef struct Block Block;
 
 typedef uchar Ipaddr[IPaddrlen];	
 
+#pragma incomplete Tcpc
 
 /*
  *  data blocks

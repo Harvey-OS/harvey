@@ -9,7 +9,6 @@ typedef struct Clump		Clump;
 typedef struct ClumpInfo	ClumpInfo;
 typedef struct IAddr		IAddr;
 typedef struct IBucket		IBucket;
-typedef struct ICache		ICache;
 typedef struct IEStream		IEStream;
 typedef struct IEntry		IEntry;
 typedef struct IFile		IFile;
@@ -20,6 +19,8 @@ typedef struct DBlock		DBlock;
 typedef struct Part		Part;
 typedef struct Stats		Stats;
 typedef struct ZBlock		ZBlock;
+
+#pragma incomplete IEStream
 
 #define TWID32	((u32int)~(u32int)0)
 #define TWID64	((u64int)~(u64int)0)

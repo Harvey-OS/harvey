@@ -12,6 +12,10 @@ typedef struct Fid Fid;
 typedef struct Fsys Fsys;
 typedef struct Msg Msg;
 
+#pragma incomplete DirBuf
+#pragma incomplete Excl
+#pragma incomplete Fsys
+
 struct Msg {
 	uchar*	data;
 	u32int	msize;			/* actual size of data */

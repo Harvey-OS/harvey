@@ -25,17 +25,19 @@
 
 typedef struct _Recognizer* recognizer;
 
+#pragma incomplete recognizer
+
 /*
  * Opaque type for recognizers to implement dictionaries.
  */
 
-typedef struct _wordset			*wordset;
-typedef struct rc				rc;
+typedef struct _wordset		*wordset;
+typedef struct rc		rc;
 typedef struct rec_correlation	rec_correlation;
 typedef struct rec_alternative	rec_alternative;
-typedef struct rec_element		rec_element;
-typedef struct gesture			gesture;
-typedef uint					wchar_t;
+typedef struct rec_element	rec_element;
+typedef struct gesture		gesture;
+typedef uint			wchar_t;
 
 /* Scalar Type Definitions */
 

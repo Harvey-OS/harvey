@@ -24,12 +24,12 @@ main(int argc, char *argv[])
 	case 'e':
 		flags['e']++;
 		lineno = 0;
-		str2top(ARGF());
+		str2top(EARGF(usage()));
 		break;
 
 	case 'f':
 		flags['f']++;
-		filename = ARGF();
+		filename = EARGF(usage());
 		rein = Bopen(filename, OREAD);
 		if(rein == 0) {
 			fprint(2, "grep: can't open %s: %r\n", filename);

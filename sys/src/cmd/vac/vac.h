@@ -1,7 +1,10 @@
 typedef struct VacFS VacFS;
+#pragma incomplete VacFS
 typedef struct VacDir VacDir;
 typedef struct VacFile VacFile;
+#pragma incomplete VacFile
 typedef struct VacDirEnum VacDirEnum;
+#pragma incomplete VacDirEnum
 
 /*
  * Mode bits

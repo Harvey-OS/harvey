@@ -44,6 +44,7 @@ static	long	_round(long, long);
 typedef struct Exectable{
 	long	magic;			/* big-endian magic number of file */
 	char	*name;			/* executable identifier */
+	char	*dlmname;		/* dynamically loadable module identifier */
 	int	type;			/* Internal code */
 	Mach	*mach;			/* Per-machine data */
 	ulong	hsize;			/* header size */
@@ -65,6 +66,7 @@ ExecTable exectab[] =
 {
 	{ V_MAGIC,			/* Mips v.out */
 		"mips plan 9 executable",
+		"mips plan 9 dlm",
 		FMIPS,
 		&mmips,
 		sizeof(Exec),
@@ -72,6 +74,7 @@ ExecTable exectab[] =
 		adotout },
 	{ M_MAGIC,			/* Mips 4.out */
 		"mips 4k plan 9 executable BE",
+		"mips 4k plan 9 dlm BE",
 		FMIPS2BE,
 		&mmips2be,
 		sizeof(Exec),
@@ -79,6 +82,7 @@ ExecTable exectab[] =
 		adotout },
 	{ N_MAGIC,			/* Mips 0.out */
 		"mips 4k plan 9 executable LE",
+		"mips 4k plan 9 dlm LE",
 		FMIPS2LE,
 		&mmips2le,
 		sizeof(Exec),
@@ -86,6 +90,7 @@ ExecTable exectab[] =
 		adotout },
 	{ 0x160<<16,			/* Mips boot image */
 		"mips plan 9 boot image",
+		nil,
 		FMIPSB,
 		&mmips,
 		sizeof(struct mipsexec),
@@ -93,6 +98,7 @@ ExecTable exectab[] =
 		mipsboot },
 	{ (0x160<<16)|3,		/* Mips boot image */
 		"mips 4k plan 9 boot image",
+		nil,
 		FMIPSB,
 		&mmips2be,
 		sizeof(struct mips4kexec),
@@ -100,6 +106,7 @@ ExecTable exectab[] =
 		mips4kboot },
 	{ K_MAGIC,			/* Sparc k.out */
 		"sparc plan 9 executable",
+		"sparc plan 9 dlm",
 		FSPARC,
 		&msparc,
 		sizeof(Exec),
@@ -107,6 +114,7 @@ ExecTable exectab[] =
 		adotout },
 	{ 0x01030107, 			/* Sparc boot image */
 		"sparc plan 9 boot image",
+		nil,
 		FSPARCB,
 		&msparc,
 		sizeof(struct sparcexec),
@@ -114,6 +122,7 @@ ExecTable exectab[] =
 		sparcboot },
 	{ A_MAGIC,			/* 68020 2.out & boot image */
 		"68020 plan 9 executable",
+		"68020 plan 9 dlm",
 		F68020,
 		&m68020,
 		sizeof(Exec),
@@ -121,6 +130,7 @@ ExecTable exectab[] =
 		common },
 	{ 0xFEEDFACE,			/* Next boot image */
 		"next plan 9 boot image",
+		nil,
 		FNEXTB,
 		&m68020,
 		sizeof(struct nextexec),
@@ -128,6 +138,7 @@ ExecTable exectab[] =
 		nextboot },
 	{ I_MAGIC,			/* I386 8.out & boot image */
 		"386 plan 9 executable",
+		"386 plan 9 dlm",
 		FI386,
 		&mi386,
 		sizeof(Exec),
@@ -135,6 +146,7 @@ ExecTable exectab[] =
 		common },
 	{ Q_MAGIC,			/* PowerPC q.out & boot image */
 		"power plan 9 executable",
+		"power plan 9 dlm",
 		FPOWER,
 		&mpower,
 		sizeof(Exec),
@@ -142,6 +154,7 @@ ExecTable exectab[] =
 		common },
 	{ ELF_MAG,
 		"Irix 5.X Elf executable",
+		nil,
 		FMIPS,
 		&mmips,
 		sizeof(Ehdr),
@@ -149,6 +162,7 @@ ExecTable exectab[] =
 		elfdotout },
 	{ E_MAGIC,			/* Arm 5.out */
 		"Arm plan 9 executable",
+		"Arm plan 9 dlm",
 		FARM,
 		&marm,
 		sizeof(Exec),
@@ -156,6 +170,7 @@ ExecTable exectab[] =
 		common },
 	{ (143<<16)|0413,		/* (Free|Net)BSD Arm */
 		"Arm *BSD executable",
+		nil,
 		FARM,
 		&marm,
 		sizeof(Exec),
@@ -163,6 +178,7 @@ ExecTable exectab[] =
 		armdotout },
 	{ L_MAGIC,			/* alpha 7.out */
 		"alpha plan 9 executable",
+		"alpha plan 9 dlm",
 		FALPHA,
 		&malpha,
 		sizeof(Exec),
@@ -170,6 +186,7 @@ ExecTable exectab[] =
 		common },
 	{ 0x0700e0c3,			/* alpha boot image */
 		"alpha plan 9 boot image",
+		nil,
 		FALPHAB,
 		&malpha,
 		sizeof(Exec),
@@ -216,13 +233,18 @@ crackhdr(int fd, Fhdr *fp)
 	ret = 0;
 	fp->magic = magic = beswal(d.e.magic);		/* big-endian */
 	for (mp = exectab; mp->magic; mp++) {
-		if (mp->magic == magic && nb >= mp->hsize) {
+		if (nb < mp->hsize)
+			continue;
+		if (mp->magic == (magic & ~DYN_MAGIC)) {
 			if(mp->magic == V_MAGIC)
 				mp = couldbe4k(mp);
 
 			hswal((long *) &d, sizeof(d.e)/sizeof(long), mp->swal);
 			fp->type = mp->type;
-			fp->name = mp->name;
+			if ((magic & DYN_MAGIC) && mp->dlmname != nil)
+				fp->name = mp->dlmname;
+			else
+				fp->name = mp->name;
 			fp->hdrsz = mp->hsize;		/* zero on bootables */
 			mach = mp->mach;
 			ret  = mp->hparse(fd, fp, &d);

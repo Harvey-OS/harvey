@@ -15,6 +15,8 @@ typedef struct	RGB RGB;
 typedef struct	Screen Screen;
 typedef struct	Subfont Subfont;
 
+#pragma incomplete Mouse
+
 #pragma varargck	type	"R"	Rectangle
 #pragma varargck	type	"P"	Point
 extern	int	Rfmt(Fmt*);

@@ -72,11 +72,13 @@ main(int argc, char **argv)
 			fprint(2, "done\n");
 			exits(0);
 		}
-		if(getfields(p, fields, NFLDS, 0, " \t") != NFLDS){
+		if (gettokens(p, fields, NFLDS, " \t") != NFLDS){
 			warn("too few fields in file header");
 			continue;
 		}
-		strcpy(namep, fields[0]);
+		p = unquotestrdup(fields[0])
+		strcpy(namep, p);
+		free(p);
 		mode = strtoul(fields[1], 0, 8);
 		uid = fields[2];
 		gid = fields[3];

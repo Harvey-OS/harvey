@@ -16,6 +16,8 @@ typedef struct Vctl	Vctl;
 typedef struct Imap	Imap;
 typedef struct Vctl	Vctl;
 
+#pragma incomplete Ureg
+
 #define MAXSYSARG	5	/* for mount(fd, mpt, flag, arg, srv) */
 
 /*
