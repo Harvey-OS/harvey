@@ -301,7 +301,7 @@ syspread(void)
 	} o;
 
 	o.u[0] = getmem_w(reg.r[REGSP]+16);
-	o.u[REGRET] = getmem_w(reg.r[REGSP]+20);
+	o.u[1] = getmem_w(reg.r[REGSP]+20);
 	sysread(o.v);
 }
 
@@ -319,7 +319,7 @@ sysseek(void)
 	retp = getmem_w(reg.r[REGSP]+4);
 	fd = getmem_w(reg.r[REGSP]+8);
 	o.u[0] = getmem_w(reg.r[REGSP]+12);
-	o.u[REGRET] = getmem_w(reg.r[REGSP]+16);
+	o.u[1] = getmem_w(reg.r[REGSP]+16);
 	mode = getmem_w(reg.r[REGSP]+20);
 	if(sysdbg)
 		itrace("seek(%d, %lld, %d)", fd, o.v, mode);
@@ -519,7 +519,7 @@ syspwrite(void)
 	} o;
 
 	o.u[0] = getmem_w(reg.r[REGSP]+16);
-	o.u[REGRET] = getmem_w(reg.r[REGSP]+20);
+	o.u[1] = getmem_w(reg.r[REGSP]+20);
 	syswrite(o.v);
 }
 

@@ -1,12 +1,14 @@
 #include <u.h>
 #include <libc.h>
+#include <auth.h>
 #include <bio.h>
 #include <mach.h>
 #define Extern extern
-#include "mips.h"
+#include "power.h"
 
-#define	REGSP	29
-#define	REGRET	1
+
+#define	REGSP	1
+#define	REGRET	3
 
 #define	ODIRLEN	116	/* compatibility; used in _stat etc. */
 #define	OERRLEN	64	/* compatibility; used in _stat etc. */
@@ -73,15 +75,17 @@ void
 sys_errstr(void)
 {
 	ulong str;
+	char tmp[OERRLEN];
 
 	str = getmem_w(reg.r[REGSP]+4);
 	if(sysdbg)
 		itrace("errstr(0x%lux)", str);
 
+	memio(tmp, str, OERRLEN, MemRead);
 	memio(errbuf, str, OERRLEN, MemWrite);
-	strcpy(errbuf, "no error");
+	memmove(errbuf, tmp, OERRLEN);
+	errbuf[OERRLEN-1] = 0;
 	reg.r[REGRET] = 0;
-	
 }
 
 void
@@ -89,6 +93,7 @@ syserrstr(void)
 {
 	ulong str;
 	uint n;
+	char tmp[ERRMAX];
 
 	str = getmem_w(reg.r[REGSP]+4);
 	n = getmem_w(reg.r[REGSP]+8);
@@ -97,8 +102,12 @@ syserrstr(void)
 
 	if(n > strlen(errbuf)+1)
 		n = strlen(errbuf)+1;
+	if(n > ERRMAX)
+		n = ERRMAX;
+	memio(tmp, str, n, MemRead);
 	memio(errbuf, str, n, MemWrite);
-	strcpy(errbuf, "no error");
+	memmove(errbuf, tmp, n);
+	errbuf[ERRMAX-1] = 0;
 	reg.r[REGRET] = n;
 	
 }
@@ -142,7 +151,7 @@ sysbind(void)
 	memio(name, pname, sizeof(name), MemReadstring);
 	memio(old, pold, sizeof(old), MemReadstring);
 	if(sysdbg)
-		itrace("bind(0x%lux='%s', 0x%lux='%s', 0x%lux)", name, name, old, old, flags);
+		itrace("bind(0x%lux='%s', 0x%lux='%s', 0x%lux)", name, old, flags);
 
 	n = bind(name, old, flags);
 	if(n < 0)
@@ -206,7 +215,7 @@ sysdup(void)
 void
 sysexits(void)
 {
-	char buf[OERRLEN];
+	char buf[ERRMAX];
 	ulong str;
 
 	str = getmem_w(reg.r[REGSP]+4);
@@ -216,6 +225,7 @@ sysexits(void)
 	count = 1;
 	if(str != 0) {
 		memio(buf, str, sizeof buf, MemRead);
+		buf[ERRMAX-1] = 0;
 		Bprint(bioout, "exits(%s)\n", buf);
 	}
 	else
@@ -618,7 +628,7 @@ sysnotify(void)
 {
 	nofunc = getmem_w(reg.r[REGSP]+4);
 	if(sysdbg)
-		itrace("notify(0x%lux)\n", nofunc);
+		itrace("notify(0x%lux)", nofunc);
 
 	reg.r[REGRET] = 0;
 }
@@ -626,14 +636,12 @@ sysnotify(void)
 void
 syssegflush(void)
 {
-	int n;
-	ulong va;
+	ulong start, len;
 
-	va = getmem_w(reg.r[REGSP]+4);
-	n = getmem_w(reg.r[REGSP]+8);
+	start = getmem_w(reg.r[REGSP]+4);
+	len = getmem_w(reg.r[REGSP]+8);
 	if(sysdbg)
-		itrace("segflush(va=0x%lux, n=%d)\n", va, n);
-
+		itrace("segflush(va=0x%lux, n=%lud)", start, len);
 	reg.r[REGRET] = 0;
 }
 
@@ -712,18 +720,19 @@ void (*systab[])(void)	={
 };
 
 void
-Ssyscall(ulong inst)
+sc(ulong inst)
 {
 	int call;
 
-	USED(inst);
+	if(inst != ((17<<26)|2))
+		undef(inst);
 	call = reg.r[REGRET];
 	if(call < 0 || call > PWRITE || systab[call] == nil) {
 		Bprint(bioout, "Bad system call\n");
 		dumpreg();
 	}
 	if(trace)
-		itrace("sysc\t%s", sysctab[call]);
+		itrace("sc\t(%s)", sysctab[call]);
 
 	(*systab[call])();
 	Bflush(bioout);
