@@ -82,7 +82,7 @@ static struct {
 	char *msg;
 } etab[] = {
 	Nfs3ErrNotOwner,	"not owner",
-	Nfs3ErrNoEnt,		"entry not found",
+	Nfs3ErrNoEnt,		"directory entry not found",
 	Nfs3ErrIo,			"i/o error",
 	Nfs3ErrNxio,		"no such device",
 	Nfs3ErrNoMem,	"out of memory",

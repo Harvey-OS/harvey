@@ -55,6 +55,7 @@ int narchdir = Qbase;
 int (*_pcmspecial)(char*, ISAConf*);
 void (*_pcmspecialclose)(int);
 
+extern int i8253dotimerset;
 
 /*
  * Add a file to the #P listing.  Once added, you can't delete it.
@@ -498,7 +499,15 @@ nop(void)
 {
 }
 
-void (*coherence)(void) = nop;
+/*
+ * On a uniprocessor, you'd think that coherence could be nop,
+ * but it can't.  We still need wbflush when using coherence() in
+ * device drivers.
+ *
+ * On VMware, it's safe (and a huge win) to set this to nop.
+ * Aux/vmware does this via the #P/archctl file.
+ */
+void (*coherence)(void) = wbflush;
 
 PCArch* arch;
 extern PCArch* knownarch[];
@@ -732,31 +741,80 @@ cputyperead(Chan*, void *a, long n, vlong offset)
 }
 
 static long
-pgewrite(Chan*, void *a, long n, vlong)
+archctlread(Chan*, void *a, long nn, vlong offset)
 {
-	if(!m->havepge)
-		error("processor does not support pge");
-
-	if(n==3 && memcmp(a, "off", 3)==0){
-		putcr4(getcr4() & ~0x80);
-		return n;
-	}
-	if(n==2 && memcmp(a, "on", 2)==0){
-		putcr4(getcr4() | 0x80);
-		return n;
-	}
-	error("invalid control message");
-	return -1;
+	char buf[256];
+	int n;
+	
+	n = snprint(buf, sizeof buf, "cpu %s %lud%s\n",
+		cputype->name, (ulong)(m->cpuhz+999999)/1000000,
+		m->havepge ? " pge" : "");
+	n += snprint(buf+n, sizeof buf-n, "pge %s\n", getcr4()&0x80 ? "on" : "off");
+	n += snprint(buf+n, sizeof buf-n, "coherence %s\n",
+		coherence==wbflush ? "wbflush" : "nop");
+	buf[n] = 0;
+	return readstr(offset, a, nn, buf);
 }
 
-static long
-pgeread(Chan*, void *a, long n, vlong offset)
+enum
 {
-	if(n < 16)
-		error("need more room");
-	if(offset)
-		return 0;
-	n = snprint(a, n, "%s pge; %s", m->havepge ? "have" : "no", getcr4()&0x80 ? "on" : "off");
+	CMpge,
+	CMcoherence,
+	CMi8253set,
+};
+
+static Cmdtab archctlmsg[] =
+{
+	CMpge,		"pge",		2,
+	CMcoherence,	"coherence",	2,
+	CMi8253set,	"i8253set",	2,
+};
+
+static long
+archctlwrite(Chan*, void *a, long n, vlong)
+{
+	Cmdbuf *cb;
+	Cmdtab *ct;
+
+	cb = parsecmd(a, n);
+	if(waserror()){
+		free(cb);
+		nexterror();
+	}
+	ct = lookupcmd(cb, archctlmsg, nelem(archctlmsg));
+	switch(ct->index){
+	case CMpge:
+		if(!m->havepge)
+			error("processor does not support pge");
+		if(strcmp(cb->f[1], "on") == 0)
+			putcr4(getcr4() | 0x80);
+		else if(strcmp(cb->f[1], "off") == 0)
+			putcr4(getcr4() & ~0x80);
+		else
+			cmderror(cb, "invalid pge ctl");
+		break;
+	case CMcoherence:
+		if(strcmp(cb->f[1], "wbflush") == 0)
+			coherence = wbflush;
+		else if(strcmp(cb->f[1], "nop") == 0){
+			/* only safe on vmware */
+			if(conf.nmach > 1)
+				error("cannot disable coherence on a multiprocessor");
+			coherence = nop;
+		}else
+			cmderror(cb, "invalid coherence ctl");
+		break;
+	case CMi8253set:
+		if(strcmp(cb->f[1], "on") == 0)
+			i8253dotimerset = 1;
+		else if(strcmp(cb->f[1], "off") == 0)
+			i8253dotimerset = 0;
+		else
+			cmderror(cb, "invalid i2853set ctl");
+		break;
+	}
+	free(cb);
+	poperror();
 	return n;
 }
 
@@ -797,11 +855,8 @@ archinit(void)
 	if(X86FAMILY(m->cpuidax) == 3)
 		conf.copymode = 1;
 
-//	if(X86FAMILY(m->cpuidax) >= 5 && conf.nmach > 1)
-		coherence = wbflush;
-
 	addarchfile("cputype", 0444, cputyperead, nil);
-	addarchfile("pge", 0664, pgeread, pgewrite);
+	addarchfile("archctl", 0664, archctlread, archctlwrite);
 }
 
 /*

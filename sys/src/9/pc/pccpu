@@ -46,6 +46,7 @@ misc
 	archmp		mp apic
 
 	uarti8250
+	uartpci		pci
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi

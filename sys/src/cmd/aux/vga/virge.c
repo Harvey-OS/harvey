@@ -202,9 +202,29 @@ static void
 init(Vga* vga, Ctlr* ctlr)
 {
 	char *p, *val;
+	Mode *mode;
 	ulong pclk, x;
 	int id, noclockset, width;
 
+	id = (vga->crt[0x2D]<<8)|vga->crt[0x2E];
+	mode = vga->mode;
+
+	/*
+	 * double 16bpp horizontal timings on ViRGE/[DG]X
+	 * leaves overflow bit-fiddling to s3generic.init
+	 */
+	if((id == 0x8A01) && ((mode->z+7)/8 == 2)){
+		resyncinit(vga, ctlr, Uenhanced, 0);
+		vga->crt[0x00] = ((mode->ht * 2) >> 3) - 5;
+		vga->crt[0x01] = ((mode->x * 2) >> 3) - 1;
+		vga->crt[0x02] = ((mode->shb * 2) >> 3) - 1;
+		x = (mode->ehb * 2) >> 3;
+		vga->crt[0x03] = 0x80 | (x & 0x1F);
+		vga->crt[0x04] = (mode->shs * 2) >> 3;
+		vga->crt[0x05] = ((mode->ehs * 2) >> 3) & 0x1F;
+		if(x & 0x20)
+			vga->crt[0x05] |= 0x80;
+	}
 	s3generic.init(vga, ctlr);
 
 	/*
@@ -220,7 +240,7 @@ init(Vga* vga, Ctlr* ctlr)
 		width = vga->virtx*(vga->mode->z/8);
 	else
 		width = vga->virtx*(8/vga->mode->z);
-	id = (vga->crt[0x2D]<<8)|vga->crt[0x2E];
+	
 	switch(id){
 
 	case 0x8811:				/* Trio64+ */
@@ -286,6 +306,12 @@ init(Vga* vga, Ctlr* ctlr)
 		/*FALLTHROUGH*/
 	case 0x5631:				/* ViRGE */
 	case 0x8A01:				/* ViRGE/[DG]X */
+		if(id == 0x8A01){
+			x = mode->x * ((mode->z + 7) / 8);
+			x = (x + 7) / 8;
+			vga->crt[0x91] = x & 0xFF;
+			vga->crt[0x90] = (x >> 8) | 0x80;
+		}
 	case 0x883D:				/* ViRGE/VX */
 		vga->crt[0x60] &= 0x0F;
 		/*FALLTHROUGH*/
@@ -599,6 +625,7 @@ load(Vga* vga, Ctlr* ctlr)
 		outportw(0x4AE8, advfunc);
 		break;
 	case 0x8901:				/* Trio64V2 */
+	case 0x8A01:				/* ViRGE/[DG]X */
 		vgaxo(Crtx, 0x90, vga->crt[0x90]);
 		vgaxo(Crtx, 0x91, vga->crt[0x91]);
 		break;

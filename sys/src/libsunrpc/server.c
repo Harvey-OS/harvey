@@ -93,7 +93,7 @@ if(srv->chatty) fprint(2, "sun msg %p count %d\n", m, m->count);
 		m->srv = srv;
 		p = m->data;
 		ep = p+m->count;
-		if(sunRpcUnpack(p, ep, &p, &m->rpc) < 0){
+		if(sunRpcUnpack(p, ep, &p, &m->rpc) != SunSuccess){
 			fprint(2, "in: %.*H unpack failed\n", m->count, m->data);
 			sunMsgDrop(m);
 			continue;

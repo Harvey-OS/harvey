@@ -83,11 +83,20 @@ devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
  * the zeroth element of the table MUST be the directory itself for ..
 */
 int
-devgen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
+devgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	if(tab == 0)
 		return -1;
-	if(i != DEVDOTDOT){
+	if(i == DEVDOTDOT){
+		/* nothing */
+	}else if(name){
+		for(i=1; i<ntab; i++)
+			if(strcmp(tab[i].name, name) == 0)
+				break;
+		if(i==ntab)
+			return -1;
+		tab += i;
+	}else{
 		/* skip over the first element, that for . itself */
 		i++;
 		if(i >= ntab)

@@ -19,7 +19,7 @@ if not{
 	# remove this key once factotum is initialized with other keys
 	factotum -g 'proto=p9sk1 user=rsc dom=localhost !password=localhost'
 }
-venti -c venti.conf -B 8m -C 8m -h tcp!127.1!8000 -I 8m -w -a tcp!127.1!17034 &
+venti -c venti.conf -B 1m -C 1m -h tcp!127.1!8000 -I 1m -w -a tcp!127.1!17034 &
 sleep 10
 venti=tcp!127.0.0.1!17034
 fossil -c '. flproto'

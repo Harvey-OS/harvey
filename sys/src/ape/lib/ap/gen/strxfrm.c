@@ -10,6 +10,8 @@ strxfrm(char *s1, const char *s2, size_t n)
 	 */
 
 	size_t xn = strlen(s2);
-	memcpy(s1, s2, xn>n? n : xn);
+	if(n > xn)
+		n = xn;
+	memcpy(s1, s2, n);
 	return xn;
 }

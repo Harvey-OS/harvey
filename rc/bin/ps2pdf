@@ -32,15 +32,12 @@ case *
 	usage
 }
 
-if(~ $fin -)
-	fin=/fd/0
-if(~ $fout -)
-	fout=/fd/1
-
 # We have to include the options twice because -I only takes effect
 # if it appears before other options.
 
-exec gs $opt -dSAFER -dNOPAUSE -dBATCH -q -s'DEVICE=pdfwrite' \
+gscmd=( gs $opt -dSAFER -dNOPAUSE -dBATCH -q -s'DEVICE=pdfwrite' \
 	$opt $compat \
-	-s'OutputFile='$fout -c .setpdfwrite -f $fin
+	-s'OutputFile='$fout -c .setpdfwrite -f $fin)
+exec $gscmd
+
 

@@ -2,6 +2,8 @@
 .SH NAME
 fgetc, getc, getchar, fputc, putc, putchar, ungetc, fgets, gets, fputs, puts, fread, fwrite \- Stdio input and output
 .SH SYNOPSIS
+.B #include <u.h>
+.br
 .B #include <stdio.h>
 .ta \w'\fLlong 'u
 .PP

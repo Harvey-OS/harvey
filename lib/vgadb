@@ -357,24 +357,7 @@ ctlr
 	ctlr=3dfx linear=1
 	hwgc=3dfxhwgc
 ctlr
-	vid=0x10DE did=0x0020		# Riva TNT
-	vid=0x10DE did=0x0028		# Riva TNT2
-	vid=0x10DE did=0x0029		# Riva TNT2 Ultra
-	vid=0x10DE did=0x002C		# Riva TNT2 Vanta
-	vid=0x10DE did=0x002D		# Riva TNT2 M64
-	vid=0x10DE did=0x00A0		# Riva TNT2 Integrated
-	vid=0x10DE did=0x0100		# GeForce 256
-	vid=0x10DE did=0x0101		# GeForce DDR
-	vid=0x10DE did=0x0103		# Quadro
-	vid=0x10DE did=0x0110		# GeForce2 MMX
-	vid=0x10DE did=0x0111		# GeForce2 MMX DDR
-	vid=0x10DE did=0x0112		# GeForce2 Go
-	vid=0x10DE did=0x0113		# Quadro 2 MXR
-	vid=0x10DE did=0x0150		# GeForce2 GTS
-	vid=0x10DE did=0x0151		# GeForce2 GTS (rev 1)
-	vid=0x10DE did=0x0152		# GeForce2 Ultra
-	vid=0x10DE did=0x0153		# Quadro 2 Pro	
-	vid=0x10DE did=0x0200		# GeForce3
+	vid=0x10DE did=*			# NVidia cards all talk the same
 	link=vga
 	ctlr=nvidia linear=1
 	hwgc=nvidiahwgc

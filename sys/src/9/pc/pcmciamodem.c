@@ -28,6 +28,7 @@ static char* modems[] = {
 	"REM10",
 	"GSM/GPRS",
 	"AirCard 555",
+	"Gold Card Global",		/* Psion V90 Gold card */
 	0,
 };
 
@@ -67,7 +68,7 @@ pcmciamodemlink(void)
 				com2used = 1;
 			if(ioalloc(isa.port, 8, 0, modems[j]) < 0)
 				print("%s port %lux already in use\n", modems[j], isa.port);
-			print("%s in pcmcia slot %d port 0x%lux irq %lud\n",
+			print("%s in pcmcia slot %d port 0x%lux irq %d\n",
 				modems[j], slot, isa.port, isa.irq);
 		}
 	}

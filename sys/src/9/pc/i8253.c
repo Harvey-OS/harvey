@@ -243,38 +243,9 @@ i8253enable(void)
 	intrenable(IrqCLOCK, i8253clock, 0, BUSUNKNOWN, "clock");
 }
 
-static long
-i8253timerread(Chan*, void *a, long n, vlong offset)
-{
-	if(n < 16)
-		error("need more room");
-	if(offset)
-		return 0;
-	return snprint(a, n, "timerset %s", i8253dotimerset ? "on" : "off");
-}
-
-static long
-i8253timerwrite(Chan*, void *a, long n, vlong)
-{
-	if(n==3 && memcmp(a, "off", 3) == 0){
-		i8253dotimerset = 0;
-		outb(Tmode, Load0|Square);
-		outb(T0cntr, (Freq/HZ));
-		outb(T0cntr, (Freq/HZ)>>8);
-		return n;
-	}
-	if(n==2 && memcmp(a, "on", 2) == 0){
-		i8253dotimerset = 1;
-		return n;
-	}
-	error("invalid control message");
-	return -1;
-}
-
 void
 i8253link(void)
 {
-	addarchfile("i8253timerset", 0664, i8253timerread, i8253timerwrite);
 }
 
 /*

@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include "sys9.h"
 
 time_t
 time(time_t *tp)
@@ -14,11 +15,10 @@ time(time_t *tp)
 	time_t t;
 
 	memset(b, 0, sizeof(b));
-	f = open("/dev/time", O_RDONLY);
+	f = _OPEN("/dev/time", 0);
 	if(f >= 0) {
-		lseek(f, 0, 0);
-		read(f, b, sizeof(b));
-		close(f);
+		_PREAD(f, b, sizeof(b), 0);
+		_CLOSE(f);
 	}
 	t = atol(b);
 	if(tp)

@@ -93,7 +93,6 @@ extern	int	_MOUNT(int, int, const char*, int, const char*);
 extern	int	_NOTED(int);
 extern	int	_NOTIFY(int(*)(void*, char*));
 extern	int	_OPEN(const char*, int);
-extern	long	_OSEEK(int, long, int);
 extern	int	_PIPE(int*);
 extern	long	_PREAD(int, void*, long, long long);
 extern	long	_PWRITE(int, void*, long, long long);

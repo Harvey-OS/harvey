@@ -22,5 +22,5 @@ YFLAGS=-S
 gram.c:	y.tab.c
 	mv $prereq $target
 
-nuke:V:
+nuke clean:V:
 	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG gram.c

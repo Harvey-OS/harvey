@@ -692,7 +692,7 @@ ess1688(ISAConf* sbconf)
 		i = 0x50|(3<<2);
 		break;
 	default:
-		print("#A: bad ESS1688 irq %lud\n", sbconf->irq);
+		print("#A: bad ESS1688 irq %d\n", sbconf->irq);
 		return 1;
 	}
 	ess1688w(0xB1, i);
@@ -766,7 +766,7 @@ audioinit(void)
 	case 10:
 		break;
 	default:
-		print("#A: bad irq %lud\n", sbconf.irq);
+		print("#A: bad irq %d\n", sbconf.irq);
 		iofree(sbconf.port);
 		iofree(sbconf.port+0x100);
 		return;

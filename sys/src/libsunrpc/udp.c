@@ -81,17 +81,17 @@ sunSrvUdp(SunSrv *srv, char *address)
 
 	acfd = announce(address, adir);
 	if(acfd < 0)
-		return 0;
+		return -1;
 	if(write(acfd, "headers", 7) < 0){
 		werrstr("setting headers: %r");
 		close(acfd);
-		return 0;
+		return -1;
 	}
 	snprint(data, sizeof data, "%s/data", adir);
 	if((fd = open(data, ORDWR)) < 0){
 		werrstr("open %s: %r", data);
 		close(acfd);
-		return 0;
+		return -1;
 	}
 	close(acfd); 
 	
@@ -108,5 +108,5 @@ sunSrvUdp(SunSrv *srv, char *address)
 	chanfree(arg->csync);
 	free(arg);
 
-	return 1;
+	return 0;
 }

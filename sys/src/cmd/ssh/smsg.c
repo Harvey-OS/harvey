@@ -1,4 +1,5 @@
 #include "ssh.h"
+#include <bio.h>
 
 static void
 send_ssh_smsg_public_key(Conn *c)
@@ -22,8 +23,25 @@ send_ssh_smsg_public_key(Conn *c)
 	sendmsg(m);
 }
 
+static mpint*
+rpcdecrypt(AuthRpc *rpc, mpint *b)
+{
+	mpint *a;
+	char *p;
+
+	p = mptoa(b, 16, nil, 0);
+	if(auth_rpc(rpc, "write", p, strlen(p)) != ARok)
+		sysfatal("factotum rsa write: %r");
+	free(p);
+	if(auth_rpc(rpc, "read", nil, 0) != ARok)
+		sysfatal("factotum rsa read: %r");
+	a = strtomp(rpc->arg, nil, 16, nil);
+	mpfree(b);
+	return a;
+}
+
 static void
-recv_ssh_cmsg_session_key(Conn *c)
+recv_ssh_cmsg_session_key(Conn *c, AuthRpc *rpc)
 {
 	int i, id, n, serverkeylen, hostkeylen;
 	mpint *a, *b;
@@ -48,9 +66,9 @@ recv_ssh_cmsg_session_key(Conn *c)
 	ksmall = kbig = nil;
 	if(serverkeylen+128 <= hostkeylen){
 		ksmall = c->serverpriv;
-		kbig = c->hostpriv;
+		kbig = nil;
 	}else if(hostkeylen+128 <= serverkeylen){
-		ksmall = c->hostpriv;
+		ksmall = nil;
 		kbig = c->serverpriv;
 	}else
 		sysfatal("server session and host keys do not differ by at least 128 bits");
@@ -58,17 +76,23 @@ recv_ssh_cmsg_session_key(Conn *c)
 	b = getmpint(m);
 
 	debug(DBG_CRYPTO, "encrypted with kbig is %B\n", b);
-	a = rsadecrypt(kbig, b, nil);
-	mpfree(b);
-	b = a;
+	if(kbig){
+		a = rsadecrypt(kbig, b, nil);
+		mpfree(b);
+		b = a;
+	}else
+		b = rpcdecrypt(rpc, b);
 	a = rsaunpad(b);
 	mpfree(b);
 	b = a;
 
 	debug(DBG_CRYPTO, "encrypted with ksmall is %B\n", b);
-	a = rsadecrypt(ksmall, b, nil);
-	mpfree(b);
-	b = a;
+	if(ksmall){
+		a = rsadecrypt(ksmall, b, nil);
+		mpfree(b);
+		b = a;
+	}else
+		b = rpcdecrypt(rpc, b);
 	a = rsaunpad(b);
 	mpfree(b);
 	b = a;
@@ -175,8 +199,54 @@ authsrvuser(Conn *c)
 void
 sshserverhandshake(Conn *c)
 {
-	char buf[128], *p;
-	int i;
+	char *p, buf[128];
+	Biobuf *b;
+	Attr *a;
+	int i, afd;
+	mpint *m;
+	AuthRpc *rpc;
+	RSApub *key;
+
+	/*
+	 * BUG: should use `attr' to get the key attributes
+	 * after the read, but that's not implemented yet.
+	 */
+	if((b = Bopen("/mnt/factotum/ctl", OREAD)) == nil)
+		sysfatal("open /mnt/factotum/ctl: %r");
+	while((p = Brdline(b, '\n')) != nil){
+		p[Blinelen(b)-1] = '\0';
+		if(strstr(p, " proto=rsa ") && strstr(p, " service=sshserve "))
+			break;
+	}
+	if(p == nil)
+		sysfatal("no sshserve keys found in /mnt/factotum/ctl");
+	a = _parseattr(p);
+	Bterm(b);
+	key = emalloc(sizeof(*key));
+	if((p = _strfindattr(a, "n")) == nil)
+		sysfatal("no n in sshserve key");
+	if((key->n = strtomp(p, &p, 16, nil)) == nil || *p != 0)
+		sysfatal("bad n in sshserve key");
+	if((p = _strfindattr(a, "ek")) == nil)
+		sysfatal("no ek in sshserve key");
+	if((key->ek = strtomp(p, &p, 16, nil)) == nil || *p != 0)
+		sysfatal("bad ek in sshserve key");
+	_freeattr(a);
+
+	if((afd = open("/mnt/factotum/rpc", ORDWR)) < 0)
+		sysfatal("open /mnt/factotum/rpc: %r");
+	if((rpc = auth_allocrpc(afd)) == nil)
+		sysfatal("auth_allocrpc: %r");
+	p = "proto=rsa role=client service=sshserve";
+	if(auth_rpc(rpc, "start", p, strlen(p)) != ARok)
+		sysfatal("auth_rpc start %s: %r", p);
+	if(auth_rpc(rpc, "read", nil, 0) != ARok)
+		sysfatal("auth_rpc read: %r");
+	m = strtomp(rpc->arg, nil, 16, nil);
+	if(mpcmp(m, key->n) != 0)
+		sysfatal("key in /mnt/factotum/ctl does not match rpc key");
+	mpfree(m);
+	c->hostkey = key;
 
 	/* send id string */
 	fprint(c->fd[0], "SSH-1.5-Plan9\n");
@@ -197,7 +267,9 @@ sshserverhandshake(Conn *c)
 		c->cookie[i] = fastrand();
 	calcsessid(c);
 	send_ssh_smsg_public_key(c);
-	recv_ssh_cmsg_session_key(c);
+	recv_ssh_cmsg_session_key(c, rpc);
+	auth_freerpc(rpc);
+	close(afd);
 
 	c->cstate = (*c->cipher->init)(c, 1);		/* turns on encryption */
 	sendmsg(allocmsg(c, SSH_SMSG_SUCCESS, 0));

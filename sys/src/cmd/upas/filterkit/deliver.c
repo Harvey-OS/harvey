@@ -37,8 +37,6 @@ main(int argc, char **argv)
 		sysfatal("missing from address");
 
 	l = syslock(argv[2]);
-	if(l == 0)
-		sysfatal("can't grab lock");
 
 	/* append to mbox */
 	fd = open(argv[2], OWRITE);

@@ -218,4 +218,6 @@ time the command was issued are now on disk.
 .IR vacfs (4).
 .br
 Sean Quinlan and Sean Dorward,
-``Venti: a new approach to archival storage''.
+``Venti: a new approach to archival storage'',
+.I "Usenix Conference on File and Storage Technologies" ,
+2002.

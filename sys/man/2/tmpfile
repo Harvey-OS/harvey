@@ -2,6 +2,8 @@
 .SH NAME
 tmpfile, tmpnam \- Stdio temporary files
 .SH SYNOPSIS
+.B #include <u.h>
+.br
 .B #include <stdio.h>
 .PP
 .ta \w'\fLFILE 'u

@@ -298,30 +298,15 @@ ignoreattr(char *s)
 }
 
 int
-findkey(Key **ret, Fsstate *fss, int who, int skip, Attr *attr0, char *fmt, ...)
+findkey(Key **ret, Fsstate *fss, char *who, int noconf, int skip, Attr *attr0, char *fmt, ...)
 {
 	int i, s, nmatch;
 	char buf[1024], *p;
 	va_list arg;
-	Attr *a, *attr1, **l;
+	Attr *a, *attr1, *attr2, *attr3, **l;
 	Key *k;
 
 	*ret = nil;
-	switch(who&Kwho){
-	default:
-		werrstr("bad who %d", who);
-		failure(fss, nil);
-		return failure(fss, nil);
-	case Kowner:
-		break;
-	case Kuser:
-		if(strcmp(fss->sysuser, owner) != 0
-		&& strcmp(fss->sysuser, invoker) != 0){
-			werrstr("%q can't use %q's keys", fss->sysuser, owner);
-			return failure(fss, nil);
-		}
-		break;
-	}
 
 	if(fmt){
 		va_start(arg, fmt);
@@ -330,6 +315,16 @@ findkey(Key **ret, Fsstate *fss, int who, int skip, Attr *attr0, char *fmt, ...)
 		attr1 = _parseattr(buf);
 	}else
 		attr1 = nil;
+
+	if(who && strcmp(who, owner) == 0)
+		who = nil;
+
+	if(who){
+		snprint(buf, sizeof buf, "owner=%q", who);
+		attr2 = _parseattr(buf);
+		attr3 = _parseattr("owner=*");
+	}else
+		attr2 = attr3 = nil;
 
 	p = _strfindattr(attr0, "proto");
 	if(p == nil)
@@ -344,9 +339,12 @@ findkey(Key **ret, Fsstate *fss, int who, int skip, Attr *attr0, char *fmt, ...)
 	for(i=0; i<ring->nkey; i++){
 		k = ring->key[i];
 		if(matchattr(attr0, k->attr, k->privattr) && matchattr(attr1, k->attr, k->privattr)){
+			/* check ownership */
+			if(!matchattr(attr2, k->attr, nil) && !matchattr(attr3, k->attr, nil))
+				continue;
 			if(nmatch++ < skip)
 				continue;
-			if(!(who&Knoconf)){
+			if(!noconf){
 				switch(canusekey(fss, k)){
 				case -1:
 					_freeattr(attr1);
@@ -366,7 +364,7 @@ findkey(Key **ret, Fsstate *fss, int who, int skip, Attr *attr0, char *fmt, ...)
 	flog("%d: no key matches %A %A", fss->seqnum, attr0, attr1);
 	werrstr("no key matches %A %A", attr0, attr1);
 	s = RpcFailure;
-	if(askforkeys && (hasqueries(attr0) || hasqueries(attr1))){
+	if(askforkeys && who==nil && (hasqueries(attr0) || hasqueries(attr1))){
 		if(nmatch == 0){
 			attr0 = _copyattr(attr0);
 			for(l=&attr0; *l; l=&(*l)->next)
@@ -405,9 +403,9 @@ findp9authkey(Key **k, Fsstate *fss)
 	 * care about what the user name is set to, for instance.
 	 */
 	if(dom = _strfindattr(fss->attr, "dom"))
-		return findkey(k, fss, Kowner, 0, nil, "proto=p9sk1 dom=%q role=server user?", dom);
+		return findkey(k, fss, nil, 0, 0, nil, "proto=p9sk1 dom=%q role=server user?", dom);
 	else
-		return findkey(k, fss, Kowner, 0, nil, "proto=p9sk1 role=server dom? user?");
+		return findkey(k, fss, nil, 0, 0, nil, "proto=p9sk1 role=server dom? user?");
 }
 
 Proto*

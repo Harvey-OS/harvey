@@ -4,250 +4,226 @@
 #include <thread.h>
 #include <9p.h>
 
-typedef struct Name	Name;
-
-enum {
-	Qroot = ~0,
-};
-
-struct Name {
-	Ref;		// one per fid in use.
-	char*	s;
-};
-
-static	void	aopen(Req*);
-static	void	aread(Req*);
-static	void	astat(Req*);
-static	void	awstat(Req*);
-static	char*	awalk1(Fid* fid, char *name, Qid *qid);
-static	char*	aclone(Fid*, Fid*);
-static	void	aattach(Req*);
-static	void	aclunk(Fid*);
-
-Name**	names;
-int	nnames;
-
-
-Srv asrv = {
-	.tree	= nil,
-	.attach	= aattach,
-	.auth	= nil,
-	.open	= aopen,
-	.create	= nil,
-	.read	= aread,
-	.write	= nil,
-	.remove = nil,
-	.flush	= nil,
-	.stat	= astat,
-	.wstat	= awstat,
-	.walk	= nil,
-	.walk1	= awalk1,
-	.clone	= aclone,
-	.destroyfid	= aclunk,
-	.destroyreq	= nil,
-	.end	= nil,
-	.aux	= nil,
-
-	.infd	= -1,
-	.outfd	= -1,
-	.nopipe	= 0,
-	.srvfd	= -1,
-};
-
-	
 static void
 usage(void)
 {
-	fprint(2, "usage: mntgen [-s srv] [mnt]\n");
+	fprint(2, "mntgen [-s srvname] [mtpt]\n");
 	exits("usage");
 }
 
+ulong time0;
 
-static Name*
-newname(char* name)
+typedef struct Tab Tab;
+struct Tab
 {
-	Name*	n;
+	char *name;
+	ulong qid;
+	ulong time;
+	int ref;
+};
 
-	if ((nnames % 100) == 0)
-		names = realloc(names, (nnames+100)*sizeof(Name*));
-	n = names[nnames++] = malloc(sizeof(Name));
-	n->s = strdup(name);
-	n->ref = 1;
-	return n;
+Tab *tab;
+int ntab;
+int mtab;
+ulong qidgen;
+
+static Tab*
+findtab(ulong path)
+{
+	int i;
+
+	for(i=0; i<ntab; i++)
+		if(tab[i].qid == path)
+			return &tab[i];
+	return nil;
 }
 
 static void
-closename(int i)
+fsopen(Req *r)
 {
-	assert (i >= 0 && i < nnames && names[i] != nil);
-	if (decref(names[i]) <= 0){
-		free(names[i]->s);
-		free(names[i]);
-		names[i] = nil;	// never reused; qids are unique
-	}
+	if(r->ifcall.mode != OREAD)
+		respond(r, "permission denied");
+	else
+		respond(r, nil);
 }
 
 static int
-n2i(int n)
+dirgen(int i, Dir *d, void*)
 {
-	int	i;
-
-	for(i=0; i<nnames; i++)
-		if(names[i] != nil && n-- == 0)
-			return i;
-	return -1;
-}
-
-static int
-agen(int n, Dir *dir, void* a)
-{
-	int	i;
-
-	i = n2i(n);
-	if (a == nil || i < 0)
+	if(i >= ntab)
 		return -1;
-	dir->qid.type = QTDIR;
-	dir->qid.path = i;
-	dir->qid.vers = 0;
-	dir->name = estrdup9p(names[i]->s);
-	dir->uid = estrdup9p("sys");
-	dir->gid = estrdup9p("sys");
-	dir->mode= 0555|DMDIR;
-	dir->length= 0;
+	memset(d, 0, sizeof *d);
+	d->qid.type = QTDIR;
+	d->uid = estrdup9p("sys");
+	d->gid = estrdup9p("sys");
+	d->mode = DMDIR|0555;
+	d->length = 0;
+	if(i == -1){
+		d->name = estrdup9p("/");
+		d->atime = d->mtime = time0;
+	}else{
+		d->qid.path = tab[i].qid;
+		d->name = estrdup9p(tab[i].name);
+		d->atime = d->mtime = tab[i].time;
+	}
 	return 0;
 }
 
 static void
-aattach(Req* r)
+fsread(Req *r)
 {
-	Qid q;
-
-	q.type = QTDIR;
-	q.path = Qroot;
-	q.vers = 0;
-	r->fid->qid = q;
-	r->ofcall.qid = q;
-	respond(r, nil);
-}
-
-static void
-aopen(Req* r)
-{
-	respond(r, nil);
-}
-
-static void
-aread(Req* r)
-{
-	Qid	q;
-
-	q = r->fid->qid;
-	if (q.path < 0 || q.path >= nnames && q.path != Qroot)
-		respond(r, "bug: bad qid");
-	if (q.path == Qroot)
-		dirread9p(r, agen, names);
+	if(r->fid->qid.path == 0)
+		dirread9p(r, dirgen, nil);
 	else
-		dirread9p(r, agen, nil);
+		r->ofcall.count = 0;
 	respond(r, nil);
 }
 
 static void
-astat(Req* r)
+fsstat(Req *r)
 {
-	Qid	q;
+	Tab *t;
+	ulong qid;
 
-	q = r->fid->qid;
-	if (q.path < 0 || q.path >= nnames && q.path != Qroot)
-		respond(r, "bug: bad qid");
-	r->d.qid = q;
-	if (q.path == Qroot)
-		r->d.name = estrdup9p("/");
-	else
-		r->d.name = estrdup9p(names[q.path]->s);
-	r->d.uid = estrdup9p("sys");
-	r->d.gid = estrdup9p("sys");
-	r->d.length= 0;
-	r->d.mode= 0555|DMDIR;
-	respond(r, nil);
-}
-
-static void
-awstat(Req* r)
-{
-	respond(r, "wstat not allowed");
-}
-
-static char*
-awalk1(Fid* fid, char *name, Qid *qid)
-{
-	int	i, oldi;
-
-	oldi = fid->qid.path;
-	if (strcmp(name, "..") == 0){
-		i = Qroot;
-		goto done;
-	}
-	if (fid->qid.path != Qroot)
-		return "no such name";
-	for (i = 0; i < nnames; i++)
-		if (names[i] != nil && strcmp(name, names[i]->s) == 0){
-			incref(names[i]);
-			break;
+	qid = r->fid->qid.path;
+	if(qid == 0)
+		dirgen(-1, &r->d, nil);
+	else{
+		if((t = findtab(qid)) == nil){
+			respond(r, "path not found (???)");
+			return;
 		}
-	if (i == nnames)
-		newname(name);
-done:
-	if (oldi >=0 && oldi < nnames)
-		closename(oldi);
-	qid->path = i;
-	qid->type = QTDIR;
-	qid->vers = 0;
-	fid->qid = *qid;
+		dirgen(t-tab, &r->d, nil);
+	}
+	respond(r, nil);
+}
+
+static char*
+fswalk1(Fid *fid, char *name, void*)
+{
+	int i;
+	Tab *t;
+
+	if(fid->qid.path != 0){
+		/* nothing in child directory */
+		if(strcmp(name, "..") == 0){
+			if((t = findtab(fid->qid.path)) != nil)
+				t->ref--;
+			fid->qid.path = 0;
+			return nil;
+		}
+		return "path not found";
+	}
+	/* root */
+	if(strcmp(name, "..") == 0)
+		return nil;
+	for(i=0; i<ntab; i++)
+		if(strcmp(tab[i].name, name) == 0){
+			tab[i].ref++;
+			fid->qid.path = tab[i].qid;
+			return nil;
+		}
+
+	/* create it */
+	if(ntab == mtab){
+		if(mtab == 0)
+			mtab = 16;
+		else
+			mtab *= 2;
+		tab = erealloc9p(tab, sizeof(tab[0])*mtab);
+	}
+	tab[ntab].qid = ++qidgen;
+	fid->qid.path = tab[ntab].qid;
+	tab[ntab].name = estrdup9p(name);
+	tab[ntab].time = time(0);
+	tab[ntab].ref = 1;
+	ntab++;
+
 	return nil;
 }
 
 static char*
-aclone(Fid* old, Fid*)
+fsclone(Fid *fid, Fid*, void*)
 {
-	int	i;
+	Tab *t;
 
-	i = old->qid.path;
-	if (i >= 0 && i < nnames)
-		incref(names[i]);
+	if((t = findtab(fid->qid.path)) != nil)
+		t->ref++;
 	return nil;
 }
 
 static void
-aclunk(Fid* fid)
+fswalk(Req *r)
 {
-	int	i;
-
-	i = fid->qid.path;
-	if (i >= 0 && i < nnames)
-		closename(i);
+	walkandclone(r, fswalk1, fsclone, nil);
 }
-	
-void
-main(int argc, char* argv[])
-{
-	char*	mnt;
-	char*	srvname;
 
-	srvname = nil;
+static void
+fsclunk(Fid *fid)
+{
+	Tab *t;
+	ulong qid;
+
+	qid = fid->qid.path;
+	if(qid == 0)
+		return;
+	if((t = findtab(qid)) == nil){
+		fprint(2, "warning: cannot find %lux\n", qid);
+		return;
+	}
+	if(--t->ref == 0){
+		free(t->name);
+		tab[t-tab] = tab[--ntab];
+	}else if(t->ref < 0)
+		fprint(2, "warning: negative ref count for %s\n", t->name);
+}
+
+static void
+fsattach(Req *r)
+{
+	char *spec;
+
+	spec = r->ifcall.aname;
+	if(spec && spec[0]){
+		respond(r, "invalid attach specifier");
+		return;
+	}
+	
+	r->ofcall.qid = (Qid){0, 0, QTDIR};
+	r->fid->qid = r->ofcall.qid;
+	respond(r, nil);
+}
+
+Srv fs=
+{
+.attach=	fsattach,
+.open=	fsopen,
+.read=	fsread,
+.stat=	fsstat,
+.walk=	fswalk,
+.destroyfid=	fsclunk
+};
+
+void
+main(int argc, char **argv)
+{
+	char *service;
+
+	time0 = time(0);
+	service = nil;
 	ARGBEGIN{
+	case 'D':
+		chatty9p++;
+		break;
 	case 's':
-		srvname = EARGF(usage());
+		service = EARGF(usage());
 		break;
 	default:
 		usage();
-	}ARGEND;
+	}ARGEND
 
-	if (argc > 1)
+	if(argc > 1)
 		usage();
-	if (argc == 0)
-		mnt = "/n";
-	else
-		mnt = *argv;
-	postmountsrv(&asrv, srvname, mnt, MAFTER);
-	exits(nil);	
+	postmountsrv(&fs, service, argc ? argv[0] : "/n", MAFTER);
+	exits(nil);
 }

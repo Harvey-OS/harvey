@@ -107,6 +107,8 @@ mouseinit(void)
 	if(!conf.monitor)
 		return;
 
+	curs = arrow;
+	Cursortocursor(&arrow);
 	cursoron(1);
 }
 

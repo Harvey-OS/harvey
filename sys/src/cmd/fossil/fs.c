@@ -542,6 +542,9 @@ fsSnapshot(Fs *fs, int doarchive)
 
 	fileDecRef(src);
 	fileDecRef(dst);
+	src = nil;
+	dst = nil;
+
 	/*
 	 * Make another copy of the file system.  This one is for the
 	 * archiver, so that the file system we archive has the recently

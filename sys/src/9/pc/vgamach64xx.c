@@ -831,7 +831,6 @@ initengine(VGAscr *scr)
 			break;
 	}
 
-	init_overlayclock(scr);
 	waitforidle(scr);
 }
 
@@ -1175,9 +1174,13 @@ mach64xxovlctl(VGAscr *scr, Chan *c, void *a, int n)
 	Cmdbuf *cb;
 	Cmdtab *ct;
 
-	if (!mach64type->m64_vtgt) 
+	if(!mach64type->m64_vtgt) 
 		error(Enodev);
 
+	if(!scr->overlayinit){
+		scr->overlayinit = 1;
+		init_overlayclock(scr);
+	}
 	cb = parsecmd(a, n);
 	if(waserror()){
 		free(cb);

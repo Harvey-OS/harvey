@@ -1704,8 +1704,17 @@ atapnp(void)
 			break;
 		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
+			pi = 0x85;
+			break;
 		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */
 			pi = 0x85;
+			/*
+			 * Turn off fast interrupt prediction.
+			 */
+			if((r = pcicfgr8(p, 0x51)) & 0x80)
+				pcicfgw8(p, 0x51, r & ~0x80);
+			if((r = pcicfgr8(p, 0x55)) & 0x80)
+				pcicfgw8(p, 0x55, r & ~0x80);
 			break;
 		case (0x0640<<16)|0x1095:	/* CMD 640B */
 			/*

@@ -105,6 +105,18 @@ capopen(Chan *c, int omode)
 	return c;
 }
 
+static char*
+hashstr(uchar *hash)
+{
+	static char buf[256];
+	int i;
+
+	for(i = 0; i < Hashlen; i++)
+		sprint(buf+2*i, "%2.2ux", hash[i]);
+	buf[2*Hashlen] = 0;
+	return buf;
+}
+
 static Caphash*
 remcap(uchar *hash)
 {
@@ -250,22 +262,22 @@ capwrite(Chan *c, void *va, long n, vlong)
 }
 
 Dev capdevtab = {
-.dc=		L'¤',
-.name=		"cap",
+	L'¤',
+	"cap",
 
-.reset=		devreset,
-.init=		devinit,
-.shutdown=	devshutdown,
-.attach=	capattach,
-.walk=		capwalk,
-.stat=		capstat,
-.open=		capopen,
-.create=	devcreate,
-.close=		capclose,
-.read=		capread,
-.bread=		devbread,
-.write=		capwrite,
-.bwrite=	devbwrite,
-.remove=	capremove,
-.wstat=		devwstat,
+	devreset,
+	devinit,
+	devshutdown,
+	capattach,
+	capwalk,
+	capstat,
+	capopen,
+	devcreate,
+	capclose,
+	capread,
+	devbread,
+	capwrite,
+	devbwrite,
+	capremove,
+	devwstat
 };

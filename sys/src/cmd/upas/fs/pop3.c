@@ -79,7 +79,7 @@ pop3resp(Pop *pop)
 	char *p;
 
 	if((s = Brdline(&pop->bin, '\n')) == nil)
-		return nil;
+		return "unexpected eof";
 
 	p = s+Blinelen(&pop->bin)-1;
 	while(p >= s && (*p == '\r' || *p == '\n'))
@@ -120,7 +120,7 @@ pop3capa(Pop *pop)
 
 	hastls = 0;
 	while(s = pop3resp(pop)){
-		if(strcmp(s, ".") == 0)
+		if(strcmp(s, ".") == 0 || strcmp(s, "unexpected eof") == 0)
 			break;
 		if(strcmp(s, "STLS") == 0)
 			hastls = 1;

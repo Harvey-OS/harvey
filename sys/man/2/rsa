@@ -63,6 +63,9 @@ uchar*	decodepem(char *s, char *type, int *len)
 uchar*	X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
 .PP
 .B
+uchar*	X509req(RSApriv *priv, char *subj, int *certlen);
+.PP
+.B
 char* X509verify(uchar *cert, int ncert, RSApub *pk)
 .SH DESCRIPTION
 .PP

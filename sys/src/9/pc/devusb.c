@@ -429,7 +429,7 @@ usbprobe(int cardno, int ctlrno)
 	intrenable(uh->irq, uh->interrupt, uh, uh->tbdf, name);
 
 	ebuf = buf + sizeof buf;
-	p = seprint(buf, ebuf, "#U/usb%d: %s: port 0x%luX irq %lud", ctlrno, usbtypes[cardno].type, uh->port, uh->irq);
+	p = seprint(buf, ebuf, "#U/usb%d: %s: port 0x%luX irq %d", ctlrno, usbtypes[cardno].type, uh->port, uh->irq);
 	if(uh->mem)
 		p = seprint(p, ebuf, " addr 0x%luX", PADDR(uh->mem));
 	if(uh->size)

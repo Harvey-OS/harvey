@@ -34,7 +34,7 @@ _dirtostat(struct stat *s, Dir *d, Fdinfo *fi)
 	s->st_atime = d->atime;
 	s->st_mtime = d->mtime;
 	s->st_ctime = d->mtime;
-	if(fi){
+	if(fi && fi->uid != -2){
 		s->st_uid = fi->uid;
 		s->st_gid = fi->gid;
 	} else {
@@ -44,5 +44,9 @@ _dirtostat(struct stat *s, Dir *d, Fdinfo *fi)
 		nam = d->gid;
 		if(_getpw(&num, &nam, 0))
 			s->st_gid = num;
+		if(fi){
+			fi->uid = s->st_uid;
+			fi->gid = s->st_gid;
+		}
 	}
 }

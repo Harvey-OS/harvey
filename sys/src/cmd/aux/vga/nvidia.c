@@ -54,36 +54,19 @@ snarf(Vga* vga, Ctlr* ctlr)
 		nv = vga->private;
 		if((p = pcimatch(0, 0x10DE, 0)) == nil)
 			error("%s: not found\n", ctlr->name);
-		switch(p->did){
-		case 0x0020:		/* Riva TNT */
-		case 0x0028:		/* Riva TNT2 */
-		case 0x0029:		/* Riva TNT2 (Ultra)*/
-		case 0x002C:		/* Riva TNT2 (Vanta) */
-		case 0x002D:		/* Riva TNT2 M64 */
-		case 0x00A0:		/* Riva TNT2 (Integrated) */
+		if(p->did < 0x20)
+			error("%s: DID %4.4uX unsupported\n", ctlr->name, p->did);
+		switch(p->did&0xFF00){
+		case 0:
 			nv->arch = 4;
 			break;
-		case 0x0100:		/* GeForce 256 */
-		case 0x0101:		/* GeForce DDR */
-		case 0x0103:		/* Quadro */
-		case 0x0110:		/* GeForce2 MX */
-		case 0x0111:		/* GeForce2 MX DDR */
-		case 0x0112:		/* GeForce 2 Go */
-		case 0x0113:		/* Quadro 2 MXR */
-		case 0x0150:		/* GeForce2 GTS */
-		case 0x0151:		/* GeForce2 GTS (rev 1) */
-		case 0x0152:		/* GeForce2 Ultra */
-		case 0x0153:		/* Quadro 2 Pro */
+		case 0x0100:
 			nv->arch = 10;
 			break;
-		case 0x0200:		/* GeForce3 */
-		case 0x0201:		/* some other geforce3's */
-		case 0x0202:
+		case 0x0200:
+		default:
 			nv->arch = 20;
 			break;
-		default:
-			error("%s: DID %4.4uX unsupported\n",
-				ctlr->name, p->did);
 		}
 
 		vgactlw("type", ctlr->name);

@@ -96,7 +96,7 @@ p9skinit(Proto *p, Fsstate *fss)
 	}else{
 		s->tr.type = AuthTreq;
 		attr = setattr(_copyattr(fss->attr), "proto=p9sk1");
-		ret = findkey(&k, fss, Kowner, 0, attr, "user? dom?");
+		ret = findkey(&k, fss, nil, 0, 0, attr, "user? dom?");
 		_freeattr(attr);
 		if(ret != RpcOk){
 			free(s);
@@ -221,18 +221,18 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 		 * If, on the other hand, we're speaking on behalf of someone else,
 		 * we will only vouch for their name on the local system.
 		 *
-		 * We do the Kuser findkey second so that if we return RpcNeedkey,
+		 * We do the sysuser findkey second so that if we return RpcNeedkey,
 		 * the correct key information gets asked for.
 		 */
 		srvkey = nil;
 		s->speakfor = 0;
 		sret = RpcFailure;
 		if(user==nil || strcmp(user, fss->sysuser) == 0)
-			sret = findkey(&srvkey, fss, Kowner, 0, attr,
+			sret = findkey(&srvkey, fss, nil, 0, 0, attr,
 				"role=speakfor dom=%q user?", s->tr.authdom);
 		if(user != nil)
 			attr = setattr(attr, "user=%q", user);
-		ret = findkey(&s->key, fss, Kuser, 0, attr,
+		ret = findkey(&s->key, fss, fss->sysuser, 0, 0, attr,
 			"role=client dom=%q %s", s->tr.authdom, p9sk1.keyprompt);
 		if(ret == RpcOk)
 			closekey(srvkey);
@@ -425,6 +425,10 @@ mkserverticket(State *s, char *tbuf)
 
 	if(strcmp(tr->authid, tr->hostid) != 0)
 		return -1;
+/* this keeps creating accounts on martha from working.  -- presotto
+	if(strcmp(tr->uid, "none") == 0)
+		return -1;
+*/
 	memset(&t, 0, sizeof(t));
 	memmove(t.chal, tr->chal, CHALLEN);
 	strcpy(t.cuid, tr->uid);

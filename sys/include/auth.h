@@ -137,6 +137,7 @@ extern AuthRpc*		auth_allocrpc(int afd);
 extern Attr*		auth_attr(AuthRpc *rpc);
 extern void		auth_freerpc(AuthRpc *rpc);
 extern uint		auth_rpc(AuthRpc *rpc, char *verb, void *a, int n);
+extern int		auth_wep(char*, char*, ...);
 #pragma varargck argpos auth_proxy 3
 #pragma varargck argpos auth_challenge 1
 #pragma varargck argpos auth_respond 3

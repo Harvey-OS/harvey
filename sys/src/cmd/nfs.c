@@ -547,7 +547,7 @@ nfsReadDir(Auth *a, ulong tag, Nfs3Handle *h, u32int count, u64int cookie, uchar
 		}
 		if(readplus == 0){
 			rerrstr(e, sizeof e);
-			if(strstr(e, "procedure unavailable"))
+			if(strstr(e, "procedure unavailable") || strstr(e, "not supported"))
 				readplus = -1;
 		}
 		if(readplus == 0)
@@ -1103,6 +1103,7 @@ fsreaddir(Req *r)
 {
 	FidAux *aux;
 	uchar *p, *freeme, *ep, *p9, *ep9;
+	char *s;
 	uint count;
 	int n, (*unpack)(uchar*, uchar*, uchar**, Nfs3Entry*);
 	Nfs3Entry e;
@@ -1136,6 +1137,10 @@ fsreaddir(Req *r)
 			break;
 		aux->cookie = e.cookie;
 		if(strcmp(e.name, ".") == 0 || strcmp(e.name, "..") == 0)
+			continue;
+		for(s=e.name; (uchar)*s >= ' '; s++)
+			;
+		if(*s != 0)	/* bad character in name */
 			continue;
 		if(!e.haveAttr && !e.haveHandle)
 			if(nfsLookup(aux->auth, r->tag, &aux->handle, e.name, &e.handle, &e.haveAttr, &e.attr) < 0)
@@ -1239,6 +1244,7 @@ fswstat(Req *r)
 	FidAux *aux;
 	Nfs3SetAttr attr;
 
+	memset(&attr, 0, sizeof attr);
 	aux = r->fid->aux;
 
 	/* Fill out stat first to catch errors */
@@ -1275,10 +1281,20 @@ fswstat(Req *r)
 	if(~r->d.length){
 		attr.setSize = 1;
 		attr.size = r->d.length;
+		op = 1;
+		sync = 0;
 	}
 	if(~r->d.mtime){
-		attr.setMtime = 1;
+		attr.setMtime = Nfs3SetTimeClient;
 		attr.mtime.sec = r->d.mtime;
+		op = 1;
+		sync = 0;
+	}
+	if(~r->d.atime){
+		attr.setAtime = Nfs3SetTimeClient;
+		attr.atime.sec = r->d.atime;
+		op = 1;
+		sync = 0;
 	}
 
 	/* Try rename first because it's more likely to fail (?) */

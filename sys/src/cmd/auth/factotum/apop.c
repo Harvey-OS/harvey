@@ -105,7 +105,7 @@ apopwrite(Fsstate *fss, void *va, uint n)
 		return phaseerror(fss, "write");
 
 	case CNeedChal:
-		ret = findkey(&k, fss, Kuser, 0, fss->attr, "%s", fss->proto->keyprompt);
+		ret = findkey(&k, fss, fss->sysuser, 0, 0, fss->attr, "%s", fss->proto->keyprompt);
 		if(ret != RpcOk)
 			return ret;
 		v = _strfindattr(k->privattr, "!password");

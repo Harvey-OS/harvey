@@ -2,6 +2,8 @@
 .SH NAME
 fopen, freopen, fdopen, fileno, fclose, sopenr, sopenw, sclose, fflush, setvbuf, setbuf, fgetpos, ftell, fsetpos, fseek, rewind, feof, ferror, clearerr \- standard buffered input/output package
 .SH SYNOPSIS
+.B #include <u.h>
+.br
 .B #include <stdio.h>
 .PP
 .ta \w'\fLFILE 'u

@@ -51,6 +51,7 @@ hiqvideolinear(VGAscr* scr, int* size, int* align)
 		case 0x00C0:		/* 69000 HiQVideo */
 		case 0x00E0:		/* 65550 HiQV32 */
 		case 0x00E4:		/* 65554 HiQV32 */
+		case 0x00E5:		/* 65555 HiQV32 */
 			aperture = p->mem[0].bar & ~0x0F;
 			*size = p->mem[0].size;
 			break;
@@ -100,6 +101,7 @@ hiqvideoenable(VGAscr* scr)
 			break;
 		case 0x00E0:		/* 65550 HiQV32 */
 		case 0x00E4:		/* 65554 HiQV32 */
+		case 0x00E5:		/* 65555 HiQV32 */
 			switch((hiqvideoxi(Xrx, 0x43)>>1) & 0x03){
 			default:
 			case 0:

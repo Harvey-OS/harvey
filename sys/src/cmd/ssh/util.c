@@ -105,64 +105,6 @@ readstrnl(int fd, char *buf, int nbuf)
 	return -1;
 }
 
-RSApriv*
-readsecretkey(char *name)
-{
-	char *buf;
-	char *p;
-	mpint *ek, *dk, *n, *pp, *q, *kp, *kq, *c2;
-	Biobuf *b;
-	RSApriv *key;
-
-	if((b = Bopen(name, OREAD)) == nil)
-		return nil;
-
-	if((buf = Brdstr(b, '\n', 1)) == nil){
-		Bterm(b);
-		return nil;
-	}
-	Bterm(b);
-
-	/*
-	 * size ek dk n p q kp kq c2
-	 */
-
-	ek = dk = n = pp = q = kp = kq = c2 = nil;
-
-	if((p = strchr(buf, ' ')) == nil
-	|| (ek=strtomp(p, &p, 16, nil)) == nil
-	|| (dk=strtomp(p, &p, 16, nil)) == nil
-	|| (n=strtomp(p, &p, 16, nil)) == nil
-	|| (pp=strtomp(p, &p, 16, nil)) == nil
-	|| (q=strtomp(p, &p, 16, nil)) == nil
-	|| (kp=strtomp(p, &p, 16, nil)) == nil
-	|| (kq=strtomp(p, &p, 16, nil)) == nil
-	|| (c2=strtomp(p, &p, 16, nil)) == nil
-	|| (key=rsaprivalloc()) == nil){
-		mpfree(ek);
-		mpfree(dk);
-		mpfree(n);
-		mpfree(pp);
-		mpfree(q);
-		mpfree(kp);
-		mpfree(kq);
-		mpfree(c2);
-		free(buf);
-		return nil;
-	}
-
-	key->pub.ek = ek;
-	key->dk = dk;
-	key->pub.n = n;
-	key->p = pp;
-	key->q = q;
-	key->kp = kp;
-	key->kq = kq;
-	key->c2 = c2;
-	free(buf);
-	return key;
-}
-
 void
 calcsessid(Conn *c)
 {

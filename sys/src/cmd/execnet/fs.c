@@ -247,6 +247,7 @@ fsflush(Req *r)
 		abort();
 
 	clientflush(or, client[NUM(path)]);
+	respond(r, nil);
 }
 
 static void

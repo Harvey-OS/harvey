@@ -71,6 +71,7 @@ int	_dirwstat(char*, Dir*);
 Dir	*_dirfstat(int);
 int	_dirfwstat(int, Dir*);
 long	_dirread(int, Dir**);
+long _dirreadall(int, Dir**);
 void _nulldir(Dir*);
 uint _sizeD2M(Dir*);
 

@@ -99,7 +99,7 @@ rsaread(Fsstate *fss, void *va, uint *n)
 			closekey(s->key);
 			s->key = nil;
 		}
-		if(findkey(&s->key, fss, Knoconf|Kuser, s->off, fss->attr, nil) != RpcOk)
+		if(findkey(&s->key, fss, fss->sysuser, 1, s->off, fss->attr, nil) != RpcOk)
 			return failure(fss, nil);
 		s->off++;
 		priv = s->key->priv;

@@ -409,6 +409,8 @@ waitforlinearfifo(VGAscr *scr)
 	switch(scr->id){
 	default:
 		panic("unknown scr->id in s3 waitforlinearfifo");
+	case 0x8A01:	/* ViRGE/[DG]X.  XFree86 says no waiting necessary */
+		return;
 	case 0x5631:	/* ViRGE */
 	case 0x883D:	/* ViRGE/VX */
 		mask = 0x0F<<6;

@@ -95,7 +95,7 @@ p9crinit(Proto *p, Fsstate *fss)
 			attr = setattr(_copyattr(fss->attr), "proto=p9sk1");
 		else
 			attr = nil;
-		ret = findkey(&s->key, fss, Kuser, 0, attr ? attr : fss->attr,
+		ret = findkey(&s->key, fss, fss->sysuser, 0, 0, attr ? attr : fss->attr,
 			"role=client %s", p->keyprompt);
 		_freeattr(attr);
 		if(ret != RpcOk){

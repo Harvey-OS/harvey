@@ -1136,7 +1136,7 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	pi->irq = isa->irq;
 	unlock(cb);
 
-	print("#Y%d: %s irq %ld, port %lX\n", (int)(cb - cbslots), pi->verstr, isa->irq, isa->port);
+	print("#Y%d: %s irq %d, port %lX\n", (int)(cb - cbslots), pi->verstr, isa->irq, isa->port);
 	return (int)(cb - cbslots);
 }
 

@@ -5,7 +5,9 @@ namespace \- name space description file
 Namespace files describe how to construct a name space from scratch,
 an operation normally performed by the
 .I newns
-subroutine
+or
+.I addns
+subroutines
 (see
 .IR auth (2))
 which is typically called by
@@ -65,6 +67,17 @@ or everything mounted on
 if
 .I new
 is missing.
+.TP
+.BR clear
+Clear the name space with
+.BR rfork(RFCNAMEG) .
+.TP
+.BI . \ path
+Execute the namespace file 
+.IR path .
+Note that
+.I path
+must be present in the name space being built.
 .PD
 .PP
 The options for

@@ -30,7 +30,6 @@ char *confval[MAXCONF];
 int nconf;
 uchar *sp;	/* user stack of init proc */
 
-
 static void
 options(void)
 {
@@ -584,6 +583,10 @@ procsave(Proc *p)
 	 * the free list where they could be reallocated and overwritten.
 	 * When this processor eventually has to get an entry from the
 	 * trashed page tables it will crash.
+	 *
+	 * If there's only one processor, this can't happen.
+	 * You might think it would be a win not to do this in that case,
+	 * especially on VMware, but it turns out not to matter.
 	 */
 	mmuflushtlb(PADDR(m->pdb));
 }

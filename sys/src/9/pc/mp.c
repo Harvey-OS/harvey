@@ -581,14 +581,9 @@ mpinit(void)
 	 *
 	 *  set conf.copymode here if nmach > 1.
 	 *  Should look for an ExtINT line and enable it.
-	 *
-	 *  also need to flush write buffer to make things
-	 *  visible to other processors.
 	 */
 	if(X86FAMILY(m->cpuidax) == 3 || conf.nmach > 1)
 		conf.copymode = 1;
-	if(X86FAMILY(m->cpuidax) >= 5 && conf.nmach > 1)
-		coherence = wbflush;
 }
 
 static int

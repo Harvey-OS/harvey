@@ -139,10 +139,12 @@ logit(int severity, char *fmt, va_list args)
 		return nil;
 	*(char*)f.to = '\0';
 
-	if(argv0 == nil)
-		fprint(2, "%s: err %d: %s\n", argv0, severity, f.start);
-	else
-		fprint(2, "err %d: %s\n", severity, f.start);
+	if(severity != EOk){
+		if(argv0 == nil)
+			fprint(2, "%s: err %d: %s\n", argv0, severity, f.start);
+		else
+			fprint(2, "err %d: %s\n", severity, f.start);
+	}
 	return f.start;
 }
 
