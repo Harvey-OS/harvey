@@ -16282,3 +16282,5 @@
 1089496876 0 c lib/vgadb - 664 sys sys 1089495677 28511
 1089739922 0 c sys/src/cmd/ip/mkfile - 664 sys sys 1089739069 1232
 1089739922 1 d sys/src/cmd/ip/bootp.h - 664 sys sys 944961013 0
+1089815416 0 c sys/src/boot/pc/ip.h - 664 sys sys 1089814405 2435
+1089860424 0 c sys/src/ape/lib/ap/plan9/wait.c - 664 sys sys 1089859817 2162
