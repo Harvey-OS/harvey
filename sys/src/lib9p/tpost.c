@@ -11,7 +11,7 @@ threadpostmountsrv(Srv *s, char *name, char *mtpt, int flag)
 	Postcrud *p;
 
 	p = _post1(s, name, mtpt, flag);
-	if(procrfork(_post2, s, 32*1024, RFNAMEG|RFNOTEG) < 0)
+	if(procrfork(_post2, s, 32*1024, RFNAMEG) < 0)
 		sysfatal("procrfork: %r");
 	_post3(p);
 }

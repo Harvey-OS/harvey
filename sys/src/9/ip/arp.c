@@ -404,7 +404,7 @@ arpwrite(Fs *fs, char *s, int len)
 	Route *r;
 	Arp *arp;
 	Block *bp;
-	Arpent *a;
+	Arpent *a, *fl, **l;
 	Medium *m;
 	char *f[4], buf[256];
 	uchar ip[IPaddrlen], mac[MAClen];
@@ -469,6 +469,42 @@ arpwrite(Fs *fs, char *s, int len)
 			error(Ebadarp);
 
 		m->ares(fs, V6, ip, mac, n, 0);
+	} else if(strcmp(f[0], "del") == 0){
+		if(n != 2)
+			error(Ebadarg);
+
+		parseip(ip, f[1]);
+		qlock(arp);
+
+		l = &arp->hash[haship(ip)];
+		for(a = *l; a; a = a->hash){
+			if(memcmp(ip, a->ip, sizeof(a->ip)) == 0){
+				*l = a->hash;
+				break;
+			}
+			l = &a->hash;
+		}
+	
+		if(a){
+			/* take out of re-transmit chain */
+			l = &arp->rxmt;
+			for(fl = *l; fl; fl = fl->nextrxt){
+				if(fl == a){
+					*l = a->nextrxt;
+					break;
+				}
+				l = &fl->nextrxt;
+			}
+
+			a->nextrxt = nil;
+			a->hash = nil;
+			a->hold = nil;
+			a->last = nil;
+			a->ifc = nil;
+			memset(a->ip, 0, sizeof(a->ip));
+			memset(a->mac, 0, sizeof(a->mac));
+		}
+		qunlock(arp);
 	} else
 		error(Ebadarp);
 
