@@ -453,9 +453,9 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1091242967 183443
+386/bin/usb/usbaudio - 775 sys sys 1091331846 183070
 386/bin/usb/usbd - 775 sys sys 1091242967 127455
-386/bin/usb/usbmouse - 775 sys sys 1085077119 138047
+386/bin/usb/usbmouse - 775 sys sys 1091331846 137865
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1085077119 167554
 386/bin/vacfs - 775 sys sys 1085077120 172959
@@ -7411,7 +7411,7 @@ sys/src/cmd/dossrv/lock.c - 664 sys sys 954305577 504
 sys/src/cmd/dossrv/mkfile - 664 sys sys 1032057270 310
 sys/src/cmd/dossrv/xfile.c - 664 sys sys 1017679315 4391
 sys/src/cmd/dossrv/xfssrv.c - 664 sys sys 1018323479 3397
-sys/src/cmd/du.c - 664 sys sys 1067719067 3144
+sys/src/cmd/du.c - 664 sys sys 1091379562 3302
 sys/src/cmd/echo.c - 664 sys sys 1081736344 581
 sys/src/cmd/ed.c - 664 sys sys 1055698917 21942
 sys/src/cmd/eqn - 20000000775 sys sys 944960990 0
@@ -12335,5 +12335,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/usb/usbaudio - 775 sys sys 1091329730 183070
-386/bin/usb/usbmouse - 775 sys sys 1091329730 137865
+386/bin/du - 775 sys sys 1091416192 71534
