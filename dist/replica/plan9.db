@@ -308,7 +308,7 @@
 386/bin/mc - 775 sys sys 1071245338 129548
 386/bin/md5sum - 775 sys sys 1064598252 59465
 386/bin/mk - 775 sys sys 1064598253 143638
-386/bin/mkdir - 775 sys sys 1081657628 58376
+386/bin/mkdir - 775 sys sys 1082603187 59419
 386/bin/mkpaqfs - 775 sys sys 1073851233 94055
 386/bin/mkstate - 775 sys sys 1064598255 61927
 386/bin/mntgen - 775 sys sys 1064598256 136777
@@ -542,7 +542,7 @@
 386/lib/libmach.a - 664 sys sys 1073851272 746962
 386/lib/libmemdraw.a - 664 sys sys 1073851273 291288
 386/lib/libmemlayer.a - 664 sys sys 1073851273 47636
-386/lib/libmp.a - 664 sys sys 1082257739 81428
+386/lib/libmp.a - 664 sys sys 1082603187 77700
 386/lib/libndb.a - 664 sys sys 1079451578 61344
 386/lib/libplumb.a - 664 sys sys 1073851274 18876
 386/lib/libregexp.a - 664 sys sys 1073851274 37502
@@ -4695,7 +4695,7 @@ sys/man/1/man - 664 sys sys 1059484724 1740
 sys/man/1/marshal - 664 sys sys 1079970326 3150
 sys/man/1/mc - 664 sys sys 1045501392 508
 sys/man/1/mk - 664 sys sys 964455061 13154
-sys/man/1/mkdir - 664 sys sys 1081621073 597
+sys/man/1/mkdir - 664 sys sys 1082593141 717
 sys/man/1/mlmgr - 664 sys sys 1045501403 2427
 sys/man/1/ms2html - 664 sys sys 960001562 856
 sys/man/1/nedmail - 664 sys sys 1055704205 11322
@@ -5266,7 +5266,7 @@ sys/src/9/ip/ipifc.c - 664 sys sys 1079538100 34297
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1049423192 14763
 sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
-sys/src/9/ip/ipv6.h - 664 sys sys 1079538100 4259
+sys/src/9/ip/ipv6.h - 664 sys sys 1082604125 4260
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1026847568 4003
@@ -9755,7 +9755,7 @@ sys/src/cmd/mk/symtab.c - 664 sys sys 944961025 1581
 sys/src/cmd/mk/var.c - 664 sys sys 944961025 539
 sys/src/cmd/mk/varsub.c - 664 sys sys 944961025 4438
 sys/src/cmd/mk/word.c - 664 sys sys 944961025 2595
-sys/src/cmd/mkdir.c - 664 sys sys 1081621076 868
+sys/src/cmd/mkdir.c - 664 sys sys 1082593106 1026
 sys/src/cmd/mkfile - 664 sys sys 1045534751 2205
 sys/src/cmd/mklib - 664 sys sys 1022112159 599
 sys/src/cmd/mkmany - 664 sys sys 1022112160 1196
