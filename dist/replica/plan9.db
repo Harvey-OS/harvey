@@ -5,9 +5,9 @@
 29000/lib - 20000000775 sys sys 948037563 0
 29000/mkfile - 664 sys sys 948141302 46
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1057323598 180364
+386/9load - 775 sys sys 1066618054 181248
 386/9loaddebug - 775 sys sys 1064598409 260250
-386/9loadlite - 775 sys sys 1032215927 124616
+386/9loadlite - 775 sys sys 1066618055 124684
 386/9loadlitedebug - 775 sys sys 1064598410 183708
 386/9pc - 775 sys sys 1064598419 1848196
 386/9pc.gz - 664 sys sys 1040006338 614078
@@ -137,7 +137,7 @@
 386/bin/aux/posttek - 775 sys sys 1048745025 162347
 386/bin/aux/rdwr - 775 sys sys 1064598085 38530
 386/bin/aux/reboot - 775 sys sys 1064598085 58802
-386/bin/aux/samterm - 775 sys sys 1064598087 245306
+386/bin/aux/samterm - 775 sys sys 1066572837 245540
 386/bin/aux/searchfs - 775 sys sys 1064598087 90729
 386/bin/aux/sprog - 775 sys sys 1064598088 77816
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
@@ -367,7 +367,7 @@
 386/bin/rio - 775 sys sys 1064598297 303363
 386/bin/rm - 775 sys sys 1064598298 59786
 386/bin/rtstats - 775 sys sys 1064598300 177851
-386/bin/rx - 775 sys sys 1064598300 79503
+386/bin/rx - 775 sys sys 1066572586 79934
 386/bin/sam - 775 sys sys 1064598302 156664
 386/bin/scat - 775 sys sys 1064598303 282458
 386/bin/scp - 775 sys sys 1064598305 150966
@@ -5216,7 +5216,7 @@ sys/src/9/pc/devusb.c - 664 sys sys 1063857423 18352
 sys/src/9/pc/devvga.c - 664 sys sys 1063857412 8714
 sys/src/9/pc/dma.c - 664 sys sys 1015014515 4736
 sys/src/9/pc/ether2000.c - 664 sys sys 1017854323 2839
-sys/src/9/pc/ether2114x.c - 664 sys sys 1034021961 38762
+sys/src/9/pc/ether2114x.c - 664 sys sys 1066618082 41227
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1018386992 14056
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
@@ -6283,7 +6283,7 @@ sys/src/boot/pc/eoffs - 664 sys sys 1015007950 0
 sys/src/boot/pc/error.h - 664 sys sys 1015007950 3081
 sys/src/boot/pc/ether.c - 664 sys sys 1056073258 4670
 sys/src/boot/pc/ether2000.c - 664 sys sys 1015007950 2609
-sys/src/boot/pc/ether2114x.c - 664 sys sys 1015007950 34538
+sys/src/boot/pc/ether2114x.c - 664 sys sys 1066618033 37048
 sys/src/boot/pc/ether589.c - 664 sys sys 1015007950 4628
 sys/src/boot/pc/ether79c970.c - 664 sys sys 1015007950 11717
 sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
@@ -9965,7 +9965,7 @@ sys/src/cmd/rtstats/resproc.c - 664 sys sys 1037669163 2287
 sys/src/cmd/rtstats/rtstats.c - 664 sys sys 1048644563 13224
 sys/src/cmd/rtstats/time.c - 664 sys sys 1038425433 2094
 sys/src/cmd/rtstats/time.h - 664 sys sys 1038425434 164
-sys/src/cmd/rx.c - 664 sys sys 1053223080 3374
+sys/src/cmd/rx.c - 664 sys sys 1066572585 3657
 sys/src/cmd/sam - 20000000775 sys sys 944961629 0
 sys/src/cmd/sam/address.c - 664 sys sys 944961628 3985
 sys/src/cmd/sam/buff.c - 664 sys sys 1014926937 5161
@@ -9997,10 +9997,10 @@ sys/src/cmd/samterm/flayer.c - 664 sys sys 1014926592 9863
 sys/src/cmd/samterm/flayer.h - 664 sys sys 956946464 1147
 sys/src/cmd/samterm/icons.c - 664 sys sys 1014926592 1627
 sys/src/cmd/samterm/io.c - 664 sys sys 952627627 4226
-sys/src/cmd/samterm/main.c - 664 sys sys 947099637 9949
+sys/src/cmd/samterm/main.c - 664 sys sys 1066572812 10009
 sys/src/cmd/samterm/menu.c - 664 sys sys 1045502822 6528
 sys/src/cmd/samterm/mesg.c - 664 sys sys 1014926592 12558
-sys/src/cmd/samterm/mkfile - 664 sys sys 944961350 544
+sys/src/cmd/samterm/mkfile - 664 sys sys 1066572811 595
 sys/src/cmd/samterm/plan9.c - 664 sys sys 1014926592 4675
 sys/src/cmd/samterm/rasp.c - 664 sys sys 944961350 4433
 sys/src/cmd/samterm/samterm.h - 664 sys sys 1045502822 3730

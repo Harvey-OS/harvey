@@ -13,6 +13,7 @@ int	call(char *, char*, char*, char**);
 char	*buildargs(char*[]);
 int	send(int);
 void	error(char*, char*);
+void	sshexec(char *host, char *cmd);
 
 void
 usage(void)
@@ -48,7 +49,7 @@ main(int argc, char *argv[])
 	host = argv[0];
 	args = buildargs(&argv[1]);
 
-	/* generic attempts: try p9any then dial again with p9sk2 */
+	/* try erexexec p9any then dial again with p9sk2 */
 	fd = call(0, host, "rexexec", &addr);
 	if(fd >= 0)
 		rex(fd, args, "p9any");
@@ -57,6 +58,14 @@ main(int argc, char *argv[])
 	if(fd >= 0)
 		rex(fd, args, "p9sk2");
 	close(fd);
+
+	/* if there's an ssh port, try that */
+	fd = call("tcp", host, "ssh", &addr);
+	if(fd >= 0){
+		close(fd);
+		sshexec(host, args);
+		/* falls through if no ssh */
+	}
 
 	/* specific attempts */
 	fd = call("tcp", host, "shell", &addr);
@@ -140,6 +149,12 @@ tcpexec(int fd, char *addr, char *cmd)
 	sleep(250);
 	postnote(PNPROC, kid, note);/**/
 	exits(0);
+}
+
+void
+sshexec(char *host, char *cmd)
+{
+	execl("/bin/ssh", "ssh", "-iCm", host, cmd, 0);
 }
 
 int
