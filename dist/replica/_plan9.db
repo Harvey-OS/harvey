@@ -751,7 +751,7 @@ adm/timezone/Chile_EasterIsland - 664 adm adm 1020313576 1133
 adm/timezone/Cuba - 664 adm adm 1020313576 1320
 adm/timezone/EET - 664 adm adm 1020313576 1163
 adm/timezone/Egypt - 664 adm adm 1020313576 1471
-adm/timezone/GB-Eire - 664 adm adm 1020313577 1159
+adm/timezone/GB-Eire - 664 adm adm 1099058034 1170
 adm/timezone/GMT - 664 adm adm 1020313577 6
 adm/timezone/HST - 664 adm adm 1020313577 22
 adm/timezone/Hongkong - 664 adm adm 1020313577 20
@@ -3335,7 +3335,7 @@ sys/doc/venti/venti.pdf - 755 sys sys 1020384352 139090
 sys/doc/venti/venti.ps - 664 sys sys 1019852320 2012620
 sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
-sys/games/lib/fortunes - 664 sys sys 1098540092 250651
+sys/games/lib/fortunes - 664 sys sys 1099093340 250751
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -4633,6 +4633,7 @@ sys/log/runq - 10000000666 sys sys 1080134438 182
 sys/log/smtp - 10000000666 sys sys 1080134438 69
 sys/log/smtp.fail - 10000000666 sys sys 958934039 0
 sys/log/smtpd - 10000000666 sys sys 958934040 0
+sys/log/smtpd.mx - 10000000666 sys sys 1099090672 0
 sys/log/ssh - 10000000666 sys sys 958934039 0
 sys/log/telnet - 10000000666 sys sys 958934039 0
 sys/log/timesync - 10000000666 sys sys 958934040 0
@@ -5274,7 +5275,7 @@ sys/src/9/boot/settime.c - 664 sys sys 1036813626 2473
 sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
 sys/src/9/ip/arp.c - 664 sys sys 1078928097 10687
-sys/src/9/ip/chandial.c - 664 sys sys 1022588098 2276
+sys/src/9/ip/chandial.c - 664 sys sys 1099020048 2295
 sys/src/9/ip/devip.c - 664 sys sys 1084331653 24164
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
@@ -12390,4 +12391,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1021580005 847
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/9/ip/chandial.c - 664 sys sys 1099020048 2295
+386/9pc - 775 sys sys 1099105953 1817371
+386/9pccpu - 775 sys sys 1099105956 1473500
+386/9pcdisk - 775 sys sys 1099105960 2019977
+386/9pcf - 775 sys sys 1099105966 2351620
