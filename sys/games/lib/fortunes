@@ -4021,3 +4021,4 @@ No one but a theorist believes his theory; everyone puts faith in a laboratory r
 (Okay, Plan 9 isn't Linux, but it's a close relative).
 Tux is not cute.  Tux has the expression of someone right after knitting needles have been used to scramble the front side of their cerebral cortex.  Tux scares me.  - Ron Minnich
 Setting up your SIP account will allow you to call both other SIP users as well as pstn phones. - Wim Sweldens
+ntifs.c(202) : error C2064: term does not evaluate to a function taking 25732904 arguments
