@@ -540,8 +540,7 @@ syssleep(ulong *arg)
 
 	n = arg[0];
 	if(n <= 0) {
-		up->priority = 0;
-		sched();
+		yield();
 		return 0;
 	}
 	if(n < TK2MS(1))
