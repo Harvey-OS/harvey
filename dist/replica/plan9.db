@@ -570,6 +570,7 @@
 68000/bin/bitsy - 20000000775 sys sys 985559408 0
 68000/bin/dial - 20000000775 sys sys 1059180056 0
 68000/bin/fossil - 20000000775 sys sys 1042090587 0
+68000/bin/games - 20000000775 sys sys 1110524968 0
 68000/bin/venti - 20000000775 sys sys 1019679272 0
 68000/include - 20000000775 sys sys 948037602 0
 68000/include/u.h - 664 sys sys 1042604326 1435
@@ -585,6 +586,7 @@
 68020/bin/dial - 20000000775 sys sys 1059180056 0
 68020/bin/disk - 20000000775 sys sys 954268392 0
 68020/bin/fossil - 20000000775 sys sys 1042090587 0
+68020/bin/games - 20000000775 sys sys 1110524968 0
 68020/bin/ip - 20000000775 sys sys 954275231 0
 68020/bin/ndb - 20000000775 sys sys 954268392 0
 68020/bin/replica - 20000000775 sys sys 1018321160 0
@@ -808,6 +810,7 @@ alpha/bin/dial - 20000000775 sys sys 1059180057 0
 alpha/bin/disk - 20000000775 sys sys 954435373 0
 alpha/bin/fossil - 20000000775 sys sys 1042090587 0
 alpha/bin/fs - 20000000775 sys sys 954380757 0
+alpha/bin/games - 20000000775 sys sys 1110524968 0
 alpha/bin/ip - 20000000775 sys sys 954435373 0
 alpha/bin/ip/httpd - 20000000775 sys sys 954435373 0
 alpha/bin/ndb - 20000000775 sys sys 954435373 0
@@ -839,6 +842,7 @@ arm/bin/dial - 20000000775 sys sys 1059180057 0
 arm/bin/disk - 20000000775 sys sys 985644211 0
 arm/bin/fossil - 20000000775 sys sys 1042090587 0
 arm/bin/fs - 20000000775 sys sys 985644327 0
+arm/bin/games - 20000000775 sys sys 1110524968 0
 arm/bin/ip - 20000000775 sys sys 985644327 0
 arm/bin/ip/httpd - 20000000775 sys sys 1038435385 0
 arm/bin/ndb - 20000000775 sys sys 985644327 0
@@ -2868,6 +2872,7 @@ mips/bin/dial - 20000000775 sys sys 1059180057 0
 mips/bin/disk - 20000000775 sys sys 954268391 0
 mips/bin/fossil - 20000000775 sys sys 1042090588 0
 mips/bin/fs - 20000000775 sys sys 954380757 0
+mips/bin/games - 20000000775 sys sys 1110524968 0
 mips/bin/ip - 20000000775 sys sys 954268391 0
 mips/bin/ip/httpd - 20000000775 sys sys 954268391 0
 mips/bin/ndb - 20000000775 sys sys 954268391 0
@@ -2964,6 +2969,7 @@ power/bin/dial - 20000000775 sys sys 1059180057 0
 power/bin/disk - 20000000775 sys sys 958422762 0
 power/bin/fossil - 20000000775 sys sys 1042090588 0
 power/bin/fs - 20000000775 sys sys 958422762 0
+power/bin/games - 20000000775 sys sys 1110524968 0
 power/bin/ip - 20000000775 sys sys 958422762 0
 power/bin/ip/httpd - 20000000775 sys sys 1038435389 0
 power/bin/ndb - 20000000775 sys sys 958422762 0
@@ -3157,6 +3163,7 @@ sparc/bin/bitsy - 20000000775 sys sys 985559408 0
 sparc/bin/dial - 20000000775 sys sys 1059180057 0
 sparc/bin/disk - 20000000775 sys sys 954268391 0
 sparc/bin/fossil - 20000000775 sys sys 1042090588 0
+sparc/bin/games - 20000000775 sys sys 1110524968 0
 sparc/bin/ip - 20000000775 sys sys 954268392 0
 sparc/bin/ip/httpd - 20000000775 sys sys 954268392 0
 sparc/bin/ndb - 20000000775 sys sys 954268392 0
