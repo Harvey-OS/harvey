@@ -5,7 +5,7 @@ hget  \- retrieve a web page corresponding to a url
 .PP
 .B hget
 [
-.B -dv
+.B -dhv
 ][
 .B -o
 .I ofile
@@ -43,6 +43,11 @@ file, it is copied into the file.  If the file is up to date
 but incomplete,
 .I hget
 will fetch the missing bytes.
+.PP
+Option
+.B -h
+causes HTTP headers to be printed to standard output
+in addition to the transferred web page.
 .PP
 Option
 .B -d
