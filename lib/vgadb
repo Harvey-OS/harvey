@@ -83,10 +83,8 @@ ctlr
 	ramdac=rgb524mn-250 rgb524mnrefclk=37500000
 	hwgc=t2r4hwgc
 ctlr
-	0xC0045="Stealth 64 Video VRAM Vers. 1.01"
-	0xC0045="Stealth 64 Video VRAM Vers. 1.06"
-	0xC0045="Stealth 64 Video VRAM Vers. 2.02"
-	0xC0045="Stealth 64 Video VRAM Vers. 2.07"
+	0xC0045="Stealth 64 Video VRAM Vers. 1.0"
+	0xC0045="Stealth 64 Video VRAM Vers. 2.0"
 	link=vga
 	ramdac=tvp3026-175
 	ctlr=vision968 link=ibm8514 linear=1 vclkphs=1
@@ -101,7 +99,7 @@ ctlr
 	hwgc=rgb524hwgc
 ctlr
 	0xC006B="9FX Motion 771"			# #9FX Motion 771
-	0xC0045="Stealth 64 Video VRAM Vers. 3.02"	# Stealth 64 Video 3000
+	0xC0045="Stealth 64 Video VRAM Vers. 3.0"	# Stealth 64 Video 3000
 	link=vga
 	ramdac=rgb524-220 rgb524refclk=16000000
 	ctlr=vision968 linear=1
@@ -1048,6 +1046,16 @@ multilink=1600x1024
 	shs=1608 ehs=1624
 	vrs=1027 vre=1030 vt=1055
 	hsync=- vsync=-
+
+#
+# SGI 1600SW Flat Panel with Multilink Adapter on an Nvidea card using digital DVI
+#
+multilinx=1600x1024
+	clock=103.125
+	shb=1592 ehb=1624 ht=1672
+	shs=1592 
+	vrs=1024 vre=1029 vt=1029
+	hsync=+ vsync=+
 #
 # IBM X20
 #
