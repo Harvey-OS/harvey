@@ -4,6 +4,7 @@ BIN=/386
 
 TARG=\
 	9load\
+	9pxeload\
 	9loadlite\
 	9loaddebug\
 	9loadlitedebug\
@@ -84,6 +85,10 @@ all:V:	$TARG
 
 9load:	l.$O $CORE $LOAD $ETHER
 	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc
+	ls -l $target
+
+9pxeload:	l.$O $CORE $LOAD $ETHER
+	$LD -o $target -H3 -T0x80007C00 -l $prereq -lflate -lc
 	ls -l $target
 
 9loaddebug:	l.$O $CORE $LOAD $ETHER
