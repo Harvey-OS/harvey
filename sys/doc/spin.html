@@ -3,20 +3,21 @@
 
 
 
+<br><img src="-.19126690.gif"><br>
 <title>
 -
 </title>
 <body BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
-<H1>Using SPIN
+<H1>Using <small>SPIN</small>
 </H1>
 <DL><DD><I>Gerard J. Holzmann<br>
 gerard@plan9.bell-labs.com<br>
 </I></DL>
 <DL><DD><H4>ABSTRACT</H4>
-SPIN can be used for proving or disproving logical properties
+<small>SPIN</small> can be used for proving or disproving logical properties
 of concurrent systems.
 To render the proofs, a concurrent system is first
-modeled in a formal specification language called PROMELA.
+modeled in a formal specification language called <small>PROMELA</small>.
 The language allows one to specify the behaviors
 of asynchronously executing
 processes that may interact through synchronous
@@ -29,14 +30,14 @@ of general properties in linear time temporal logic is
 also supported.
 <br>&#32;<br>
 The first part of this manual
-discusses the basic features of the specification language PROMELA.
-The second part describes the verifier SPIN.
+discusses the basic features of the specification language <small>PROMELA</small>.
+The second part describes the verifier <small>SPIN</small>.
 </DL>
-<H4>1 The Language PROMELA
+<H4>1 The Language <small>PROMELA</small>
 </H4>
 <br>&#32;<br>
-PROMELA is short for Protocol Meta Language [Ho91].
-PROMELA is a <I>modeling</I> language, not a programming language.
+<small>PROMELA</small> is short for Protocol Meta Language [Ho91].
+<small>PROMELA</small> is a <I>modeling</I> language, not a programming language.
 A formal model differs in two essential ways from an implementation.
 First, a model is meant to be an abstraction of a design
 that contains only those aspects of the design that are
@@ -48,7 +49,7 @@ system being studied, and a formal statement of relevant correctness
 properties. It is possible to mechanically extract abstract models
 from implementation level code, as discussed, for instance in [HS99].
 <br>&#32;<br>
-Verification with SPIN is often performed in a series of steps,
+Verification with <small>SPIN</small> is often performed in a series of steps,
 with the construction of increasingly detailed models.
 Each model can be verified under different types of
 assumptions about the environment and for different
@@ -66,12 +67,12 @@ Section 1.4 concludes the first part with a discussion of
 special predefined variables and functions that can be used to
 express some correctness properties.
 <br>&#32;<br>
-Up to date manual pages for SPIN can always be found online at:
+Up to date manual pages for <small>SPIN</small> can always be found online at:
 http://cm.bell-labs.com/cm/cs/what/spin/Man/
 <H4>1.1 Basics
 </H4>
 <br>&#32;<br>
-A PROMELA model can contain three different types of objects:
+A <small>PROMELA</small> model can contain three different types of objects:
 <DL>
 <DT><DT>&#32;<DD>
 <DL><DD>
@@ -84,9 +85,9 @@ A PROMELA model can contain three different types of objects:
 </dl>
 <br>&#32;<br>
 All processes are global objects.
-For obvious reasons, a PROMELA model must contain at least one
+For obvious reasons, a <small>PROMELA</small> model must contain at least one
 process to be meaningful.
-Since SPIN is specifically meant to prove properties of
+Since <small>SPIN</small> is specifically meant to prove properties of
 concurrent systems, a model typically contains more than
 one process.
 <br>&#32;<br>
@@ -125,8 +126,8 @@ It behaves the same as the C version.
 Note, finally, that no semicolon follows the single
 <TT>printf</TT>
 statement in the above example.
-In PROMELA, semicolons are used as statement separators,
-not statement terminators.  (The SPIN parser, however, is
+In <small>PROMELA</small>, semicolons are used as statement separators,
+not statement terminators.  (The <small>SPIN</small> parser, however, is
 lenient on this issue.)
 <br>&#32;<br>
 Any process can start new processes by using another
@@ -223,13 +224,13 @@ Within a proctype declaration, statements are separated
 (not terminated) by semicolons.
 As we shall see in examples that follow, instead of the
 semicolon, one can also use the alternative separator
-<TT>-></TT>
+<TT>-&gt;</TT>
 (arrow), wherever that may help to clarify the structure
-of a PROMELA model.
+of a <small>PROMELA</small> model.
 <H4>Semantics of Execution
 </H4>
 <br>&#32;<br>
-In PROMELA there is no difference between a condition or
+In <small>PROMELA</small> there is no difference between a condition or
 expression and a statement.
 Fundamental to the semantics of the language is the
 notion of the <I>executability</I> of statements.
@@ -244,7 +245,7 @@ while (a != b)	/* not valid Promela syntax */
 	skip;	/* wait for a==b */
 ...
 </PRE></TT></DL>
-we achieve the same effect in PROMELA with the statement
+we achieve the same effect in <small>PROMELA</small> with the statement
 <DL><DT><DD><TT><PRE>
 (a == b);
 ...
@@ -253,11 +254,11 @@ Often we indicate that the continuation of an execution
 is conditional on the truth of some expression by using
 the alternate statement separator:
 <DL><DT><DD><TT><PRE>
-(a == b) -&#62; ...
+(a == b) -&gt; ...
 </PRE></TT></DL>
 Assignments and
 <TT>printf</TT>
-statements are always executable in PROMELA.
+statements are always executable in <small>PROMELA</small>.
 A condition, however, can only be executed (passed) when it holds.
 If the condition does not hold, execution blocks until it does.
 There are similar rules for determining the executability
@@ -270,10 +271,10 @@ of the system in which a statement can be executed.
 The effect defines how a statement will alter a
 system state when executed.
 <br>&#32;<br>
-PROMELA assumes that all individual statements are executed
+<small>PROMELA</small> assumes that all individual statements are executed
 atomically: that is, they model the smallest meaningful entities
 of execution in the system being studied.
-This means that PROMELA defines the standard asynchronous interleaving
+This means that <small>PROMELA</small> defines the standard asynchronous interleaving
 model of execution, where a supposed scheduler is free at
 each point in the execution to select any one of the processes
 to proceed by executing a single primitive statement.
@@ -287,7 +288,7 @@ goal has been met, or to demonstrate that the claim is indeed valid.
 <H4>1.1.2 Variables
 </H4>
 <br>&#32;<br>
-The table summarizes the five basic data types used in PROMELA.
+The table summarizes the five basic data types used in <small>PROMELA</small>.
 <TT>Bit</TT>
 and
 <TT>bool</TT>
@@ -302,7 +303,7 @@ is implementation dependent, and corresponds
 to those of the same types in C programs
 that are compiled for the same hardware.
 The values given in the table are most common.
-<br><img src="-.22361.gif"><br>
+<br><img src="-.19126691.gif"><br>
 <br>&#32;<br>
 The following example program declares a array of
 two elements of type
@@ -411,7 +412,7 @@ init {
 }
 </PRE></TT></DL>
 <br>&#32;<br>
-Note that even though PROMELA supports only one-dimensional arrays,
+Note that even though <small>PROMELA</small> supports only one-dimensional arrays,
 a two-dimensional array can be created indirectly with user-defined
 structures, for instance as follows:
 <DL><DT><DD><TT><PRE>
@@ -432,7 +433,7 @@ elements range from 0 to
 <H4>Expressions
 </H4>
 <br>&#32;<br>
-Expressions must be side-effect free in PROMELA.
+Expressions must be side-effect free in <small>PROMELA</small>.
 Specifically, this means that an expression cannot
 contain assignments, or send and receive operations (see section 1.1.3).
 <DL><DT><DD><TT><PRE>
@@ -442,18 +443,18 @@ and
 <DL><DT><DD><TT><PRE>
 c++; c--
 </PRE></TT></DL>
-are assignments in PROMELA, with the same effects.
+are assignments in <small>PROMELA</small>, with the same effects.
 But, unlike in C,
 <DL><DT><DD><TT><PRE>
 b = c++
 </PRE></TT></DL>
 is not a valid assignment, because the right-hand side
-operand is not a valid expression in PROMELA (it is not side-effect free).
+operand is not a valid expression in <small>PROMELA</small> (it is not side-effect free).
 <br>&#32;<br>
 It is also possible to write a side-effect free conditional
 expression, with the following syntax:
 <DL><DT><DD><TT><PRE>
-(expr1 -&#62; expr2 : expr3)
+(expr1 -&gt; expr2 : expr3)
 </PRE></TT></DL>
 The parentheses around the conditional expression are required to
 avoid misinterpretation of the arrow.
@@ -622,12 +623,12 @@ it is not valid to say:
 </PRE></TT></DL>
 or
 <DL><DT><DD><TT><PRE>
-(a &#62; b &amp;&amp; qname!123)
+(a &gt; b &amp;&amp; qname!123)
 </PRE></TT></DL>
 We could rewrite the second example (using an atomic sequence,
 as explained further in section 1.2.1):
 <DL><DT><DD><TT><PRE>
-atomic { (a &#62; b &amp;&amp; !full(qname)) -&#62; qname!123 }
+atomic { (a &gt; b &amp;&amp; !full(qname)) -&gt; qname!123 }
 </PRE></TT></DL>
 The meaning of the first example is ambiguous.  It could mean
 that we want the condition to be true if the receive operation
@@ -641,7 +642,7 @@ to be true when the channel does contain a message with
 value zero.
 We can specify that as follows:
 <DL><DT><DD><TT><PRE>
-atomic { qname?[0] -&#62; qname?var }
+atomic { qname?[0] -&gt; qname?var }
 </PRE></TT></DL>
 The first statement of this atomic sequence is
 an expression without side-effects that
@@ -665,11 +666,11 @@ evaluation of such expressions.
 Note carefully, however, that in non-atomic sequences
 of two statements such as
 <DL><DT><DD><TT><PRE>
-!full(qname) -&#62; qname!msgtype
+!full(qname) -&gt; qname!msgtype
 </PRE></TT></DL>
 and
 <DL><DT><DD><TT><PRE>
-qname?[msgtype] -&#62; qname?msgtype
+qname?[msgtype] -&gt; qname?msgtype
 </PRE></TT></DL>
 the second statement is not necessarily executable
 after the first one has been executed.
@@ -785,21 +786,21 @@ rendezvous handshake.
 As the example shows, symbolic constants can be defined
 with preprocessor macros using
 <TT>#define</TT>.
-The source text of a PROMELA model is translated by the standard
+The source text of a <small>PROMELA</small> model is translated by the standard
 C preprocessor.
 The disadvantage of defining symbolic names in this way is,
-however, that the PROMELA parser will only see the expanded text,
+however, that the <small>PROMELA</small> parser will only see the expanded text,
 and cannot refer to the symbolic names themselves.
-To prevent that, PROMELA also supports another way to define
+To prevent that, <small>PROMELA</small> also supports another way to define
 symbolic names, which are preserved in error reports.
 For instance, by including the declaration
 <DL><DT><DD><TT><PRE>
 mtype = { ack, msg, error, data };
 </PRE></TT></DL>
-at the top of a PROMELA model, the names provided between the
+at the top of a <small>PROMELA</small> model, the names provided between the
 curly braces are equivalent to integers of type
 <TT>byte</TT>,
-but known by their symbolic names to the SPIN parser and the
+but known by their symbolic names to the <small>SPIN</small> parser and the
 verifiers it generates.
 The constant values assigned start at 1, and count up.
 There can be only one
@@ -809,7 +810,7 @@ declaration per model.
 </H4>
 <br>&#32;<br>
 So far, we have seen only some of the basic statements
-of PROMELA, and the way in which they can be combined to
+of <small>PROMELA</small>, and the way in which they can be combined to
 model process behaviors.
 The five types of statements we have mentioned are:
 <TT>printf</TT>,
@@ -825,7 +826,7 @@ is syntactically and semantically equivalent to the
 condition
 <TT>(1)</TT>
 (i.e., to true), and is in fact quietly replaced with this
-expression by the lexical analyzer of SPIN.
+expression by the lexical analyzer of <small>SPIN</small>.
 <br>&#32;<br>
 There are also five types of compound statements.
 <DL>
@@ -918,8 +919,8 @@ sequence
 and an
 <TT>atomic</TT>
 sequence are:
-<DL COMPACT>
-<DT>*<DD>
+<UL>
+<LI>
 A
 <TT>d_step</TT>
 sequence must be completely deterministic.
@@ -927,13 +928,13 @@ sequence must be completely deterministic.
 it is always resolved in a fixed and deterministic
 way: i.e., the first true guard in selection or
 repetition structures is always selected.)
-<DT>*<DD>
+<LI>
 No
 <TT>goto</TT>
 jumps into or out of a
 <TT>d_step</TT>
 sequence are permitted.
-<DT>*<DD>
+<LI>
 The execution of a
 <TT>d_step</TT>
 sequence cannot be interrupted when a
@@ -942,13 +943,13 @@ It is an error if any statement other than
 the first one in a
 <TT>d_step</TT>
 sequence is found to be unexecutable.
-<DT>*<DD>
+<LI>
 A
 <TT>d_step</TT>
 sequence is executed as one single statement.
 In a way, it is a mechanism for adding new types
 of statements to the language.
-</dl>
+</ul>
 <br>&#32;<br>
 None of the items listed above apply to
 <TT>atomic</TT>
@@ -973,8 +974,8 @@ and
 to choose between two options, for instance, we can write:
 <DL><DT><DD><TT><PRE>
 if
-:: (a != b) -&#62; option1
-:: (a == b) -&#62; option2
+:: (a != b) -&gt; option1
+:: (a == b) -&gt; option2
 fi
 </PRE></TT></DL>
 The selection structure above contains two execution sequences,
@@ -1073,7 +1074,7 @@ active proctype counter()
 	do
 	:: count++
 	:: count--
-	:: (count == 0) -&#62; break
+	:: (count == 0) -&gt; break
 	od
 }
 </PRE></TT></DL>
@@ -1093,12 +1094,12 @@ To force termination we could modify the program as follows.
 active proctype counter()
 {
 	do
-	:: (count != 0) -&#62;
+	:: (count != 0) -&gt;
 		if
 		:: count++
 		:: count--
 		fi
-	:: (count == 0) -&#62; break
+	:: (count == 0) -&gt; break
 	od
 }
 </PRE></TT></DL>
@@ -1116,13 +1117,13 @@ We could try to use it in two places in the above example:
 active proctype counter()
 {
 	do
-	:: (count != 0) -&#62;
+	:: (count != 0) -&gt;
 		if
 		:: count++
 		:: count--
 		:: else
 		fi
-	:: else -&#62; break
+	:: else -&gt; break
 	od
 }
 </PRE></TT></DL>
@@ -1152,9 +1153,9 @@ of two non-zero, positive numbers:
 proctype Euclid(int x, y)
 {
 	do
-	:: (x &#62;  y) -&#62; x = x - y
-	:: (x &#60;  y) -&#62; y = y - x
-	:: (x == y) -&#62; goto done
+	:: (x &gt;  y) -&gt; x = x - y
+	:: (x &lt;  y) -&gt; y = y - x
+	:: (x == y) -&gt; goto done
 	od;
 done:
 	skip
@@ -1192,9 +1193,9 @@ active proctype Dijkstra()
 {	byte count = 1;
 
 	do
-	:: (count == 1) -&#62;
+	:: (count == 1) -&gt;
 		sema!p; count = 0
-	:: (count == 0) -&#62;
+	:: (count == 0) -&gt;
 		sema?v; count = 1
 	od	
 }
@@ -1214,7 +1215,7 @@ can enter its critical section at a time.
 It does not necessarily prevent the monopolization of
 the access to the critical section by one of the processes.
 <br>&#32;<br>
-PROMELA does not have a mechanism for defining functions or
+<small>PROMELA</small> does not have a mechanism for defining functions or
 procedures.  Where necessary, though, these may be
 modeled with the help of additional processes.
 The return value of a function, for instance, can be passed
@@ -1228,8 +1229,8 @@ proctype fact(int n; chan p)
 	int result;
 
 	if
-	:: (n &#60;= 1) -&#62; p!1
-	:: (n &#62;= 2) -&#62;
+	:: (n &lt;= 1) -&gt; p!1
+	:: (n &gt;= 2) -&gt;
 		run fact(n-1, child);
 		child?result;
 		p!n*result
@@ -1248,7 +1249,7 @@ init
 </PRE></TT></DL>
 Each process creates a private channel and uses it
 to communicate with its direct descendant.
-There are no input statements in PROMELA.
+There are no input statements in <small>PROMELA</small>.
 The reason is that models must always be complete to
 allow for logical verifications, and input statements
 would leave at least the source of some information unspecified.
@@ -1275,7 +1276,7 @@ potential deadlock state.
 The
 <TT>timeout</TT>
 takes no parameters, because the types of properties we
-would like to prove for PROMELA models must be proven independent
+would like to prove for <small>PROMELA</small> models must be proven independent
 of all absolute and relative timing considerations.
 In particular, the relative speeds of processes can never be
 known with certainty in an asynchronous system.
@@ -1293,7 +1294,7 @@ where the letters
 <TT>P</TT>
 and
 <TT>E</TT>
-represent arbitrary PROMELA fragments.
+represent arbitrary <small>PROMELA</small> fragments.
 Execution of the
 <TT>unless</TT>
 statement begins with the execution of statements from
@@ -1302,7 +1303,7 @@ Before each statement execution in
 <TT>P</TT>
 the executability of the first statement of
 <TT>E</TT>
-is checked, using the normal PROMELA semantics of executability.
+is checked, using the normal <small>PROMELA</small> semantics of executability.
 Execution of statements from
 <TT>P</TT>
 proceeds only while the first statement of
@@ -1330,11 +1331,11 @@ An example of the use of escape sequences is:
 <DL><DT><DD><TT><PRE>
 A;
 do
-:: b1 -&#62; B1
-:: b2 -&#62; B2
+:: b1 -&gt; B1
+:: b2 -&gt; B2
 ...
 od
-unless { c -&#62; C };
+unless { c -&gt; C };
 D
 </PRE></TT></DL>
 As shown in the example, the curly braces around the main sequence
@@ -1347,10 +1348,10 @@ Note that this is not necessarily equivalent to the construct
 <DL><DT><DD><TT><PRE>
 A;
 do
-:: b1 -&#62; B1
-:: b2 -&#62; B2
+:: b1 -&gt; B1
+:: b2 -&gt; B2
 ...
-:: c -&#62; break
+:: c -&gt; break
 od;
 C; D
 </PRE></TT></DL>
@@ -1366,7 +1367,7 @@ start of the option sequences.
 <H4>1.3 Correctness Properties
 </H4>
 <br>&#32;<br>
-There are three ways to express correctness properties in PROMELA,
+There are three ways to express correctness properties in <small>PROMELA</small>,
 using:
 <DL>
 <DT><DT>&#32;<DD>
@@ -1402,7 +1403,7 @@ A failing assertion will cause execution to be aborted.
 <H4>1.3.2 Special Labels
 </H4>
 <br>&#32;<br>
-Labels in a PROMELA specification ordinarily serve as
+Labels in a <small>PROMELA</small> specification ordinarily serve as
 targets for unconditional
 <TT>goto</TT>
 jumps, as usual.
@@ -1412,13 +1413,13 @@ We discuss them in the next three subsections.
 <H4>1.3.2.1 End-State Labels
 </H4>
 <br>&#32;<br>
-When a PROMELA model is checked for reachable deadlock states
+When a <small>PROMELA</small> model is checked for reachable deadlock states
 by the verifier, it must be able to distinguish valid <I>end state</I>s
 from invalid ones.
 By default, the only valid end states are those in which
-every PROMELA process that was instantiated has reached the end of
+every <small>PROMELA</small> process that was instantiated has reached the end of
 its code.
-Not all PROMELA processes, however, are meant to reach the
+Not all <small>PROMELA</small> processes, however, are meant to reach the
 end of their code.
 Some may very well linger in a known wait
 state, or they may sit patiently in a loop
@@ -1434,9 +1435,9 @@ proctype Dijkstra()
 {	byte count = 1;
 
 end:	do
-	:: (count == 1) -&#62;
+	:: (count == 1) -&gt;
 		sema!p; count = 0
-	:: (count == 0) -&#62;
+	:: (count == 0) -&gt;
 		sema?v; count = 1
 	od	
 }
@@ -1449,7 +1450,7 @@ has not reached its closing curly brace, but waits at the label.
 Of course, such a state could still be part of a deadlock state, but
 if so, it is not caused by this particular process.
 <br>&#32;<br>
-There may be more than one end-state label per PROMELA model.
+There may be more than one end-state label per <small>PROMELA</small> model.
 If so, all labels that occur within the same process body must
 be unique.
 The rule is that every label name with the prefix
@@ -1458,7 +1459,7 @@ is taken to be an end-state label.
 <H4>1.3.2.2 Progress-State Labels
 </H4>
 <br>&#32;<br>
-In the same spirit, PROMELA also allows for the definition of
+In the same spirit, <small>PROMELA</small> also allows for the definition of
 <TT>progress</TT>
 labels.
 Passing a progress label during an execution is interpreted
@@ -1480,9 +1481,9 @@ proctype Dijkstra()
 {	byte count = 1;
 
 end:	do
-	:: (count == 1) -&#62;
+	:: (count == 1) -&gt;
 progress:	sema!p; count = 0
-	:: (count == 0) -&#62;
+	:: (count == 0) -&gt;
 		sema?v; count = 1
 	od	
 }
@@ -1530,7 +1531,7 @@ active proctype monitor()
 {
 progress:
 	do
-	:: P -&#62; Q
+	:: P -&gt; Q
 	od
 }
 </PRE></TT></DL>
@@ -1544,13 +1545,13 @@ active proctype monitor()
 {
 progress:
 	do
-	:: P -&#62; assert(P || Q)
+	:: P -&gt; assert(P || Q)
 	od
 }
 </PRE></TT></DL>
 but this does not quite do the job.
 Note that we cannot make any assumptions about the
-relative execution speeds of processes in a PROMELA model.
+relative execution speeds of processes in a <small>PROMELA</small> model.
 This means that if in the remainder of the system the
 property
 <TT>P</TT>
@@ -1581,7 +1582,7 @@ to express these important types of liveness properties.
 A general way to express system properties of the type we
 have just discussed is to use linear time temporal logic (LTL)
 formulae.
-Every PROMELA expression is automatically also a valid LTL formula.
+Every <small>PROMELA</small> expression is automatically also a valid LTL formula.
 An LTL formula can also contain the unary temporal operators &#164;
 (pronounced always), &#186; (pronounced eventually), and
 two binary temporal operators
@@ -1590,7 +1591,7 @@ two binary temporal operators
 <B><I>U</I></B>
 (pronounced strong until).
 <br>&#32;<br>
-Where the value of a PROMELA expression without temporal operators can be
+Where the value of a <small>PROMELA</small> expression without temporal operators can be
 defined uniquely for individual system states, without further context,
 the truth value of an LTL formula is defined for sequences of states:
 specifically, it is defined for the first state of a given infinite
@@ -1605,7 +1606,7 @@ with
 <TT>p</TT>
 and
 <TT>q</TT>
-standard PROMELA expressions, is true for
+standard <small>PROMELA</small> expressions, is true for
 <TT>s0</TT>
 either if
 <TT>q</TT>
@@ -1658,28 +1659,28 @@ is true eventually leads to a system state in which property
 is true,''
 we can write the LTL formula:
 <DL><DT><DD><TT><PRE>
-&#164; (P -&#62; &#186; Q)
+&#164; (P -&gt; &#186; Q)
 </PRE></TT></DL>
 where the logical implication symbol
-<TT>-></TT>
+<TT>-&gt;</TT>
 is defined in the usual way as
 <DL><DT><DD><TT><PRE>
-P =&#62; Q means !P || Q
+P =&gt; Q means !P || Q
 </PRE></TT></DL>
 <H4>Mapping LTL Formulae onto Never Claims
 </H4>
 <br>&#32;<br>
-PROMELA does not include syntax for specifying LTL formulae
+<small>PROMELA</small> does not include syntax for specifying LTL formulae
 directly, but it relies on the fact that every such
 formula can be translated into a special type of
 automaton, known as a B&uuml;chi automaton.
-In the syntax of PROMELA this automaton is called a
+In the syntax of <small>PROMELA</small> this automaton is called a
 <TT>never</TT>
 claim.
 If you don't care too much about the details of
 <TT>never</TT>
 claims, you can skip the remainder of this section and
-simple remember that SPIN can convert any LTL formula
+simple remember that <small>SPIN</small> can convert any LTL formula
 automatically into the proper never claim syntax with
 the command:
 <DL><DT><DD><TT><PRE>
@@ -1692,7 +1693,7 @@ never {
 	...
 }
 </PRE></TT></DL>
-where the dots can contain any PROMELA fragment, including
+where the dots can contain any <small>PROMELA</small> fragment, including
 arbitrary repetition, selection, unless constructs,
 jumps, etc.
 <br>&#32;<br>
@@ -1746,7 +1747,7 @@ must exist, at least one of which is labeled with an
 <TT>accept</TT>
 label (inside the never claim).
 <br>&#32;<br>
-Since PROMELA models can also express terminating system behaviors,
+Since <small>PROMELA</small> models can also express terminating system behaviors,
 we have to define the semantics of the
 <TT>never</TT>
 claims also for those behaviors.
@@ -1788,9 +1789,9 @@ section.
 <br>&#32;<br>
 The difference between a
 <TT>never</TT>
-claim and the remainder of a PROMELA system can be explained
+claim and the remainder of a <small>PROMELA</small> system can be explained
 as follows.
-A PROMELA model defines an asynchronous interleaving product of the
+A <small>PROMELA</small> model defines an asynchronous interleaving product of the
 behaviors of individual processes.
 Given an arbitrary system state, its successor states are
 conceptually obtained in two steps.
@@ -1828,7 +1829,7 @@ of the system (the first half of the state pair).
 <br>&#32;<br>
 To manually translate an LTL formula into a
 <TT>never</TT>
-claim (e.g. foregoing the builtin translation that SPIN
+claim (e.g. foregoing the builtin translation that <small>SPIN</small>
 offers), we must carefully consider whether the
 formula expresses a positive or a negative property.
 A positive property expresses a good behavior that we
@@ -1849,7 +1850,7 @@ Suppose that the LTL formula &#186;&#164;
 <TT>p</TT>,
 with
 <TT>p</TT>
-a PROMELA expression, expresses a negative claim
+a <small>PROMELA</small> expression, expresses a negative claim
 (i.e., it is considered a correctness violation if
 there exists any execution sequence in which
 <TT>p</TT>
@@ -1858,10 +1859,10 @@ This can be written in a
 <TT>never</TT>
 claim as:
 <DL><DT><DD><TT><PRE>
-never {	/* &#60;&#62;[]p */
+never {	/* &lt;&gt;[]p */
 	do
 	:: skip	/* after an arbitrarily long prefix */
-	:: p -&#62; break	/* p becomes true */
+	:: p -&gt; break	/* p becomes true */
 	od;
 accept:	do
 	:: p	/* and remains true forever after */
@@ -1883,10 +1884,10 @@ The requirement now says that it is a violation if
 <TT>p</TT>
 does not hold infinitely long.
 <DL><DT><DD><TT><PRE>
-never {	/* &#60;&#62;!p*/
+never {	/* &lt;&gt;!p*/
 	do
 	:: skip
-	:: !p -&#62; break
+	:: !p -&gt; break
 	od
 }
 </PRE></TT></DL>
@@ -1895,10 +1896,10 @@ closing terminating brace.
 Since the first violation of the property suffices to disprove
 it, we could also have written:
 <DL><DT><DD><TT><PRE>
-never {	/* &#60;&#62;!p*/
+never {	/* &lt;&gt;!p*/
 	do
 	:: p
-	:: !p -&#62; break
+	:: !p -&gt; break
 	od
 }
 </PRE></TT></DL>
@@ -1910,7 +1911,7 @@ never { do :: assert(p) od }
 Suppose we wish to express that it is a violation of our
 correctness requirements if there exists any execution in
 the system where
-<TT>&#164; (p -> &#186; q)</TT>
+<TT>&#164; (p -&gt; &#186; q)</TT>
 is violated (i.e., the negation of this formula is satisfied).
 The following
 <TT>never</TT>
@@ -1919,7 +1920,7 @@ claim expresses that property:
 never {
 	do
 	:: skip
-	:: p &amp;&amp; !q -&#62; break
+	:: p &amp;&amp; !q -&gt; break
 	od;
 accept:
 	do
@@ -1940,18 +1941,18 @@ is false.
 The above formalization checks for all occurrences, anywhere in a trace.
 <br>&#32;<br>
 Finally, consider a formalization of the LTL property
-<TT>&#164; (p -> (q U r))</TT>.
+<TT>&#164; (p -&gt; (q U r))</TT>.
 The corresponding claim is:
 <DL><DT><DD><TT><PRE>
 never {
 	do
 	:: skip		/* to match any occurrence */
-	:: p &amp;&amp;  q &amp;&amp; !r -&#62; break
-	:: p &amp;&amp; !q &amp;&amp; !r -&#62; goto error
+	:: p &amp;&amp;  q &amp;&amp; !r -&gt; break
+	:: p &amp;&amp; !q &amp;&amp; !r -&gt; goto error
 	od;
 	do
 	::  q &amp;&amp; !r
-	:: !q &amp;&amp; !r -&#62; break
+	:: !q &amp;&amp; !r -&gt; break
 	od;
 error:	skip
 }
@@ -1995,7 +1996,7 @@ never {
 	 */
 accept:
 	do
-	:: _last != 1 -&#62; _last == 1
+	:: _last != 1 -&gt; _last == 1
 	od
 }
 </PRE></TT></DL>
@@ -2025,7 +2026,7 @@ never {
 	 * state as process 2, or one with smaller value.
 	 */
 accept:	do
-	:: pc_value(1) &#60;= pc_value(2)
+	:: pc_value(1) &lt;= pc_value(2)
 	od
 }
 </PRE></TT></DL>
@@ -2057,12 +2058,12 @@ in
 <TT>proctype procname</TT>.
 It is an error if the process referred to is not an instantiation
 of that proctype.
-<H4>2 Verifications with SPIN
+<H4>2 Verifications with <small>SPIN</small>
 </H4>
 <br>&#32;<br>
-The easiest way to use SPIN is probably on a Windows terminal
-with the Tcl/Tk implementation of XSPIN.
-All functionality of SPIN, however, is accessible from
+The easiest way to use <small>SPIN</small> is probably on a Windows terminal
+with the Tcl/Tk implementation of <small>XSPIN</small>.
+All functionality of <small>SPIN</small>, however, is accessible from
 any plain ASCII terminal, and there is something to be
 said for directly interacting with the tool itself.
 <br>&#32;<br>
@@ -2071,7 +2072,7 @@ a common mode of operation in using the verifier.
 A more tutorial style description of the verification
 process can be found in [Ho93].
 More detail on the verification of large systems with the
-help of SPIN's supertrace (bitstate) verification algorithm
+help of <small>SPIN</small>'s supertrace (bitstate) verification algorithm
 can be found in [Ho95].
 <DL>
 <DT><DT>&#32;<DD>
@@ -2100,14 +2101,14 @@ Exploiting partial order reductions (section 2.6).
 <H4>2.1 Random and Interactive Simulations
 </H4>
 <br>&#32;<br>
-Given a model in PROMELA, say stored in a file called
+Given a model in <small>PROMELA</small>, say stored in a file called
 <TT>spec</TT>,
 the easiest mode of operation is to perform a random simulation.
 For instance,
 <DL><DT><DD><TT><PRE>
 spin -p spec
 </PRE></TT></DL>
-tells SPIN to perform a random simulation, while printing the
+tells <small>SPIN</small> to perform a random simulation, while printing the
 process moves selected for execution at each step (by default
 nothing is printed, other than explicit
 <TT>printf</TT>
@@ -2123,7 +2124,7 @@ or receive statements (add option
 <TT>-r</TT>).
 Use option
 <TT>-n</TT>N
-(with N any number) to fix the seed on SPIN's internal
+(with N any number) to fix the seed on <small>SPIN</small>'s internal
 random number generator, and thus make the simulation runs
 reproducible.
 By default the current time is used to seed the random number
@@ -2172,7 +2173,7 @@ pcc -o pan pan.c		# standard exhaustive search
 </PRE></TT></DL>
 If you know a memory bound that you want to restrict the run to
 (e.g., to avoid paging), find the nearest power of 2 (e.g., 23
-for the bound 2^23 bytes) and compile as follows.
+for the bound 2^&lt;small&gt;&lt;small&gt;&lt;small&gt;23&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;big&gt;&lt;big&gt;&lt;big&gt; bytes) and compile as follows.
 <DL><DT><DD><TT><PRE>
 pcc '-DMEMCNT=23' -o pan pan.c
 </PRE></TT></DL>
@@ -2203,26 +2204,26 @@ for peak performance should be.
 </H4>
 <br>&#32;<br>
 For a standard exhaustive run, you can override the default choice
-for the size for the hash table (2^18 slots) with option
+for the size for the hash table (2^&lt;/big&gt;&lt;/big&gt;&lt;/big&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt;18&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;big&gt;&lt;big&gt;&lt;big&gt; slots) with option
 <TT>-w</TT>.
 For instance,
 <DL><DT><DD><TT><PRE>
 pan -w23
 </PRE></TT></DL>
-selects 2^23 slots.
+selects 2^&lt;/big&gt;&lt;/big&gt;&lt;/big&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt;23&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;big&gt;&lt;big&gt;&lt;big&gt; slots.
 The hash table size should optimally be roughly equal to the number of
 reachable states you expect (within say a factor of two or three).
 Too large a number merely wastes memory, too low a number wastes
 CPU time, but neither can affect the correctness of the result.
 <br>&#32;<br>
 For a supertrace run, the hash table <I>is</I> the memory arena, and
-you can override the default of 2^22 bits with any other number.
+you can override the default of 2^&lt;/big&gt;&lt;/big&gt;&lt;/big&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt;22&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;big&gt;&lt;big&gt;&lt;big&gt; bits with any other number.
 Set it to the maximum size of physical memory you can grab without
 making the system page, again within a factor of say two or three.
 Use, for instance
 <TT>-w23</TT>
 if you expect 8 million reachable states and have access to at least
-8 million (2^23) bits of memory (i.e., 2^20 or 1 Megabyte of RAM).
+8 million (2^&lt;/big&gt;&lt;/big&gt;&lt;/big&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt;23&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;big&gt;&lt;big&gt;&lt;big&gt;) bits of memory (i.e., 2^&lt;/big&gt;&lt;/big&gt;&lt;/big&gt;&lt;small&gt;&lt;small&gt;&lt;small&gt;20&lt;/small&gt;&lt;/small&gt;&lt;/small&gt;&lt;big&gt;&lt;big&gt;&lt;big&gt; or 1 Megabyte of RAM).
 <H4>2.4.2 Search Depth
 </H4>
 <br>&#32;<br>
@@ -2330,11 +2331,11 @@ pan --
 </H4>
 <br>&#32;<br>
 If the verification run reports an error,
-any error, SPIN dumps an error trail into a file named
+any error, </big></big></big><small>SPIN</small> dumps an error trail into a file named
 <TT>spec.trail</TT>,
 where
 <TT>spec</TT>
-is the name of your original PROMELA file.
+is the name of your original <small>PROMELA</small> file.
 To inspect the trail, and determine the cause of the error,
 you must use the guided simulation option.
 For instance:
@@ -2374,9 +2375,9 @@ pan -c0
 <H4>State Assignments
 </H4>
 <br>&#32;<br>
-Internally, the verifiers produced by SPIN deal with a formalization of
-a PROMELA model in terms of extended finite state machines.
-SPIN therefore assigns state numbers to all statements in the model.
+Internally, the verifiers produced by <small>SPIN</small> deal with a formalization of
+a <small>PROMELA</small> model in terms of extended finite state machines.
+<small>SPIN</small> therefore assigns state numbers to all statements in the model.
 The state numbers are listed in all the relevant output to make it
 completely unambiguous (source line references unfortunately do not
 have that property).
@@ -2391,7 +2392,7 @@ in the model.
 <H4>2.6 Exploiting Partial Order Reductions
 </H4>
 <br>&#32;<br>
-The search algorithm used by SPIN is optimized
+The search algorithm used by <small>SPIN</small> is optimized
 according to the rules of a partial order theory explained in [HoPe94].
 The effect of the reduction, however, can be increased considerably if the verifier
 has extra information about the access of processes to global
@@ -2450,10 +2451,10 @@ found in [HoPe94].
 <br>&#32;<br>
 For reference, the following table contains all the keywords,
 predefined functions, predefined variables, and
-special label-prefixes of the language PROMELA,
+special label-prefixes of the language <small>PROMELA</small>,
 and refers to the section of this paper in
 which they were discussed.
-<br><img src="-.22362.gif"><br>
+<br><img src="-.19126692.gif"><br>
 <H4>References
 </H4>
 <br>&#32;<br>
@@ -2483,8 +2484,7 @@ verification models from source code,''
 Proc. Formal Methods in Software Engineering and Distributed
 Systems,
 PSTV/FORTE99, Beijng, China, Oct. 1999, Kluwer,pp. 481-497.
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

@@ -20,7 +20,7 @@ It is similar to the
 UNIX program
 <TT>make</TT>,
 but provides several extensions.
-<TT>Mk's</TT>
+<TT>Mk</TT>'<TT>s</TT>
 flexible rule specifications, implied
 dependency derivation, and parallel
 execution of maintenance actions are
@@ -64,7 +64,7 @@ the syntax of the control file,
 the pattern matching capabilities, and
 the special rules for maintaining archives.
 A brief description of
-<TT>mk's</TT>
+<TT>mk</TT>'<TT>s</TT>
 algorithm for deriving dependencies
 is followed by a discussion
 of the conventions used to resolve ambiguous
@@ -75,7 +75,7 @@ and special features.
 <P>
 An earlier paper [Hume87]
 provides a detailed discussion of
-<TT>mk's</TT>
+<TT>mk</TT>'<TT>s</TT>
 design and an appendix summarizes
 the differences between
 <TT>mk</TT>
@@ -115,32 +115,32 @@ from a C source file:
 <DL><DT><DD><TT><PRE>
 CC=pcc
 f1:	f1.c
-	$CC -o f1 f1.c
+	<I>CC -o f1 f1.c
 </PRE></TT></DL>
 The first line assigns the name of the portable ANSI/POSIX compiler
 to the
-<TT>mk</TT>
+</I><TT>mk</TT><I>
 variable
-<TT>CC</TT>;
+</I><TT>CC</TT><I>;
 subsequent references of the form
-<TT>$CC</TT>
+</I><TT></TT><I>CC</I><TT>
 select this compiler.
 The only rule specifies a dependence between the target file
-<TT>f1</TT>
+</TT><TT>f1</TT><TT>
 and the prerequisite file
-<TT>f1.c</TT>.
+</TT><TT>f1.c</TT><TT>.
 If the target does not exist or if the
 prerequisite has been modified more recently than
 the target,
-<TT>mk</TT>
+</TT><TT>mk</TT><TT>
 passes the recipe to
-<TT>rc</TT>
+</TT><TT>rc</TT><TT>
 for execution.  Here,
-<TT>f1.c</TT>
+</TT><TT>f1.c</TT><TT>
 is compiled and loaded to produce
-<TT>f1</TT>.
+</TT><TT>f1</TT><TT>.
 </P>
-<P>
+</TT><P>
 The native Plan 9 environment
 requires executables for
 all architectures, not only the current one.
@@ -148,74 +148,74 @@ The Plan 9 version of the same
 <TT>mkfile</TT>
 looks like:
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/<I>objtype/mkfile
 
-f1:	f1.$O
-	$LD $LDFLAGS -o f1 f1.$O
-f1.$O:	f1.c
-	$CC $CFLAGS f1.c
+f1:	f1.</I>O
+	<I>LD </I>LDFLAGS -o f1 f1.<I>O
+f1.</I>O:	f1.c
+	<I>CC </I>CFLAGS f1.c
 </PRE></TT></DL>
 The first line is an include statement
 that replaces itself with the contents of the file
-<TT>/$objtype/mkfile</TT>.
+<TT>/</TT><I>objtype/mkfile</I><TT>.
 The variable
-<TT>$objtype</TT>
+</TT><TT></TT><TT>objtype</TT><TT>
 is inherited from the environment and
 contains the name of the target architecture.
 The prototype
-<TT>mkfile</TT>
+</TT><TT>mkfile</TT><TT>
 for that architecture defines architecture-specific variables:
-<TT>CC</TT>
+</TT><TT>CC</TT><TT>
 and
-<TT>LD</TT>
+</TT><TT>LD</TT><TT>
 are the names of the compiler and loader,
-<TT>O</TT>
+</TT><TT>O</TT><TT>
 is the code character of the architecture.
 The rules compile the source file into an object
 file and invoke the loader to produce
-<TT>f1</TT>.
+</TT><TT>f1</TT><TT>.
 Invoking
-<TT>mk</TT>
+</TT><TT>mk</TT><TT>
 from the command line as follows
 <DL><DT><DD><TT><PRE>
 % objtype=mips mk
 vc -w f1.c
-vl $LDFLAGS -o f1 f1.k
+vl </TT><I>LDFLAGS -o f1 f1.k
 %
 </PRE></TT></DL>
 produces the
-<TT>mips</TT>
+</I><TT>mips</TT><I>
 executable of program
-<TT>f1</TT>
+</I><TT>f1</TT><I>
 regardless of the current architecture type.
 </P>
-<P>
+</I><P>
 We can extend the
 <TT>mkfile</TT>
 to build two programs:
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/objtype/mkfile
 ALL=f1 f2
 
-all:V:	$ALL
+all:V:	<I>ALL
 
-f1:	f1.$O
-	$LD $LDFLAGS -o f1 f1.$O
-f1.$O:	f1.c
-	$CC $CFLAGS f1.c
-f2:	f2.$O
-	$LD $LDFLAGS -o f2 f2.$O
-f2.$O:	f2.c
-	$CC $CFLAGS f2.c
+f1:	f1.</I>O
+	<I>LD </I>LDFLAGS -o f1 f1.<I>O
+f1.</I>O:	f1.c
+	<I>CC </I>CFLAGS f1.c
+f2:	f2.<I>O
+	</I>LD <I>LDFLAGS -o f2 f2.</I>O
+f2.<I>O:	f2.c
+	</I>CC <I>CFLAGS f2.c
 </PRE></TT></DL>
 The target
-<TT>all</TT>,
+</I><TT>all</TT><I>,
 modified by the
-<I>attribute</I>
-<TT>V</TT>,
+</I><I>attribute</I><I>
+</I><TT>V</TT><I>,
 builds both programs.
 The attribute identifies 
-<TT>all</TT>
+</I><TT>all</TT><I>
 as a dummy target that is
 not related to a file of the same name;
 its precise effect is explained later.
@@ -226,7 +226,7 @@ Here, individual rules build each
 program; later we'll see how to do this with a
 general rule.
 </P>
-<H4>3 Variables and the environment
+</I><H4>3 Variables and the environment
 </H4>
 <P>
 <TT>Mk</TT>
@@ -295,7 +295,7 @@ much as in the substitute command in
 <A href="/magic/man2html/1/ed"><I>ed</I>(1).
 </A>The syntax is
 <DL><DT><DD><TT><PRE>
-${<I>var</I>:A%B=C%D}
+{<I>var</I>:A%B=C%D}
 </PRE></TT></DL>
 where
 <I>var</I>
@@ -342,14 +342,14 @@ a list based on a predictable transformation.
 For example,
 <DL><DT><DD><TT><PRE>
 	SRC=a.c b.c c.c
-	OBJ=${SRC:%.c=%.v}
+	OBJ=<I>{SRC:%.c=%.v}
 </PRE></TT></DL>
-assigns the list <TT>(a.v b.v c.v)</TT> to
-<TT>OBJ</TT>.
+assigns the list </I><TT>(a.v b.v c.v)</TT><I> to
+</I><TT>OBJ</TT><I>.
 A namelist may be used anywhere a variable is allowed
 except in a recipe.
 </P>
-<P>
+</I><P>
 Command output is assigned to a variable
 using the normal
 <TT>rc</TT>
@@ -360,12 +360,12 @@ syntax:
 The command executes in an environment populated
 with previously assigned variables, including those
 inherited from
-<TT>mk's</TT>
+<TT>mk</TT>'<TT>s</TT>
 execution environment.
 The command may
 be arbitrarily complex; for example,
 <DL><DT><DD><TT><PRE>
-	TARG=`{ls -d *.[cy] | sed 's/..$//'}
+	TARG=`{ls -d *.[cy] | sed 's/..//'}
 </PRE></TT></DL>
 assigns a list of the C and yacc source files in the current
 directory, stripped of their suffix, to the variable
@@ -380,7 +380,7 @@ It is functionally similar to the C
 <TT>#include</TT>
 statement but uses a different syntax:
 <DL><DT><DD><TT><PRE>
-	&#60;<I>filename</I>
+	&lt;<I>filename</I>
 </PRE></TT></DL>
 The contents of the file are evaluated
 as they are read.
@@ -424,7 +424,7 @@ a dependency between the target(s) and its prerequisite(s),
 the recipe brings the target(s)
 up to date with the prerequisite(s) and
 attributes modify
-<TT>mk's</TT>
+<TT>mk</TT>'<TT>s</TT>
 evaluation of the dependency.
 </P>
 <P>
@@ -471,7 +471,7 @@ output at this time.
 </P>
 <P>
 Most attributes modify
-<TT>mk's</TT>
+<TT>mk</TT>'<TT>s</TT>
 evaluation of a rule.
 An attribute is usually a single letter but some
 are more complicated.
@@ -490,7 +490,7 @@ that is, a target that is not a file.
 For example,
 <DL><DT><DD><TT><PRE>
 clean:V:
-	rm *.$O $O.out
+	rm *.<I>O </I>O.out
 </PRE></TT></DL>
 removes executables and compiler intermediate files.
 The target is virtual because it does not refer to a file named
@@ -577,28 +577,28 @@ is the last value assigned in the file.  For example,
 STRING=all
 
 all:VQ:
-	echo $STRING
+	echo <I>STRING
 STRING=none
 </PRE></TT></DL>
 produces the message
-<TT>none</TT>.
+</I><TT>none</TT><I>.
 A variable assignment in a recipe
 does not affect the value of the variable in the
-<TT>mkfile</TT>
+</I><TT>mkfile</TT><I>
 for two reasons.
 First,
-<TT>mk</TT>
+</I><TT>mk</TT><I>
 does not import values from
 the environment when a recipe completes;
 one recipe cannot pass a value through
 the environment to another recipe.
 Second, no recipe is executed until 
-<TT>mk</TT>
+</I><TT>mk</TT><I>
 has completed its evaluation, so even if a variable
 were changed,
 it would not affect the dependency evaluation.
 </P>
-<H4>6 Metarules
+</I><H4>6 Metarules
 </H4>
 <P>
 A
@@ -652,29 +652,29 @@ depends on
 and so on.
 The string matched by an intrinsic pattern in the target
 is supplied to the recipe in the variable
-<TT>$stem</TT>.
+<TT></TT>stem<TT>.
 Thus the rule
 <DL><DT><DD><TT><PRE>
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
+%.</TT><I>O:	%.c
+	</I><TT>CC </TT><I>CFLAGS </I><TT>stem.c
 </PRE></TT></DL>
 creates an object file for the target architecture from
 a similarly named C source file.  If several object
 files are out of date, the rule is applied repeatedly and
-<TT>$stem</TT>
+</TT><TT></TT><I>stem</I><TT>
 refers to each file in turn.
 Since there is only one
-<TT>stem</TT>
+</TT><TT>stem</TT><TT>
 variable, there can only be one
-<TT>%</TT>
+</TT><TT>%</TT><TT>
 or
-<TT>&</TT>
+</TT><TT>&</TT><TT>
 pattern in a target;
 the pattern
-<TT>%-%.c</TT>
+</TT><TT>%-%.c</TT><TT>
 is illegal.
 </P>
-<P>
+</TT><P>
 Metarules simplify the
 <TT>mkfile</TT>
 for building programs
@@ -682,93 +682,93 @@ for building programs
 and
 <TT>f2</TT>:
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/objtype/mkfile
 
 ALL=f1 f2
 
-all:V:	$ALL
+all:V:	<I>ALL
 
-%:	%.$O
-	$LD -o $target $prereq
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
+%:	%.</I>O
+	<I>LD -o </I>target <I>prereq
+%.</I>O:	%.c
+	<I>CC </I>CFLAGS <I>stem.c
 clean:V:
-	rm -f $ALL *.[$OS]
+	rm -f </I>ALL *.[<I>OS]
 </PRE></TT></DL>
 (The variable
-<TT>$OS</TT>
+</I><TT></TT><I>OS</I><TT>
 is a list of code characters for all architectures.)
 Here, metarules specify
 compile and load steps for all C source files.
 The loader rule relies on two internal variables
 set by
-<TT>mk</TT>
+</TT><TT>mk</TT><TT>
 during evaluation of the rule:
-<TT>$target</TT>
+</TT><TT></TT><I>target</I><TT>
 is the name of the target(s) and
-<TT>$prereq</TT>
+</TT><TT></TT><TT>prereq</TT><TT>
 the name of all prerequisite(s).
 Metarules allow this
-<TT>mkfile</TT>
+</TT><TT>mkfile</TT><TT>
 to be easily extended; a new program
 is supported by adding its name to the third line.
 </P>
-<P>
+</TT><P>
 A regular expression metarule must have an
 <TT>R</TT>
 attribute.
 Prerequisites may reference matching substrings in
 the target using the form
-<TT><I>n</I></TT>
+<TT>\</TT><I>n</I><TT></TT><I>
 where
-<I>n</I>
+</I><I>n</I><I>
 is a digit from 1 to 9 specifying the
-<I>n</I>th
+</I><I>n</I><I>th
 parenthesized sub-expression.  In a recipe,
-<TT>$stem<I>n</I></TT>
+</I><TT></TT><I>stem</I><I>n</I><I></I><I>
 is the equivalent reference.
 For example, a compile rule could be
 specified using regular expressions:
 <DL><DT><DD><TT><PRE>
-(.+)\.$O:R:	\1.c
-	$CC $CFLAGS $stem1.c
+(.+)\.</I>O:R:	\1.c
+	<I>CC </I>CFLAGS <I>stem1.c
 </PRE></TT></DL>
 Here,
-<TT>1</TT>
+</I><TT>\1</TT><I>
 and
-<TT>$stem1</TT>
+</I><TT></TT><I>stem1</I><TT>
 refer to the name of the target object file without the
 suffix.  The variable
-<TT>$stem</TT>
+</TT><TT></TT><I>stem</I><TT>
 associated with an intrinsic pattern is undefined
 in a regular expression metarule.
 </P>
-<H4>7 Archives
+</TT><H4>7 Archives
 </H4>
 <P>
 <TT>Mk</TT>
 provides a special mechanism for maintaining an archive.
 An archive member is referenced using the form
-<TT><I>lib</I>(<I>file</I>)</TT>
+<TT></TT><I>lib</I><TT>(</TT><I>file</I><TT>)</TT><I>
 where
-<I>lib</I>
+</I><I>lib</I><I>
 is the name of the archive and 
-<I>file</I>
+</I><I>file</I><I>
 is the name of the member.  Two rules define the
 dependency between an object file and its membership
 in an archive:
 <DL><DT><DD><TT><PRE>
-$LIB(foo.8):N:	foo.8
-$LIB:	$LIB(foo.8)
-	ar rv $LIB foo.8
+</I>LIB(foo.8):N:	foo.8
+<I>LIB:	</I>LIB(foo.8)
+	ar rv <I>LIB foo.8
 </PRE></TT></DL>
 The first rule establishes a dependency between the
 archive member and the object file.
 Normally,
-<TT>mk</TT>
+</I><TT>mk</TT><I>
 detects an error when a target does not exist and the rule
 contains no recipe; the
-<TT>N</TT>
+</I><TT>N</TT><I>
 attribute overrides this behavior because the subsequent rule
 updates the member.
 The second
@@ -781,59 +781,59 @@ to represent the state of its members.  Other rules
 can then specify the archive as a prerequisite instead of
 listing each member.
 </P>
-<P>
+</I><P>
 A metarule generalizes library maintenance:
 <DL><DT><DD><TT><PRE>
 LIB=lib.a
-OBJS=etoa.$O atoe.$O ebcdic.$O
+OBJS=etoa.O atoe.<I>O ebcdic.</I>O
 
-$LIB(%):N:	%
-$LIB:	${OBJS:%=$LIB(%)}
-	ar rv $LIB $OBJS
+<I>LIB(%):N:	%
+</I>LIB:	<I>{OBJS:%=</I>LIB(%)}
+	ar rv <I>LIB </I>OBJS
 </PRE></TT></DL>
 The namelist prerequisite of the
-<TT>$LIB</TT>
+<TT></TT><I>LIB</I><TT>
 target generates archive member names for each object file name;
 for example, 
-<TT>etoa.$O</TT>
+</TT><TT>etoa.</TT><TT>O</TT><TT>
 becomes
-<TT>lib.a(etoa.$O)</TT>.
+</TT><TT>lib.a(etoa.</TT><I>O)</I><TT>.
 This formulation always updates all members.
 This is acceptable for a small archive, but may 
 be slow for a big one.
 The rule
 <DL><DT><DD><TT><PRE>
-$LIB:	${OBJS:%=$LIB(%)}
-	ar rv $LIB `{membername $newprereq}
+</TT><I>LIB:	</I><I>{OBJS:%=</I><I>LIB(%)}
+	ar rv </I><I>LIB `{membername </I><I>newprereq}
 </PRE></TT></DL>
 only updates out of date object files.
 The internal variable
-<TT>$newprereq</TT>
+</I><TT></TT><I>newprereq</I><TT>
 contains the names of the out of
 date prerequisites.  The
-<TT>rc</TT>
+</TT><TT>rc</TT><TT>
 script
-<TT>membername</TT>
+</TT><TT>membername</TT><TT>
 transforms an archive member specification into a file name:
 it translates
-<TT>lib.a(etoa.$O)</TT>
+</TT><TT>lib.a(etoa.</TT><TT>O)</TT><TT>
 into
-<TT>etoa.$O</TT>.
+</TT><TT>etoa.</TT><I>O</I><TT>.
 </P>
-<P>
+</TT><P>
 The
 <TT>mkfile</TT>
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/objtype/mkfile
 LIB=lib.a
-OBJS=etoa.$O atoe.$O ebcdic.$O
+OBJS=etoa.<I>O atoe.</I>O ebcdic.<I>O
 
-prog:	main.$O $LIB
-	$LD -o $target $prereq
+prog:	main.</I>O <I>LIB
+	</I>LD -o <I>target </I>prereq
 
-$LIB(%):N:	%
-$LIB:	${OBJS:%=$LIB(%)}
-	ar rv $LIB $OBJS
+<I>LIB(%):N:	%
+</I>LIB:	<I>{OBJS:%=</I>LIB(%)}
+	ar rv <I>LIB </I>OBJS
 </PRE></TT></DL>
 builds a program by loading it with a library.
 </P>
@@ -916,7 +916,7 @@ each metarule once.
 Thus, the rule
 <DL><DT><DD><TT><PRE>
 %:	%.z
-	cp $prereq $prereq.z
+	cp <I>prereq </I>prereq.z
 </PRE></TT></DL>
 copies the prerequisite file once.
 </P>
@@ -940,52 +940,52 @@ over a metarule.
 For example, the
 <TT>mkfile</TT>
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/<I>objtype/mkfile
 
-FILES=f1.$O f2.$O f3.$O
+FILES=f1.</I>O f2.<I>O f3.</I>O
 
-prog:	$FILES
-	$LD -o $target $prereq
+prog:	<I>FILES
+	</I>LD -o <I>target </I>prereq
 
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
+%.<I>O:	%.c
+	</I>CC <I>CFLAGS </I>stem.c
 
-f2.$O:	f2.c
-	$CC f2.c
+f2.<I>O:	f2.c
+	</I>CC f2.c
 </PRE></TT></DL>
 contains two rules that could build
-<TT>f2.$O</TT>.
-<TT>Mk</TT>
+<TT>f2.</TT><I>O</I><TT>.
+</TT><TT>Mk</TT><TT>
 selects the last rule because its target,
-<TT>f2.$O</TT>,
+</TT><TT>f2.</TT><TT>O</TT><TT>,
 is explicitly specified, while the 
-<TT>%.$O</TT>
+</TT><TT>%.</TT><I>O</I><TT>
 rule is a metarule.  In effect,
 the explicit rule for
-<TT>f2.$O</TT>
+</TT><TT>f2.</TT><TT>O</TT><TT>
 overrides the general rule for building object files from
 C source files.
 </P>
-<P>
+</TT><P>
 When a rule has a target and prerequisites but no recipe,
 those prerequisites are added to all other rules with
 recipes that have the same target.
 All prerequisites, regardless of where they were specified, are
 exported to the recipe in variable
-<TT>$prereq</TT>.
+<TT></TT><I>prereq</I><TT>.
 For example, in
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/</TT>objtype/mkfile
 
-FILES=f1.$O f2.$O f3.$O
+FILES=f1.<I>O f2.</I>O f3.<I>O
 
-prog:	$FILES
-	$LD -o $target $prereq
+prog:	</I>FILES
+	<I>LD -o </I>target <I>prereq
 
-%.$O:	hdr.h
+%.</I>O:	hdr.h
 
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
+%.<I>O:	%.c
+	</I>CC <I>CFLAGS </I>stem.c
 </PRE></TT></DL>
 the second rule adds
 <TT>hdr.h</TT>
@@ -995,13 +995,13 @@ depends on
 <TT>hdr.h</TT>
 as well as the source file.  Notice that the recipe of 
 the compile rule uses
-<TT>$stem.c</TT>
+<TT></TT><I>stem.c</I><TT>
 instead of
-<TT>$prereq</TT>
+</TT><TT></TT><TT>prereq</TT><TT>
 because the latter specification would attempt to compile
-<TT>hdr.h</TT>.
+</TT><TT>hdr.h</TT><TT>.
 </P>
-<P>
+</TT><P>
 When a target is virtual and there is no other rule with
 the same target,
 <TT>mk</TT>
@@ -1028,41 +1028,41 @@ if a file named
 <TT>mkrules</TT>
 contains
 <DL><DT><DD><TT><PRE>
-$O.out:	$OFILES
-	$LD $LFLAGS $OFILES
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
+<I>O.out:	</I>OFILES
+	<I>LD </I>LFLAGS <I>OFILES
+%.</I>O:	%.c
+	<I>CC </I>CFLAGS <I>stem.c
 </PRE></TT></DL>
 the
-<TT>mkfile</TT>
+</I><TT>mkfile</TT><I>
 <DL><DT><DD><TT><PRE>
-OFILES=f1.$O f2.$O f3.$O
+OFILES=f1.</I>O f2.<I>O f3.</I>O
 
-&#60;mkrules
+&lt;mkrules
 
-$O.out:	$OFILES
-	$LD $LFLAGS -l $OFILES -lbio -lc
+<I>O.out:	</I>OFILES
+	<I>LD </I>LFLAGS -l <I>OFILES -lbio -lc
 </PRE></TT></DL>
 overrides the general loader rule with a special
 rule using a non-standard library search sequence.
 A rule is neutralized by overriding it with a rule
 with a null recipe:
 <DL><DT><DD><TT><PRE>
-&#60;mkrules
+&lt;mkrules
 
-$O.out:Q:	$OFILES
+</I>O.out:Q:	<I>OFILES
 	;
 </PRE></TT></DL>
 The
-<TT>Q</TT>
+</I><TT>Q</TT><I>
 attribute suppresses the printing of the semicolon.
 </P>
-<P>
+</I><P>
 When a rule has no prerequisites, the recipe is executed
 only when the target does not exist.  For example,
 <DL><DT><DD><TT><PRE>
 marker:
-	touch $target
+	touch target
 </PRE></TT></DL>
 defines a rule to manage a marker file.
 If the file exists, it is considered up to date
@@ -1074,14 +1074,14 @@ The
 rule is of this type:
 <DL><DT><DD><TT><PRE>
 clean:V:
-	rm -f [$OS].out *.[$OS]
+	rm -f [<I>OS].out *.[</I>OS]
 </PRE></TT></DL>
 When a rule without prerequisites has multiple targets, the
 extra targets are aliases for the rule.
 For example, in
 <DL><DT><DD><TT><PRE>
 clean tidy nuke:V:
-	rm -f [$OS].out *.[$OS]
+	rm -f [<I>OS].out *.[</I>OS]
 </PRE></TT></DL>
 the
 rule can be invoked by any of three names.
@@ -1105,42 +1105,42 @@ For example, consider a program built from C
 and assembler source files.  Two rules produce
 object files:
 <DL><DT><DD><TT><PRE>
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
-%.$O:	%.s
-	$AS $AFLAGS $stem.s
+%.<I>O:	%.c
+	</I>CC <I>CFLAGS </I>stem.c
+%.<I>O:	%.s
+	</I>AS <I>AFLAGS </I>stem.s
 </PRE></TT></DL>
 As long as there are not two source files with names like
-<TT><I>foo</I>.c</TT>
+<TT></TT><I>foo</I><TT>.c</TT><I>
 and
-<TT><I>foo</I>.s</TT>,
-<TT>mk</TT>
+</I><TT></TT><I>foo</I><TT>.s</TT><I>,
+</I><TT>mk</TT><I>
 can unambiguously select the proper rule.
 If both files exist,
 the rules are ambiguous
 and
-<TT>mk</TT>
+</I><TT>mk</TT><I>
 exits with an error message.
 </P>
-<P>
+</I><P>
 In Plan 9, many programs consist of portable code stored
 in one directory and architecture-specific source stored in
 another.
 For example, the
 <TT>mkfile</TT>
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
+&lt;/<I>objtype/mkfile
 
-FILES=f1.$O f2.$O f3.$O f3.$O
+FILES=f1.</I>O f2.<I>O f3.</I>O f3.<I>O
 
-prog:	$FILES
-	$LD -o $target $prereq
+prog:	</I>FILES
+	<I>LD -o </I>target <I>prereq
 
-%.$O:	%.$c
-	$CC $CFLAGS $stem.c
+%.</I>O:	%.<I>c
+	</I>CC <I>CFLAGS </I>stem.c
 
-%.$O:	../port/%.c
-	$CC $CFLAGS ../port/$stem.c
+%.<I>O:	../port/%.c
+	</I>CC <I>CFLAGS ../port/</I>stem.c
 </PRE></TT></DL>
 builds the program named
 <TT>prog</TT>
@@ -1159,8 +1159,8 @@ must be specified to resolve the ambiguity.
 For example,
 adding the rule
 <DL><DT><DD><TT><PRE>
-f2.$O:	f2.c
-	$CC $CFLAGS $f2.c
+f2.<I>O:	f2.c
+	</I>CC <I>CFLAGS </I>f2.c
 </PRE></TT></DL>
 to the previous
 <TT>mkfile</TT>
@@ -1172,33 +1172,33 @@ documents which of the
 like-named source files is used to build the program.
 </P>
 <P>
-<TT>Mk'</TT>s
+<TT>Mk</TT>'<TT></TT>s
 heuristics can produce unintended results
 when rules are not carefully specified.
 For example, the rules that build
 object files from C or assembler source files
 <DL><DT><DD><TT><PRE>
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
-%.$O:	%.s
-	$AS $AFLAGS $stem.s
+%.<I>O:	%.c
+	</I>CC <I>CFLAGS </I>stem.c
+%.<I>O:	%.s
+	</I>AS <I>AFLAGS </I>stem.s
 </PRE></TT></DL>
 illustrate a subtle pratfall.
 Adding a header file dependency to the compile rule
 <DL><DT><DD><TT><PRE>
-%.$O:	%.c hdr.h
-	$CC $CFLAGS $stem.c
+%.<I>O:	%.c hdr.h
+	</I>CC <I>CFLAGS </I>stem.c
 </PRE></TT></DL>
 produces the error message
 <DL><DT><DD><TT><PRE>
-<TT>don't know how to make '<I>file</I>.c'</TT>
+<TT>don't know how to make '</TT><I>file</I><TT>.c'</TT><I>
 </PRE></TT></DL>
-when <I>file</I>.s is an assembler
+when </I><I>file</I><I>.s is an assembler
 source file.
 This occurs because 
-<TT><I>file</I>.s</TT>
+</I><TT></TT><I>file</I><TT>.s</TT><I>
 satisfies the assemble rule and
-<TT>hdr.h</TT>
+</I><TT>hdr.h</TT><I>
 satisfies the compile rule, so
 either rule can potentially produce the target.
 When a prerequisite exists or can be
@@ -1206,17 +1206,17 @@ derived,
 all other prerequisites in that
 rule header must exist or be derivable; here,
 the existence of
-<TT>hdr.h</TT>
+</I><TT>hdr.h</TT><I>
 forces the evaluation of a C source file.
 Specifying the dependencies in different
 rules avoids this interpretation:
 <DL><DT><DD><TT><PRE>
-%.$O:	hdr.h
-%.$O:	%.c
-	$CC $CFLAGS $stem.c
+%.</I><I>O:	hdr.h
+%.</I><I>O:	%.c
+	</I><I>CC </I><I>CFLAGS </I><I>stem.c
 </PRE></TT></DL>
 Although
-<TT>hdr.h</TT>
+</I><TT>hdr.h</TT><I>
 is an additional prerequisite of the compile rule,
 the two rules are evaluated independently and
 the existence of the C source file is not linked
@@ -1224,28 +1224,28 @@ to the existence of the header file.
 However, this specification describes a different
 dependency.  Originally, only object
 files derived from C files depended on
-<TT>hdr.h</TT>;
+</I><TT>hdr.h</TT><I>;
 now all object files, including those built
 from assembler source, depend on the header file.
 </P>
-<P>
+</I><P>
 Metarule patterns should be as restrictive as possible to
 prevent conflicts with other rules.
 Consider the
 <TT>mkfile</TT>
 <DL><DT><DD><TT><PRE>
-&#60;/$objtype/mkfile
-BIN=/$objtype/bin
+&lt;/objtype/mkfile
+BIN=/<I>objtype/bin
 PROG=foo
 
-install:V:	$BIN/$PROG
+install:V:	</I>BIN/<I>PROG
 
 %:	%.c
-	$CC $stem.c
-	$LD -o $target $stem.$O
+	</I>CC <I>stem.c
+	</I>LD -o <I>target </I>stem.<I>O
 
-$BIN/%:	%
-	mv $stem $target
+</I>BIN/%:	%
+	mv <I>stem </I>target
 </PRE></TT></DL>
 The first target builds an executable
 in the local directory; the second
@@ -1258,27 +1258,27 @@ with the
 target produces:
 <DL><DT><DD><TT><PRE>
 mk: ambiguous recipes for /mips/bin/foo:
-/mips/bin/foo &#60;-(mkfile:8)- /mips/bin/foo.c &#60;-(mkfile:12)- foo.c
-/mips/bin/foo &#60;-(mkfile:12)- foo &#60;-(mkfile:8)- foo.c
+/mips/bin/foo &lt;-(mkfile:8)- /mips/bin/foo.c &lt;-(mkfile:12)- foo.c
+/mips/bin/foo &lt;-(mkfile:12)- foo &lt;-(mkfile:8)- foo.c
 </PRE></TT></DL>
 The prerequisite of the
 <TT>install</TT>
 rule,
-<TT>$BIN/$PROG</TT>,
+<TT></TT><I>BIN/</I><TT>PROG</TT><I>,
 matches both metarules because the
-<TT>%</TT>
+</I><TT>%</TT><I>
 pattern matches everything.
 The
-<TT>&</TT>
+</I><TT>&</TT><I>
 pattern restricts the compile rule to files in the
 current directory and avoids the conflict:
 <DL><DT><DD><TT><PRE>
 &amp;:	&amp;.c
-	$CC $stem.c
-	$LD -o $target $stem.$O
+	</I><I>CC </I><I>stem.c
+	</I><I>LD -o </I><I>target </I><I>stem.</I><I>O
 </PRE></TT></DL>
 </P>
-<H4>10 Missing intermediates
+</I><H4>10 Missing intermediates
 </H4>
 <P>
 <TT>Mk</TT>
@@ -1300,11 +1300,11 @@ maintaining archives.  We can modify the archive
 update recipe to remove object files after
 they are archived:
 <DL><DT><DD><TT><PRE>
-$LIB(%):N:	%
-$LIB:	${OBJS:%=$LIB(%)}
-	names=`{membername $newprereq}
-	ar rv $LIB $names
-	rm -f $names
+<I>LIB(%):N:	%
+</I>LIB:	<I>{OBJS:%=</I>LIB(%)}
+	names=`{membername <I>newprereq}
+	ar rv </I>LIB <I>names
+	rm -f </I>names
 </PRE></TT></DL>
 A subsequent
 <TT>mk</TT>
@@ -1331,7 +1331,7 @@ and the recipe is executed.  Consider the
 <TT>mkfile</TT>
 <DL><DT><DD><TT><PRE>
 foo.ref:Pcmp -s:	foo
-	cp $prereq $target
+	cp <I>prereq </I>target
 </PRE></TT></DL>
 The command
 <DL><DT><DD><TT><PRE>
@@ -1350,7 +1350,7 @@ When possible,
 <TT>mk</TT>
 executes recipes in parallel.
 The variable
-<TT>$NPROC</TT>
+<TT></TT><I>NPROC</I><TT>
 specifies the maximum number of simultaneously executing
 recipes.
 Normally it is imported from the environment,
@@ -1361,7 +1361,7 @@ This is necessary when several targets access
 a common resource such as
 a status file or data base.
 When there is no dependency between targets,
-<TT>mk</TT>
+</TT><TT>mk</TT><TT>
 assumes the
 recipes can be
 executed concurrently.
@@ -1369,24 +1369,24 @@ Normally, this allows
 multiple prerequisites to be built simultaneously;
 for example, the object file prerequisites of
 a load rule can be produced by compiling the source files in parallel.
-<TT>Mk</TT>
+</TT><TT>Mk</TT><TT>
 does not define the order of execution of independent recipes.
 When the prerequisites of a rule are not independent,
 the dependencies between them should be specified in a rule or the
-<TT>mkfile</TT>
+</TT><TT>mkfile</TT><TT>
 should be single-threaded.
 For example, the archive update rules
 <DL><DT><DD><TT><PRE>
-$LIB(%):N:	%
-$LIB:	${OBJS:%=$LIB(%)}
-	ar rv $LIB `{membername $newprereq}
+</TT>LIB(%):N:	%
+<I>LIB:	</I>{OBJS:%=<I>LIB(%)}
+	ar rv </I>LIB `{membername <I>newprereq}
 </PRE></TT></DL>
 compile source files in parallel but update
 all members of the archive at once.
 It is a mistake to merge the two rules
 <DL><DT><DD><TT><PRE>
-$LIB(%):	%
-	ar rv $LIB $stem
+</I>LIB(%):	%
+	ar rv <I>LIB </I>stem
 </PRE></TT></DL>
 because an
 <TT>ar</TT>
@@ -1397,7 +1397,7 @@ in parallel, making interference likely.
 </P>
 <P>
 The
-<TT>$nproc</TT>
+<TT></TT><I>nproc</I><TT>
 environment variable contains a number associated
 with the processor executing a recipe.
 It can be used to create unique
@@ -1405,7 +1405,7 @@ names when the
 recipe may be executing simultaneously on several processors.
 Other maintenance tools provide mechanisms to control recipe
 scheduling explicitly [Cmel86], but
-<TT>mk's</TT>
+</TT><TT>mk</TT>'<TT>s</TT>
 general rules are sufficient for all but the most unusual cases.
 </P>
 <H4>13 Deleting target files on errors
@@ -1429,15 +1429,15 @@ a subsequent
 will not rebuild it.  For example,
 <DL><DT><DD><TT><PRE>
 pic.out:D:	mk.ms
-		pic $prereq | tbl | troff -ms &#62; $target
+		pic prereq | tbl | troff -ms &gt; <I>target
 </PRE></TT></DL>
 produces the message
 <DL><DT><DD><TT><PRE>
-<TT>mk: pic mk.ms | ...  : exit status=rc 685: deleting 'pic.out'</TT>
+</I><TT>mk: pic mk.ms | ...  : exit status=rc 685: deleting 'pic.out'</TT><I>
 </PRE></TT></DL>
 if any program in the recipe exits with an error status.
 </P>
-<H4>14 Unspecified dependencies
+</I><H4>14 Unspecified dependencies
 </H4>
 <P>
 The
@@ -1454,7 +1454,7 @@ is changed in a header file,
 all source files that reference
 it can be rebuilt with the command
 <DL><DT><DD><TT><PRE>
-$ mk -w`{grep -l <I>var</I> *.[cyl]}
+ mk -w`{grep -l <I>var</I> *.[cyl]}
 </PRE></TT></DL>
 </P>
 <H4>15 Conclusion
@@ -1473,7 +1473,7 @@ include facilities.
 Plan 9 presents a difficult maintenance environment
 with its heterogeneous
 architectures and languages.
-<TT>Mk's</TT>
+<TT>Mk</TT>'<TT>s</TT>
 flexible specification language and simple
 interaction with
 <TT>rc</TT>
@@ -1522,13 +1522,13 @@ and
 <TT>make</TT>
 are:
 </P>
-<DL COMPACT>
-<DT>*<DD>
+<UL>
+<LI>
 <TT>Make</TT>
 builds targets when it needs them, allowing systematic use of side effects.
 <TT>Mk</TT>
 constructs the entire dependency graph before building any target.
-<DT>*<DD>
+<LI>
 <TT>Make</TT>
 supports suffix rules and
 <TT>%</TT>
@@ -1540,24 +1540,24 @@ and regular expression metarules.
 (Older versions of
 <TT>make</TT>
 support only suffix rules.)
-<DT>*<DD>
+<LI>
 <TT>Mk</TT>
 performs transitive closure on metarules,
 <TT>make</TT>
 does not.
-<DT>*<DD>
+<LI>
 <TT>Make</TT>
 supports cyclic dependencies,
 <TT>mk</TT>
 does not.
-<DT>*<DD>
+<LI>
 <TT>Make</TT>
 evaluates recipes one line at a time, replacing variables by their values and
 executing some commands internally.
 <TT>Mk</TT>
 passes the entire recipe to the shell without
 interpretation or internal execution.
-<DT>*<DD>
+<LI>
 <TT>Make</TT>
 supports parallel execution of single-line recipes when building
 the prerequisites for specified targets.
@@ -1566,22 +1566,22 @@ supports parallel execution of all recipes.
 (Older versions of
 <TT>make</TT>
 did not support parallel execution.)
-<DT>*<DD>
+<LI>
 <TT>Make</TT>
 uses special targets (beginning with a period)
 to indicate special processing.
 <TT>Mk</TT>
 uses attributes to modify rule evaluation.
-<DT>*<DD>
+<LI>
 <TT>Mk</TT>
 supports virtual
 targets that are independent of the file system.
-<DT>*<DD>
+<LI>
 <TT>Mk</TT>
 allows non-standard out-of-date determination,
 <TT>make</TT>
 does not.
-</dl>
+</ul>
 <P>
 It is usually easy to convert a
 <TT>makefile</TT>
@@ -1590,5 +1590,5 @@ to or from an equivalent
 </P>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

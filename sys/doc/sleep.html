@@ -282,10 +282,10 @@ Our
 <TT>Locks</TT>
 are test-and-set spin locks.
 The routine
-<TT>lock(Lock *l)</TT>
-returns when the current process holds that lock;
-<TT>unlock(Lock *l)</TT>
-releases the lock.
+<TT>lock(Lockr</TT>*l)
+eturns when the current process holds that lock;
+<TT>unlock(Lockr</TT>*l)
+eleases the lock.
 <br>&#32;<br>
 Here is our implementation of
 <TT>sleep</TT>.
@@ -300,13 +300,13 @@ sleep(Rendezvous *r, int (*condition)(void*), void *arg)
 	int s;
 
 	s = inhibit();		/* interrupts */
-	lock(&amp;r-&#62;l);
+	lock(&amp;r-&gt;l);
 
 	/*
 	 * if condition happened, never mind
 	 */
 	if((*condition)(arg)){	
-		unlock(&amp;r-&#62;l);
+		unlock(&amp;r-&gt;l);
 		allow();	/* interrupts */
 		return;
 	}
@@ -315,11 +315,11 @@ sleep(Rendezvous *r, int (*condition)(void*), void *arg)
 	 * now we are committed to
 	 * change state and call scheduler
 	 */
-	if(r-&#62;p)
-		error("double sleep %d %d", r-&#62;p-&#62;pid, thisp-&#62;pid);
-	thisp-&#62;state = Wakeme;
-	r-&#62;p = thisp;
-	unlock(&amp;r-&#62;l);
+	if(r-&gt;p)
+		error("double sleep %d %d", r-&gt;p-&gt;pid, thisp-&gt;pid);
+	thisp-&gt;state = Wakeme;
+	r-&gt;p = thisp;
+	unlock(&amp;r-&gt;l);
 	allow(s);	/* interrupts */
 	sched();	/* relinquish CPU */
 }
@@ -334,15 +334,15 @@ wakeup(Rendezvous *r)
 	int s;
 
 	s = inhibit();	/* interrupts; return old state */
-	lock(&amp;r-&#62;l);
-	p = r-&#62;p;
+	lock(&amp;r-&gt;l);
+	p = r-&gt;p;
 	if(p){
-		r-&#62;p = 0;
-		if(p-&#62;state != Wakeme)
+		r-&gt;p = 0;
+		if(p-&gt;state != Wakeme)
 			panic("wakeup: not Wakeme");
 		ready(p);
 	}
-	unlock(&amp;r-&#62;l);
+	unlock(&amp;r-&gt;l);
 	if(s)
 		allow();
 }
@@ -411,22 +411,22 @@ wakeup(Rendezvous *r)
 	Proc *p;
 	int s;
 
-	p = r-&#62;p;
+	p = r-&gt;p;
 	if(p){
 		s = inhibit();
-		lock(&amp;r-&#62;l);
-		r-&#62;p = 0;
-		if(p-&#62;state != Wakeme)
+		lock(&amp;r-&gt;l);
+		r-&gt;p = 0;
+		if(p-&gt;state != Wakeme)
 			panic("wakeup: not Wakeme");
 		ready(p);
-		unlock(&amp;r-&#62;l);
+		unlock(&amp;r-&gt;l);
 		if(s)
 			allow();
 	}
 }
 </PRE></TT></DL>
 The mistake is that the reading of
-<TT>r->p</TT>
+<TT>r-&gt;p</TT>
 may occur just as the other process calls
 <TT>sleep</TT>,
 so when the interrupt examines the structure it sees no one to wake up,
@@ -434,7 +434,7 @@ and the sleeping process misses its wakeup.
 We wrote the code this way because we reasoned that the fetch
 <TT>p</TT>
 <TT>=</TT>
-<TT>r->p</TT>
+<TT>r-&gt;p</TT>
 was inherently atomic and need not be interlocked.
 The bug was found by examination when a new, very fast device
 was added to the system and sleeps and interrupts were closely overlapped.
@@ -541,8 +541,7 @@ July, 1990.
 MIT,
 Cambridge, Mass.,
 1966.
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

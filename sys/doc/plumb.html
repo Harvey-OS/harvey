@@ -96,7 +96,7 @@ is by convention the file from which a text editor reads messages requesting it 
 open and display a file for editing.
 (See Figure 1.)
 <DL><DT><DD><TT><PRE>
-<br><img src="-.14230.gif"><br>
+<br><img src="-.19117390.gif"><br>
 </PRE></TT></DL>
 <DL>
 <DT><DT>&#32;<DD>
@@ -214,14 +214,14 @@ or
 <TT>image/gif</TT>.
 <DT><DT>&#32;<DD>
 Attributes of the message, given as blank-separated
-<I>name<TT>=</TT>value</I>
+<I>name</I><TT>=</TT><I>value</I><TT>
 pairs.
 The values may be quoted to protect
 blanks or quotes; values may not contain newlines.
 <DT><DT>&#32;<DD>
 The length of the data section, in bytes.
 </dl>
-<br>&#32;<br>
+</TT><br>&#32;<br>
 Here is a sample message, one that (conventionally) tells the editor to open the file
 <TT>/usr/rob/src/mem.c</TT>
 and display line
@@ -330,57 +330,57 @@ to display them; it is analogous to a Windows association rule:
 type is text
 data matches '[a-zA-Z0-9_\-./]+'
 data matches '([a-zA-Z0-9_\-./]+)\.(jpe?g|gif|bit|tiff|ppm)'
-arg isfile $0
+arg isfile <I>0
 plumb to image
 plumb client page -wi
 </PRE></TT></DL>
 (Lines beginning with
-<TT>#</TT>
+</I><TT>#</TT><I>
 are commentary.)
 Consider how this rule handles the following message, annotated down the left column for clarity:
 <DL><DT><DD><TT><PRE>
-<I>src</I>	plumbtest
-<I>dst</I>
-<I>wdir</I>	/usr/rob/pics
-<I>type</I>	text
-<I>attr</I>
-<I>ndata</I>	9
-<I>data</I>	horse.gif
+</I><I>src</I><I>	plumbtest
+</I><I>dst</I><I>
+</I><I>wdir</I><I>	/usr/rob/pics
+</I><I>type</I><I>	text
+</I><I>attr</I><I>
+</I><I>ndata</I><I>	9
+</I><I>data</I><I>	horse.gif
 </PRE></TT></DL>
 The
-<TT>is</TT>
+</I><TT>is</TT><I>
 verb specifies a precise match, and the
-<TT>type</TT>
+</I><TT>type</TT><I>
 field of the message is the string
-<TT>text</TT>,
+</I><TT>text</TT><I>,
 so the first pattern succeeds.
 The
-<TT>matches</TT>
+</I><TT>matches</TT><I>
 verb invokes a regular expression pattern match of the object (here
-<TT>data</TT>)
+</I><TT>data</TT><I>)
 against the argument pattern.
 Both
-<TT>matches</TT>
+</I><TT>matches</TT><I>
 patterns in this rule set will succeed, and in the process set the variables
-<TT>$0</TT>
+</I><TT></TT><I>0</I><TT>
 to the matched string,
-<TT>$1</TT>
+</TT><TT></TT><I>1</I><TT>
 to the first parenthesized submatch, and so on (analogous to
-<TT>&</TT>,
-<TT>1</TT>,
+</TT><TT>&</TT><TT>,
+</TT><TT>\1</TT><TT>,
 etc. in
-<TT>ed</TT>'s
+</TT><TT>ed</TT><TT>'s
 regular expressions).
 The pattern
-<TT>arg</TT>
-<TT>isfile</TT>
-<TT>$0</TT>
+</TT><TT>arg</TT><TT>
+</TT><TT>isfile</TT><TT>
+</TT><TT></TT><TT>0</TT><TT>
 verifies that the named file,
-<TT>horse.gif</TT>,
+</TT><TT>horse.gif</TT><TT>,
 is an actual file in the directory
-<TT>/usr/rob/pics</TT>.
+</TT><TT>/usr/rob/pics</TT><TT>.
 If all the patterns succeed, one of the actions will be executed.
-<br>&#32;<br>
+</TT><br>&#32;<br>
 There are two actions in this rule set.
 The
 <TT>plumb</TT>
@@ -423,13 +423,13 @@ to refine the
 in the message, somewhat in the manner of Structural Regular Expressions [Pike87a].
 For example, consider what happens if the cursor is at the last character of
 <DL><DT><DD><TT><PRE>
-% make nightmare&#62;horse.gif
+% make nightmare&gt;horse.gif
 </PRE></TT></DL>
 and the user asks to plumb what the cursor is pointing at.
 The program creating the plumbing
 message&#173;in this case the terminal emulator running the window&#173;can send the
 entire white-space-delimited string
-<TT>nightmare>horse.gif</TT>
+<TT>nightmare&gt;horse.gif</TT>
 or even the entire line, and the combination of
 <TT>matches</TT>
 rules can determine that the user was referring to the string
@@ -531,29 +531,29 @@ to hold the line number:
 # .h files are looked up in /sys/include and passed to edit
 type is text
 data matches '([a-zA-Z0-9]+\.h)(:([0-9]+))?'
-arg isfile /sys/include/$1
-data set /sys/include/$1
-attr add addr=$3
+arg isfile /sys/include/<I>1
+data set /sys/include/</I>1
+attr add addr=<I>3
 plumb to edit
 </PRE></TT></DL>
 The
-<TT>data</TT>
-<TT>set</TT>
+</I><TT>data</TT><I>
+</I><TT>set</TT><I>
 rule replaces the contents of the data, and the
-<TT>attr</TT>
-<TT>add</TT>
+</I><TT>attr</TT><I>
+</I><TT>add</TT><I>
 rule adds a new attribute to the message.
 The intent of this rule is to permit one to plumb an include file name in a C program
 to trigger the opening of that file, perhaps at a specified line, in the text editor.
 A variant of this rule, discussed below,
 tells the editor how to interpret syntax errors from the compiler,
 or the output of
-<TT>grep</TT>
-<TT>-n</TT>,
+</I><TT>grep</TT><I>
+</I><TT>-n</TT><I>,
 both of which use a fixed syntax
-<I>file<TT>:</TT>line</I>
+</I><I>file</I><TT>:</TT><I>line</I><TT>
 to identify a line of source.
-<br>&#32;<br>
+</TT><br>&#32;<br>
 The Plan 9 text editors interpret the
 <TT>addr</TT>
 attribute as the definition of which portion of the file to display.
@@ -602,29 +602,29 @@ starts the
 <TT>acid</TT>
 debugger [Wint94] in a new window to examine that process:
 <DL><DT><DD><TT><PRE>
-# processes go to acid (assuming strlen(pid) &#62;= 2)
+# processes go to acid (assuming strlen(pid) &gt;= 2)
 type is text
 data matches '[a-zA-Z0-9.:_\-/]+'
 data matches '[0-9][0-9]+'
-arg isdir /proc/$0
-plumb start window acid $0
+arg isdir /proc/0
+plumb start window acid <I>0
 </PRE></TT></DL>
 (Note the use of multiple
-<TT>matches</TT>
+</I><TT>matches</TT><I>
 rules to avoid misfires from strings like
-<TT>party.1999</TT>.)
+</I><TT>party.1999</TT><I>.)
 The
-<TT>arg</TT>
-<TT>isdir</TT>
+</I><TT>arg</TT><I>
+</I><TT>isdir</TT><I>
 rule checks that the pid represents a running process (or broken one; Plan 9 does not create
-<TT>core</TT>
+</I><TT>core</TT><I>
 files but leaves broken processes around for debugging) by checking that the process file
 system has a directory for that pid [Kill84].
 Using this rule, one may plumb the pid string printed by the
-<TT>ps</TT>
+</I><TT>ps</TT><I>
 command or by the operating system when the program breaks;
 the debugger will then start automatically.
-<br>&#32;<br>
+</I><br>&#32;<br>
 The other startup action,
 <TT>plumb</TT>
 <TT>client</TT>,
@@ -650,12 +650,12 @@ Here is the full rule set to pass a regular file to the text editor:
 <DL><DT><DD><TT><PRE>
 # existing files, possibly tagged by address, go to editor
 type is text
-data matches '([.a-zA-Z0-9_/\-]*[a-zA-Z0-9_/\-])('$addr')?'
-arg isfile $1
-data set $1
-attr add addr=$3
+data matches '([.a-zA-Z0-9_/\-]*[a-zA-Z0-9_/\-])('addr')?'
+arg isfile <I>1
+data set </I>1
+attr add addr=<I>3
 plumb to edit
-plumb client window $editor
+plumb client window </I>editor
 </PRE></TT></DL>
 If the editor is already running, the
 <TT>plumb</TT>
@@ -664,17 +664,17 @@ rule causes it to receive the message on the port.
 If not,
 the command
 `<TT>window</TT>
-<TT>$editor</TT>'
+<TT></TT><I>editor</I><TT>'
 will create a new window (using the Plan 9 program
-<TT>window</TT>)
+</TT><TT>window</TT><TT>)
 to run the editor, and once that starts it will open the
-<TT>edit</TT>
+</TT><TT>edit</TT><TT>
 plumbing port as usual and discover this first message already waiting.
-<br>&#32;<br>
+</TT><br>&#32;<br>
 The variables
-<TT>$editor</TT>
+<TT></TT>editor<TT>
 and
-<TT>$addr</TT>
+</TT><TT></TT><I>addr</I><TT>
 in this rule set
 are macros defined in the plumbing rules file; they specify the name of the user's favorite text editor
 and a regular expression
@@ -686,8 +686,8 @@ The macro definitions for Acme and Sam [Pike94,Pike87b] look like this:
 <DL><DT><DD><TT><PRE>
 editor=acme
 # or editor=sam
-addrelem='((#?[0-9]+)|(/[A-Za-z0-9_\^]+/?)|[.$])'
-addr=:($addrelem([,;+\-]$addrelem)*)
+addrelem='((#?[0-9]+)|(/[A-Za-z0-9_\^]+/?)|[.</TT>])'
+addr=:(<I>addrelem([,;+\-]</I>addrelem)*)
 </PRE></TT></DL>
 <br>&#32;<br>
 Finally, the application reads the message from the appropriate port, such as
@@ -748,15 +748,15 @@ to add a new rule set, append to it:
 <DL><DT><DD><TT><PRE>
 % echo 'type is text
 data is self-destruct
-plumb start rm -rf $HOME' &#62;&#62; /mnt/plumb/rules
+plumb start rm -rf <I>HOME' &gt;&gt; /mnt/plumb/rules
 </PRE></TT></DL>
 This rule set will take effect immediately.
 If it has a syntax error, the write will fail with an error message from the plumber,
 such as `malformed rule' or 'undefined verb'.
-<br>&#32;<br>
+</I><br>&#32;<br>
 To restore the plumber to its startup configuration,
 <DL><DT><DD><TT><PRE>
-% cp /usr/$user/lib/plumbing /mnt/plumb/rules
+% cp /usr/user/lib/plumbing /mnt/plumb/rules
 </PRE></TT></DL>
 For more sophisticated changes,
 one can of course use a regular text editor to modify
@@ -878,24 +878,24 @@ program will send another plumbing message, this time to the
 port.
 Here is the rule for that port:
 <DL><DT><DD><TT><PRE>
-# faces -&#62; new mail window for message
+# faces -&gt; new mail window for message
 type is text
 data matches '[a-zA-Z0-9_\-./]+'
 data matches '/mail/fs/[a-zA-Z0-9/]+/[0-9]+'
 plumb to showmail
-plumb start window edmail -s $0
+plumb start window edmail -s <I>0
 </PRE></TT></DL>
 If a program, such as the Acme mail reader, is reading that port, it will open a new window
 in which to display the message.
 If not, the
-<TT>plumb</TT>
-<TT>start</TT>
+</I><TT>plumb</TT><I>
+</I><TT>start</TT><I>
 rule will create a new window and run
-<TT>edmail</TT>,
+</I><TT>edmail</TT><I>,
 a conventional mail reading process, to examine it.
 Notice how the plumbing connects the components of the interface together the same way
 regardless of which components are actually being used to view mail.
-<br>&#32;<br>
+</I><br>&#32;<br>
 There is more to the mail story.
 Naturally, mail boxes in Plan 9 are treated as little file systems, which are synthesized
 on demand by a special-purpose file server that takes a flat mail box file and converts
@@ -918,7 +918,7 @@ To: rob
 
 Check this out.
 
-===&#62; 2/ (image/jpeg) [inline]
+===&gt; 2/ (image/jpeg) [inline]
 	/mail/fs/mbox/25/2/fabio.jpg
 :
 </PRE></TT></DL>
@@ -967,9 +967,9 @@ files and synthesize a plain text file:
 type is text
 data matches '[a-zA-Z0-9_\-./]+'
 data matches '([a-zA-Z0-9_\-./]+)\.doc'
-arg isfile $0
-plumb start doc2txt $data | \
-    plumb -i -d edit -a action=showdata -a filename=$0
+arg isfile 0
+plumb start doc2txt <I>data | \
+    plumb -i -d edit -a action=showdata -a filename=</I>0
 </PRE></TT></DL>
 The arguments to
 <TT>plumb</TT>
@@ -984,13 +984,13 @@ itself rather than interpret it as a file name
 <TT>action=showdata</TT>)
 and provide the original file name
 (<TT>-a</TT>
-<TT>filename=$0</TT>).
+<TT>filename=</TT><I>0</I><TT>).
 Now when a user plumbs a
-<TT>.doc</TT>
+</TT><TT>.doc</TT><TT>
 file the plumbing rules run a process to extract the text and send it as a
 temporary file to the editor for viewing.
 It's imperfect, but it's easy and it beats rebooting.
-<br>&#32;<br>
+</TT><br>&#32;<br>
 Another simple example is a rule that turns man pages into hypertext.
 Manual page entries of the form
 <TT>plumber(1)</TT>
@@ -1001,10 +1001,10 @@ The rule is a little like that for Word documents:
 # man index entries are synthesized
 type is text
 data matches '([a-zA-Z0-9_\-./]+)\(([0-9])\)'
-plumb start man $2 $1 | \
-    plumb -i -d edit -a action=showdata -a filename=/man/$1($2)
+plumb start man 2 <I>1 | \
+    plumb -i -d edit -a action=showdata -a filename=/man/</I>1(<I>2)
 </PRE></TT></DL>
-<br>&#32;<br>
+</I><br>&#32;<br>
 There are many other inventive uses of plumbing.
 One more should give some of the flavor.
 We have a shell script,
@@ -1400,8 +1400,7 @@ Niklaus Wirth and Jurg Gutknecht,
 <I>Project Oberon: The Design of an Operating System and Compilers</I>,
 Addison-Wesley, Reading, 1992.
 
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

@@ -408,13 +408,13 @@ to be created by the
 <TT>mount</TT>
 call, e.g.:
 <DL><DT><DD><TT><PRE>
-% mount $wsys /mnt/wsys 'new -dx 250 -dy 250 -pid 1234'
+% mount <I>wsys /mnt/wsys 'new -dx 250 -dy 250 -pid 1234'
 </PRE></TT></DL>
 In the old system, this sort of control was impossible through the
-<TT>mount</TT>
+</I><TT>mount</TT><I>
 interface.
 </P>
-<P>
+</I><P>
 While we're on the subject of
 <TT>mount</TT>,
 note that with the new security architecture
@@ -425,40 +425,40 @@ note that with the new security architecture
 <A href="/magic/man2html/2/fauth"><I>fauth</I>(2),
 </A><A href="/magic/man2html/5/attach"><I>attach</I>(5),
 </A>and the paper
-<I>Security in Plan 9.)</I>
+<I>Security in Plan 9</I>.)<I>
 The most explicit effect of this change is that
-<TT>mount</TT>
+</I><TT>mount</TT><I>
 now takes another argument,
-<TT>afd</TT>,
+</I><TT>afd</TT><I>,
 a file descriptor for the
 authentication file through which the authentication will be made.
 For most user-level file servers, which do not require authentication, it is
 sufficient to provide
-<TT>-1</TT>
+</I><TT>-1</TT><I>
 as the value of
-<TT>afd:</TT>
+</I><TT>afd:</TT><I>
 <DL><DT><DD><TT><PRE>
 if(mount(fd, -1, "/mnt/wsys", MREPL,
    "new -dx 250 -dy 250 -pid 1234") &lt; 0)
 	error("mount failed: %r");
 </PRE></TT></DL>
 To connect to servers that require authentication, use the new
-<TT>fauth</TT>
+</I><TT>fauth</TT><I>
 system call or the reimplemented
-<TT>amount</TT>
+</I><TT>amount</TT><I>
 (authenticated mount) library call.
 In fact, since
-<TT>amount</TT>
+</I><TT>amount</TT><I>
 handles both authenticating and non-authenticating servers, it is often
 easiest just to replace calls to
-<TT>mount</TT>
+</I><TT>mount</TT><I>
 by calls to
-<TT>amount</TT>;
+</I><TT>amount</TT><I>;
 see
-<A href="/magic/man2html/2/auth"><I>auth</I>(2)
+<A href="/magic/man2html/2/auth"></I><I>auth</I><I>(2)
 </A>for details.
 </P>
-<H4>Print
+</I><H4>Print
 </H4>
 <P>
 The C library has been heavily reworked in places.
@@ -638,5 +638,5 @@ See
 </P>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

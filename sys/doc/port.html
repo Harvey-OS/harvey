@@ -191,7 +191,7 @@ some software emulation code in the kernel; to date, this has not been attempted
 <P>
 The PowerPC compiler supports the 32-bit PowerPC architecture only;
 it does not support either the 64-bit extensions or the POWER compatibility instructions.
-It has been used for production operating system work on the 603, 603e, 821, 823, and 860.
+It has been used for production operating system work on the 603, 603e, 604e, 821, 823, and 860.
 On the 8xx floating-point instructions must be emulated.
 Instruction scheduling is not implemented; otherwise the code generated
 is similar to that for the other load-store architectures.
@@ -204,7 +204,8 @@ used by assembly language routines in the libraries.
 </H4>
 <P>
 The ARM compiler is fairly solid; it has been used for some production
-operating system work, although there is no Plan 9 kernel for the machine.
+operating system work including Inferno and the Plan 9 kernel
+for the iPAQ, which uses a StrongArm SA1.
 The compiler supports the ARMv4 architecture;
 it does not support the Thumb instruction set.
 It has been used on ARM7500FE processors and the Strongarm SA1 core machines.
@@ -232,14 +233,14 @@ or directly from a disk created by the
 <TT>format</TT>
 command; see
 <A href="/magic/man2html/8/prep"><I>prep</I>(8).
-</A>Plan 9 runs in 32-bit mode&#173;which requires a 386, 486, or Pentium&#173;and
+</A>Plan 9 runs in 32-bit mode&#173;which requires a 386 or later model x86 processor&#173;and
 has an interrupt-driven I/O system, so it does not
 use the BIOS (except for a small portion of the boot program and floppy boot block).
 This helps performance but limits the set of I/O devices that it can support without
 special code.
 </P>
 <P>
-Plan 9 supports the ISA, EISA, and PCI buses as well as PCMCIA devices.
+Plan 9 supports the ISA, EISA, and PCI buses as well as PCMCIA and PC card devices.
 It is infeasible to list all the supported machines, because
 the PC-clone marketplace is too volatile and there is
 no guarantee that the machine you buy today will contain the
@@ -254,6 +255,7 @@ or the Symbios 53C8XX series.
 Supported Ethernet cards include the
 AMD79C790,
 3COM Etherlink III and 3C589 series,
+Lucent Wavelan and compatibles,
 NE2000,
 WD8003,
 WD8013,
@@ -274,33 +276,36 @@ For more details see
 </A></P>
 <P>
 Over the years,
-Plan 9 has run on a number of VGA cards using the
-S3 80[15],
-S3 928,
-S3 864,
-Tseng ET4000,
-ATI Mach32/64
-and Cirrus Logic CLGD-54[23]x chips.
-However, recent changes to the graphics system have not been
-tested on all these cards; some effort may be needed to get them working again.
-In our lab, most of our machines use the Mach64 chips, so such devices are probably
+Plan 9 has run on a number of VGA cards.
+Recent changes to the graphics system have not been
+tested on most of the older cards; some effort may be needed to get them working again.
+In our lab, most of our machines use the ATI Mach64, S3 ViRGE, or S3 Savage chips,
+so such devices are probably
 the most reliable.
+We also use a few Matrox and TNT cards.
 The system requires a hardware cursor.
 For more details see
 <A href="/magic/man2html/6/vgadb"><I>vgadb</I>(6)
 </A>and
 <A href="/magic/man2html/8/vga"><I>vga</I>(8).
-</A></P>
+</A>The wiki
+(<TT>http://plan9.bell-labs.com/wiki/plan9</TT>)
+contains the definitive list of cards that are known to work; see the ``supported PC hardware''
+page.
+</P>
 <P>
 For audio, Plan 9 supports the Sound Blaster 16 and compatibles.
 (Note that audio doesn't work under Plan 9 with 8-bit Sound Blasters.)
-</P>
+There is also user-level support for USB audio devices; see 
+<A href="/magic/man2html/4/usb"><I>usb</I>(4).
+</A></P>
 <P>
 Finally, it's important to have a three-button mouse with Plan 9.
-The system works with either a PS/2 or serial mouse.
+The system currently works only with mice on the PS/2 port or USB.
+Serial mouse support should return before long.
 </P>
 <P>
-Once you have Plan 9 installed (see the separate installation document)
+Once you have Plan 9 installed (see the wiki's installation document)
 run the program
 <TT>ld</TT>
 from DOS
@@ -335,12 +340,43 @@ See
 <H4>The PowerPC operating system
 </H4>
 <P>
-We have a version of the system that runs on the PowerPC,
-but only on a home-grown machine called Viaduct.
+We have a version of the system that runs on the PowerPC
+on a home-grown machine called Viaduct.
 The Viaduct minibrick is a small (12x9x3 cm) low-cost embedded
 computer consisting of a 50Mhz MPC850, 16MB sdram, 2MB flash,
 and two 10Mb Ethernet ports.  It is designed for home/SOHO
 networking applications such as VPN, firewalls, NAT, etc.
+</P>
+<P>
+The kernel has also been ported to the Motorola MTX embedded motherboard;
+that port is included in the distribution.
+The port only works with a 604e processor (the 603e is substantially different)
+and at present only a single CPU is permitted.
+</P>
+<H4>The Compaq iPAQ operating system
+</H4>
+<P>
+Plan 9 was ported to Compaq's iPAQ Pocket PC,
+which uses the StrongArm SA1 processor.
+The model we have is a 3630; neighboring models also work.
+The kernel can drive a PCMCIA sleeve with a WaveLAN card, but no other PCMCIA
+devices have been ported yet.
+</P>
+<P>
+The iPAQ runs
+<TT>rio</TT>
+with a small keyboard application that allows Palm-style handwriting
+input as well as typing with the stylus on a miniature keyboard.
+</P>
+<P>
+Fco. J. Ballesteros
+(<TT>nemo@plan9.escet.urjc.es</TT>)
+added support for hibernation, but we haven't been able to
+get that to work again in the new kernel; the code is there, however,
+for volunteers to play with.
+See the file
+<TT>/sys/src/9/bitsy/Booting101</TT>
+for information about installing Plan 9 on the iPAQ.
 </P>
 <H4>The file server
 </H4>
@@ -361,38 +397,38 @@ to configure a file server.
 <P>
 To boot a file server, follow the directions for booting a CPU server
 using the file name
-<TT>9&lt;I&gt;machtype&lt;/I&gt;fs</TT>
+<TT>9</TT><I>machtype</I><TT>fs</TT><I>
 where
-<I>machtype</I>
+</I><I>machtype</I><I>
 is
-<TT>pc</TT>,
+</I><TT>pc</TT><I>,
 etc. as appropriate.
 We are releasing only the PC version.
 </P>
-<H4>The IBM PC file server
+</I><H4>The IBM PC file server
 </H4>
 <P>
 Except for the restriction to SCSI disks,
 the PC file server has the same hardware requirements as
 the regular PC operating system.
-However, only a subset of the supported SCSI (Adaptec 1542, Buslogic Multimaster,
+However, only a subset of the supported SCSI (Adaptec 1542, Mylex Multimaster,
 and Symbios 53C8XX) and Ethernet (Digital 2114x,
 Intel 8255x, and 3Com) controllers
 may be
 used.
 Any of the boot methods described in
-<A href="/magic/man2html/8/b.com"><I>b.com</I>(8)
+<A href="/magic/man2html/8/9load"><I>9load</I>(8)
 </A>will work.
 </P>
 <P>
 To boot any PC, the file
-<TT>b.com</TT>
-must reside on a MS-DOS formatted floppy, IDE disc,
-or SCSI partition.
+<TT>9load</TT>
+must reside on a MS-DOS formatted floppy, IDE disk,
+or SCSI disk.
 However, PCs have no non-volatile RAM in which the
 file server can store its configuration information, so the system
 stores it in a file on an MS-DOS file system instead.
-This file, however, cannot live on a SCSI disc, only a floppy or IDE.
+This file, however, cannot live on a SCSI disk, only a floppy or IDE.
 (This restriction avoids a lot of duplicated interfaces in the
 system.)
 Thus the file server cannot be all-SCSI.
@@ -442,6 +478,12 @@ it would be possible to use
 </A>to stream them to a SCSI 8mm tape drive.
 <TT>Mkext</TT>
 could then extract them.
+Another alternative is to use
+<I>dump9660</I>
+(see
+<A href="/magic/man2html/8/mk9660"><I>mk9660</I>(8)),
+</A>which stores incremental backups on CD images
+in the form of a dump hierarchy.
 </P>
 <P>
 It is also possible to treat a regular disk, or even a part of a disk,
@@ -451,8 +493,8 @@ learn about the WORM software.
 Again, see
 <A href="/magic/man2html/8/fsconfig"><I>fsconfig</I>(8)
 </A>for details.
-&#191;</P>
+</P>
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2002 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

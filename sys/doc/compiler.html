@@ -54,15 +54,15 @@ The names of the compliers, loaders, and assemblers
 are as follows:
 <DL><DT><DD><TT><PRE>
 SPARC	<TT>kc</TT>  <TT>kl</TT>  <TT>ka</TT>
-Power PC	<TT>qc</TT>  <TT>ql</TT>  <TT>qa</TT>
+Power	<TT>PC</TT>  <TT>qc</TT>  <TT>ql</TT>
 MIPS	<TT>vc</TT>  <TT>vl</TT>  <TT>va</TT>
-Motorola 68000	<TT>1c</TT>  <TT>1l</TT>  <TT>1a</TT>
-Motorola 68020	<TT>2c</TT>  <TT>2l</TT>  <TT>2a</TT>
-ARM 7500	<TT>5c</TT>  <TT>5l</TT>  <TT>5a</TT>
-Intel 960	<TT>6c</TT>  <TT>6l</TT>  <TT>6a</TT>
-DEC Alpha	<TT>7c</TT>  <TT>7l</TT>  <TT>7a</TT>
-Intel 386	<TT>8c</TT>  <TT>8l</TT>  <TT>8a</TT>
-AMD 29000	<TT>9c</TT>  <TT>9l</TT>  <TT>9a</TT>
+Motorola	<TT>68000</TT>  <TT>1c</TT>  <TT>1l</TT>
+Motorola	<TT>68020</TT>  <TT>2c</TT>  <TT>2l</TT>
+ARM	<TT>7500</TT>  <TT>5c</TT>  <TT>5l</TT>
+Intel	<TT>960</TT>  <TT>6c</TT>  <TT>6l</TT>
+DEC	<TT>Alpha</TT>  <TT>7c</TT>  <TT>7l</TT>
+Intel	<TT>386</TT>  <TT>8c</TT>  <TT>8l</TT>
+AMD	<TT>29000</TT>  <TT>9c</TT>  <TT>9l</TT>
 </PRE></TT></DL>
 There is a further breakdown
 in the source of the compilers into
@@ -171,9 +171,9 @@ One use of this feature allows references to elements of the
 subunit to be accessed as if they were in
 the outer structure.
 Thus
-<TT>node->dval</TT>
+<TT>node-&gt;dval</TT>
 and
-<TT>node->locked</TT>
+<TT>node-&gt;locked</TT>
 are legitimate references.
 <br>&#32;<br>
 When an outer structure is used
@@ -216,7 +216,7 @@ the type name (it must be a
 <TT>typedef</TT>)
 of the unnamed structure can be used as an identifier.
 In our example,
-<TT>&node->Lock</TT>
+<TT>&node-&gt;Lock</TT>
 gives the address of the anonymous
 <TT>Lock</TT>
 structure.
@@ -359,6 +359,26 @@ or
 to be laid out in memory tightly packed in successive bytes, disregarding
 the usual alignment rules.
 Accessing such data can cause faults.
+<br>&#32;<br>
+Similarly, 
+<TT>#pragma</TT>
+<TT>profile</TT>
+<TT>off</TT>
+(or
+<TT>no</TT>
+or
+<TT>0</TT>)
+causes subsequently declared functions, until
+<TT>#pragma</TT>
+<TT>profile</TT>
+<TT>on</TT>
+(or
+<TT>yes</TT>
+or
+<TT>1</TT>),
+to be marked as unprofiled.
+Such functions will not be profiled when 
+profiling is enabled for the rest of the program.
 <br>&#32;<br>
 Two
 <TT>#pragma</TT>
@@ -592,27 +612,32 @@ In the table,
 a node represented by the left column is marked
 with a small integer from the right column.
 Marks of the form
-addressable<TT>A<sub>i</sub></TT>are
+<TT>A<small><small><sub>i</sub></small></small></TT>
+are addressable while
 marks of the form
-not<TT>N<sub>i</sub></TT>are
+<TT>N<small><small><sub>i</sub></small></small></TT>
+are not addressable.
 <DL><DT><DD><TT><PRE>
 	Node	Marked
-	name	A<sub>1</sub>
-	const	A<sub>2</sub>
-	&amp;A<sub>1</sub>	A<sub>3</sub>
-	A<sub>3</sub>A<sub>1</sub>	N<sub>1</sub> (note that this is not addressable)
-	*N<sub>1</sub>	A<sub>4</sub>
+	name	A<small><small><sub>1</sub></small></small>
+	const	A<small><small><sub>2</sub></small></small>
+	&amp;A<small><small><sub>1</sub></small></small>	A<small><small><sub>3</sub></small></small>
+	A<small><small><sub>3</sub></small></small>+A<small><small><sub>1</sub></small></small>	N<small><small><sub>1</sub></small></small> (note that this is not addressable)
+	*N<small><small><sub>1</sub></small></small>	A<small><small><sub>4</sub></small></small>
 </PRE></TT></DL>
 Here there is a distinction between
 a node marked
-a<TT>A<sub>1</sub></TT>and
-the<TT>A<sub>4</sub></TT>because
-is<TT>A<sub>4</sub></TT>node
+<TT>A<small><small><sub>1</sub></small></small></TT>
+and a node marked
+<TT>A<small><small><sub>4</sub></small></small></TT>
+because the address operator of an
+<TT>A<small><small><sub>4</sub></small></small></TT>
+node is not addressable.
 So to extend the table:
 <DL><DT><DD><TT><PRE>
 	Node	Marked
-	&amp;A<sub>4</sub>	N<sub>2</sub>
-	N<sub>2</sub>N<sub>1</sub>	N<sub>1</sub>
+	&amp;A<small><small><sub>4</sub></small></small>	N<small><small><sub>2</sub></small></small>
+	N<small><small><sub>2</sub></small></small>+N<small><small><sub>1</sub></small></small>	N<small><small><sub>1</sub></small></small>
 </PRE></TT></DL>
 The full addressability of the 68020 is expressed
 in 18 rules like this,
@@ -782,7 +807,7 @@ table.
 The pattern is in the left column and the
 replacement action is in the right column.
 <DL><DT><DD><TT><PRE>
-	MOVE	a-&#62;b		(remove)
+	MOVE	a-&gt;b		(remove)
 	(sequence with no mention of <TT>a</TT>)
 	USE	b		USE	a
 	(sequence with no mention of <TT>a</TT>)
@@ -818,7 +843,7 @@ rewrite is in the right column.
 	(sequence with no use of <TT>b</TT>)
 	USE	a		USE	b
 	(sequence with no use of <TT>b</TT>)
-	MOVE	a-&#62;b		MOVE	b-&#62;a
+	MOVE	a-&gt;b		MOVE	b-&gt;a
 </PRE></TT></DL>
 Iterating these transformations
 will usually get rid of all redundant ``move'' instructions.
@@ -1086,8 +1111,7 @@ Vol 17(4), pp. 715-728, 1970.
 ``Assembling Code for Machines with Span-dependent Instructions'',
 Communications of the ACM,
 Vol 21(4), pp. 300-308, 1978.
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

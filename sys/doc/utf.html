@@ -7,11 +7,11 @@ data
 <br>
 or
 <br>
-&#191;ALPHA&#191;&#191;MU&#191;&#191;ALPHA &#191;&#191;&#191;MUEPSILON
+&#922;&#945;&#955;&#951;&#956;&#941;&#961;&#945; &#954;&#972;&#963;&#956;&#949;
 <br>
 or
 <br>
-&#191;&#191;&#191;&#191;&#191; &#191;&#191;
+&#12371;&#12435;&#12395;&#12385;&#12399; &#19990;&#30028;
 </H1>
 <DL><DD><I>Rob Pike<br>
 Ken Thompson<br>
@@ -268,7 +268,7 @@ daily in our work.  We no longer test our imaginations
 to find ways to include non-ASCII symbols in our text;
 why type
 <TT>:-)</TT>
-when you can use the character &#191;?
+when you can use the character &#9786;?
 Most compelling is the ability to absorb documents
 and data that contain non-ASCII characters; our browser for the
 Oxford English Dictionary
@@ -312,7 +312,7 @@ The Plan 9 compiler extends ANSI C to treat any Unicode
 character with a value outside of the ASCII range as
 an alphabetic.
 To a Greek programmer or an English mathematician,
-ALPHA is a sensible and now valid variable name.
+&#945; is a sensible and now valid variable name.
 </P>
 <P>
 On the semantic level, ANSI C allows,
@@ -341,13 +341,13 @@ L'x'	is 120
 'x'	is 120
 L'&yuml;'	is 255
 '&yuml;'	is -1, stdio EOF (if char is signed)
-L'ALPHA'	is 945
-'ALPHA'	is illegal
+L'&#945;'	is 945
+'&#945;'	is illegal
 </PRE></TT></DL>
 In the string constants,
 <DL><DT><DD><TT><PRE>
-"&#191;&#191;&#191;&#191;&#191; &#191;&#191;"
-L"&#191;&#191;&#191;&#191;&#191; &#191;&#191;",
+"&#12371;&#12435;&#12395;&#12385;&#12399; &#19990;&#30028;"
+L"&#12371;&#12435;&#12395;&#12385;&#12399; &#19990;&#30028;",
 </PRE></TT></DL>
 the former is an array of
 <TT>chars</TT>
@@ -386,7 +386,7 @@ printed under
 <TT>%c</TT>
 will be identical,
 but
-<TT>L'ALPHA'</TT>
+<TT>L'</TT>&#945;<TT>'</TT>
 will print as the Unicode
 character with decimal value 177.
 The character conversion
@@ -396,7 +396,7 @@ to 16 bits before converting to UTF.
 Thus
 <TT>L'&yuml;'</TT>
 and
-<TT>L'ALPHA'</TT>
+<TT>L'</TT>&#945;<TT>'</TT>
 will print correctly under
 <TT>%C</TT>,
 but
@@ -435,10 +435,10 @@ These programs must be found and corrected.
 <P>
 Here is a complete example:
 <DL><DT><DD><TT><PRE>
-#include &#60;u.h&#62;
+#include &lt;u.h&gt;
 
-char c[] = "&#191;&#191;&#191;&#191;&#191; &#191;&#191;";
-Rune s[] = L"&#191;&#191;&#191;&#191;&#191; &#191;&#191;";
+char c[] = "&#12371;&#12435;&#12395;&#12385;&#12399; &#19990;&#30028;";
+Rune s[] = L"&#12371;&#12435;&#12395;&#12385;&#12399; &#19990;&#30028;";
 
 main(void)
 {
@@ -519,8 +519,8 @@ Also defined are several constants relevant to UTF:
 enum
 {
     UTFmax    = 3,    /* maximum bytes per rune */
-    Runesync  = 0x80, /* can't appear in UTF sequence (&#60;) */
-    Runeself  = 0x80, /* rune==UTF sequence (&#60;) */
+    Runesync  = 0x80, /* can't appear in UTF sequence (&lt;) */
+    Runeself  = 0x80, /* rune==UTF sequence (&lt;) */
     Runeerror = 0x80, /* decoding error in UTF */
 };
 </PRE></TT></DL>
@@ -845,7 +845,7 @@ With sorting options enabled, however,
 <TT>sort</TT>
 may need to convert its input to runes: for example,
 option
-<TT>-tALPHA</TT>
+<TT>-t</TT>&#945;<TT></TT>
 requires searching for alphas in the input text to
 crack the input into fields.
 The field specifier
@@ -967,7 +967,7 @@ Unicode equivalent of a plain text terminal.
 With 128 or even 256 characters, a font can be just
 an array of bitmaps.  With 65536 characters,
 a more sophisticated design is necessary.  To store the ideographs
-for just Japanese as 16&#191;16&#191;1 bit images,
+for just Japanese as 16&#215;16&#215;1 bit images,
 the smallest they can reasonably be, takes over a quarter of a
 megabyte.  Make the images a little larger, store more bits per
 pixel, and hold a copy in every running application, and the
@@ -1229,7 +1229,7 @@ work in a language foreign to the keyboard.
 <P>
 For alphabetic languages such as Greek or Russian, it is
 straightforward to construct a program that does phonetic substitution,
-so that, for example, typing a Latin `a' yields the Greek `ALPHA'.
+so that, for example, typing a Latin `a' yields the Greek `&#945;'.
 Within Plan 9, such a program can be inserted transparently
 between the real keyboard and a program such as the window system,
 providing a manageable input device for such languages.
@@ -1277,7 +1277,7 @@ inadequate implementations and converted
 <TT>troff</TT>
 to UTF.
 Rich Drechsler converted his Postscript driver to UTF.
-John Hobby built the Postscript &#191;.
+John Hobby built the Postscript &#9786;.
 We thank them all.
 </P>
 <H4>References
@@ -1317,8 +1317,7 @@ The Unicode Consortium,
 Addison Wesley,
 New York,
 1991.
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>

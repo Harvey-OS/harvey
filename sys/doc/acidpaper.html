@@ -262,7 +262,7 @@ Global variables are created by assignment and need not be declared.
 All variables and functions in the program
 being debugged are entered in the Acid symbol table as global
 variables during Acid initialization.
-Conflicting variable names are resolved by prefixing enough `$' characters
+Conflicting variable names are resolved by prefixing enough `<I>' characters
 to make them unique.
 Syntactically, Acid variables and target program
 symbols are referenced identically.
@@ -277,7 +277,7 @@ accessed by indirect reference through the Acid
 variable that has the same name; the value of an Acid variable is the
 address of the corresponding program variable.
 </P>
-<H4>5 Control Flow
+</I><H4>5 Control Flow
 </H4>
 <P>
 The
@@ -359,8 +359,8 @@ argument to the result and returns that value.
 If the result is assigned to a variable,
 the new format code applies to
 that variable.  For convenience, Acid provides the
-<TT>o</TT>
-perator as a shorthand infix form of
+<TT>\</TT>
+operator as a shorthand infix form of
 <TT>fmt</TT>.
 For example:
 <DL><DT><DD><TT><PRE>
@@ -390,7 +390,7 @@ acid: p=main\i                     // p=addr(main), type INST
 acid: loop 1,5 do print(p\X, @p++) // disassemble 5 instr's
 0x0000222e LEA	0xffffe948(A7),A7
 0x00002232 MOVL	s+0x4(A7),A2
-0x00002236 PEA	0x2f($0)
+0x00002236 PEA	0x2f(0)
 0x0000223a MOVL	A2,-(A7)
 0x0000223c BSR	utfrrune
 acid:
@@ -429,28 +429,28 @@ main
 acid: *R1=10                        // modify R1
 acid: asm(*PC+4)                    // disassemble @ PC+4
 main+0x4 0x00006240 	MOVW	R31,0x0(R29)
-main+0x8 0x00006244 	MOVW	$setR30(SB),R30
+main+0x8 0x00006244 	MOVW	<I>setR30(SB),R30
 main+0x10 0x0000624c 	MOVW	R1,_clock(SB)
 </PRE></TT></DL>
 Here, the saved
-<TT>PC</TT>
+</I><TT>PC</TT><I>
 is stored at address
-<TT>0xc0000f60</TT>;
+</I><TT>0xc0000f60</TT><I>;
 its current content is
-<TT>0x0000623c</TT>.
+</I><TT>0x0000623c</TT><I>.
 The
-`<TT>a</TT>'
+`</I><TT>a</TT><I>'
 format code converts this value to a string specifying
 the address as an offset beyond the nearest symbol.
 After setting the value of register
-<TT>1</TT>,
+</I><TT>1</TT><I>,
 the example uses the
-<TT>asm</TT>
+</I><TT>asm</TT><I>
 command to disassemble a short section of code beginning
 at four bytes beyond the current value of the
-<TT>PC</TT>.
+</I><TT>PC</TT><I>.
 </P>
-<H4>7 Process Interface
+</I><H4>7 Process Interface
 </H4>
 <P>
 A program executing under Acid is monitored through the
@@ -535,7 +535,7 @@ main(int argc, char *argv[])
 acid: src(*PC)			// print statements nearby
  9
  10 void
-&#62;11 main(int argc, char *argv[])
+&gt;11 main(int argc, char *argv[])
  12 {
  13	int a;
 </PRE></TT></DL>
@@ -584,7 +584,7 @@ illustrate the interaction of the debugger and the interpreter.
 <DL><DT><DD><TT><PRE>
 defn bpset(addr)                          // set breakpoint
 {
-	if match(addr, bplist) &#62;= 0 then
+	if match(addr, bplist) &gt;= 0 then
 		print("bkpoint already set:", addr\a, "\n");
 	else {
 		*fmt(addr, bpfmt) = bpinst;   // plant it
@@ -623,7 +623,7 @@ defn step()				// single step
 	local lst, lpl, addr, bput;
 
 	bput = 0;			// sitting on bkpoint
-	if match(*PC, bplist) &#62;= 0 then {	
+	if match(*PC, bplist) &gt;= 0 then {	
 		bput = fmt(*PC, bpfmt);	// save current addr
 		*bput = @bput;		// replace it
 	}
@@ -728,10 +728,10 @@ defn next()
 	bound = fnbound(*PC);		// begin &amp; end of fn.
 	stmnt();			// step 1 statement
 	pc = *PC;
-	if pc &#62;= bound[0] &amp;&amp; pc &#60; bound[1] then
+	if pc &gt;= bound[0] &amp;&amp; pc &lt; bound[1] then
 		return {};
 
-	while (pc&#60;bound[0] || pc&#62;bound[1]) &amp;&amp; sp&#62;=*SP do {
+	while (pc&lt;bound[0] || pc&gt;bound[1]) &amp;&amp; sp&gt;=*SP do {
 		step();
 		pc = *PC;
 	}
@@ -1008,7 +1008,7 @@ complex data type.
 Acid borrows the C operators
 <TT>.</TT>
 and
-<TT>-></TT>
+<TT>-&gt;</TT>
 to access the decoding parameters of a member of a complex type.
 Although this representation is sufficiently general for describing
 the decoding of both C and Alef complex data types, it may
@@ -1053,12 +1053,12 @@ now
 is
 the
 time
-&#60;ctrl-d&#62;
+&lt;ctrl-d&gt;
 is
 now
 the
 time
-27680 : breakpoint	_exits+0x4	MOVW	$0x8,R1
+27680 : breakpoint	_exits+0x4	MOVW	0x8,R1
 acid: 
 </PRE></TT></DL>
 The
@@ -1362,8 +1362,7 @@ San Antonio, TX.
 Proceedings of the Third International Conference on Architectural
 Support for Programming Languages and Operating Systems,
 SIGPLAN notices Nr. 22, May 1989.
-
 <br>&#32;<br>
 <A href=http://www.lucent.com/copyright.html>
-Copyright</A> &#169; 2000 Lucent Technologies Inc.  All rights reserved.
+Copyright</A> &#169; 2004 Lucent Technologies Inc.  All rights reserved.
 </body></html>
