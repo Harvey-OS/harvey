@@ -4757,7 +4757,7 @@ sys/man/4/rdbfs - 664 sys sys 944959699 1123
 sys/man/4/rio - 664 sys sys 1023206844 8660
 sys/man/4/sacfs - 664 sys sys 964886843 907
 sys/man/4/snap - 664 sys sys 1017251244 1833
-sys/man/4/srv - 664 sys sys 1039069766 4650
+sys/man/4/srv - 664 sys sys 1045236157 4649
 sys/man/4/tapefs - 664 sys sys 944959699 1731
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
