@@ -31,6 +31,10 @@ main(int argc, char **argv)
 	case 'p':
 		perm = strtol(ARGF(), 0, 8);
 		break;
+	case 'P':
+		*argp++ = "-P";
+		*argp++ = ARGF();
+		break;
 	}ARGEND
 	*argp = 0;
 	if(argc != 2)

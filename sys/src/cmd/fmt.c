@@ -194,13 +194,13 @@ printwords(Word **w, int nw)
 		/* emit words until overflow; always emit at least one word */
 		for(;;){
 			Bprint(&bout, "%s", w[i]->text);
-			col += strlen(w[i]->text);
+			col += utflen(w[i]->text);
 			if(++i == nw)
 				break;	/* out of words */
 			if(w[i]->indent != w[i-1]->indent)
 				break;	/* indent change */
 			nsp = nspaceafter(w[i-1]->text);
-			if(col+nsp+strlen(w[i]->text) > extraindent+length)
+			if(col+nsp+utflen(w[i]->text) > extraindent+length)
 				break;	/* fold line */
 			for(j=0; j<nsp; j++)
 				Bputc(&bout, ' ');	/* emit space; another word will follow */
