@@ -12319,3 +12319,7 @@
 1055826132 1 c sys/src/9/bitsy/mkfile - 664 sys sys 1055825921 2471
 1055826132 2 c sys/src/9/mtx/mkfile - 664 sys sys 1055825923 1508
 1055826132 3 c sys/src/9/pc/mkfile - 664 sys sys 1055825916 3100
+1055954727 0 c sys/man/3/cons - 664 sys sys 1055954719 8588
+1055954727 1 c sys/src/9/port/devcons.c - 664 sys sys 1055954715 21969
+1055954727 2 a sys/src/9/port/mkrootall - 775 sys sys 1055954696 386
+1055954727 3 a sys/src/9/port/mkrootc - 775 sys sys 1055954695 717
