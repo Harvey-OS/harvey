@@ -423,21 +423,6 @@ main(int argc, char **argv)
 				break;
 			if(havelocal && (!douid || strcmp(ld.uid, rd.uid)==0) && strcmp(ld.gid, rd.gid)==0 && ld.mode==rd.mode)	/* nothing to do */
 				goto DoMetaDb;
-			if(!(dbd.mode&DMDIR) && dbd.mtime < rd.mtime){	/* this check might be overkill */
-				if(notexists(remote)){
-					addce(local);
-					/* no skip=1 */
-					break;
-				}
-				if(resolve == 's')
-					goto DoMeta;
-				else if(resolve == 'c')
-					break;
-				conflict(name, "contents out of date; will not update metadata to %s %s %luo", 
-					rd.uid, rd.gid, rd.mode);
-				skip = 1;
-				continue;
-			}
 			if(!havelocal){
 				if(notexists(remote)){
 					addce(local);
@@ -675,10 +660,11 @@ opentemp(char *template)
 int
 copyfile(char *local, char *remote, Dir *d, int dowstat, int *printerror)
 {
-	Dir *d0, *d1;
+	Dir *d0, *d1, *dl;
 	Dir nd;
 	int rfd, tfd, wfd, didcreate;
 	char tmp[32];
+	char err[ERRMAX];
 
 Again:
 	*printerror = 0;
@@ -727,14 +713,50 @@ Again:
 	}
 DoCopy:
 	didcreate = 0;
-	if((wfd = open(local, OTRUNC|OWRITE)) < 0){
-		if((wfd = create(local, OWRITE, 0)) < 0){
-			close(tfd);
-			free(d0);
-			return -1;
+	if((dl = dirstat(local)) == nil){
+		if((wfd = create(local, OWRITE, 0)) >= 0){
+			didcreate = 1;
+			goto okay;
 		}
-		didcreate = 1;
+		goto err;
+	}else{
+		if((wfd = open(local, OTRUNC|OWRITE)) >= 0)
+			goto okay;
+		rerrstr(err, sizeof err);
+		if(strstr(err, "permission") == nil)
+			goto err;
+		nulldir(&nd);
+		/*
+		 * Assume the person running pull is in the appropriate
+		 * groups.  We could set 0666 instead, but I'm worried
+		 * about leaving the file world-readable or world-writable
+		 * when it shouldn't be.
+		 */
+		nd.mode = dl->mode | 0660;
+		if(nd.mode == dl->mode)
+			goto err;
+		if(dirwstat(local, &nd) < 0)
+			goto err;
+		if((wfd = open(local, OTRUNC|OWRITE)) >= 0){
+			nd.mode = dl->mode;
+			if(dirfwstat(wfd, &nd) < 0)
+				fprint(2, "warning: set mode on %s to 0660 to open; cannot set back to %luo: %r\n", local, nd.mode);
+			goto okay;
+		}
+		nd.mode = dl->mode;
+		if(dirwstat(local, &nd) < 0)
+			fprint(2, "warning: set mode on %s to %luo to open; open failed; cannot set mode back to %luo: %r\n", local, nd.mode|0660, nd.mode);
+		goto err;
 	}
+		
+err:
+	close(tfd);
+	free(d0);
+	free(dl);
+	return -1;
+
+okay:
+	free(dl);
 	if(copy1(tfd, wfd, tmp, local) < 0){
 		close(tfd);
 		close(wfd);
@@ -811,7 +833,7 @@ membogus(char **argv)
 	int n, fd, wfd;
 	char template[50], buf[1024];
 
-	if(strncmp(argv[0], "/tmp/_inst_", 1+3+1+6)==0) {
+	if(strncmp(argv[0], "/tmp/_applylog_", 1+3+1+1+8+1)==0) {
 		rmargv0 = argv[0];
 		atexit(rmself);
 		return;

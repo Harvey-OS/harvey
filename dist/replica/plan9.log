@@ -17299,3 +17299,14 @@
 1045164780 1 a sys/lib/lp/process/psextract - 775 sys sys 1045164704 777
 1045236676 0 c sys/man/4/srv - 664 sys sys 1045236157 4649
 1045337480 0 a sys/src/libc/386/387/mkfile - 664 sys sys 1045336041 157
+1045407646 0 c 386/bin/replica/applylog - 775 sys sys 1045407499 98978
+1045407646 1 c sys/src/cmd/replica/applylog.c - 664 sys sys 1045407499 16476
+1045420251 0 c sys/include/control.h - 664 sys sys 1045419238 4801
+1045420251 1 c sys/src/cmd/faces/faces.h - 664 sys sys 1045419243 1071
+1045420251 2 c sys/src/cmd/faces/main.c - 664 sys sys 1045419249 13505
+1045420251 3 c sys/src/cmd/faces/plumb.c - 664 sys sys 1045419249 7132
+1045432863 0 c sys/lib/yaccpars - 664 sys sys 1045432683 4596
+1045432863 1 c sys/src/9/ip/ip.c - 664 sys sys 1045432713 15274
+1045432863 2 c sys/src/9/ip/tcp.c - 664 sys sys 1045432714 65108
+1045436465 0 c 386/bin/aux/timesync - 775 sys sys 1045435076 127693
+1045436465 1 c sys/src/cmd/aux/timesync.c - 664 sys sys 1045435060 24288

@@ -231,6 +231,7 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 	int lid, len, seglen, chunk, dlen, blklen, offset, medialen;
 	Route *r, *sr;
 	IP *ip;
+	Proto *pr;
 
 	ip = f->ip;
 
@@ -262,6 +263,11 @@ ipoput4(Fs *f, Block *bp, int gating, int ttl, int tos)
 	if(r == nil){
 		ip->stats[OutNoRoutes]++;
 		netlog(f, Logip, "no interface %V\n", eh->dst);
+		if(!gating){
+			freeblist(bp);
+print("ipoput4: no route\n");
+			error("no route");
+		}
 		goto free;
 	}
 
@@ -441,7 +447,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 	h = (Ip4hdr*)(bp->rp);
 
 	/* dump anything that whose header doesn't checksum */
-	if(ipcsum(&h->vihl)) {
+	if((bp->flag & Bipck) == 0 && ipcsum(&h->vihl)) {
 		ip->stats[InHdrErrors]++;
 		netlog(f, Logip, "ip: checksum error %V\n", h->src);
 		freeblist(bp);

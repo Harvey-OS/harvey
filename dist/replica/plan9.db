@@ -125,7 +125,7 @@
 386/bin/aux/stub - 775 sys sys 1039758546 133120
 386/bin/aux/tcpostio - 775 sys sys 1038443105 199714
 386/bin/aux/text2post - 775 sys sys 1039758546 77253
-386/bin/aux/timesync - 775 sys sys 1039758546 125710
+386/bin/aux/timesync - 775 sys sys 1045435076 127693
 386/bin/aux/tr2post - 775 sys sys 1039758547 175495
 386/bin/aux/trampoline - 775 sys sys 1039758547 81154
 386/bin/aux/typepasswd - 775 sys sys 1039758547 68151
@@ -322,7 +322,7 @@
 386/bin/read - 775 sys sys 1039758585 56544
 386/bin/replica - 20000000775 sys sys 1018321168 0
 386/bin/replica/applychanges - 775 sys sys 1039758585 99044
-386/bin/replica/applylog - 775 sys sys 1039758585 98429
+386/bin/replica/applylog - 775 sys sys 1045407499 98978
 386/bin/replica/changes - 775 sys sys 1020319082 42
 386/bin/replica/compactdb - 775 sys sys 1039758586 77913
 386/bin/replica/pull - 775 sys sys 1020319083 39
@@ -3253,7 +3253,7 @@ sys/include/authsrv.h - 664 sys sys 1014929062 4542
 sys/include/bin.h - 664 sys sys 1014929062 215
 sys/include/bio.h - 664 sys sys 1014929062 1854
 sys/include/bootexec.h - 664 sys sys 1014929062 3144
-sys/include/control.h - 664 sys sys 1040451728 4829
+sys/include/control.h - 664 sys sys 1045419238 4801
 sys/include/ctype.h - 664 sys sys 1014929062 951
 sys/include/cursor.h - 664 sys sys 1014929062 102
 sys/include/disk.h - 664 sys sys 1014929063 1096
@@ -4367,7 +4367,7 @@ sys/lib/wiki/page.txt - 664 sys sys 1018580959 12
 sys/lib/wiki/sandbox - 664 sys sys 1018580959 102
 sys/lib/wiki/werror.html - 664 sys sys 1018580959 1234
 sys/lib/yaccpar - 664 sys sys 944956052 4588
-sys/lib/yaccpars - 664 sys sys 944956052 4673
+sys/lib/yaccpars - 664 sys sys 1045432683 4596
 sys/log - 20000000775 sys sys 984760091 0
 sys/log/aan - 10000000666 sys sys 1019856844 0
 sys/log/auth - 10000000666 sys sys 959261821 0
@@ -5029,7 +5029,7 @@ sys/src/9/ip/icmp6.c - 664 sys sys 1045063518 18086
 sys/src/9/ip/igmp.c - 664 sys sys 1026847566 5185
 sys/src/9/ip/il.c - 664 sys sys 1028566049 26975
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
-sys/src/9/ip/ip.c - 664 sys sys 1045063517 15146
+sys/src/9/ip/ip.c - 664 sys sys 1045432713 15274
 sys/src/9/ip/ip.h - 664 sys sys 1045063514 15846
 sys/src/9/ip/ipaux.c - 664 sys sys 1022588098 12656
 sys/src/9/ip/ipifc.c - 664 sys sys 1045063513 37702
@@ -5044,7 +5044,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1022588099 491
 sys/src/9/ip/pktmedium.c - 664 sys sys 1045063516 1355
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1026847569 21413
-sys/src/9/ip/tcp.c - 664 sys sys 1045063512 64964
+sys/src/9/ip/tcp.c - 664 sys sys 1045432714 65108
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1026847570 13046
 sys/src/9/mkfile - 664 sys sys 1017795039 191
@@ -6576,7 +6576,7 @@ sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
 sys/src/cmd/aux/reboot.c - 664 sys sys 1014925091 1411
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1014925091 18176
 sys/src/cmd/aux/stub.c - 664 sys sys 1032468954 2637
-sys/src/cmd/aux/timesync.c - 664 sys sys 1022590195 23211
+sys/src/cmd/aux/timesync.c - 664 sys sys 1045435060 24288
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1034780422 3571
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
@@ -6978,10 +6978,10 @@ sys/src/cmd/exportfs/mkfile - 664 sys sys 1036979221 204
 sys/src/cmd/faces - 20000000775 sys sys 952888246 0
 sys/src/cmd/faces/dblook.c - 664 sys sys 944961084 359
 sys/src/cmd/faces/facedb.c - 664 sys sys 1021579994 8976
-sys/src/cmd/faces/faces.h - 664 sys sys 1035698248 1046
-sys/src/cmd/faces/main.c - 664 sys sys 1035698249 13402
+sys/src/cmd/faces/faces.h - 664 sys sys 1045419243 1071
+sys/src/cmd/faces/main.c - 664 sys sys 1045419249 13505
 sys/src/cmd/faces/mkfile - 664 sys sys 1035698248 378
-sys/src/cmd/faces/plumb.c - 664 sys sys 1035698249 6925
+sys/src/cmd/faces/plumb.c - 664 sys sys 1045419249 7132
 sys/src/cmd/faces/util.c - 664 sys sys 1035698250 569
 sys/src/cmd/factor.c - 664 sys sys 944961351 1348
 sys/src/cmd/fax - 20000000775 sys sys 954036333 0
@@ -9644,7 +9644,7 @@ sys/src/cmd/read.c - 664 sys sys 1022047660 1278
 sys/src/cmd/replica - 20000000775 sys sys 1018321113 0
 sys/src/cmd/replica/all.h - 664 sys sys 1018323474 1181
 sys/src/cmd/replica/applychanges.c - 664 sys sys 1032060505 5858
-sys/src/cmd/replica/applylog.c - 664 sys sys 1019525023 15879
+sys/src/cmd/replica/applylog.c - 664 sys sys 1045407499 16476
 sys/src/cmd/replica/avl.c - 664 sys sys 1018321111 6202
 sys/src/cmd/replica/compactdb.c - 664 sys sys 1018323475 652
 sys/src/cmd/replica/db.c - 664 sys sys 1019340165 2989

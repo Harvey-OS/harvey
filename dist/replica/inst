@@ -1,0 +1,23 @@
+#!/bin/rc
+
+# Generic plan9 installation template.
+# Assumes that distribution CD or sources
+# is mounted at /n/dist, and should be installed
+# to /n/inst.
+
+s=/n/dist/dist/replica
+serverroot=/n/dist
+serverlog=$s/plan9.log
+serverproto=$s/plan9.proto
+fn servermount { status='' } 
+fn serverupdate { status='' }
+
+fn clientmount { status='' }
+c=/n/inst/dist/replica
+clientroot=/n/inst
+clientproto=$c/plan9.proto
+clientdb=$c/client/plan9.db
+clientexclude=(dist/replica/client)
+clientlog=$c/client/plan9.log
+
+applyopt=(-t -u -T$c/client/plan9.time)

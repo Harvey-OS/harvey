@@ -14,6 +14,7 @@ enum {
 	Fs,
 	Rtc,
 	Ntp,
+	Utc,
 
 	HZAvgSecs=	3*60,	/* target averaging period for the frequency in seconds */
 	MinSampleSecs=	60,	/* minimum sampling time in seconds */
@@ -23,6 +24,8 @@ enum {
 char *dir = "/tmp";	// directory sample files live in
 char *logfile = "timesync";
 char *timeserver;
+char *Rootid;
+int utcfil;
 int debug;
 int impotent;
 int logging;
@@ -109,6 +112,7 @@ static vlong	sample(long (*get)(void));
 static void	setpriority(void);
 static void	setrootid(char *d);
 static void	settime(vlong now, uvlong hz, vlong delta, int n); // set time, hz, delta, period
+static vlong	utcsample(void);
 static uvlong	vabs(vlong);
 static uvlong	whatisthefrequencykenneth(uvlong hz, uvlong minhz, uvlong maxhz, vlong dt, vlong ticks, vlong period);
 static void	writefreqfile(int fd, vlong hz, int secs, vlong diff);
@@ -137,6 +141,7 @@ main(int argc, char **argv)
 	accuracy = 1000000LL;	// default accuracy is 1 millisecond
 	nservenet = 0;
 	tsecs = secs = MinSampleSecs;
+	timeserver = "";
 
 	ARGBEGIN{
 	case 'a':
@@ -154,6 +159,13 @@ main(int argc, char **argv)
 	case 'r':
 		type = Rtc;
 		stratum = 0;
+		break;
+	case 'U':
+		type = Utc;
+		stratum = 1;
+		timeserver = ARGF();
+		if (timeserver == nil)
+			sysfatal("bad time source");
 		break;
 	case 'n':
 		type = Ntp;
@@ -196,6 +208,9 @@ main(int argc, char **argv)
 	case 'i':
 		impotent = 1;
 		break;
+	case 'I':
+		Rootid = ARGF();
+		break;
 	case 's':
 		if(nservenet >= nelem(servenet))
 			sysfatal("too many networks to serve on");
@@ -219,7 +234,6 @@ main(int argc, char **argv)
 	fmtinstall('I', eipfmt);
 	fmtinstall('V', eipfmt);
 	sysid = getenv("sysname");
-	timeserver = "";
 
 	switch(type){
 	case Fs:
@@ -283,6 +297,12 @@ main(int argc, char **argv)
 		if(access("/dev/rtc", AREAD) < 0)
 			sysfatal("accessing /dev/rtc: %r\n");
 		break;
+	case Utc:
+		fd = open(timeserver, OREAD);
+		if(fd < 0)
+			sysfatal("opening %s: %r\n", timeserver);
+		utcfil = fd;
+		break;
 	}
 
 	//
@@ -324,6 +344,17 @@ main(int argc, char **argv)
 			break;
 		case Rtc:
 			s->stime = sample(rtctime);
+			break;
+		case Utc:
+			s->stime = utcsample();
+			if(s->stime == 0LL){
+				if(logging)
+					syslog(0, logfile, "no sample");
+				free(s);
+				if (secs > 60 * 15)
+					tsecs = 60*15;
+				continue;
+			}
 			break;
 		case Ntp:
 			diff = ntpsample();
@@ -987,6 +1018,32 @@ if(debug) fprint(2, "ntp %s rootdelay %lld rootdisp %lld metric %lld\n", tns->na
 }
 
 //
+// sample the utc file
+//
+static vlong
+utcsample(void)
+{
+	vlong	s;
+	int	n;
+	char	*v[2], buf[128];
+
+	s = 0;
+	seek(utcfil, 0, 0);
+	n = read(utcfil, buf, sizeof buf - 1);
+	if (n <= 0)
+		return(0LL);
+	buf[n] = 0;
+	n = tokenize(buf, v, nelem(v));
+	if (strcmp(v[0], "0") == 0)
+		return(0LL);
+	if (n == 2) {
+		gettime(&s, nil, nil);
+		s -= atoll(v[1]);
+	}
+	return(atoll(v[0]) + s);
+}
+
+//
 //  sntp server
 //
 static int
@@ -1021,17 +1078,23 @@ ntpserver(char *servenet)
 
 	fd = openlisten(servenet);
 
-	switch(type){
-	case Fs:
-		memmove(rootid, "WWV", 3);
-		break;
-	case Rtc:
-		memmove(rootid, "LOCL", 3);
-		break;
-	case Ntp:
-		/* set by the ntp client */
-		break;
-	}
+	if (Rootid == nil)
+		switch(type){
+		case Fs:
+			Rootid = "WWV";
+			break;
+		case Rtc:
+			Rootid = "LOCL";
+			break;
+		case Utc:
+			Rootid = "UTC";
+			break;
+		case Ntp:
+			/* set by the ntp client */
+			break;
+		}
+	if (Rootid != nil)
+		memmove(rootid, Rootid, strlen(Rootid) > 4 ? 4 : strlen(Rootid));
 
 	for(;;){
 		n = read(fd, buf, sizeof(buf));
