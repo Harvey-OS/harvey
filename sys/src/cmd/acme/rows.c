@@ -472,7 +472,7 @@ rowloadfonts(char *file)
 	Bterm(b);
 }
 
-void
+int
 rowload(Row *row, char *file, int initing)
 {
 	int i, j, line, percent, y, nr, nfontr, n, ns, ndumped, dumpid, x, fd;
@@ -697,15 +697,15 @@ rowload(Row *row, char *file, int initing)
 		w->maxlines = min(w->body.nlines, max(w->maxlines, w->body.maxlines));
 	}
 	Bterm(b);
-
-Rescue1:
 	fbuffree(buf);
-	return;
+	return TRUE;
 
 Rescue2:
 	warning(nil, "bad load file %s:%d\n", file, line);
 	Bterm(b);
-	goto Rescue1;
+Rescue1:
+	fbuffree(buf);
+	return FALSE;
 }
 
 void

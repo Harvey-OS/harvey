@@ -184,9 +184,7 @@ threadmain(int argc, char *argv[])
 
 	#define	WPERCOL	8
 	disk = diskinit();
-	if(loadfile)
-		rowload(&row, loadfile, TRUE);
-	else{
+	if(!loadfile || !rowload(&row, loadfile, TRUE)){
 		rowinit(&row, screen->clipr);
 		if(ncol < 0){
 			if(argc == 0)

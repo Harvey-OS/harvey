@@ -160,6 +160,7 @@ int	ismsdos(void);
 int	iself(void);
 int	istring(void);
 int	long0(void);
+int	istar(void);
 int	p9bitnum(uchar*);
 int	p9subfont(uchar*);
 void	print_utf(void);
@@ -173,6 +174,7 @@ int	(*call[])(void) =
 	istring,	/* recognizable by first string */
 	isrfc822,	/* email file */
 	ismbox,		/* mail box */
+	istar,		/* recognizable by tar checksum */
 	ishtml,		/* html keywords */
 	iscint,		/* compiler/assembler intermediate */
 	islimbo,	/* limbo source */
@@ -548,6 +550,72 @@ long0(void)
 	x = LENDIAN(buf);
 	if(filemagic(long0tab, nelem(long0tab), x))
 		return 1;
+	return 0;
+}
+
+/* from tar.c */
+enum { NAMSIZ = 100, TBLOCK = 512 };
+
+union	hblock
+{
+	char	dummy[TBLOCK];
+	struct	header
+	{
+		char	name[NAMSIZ];
+		char	mode[8];
+		char	uid[8];
+		char	gid[8];
+		char	size[12];
+		char	mtime[12];
+		char	chksum[8];
+		char	linkflag;
+		char	linkname[NAMSIZ];
+		/* rest are defined by POSIX's ustar format; see p1003.2b */
+		char	magic[6];	/* "ustar" */
+		char	version[2];
+		char	uname[32];
+		char	gname[32];
+		char	devmajor[8];
+		char	devminor[8];
+		char	prefix[155];  /* if non-null, path = prefix "/" name */
+	} dbuf;
+};
+
+int
+checksum(union hblock *hp)
+{
+	int i;
+	char *cp;
+	struct header *hdr = &hp->dbuf;
+
+	for (cp = hdr->chksum; cp < &hdr->chksum[sizeof hdr->chksum]; cp++)
+		*cp = ' ';
+	i = 0;
+	for (cp = hp->dummy; cp < &hp->dummy[TBLOCK]; cp++)
+		i += *cp & 0xff;
+	return i;
+}
+
+int
+istar(void)
+{
+	int chksum;
+	char tblock[TBLOCK];
+	union hblock *hp = (union hblock *)tblock;
+	struct header *hdr = &hp->dbuf;
+
+	seek(fd, 0, 0);		/* reposition to start of file */
+	if (readn(fd, tblock, sizeof tblock) != sizeof tblock)
+		return 0;
+	chksum = strtol(hdr->chksum, 0, 8);
+	if (hdr->name[0] != '\0' && checksum(hp) == chksum) {
+		if (strcmp(hdr->magic, "ustar") == 0)
+			print(mime? "application/x-ustar\n":
+				"posix tar archive\n");
+		else
+			print(mime? "application/x-tar\n": "tar archive\n");
+		return 1;
+	}
 	return 0;
 }
 

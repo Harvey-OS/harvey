@@ -126,7 +126,7 @@ getfullname(struct header *hp)
 	if (fullname != nil)
 		free(fullname);
 	namlen = strnlen(hp->name, sizeof hp->name);
-	if (hp->prefix[0] == '\0' || !ustar) {
+	if (hp->prefix[0] == '\0' || !ustar) {	/* old-style name? */
 		fullname = malloc(namlen + 1);
 		if (fullname == nil)
 			sysfatal("out of memory: %r");
@@ -369,9 +369,15 @@ dorep(char **argv)
 }
 
 int
+isendtar(void)
+{
+	return fullname[0] == '\0';
+}
+
+int
 endtar(void)
 {
-	if (dblock.dbuf.name[0] == '\0') {
+	if (isendtar()) {
 		backtar();
 		return(1);
 	}
@@ -385,7 +391,9 @@ getdir(void)
 	Dir *sp;
 
 	readtar((char*)&dblock);
-	if (dblock.dbuf.name[0] == '\0')
+	ustar = isustar(&dblock.dbuf);
+	getfullname(&dblock.dbuf);
+	if (isendtar())
 		return;
 	if(stbuf == nil){
 		stbuf = malloc(sizeof(Dir));
@@ -402,8 +410,6 @@ getdir(void)
 	if (chksum != checksum())
 		sysfatal("header checksum error");
 	sp->qid.type = 0;
-	ustar = isustar(&dblock.dbuf);
-	getfullname(&dblock.dbuf);
 	/* the mode test is ugly but sometimes necessary */
 	if (dblock.dbuf.linkflag == LF_DIR || (sp->mode&0170000) == 040000 ||
 	    strrchr(fullname, '\0')[-1] == '/') {
@@ -463,7 +469,8 @@ putfile(char *dir, char *longname, char *sname)
 
 	if (stbuf->qid.type & QTDIR) {
 		/* Directory */
-		for (i = 0, cp = buf; *cp++ = longname[i++];);
+		for (i = 0, cp = buf; *cp++ = longname[i++];)
+			;
 		*--cp = '/';
 		*++cp = 0;
 		stbuf->length = 0;

@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1085076971 101995
 386/bin/aan - 775 sys sys 1085076971 128820
 386/bin/acid - 775 sys sys 1091936087 353717
-386/bin/acme - 775 sys sys 1100579339 425046
+386/bin/acme - 775 sys sys 1101960674 425079
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1087442501 132681
 386/bin/ape/cc - 775 sys sys 1085076973 68304
@@ -132,7 +132,7 @@
 386/bin/aux/posttek - 775 sys sys 1087442508 163239
 386/bin/aux/rdwr - 775 sys sys 1085077003 38275
 386/bin/aux/reboot - 775 sys sys 1085077004 58332
-386/bin/aux/samterm - 775 sys sys 1085077004 245843
+386/bin/aux/samterm - 775 sys sys 1101960674 245747
 386/bin/aux/searchfs - 775 sys sys 1085077005 87587
 386/bin/aux/sprog - 775 sys sys 1085077006 77357
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
@@ -220,7 +220,7 @@
 386/bin/ext2srv - 775 sys sys 1089397312 171855
 386/bin/faces - 775 sys sys 1098158504 190538
 386/bin/factor - 775 sys sys 1085077042 59443
-386/bin/file - 775 sys sys 1091936091 108649
+386/bin/file - 775 sys sys 1101960674 110319
 386/bin/fmt - 775 sys sys 1085077043 63269
 386/bin/fortune - 775 sys sys 1085077045 65146
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -401,7 +401,7 @@
 386/bin/swap - 775 sys sys 1085077102 60111
 386/bin/syscall - 775 sys sys 1091849700 71497
 386/bin/tail - 775 sys sys 1085077102 63945
-386/bin/tar - 775 sys sys 1094612761 81786
+386/bin/tar - 775 sys sys 1101960675 81834
 386/bin/tbl - 775 sys sys 1085077103 111047
 386/bin/tcs - 775 sys sys 1085077103 256506
 386/bin/tee - 775 sys sys 1085077104 38401
@@ -458,8 +458,8 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1087873352 90619
 386/bin/usb - 20000000775 sys sys 1019538890 0
-386/bin/usb/usbaudio - 775 sys sys 1100664617 183278
-386/bin/usb/usbd - 775 sys sys 1099800617 127661
+386/bin/usb/usbaudio - 775 sys sys 1101960675 183323
+386/bin/usb/usbd - 775 sys sys 1101960675 127706
 386/bin/usb/usbmouse - 775 sys sys 1099800618 138206
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1085077119 167554
@@ -533,7 +533,7 @@
 386/lib/libdisk.a - 664 sys sys 1091936103 42234
 386/lib/libdraw.a - 664 sys sys 1098158576 373544
 386/lib/libflate.a - 664 sys sys 1089397329 76872
-386/lib/libframe.a - 664 sys sys 1098158576 66084
+386/lib/libframe.a - 664 sys sys 1101960676 66060
 386/lib/libgeometry.a - 664 sys sys 1098158576 50470
 386/lib/libhtml.a - 664 sys sys 1098158577 219972
 386/lib/libhttpd.a - 664 sys sys 1091936105 99488
@@ -5288,7 +5288,7 @@ sys/src/9/ip/icmp6.c - 664 sys sys 1047260563 18098
 sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
 sys/src/9/ip/il.c - 664 sys sys 1077376217 26959
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
-sys/src/9/ip/ip.c - 664 sys sys 1047951326 15285
+sys/src/9/ip/ip.c - 664 sys sys 1101906449 15285
 sys/src/9/ip/ip.h - 664 sys sys 1091904429 15818
 sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
 sys/src/9/ip/ipifc.c - 664 sys sys 1091733773 34267
@@ -6785,14 +6785,14 @@ sys/src/cmd/acid/print.c - 664 sys sys 984756705 6840
 sys/src/cmd/acid/proc.c - 664 sys sys 1014924908 4513
 sys/src/cmd/acid/util.c - 664 sys sys 944960738 4297
 sys/src/cmd/acme - 20000000775 sys sys 969511023 0
-sys/src/cmd/acme/acme.c - 664 sys sys 1097972699 19493
+sys/src/cmd/acme/acme.c - 664 sys sys 1101910760 19489
 sys/src/cmd/acme/addr.c - 664 sys sys 1018553456 4787
 sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1079102914 11126
-sys/src/cmd/acme/dat.h - 664 sys sys 1097972700 11144
+sys/src/cmd/acme/dat.h - 664 sys sys 1101910760 11143
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1077376256 24294
-sys/src/cmd/acme/edit.c - 664 sys sys 1015701171 12055
+sys/src/cmd/acme/edit.c - 664 sys sys 1101910761 12068
 sys/src/cmd/acme/edit.h - 664 sys sys 969500816 2466
 sys/src/cmd/acme/elog.c - 664 sys sys 1078839859 7236
 sys/src/cmd/acme/exec.c - 664 sys sys 1099329953 28183
@@ -6802,7 +6802,7 @@ sys/src/cmd/acme/fsys.c - 664 sys sys 1079102915 12799
 sys/src/cmd/acme/look.c - 664 sys sys 1077376257 14213
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
-sys/src/cmd/acme/rows.c - 664 sys sys 1084542482 14664
+sys/src/cmd/acme/rows.c - 664 sys sys 1101910761 14683
 sys/src/cmd/acme/scrl.c - 664 sys sys 1014926095 3072
 sys/src/cmd/acme/text.c - 664 sys sys 1099500744 27642
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
@@ -7531,7 +7531,7 @@ sys/src/cmd/fax/receive.c - 664 sys sys 944960990 1097
 sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
-sys/src/cmd/file.c - 664 sys sys 1084471672 21379
+sys/src/cmd/file.c - 664 sys sys 1101909618 22781
 sys/src/cmd/fmt.c - 664 sys sys 1070032009 4088
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -10435,7 +10435,7 @@ sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1014926385 3754
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1014926385 3971
 sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
 sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1097900277 6803
-sys/src/cmd/tar.c - 664 sys sys 1094598836 15585
+sys/src/cmd/tar.c - 664 sys sys 1101909630 15630
 sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987
@@ -10936,11 +10936,11 @@ sys/src/cmd/usb/audio/audiosub.c - 664 sys sys 1100568596 6967
 sys/src/cmd/usb/audio/mkfile - 664 sys sys 1091204980 349
 sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1100619443 9818
 sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1100568597 1861
-sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1100568597 17264
+sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1101906325 17266
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1100568597 600
 sys/src/cmd/usb/lib - 20000000775 sys sys 1018369393 0
 sys/src/cmd/usb/lib/device.c - 664 sys sys 1099760882 2968
-sys/src/cmd/usb/lib/dump.c - 664 sys sys 1099760882 12704
+sys/src/cmd/usb/lib/dump.c - 664 sys sys 1101906317 12757
 sys/src/cmd/usb/lib/fmt.c - 664 sys sys 1091204978 291
 sys/src/cmd/usb/lib/mkfile - 664 sys sys 1091204979 204
 sys/src/cmd/usb/lib/setup.c - 664 sys sys 1091204978 1953
@@ -11904,7 +11904,7 @@ sys/src/libflate/zlib.h - 664 sys sys 984709217 219
 sys/src/libframe - 20000000775 sys sys 944961726 0
 sys/src/libframe/frbox.c - 664 sys sys 1078466650 3028
 sys/src/libframe/frdelete.c - 664 sys sys 944961726 3079
-sys/src/libframe/frdraw.c - 664 sys sys 945275945 3277
+sys/src/libframe/frdraw.c - 664 sys sys 1101910634 3271
 sys/src/libframe/frinit.c - 664 sys sys 1019498851 1761
 sys/src/libframe/frinsert.c - 664 sys sys 984709939 6700
 sys/src/libframe/frptofchar.c - 664 sys sys 944961726 1995
