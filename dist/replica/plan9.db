@@ -4749,7 +4749,7 @@ sys/man/4/exportfs - 664 sys sys 1018386776 3746
 sys/man/4/factotum - 664 sys sys 1021579982 13900
 sys/man/4/fossil - 664 sys sys 1045777955 8690
 sys/man/4/fs - 664 sys sys 1019058716 3387
-sys/man/4/ftpfs - 664 sys sys 1018386777 4113
+sys/man/4/ftpfs - 664 sys sys 1048285446 4327
 sys/man/4/import - 664 sys sys 1034195346 2204
 sys/man/4/iostats - 664 sys sys 959566568 1415
 sys/man/4/keyfs - 664 sys sys 1017251244 5003
@@ -5042,7 +5042,7 @@ sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1047951326 15285
 sys/src/9/ip/ip.h - 664 sys sys 1047260722 16078
 sys/src/9/ip/ipaux.c - 664 sys sys 1022588098 12656
-sys/src/9/ip/ipifc.c - 664 sys sys 1047951327 37830
+sys/src/9/ip/ipifc.c - 664 sys sys 1048288617 37843
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1047951327 14767
 sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
@@ -6673,6 +6673,7 @@ sys/src/cmd/aux/typepasswd.c - 664 sys sys 1014925091 1761
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
 sys/src/cmd/aux/vga - 20000000775 sys sys 1018723175 0
 sys/src/cmd/aux/vga/3dfx.c - 664 sys sys 1026337537 6886
+sys/src/cmd/aux/vga/adventure - 664 sys sys 1048274168 14869
 sys/src/cmd/aux/vga/ark2000pv.c - 664 sys sys 1014925006 5958
 sys/src/cmd/aux/vga/att20c49x.c - 664 sys sys 1014925007 1730
 sys/src/cmd/aux/vga/att21c498.c - 664 sys sys 1014925007 3209
@@ -8979,10 +8980,10 @@ sys/src/cmd/ip/dhcpd/testping.c - 664 sys sys 950389141 352
 sys/src/cmd/ip/ftpd.c - 664 sys sys 1046643070 32813
 sys/src/cmd/ip/ftpfs - 20000000775 sys sys 1014925642 0
 sys/src/cmd/ip/ftpfs/file.c - 664 sys sys 1014925642 4208
-sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1035122891 13478
+sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1048285493 13555
 sys/src/cmd/ip/ftpfs/ftpfs.h - 664 sys sys 1035122891 2319
-sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1036479802 181
-sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1045505192 29282
+sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048285492 158
+sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1048285496 29321
 sys/src/cmd/ip/glob.c - 664 sys sys 1015013111 2968
 sys/src/cmd/ip/glob.h - 664 sys sys 1015090252 270
 sys/src/cmd/ip/gping.c - 664 sys sys 1015013112 20476
