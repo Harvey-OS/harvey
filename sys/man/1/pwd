@@ -23,14 +23,6 @@ mechanism.)
 prints the base name of the working (current) directory.
 It prints no final newline and is intended for applications
 such as constructing shell prompts.
-Since it uses
-.IR stat (2)
-to discover the name of
-.B \&.
-(dot),
-if the directory has been bound to another name, it will show
-the underlying name rather than that reported by
-.IR pwd .
 .SH SOURCE
 .B /sys/src/cmd/pwd.c
 .br
